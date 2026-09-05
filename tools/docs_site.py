@@ -1,7 +1,7 @@
 """Keep repository-relative Markdown useful in both GitHub and MkDocs.
 
 Gallery images are included from their existing location. Links to source
-outside docs/ point at the private repository and retain its access controls.
+outside docs/ point at the GitHub repository.
 """
 from pathlib import Path
 import posixpath

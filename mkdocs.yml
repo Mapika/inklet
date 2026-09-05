@@ -1,4 +1,5 @@
 site_name: Inklet
+site_url: !ENV [READTHEDOCS_CANONICAL_URL, 'https://inklet.readthedocs.io/en/latest/']
 site_description: Scientific figures with live data, measured layout and vector exports.
 repo_url: https://github.com/Mapika/inklet
 repo_name: GitHub

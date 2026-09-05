@@ -52,6 +52,6 @@ include = [
     "/src", "/tests", "/docs", "/examples", "/figures", "/gallery",
     "/stress", "/tools", "/scripts", "/.github", "/.gitignore", "/.gitattributes",
     "/README.md", "/CONTRIBUTING.md", "/CHANGELOG.md", "/CONTRACT.md",
-    "/LICENSE", "/THIRD_PARTY_NOTICES.md", "/mkdocs.yml",
+    "/LICENSE", "/THIRD_PARTY_NOTICES.md", "/mkdocs.yml", "/.readthedocs.yaml",
     "/requirements-ci.txt", "/requirements-docs.txt",
 ]

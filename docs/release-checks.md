@@ -20,7 +20,8 @@ The figure job uses Ubuntu 24.04, Python 3.12, Chrome, Poppler, DejaVu and Noto
 fonts. The visual checker verifies the DejaVu file hashes before comparisons;
 font mismatches fail rather than refreshing references. Review artifacts and
 test reports are retained for seven days, including on failed runs. The static
-documentation site is included in the artifact; it is not deployed publicly.
+documentation site is included in the artifact. Hosting is configured separately
+through Read the Docs.
 
 The workflow uses the official [uv setup action](https://docs.astral.sh/uv/guides/integration/github/).
 Action references are pinned to commits. Python test dependencies are locked;
@@ -46,6 +47,28 @@ uv build --wheel --out-dir out/dist
 The wheel check uses uv when available, otherwise Python's venv/pip support.
 Neither visual checker updates baselines during normal runs. Changes to the
 baseline require explicit visual review and `tools/visual_check.py --update`.
+
+## Read the Docs
+
+[`.readthedocs.yaml`](../.readthedocs.yaml) configures a strict MkDocs build on
+Ubuntu 24.04 with Python 3.12 and the pinned documentation requirements.
+The site includes the existing gallery images and search index; building it
+does not require Chrome, Blender or regeneration of the figures.
+
+To activate hosting, sign into the
+[Read the Docs dashboard](https://app.readthedocs.org/dashboard/) with GitHub,
+choose **Add project**, and select `Mapika/inklet`. Use `inklet` as the project
+slug, `master` as the default branch, and `.readthedocs.yaml` as the configuration
+file. If the repository is missing, grant the Read the Docs GitHub App access to
+`Mapika/inklet`. The GitHub integration enables builds on subsequent pushes.
+
+After the first successful build, the intended documentation address is
+`https://inklet.readthedocs.io/en/latest/`. MkDocs uses the canonical URL supplied
+by Read the Docs, with that address as the local-build default.
+
+Initially build **latest** from `master`. The existing `v2.5.0` tag predates the
+Read the Docs configuration; future release tags will include it and can be
+activated as documentation versions without changing the published `v2.5.0` tag.
 
 ## Publishing to PyPI
 

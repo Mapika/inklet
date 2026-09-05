@@ -20,6 +20,9 @@ class References(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        # Canonical URLs identify the hosted page; they are not fetched assets.
+        if tag == 'link' and 'canonical' in attrs.get('rel', '').split():
+            return
         if tag in ('a','link') and attrs.get('href'):
             self.references.append((tag,attrs['href']))
         if tag in ('img','script') and attrs.get('src'):
