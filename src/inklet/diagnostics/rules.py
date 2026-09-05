@@ -299,6 +299,8 @@ class LintContext:
     min_clearance_mm: float = DEFAULT_MIN_CLEARANCE_MM
     min_overlap_fraction: float = DEFAULT_MIN_OVERLAP_FRACTION
     max_stroke_widths: int = DEFAULT_MAX_STROKE_WIDTHS
+    max_font_pt: float | None = None
+    max_height_mm: float | None = None
     #: {node id: the ids it was built to touch}, from `Diagram.attached_to`.
     attachments: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
     _by_id: dict[str, Item] = field(default_factory=dict, repr=False, compare=False)
@@ -662,7 +664,12 @@ def build_context(
     min_clearance_mm: float = DEFAULT_MIN_CLEARANCE_MM,
     min_overlap_fraction: float = DEFAULT_MIN_OVERLAP_FRACTION,
     max_stroke_widths: int = DEFAULT_MAX_STROKE_WIDTHS,
+    max_font_pt: float | None = None,
+    max_height_mm: float | None = None,
 ) -> LintContext:
+    for name, value in (('max_font_pt', max_font_pt), ('max_height_mm', max_height_mm)):
+        if value is not None and (not math.isfinite(value) or value <= 0):
+            raise ValueError(f'{name} must be finite and positive')
     nodes: dict[str, Diagram] = {}
     parent: dict[str, str | None] = {}
     attachments: dict[str, tuple[str, ...]] = {}
@@ -702,6 +709,7 @@ def build_context(
         min_clearance_mm=min_clearance_mm,
         min_overlap_fraction=min_overlap_fraction,
         max_stroke_widths=max_stroke_widths,
+        max_font_pt=max_font_pt, max_height_mm=max_height_mm,
         attachments=attachments,
     )
 
@@ -1022,6 +1030,40 @@ def rule_tiny_text(ctx: LintContext) -> list[Diagnostic]:
                   f"(pt({needed:.1f})), or stop scaling the group down"),
         ))
     return out
+
+
+def rule_large_text(ctx: LintContext) -> list[Diagnostic]:
+    """Text above an optional publication maximum after enclosing transforms."""
+    if ctx.max_font_pt is None: return []
+    out = []
+    for item in ctx.items:
+        if not item.is_text or not item.draws: continue
+        # The largest singular value catches enlargement along either axis,
+        # including shear; an area-average scale can hide stretched lettering.
+        a, b, c, d = item.world.a, item.world.b, item.world.c, item.world.d
+        xx, yy, xy = a*a+b*b, c*c+d*d, a*c+b*d
+        scale = math.sqrt(max(0., (xx+yy+math.hypot(xx-yy, 2*xy))/2))
+        effective = to_pt(item.prim.font_size*scale)
+        if effective <= ctx.max_font_pt + 1e-9: continue
+        out.append(Diagnostic(
+            code='LARGE_TEXT', severity='error',
+            message=f'{item.described} renders at {_pts(effective)}, above the {_pts(ctx.max_font_pt)} maximum',
+            targets=(item.id,), where=item.bbox,
+            hint='Reduce the authored text size or choose a profile for this destination.',
+        ))
+    return out
+
+
+def rule_page_too_tall(ctx: LintContext) -> list[Diagnostic]:
+    """Page height above an optional publication limit, in physical millimetres."""
+    if ctx.max_height_mm is None or ctx.page is None or ctx.page.height <= ctx.max_height_mm + 1e-9:
+        return []
+    return [Diagnostic(
+        code='PAGE_TOO_TALL', severity='error',
+        message=f'Page height {_mm(ctx.page.height)} exceeds the {_mm(ctx.max_height_mm)} maximum',
+        targets=(ctx.root.id,), where=ctx.page,
+        hint='Reduce panel heights or spacing, split the figure, or choose a profile for this destination.',
+    )]
 
 
 def rule_hairline(ctx: LintContext) -> list[Diagnostic]:
@@ -3091,6 +3133,8 @@ RULES: dict[str, Rule] = {
     "OFF_PANEL": rule_off_panel,
     "BREAK_DISTORTS": rule_break_distorts,
     "TINY_TEXT": rule_tiny_text,
+    "LARGE_TEXT": rule_large_text,
+    "PAGE_TOO_TALL": rule_page_too_tall,
     "HAIRLINE": rule_hairline,
     "LOW_CONTRAST": rule_low_contrast,
     "TEXT_FILL_IGNORED": rule_text_fill_ignored,

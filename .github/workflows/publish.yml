@@ -6,7 +6,7 @@ on:
       tag:
         description: Published GitHub release tag
         required: true
-        default: v2.5.0
+        default: v2.6.0
         type: string
       dry_run:
         description: Validate release files without uploading to PyPI

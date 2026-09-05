@@ -26,6 +26,8 @@ class PublicationProfile:
     text: str = 'embed'
     base_theme: Theme | str = 'nature'
     title_font_pt: float | None = None
+    max_font_pt: float | None = None
+    max_height_mm: float | None = None
 
     def __post_init__(self):
         for name in ('width','font_pt','small_font_pt','stroke_mm','min_font_pt','min_stroke_mm','min_dpi','dpi'):
@@ -34,6 +36,10 @@ class PublicationProfile:
         if isinstance(self.base_theme, str): get_theme(self.base_theme)
         elif not isinstance(self.base_theme, Theme): raise TypeError('base_theme must be a Theme or theme name')
         if self.title_font_pt is not None: length(self.title_font_pt, 'title_font_pt')
+        for name in ('max_font_pt', 'max_height_mm'):
+            if getattr(self, name) is not None: length(getattr(self, name), name)
+        if self.max_font_pt is not None and self.max_font_pt < self.min_font_pt:
+            raise ValueError('max_font_pt must be at least min_font_pt')
 
     @property
     def theme(self):
@@ -45,7 +51,10 @@ class PublicationProfile:
 
     @property
     def checks(self):
-        return dict(min_font_pt=self.min_font_pt,min_stroke_mm=self.min_stroke_mm,min_dpi=self.min_dpi)
+        checks = dict(min_font_pt=self.min_font_pt,min_stroke_mm=self.min_stroke_mm,min_dpi=self.min_dpi)
+        checks.update({name: getattr(self, name) for name in ('max_font_pt', 'max_height_mm')
+                       if getattr(self, name) is not None})
+        return checks
 
     def document(self, **options):
         """Create a document with this profile's theme, checks and export defaults."""

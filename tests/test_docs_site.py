@@ -29,9 +29,13 @@ class References(HTMLParser):
             self.references.append((tag,attrs['src']))
 
 
-def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path):
+def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, monkeypatch):
     from mkdocs.config import load_config
 
+    # Stable/tagged docs must link to their own source, including navigation.
+    commit = '44df92a56a7f83ad9f4667901bf877582a817b63'
+    monkeypatch.setenv('READTHEDOCS_GIT_COMMIT_HASH', commit)
+    monkeypatch.setenv('READTHEDOCS_GIT_IDENTIFIER', 'v2.6.0')
     config = load_config(str(ROOT / 'mkdocs.yml'))
     site_prefix = urlsplit(config['site_url']).path
     site = tmp_path/'site'
@@ -61,6 +65,9 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path):
     quickstart = (site/'quickstart/index.html').read_text()
     assert 'README example</a>' in quickstart
     assert 'class="codehilite"' in quickstart
+    assert f'https://github.com/Mapika/inklet/blob/{commit}/README.md' in quickstart
+    assert f'https://github.com/Mapika/inklet/blob/{commit}/CONTRIBUTING.md' in quickstart
+    assert 'https://github.com/Mapika/inklet/blob/master/' not in quickstart
     assert (site/'gallery/stress20.png').read_bytes() == (ROOT/'gallery/stress20.png').read_bytes()
     search = json.loads((site/'search/search_index.json').read_text())
     locations = {item['location'].split('#')[0] for item in search['docs']}

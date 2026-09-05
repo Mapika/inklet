@@ -15,6 +15,7 @@ physical SVG/PDF dimensions.
 
 | You want to… | Read |
 |---|---|
+| Apply scientific, educational or branded styling | [Presets](presets.md) |
 | Arrange panels, labels and spanning rows | [Page layout](layout.md) |
 | Choose scales, draw marks and add insets | [Plotting](plotting.md) |
 | Share data, colours, units and provenance | [Live data](data.md) |
@@ -38,7 +39,8 @@ scripts. Start with the small examples before running the
 
 ## Existing users and contributors
 
-The guides describe Inklet 2.5. The direct drawing API is still supported.
+The guides describe Inklet 2.6, including [presets and physical formats](presets.md).
+The direct drawing API is still supported.
 [Migration](migration.md) covers both the old package name and moving to live
 documents. [V2](v2.md) and [v2.5](v2.5.md) document their respective additions.
 

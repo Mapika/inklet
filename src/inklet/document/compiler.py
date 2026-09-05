@@ -175,7 +175,7 @@ class CompiledFigure:
     def lint(self, **kwargs):
         if not kwargs: return list(self.diagnostics)
         profile=self.metadata.get('publication',{})
-        defaults={k:profile[k] for k in ('min_font_pt','min_stroke_mm','min_dpi') if k in profile}
+        defaults={k:profile[k] for k in ('min_font_pt','min_stroke_mm','min_dpi','max_font_pt','max_height_mm') if k in profile}
         return self._figure.lint(**(defaults | kwargs))
 
     def report(self, **kwargs):

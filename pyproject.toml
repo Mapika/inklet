@@ -1,8 +1,21 @@
 [project]
 name = "inklet"
-version = "2.6.0.dev0"
+version = "2.6.0"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
+authors = [{name = "Mark Marosi"}]
+keywords = ["scientific-visualization", "plotting", "diagrams", "svg", "pdf"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
 license = "MIT"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 requires-python = ">=3.11"
@@ -13,7 +26,7 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/Mapika/inklet"
-Documentation = "https://inklet.readthedocs.io/en/latest/"
+Documentation = "https://inklet.readthedocs.io/en/stable/"
 Issues = "https://github.com/Mapika/inklet/issues"
 
 [project.scripts]

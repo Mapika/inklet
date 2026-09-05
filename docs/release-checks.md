@@ -18,7 +18,8 @@ pull requests and manual dispatch. It does not publish packages.
 - The preset comparison renders the same plots, workflow, table and native 3D
   object in all ten presets, preserving SVG/PDF files and both previews.
   Preset tests cover inherited styles, explicit overrides, switching, caching,
-  data provenance and physical formats.
+  data provenance and physical formats. Three complete destination examples
+  exercise journal limits, 16:9 slides and A4 worksheets, including PDF page sizes.
 
 The figure job uses Ubuntu 24.04, Python 3.12, Chrome, Poppler, DejaVu and Noto
 fonts. The visual checker verifies the DejaVu file hashes before comparisons;
@@ -44,6 +45,7 @@ uv pip install -r requirements-docs.txt
 .venv/bin/python tools/visual_check.py
 .venv/bin/python tools/benchmark_v2.py
 .venv/bin/python tools/stress20.py
+.venv/bin/python tools/preset_gallery.py
 uv build --wheel --out-dir out/dist
 .venv/bin/python tools/check_wheel.py out/dist/inklet-*.whl
 ```
@@ -59,20 +61,15 @@ Ubuntu 24.04 with Python 3.12 and the pinned documentation requirements.
 The site includes the existing gallery images and search index; building it
 does not require Chrome, Blender or regeneration of the figures.
 
-To activate hosting, sign into the
-[Read the Docs dashboard](https://app.readthedocs.org/dashboard/) with GitHub,
-choose **Add project**, and select `Mapika/inklet`. Use `inklet` as the project
-slug, `master` as the default branch, and `.readthedocs.yaml` as the configuration
-file. If the repository is missing, grant the Read the Docs GitHub App access to
-`Mapika/inklet`. The GitHub integration enables builds on subsequent pushes.
+Hosting is active at [stable](https://inklet.readthedocs.io/en/stable/) for the
+newest activated release tag and [latest](https://inklet.readthedocs.io/en/latest/)
+for `master`. The GitHub integration rebuilds the site on pushes. MkDocs uses
+the canonical URL supplied by Read the Docs; links to source files use the
+commit checked out for that documentation build.
 
-After the first successful build, the intended documentation address is
-`https://inklet.readthedocs.io/en/latest/`. MkDocs uses the canonical URL supplied
-by Read the Docs, with that address as the local-build default.
-
-Initially build **latest** from `master`. The existing `v2.5.0` tag predates the
-Read the Docs configuration; future release tags will include it and can be
-activated as documentation versions without changing the published `v2.5.0` tag.
+After tagging a release, check the project's build dashboard and confirm that
+**stable** successfully builds the new tag. The old `v2.5.0` tag predates the
+hosting configuration and is intentionally unchanged.
 
 ## Publishing to PyPI
 
@@ -80,10 +77,9 @@ The separate [publishing workflow](../.github/workflows/publish.yml) uploads
 the wheel and source archive from an existing, published GitHub release.
 It verifies the release's `SHA256SUMS` and runs Twine's strict metadata checks.
 It does not rebuild the packages, so GitHub and PyPI receive identical files.
-The workflow accepts stable release tags such as `v2.5.0` and runs from `master`.
+The workflow accepts stable release tags such as `v2.6.0` and runs from `master`.
 
-For the first upload, sign into PyPI and add a GitHub pending publisher under
-[account publishing](https://pypi.org/manage/account/publishing/):
+The project already has an active trusted publisher with these settings:
 
 | Field | Value |
 | --- | --- |
@@ -96,12 +92,11 @@ For the first upload, sign into PyPI and add a GitHub pending publisher under
 The workflow filename is just `publish.yml`, without `.github/workflows/`.
 The matching GitHub environment is named `pypi`. Authentication uses
 [Trusted Publishing](https://docs.pypi.org/trusted-publishers/using-a-publisher/);
-no PyPI API token or GitHub repository secret is needed. The first successful
-upload creates the PyPI project and activates its publisher for future uploads.
+no PyPI API token or GitHub repository secret is needed. Publisher configuration is managed in the PyPI project settings.
 
 In GitHub Actions, select **Publish to PyPI**, then **Run workflow** on `master`.
 Enter the published release tag. Leave **Validate release files without uploading
-to PyPI** checked for a dry run; uncheck it to publish after configuring PyPI.
+to PyPI** checked for a dry run; uncheck it to publish.
 The workflow runs only when manually dispatched. Creating a tag or GitHub release
 does not upload to PyPI automatically.
 
@@ -109,10 +104,10 @@ The same operations are available through the GitHub CLI:
 
 ```bash
 # Validate the existing release without uploading.
-gh workflow run publish.yml --ref master -f tag=v2.5.0 -F dry_run=true
+gh workflow run publish.yml --ref master -f tag=v2.6.0 -F dry_run=true
 
-# Publish after configuring the pending publisher on PyPI.
-gh workflow run publish.yml --ref master -f tag=v2.5.0 -F dry_run=false
+# Publish the verified release assets.
+gh workflow run publish.yml --ref master -f tag=v2.6.0 -F dry_run=false
 ```
 
 For subsequent versions, run release checks, create the tag and GitHub release,

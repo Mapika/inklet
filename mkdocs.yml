@@ -42,7 +42,7 @@ nav:
       - First figure: quickstart.md
       - Authoring model: concepts.md
   - Guides:
-      - Presets (2.6 preview): presets.md
+      - Presets: presets.md
       - Page layout: layout.md
       - Plotting: plotting.md
       - Live data: data.md

@@ -58,6 +58,14 @@ def test_documentation_links_resolve_inside_repository():
     assert not missing, '\n'.join(missing)
 
 
+def test_readme_links_are_portable_to_pypi():
+    prose = re.sub(r'^```[^\n]*\n.*?^```','',(ROOT/'README.md').read_text(),
+                   flags=re.MULTILINE | re.DOTALL)
+    for target in re.findall(r'!?\[[^\]\n]*\]\(([^\s)]+)\)',prose):
+        url = urlsplit(target)
+        assert not url.path or url.scheme == 'https', f'non-portable PyPI link: {target}'
+
+
 def test_site_links_keep_gallery_local_and_repository_access_controlled():
     spec = importlib.util.spec_from_file_location('docs_site',ROOT/'tools/docs_site.py')
     module = importlib.util.module_from_spec(spec);spec.loader.exec_module(module)

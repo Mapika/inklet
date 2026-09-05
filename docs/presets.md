@@ -1,7 +1,6 @@
 # Presets
 
-Presets are part of **2.6 development** and are not included in PyPI 2.5.0.
-Install the current [checkout](installation.md#from-a-checkout) to use them.
+Presets are available in **Inklet 2.6**. Upgrade with `python -m pip install --upgrade inklet`.
 
 A preset combines typography, colours, spacing, plot defaults, panel lettering,
 physical page dimensions and export settings. Live content is measured again
@@ -55,6 +54,14 @@ python tools/preset_gallery.py --output out/presets
 Open `out/presets/index.html`. This requires the [visual review dependencies](installation.md#visual-review).
 The comparison uses each default width and overrides height to fit all content.
 Its [source](../examples/presets.py) uses simulated data and built-in geometry.
+
+The gallery also includes complete [destination examples](../examples/preset_formats.py):
+a two-panel journal figure, a 254 × 142.875 mm teaching slide and a 210 × 297 mm
+worksheet. Select **formats** in the gallery to review their SVG and PDF exports.
+Fixed pages use `min_height=` on document cells to reserve space for plots and
+keep headings and captions compact.
+
+![Journal figure, 16:9 teaching slide and A4 worksheet](../gallery/preset-formats.png)
 
 ## Keep style and format separate
 
@@ -112,7 +119,7 @@ its options. It accepts:
   marketing presets use the accent; scientific and worksheet presets use neutral.
 - Lettering: `letter_style` (`bold-lower`, `lower`, `upper`, `bold-upper`, `paren`).
 - Export and checks: `dpi`, `text` (`embed` or `outline`), `min_font_pt`,
-  `min_stroke_mm`, `min_dpi`.
+  `min_stroke_mm`, `min_dpi`, `max_font_pt` and `max_height_mm`.
 
 An `accent` override updates the first automatic series colour unless you
 supply a `palette`. Explicitly coloured series and data-bound category encodings
@@ -149,8 +156,13 @@ The Nature preset's widths and typography were reviewed against the
 [Nature research figure guide](https://research-figure-guide.nature.com/figures/building-and-exporting-figure-panels/)
 on **2026-09-05**: 89/183 mm columns, standard sans-serif text at 5–7 pt, and
 editable embedded text. Inklet chooses 7 pt body/title text and 6 pt labels.
-The guide also specifies a maximum figure height of 170 mm; that limit and the
-maximum font size are documented guidance, not automatic checks in this version.
+For Nature single- and double-column formats, compilation checks the 170 mm
+maximum page height (`PAGE_TOO_TALL`) and the 7 pt maximum effective text size
+(`LARGE_TEXT`). These checks include enclosing transforms and automatic page
+heights, and are retained by `compiled.lint()`. They report errors without
+silently resizing artwork. Slides, posters and other destinations omit these
+print limits. Set `max_font_pt=None` or `max_height_mm=None` on a custom preset
+to disable the corresponding maximum.
 Palettes, spacing, line weights and the default 300 DPI are Inklet design choices.
 
 The [Science author instructions](https://www.science.org/content/page/instructions-preparing-initial-manuscript)
@@ -167,4 +179,5 @@ overridden page fields. The manifest's top-level dimensions and `publication`
 record describe the actual document/export settings.
 
 The 2.5 `theme()` and `publication()` defaults continue to work unchanged.
-Publication profiles can now also accept `base_theme=` and `title_font_pt=`.
+Publication profiles can now also accept `base_theme=`, `title_font_pt=`,
+`max_font_pt=` and `max_height_mm=`.

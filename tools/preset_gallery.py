@@ -19,13 +19,17 @@ def main():
     spec = importlib.util.spec_from_file_location('preset_example', ROOT/'examples/presets.py')
     example = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(example)
+    spec = importlib.util.spec_from_file_location('preset_formats', ROOT/'examples/preset_formats.py')
+    formats = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(formats)
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     records, cards = [], []
-    for name in i.preset_names():
-        doc = example.make_document(name)
+    documents = {name: example.make_document(name) for name in i.preset_names()}
+    documents.update({f'formats.{name}': doc for name, doc in formats.documents().items()})
+    for name, doc in documents.items():
         compiled = doc.compile()
-        bad = [d for d in compiled.diagnostics if d.code in ('RULE_FAILED', 'OFF_CANVAS', 'TINY_TEXT', 'KEY_MISMATCH')]
+        bad = [d for d in compiled.diagnostics if d.severity == 'error' or d.code in ('OFF_CANVAS', 'TINY_TEXT', 'KEY_MISMATCH')]
         if bad: raise RuntimeError(f'{name}: {bad}')
         compiled.export(output/name, dpi=150)
         records.append(dict(name=name, width=compiled.root.width, height=compiled.root.height,
@@ -34,7 +38,7 @@ def main():
         cards.append(f'''<article data-family="{name.split('.')[0]}">
 <h2>{html.escape(name)}</h2><p>{html.escape(note)}</p>
 <a href="{name}/figure.svg"><img src="{name}/figure.png" alt="Mixed figure using {name}" loading="lazy"></a>
-<p>{compiled.root.width:g} × {compiled.root.height:.1f} mm · auto height</p>
+<p>{compiled.root.width:g} × {compiled.root.height:g} mm · {'auto height' if doc.height is None else 'fixed page'}</p>
 <nav><a href="{name}/figure.svg">SVG</a> <a href="{name}/figure.pdf">PDF</a>
 <a href="{name}/figure.html">Review and diagnostics</a></nav></article>''')
         print(f'{name}: SVG, PDF and both previews written', flush=True)
@@ -48,10 +52,10 @@ article{background:white;border:1px solid #d9dde4;border-radius:10px;padding:20p
 article[hidden]{display:none}img{width:100%;height:440px;object-fit:contain}a{color:#245b8a}
 nav{display:flex;gap:16px;flex-wrap:wrap}select{font:inherit;padding:6px;margin-left:8px}</style>
 <header><h1>Inklet presets</h1><p>The same simulated plots, workflow, table and native 3D object.
-Each figure uses its preset's default width and fits its content vertically.
+The comparison figures fit their content vertically; the destination examples retain their intended page dimensions.
 Open SVG or PDF to inspect it at its physical size.</p>
 <label>Show family<select id="family"><option value="all">All presets</option>
-<option>scientific</option><option>educational</option><option>marketing</option></select></label></header>
+<option>scientific</option><option>educational</option><option>marketing</option><option>formats</option></select></label></header>
 <main>'''+''.join(cards)+'''</main><script>
 document.getElementById('family').addEventListener('change', event => {
   document.querySelectorAll('article').forEach(card => {
@@ -59,6 +63,7 @@ document.getElementById('family').addEventListener('change', event => {
   });
 });</script></html>''')
     if args.gallery_image:
+        records = [record for record in records if not record['name'].startswith('formats.')]
         from PIL import Image, ImageDraw, ImageFont, ImageOps
         width, height, columns = 620, 640, 3
         sheet = Image.new('RGB', (columns*width, ((len(records)+columns-1)//columns)*height), '#f1f3f6')

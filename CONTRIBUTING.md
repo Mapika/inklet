@@ -14,7 +14,7 @@ uv pip install -r requirements-ci.txt -e .
 .venv/bin/python -m inklet doctor
 ```
 
-The lock file is the tested scientific environment. Vector-only development
+`requirements-ci.txt` pins the tested scientific environment. Vector-only development
 needs fewer packages, but the full suite also exercises optional image and 3D
 features. CI installs fonts, Chrome and Poppler as described in
 [release checks](docs/release-checks.md).
@@ -60,7 +60,11 @@ uv pip install -r requirements-docs.txt
 The static site is written to `out/docs-site/`; local serving uses port 8000.
 The [MkDocs configuration reference](https://www.mkdocs.org/user-guide/configuration/)
 describes navigation and strict validation. CI builds the site and uploads it
-as an artifact. There is no automatic public deployment.
+as an artifact. Read the Docs automatically rebuilds
+[latest](https://inklet.readthedocs.io/en/latest/) from `master` pushes and
+[stable](https://inklet.readthedocs.io/en/stable/) from the newest activated
+release tag. Hosted source links point to the commit used for that docs build.
+See [release checks](docs/release-checks.md) for hosting and package publication.
 
 New introductory guides should use complete Python examples or clearly state
 what preceding blocks they depend on. `tests/test_guides.py` executes registered

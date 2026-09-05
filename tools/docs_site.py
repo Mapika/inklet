@@ -4,6 +4,7 @@ Gallery images are included from their existing location. Links to source
 outside docs/ point at the GitHub repository.
 """
 from pathlib import Path
+import os
 import posixpath
 import re
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
@@ -22,7 +23,34 @@ def on_files(files, config):
     return files
 
 
-def rewrite_links(markdown, source_path, repo_url):
+def repository_ref():
+    """Link hosted examples to the revision used for this documentation build."""
+    return (os.environ.get('READTHEDOCS_GIT_COMMIT_HASH')
+            or os.environ.get('READTHEDOCS_GIT_IDENTIFIER') or 'master')
+
+
+def on_config(config):
+    # Navigation URLs bypass Markdown rewriting, but need the same revision.
+    repo_url = config['repo_url'].rstrip('/')
+    ref = quote(repository_ref(), safe='')
+
+    def rewrite(value):
+        if isinstance(value, list):
+            return [rewrite(item) for item in value]
+        if isinstance(value, dict):
+            return {key: rewrite(item) for key, item in value.items()}
+        if isinstance(value, str):
+            for kind in ('blob', 'tree'):
+                prefix = f'{repo_url}/{kind}/master/'
+                if value.startswith(prefix):
+                    return f'{repo_url}/{kind}/{ref}/{value[len(prefix):]}'
+        return value
+
+    config['nav'] = rewrite(config['nav'])
+    return config
+
+
+def rewrite_links(markdown, source_path, repo_url, ref='master'):
     def replace(match):
         label, target = match.groups()
         parsed = urlsplit(target)
@@ -39,7 +67,7 @@ def rewrite_links(markdown, source_path, repo_url):
             url = posixpath.relpath(relative,parent)
         else:
             kind = 'tree' if path.is_dir() else 'blob'
-            url = f'{repo_url.rstrip("/")}/{kind}/master/{quote(relative)}'
+            url = f'{repo_url.rstrip("/")}/{kind}/{quote(ref, safe="")}/{quote(relative)}'
         parts = urlsplit(url)
         return f'{label}({urlunsplit((parts.scheme,parts.netloc,parts.path,parsed.query,parsed.fragment))})'
     # Examples may contain strings that resemble links; do not rewrite code.
@@ -48,4 +76,4 @@ def rewrite_links(markdown, source_path, repo_url):
 
 
 def on_page_markdown(markdown, page, config, files):
-    return rewrite_links(markdown,Path(page.file.abs_src_path),config['repo_url'])
+    return rewrite_links(markdown,Path(page.file.abs_src_path),config['repo_url'],repository_ref())

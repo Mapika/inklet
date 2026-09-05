@@ -6,12 +6,12 @@ Combine plots, diagrams, images and native 3D artwork on a page sized in
 millimetres. Keep data and labels live, compile the figure, and inspect its
 layout and print diagnostics before exporting.
 
-[Get started](https://inklet.readthedocs.io/en/latest/quickstart/) · [Documentation](https://inklet.readthedocs.io/en/latest/) ·
-[Examples](https://inklet.readthedocs.io/en/latest/examples/) · [API reference](https://inklet.readthedocs.io/en/latest/api/)
+[Get started](https://inklet.readthedocs.io/en/stable/quickstart/) · [Documentation](https://inklet.readthedocs.io/en/stable/) ·
+[Examples](https://inklet.readthedocs.io/en/stable/examples/) · [API reference](https://inklet.readthedocs.io/en/stable/api/)
 
-![Twenty-panel Inklet figure with 3D surfaces, architecture diagrams, dense scatter, statistical charts, polar plots and Sankey flows](gallery/stress20.png)
+![Twenty-panel Inklet figure with 3D surfaces, architecture diagrams, dense scatter, statistical charts, polar plots and Sankey flows](https://raw.githubusercontent.com/Mapika/inklet/v2.6.0/gallery/stress20.png)
 
-This [twenty-panel stress test](https://inklet.readthedocs.io/en/latest/stress20/) includes 30,000 scatter points,
+This [twenty-panel stress test](https://inklet.readthedocs.io/en/stable/stress20/) includes 30,000 scatter points,
 5,580 mesh triangles and 7,200 vector events. Its data are simulated. Only the
 dense scatter and scalar field are rasterized; the other artwork remains vector.
 
@@ -28,7 +28,7 @@ python -m pip install inklet
 SVG/PDF output and the built-in 3D renderer need no browser or external rendering
 engine. Text needs an installed font. For PNG layers and visual review, install
 `python -m pip install 'inklet[images]'` plus Chrome/Chromium and Poppler.
-See [installation](https://inklet.readthedocs.io/en/latest/installation/) for system packages, Windows activation,
+See [installation](https://inklet.readthedocs.io/en/stable/installation/) for system packages, Windows activation,
 optional dependencies and environment checks.
 
 ## Your first figure
@@ -62,12 +62,12 @@ if __name__ == '__main__':
 
 The document measures axis labels and the legend, fits the plot to an 89 mm
 page, and saves SVG and PDF with embedded text. It does not shrink the font to
-make the plot fit. The [quickstart](https://inklet.readthedocs.io/en/latest/quickstart/) continues with live data
+make the plot fit. The [quickstart](https://inklet.readthedocs.io/en/stable/quickstart/) continues with live data
 edits, multiple panels and review exports.
 
 ## Build, inspect, revise
 
-With the [preview dependencies](https://inklet.readthedocs.io/en/latest/installation/#visual-review) installed:
+With the [preview dependencies](https://inklet.readthedocs.io/en/stable/installation/#visual-review) installed:
 
 ```sh
 inklet doctor
@@ -87,12 +87,13 @@ For an environment without preview tools, use
 
 | Task | Main tools | Guide |
 |---|---|---|
-| Multi-panel figures | `document`, `subfigure`, weighted columns, spans, panel letters | [Layout](https://inklet.readthedocs.io/en/latest/layout/) |
-| Scientific plots | `plot_spec`, axes, bands, distributions, heatmaps, insets, polar plots | [Plotting](https://inklet.readthedocs.io/en/latest/plotting/) |
-| Data-driven revisions | `Dataset`, `Series`, shared scales, categories, `derive`, source records | [Live data](https://inklet.readthedocs.io/en/latest/data/) |
-| Architecture and flow diagrams | `composition`, `module`, named ports, measured connections, `graph` | [Diagrams](https://inklet.readthedocs.io/en/latest/diagrams/) |
-| 3D and image panels | `solid`, `model`, `scene`, `asset`, explicit file dependencies | [3D and images](https://inklet.readthedocs.io/en/latest/three-images/) |
-| Publication exports | Physical presets, embedded or outlined text, SVG/PDF, review bundles | [Export and review](https://inklet.readthedocs.io/en/latest/export-review/) |
+| Scientific, educational and branded styles | `preset`, independent formats, live switching | [Presets](https://inklet.readthedocs.io/en/stable/presets/) |
+| Multi-panel figures | `document`, `subfigure`, weighted columns, spans, panel letters | [Layout](https://inklet.readthedocs.io/en/stable/layout/) |
+| Scientific plots | `plot_spec`, axes, bands, distributions, heatmaps, insets, polar plots | [Plotting](https://inklet.readthedocs.io/en/stable/plotting/) |
+| Data-driven revisions | `Dataset`, `Series`, shared scales, categories, `derive`, source records | [Live data](https://inklet.readthedocs.io/en/stable/data/) |
+| Architecture and flow diagrams | `composition`, `module`, named ports, measured connections, `graph` | [Diagrams](https://inklet.readthedocs.io/en/stable/diagrams/) |
+| 3D and image panels | `solid`, `model`, `scene`, `asset`, explicit file dependencies | [3D and images](https://inklet.readthedocs.io/en/stable/three-images/) |
+| Publication exports | Physical presets, embedded or outlined text, SVG/PDF, review bundles | [Export and review](https://inklet.readthedocs.io/en/stable/export-review/) |
 
 ## How Inklet works
 
@@ -107,7 +108,7 @@ Numeric lengths, including low-level text sizes, are **millimetres**. Use
 `font_pt=8` take points explicitly. Plot coordinates follow their data scales.
 
 The direct `Figure`, `Panel` and `Diagram` APIs remain supported for fixed
-drawings. See [the authoring model](https://inklet.readthedocs.io/en/latest/concepts/) for when to use each layer.
+drawings. See [the authoring model](https://inklet.readthedocs.io/en/stable/concepts/) for when to use each layer.
 
 ## Scope and limits
 
@@ -116,29 +117,30 @@ drawings. See [the authoring model](https://inklet.readthedocs.io/en/latest/conc
 - Diagnostics help find collisions, small type and other print issues. Review
   the rendered figure as well; a clean report does not establish scientific accuracy.
 - Rasterization keeps dense exports compact, but dense-scatter rebuilds can
-  still be expensive. The [stress report](https://inklet.readthedocs.io/en/latest/stress20/) records the workload,
+  still be expensive. The [stress report](https://inklet.readthedocs.io/en/stable/stress20/) records the workload,
   timings and remaining limitations.
 - Reproducible appearance requires consistent inputs, fonts and dependencies.
   The export manifest records dataset and font hashes for comparison.
 
 ## Documentation and development
 
-Read the [documentation on Read the Docs](https://inklet.readthedocs.io/en/latest/).
-The [2.6 preset preview](https://inklet.readthedocs.io/en/latest/presets/) is available
-from a development checkout; PyPI currently provides 2.5.0. The source Markdown
-is also readable on GitHub, and contributors can serve the site locally:
+Read the [documentation on Read the Docs](https://inklet.readthedocs.io/en/stable/).
+Inklet 2.6 adds [scientific, educational and marketing presets](https://inklet.readthedocs.io/en/stable/presets/).
+The [latest documentation](https://inklet.readthedocs.io/en/latest/) follows the
+development branch. The source Markdown is also readable on GitHub, and
+contributors can serve the site from a checkout:
 
 ```sh
 python -m pip install -e '.[docs]'
 python -m mkdocs serve
 ```
 
-See [contributing](CONTRIBUTING.md) for tests, documentation checks and visual
-regressions. Existing users can consult [migration](https://inklet.readthedocs.io/en/latest/migration/),
-[the v2.5 changes](https://inklet.readthedocs.io/en/latest/v2.5/) and [the changelog](CHANGELOG.md).
+See [contributing](https://github.com/Mapika/inklet/blob/v2.6.0/CONTRIBUTING.md) for tests, documentation checks and visual
+regressions. Existing users can consult [migration](https://inklet.readthedocs.io/en/stable/migration/),
+[the v2.5 changes](https://inklet.readthedocs.io/en/stable/v2.5/) and [the changelog](https://github.com/Mapika/inklet/blob/v2.6.0/CHANGELOG.md).
 
 ## License
 
-Inklet code is available under the [MIT license](LICENSE). Included third-party
+Inklet code is available under the [MIT license](https://github.com/Mapika/inklet/blob/v2.6.0/LICENSE). Included third-party
 meshes and structural data retain their own terms; see
-[third-party notices](THIRD_PARTY_NOTICES.md).
+[third-party notices](https://github.com/Mapika/inklet/blob/v2.6.0/THIRD_PARTY_NOTICES.md).

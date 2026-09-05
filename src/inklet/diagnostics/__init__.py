@@ -77,6 +77,8 @@ def lint(
     min_clearance_mm: float = DEFAULT_MIN_CLEARANCE_MM,
     min_overlap_fraction: float = DEFAULT_MIN_OVERLAP_FRACTION,
     max_stroke_widths: int = DEFAULT_MAX_STROKE_WIDTHS,
+    max_font_pt: float | None = None,
+    max_height_mm: float | None = None,
 ) -> list[Diagnostic]:
     """Check a figure and return its diagnostics, deterministically ordered.
 
@@ -90,6 +92,9 @@ def lint(
     `max_stroke_widths`) are the knobs for LOW_CONTRAST, CROWDING, OVERLAP and
     INCONSISTENT_STROKE respectively; the defaults are what the rule docs
     quote.
+
+    Optional max_font_pt and max_height_mm enforce publication limits at final
+    physical size. Neither upper limit is applied unless explicitly supplied.
     """
     _must_be_a_diagram(root)
     if placements is None:
@@ -100,6 +105,7 @@ def lint(
         min_clearance_mm=min_clearance_mm,
         min_overlap_fraction=min_overlap_fraction,
         max_stroke_widths=max_stroke_widths,
+        max_font_pt=max_font_pt, max_height_mm=max_height_mm,
     )
     return run_rules(ctx, _select(rules))
 

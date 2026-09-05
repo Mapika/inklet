@@ -14,7 +14,7 @@ took before layout still resolves inside the finished figure.
 
 ## Live documents
 
-#### `class PublicationProfile(name: str, width: float, font_pt: float = 8, small_font_pt: float = 7, stroke_mm: float = 0.18, min_font_pt: float = 6, min_stroke_mm: float = 0.1, min_dpi: float = 300, dpi: float = 300, text: str = 'embed', base_theme: inklet.themes.theme.Theme | str = 'nature', title_font_pt: float | None = None) -> None`
+#### `class PublicationProfile(name: str, width: float, font_pt: float = 8, small_font_pt: float = 7, stroke_mm: float = 0.18, min_font_pt: float = 6, min_stroke_mm: float = 0.1, min_dpi: float = 300, dpi: float = 300, text: str = 'embed', base_theme: inklet.themes.theme.Theme | str = 'nature', title_font_pt: float | None = None, max_font_pt: float | None = None, max_height_mm: float | None = None) -> None`
 
 An editable set of physical page, typography, stroke and export defaults.
 
@@ -858,7 +858,7 @@ The nearest colour to `color`, along its own lightness, that can be read on `on`
 
 ## Inspection and output
 
-#### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3) -> 'list[Diagnostic]'`
+#### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3, max_font_pt: 'float | None' = None, max_height_mm: 'float | None' = None) -> 'list[Diagnostic]'`
 
 Check a figure and return its diagnostics, deterministically ordered.
 
@@ -1057,6 +1057,10 @@ A colour key that does not describe the marks it stands next to.
 
 A link's own label plate drawn over its own elbow.
 
+#### `LARGE_TEXT`
+
+Text above an optional publication maximum after enclosing transforms.
+
 #### `LINK_COLLAPSED`
 
 An arrow the author asked for that is not on the page.
@@ -1096,6 +1100,10 @@ Text that leaves the plot box of the panel it was placed in.
 #### `OVERLAP`
 
 Colliding elements, filtered hard against false positives.
+
+#### `PAGE_TOO_TALL`
+
+Page height above an optional publication limit, in physical millimetres.
 
 #### `PATH_CROSSES`
 

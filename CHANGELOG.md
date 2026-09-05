@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.6.0 (unreleased)
+## 2.6.0 — 2026-09-06
 
 - Add immutable scientific, educational and marketing presets, independent
   physical formats, validated overrides and a live document preset switch.
@@ -11,7 +11,12 @@
   Science/Cell styles pending verification of their publisher requirements.
 - Allow publication profiles to use other themes and independent title sizes.
 - Add a mixed-content preset example, SVG/PDF comparison gallery and guide.
-- Configure Read the Docs hosting and link the public documentation site.
+- Check Nature print figures for text above 7 pt and page heights above 170 mm,
+  including transformed text and automatic page heights.
+- Add complete 16:9 slides, A4 worksheets and journal examples with SVG/PDF
+  dimension tests and gallery previews.
+- Configure Read the Docs hosting with version-correct source links, and make
+  README images and links work on PyPI. Credit Mark Marosi in the MIT license.
 
 ## 2.5.0
 

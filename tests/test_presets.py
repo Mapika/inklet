@@ -21,6 +21,29 @@ def texts(compiled):
             if isinstance(p.diagram.prim, TextPrim)]
 
 
+@pytest.mark.parametrize('name,width,height', [('journal', 183, None),
+    ('slide', 254, 142.875), ('worksheet', 210, 297)])
+def test_complete_destination_examples_retain_physical_size(name, width, height):
+    path = Path(__file__).resolve().parents[1]/'examples/preset_formats.py'
+    spec = importlib.util.spec_from_file_location('preset_formats', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    compiled = getattr(module, f'make_{name}')().compile()
+    assert compiled.root.width == width
+    if height is not None:
+        assert compiled.root.height == height
+    else:
+        assert compiled.root.height <= 170
+    assert not compiled.diagnostics
+    import re
+    pdf = compiled.to_pdf()
+    box = re.search(rb'/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]', pdf)
+    assert box is not None
+    assert float(box[1]) == pytest.approx(width*72/25.4, abs=.01)
+    assert float(box[2]) == pytest.approx(compiled.root.height*72/25.4, abs=.01)
+    assert f'width="{width}' in compiled.to_svg()
+
+
 def kinds(compiled, kind):
     return [p for p in compiled.build()[1].values() if p.diagram.kind == kind]
 
@@ -36,7 +59,7 @@ def test_every_preset_compiles_mixed_content_and_exports_vectors(name):
     assert compiled.root.width == i.preset(name).format.width
     assert compiled.to_pdf().startswith(b'%PDF')
     assert '<svg' in compiled.to_svg() and '<text' in compiled.to_svg()
-    assert not {d.code for d in compiled.diagnostics} & {'RULE_FAILED', 'OFF_CANVAS', 'TINY_TEXT', 'KEY_MISMATCH'}
+    assert not {d.code for d in compiled.diagnostics} & {'LINT_RULE_FAILED', 'OFF_CANVAS', 'TINY_TEXT', 'KEY_MISMATCH', 'LARGE_TEXT', 'PAGE_TOO_TALL'}
     assert compiled.metadata['datasets'][0]['name'] == 'preset demonstration'
     assert compiled.metadata['preset']['name'] == name
     assert compiled.metadata['fonts']
@@ -163,7 +186,7 @@ def test_physical_formats_compile_at_their_declared_dimensions(format):
     assert compiled.root.width == selected.format.width
     if selected.format.height is not None:
         assert compiled.root.height == selected.format.height
-    assert not {d.code for d in compiled.diagnostics} & {'RULE_FAILED', 'OFF_CANVAS', 'TINY_TEXT'}
+    assert not {d.code for d in compiled.diagnostics} & {'LINT_RULE_FAILED', 'OFF_CANVAS', 'TINY_TEXT'}
 
 
 def test_live_data_and_snapshots_survive_a_preset_change():
