@@ -1,8 +1,33 @@
 # Installation
 
 Inklet requires Python 3.11 or later and an installed TrueType/OpenType font.
-The core Python dependencies are HarfBuzz bindings and fontTools. Install from
-the repository; these instructions assume your GitHub account has access.
+The core Python dependencies are HarfBuzz bindings and fontTools.
+
+## From PyPI
+
+```sh
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install inklet
+```
+
+On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
+If your system calls Python `python3`, use that command to create the environment.
+The remaining commands assume an activated environment.
+
+With `uv`, use `uv venv --python 3.12` followed by `uv pip install inklet`.
+Activate the environment or prefix commands with `.venv/bin/` on Linux/macOS.
+
+## Optional features
+
+| Install from PyPI | Adds |
+|---|---|
+| `python -m pip install 'inklet[images]'` | Pillow and NumPy for images, raster layers and PNG previews |
+| `python -m pip install 'inklet[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
+
+Extras can be combined: `python -m pip install 'inklet[images,three]'`.
+The built-in 3D renderer works without the `three` extra or Blender. Optional
+cutout/tracing tools such as `rembg` and `potrace` are not included in `images`.
 
 ## From a checkout
 
@@ -29,7 +54,7 @@ Activate that environment or prefix commands with `.venv/bin/` on Linux/macOS.
 Check the installed package with
 `python -c "import inklet; print(inklet.__version__)"`.
 
-## Optional features
+### Checkout extras
 
 | Install from the checkout | Adds |
 |---|---|
@@ -39,8 +64,6 @@ Check the installed package with
 | `python -m pip install -e '.[docs]'` | MkDocs for the searchable documentation site |
 
 Extras can be combined: `python -m pip install -e '.[dev,images,three,docs]'`.
-The built-in 3D renderer works without the `three` extra or Blender. Optional
-cutout/tracing tools such as `rembg` and `potrace` are not included in `images`.
 
 ## Fonts
 

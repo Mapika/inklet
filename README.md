@@ -17,20 +17,17 @@ dense scatter and scalar field are rasterized; the other artwork remains vector.
 
 ## Install
 
-Python **3.11 or later** is required. Install from this repository using an
-account with access to `Mapika/inklet`:
+Python **3.11 or later** is required. Install from [PyPI](https://pypi.org/project/inklet/):
 
 ```sh
-git clone https://github.com/Mapika/inklet.git
-cd inklet
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e .
+python -m pip install inklet
 ```
 
 SVG/PDF output and the built-in 3D renderer need no browser or external rendering
 engine. Text needs an installed font. For PNG layers and visual review, install
-`python -m pip install -e '.[images]'` plus Chrome/Chromium and Poppler.
+`python -m pip install 'inklet[images]'` plus Chrome/Chromium and Poppler.
 See [installation](docs/installation.md) for system packages, Windows activation,
 optional dependencies and environment checks.
 
