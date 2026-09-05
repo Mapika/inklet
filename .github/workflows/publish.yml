@@ -1,0 +1,87 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published GitHub release tag
+        required: true
+        default: v2.5.0
+        type: string
+      dry_run:
+        description: Validate release files without uploading to PyPI
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pypi-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'Mapika/inklet' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/inklet/
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: '3.12'
+      - name: Download published release distributions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo 'Expected a stable release tag such as v2.5.0' >&2
+            exit 1
+          }
+          gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft' | grep -qx false
+          version="${RELEASE_TAG#v}"
+          gh release download "$RELEASE_TAG" --dir dist \
+            --pattern "inklet-${version}-py3-none-any.whl" \
+            --pattern "inklet-${version}.tar.gz" \
+            --pattern SHA256SUMS
+      - name: Verify release checksums and package metadata
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+
+          dist = Path('dist')
+          version = os.environ['RELEASE_TAG'][1:]
+          expected = {f'inklet-{version}-py3-none-any.whl', f'inklet-{version}.tar.gz'}
+          lines = (dist / 'SHA256SUMS').read_text().splitlines()
+          entries = [line.split() for line in lines]
+          if len(entries) != 2 or any(len(entry) != 2 for entry in entries):
+              raise SystemExit('Expected exactly two release checksums')
+          if {name for _, name in entries} != expected:
+              raise SystemExit('Checksum filenames do not match the requested release')
+          for digest, name in entries:
+              if hashlib.sha256((dist / name).read_bytes()).hexdigest() != digest:
+                  raise SystemExit(f'Checksum mismatch: {name}')
+              print(f'Verified {name}')
+          (dist / 'SHA256SUMS').unlink()
+          PY
+          uvx --from twine==7.0.0 twine check --strict dist/*
+      - name: Publish using PyPI Trusted Publishing
+        if: ${{ !inputs.dry_run }}
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: dist/
+      - name: Record dry run
+        if: inputs.dry_run
+        run: echo 'Release files verified. Nothing was uploaded to PyPI.' >> "$GITHUB_STEP_SUMMARY"
