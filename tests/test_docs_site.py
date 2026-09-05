@@ -30,6 +30,10 @@ class References(HTMLParser):
 
 
 def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path):
+    from mkdocs.config import load_config
+
+    config = load_config(str(ROOT / 'mkdocs.yml'))
+    site_prefix = urlsplit(config['site_url']).path
     site = tmp_path/'site'
     build = subprocess.run([sys.executable,'-m','mkdocs','build','--strict',
                             '--site-dir',str(site)],cwd=ROOT,capture_output=True,text=True)
@@ -47,8 +51,12 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path):
                 continue
             if not url.path:
                 continue
-            path = ((site/url.path.lstrip('/')) if url.path.startswith('/')
-                    else (page.parent/unquote(url.path))).resolve()
+            if url.path.startswith('/'):
+                # MkDocs' 404 page uses absolute paths under the hosting prefix.
+                assert url.path.startswith(site_prefix), f'outside site prefix: {target}'
+                path = (site/unquote(url.path.removeprefix(site_prefix))).resolve()
+            else:
+                path = (page.parent/unquote(url.path)).resolve()
             assert path.is_relative_to(site) and path.exists(), f'{page}: missing {target}'
     quickstart = (site/'quickstart/index.html').read_text()
     assert 'README example</a>' in quickstart
