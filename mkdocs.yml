@@ -1,0 +1,68 @@
+site_name: Inklet
+site_description: Scientific figures with live data, measured layout and vector exports.
+repo_url: https://github.com/Mapika/inklet
+repo_name: GitHub
+edit_uri: ''
+docs_dir: docs
+site_dir: out/docs-site
+theme:
+  name: mkdocs
+  highlightjs: false
+  color_mode: light
+  user_color_mode_toggle: true
+  navigation_depth: 2
+plugins:
+  - search
+hooks:
+  - tools/docs_site.py
+extra_css:
+  - stylesheets/inklet.css
+  - stylesheets/code.css
+markdown_extensions:
+  - admonition
+  - fenced_code
+  - codehilite:
+      guess_lang: false
+  - tables
+  - toc:
+      permalink: true
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    unrecognized_links: warn
+    anchors: warn
+nav:
+  - Overview: index.md
+  - Get started:
+      - Installation: installation.md
+      - First figure: quickstart.md
+      - Authoring model: concepts.md
+  - Guides:
+      - Page layout: layout.md
+      - Plotting: plotting.md
+      - Live data: data.md
+      - Diagrams: diagrams.md
+      - 3D and images: three-images.md
+      - Export and review: export-review.md
+      - Troubleshooting: troubleshooting.md
+  - Examples:
+      - Gallery: examples.md
+      - Twenty-panel stress test: stress20.md
+      - Direct drawing cookbook: cookbook.md
+  - Reference:
+      - Python API: api.md
+      - Command line: cli.md
+      - Publication plots: publication-plots.md
+      - Diagram components: diagram-components.md
+  - Project:
+      - Migration: migration.md
+      - Version 2: v2.md
+      - Version 2.5: v2.5.md
+      - Release checks: release-checks.md
+      - Compilation contract: design/v2.md
+      - Historical grid study: design/page_grid.md
+      - Contributing: https://github.com/Mapika/inklet/blob/master/CONTRIBUTING.md
+      - Changelog: https://github.com/Mapika/inklet/blob/master/CHANGELOG.md

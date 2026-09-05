@@ -1,0 +1,2 @@
+# PDB records use fixed-width, space-padded columns.
+*.pdb whitespace=-blank-at-eol

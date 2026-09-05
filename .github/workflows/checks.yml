@@ -1,0 +1,77 @@
+name: Release checks
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  figures:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: '3.12'
+      - name: Install fonts and independent PDF renderer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-dejavu-core fonts-dejavu-extra fonts-noto-core fonts-liberation fonts-urw-base35 poppler-utils
+          google-chrome --version
+          pdftoppm -v
+      - name: Install locked test dependencies
+        run: |
+          uv venv
+          uv pip install -r requirements-ci.txt -e .
+          .venv/bin/inklet doctor
+      - name: Unit and integration tests
+        run: .venv/bin/python -m pytest -q --junitxml=out/tests.xml
+      - name: Generated API documentation
+        run: .venv/bin/python tools/gen_api.py --check
+      - name: Build documentation with strict link validation
+        run: |
+          uv pip install -r requirements-docs.txt
+          .venv/bin/python -m mkdocs build --strict
+          .venv/bin/python -m pytest -q tests/test_docs_site.py
+      - name: Build the v2.5 publication review
+        run: .venv/bin/inklet build examples/v25_document.py --output out/v25 --name document
+      - name: Complete figure visual regressions
+        run: .venv/bin/python tools/visual_check.py --output out/visual
+      - name: Complete figure performance checks
+        run: .venv/bin/python tools/benchmark_v2.py --output out/benchmarks
+      - name: Twenty-panel mixed-media stress test
+        run: .venv/bin/python tools/stress20.py --output out/stress20
+      - name: Preserve review artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: figure-checks
+          path: out/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  wheel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build and install with core dependencies only
+        run: |
+          uv build --wheel --out-dir out/dist
+          uv run --no-project python tools/check_wheel.py out/dist/inklet-*.whl

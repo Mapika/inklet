@@ -1,0 +1,9 @@
+{
+  "workflow": 3.0,
+  "shared-scales": 3.0,
+  "twins-matrix": 3.0,
+  "late-inset": 3.0,
+  "category-subset": 3.0,
+  "dense": 10.0,
+  "v25-document": 5.0
+}

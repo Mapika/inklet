@@ -1,0 +1,35 @@
+# Environments and local configuration
+.venv/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.remember/
+
+# Builds, exports and development experiments
+/out/
+/tmp/
+/dist/
+/build/
+/site/
+*.egg-info/
+/figures/out/
+/examples/*.svg
+/examples/*.png
+/examples/*.pdf
+/stress/*.svg
+/stress/*.png
+/stress/*.pdf
+/stress/panels/*.svg
+/stress/panels/*.png
+/stress/panels/*.pdf
+/stress/electro/*.svg
+/stress/electro/*.png
+/stress/electro/*.pdf
+
+# Editor / OS files
+.DS_Store
+.idea/
+.vscode/
