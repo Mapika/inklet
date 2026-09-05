@@ -44,6 +44,8 @@ jobs:
           .venv/bin/python -m pytest -q tests/test_docs_site.py
       - name: Build the v2.5 publication review
         run: .venv/bin/inklet build examples/v25_document.py --output out/v25 --name document
+      - name: Build the preset comparison gallery
+        run: .venv/bin/python tools/preset_gallery.py --output out/presets
       - name: Complete figure visual regressions
         run: .venv/bin/python tools/visual_check.py --output out/visual
       - name: Complete figure performance checks

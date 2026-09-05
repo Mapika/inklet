@@ -37,6 +37,14 @@ if __name__ == "__main__":
     assert Path("smoke.pdf").read_bytes().startswith(b"%PDF")
     assert "<svg" in Path("smoke.svg").read_text()
     assert compiled.metadata["datasets"][0]["name"] == "wheel smoke"
+    preset_doc = i.preset("educational.textbook").document()
+    preset_doc.add("plot", i.plot_spec(x=(0, 1), y=(0, 1)).line([(0, 0), (1, 1)]).axes())
+    before = preset_doc.compile()
+    preset_doc.use_preset("marketing.report")
+    after = preset_doc.compile()
+    assert before.to_svg() != after.to_svg()
+    assert after.metadata["preset"]["name"] == "marketing.report"
+    assert after.to_pdf().startswith(b"%PDF")
     print("Installed wheel API passed", i.__version__)
 '''
 

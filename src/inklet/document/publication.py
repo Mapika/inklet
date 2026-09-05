@@ -2,6 +2,7 @@
 from dataclasses import dataclass, replace
 
 from ..themes import theme as get_theme
+from ..themes import Theme
 from ..core import pt
 from .spec import length
 
@@ -23,16 +24,23 @@ class PublicationProfile:
     min_dpi: float = 300
     dpi: float = 300
     text: str = 'embed'
+    base_theme: Theme | str = 'nature'
+    title_font_pt: float | None = None
 
     def __post_init__(self):
         for name in ('width','font_pt','small_font_pt','stroke_mm','min_font_pt','min_stroke_mm','min_dpi','dpi'):
             length(getattr(self,name), name)
         if self.text not in ('embed','outline'): raise ValueError('publication text must be embed or outline')
+        if isinstance(self.base_theme, str): get_theme(self.base_theme)
+        elif not isinstance(self.base_theme, Theme): raise TypeError('base_theme must be a Theme or theme name')
+        if self.title_font_pt is not None: length(self.title_font_pt, 'title_font_pt')
 
     @property
     def theme(self):
-        return replace(get_theme('nature'), font_size=pt(self.font_pt),
-                       font_size_small=pt(self.small_font_pt),font_size_large=pt(self.font_pt+1),
+        base = get_theme(self.base_theme) if isinstance(self.base_theme, str) else self.base_theme
+        return replace(base, font_size=pt(self.font_pt),
+                       font_size_small=pt(self.small_font_pt),
+                       font_size_large=pt(self.font_pt+1 if self.title_font_pt is None else self.title_font_pt),
                        stroke=self.stroke_mm,hairline=max(self.min_stroke_mm,self.stroke_mm*.6))
 
     @property

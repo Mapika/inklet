@@ -398,10 +398,12 @@ def _check_content(what: str, content, width, height) -> None:
 from .document import (PublicationProfile, publication, subfigure, Composition, LayoutValue, composition, ModuleSpec, module, Document, CompiledFigure, LayoutError, document, PlotSpec,
                        ComponentSpec, plot_spec, component, Dataset, DataRef, Source,
                        Series, SharedScale, dataset, shared_scale, CategoryEncoding, FileRef, DerivedData, derive)
+from .document import FigureFormat, PlotDefaults, GuidelineSource, Preset, preset, preset_names, format_names
 
 __all__ = [
     # live documents
     "PublicationProfile", "publication",
+    "FigureFormat", "PlotDefaults", "GuidelineSource", "Preset", "preset", "preset_names", "format_names",
     "subfigure", "Composition", "LayoutValue", "composition", "ModuleSpec", "module",
     "Document", "CompiledFigure", "LayoutError", "document", "PlotSpec", "ComponentSpec",
     "plot_spec", "component", "Dataset", "DataRef", "Source", "Series", "SharedScale",
@@ -448,4 +450,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "2.5.0"
+__version__ = "2.6.0.dev0"

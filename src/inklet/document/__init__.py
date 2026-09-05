@@ -13,3 +13,6 @@ __all__ += ["subfigure", "Composition", "LayoutValue", "composition", "ModuleSpe
 
 from .publication import PublicationProfile, publication
 __all__ += ["PublicationProfile", "publication"]
+
+from .presets import FigureFormat, PlotDefaults, GuidelineSource, Preset, preset, preset_names, format_names
+__all__ += ["FigureFormat", "PlotDefaults", "GuidelineSource", "Preset", "preset", "preset_names", "format_names"]

@@ -188,12 +188,34 @@ class PlotSpec(BuildSpec):
         return p.build()
 
     def _replay(self, panel, context):
+        defaults = context.preset.plot if context.preset is not None else None
+        methods = {step[1] for step in self._steps}
+        if defaults is not None and defaults.grid != 'none' and 'grid' not in methods and methods & {'axes', 'axis'}:
+            for dimension, sides in (('x', ('bottom', 'top')), ('y', ('left', 'right'))):
+                if defaults.grid not in (dimension, 'both'): continue
+                axes = [step for step in self._steps if step[1] == 'axes' or
+                        (step[1] == 'axis' and (step[2][0] if step[2] else step[3].get('side', 'bottom')) in sides)]
+                if not axes: continue
+                options = materialize(axes[-1][3], context)
+                # An explicit tick list or crossing defines its own geometry.
+                if options.get('ticks') is not None or options.get('at') is not None: continue
+                panel.grid(x=dimension == 'x', y=dimension == 'y',
+                           count=options.get('count', defaults.tick_count))
         for _, method, args, kwargs in sorted(self._steps, key=lambda s: _PHASE.get(s[1], 0)):
             if method in ('twin_x', 'twin_y'):
                 twin = getattr(panel, method)(**materialize(kwargs, context))
                 args[0]._replay(twin, context)
                 continue
             args, kwargs = materialize(args, context), materialize(kwargs, context)
+            if defaults is not None:
+                if method in ('axes', 'axis'):
+                    kwargs.setdefault('count', defaults.tick_count)
+                elif method == 'legend' and not {'side', 'corner'} & kwargs.keys():
+                    kwargs['side'] = defaults.legend_side
+                elif method == 'bars' and defaults.bar_fill == 'accent' and not {'colors', 'bar_colors', 'fill'} & kwargs.keys():
+                    from ..plot.marks import series_count
+                    heights = args[1] if len(args) > 1 else kwargs['heights']
+                    if series_count(heights) == 1: kwargs['fill'] = context.theme.accent
             if method == 'annotate':
                 if kwargs.pop('_avoid_marks', True):
                     # build() resolves deferred external insets. Its children

@@ -15,6 +15,10 @@ pull requests and manual dispatch. It does not publish packages.
   core dependencies and rejects accidental imports from the source checkout.
 - The twenty-panel stress test checks dense mixed content, live edits,
   provenance, cached compilation and physical resizing.
+- The preset comparison renders the same plots, workflow, table and native 3D
+  object in all ten presets, preserving SVG/PDF files and both previews.
+  Preset tests cover inherited styles, explicit overrides, switching, caching,
+  data provenance and physical formats.
 
 The figure job uses Ubuntu 24.04, Python 3.12, Chrome, Poppler, DejaVu and Noto
 fonts. The visual checker verifies the DejaVu file hashes before comparisons;

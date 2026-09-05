@@ -39,8 +39,9 @@ class Cell:
 
 
 class BuildContext:
-    def __init__(self, theme, cache):
+    def __init__(self, theme, cache, preset=None):
         self.theme, self.cache = theme, cache
+        self.preset = preset
         self.active = []
         self.hits = self.misses = 0
 
@@ -56,7 +57,7 @@ class BuildContext:
             raise TypeError('document cells need a Diagram, Panel, PlotSpec or ComponentSpec')
         if id(item) in self.active:
             raise DiagramError('cyclic document dependency')
-        key = (id(item), repr(fingerprint(item)), width, height, repr(self.theme))
+        key = (id(item), repr(fingerprint(item)), width, height, repr(self.theme), repr(self.preset))
         if key in self.cache:
             self.hits += 1
             return self.cache[key]
@@ -217,6 +218,8 @@ class Document(BuildSpec):
     row_gap: float | None = None
     theme: object = 'nature'
     publication: object = None
+    preset: object = None
+    _preset_overrides: dict = field(default_factory=dict, repr=False)
     _cells: list = field(default_factory=list, repr=False)
     _links: list = field(default_factory=list, repr=False)
     _letters: dict = field(default_factory=dict, repr=False)
@@ -233,6 +236,9 @@ class Document(BuildSpec):
         if self.publication is not None:
             from .publication import PublicationProfile
             if not isinstance(self.publication, PublicationProfile): raise TypeError('publication must be a PublicationProfile')
+        if self.preset is not None:
+            from .presets import Preset
+            if not isinstance(self.preset, Preset): raise TypeError('preset must be a Preset')
         if not isinstance(self.theme, Theme): raise TypeError('document theme must be a Theme or theme name')
         if isinstance(self.columns,int) and not isinstance(self.columns,bool):
             if self.columns < 1: raise ValueError('document needs at least one column')
@@ -273,9 +279,31 @@ class Document(BuildSpec):
         names=('width','height','columns','margin','gap','row_gap','theme','publication')
         unknown=set(options).difference(names)
         if unknown: raise TypeError(f'unknown document options: {unknown!r}')
-        candidate=Document(**{name:options.get(name,getattr(self,name)) for name in names})
+        candidate=Document(**{name:options.get(name,getattr(self,name)) for name in names}, preset=self.preset)
         for name in names: setattr(self,name,getattr(candidate,name))
+        if self.preset is not None: self._preset_overrides.update(options)
         self._last=None
+        return self
+
+    def use_preset(self, selected, *, format=None, keep_overrides=True, **options):
+        """Switch presets and remeasure live content, preserving explicit page options.
+
+        selected is a preset name or Preset value. Explicit options from the
+        original preset.document() and subsequent configure() calls survive;
+        keep_overrides=False resets those page choices. Content and recorded
+        plot styles are always retained. Pass a customized Preset for branding.
+        """
+        from .presets import Preset, preset
+        if isinstance(selected, str): selected = preset(selected, format=format)
+        elif format is not None: raise TypeError('format belongs on preset() when passing a Preset')
+        if not isinstance(selected, Preset): raise TypeError('selected must be a preset name or Preset')
+        overrides = (self._preset_overrides if keep_overrides else {}) | options
+        overrides.setdefault('columns', self.columns)
+        candidate = selected.document(**overrides)
+        for name in ('width','height','columns','margin','gap','row_gap','theme','publication','preset'):
+            setattr(self, name, getattr(candidate, name))
+        self._preset_overrides = candidate._preset_overrides
+        self._last = None
         return self
 
     def replace(self, name, item):
@@ -326,6 +354,8 @@ class Document(BuildSpec):
             if not self._letters: return node
             from ..draw.annotate import letters
             options = dict(self._letters)
+            if context.preset is not None:
+                options.setdefault('style', context.preset.letter_style)
             start = chr(ord(options.pop('start')) + self._cells.index(cell))
             with themed(theme):
                 tagged = letters([node], start=start, **options)[0]
@@ -435,11 +465,11 @@ class Document(BuildSpec):
         height=None if self.height is None else length(self.height,'document height')
         theme=get_theme(self.theme) if isinstance(self.theme,str) else self.theme
         if not self._cells: raise LayoutError('cannot compile an empty document')
-        context=BuildContext(theme,self._cache)
+        context=BuildContext(theme,self._cache,self.preset)
         signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram)) else id(context.build(c.item)))
                          for c in self._cells)
-        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication))
+        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset))
         if self._last is not None and self._last[0]==key: return self._last[1]
         content, boxes, handles, page_height, passes = self._layout(context, width, height)
         layout_seconds=time.perf_counter()-started
@@ -471,6 +501,9 @@ class Document(BuildSpec):
                                        node_id=program.ids[handles[name].id]) for name,box in boxes.items()},
                       datasets=_sources([c.item for c in self._cells]))
         if self.publication is not None: metadata['publication']=asdict(self.publication)
+        if self.preset is not None:
+            metadata['preset'] = self.preset.as_dict()
+            metadata['preset']['page_overrides'] = sorted(self._preset_overrides)
         stats=dict(build_seconds=time.perf_counter()-started,layout_seconds=layout_seconds,
                    paint_seconds=paint_finished-started-layout_seconds,diagnostics_seconds=diagnostics_seconds,
                    cache_hits=context.hits,

@@ -1,6 +1,6 @@
 [project]
 name = "inklet"
-version = "2.5.0"
+version = "2.6.0.dev0"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
 license = "MIT"
@@ -13,7 +13,7 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/Mapika/inklet"
-Documentation = "https://github.com/Mapika/inklet/blob/master/docs/index.md"
+Documentation = "https://inklet.readthedocs.io/en/latest/"
 Issues = "https://github.com/Mapika/inklet/issues"
 
 [project.scripts]

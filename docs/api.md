@@ -14,7 +14,7 @@ took before layout still resolves inside the finished figure.
 
 ## Live documents
 
-#### `class PublicationProfile(name: str, width: float, font_pt: float = 8, small_font_pt: float = 7, stroke_mm: float = 0.18, min_font_pt: float = 6, min_stroke_mm: float = 0.1, min_dpi: float = 300, dpi: float = 300, text: str = 'embed') -> None`
+#### `class PublicationProfile(name: str, width: float, font_pt: float = 8, small_font_pt: float = 7, stroke_mm: float = 0.18, min_font_pt: float = 6, min_stroke_mm: float = 0.1, min_dpi: float = 300, dpi: float = 300, text: str = 'embed', base_theme: inklet.themes.theme.Theme | str = 'nature', title_font_pt: float | None = None) -> None`
 
 An editable set of physical page, typography, stroke and export defaults.
 
@@ -23,6 +23,38 @@ An editable set of physical page, typography, stroke and export defaults.
 #### `publication(name='double-column', **options)`
 
 Choose single-column (89 mm), double-column (183 mm), or slide (254 mm).
+
+#### `class FigureFormat(name: 'str', width: 'float', height: 'float | None' = None) -> None`
+
+Physical page dimensions in millimetres; None height fits the content.
+
+#### `class PlotDefaults(grid: 'str' = 'none', legend_side: 'str' = 'bottom', tick_count: 'int' = 5, bar_fill: 'str' = 'neutral') -> None`
+
+Defaults for live plot recipes; explicit recipe options take precedence.
+
+#### `class GuidelineSource(title: 'str', url: 'str', reviewed_on: 'str | None', status: 'str', scope: 'str') -> None`
+
+Journal guidance provenance, distinguishing reviewed and unverified sources.
+
+#### `class Preset(name: 'str', description: 'str', format: 'FigureFormat', publication: 'PublicationProfile', plot: 'PlotDefaults' = PlotDefaults(grid='none', legend_side='bottom', tick_count=5, bar_fill='neutral'), margin: 'float' = 4, gap: 'float' = 6, letter_style: 'str' = 'bold-lower', sources: 'tuple[GuidelineSource, ...]' = ()) -> None`
+
+An immutable figure style, format, plot policy and publication profile.
+
+* `customize(**options) -> 'Preset'` -- Return a preset with explicit overrides; dimensions use millimetres.
+* `document(**options)` -- Create a live document, retaining explicit page overrides on preset switches.
+* `as_dict()` -- Return a JSON-compatible record of resolved settings and source guidance.
+
+#### `preset(name='scientific.general', *, format=None, **overrides) -> 'Preset'`
+
+Choose a scientific, educational or marketing preset and physical format.
+
+#### `preset_names(family=None) -> 'tuple[str, ...]'`
+
+List built-in presets, optionally restricted to one family.
+
+#### `format_names() -> 'tuple[str, ...]'`
+
+List built-in physical formats accepted by preset().
 
 #### `subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None)`
 
@@ -62,12 +94,13 @@ A label-sized module. Port coordinates are fractions of its box.
 
 Create a live architecture module; width follows measured label edits.
 
-#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
+#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
 
 A physical page containing named, live figure definitions.
 
 * `add(name, item, *, row=None, column=0, rowspan=1, colspan=1, min_width=None, min_height=None)` -- Place a named cell. Omitted row appends below existing cells.
 * `configure(**options)` -- Validate page changes together before applying them.
+* `use_preset(selected, *, format=None, keep_overrides=True, **options)` -- Switch presets and remeasure live content, preserving explicit page options.
 * `replace(name, item)` -- Replace a cell definition while retaining its layout constraints.
 * `link(source, target, **kwargs)` -- Connect named cells, optionally `cell:anchor`, after layout.
 * `letters(*, start='a', **options)` -- Measure panel letters with the cells, reserving room before placement.

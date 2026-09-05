@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.6.0 (unreleased)
+
+- Add immutable scientific, educational and marketing presets, independent
+  physical formats, validated overrides and a live document preset switch.
+- Apply preset grids, legends and panel lettering during compilation while
+  preserving explicit author styles and page overrides. Include resolved
+  preset settings and guideline provenance in export manifests.
+- Add Nature defaults backed by reviewed guidance and explicitly provisional
+  Science/Cell styles pending verification of their publisher requirements.
+- Allow publication profiles to use other themes and independent title sizes.
+- Add a mixed-content preset example, SVG/PDF comparison gallery and guide.
+- Configure Read the Docs hosting and link the public documentation site.
+
 ## 2.5.0
 
 - Prepare the standalone release tree with an MIT license, third-party notices,
