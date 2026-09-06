@@ -1,5 +1,8 @@
 # Examples
 
+Start with the new [showcase library](showcase.md) for eight curated mathematical,
+3D and architectural figures, including realistic and sketch renderings.
+
 These figures link to executable source in the repository. Commands below run
 from a checkout with Inklet installed. Review bundles need the
 [preview dependencies](installation.md#visual-review); add `--vectors-only`

@@ -53,6 +53,7 @@ nav:
       - Export and review: export-review.md
       - Troubleshooting: troubleshooting.md
   - Examples:
+      - Showcase library: showcase.md
       - Gallery: examples.md
       - Twenty-panel stress test: stress20.md
       - Direct drawing cookbook: cookbook.md

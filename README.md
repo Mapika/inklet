@@ -124,6 +124,10 @@ drawings. See [the authoring model](https://inklet.readthedocs.io/en/stable/conc
 
 ## V3 development
 
+The [showcase library](https://inklet.readthedocs.io/en/latest/showcase/) includes
+eight mathematical, 3D and architectural figures, with realistic and sketch
+renderings. Each has executable source and explicit data/asset provenance.
+
 The development branch adds complete Blender scenes with projected object labels,
 browser-free PNG export, vector gradients/hatching and group blending. Install a
 checkout with `python -m pip install -e '.[render]'` and run

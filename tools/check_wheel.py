@@ -20,6 +20,7 @@ assert find_spec("resvg_py") is None
 import struct
 depth = i.ScenePass('depth', (1, 1), 1, 10, 10, struct.pack('<f', 2.5))
 assert depth.value(0, 0) == 2.5
+assert i.render_quality('final').samples == 256
 try:
     depth.to_numpy()
 except i.DiagramError as error:

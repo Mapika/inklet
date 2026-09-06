@@ -65,3 +65,17 @@ licenses permit their intended embedding and redistribution. Regression
 previews are raster images, with font identities recorded for reproducibility.
 
 Source terms above were checked on 2026-09-05.
+
+## Showcase furniture (optional download)
+
+The dev2 architectural showcase uses **Modern Arm Chair 01**, by **Vibrant
+Nordic**, distributed by Poly Haven under **CC0-1.0**.
+
+- Asset: https://polyhaven.com/a/modern_arm_chair_01
+- Licence: https://polyhaven.com/license
+- Pinned files and SHA-256 hashes: `examples/showcase/assets.lock.json`
+
+The mesh and textures are downloaded only when requested and stored under
+`out/showcase/assets/`; they are not included in the Python package. Generated
+architectural gallery images incorporate this asset. The remaining showcase
+geometry, scene setup, plots and code are original Inklet work.

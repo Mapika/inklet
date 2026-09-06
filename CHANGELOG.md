@@ -2,6 +2,11 @@
 
 ## 3.0.0 (development)
 
+- Add draft/preview/final render quality, explicit denoising/adaptive sampling,
+  scene inspection and a Cycles/Freestyle sketch style.
+- Add eight curated showcase recipes, offline gallery filtering, source and
+  export downloads, packed Blender scenes and a checksummed CC0 furniture asset.
+  Draw wave packets from back to front so overlapping fills preserve foreground peaks.
 - Add Cycles depth, world-normal and object-ID passes with immutable float32
   snapshots, NumPy export, physically aligned previews and named object masks.
 - Select authored Blender view layers, validate every cached pass, and isolate

@@ -176,3 +176,51 @@ def test_view_layer_selection_and_errors(scene_file):
         i.render_blend(scene_file,**opts,passes='depth')
     with pytest.raises(ValueError,match='must not repeat'):
         i.render_blend(scene_file,**opts,passes=('depth','depth'))
+
+
+def test_inspection_and_quality_settings_are_explicit(scene_file):
+    original=scene_file.read_bytes()
+    inventory=i.inspect_blend(scene_file)
+    scene=inventory['scenes'][0]
+    assert {c['name'] for c in scene['cameras']}=={'Front','Side'}
+    assert 'Empty' in scene['view_layers']
+    assert next(o for o in scene['objects'] if o['name']=='Sample')['materials']==['Authored material']
+    assert inventory['sha256']==hashlib.sha256(original).hexdigest()
+    result=i.render_blend(scene_file,**options(scene_file),quality='final',denoise=False,noise_threshold=0)
+    assert result.metadata['request']['quality']=='final'
+    assert result.metadata['sampling']['samples']==2
+    assert result.metadata['sampling']['denoise'] is False
+    assert result.metadata['sampling']['adaptive'] is False
+    assert result.metadata['pixels'][0]==118  # explicit DPI=60 wins over final=300
+    assert scene_file.read_bytes()==original
+
+
+def test_sketch_style_changes_surface_render_without_saving_source(scene_file):
+    opts=options(scene_file)
+    original=scene_file.read_bytes()
+    authored=i.render_blend(scene_file,**opts)
+    sketch=i.render_blend(scene_file,**opts,style='sketch',quality='draft')
+    assert sketch.metadata['style']=='sketch'
+    assert sketch.diagram.prim.data!=authored.diagram.prim.data
+    assert sketch.diagram.bbox==authored.diagram.bbox
+    assert i.render_blend(scene_file,**opts,style='sketch',quality='draft').cache_hit
+    assert scene_file.read_bytes()==original
+    # Authored Freestyle switches must not disable or rescale the sketch preset.
+    alternate=scene_file.parent/'freestyle-off.blend'
+    script=scene_file.parent/'freestyle-off.py'
+    script.write_text('''import bpy,sys
+for layer in bpy.context.scene.view_layers:layer.use_freestyle=False
+bpy.context.scene.render.line_thickness_mode='RELATIVE'
+bpy.context.scene.render.line_thickness=5
+bpy.ops.wm.save_as_mainfile(filepath=sys.argv[-1])
+''')
+    subprocess.run([str(find_blender().path),'--background','--factory-startup','--disable-autoexec',
+                    str(scene_file),'--python-exit-code','1','--python',str(script),'--',str(alternate)],
+                   check=True,capture_output=True,timeout=60)
+    overridden=i.render_blend(alternate,**opts,style='sketch',quality='draft')
+    from io import BytesIO
+    from PIL import Image
+    # Blender also embeds filenames and render timings in the PNG metadata.
+    assert (Image.open(BytesIO(overridden.diagram.prim.data)).tobytes()
+            ==Image.open(BytesIO(sketch.diagram.prim.data)).tobytes())
+    with pytest.raises(ValueError,match='style'):i.render_blend(scene_file,**opts,style='unknown')

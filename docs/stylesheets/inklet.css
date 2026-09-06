@@ -28,3 +28,9 @@ td, th { min-width: 7rem; vertical-align: top; }
   h1 { font-size: 1.9rem; }
   pre { font-size: .8rem; }
 }
+.showcase-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5rem; margin:2rem 0; }
+.showcase-grid article { border:1px solid #dce3eb; border-radius:10px; overflow:hidden; background:#fff; color:#182b40; }
+.showcase-grid img { width:100%; aspect-ratio:1.25; object-fit:contain; display:block; }
+.showcase-grid h2 { font-size:1.2rem; margin:1rem 1.2rem .4rem; }
+.showcase-grid p { margin:0 1.2rem 1.2rem; color:#49647a; }
+@media (max-width:700px) { .showcase-grid { grid-template-columns:1fr; } }

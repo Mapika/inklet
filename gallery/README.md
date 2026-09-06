@@ -1,7 +1,11 @@
 # Gallery
 
-PNG renders of the current showcase figures, rasterised at 3x with
-`scripts/rasterise.sh`.
+The eight `showcase-*.png` figures are rendered at 300 dpi with
+`tools/showcase_gallery.py`. See the [showcase library](../docs/showcase.md)
+for recipes, Blender scenes, downloads and credits.
+
+The earlier figures below are rasterised at 3x with `scripts/rasterise.sh`
+unless specified otherwise.
 
 | file | source | shows |
 |---|---|---|

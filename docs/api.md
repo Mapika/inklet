@@ -65,7 +65,7 @@ Deferred scene rendering with file and live-data cache invalidation.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 
-#### `render_blend(path, *, width, height=None, camera=None, scene=None, frame=None, dpi=150, engine=None, samples=32, seed=0, transparent=True, landmarks=None, objects=None, collections=None, bindings=None, assets=(), cache=None, blender=None, timeout=300, threads=4, max_pixels=40000000, view_layer=None, passes=())`
+#### `render_blend(path, *, width, height=None, camera=None, scene=None, frame=None, dpi=None, engine=None, samples=None, seed=0, transparent=True, landmarks=None, objects=None, collections=None, bindings=None, assets=(), cache=None, blender=None, timeout=300, threads=4, max_pixels=40000000, view_layer=None, passes=(), quality=None, denoise=None, noise_threshold=None, style='authored')`
 
 Render an existing .blend file without modifying it.
 
@@ -76,6 +76,18 @@ A complete Blender scene as a Diagram; see render_blend for options.
 #### `blend_scene_spec(path, **options)`
 
 Create a live scene panel that responds to asset and data changes.
+
+#### `class RenderQuality(name: str, dpi: float, samples: int, denoise: bool, noise_threshold: float) -> None`
+
+Physical resolution and Cycles sampling settings for scene renders.
+
+#### `render_quality(name='preview', **overrides)`
+
+Get immutable draft, preview or final settings, with validated overrides.
+
+#### `inspect_blend(path, *, blender=None, timeout=30)`
+
+List authored scenes, cameras, view layers, objects and materials without rendering.
 
 #### `to_png(root, *, dpi=150, **options)`
 

@@ -19,6 +19,23 @@ optional tools. If Blender is not discovered automatically, set
 render function. Blender remains optional for ordinary plots and vector output.
 The complete-scene integration is tested with Blender 4.2.23 LTS and Cycles CPU.
 
+## Inspect before rendering
+
+Use `inspect_blend()` to discover the file's authored names without rendering:
+
+```python
+inventory = i.inspect_blend('apparatus.blend')
+for scene in inventory['scenes']:
+    print(scene['name'], scene['cameras'], scene['view_layers'])
+    print(scene['objects'])
+```
+
+The JSON-compatible inventory lists object types, collections, materials,
+visibility flags, cameras, view layers and frame ranges, plus the source hash.
+It does not validate that every external texture is present; rendering performs
+that dependency check. Inspection does not execute embedded scripts or save the
+file. Its default timeout is 30 seconds.
+
 ## Render an authored scene
 
 This example requires your own `apparatus.blend` with a camera named `Overview`:
@@ -52,6 +69,50 @@ Authored materials, lights and colour-management settings are preserved.
 count. EEVEE depends on a working graphics context and is not tested on every
 headless environment. `threads=` defaults to 4; `timeout=` defaults to 300 seconds.
 A render may contain at most 40 million pixels unless `max_pixels=` is changed.
+
+## Quality and sketch rendering
+
+Render quality is independent of Inklet's scientific/educational/marketing
+publication presets:
+
+| Quality | DPI | Maximum Cycles samples | Adaptive noise threshold | Denoise |
+| --- | ---: | ---: | ---: | --- |
+| `draft` | 100 | 16 | 0.10 | Yes |
+| `preview` | 180 | 64 | 0.03 | Yes |
+| `final` | 300 | 256 | 0.01 | Yes |
+
+```python
+result = i.render_blend('apparatus.blend', width=90,
+                        engine='CYCLES', quality='final')
+custom = i.render_quality('final', samples=512)
+result = i.render_blend('apparatus.blend', width=90,
+                        engine='CYCLES', quality=custom, dpi=450)
+```
+
+Explicit `dpi`, `samples`, `denoise` and `noise_threshold` arguments override
+the quality preset. Quality objects are immutable. Without a quality preset,
+DPI/samples retain the previous defaults of 150/32 and denoising/adaptive
+sampling retain the scene's authored settings. A zero noise threshold disables
+adaptive sampling. The manifest records the effective sampling settings.
+These quality presets require Cycles and use CPU rendering.
+
+For architectural studies and explanatory illustrations:
+
+```python
+sketch = i.render_blend('room.blend', width=150, camera='Overview',
+    engine='CYCLES', quality='final', style='sketch')
+```
+
+`style='sketch'` applies a matte surface override and dark, slightly irregular
+Freestyle silhouettes, borders and crease lines. Cameras, geometry and lights
+stay in place. The default `style='authored'` preserves authored appearance.
+The preset changes materials for every object, including glass, and does not
+preserve optical transparency. It requires Blender built with Freestyle.
+
+This is a procedural sketch aesthetic, not a hand-drawn image or a construction
+drawing. Scene surfaces and outlines are rasterized by Blender; annotations
+placed with Inklet remain vector. See the [showcase](showcase.md) for the same
+interior in both styles and the source of its downloadable furniture asset.
 
 ## Project object landmarks
 

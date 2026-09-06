@@ -76,6 +76,38 @@ def collect_passes(names, stage, pixels):
     return result
 
 
+def sketch_style(scene, layer, dpi):
+    if scene.render.engine != 'CYCLES' or not bpy.app.build_options.freestyle:
+        raise ValueError('Sketch style requires Cycles and a Blender build with Freestyle')
+    material = bpy.data.materials.new('Inklet sketch paper')
+    material.use_nodes = True
+    shader = material.node_tree.nodes.get('Principled BSDF')
+    shader.inputs['Base Color'].default_value = (.82, .79, .72, 1)
+    shader.inputs['Roughness'].default_value = 1
+    layer.material_override = material
+    scene.render.use_freestyle = True
+    layer.use_freestyle = True
+    scene.render.line_thickness_mode = 'ABSOLUTE'
+    scene.render.line_thickness = 1
+    settings = layer.freestyle_settings
+    settings.mode = 'EDITOR'
+    for item in list(settings.linesets):
+        settings.linesets.remove(item)
+    lines = settings.linesets.new('Inklet sketch contours')
+    lines.select_silhouette = True
+    lines.select_border = True
+    lines.select_crease = True
+    line = lines.linestyle
+    line.color = (.045, .035, .025)
+    line.thickness = .21 * dpi / 25.4
+    noise = line.geometry_modifiers.new('Small pencil irregularity', 'SPATIAL_NOISE')
+    noise.amplitude = .10 * dpi / 25.4
+    noise.scale = 3 * dpi / 25.4
+    noise.octaves = 2
+    noise.smooth = True
+    noise.use_pure_random = False
+
+
 def run(request):
     scene = bpy.data.scenes.get(request['scene']) if request['scene'] else bpy.context.scene
     if scene is None:
@@ -143,7 +175,14 @@ def run(request):
         scene.cycles.seed = request['seed']
         scene.cycles.use_animated_seed = False
         scene.cycles.device = 'CPU'
+        if request['denoise'] is not None:
+            scene.cycles.use_denoising = request['denoise']
+        if request['noise_threshold'] is not None:
+            scene.cycles.use_adaptive_sampling = request['noise_threshold'] > 0
+            scene.cycles.adaptive_threshold = request['noise_threshold']
     else:
+        if request['denoise'] is not None or request['noise_threshold'] is not None:
+            raise ValueError('Quality presets, denoise and noise_threshold currently require CYCLES')
         scene.eevee.taa_render_samples = request['samples']
     # The requested frame is the entire page, independent of authored crop borders.
     original_aspect = (scene.render.resolution_y*scene.render.pixel_aspect_y /
@@ -171,6 +210,8 @@ def run(request):
     scene.render.use_sequencer = False
     scene.render.threads_mode = 'FIXED'
     scene.render.threads = request['threads']
+    if request['style'] == 'sketch':
+        sketch_style(scene, layer, request['dpi'])
     bpy.context.view_layer.update()
     depsgraph = bpy.context.evaluated_depsgraph_get()
     evaluated_camera = camera.evaluated_get(depsgraph)
@@ -215,8 +256,13 @@ def run(request):
             with open(filename,'rb') as stream:
                 dependency_hashes[str(Path(filename).resolve())] = hashlib.file_digest(stream,'sha256').hexdigest()
     result = dict(scene=scene.name, camera=camera.name, view_layer=layer.name, frame=scene.frame_current,
+                  style=request['style'],
                   width_mm=width, height_mm=height, pixels=pixels,
                   engine=scene.render.engine, blender=bpy.app.version_string,
+                  sampling=(dict(samples=scene.cycles.samples, denoise=scene.cycles.use_denoising,
+                      adaptive=scene.cycles.use_adaptive_sampling,
+                      noise_threshold=scene.cycles.adaptive_threshold, device=scene.cycles.device)
+                      if scene.render.engine == 'CYCLES' else dict(samples=scene.eevee.taa_render_samples)),
                   color_management=dict(view_transform=scene.view_settings.view_transform,
                       look=scene.view_settings.look, exposure=scene.view_settings.exposure,
                       gamma=scene.view_settings.gamma),
@@ -229,5 +275,25 @@ def run(request):
     (stage/'scene.json').write_text(json.dumps(result, indent=2))
 
 
+def inspect(request):
+    scenes = []
+    for scene in bpy.data.scenes:
+        scenes.append(dict(name=scene.name, engine=scene.render.engine,
+            camera=scene.camera.name if scene.camera else None,
+            cameras=[dict(name=obj.name, type=obj.data.type, lens=obj.data.lens)
+                     for obj in scene.objects if obj.type == 'CAMERA'],
+            view_layers=[layer.name for layer in scene.view_layers],
+            frame=scene.frame_current, frame_range=[scene.frame_start, scene.frame_end],
+            resolution=[scene.render.resolution_x, scene.render.resolution_y],
+            objects=[dict(name=obj.name, type=obj.type, hidden=obj.hide_render,
+                collections=[collection.name for collection in obj.users_collection],
+                materials=[slot.material.name for slot in obj.material_slots if slot.material])
+                for obj in sorted(scene.objects, key=lambda obj: obj.name)]))
+    result = dict(blender=bpy.app.version_string, scenes=scenes,
+                  collections=sorted(collection.name for collection in bpy.data.collections))
+    (Path(request['output']) / 'inventory.json').write_text(json.dumps(result, indent=2))
+
+
 if __name__ == '__main__':
-    run(json.loads(Path(sys.argv[sys.argv.index('--')+1]).read_text()))
+    request = json.loads(Path(sys.argv[sys.argv.index('--')+1]).read_text())
+    inspect(request) if request.get('operation') == 'inspect' else run(request)

@@ -23,13 +23,16 @@ assert b'/ShadingType 2' in Path('figure.pdf').read_bytes()
 assert 'Installed render wheel' in Path('figure.svg').read_text()
 fig.export('bundle',compare_pdf=False)
 if len(sys.argv)>1:
+    inventory=i.inspect_blend(sys.argv[1])
+    assert inventory['scenes']
     result=i.render_blend(sys.argv[1],width=50,camera='Overview',dpi=60,samples=2,
                           engine='CYCLES',landmarks={'connector':'Connector'},cache='cache',
-                          passes=('depth','normal','object_id'))
+                          passes=('depth','normal','object_id'),quality='draft')
     assert result.diagram.prim.data.startswith(b'\\x89PNG')
     assert result.metadata['landmarks']['connector']['in_frame']
     assert result.passes['depth'].value(0,0) > 0
     assert result.passes['normal'].channels == 3
+    assert result.metadata['sampling']['denoise'] is True
 print('Installed render extra: PNG, SVG, PDF, review and optional Blender scene passed',i.__version__)
 '''
 

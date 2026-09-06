@@ -14,6 +14,7 @@ from ..core import Diagram, ImagePrim, Vec2
 from ..document.spec import BuildSpec, fingerprint, length, materialize
 from ..themes.color import parse_color
 from .scene_pass import ScenePass
+from .quality import quality_options
 
 PIPELINE_VERSION = 2
 _WORKER = Path(__file__).with_name('blender')/'scene_worker.py'
@@ -142,10 +143,11 @@ class SceneRender:
 
 
 def render_blend(path, *, width, height=None, camera=None, scene=None, frame=None,
-                 dpi=150, engine=None, samples=32, seed=0, transparent=True,
+                 dpi=None, engine=None, samples=None, seed=0, transparent=True,
                  landmarks=None, objects=None, collections=None, bindings=None,
                  assets=(), cache=None, blender=None, timeout=300, threads=4,
-                 max_pixels=40_000_000, view_layer=None, passes=()):
+                 max_pixels=40_000_000, view_layer=None, passes=(), quality=None,
+                 denoise=None, noise_threshold=None, style='authored'):
     """Render an existing .blend file without modifying it.
 
     Preserve authored cameras, materials, lights and colour management. Choose
@@ -155,6 +157,11 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
     or hide_render. Include extra simulation/sequence files in assets.
     Select a view_layer by name; otherwise use the active layer. Optional Cycles
     passes are depth, normal and object_id, returned as immutable numeric pixels.
+    Quality selects draft, preview or final Cycles settings. Explicit arguments
+    override the preset. With no quality preset, DPI/samples default to 150/32;
+    denoising and adaptive sampling retain authored settings unless overridden.
+    style='sketch' uses a matte material override and irregular Freestyle lines;
+    the default 'authored' keeps the scene's appearance.
 
     Blender is a subprocess with automatic Python execution disabled. The
     compositor and sequencer are bypassed; their file-output nodes are not run.
@@ -165,6 +172,10 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
     source = Path(path).expanduser().resolve()
     if source.suffix.lower() != '.blend' or not source.is_file():
         raise ValueError(f'Expected an existing .blend file: {source}')
+    quality, dpi, samples, denoise, noise_threshold = quality_options(
+        quality, dpi, samples, denoise, noise_threshold)
+    if style not in ('authored', 'sketch'):
+        raise ValueError('Scene style must be authored or sketch')
     width = length(width, 'scene width')
     height = None if height is None else length(height, 'scene height')
     dpi = length(dpi, 'scene dpi')
@@ -197,7 +208,8 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
         dpi=dpi, engine=engine, samples=samples, seed=seed, transparent=transparent,
         landmarks=_landmarks(landmarks or {}), objects=objects, collections=collections,
         bindings=_bindings(bindings or {}), threads=threads, max_pixels=max_pixels,
-        view_layer=view_layer, passes=passes)
+        view_layer=view_layer, passes=passes, quality=quality.name if quality else None,
+        denoise=denoise, noise_threshold=noise_threshold, style=style)
     inputs = _dependencies([source, *assets])
     key_data = dict(pipeline=PIPELINE_VERSION, worker=_hash(_WORKER),
                     blender=dict(path=str(binary.path), version=binary.release),
@@ -258,6 +270,38 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
 def blend_scene(path, **options):
     """A complete Blender scene as a Diagram; see render_blend for options."""
     return render_blend(path, **options).diagram
+
+
+def inspect_blend(path, *, blender=None, timeout=30):
+    """List authored scenes, cameras, view layers, objects and materials without rendering.
+
+    Requires Blender. Embedded Python is disabled and the source file is never
+    saved. The returned JSON-compatible inventory includes its source hash.
+    """
+    from .blender.discover import find_blender
+    source = Path(path).expanduser().resolve()
+    if source.suffix.lower() != '.blend' or not source.is_file():
+        raise ValueError(f'Expected an existing .blend file: {source}')
+    timeout = length(timeout, 'inspection timeout')
+    binary = find_blender(blender)
+    digest = _hash(source)
+    with tempfile.TemporaryDirectory(prefix='inklet-inspect-') as scratch:
+        stage = Path(scratch)
+        request = stage / 'request.json'
+        request.write_text(json.dumps({'operation': 'inspect', 'output': str(stage)}))
+        command = [str(binary.path), '--factory-startup', '--disable-autoexec',
+                   '--background', str(source), '--python-exit-code', '1',
+                   '--python', str(_WORKER), '--', str(request)]
+        try:
+            process = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            raise _error(f'Scene inspection exceeded {timeout:g} seconds') from None
+        if process.returncode or not (stage / 'inventory.json').is_file():
+            raise _error('Blender scene inspection failed:\n' + (process.stdout + process.stderr)[-5000:])
+        if _hash(source) != digest:
+            raise _error('Scene changed during inspection; inspect again')
+        return json.loads((stage / 'inventory.json').read_text()) | {
+            'source': str(source), 'sha256': digest}
 
 
 @dataclass(eq=False)
