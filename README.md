@@ -1,4 +1,9 @@
-# Inklet
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Mapika/inklet/adbbc4082920173a9e7b95d27af11622cfc545fa/docs/assets/brand/inklet-logo-dark.svg">
+    <img src="https://raw.githubusercontent.com/Mapika/inklet/adbbc4082920173a9e7b95d27af11622cfc545fa/docs/assets/brand/inklet-logo.svg" alt="Inklet" width="280" height="69">
+  </picture>
+</h1>
 
 **Scientific figures from Python, with measured layout and editable SVG/PDF output.**
 
