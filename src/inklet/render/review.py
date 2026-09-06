@@ -12,7 +12,8 @@ def review_page(metadata, diagnostics, report, svg):
                 f'<img src="{quote(files[key])}" alt="{esc(label)}" loading="lazy"></a></figure>')
     links=' · '.join(f'<a href="{quote(files[k])}">{label}</a>' for k,label in
                     [('svg','SVG'),('pdf','PDF'),('png','PNG'),('manifest','Metadata')])
-    previews=preview('SVG rendered by Chromium','png')
+    renderer='resvg' if metadata.get('png_backend')=='resvg' else 'Chromium'
+    previews=preview(f'SVG rendered by {renderer}','png')
     if 'pdf_png' in files: previews+=preview('PDF rendered by Poppler','pdf_png')
     revision=''
     if previous:=metadata.get('revision'):
