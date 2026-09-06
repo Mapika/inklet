@@ -11,13 +11,15 @@ def figure():
     return f
 
 
-def test_export_failure_preserves_existing_bundle(tmp_path,monkeypatch):
+@pytest.mark.parametrize('backend',['resvg','chromium'])
+def test_export_failure_preserves_existing_bundle(tmp_path,monkeypatch,backend):
     import inklet.render.bundle as bundle
     target=tmp_path/'out';target.mkdir()
     previous=target/'figure.svg';previous.write_text('original')
     def fail(*args,**kwargs):raise DiagramError('renderer unavailable')
     monkeypatch.setattr(bundle,'svg_png',fail)
-    with pytest.raises(DiagramError,match='renderer unavailable'):figure().export(target)
+    monkeypatch.setattr(inklet.Figure,'to_png',fail)
+    with pytest.raises(DiagramError,match='renderer unavailable'):figure().export(target,png_backend=backend)
     assert previous.read_text()=='original'
     assert list(target.iterdir())==[previous]
     assert sorted(p.name for p in tmp_path.iterdir())==['out']

@@ -58,6 +58,7 @@ Check the installed package with
 
 | Install from the checkout | Adds |
 |---|---|
+| `python -m pip install -e '.[render]'` | Browser-free PNG, masks and raster layers (v3) |
 | `python -m pip install -e '.[images]'` | Pillow and NumPy for images, raster layers and PNG previews |
 | `python -m pip install -e '.[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
 | `python -m pip install -e '.[dev]'` | Pytest for development |
@@ -83,17 +84,18 @@ Low-level text uses `size=i.pt(8)` for 8-point type. See
 
 ## Visual review
 
-SVG and PDF saving do not require a browser. A complete HTML review bundle adds
-PNG previews and needs:
+V3 development uses resvg for PNG output and review previews. Install from a
+checkout with `python -m pip install -e '.[render]'`. SVG and PDF saving need no
+browser; figures containing raster images also need Pillow (included in `render`).
 
-- Pillow, included in `images`.
-- Chrome or Chromium on `PATH` as `google-chrome`, `chromium` or `chromium-browser`.
-- Poppler's `pdftoppm` on `PATH` for the independent PDF preview.
+Poppler's `pdftoppm` supplies the independent PDF preview. Install `poppler-utils`
+on Debian/Ubuntu or `brew install poppler` on macOS. `--no-pdf-preview` omits that
+comparison while retaining the PDF file and HTML review.
 
-On Debian/Ubuntu, install `poppler-utils` and a supported Chrome/Chromium binary.
-On macOS, Poppler is available through Homebrew (`brew install poppler`); the
-browser executable must also be exposed under a supported command name on `PATH`.
-Installing the graphical application alone may not do that.
+Chrome/Chromium is only needed for the explicit `--png-backend chromium` preview
+path or the independent SVG regression tests. See [Blender scenes](blender-scenes.md)
+for optional Blender setup. Released 2.6 uses the earlier Chromium preview path;
+its instructions are in the [stable guide](https://inklet.readthedocs.io/en/stable/installation/).
 
 ```sh
 python -m inklet doctor
@@ -109,8 +111,7 @@ Without preview tools, use [the quickstart](quickstart.md) and save vectors, or:
 inklet build examples/v25_document.py --output out/v25 --vectors-only
 ```
 
-`--no-pdf-preview` omits only the PDF raster preview. The review still needs
-Pillow and Chrome/Chromium, and still includes the PDF file.
+`--no-pdf-preview` plus the `render` extra creates a review without Chrome or Poppler.
 
 ## Build the documentation
 

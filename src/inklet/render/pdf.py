@@ -128,7 +128,9 @@ class _Resources:
     def __init__(self) -> None:
         self.alphas: dict[tuple[str, str], str] = {}   # (ca, CA) -> /GS name
         self.images: dict[str, tuple[str, ImagePrim]] = {}   # key -> (name, prim)
-        self.forms: list[tuple[str, bytes, Rect]] = []       # name, stream, bbox
+        self.forms: list[tuple[str, bytes, Rect, bool]] = []  # name, stream, bbox, isolated
+        self.shadings = {}
+        self.blends = {}
         self.fonts = FontShelf()                  # only used by text="embed"
 
     def alpha(self, fill: str, stroke: str) -> str:
@@ -157,9 +159,9 @@ class _Resources:
             got = self.images[key] = (f"Im{len(self.images)}", prim)
         return got[0]
 
-    def form(self, stream: bytes, box: Rect) -> str:
+    def form(self, stream: bytes, box: Rect, *, isolated=False) -> str:
         name = f"Fm{len(self.forms)}"
-        self.forms.append((name, stream, box))
+        self.forms.append((name, stream, box, isolated))
         return name
 
 
@@ -331,6 +333,10 @@ def _paint(c: _Content, style: Style, *, fill: str | None, stroke: str | None,
 
 def _draw_prim(c: _Content, prim: Prim, style: Style) -> None:
     fill = _DEFAULT_FILL if style.fill is None else style.fill
+    from .brushes import PaintedPrim
+    if isinstance(prim, PaintedPrim):
+        _draw_painted(c,prim,style)
+        return
 
     if isinstance(prim, RectPrim):
         radius = prim.radius if prim.radius > 0 else (style.corner_radius or 0.0)
@@ -369,6 +375,51 @@ def _draw_prim(c: _Content, prim: Prim, style: Style) -> None:
     elif not isinstance(prim, PhantomPrim):
         raise NotImplementedError(
             f"the PDF backend cannot draw a {type(prim).__name__}")
+
+
+def _paint_geometry(c,shape,style):
+    if isinstance(shape,RectPrim):
+        box=shape.rect;radius=shape.radius or style.corner_radius or 0
+        if radius: _rounded_rect(c,box,radius)
+        else: c.op(c.n(box.x0),c.n(box.y0),c.n(box.width),c.n(box.height),'re')
+    elif isinstance(shape,EllipsePrim): _ellipse(c,shape.rx,shape.ry)
+    else: _subpaths(c,shape.subpaths)
+
+
+def _draw_painted(c,prim,style):
+    import math
+    from .brushes import Hatch
+    shape,brush=prim.shape,prim.brush
+    box=shape.envelope().bbox()
+    if box is None or box.width <= 0 or box.height <= 0: return
+    c.op('q')
+    _paint_geometry(c,shape,style)
+    c.op('W*' if getattr(shape,'fill_rule',None)=='evenodd' else 'W','n')
+    if isinstance(brush,Hatch):
+        if brush.background:
+            c.op(c.n(box.x0),c.n(box.y0),c.n(box.width),c.n(box.height),'re')
+            _paint(c,style,fill=brush.background,stroke=None)
+        theta=math.radians(brush.angle)
+        direction=Vec2(math.cos(theta),math.sin(theta));normal=Vec2(-direction.y,direction.x)
+        along=[point.dot(direction) for point in box.corners]
+        across=[point.dot(normal) for point in box.corners]
+        first=math.floor(min(across)/brush.spacing);last=math.ceil(max(across)/brush.spacing)
+        if last-first > 100_000: raise DiagramError('Hatch would exceed 100,000 lines; increase spacing')
+        c.op(_rgb(brush.color,c.precision),'RG');c.op(c.n(brush.stroke),'w')
+        c.op('[]','0','d');c.op('0','J')
+        for index in range(first,last+1):
+            a=direction*min(along)+normal*(index*brush.spacing)
+            b=direction*max(along)+normal*(index*brush.spacing)
+            _move(c,a);_line(c,b)
+        c.op('S')
+    else:
+        key=c.shared.shadings.setdefault(brush,f'Sh{len(c.shared.shadings)}')
+        c.matrix(Affine(box.width,0,0,box.height,box.x0,box.y0))
+        c.op(f'/{key}','sh')
+    c.op('Q')
+    if _paintable(style.stroke):
+        _paint_geometry(c,shape,style)
+        _paint(c,style,fill=None,stroke=style.stroke)
 
 
 def _draw_halo(c: _Content, glyphs: list[PlacedGlyph], style: Style) -> None:
@@ -617,6 +668,18 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
     style = node.style.over(inherited)
     own = node.style.opacity
 
+    if node.kind == 'blend' and 'blend_mode' in node.notes:
+        mode=node.notes['blend_mode']
+        inner=c.child()
+        _emit_contents(inner,node,world,style,1.)
+        name=c.shared.form(inner.render(),_world_box(node,world),isolated=True)
+        state=c.shared.blends.setdefault(mode,f'BM{len(c.shared.blends)}')
+        c.op('q');c.op(f'/{state}','gs')
+        if alpha*(1. if own is None else own) < 1:
+            c.op(f'/{c.alpha(alpha*(1. if own is None else own))}','gs')
+        c.op(f'/{name}','Do');c.op('Q')
+        return
+
     if own is not None and own < 1.0:
         if _drawables(node) > 1:
             inner = c.child()
@@ -739,19 +802,26 @@ def _assemble(pages: list[tuple[_Content, float, float]], shared: _Resources,
     # this backend has always written.
     shelf = objects.add(b"") if shared.forms else 0
     forms = []
-    for name, stream, box in shared.forms:
+    for name, stream, box, isolated in shared.forms:
         header = (f"/Type /XObject /Subtype /Form /FormType 1 /BBox "
                   f"[{_fmt(box.x0, _PAGE_PRECISION)} {_fmt(box.y0, _PAGE_PRECISION)} "
                   f"{_fmt(box.x1, _PAGE_PRECISION)} {_fmt(box.y1, _PAGE_PRECISION)}] "
-                  f"/Group << /S /Transparency /CS /DeviceRGB /I false /K false >> "
+                  f"/Group << /S /Transparency /CS /DeviceRGB /I {'true' if isolated else 'false'} /K false >> "
                   f"/Resources {shelf} 0 R").encode("ascii")
         forms.append(f"/{name} {objects.add_stream(header, stream, compress=compress)} 0 R")
 
     resources = []
-    if shared.alphas:
+    if shared.shadings:
+        from .brushes import pdf_shading
+        entries=[f'/{name} {objects.add(pdf_shading(brush).encode("ascii"))} 0 R'
+                 for brush,name in shared.shadings.items()]
+        resources.append(f'/Shading << {" ".join(entries)} >>')
+    if shared.alphas or shared.blends:
         entries = " ".join(f"/{name} << /ca {fill} /CA {stroke} >>"
                            for (fill, stroke), name in shared.alphas.items())
-        resources.append(f"/ExtGState << {entries} >>")
+        from .composite import BLEND_MODES
+        entries += ' '+' '.join(f'/{name} << /BM /{BLEND_MODES[mode]} >>' for mode,name in shared.blends.items())
+        resources.append(f"/ExtGState << {entries.rstrip()} >>")
     refs = list(forms)
     for name, prim in shared.images.values():
         body, data, alpha = _image_object(prim)
@@ -796,6 +866,9 @@ def _assemble(pages: list[tuple[_Content, float, float]], shared: _Resources,
     digest = hashlib.md5()
     for stream, box in zip(streams, boxes):
         digest.update(stream + box.encode("ascii"))
+    # Paint/image changes can retain the same content operators and resource
+    # names. Include resource bytes so these PDFs cannot share an identity.
+    for body in objects.bodies: digest.update(body)
     return objects.serialize(catalog, info, digest.hexdigest().upper())
 
 

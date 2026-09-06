@@ -122,6 +122,17 @@ drawings. See [the authoring model](https://inklet.readthedocs.io/en/stable/conc
 - Reproducible appearance requires consistent inputs, fonts and dependencies.
   The export manifest records dataset and font hashes for comparison.
 
+## V3 development
+
+The development branch adds complete Blender scenes with projected object labels,
+browser-free PNG export, vector gradients/hatching and group blending. Install a
+checkout with `python -m pip install -e '.[render]'` and run
+`python tools/v3_showcase.py` for the mixed scene-and-plot example.
+
+[Rendering guide](https://inklet.readthedocs.io/en/latest/v3/) ·
+[Blender setup and scenes](https://inklet.readthedocs.io/en/latest/blender-scenes/).
+PyPI and the stable documentation remain on 2.6 until v3 is released.
+
 ## Documentation and development
 
 Read the [documentation on Read the Docs](https://inklet.readthedocs.io/en/stable/).

@@ -32,8 +32,10 @@ def validate_options(name, dpi, text):
         raise ValueError("export text must be 'embed' or 'outline' for both SVG and PDF")
 
 
-def export_bundle(figure, directory, *, name='figure', dpi=150, text='embed', compare_pdf=True, compare_to=None):
+def export_bundle(figure, directory, *, name='figure', dpi=150, text='embed', compare_pdf=True, compare_to=None,
+                  png_backend='resvg'):
     validate_options(name, dpi, text)
+    if png_backend not in ('resvg', 'chromium'): raise ValueError('png_backend must be resvg or chromium')
     directory = Path(directory).resolve()
     directory.parent.mkdir(parents=True, exist_ok=True)
     files = {'svg':f'{name}.svg', 'pdf':f'{name}.pdf', 'png':f'{name}.png',
@@ -45,7 +47,10 @@ def export_bundle(figure, directory, *, name='figure', dpi=150, text='embed', co
     with tempfile.TemporaryDirectory(prefix='.inklet-export-', dir=directory.parent) as scratch:
         stage = Path(scratch)
         figure.save(stage/files['svg'], stage/files['pdf'], text=text)
-        svg_png(stage/files['svg'], stage/files['png'], dpi=dpi)
+        if png_backend == 'chromium':
+            svg_png(stage/files['svg'], stage/files['png'], dpi=dpi)
+        else:
+            (stage/files['png']).write_bytes(figure.to_png(dpi=dpi))
         if compare_pdf:
             pdf_png(stage/files['pdf'], stage/files['pdf_png'], dpi=dpi)
         from dataclasses import asdict
@@ -56,7 +61,9 @@ def export_bundle(figure, directory, *, name='figure', dpi=150, text='embed', co
         (stage/files['diagnostics_json']).write_text(json.dumps(diagnostics,indent=2)+'\n',encoding='utf-8')
         report = figure.report()
         (stage/files['diagnostics']).write_text(report+'\n', encoding='utf-8')
-        metadata = {'name':name, 'dpi':dpi, 'text':text,
+        from .resources import rendering_manifest
+        metadata = {'name':name, 'dpi':dpi, 'text':text, 'png_backend':png_backend,
+                    'rendering':rendering_manifest(root),
                     'width_mm':root.bbox.width, 'height_mm':root.bbox.height,
                     'files':files}
         if hasattr(figure, 'metadata'):

@@ -49,3 +49,6 @@ For development, see [contributing](../CONTRIBUTING.md),
 and [the changelog](../CHANGELOG.md). The older
 [page-grid design study](design/page_grid.md) describes a pre-v2 decision,
 not the current document API.
+
+The [v3 development build](v3.md) adds complete [Blender scenes](blender-scenes.md),
+browser-free PNG export and vector gradients, hatching and blending.

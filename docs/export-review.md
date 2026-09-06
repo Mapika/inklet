@@ -3,6 +3,9 @@
 Compile a document once and use the resulting snapshot for all exports.
 Changing the authoring objects afterwards does not change that snapshot.
 
+V3 adds direct PNG export, vector brushes and rendered scene layers; see
+[the v3 rendering guide](v3.md). The review PNG now uses the `render` extra.
+
 ## Save vectors
 
 ```python

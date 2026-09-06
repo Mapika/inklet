@@ -40,6 +40,7 @@ output is `out/review`, with base name `figure`.
 | `--dpi NUMBER` | Positive preview DPI; otherwise the publication profile's value or 150 |
 | `--compare-to PATH` | Previous manifest, or directory containing `<name>-manifest.json` |
 | `--no-pdf-preview` | Omit Poppler's PNG rendering; still save the PDF |
+| `--png-backend NAME` | `resvg` (default in v3) or `chromium` |
 | `--vectors-only` | Write SVG and PDF without an HTML bundle or preview tools |
 
 `--vectors-only` cannot be combined with `--compare-to`. Bundle export embeds
@@ -64,14 +65,16 @@ Watch accepts the shared build options above except `--vectors-only`, plus:
 |---|---|---|
 | `--port NUMBER` | `8765` | Local preview port |
 | `--interval SECONDS` | `0.5` | Positive polling interval |
+| `--build-timeout SECONDS` | `600` | Maximum duration of one rebuild |
 | `--watch PATH` | None | Additional file or directory; repeat for more paths |
 
 Python files under the author script's directory are watched automatically.
 Explicit directories also include non-Python files. Hidden paths,
 `__pycache__`, `node_modules` and directories named `out` are excluded from
-recursive watching. Dependencies outside that scope need `--watch` entries.
+recursive watching. After a successful bundle, Blender scene dependencies in
+its manifest are also watched. Other dependencies need `--watch` entries.
 
-Each rebuild runs in a fresh Python process, with a 120-second build timeout.
+Each rebuild runs in a fresh Python process, with a 600-second default build timeout.
 The browser displays the last successful bundle if a build fails and shows
 the error alongside it. The next successful edit refreshes the preview.
 Stop with Ctrl-C.
@@ -86,7 +89,8 @@ baseline. See [revision review](export-review.md#compare-revisions).
 inklet doctor
 ```
 
-Reports Python, Pillow, NumPy, Chrome/Chromium, Poppler and Fontconfig as JSON.
+Reports Python, Pillow, NumPy, resvg, Blender (path/version), Chrome/Chromium,
+Poppler and Fontconfig as JSON.
 This command does not validate fonts or figure geometry, and missing optional
 tools do not cause a failing exit code. Use [installation](installation.md)
 and [troubleshooting](troubleshooting.md) to resolve missing dependencies.

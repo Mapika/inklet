@@ -349,13 +349,21 @@ class Figure:
         options.update(kwargs)
         return to_pdf(root, **options)
 
+    def to_png(self, *, dpi=150, **kwargs) -> bytes:
+        """Render PNG at physical DPI with optional resvg, without a browser."""
+        from .render.raster import to_png
+        root, _ = self.build()
+        return to_png(root, dpi=dpi, **(dict(background=self.background or self.theme.paper) | kwargs))
+
     def export(self, directory: str | Path, *, name: str = "figure",
-               dpi: float = 150, text: str = "embed", compare_pdf: bool = True) -> dict[str, Path]:
+               dpi: float = 150, text: str = "embed", compare_pdf: bool = True,
+               png_backend: str = 'resvg', compare_to=None) -> dict[str, Path]:
         """Write SVG, PDF, PNG, diagnostics and a local HTML review page.
 
         Returns paths keyed by `svg`, `pdf`, `png`, `review`, `diagnostics`,
-        `manifest` and (by default) `pdf_png`. PNG previews require Pillow and
-        Chrome/Chromium; the independent PDF preview also requires Poppler.
+        `manifest` and (by default) `pdf_png`. PNG previews require inklet[render] (resvg and Pillow);
+        png_backend="chromium" uses the earlier browser path. The independent
+        PDF preview also requires Poppler.
         Set `compare_pdf=False` to omit that preview. Text is embedded by
         default; `text="outline"` is also supported.
 
@@ -364,10 +372,10 @@ class Figure:
         """
         from .render.bundle import export_bundle
         return export_bundle(self, directory, name=name, dpi=dpi, text=text,
-                             compare_pdf=compare_pdf)
+                             compare_pdf=compare_pdf, png_backend=png_backend,compare_to=compare_to)
 
     def save(self, *paths: str | Path, **kwargs) -> None:
-        """Write the figure to one or more files, as SVG or PDF.
+        """Write the figure to SVG, PDF or PNG, following each filename suffix.
 
         The format follows the suffix, so `fig.save("f.svg", "f.pdf")` writes
         both from one build -- which is what a paper wants, the PDF to submit
@@ -393,12 +401,14 @@ class Figure:
         for path in paths:
             target = Path(path)
             suffix = target.suffix.lower()
-            if suffix not in (".svg", ".pdf"):
+            if suffix not in (".svg", ".pdf", ".png"):
                 raise NotImplementedError(
-                    f"{target.suffix} output is not supported; write .svg or .pdf"
+                    f"{target.suffix} output is not supported; write .svg, .pdf or .png"
                 )
             target.parent.mkdir(parents=True, exist_ok=True)
-            if suffix == ".pdf":
+            if suffix == '.png':
+                target.write_bytes(self.to_png(**kwargs))
+            elif suffix == ".pdf":
                 options = {k: v for k, v in kwargs.items() if k != "text"}
                 if mode in PDF_TEXT_MODES:
                     options["text"] = mode

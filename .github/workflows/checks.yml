@@ -77,3 +77,5 @@ jobs:
         run: |
           uv build --wheel --out-dir out/dist
           uv run --no-project python tools/check_wheel.py out/dist/inklet-*.whl
+      - name: Install and check optional render extra
+        run: uv run --no-project python tools/check_render_wheel.py out/dist/inklet-*.whl

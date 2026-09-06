@@ -4,6 +4,9 @@ The built-in 3D renderer produces vector artwork from generated solids or
 meshes. It does not require a network connection, GPU, Blender or the optional
 `three` extra. Images and raster effects use the `images` extra.
 
+For complete `.blend` files with authored materials, lights and cameras, see
+[Blender scenes in v3](blender-scenes.md).
+
 ## Start with a solid
 
 ```python

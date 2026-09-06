@@ -12,6 +12,72 @@ length is a number of millimetres, or a string like `"89mm"` / `"2in"` / a
 took before layout still resolves inside the finished figure.
 
 
+## Core authoring
+
+#### `rendering_capabilities()`
+
+Declared format support; no renderer is selected implicitly.
+
+#### `blend(node, mode='multiply')`
+
+Blend an isolated group with the artwork behind it, natively in SVG/PDF.
+
+#### `mask(content, stencil, *, mode='luminance', dpi=300)`
+
+Apply a same-coordinate stencil as a recorded raster layer.
+
+#### `class LinearGradient(stops: tuple, start: tuple = (0.0, 0.0), end: tuple = (1.0, 0.0)) -> None`
+
+Opaque colour stops from start to end in fractions of the shape bounds.
+
+#### `class RadialGradient(stops: tuple, center: tuple = (0.5, 0.5), radius: float = 0.5) -> None`
+
+Concentric opaque gradient in shape-bound fractions; circles become ellipses on rectangular bounds.
+
+#### `class Hatch(color: str = '#666666', spacing: float = 2.0, stroke: float = 0.2, angle: float = 45.0, background: str | None = None) -> None`
+
+Parallel vector strokes with spacing/width in local millimetres.
+
+#### `paint(node, brush)`
+
+Fill a shape or shape group with a vector gradient or hatch; retain text and authored strokes.
+
+#### `class SceneRender(diagram: inklet.core.diagram.Diagram, metadata: dict, cache_hit: bool) -> None`
+
+A rendered snapshot, its provenance and whether cached pixels were reused.
+
+#### `class BlendSceneSpec(path: object, options: dict = <factory>, _dependencies: tuple = ()) -> None`
+
+Deferred scene rendering with file and live-data cache invalidation.
+
+* `signature(trail=())`
+* `render(context, width=None, height=None)`
+
+#### `render_blend(path, *, width, height=None, camera=None, scene=None, frame=None, dpi=150, engine=None, samples=32, seed=0, transparent=True, landmarks=None, objects=None, collections=None, bindings=None, assets=(), cache=None, blender=None, timeout=300, threads=4, max_pixels=40000000)`
+
+Render an existing .blend file without modifying it.
+
+#### `blend_scene(path, **options)`
+
+A complete Blender scene as a Diagram; see render_blend for options.
+
+#### `blend_scene_spec(path, **options)`
+
+Create a live scene panel that responds to asset and data changes.
+
+#### `to_png(root, *, dpi=150, **options)`
+
+Return PNG bytes at physical DPI, without Chrome or a display server.
+
+#### `save_png(root, path, **options)`
+
+Save a Diagram as PNG; see to_png for physical DPI and backgrounds.
+
+#### `rasterize(node, *, dpi=300, reason='explicit raster layer')`
+
+Freeze one expensive layer as pixels, preserving its size and anchors.
+
+
 ## Live documents
 
 #### `class PublicationProfile(name: str, width: float, font_pt: float = 8, small_font_pt: float = 7, stroke_mm: float = 0.18, min_font_pt: float = 6, min_stroke_mm: float = 0.1, min_dpi: float = 300, dpi: float = 300, text: str = 'embed', base_theme: inklet.themes.theme.Theme | str = 'nature', title_font_pt: float | None = None, max_font_pt: float | None = None, max_height_mm: float | None = None) -> None`
@@ -119,6 +185,7 @@ A resolved snapshot; later authoring changes cannot alter its exports.
 * `report(**kwargs)`
 * `to_svg(*, text=None, **kwargs)`
 * `to_pdf(*, text=None, **kwargs)`
+* `to_png(*, dpi=None, **kwargs)`
 * `save(*paths, **kwargs)`
 * `export(directory, **kwargs)`
 
@@ -801,8 +868,9 @@ Figure(width: 'float' = 89.0, height: 'float | None' = None, theme: 'Theme' = <f
 * `report(**kwargs) -> 'str'` -- `lint()`, formatted for a human or an agent to read.
 * `to_svg(*, text: 'str' = 'names', **kwargs) -> 'str'` -- The figure as SVG text, page frame and background included.
 * `to_pdf(*, text: 'str' = 'outline', **kwargs) -> 'bytes'` -- The figure as PDF bytes, on the same page as `to_svg` puts it.
-* `export(directory: 'str | Path', *, name: 'str' = 'figure', dpi: 'float' = 150, text: 'str' = 'embed', compare_pdf: 'bool' = True) -> 'dict[str, Path]'` -- Write SVG, PDF, PNG, diagnostics and a local HTML review page.
-* `save(*paths: 'str | Path', **kwargs) -> 'None'` -- Write the figure to one or more files, as SVG or PDF.
+* `to_png(*, dpi=150, **kwargs) -> 'bytes'` -- Render PNG at physical DPI with optional resvg, without a browser.
+* `export(directory: 'str | Path', *, name: 'str' = 'figure', dpi: 'float' = 150, text: 'str' = 'embed', compare_pdf: 'bool' = True, png_backend: 'str' = 'resvg', compare_to=None) -> 'dict[str, Path]'` -- Write SVG, PDF, PNG, diagnostics and a local HTML review page.
+* `save(*paths: 'str | Path', **kwargs) -> 'None'` -- Write the figure to SVG, PDF or PNG, following each filename suffix.
 
 
 ## Theming

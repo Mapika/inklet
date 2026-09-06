@@ -189,6 +189,10 @@ class CompiledFigure:
         if text is None: text=self.metadata.get('publication',{}).get('text','embed')
         return self._figure.to_pdf(text=text, **kwargs)
 
+    def to_png(self, *, dpi=None, **kwargs):
+        if dpi is None: dpi=self.metadata.get('publication',{}).get('dpi',150)
+        return self._figure.to_png(dpi=dpi, **kwargs)
+
     def save(self, *paths, **kwargs):
         kwargs.setdefault('text', self.metadata.get('publication',{}).get('text','embed'))
         return self._figure.save(*paths, **kwargs)
@@ -500,6 +504,8 @@ class Document(BuildSpec):
                       cells={name:dict(x=box.x0,y=box.y0,width=box.width,height=box.height,
                                        node_id=program.ids[handles[name].id]) for name,box in boxes.items()},
                       datasets=_sources([c.item for c in self._cells]))
+        from ..render.resources import rendering_manifest
+        metadata['rendering'] = rendering_manifest(program.root)
         if self.publication is not None: metadata['publication']=asdict(self.publication)
         if self.preset is not None:
             metadata['preset'] = self.preset.as_dict()

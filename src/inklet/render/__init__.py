@@ -12,7 +12,8 @@ text selectable.
 from .outline import TEXT_MODES, outline_text, resolve_text_mode
 from .pdf import PDF_TEXT_MODES, save_pdf, to_pdf
 from .svg import save_svg, to_svg
+from .raster import save_png, to_png, rasterize
 
-__all__ = ["to_svg", "save_svg", "to_pdf", "save_pdf",
+__all__ = ["to_svg", "save_svg", "to_pdf", "save_pdf", "to_png", "save_png", "rasterize",
            "outline_text", "resolve_text_mode", "TEXT_MODES",
            "PDF_TEXT_MODES"]

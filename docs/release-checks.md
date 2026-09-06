@@ -21,6 +21,11 @@ pull requests and manual dispatch. It does not publish packages.
   data provenance and physical formats. Three complete destination examples
   exercise journal limits, 16:9 slides and A4 worksheets, including PDF page sizes.
 
+V3 adds cross-format paint/compositing tests and direct PNG size checks. Complete
+Blender scene tests run when Blender 4.2+ is installed; the ordinary CI runner
+skips those optional integration tests. Run them locally with
+`python -m pytest tests/test_blend_scene.py`, then build `tools/v3_showcase.py`.
+
 The figure job uses Ubuntu 24.04, Python 3.12, Chrome, Poppler, DejaVu and Noto
 fonts. The visual checker verifies the DejaVu file hashes before comparisons;
 font mismatches fail rather than refreshing references. Review artifacts and

@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.0 (development)
+
+- Render complete Blender scenes with named cameras, scene/frame selection,
+  material and lighting preservation, projected landmarks and explicit data bindings.
+- Cache scene pixels with source/asset hashes and render settings; embed snapshots
+  and scene provenance in figure exports. Watch recorded scene dependencies.
+- Add browser-free resvg PNG output with physical DPI, bounded small-layer caching,
+  and a Chromium compatibility option. Review PNG defaults change to resvg.
+- Add immutable linear/radial gradients, vector hatching and isolated group blend
+  modes across SVG/PDF, plus explicit raster masks and dense-layer rasterization.
+- Share repeated SVG images, record rendering capabilities/resources, and include
+  resource bytes in PDF identities. Keep the ordinary core install lightweight.
+- Add an original reusable Blender laboratory scene, mixed-rendering showcase,
+  real Blender integration tests, cross-format pixel tests and v3 guides.
+
 ## 2.6.0 — 2026-09-06
 
 - Add immutable scientific, educational and marketing presets, independent

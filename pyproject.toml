@@ -1,6 +1,6 @@
 [project]
 name = "inklet"
-version = "2.6.0"
+version = "3.0.0.dev0"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
 authors = [{name = "Mark Marosi"}]
@@ -41,6 +41,7 @@ docs = ["mkdocs>=1.6,<2", "pygments>=2.18,<3"]
 # first pulls in ONNX Runtime and downloads a ~180 MB model, the second is a
 # system binary. Both are picked up automatically when present.
 images = ["pillow>=10.0", "numpy>=1.24"]
+render = ["resvg-py>=0.3.3,<0.4", "pillow>=10.0"]
 # The 3D pipeline (inklet.model / inklet.solid) needs nothing at all: the parsers,
 # the camera, hidden-line removal and the shading are standard library, and
 # `inklet.solid("cube", width=20)` has to keep working on a cluster node with no

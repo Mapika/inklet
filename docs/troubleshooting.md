@@ -10,7 +10,8 @@ the SVG or [review page](export-review.md).
 |---|---|
 | `No module named inklet` or command not found | Activate the installation environment; use `python -m inklet` to select that interpreter |
 | No font found or missing glyphs | Install an appropriate font, verify Fontconfig, or choose an explicit font family/file |
-| PNG preview renderer unavailable | Install `images` and put a supported Chrome/Chromium executable on `PATH` |
+| PNG preview renderer unavailable | Install the `render` extra for v3; `--png-backend chromium` requires Chrome/Chromium |
+| Blender scene renderer unavailable | Install Blender 4.2+ and set `INKLET_BLENDER` to its executable; run `inklet doctor` |
 | PDF preview renderer unavailable | Install Poppler's `pdftoppm`, or pass `--no-pdf-preview` / `compare_pdf=False` |
 | Only vectors are needed | Use `save('figure.svg', 'figure.pdf')` or CLI `--vectors-only` |
 | Preview exceeds pixel limit | Lower preview DPI or page dimensions; SVG/PDF retain their vector resolution |

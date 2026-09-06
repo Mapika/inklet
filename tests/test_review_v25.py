@@ -12,6 +12,11 @@ def renderers(monkeypatch):
     def render(source,target,**options): Image.new('RGB',(50,30),state['color']).save(target)
     monkeypatch.setattr(bundle,'svg_png',render)
     monkeypatch.setattr(bundle,'pdf_png',render)
+    def png_bytes(*args,**options):
+        from io import BytesIO
+        output=BytesIO();Image.new('RGB',(50,30),state['color']).save(output,format='PNG')
+        return output.getvalue()
+    monkeypatch.setattr(i.Figure,'to_png',png_bytes)
     return state
 
 

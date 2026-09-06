@@ -31,3 +31,14 @@ def test_watch_tracks_code_and_explicit_data(tmp_path):
     data.write_text('100')
     assert _watch_files(script,[data])!=before
     assert str(helper) in [row[0] for row in before]
+
+
+def test_watch_reads_rendered_scene_dependencies(tmp_path):
+    from inklet.cli import _scene_dependencies
+    import json
+    manifest=tmp_path/'manifest.json'
+    scene=tmp_path/'scene.blend'
+    manifest.write_text(json.dumps({'rendering':{'scenes':[{'dependencies':[{'path':str(scene)}]}]}}))
+    assert _scene_dependencies(manifest)==[scene]
+    manifest.write_text('incomplete')
+    assert _scene_dependencies(manifest)==[]

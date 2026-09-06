@@ -1,4 +1,4 @@
-"""Install a wheel into a clean environment and exercise the public v2.5 API/CLI."""
+"""Install a wheel with core dependencies and exercise public authoring/export APIs."""
 from pathlib import Path
 import argparse
 import os
@@ -16,6 +16,7 @@ import inklet as i
 assert i.__version__ == version("inklet")
 assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
+assert find_spec("resvg_py") is None
 def make_document():
     data = i.dataset({"x": [0, 1, 2], "y": [1, 3, 2]}, name="wheel smoke")
     p = i.plot_spec(x=(0, 2), y=i.shared_scale(data.column("y")))
@@ -45,6 +46,16 @@ if __name__ == "__main__":
     assert before.to_svg() != after.to_svg()
     assert after.metadata["preset"]["name"] == "marketing.report"
     assert after.to_pdf().startswith(b"%PDF")
+    brush = i.LinearGradient(((0, "white"), (1, "#245b8a")))
+    painted = i.paint(i.circle(width=15, height=15), brush)
+    assert "linearGradient" in i.to_svg(painted)
+    assert b"/ShadingType 2" in i.to_pdf(painted)
+    try:
+        i.to_png(painted)
+    except i.DiagramError as error:
+        assert "inklet[render]" in str(error)
+    else:
+        raise AssertionError("PNG unexpectedly works without its optional renderer")
     print("Installed wheel API passed", i.__version__)
 '''
 

@@ -729,6 +729,17 @@ def _image(prim: ImagePrim, w: _Writer, kind: str | None = None) -> None:
         w.line(_comment(f"image not embedded, file unreadable: {prim.source}"))
         attrs.append(("xlink:href", prim.source))
     else:
+        import hashlib
+        key=hashlib.sha256((payload+str(_smooth(prim,kind))).encode()).hexdigest()[:20]
+        registry=getattr(w,'image_defs',None)
+        if registry is None: registry=w.image_defs={}
+        if key in registry:
+            width,height=registry[key]
+            w.empty('use',[('xlink:href','#inklet-image-'+key),
+                           ('transform',f'scale({w.n(prim.width/width)} {w.n(prim.height/height)})')])
+            return
+        registry[key]=(prim.width,prim.height)
+        attrs.append(('id','inklet-image-'+key))
         attrs.append(("xlink:href", payload))
     w.empty("image", attrs)
 
@@ -788,6 +799,13 @@ def _shape(prim: Prim, style: Style, w: _Writer) -> Shape | None:
     with children (`TextPrim`), and one that has side effects worth keeping in
     file order (`ImagePrim`'s broken-link comment).
     """
+    from .brushes import PaintedPrim, svg_brush
+    if isinstance(prim, PaintedPrim):
+        key=svg_brush(prim.brush,w)
+        shape=_shape(prim.shape,style,w)
+        if shape is None: return None
+        tag,attrs=shape
+        return tag,[(k,v) for k,v in attrs if k!='fill']+[('fill',f'url(#{key})')]
     if isinstance(prim, RectPrim):
         return _rect(prim, style, w)
     if isinstance(prim, EllipsePrim):
@@ -814,7 +832,7 @@ def _emit_prim(prim: Prim, style: Style, w: _Writer,
     elif isinstance(prim, ImagePrim):
         _image(prim, w, kind)
     else:
-        w.line(_comment(f"unsupported primitive {type(prim).__name__}"))
+        raise NotImplementedError(f'the SVG backend cannot draw a {type(prim).__name__}')
 
 
 # -- tree -----------------------------------------------------------------
@@ -831,6 +849,8 @@ def _emit_node(node: Diagram, inherited: Style, w: _Writer) -> None:
     if not transform.is_identity:
         attrs.append(("transform", _transform(transform, w)))
     attrs += style_attrs
+    if node.kind == 'blend' and 'blend_mode' in node.notes:
+        attrs.append(('style',f'mix-blend-mode:{node.notes["blend_mode"]};isolation:isolate'))
 
     if node.prim is not None and not node.children:
         shape = _shape(node.prim, resolved, w)

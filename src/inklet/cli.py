@@ -21,10 +21,18 @@ from urllib.parse import quote, urlsplit
 
 def doctor():
     """Return available optional renderers without importing heavy dependencies."""
+    from .three.blender import find_blender, BlenderError
+    try:
+        found=find_blender()
+        blender={'path':str(found.path),'version':found.release}
+    except BlenderError:
+        blender=None
     return {
         'python': sys.version.split()[0],
         'pillow': importlib.util.find_spec('PIL') is not None,
         'numpy': importlib.util.find_spec('numpy') is not None,
+        'resvg': importlib.util.find_spec('resvg_py') is not None,
+        'blender':blender,
         'chromium': next((p for n in ('google-chrome','chromium','chromium-browser') if (p:=shutil.which(n))),None),
         'poppler': shutil.which('pdftoppm'),
         'fontconfig': shutil.which('fc-match'),
@@ -55,7 +63,7 @@ def load_figure(script):
         sys.path[:]=before
 
 
-def build(script,output,name,dpi=None,vectors_only=False,compare_pdf=True,compare_to=None):
+def build(script,output,name,dpi=None,vectors_only=False,compare_pdf=True,compare_to=None,png_backend='resvg'):
     if vectors_only and compare_to is not None:
         raise ValueError('--compare-to requires a review bundle, not --vectors-only')
     figure=load_figure(script)
@@ -66,7 +74,7 @@ def build(script,output,name,dpi=None,vectors_only=False,compare_pdf=True,compar
         figure.save(output/f'{name}.svg',output/f'{name}.pdf',text=text)
         target=output/f'{name}.svg'
     else:
-        target=figure.export(output,name=name,compare_pdf=compare_pdf,compare_to=compare_to,
+        target=figure.export(output,name=name,compare_pdf=compare_pdf,compare_to=compare_to,png_backend=png_backend,
                             **({} if dpi is None else {'dpi':dpi}))['review']
     print(target)
     return 0
@@ -86,7 +94,16 @@ def _watch_files(script,extra):
     return tuple(sorted((str(p),p.stat().st_mtime_ns,p.stat().st_size) for p in paths if p.exists()))
 
 
-def watch(script,output,*,name='figure',dpi=None,port=8765,interval=.5,extra=(),compare_pdf=True,compare_to=None):
+def _scene_dependencies(manifest):
+    try:
+        data=json.loads(Path(manifest).read_text())
+        return [Path(item['path']) for scene in data.get('rendering',{}).get('scenes',[])
+                for item in scene.get('dependencies',[])]
+    except (OSError,ValueError,KeyError,TypeError):return []
+
+
+def watch(script,output,*,name='figure',dpi=None,port=8765,interval=.5,extra=(),compare_pdf=True,compare_to=None,
+          png_backend='resvg',build_timeout=600):
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=True)
     state={'generation':0,'building':False,'error':None}
     active={'process':None}
@@ -111,14 +128,14 @@ def watch(script,output,*,name='figure',dpi=None,port=8765,interval=.5,extra=(),
     def rebuild():
         previous=None
         while not stop.is_set():
-            try:current=_watch_files(script,extra)
+            try:current=_watch_files(script,[*extra,*_scene_dependencies(output/f'{name}-manifest.json')])
             except OSError:
                 stop.wait(interval);continue
             if current!=previous:
                 previous=current
                 with lock:state.update(building=True,error=None)
                 command=[sys.executable,'-m','inklet','build',str(Path(script).resolve()),
-                         '--output',str(output),'--name',name]
+                         '--output',str(output),'--name',name,'--png-backend',png_backend]
                 if dpi is not None: command.extend(['--dpi',str(dpi)])
                 reference=compare_to or (output/f'{name}-manifest.json' if (output/f'{name}-manifest.json').exists() else None)
                 if reference is not None: command.extend(['--compare-to',str(reference)])
@@ -129,7 +146,7 @@ def watch(script,output,*,name='figure',dpi=None,port=8765,interval=.5,extra=(),
                         process=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
                                                  text=True,start_new_session=(os.name=='posix'))
                         active['process']=process
-                    stdout,stderr=process.communicate(timeout=120)
+                    stdout,stderr=process.communicate(timeout=build_timeout)
                     with lock:
                         state['building']=False
                         if process.returncode:state['error']=(stderr or stdout)[-12000:]
@@ -176,11 +193,13 @@ def main(argv=None):
         p.add_argument('--dpi',type=float,help='preview DPI; defaults to the publication profile or 150')
         p.add_argument('--compare-to',type=Path,help='previous bundle manifest or directory')
         p.add_argument('--no-pdf-preview',action='store_true')
+        p.add_argument('--png-backend',choices=('resvg','chromium'),default='resvg')
         if name=='build':p.add_argument('--vectors-only',action='store_true')
         else:
             p.add_argument('--port',type=int,default=8765)
             p.add_argument('--interval',type=float,default=.5)
             p.add_argument('--watch',type=Path,action='append',default=[])
+            p.add_argument('--build-timeout',type=float,default=600,help='maximum seconds per rebuild')
     args=parser.parse_args(argv)
     try:
         if args.command=='doctor':
@@ -188,10 +207,12 @@ def main(argv=None):
         from .render.bundle import validate_options
         validate_options(args.name,150 if args.dpi is None else args.dpi,'embed')
         if args.command=='build':
-            return build(args.script,args.output,args.name,args.dpi,args.vectors_only,not args.no_pdf_preview,args.compare_to)
+            return build(args.script,args.output,args.name,args.dpi,args.vectors_only,not args.no_pdf_preview,args.compare_to,args.png_backend)
         if not math.isfinite(args.interval) or args.interval<=0:parser.error('--interval must be finite and positive')
+        if not math.isfinite(args.build_timeout) or args.build_timeout<=0:parser.error('--build-timeout must be positive')
         return watch(args.script,args.output,name=args.name,dpi=args.dpi,port=args.port,
-                     interval=args.interval,extra=args.watch,compare_pdf=not args.no_pdf_preview,compare_to=args.compare_to)
+                     interval=args.interval,extra=args.watch,compare_pdf=not args.no_pdf_preview,compare_to=args.compare_to,
+                     png_backend=args.png_backend,build_timeout=args.build_timeout)
     except Exception as error:
         print(f'Inklet: {type(error).__name__}: {error}',file=sys.stderr)
         return 1
