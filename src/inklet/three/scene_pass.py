@@ -21,7 +21,7 @@ def _numpy():
 class ScenePass:
     """Immutable little-endian float32 pixels, in top-left row order.
 
-    Depth is Blender Z distance in scene units (1e10 denotes background).
+    Depth is axial camera Z distance in scene units (1e10 denotes background).
     Normals are world-space XYZ. Object IDs are integer-valued floats; zero
     denotes background. These are numeric data, without display colour transforms.
     """

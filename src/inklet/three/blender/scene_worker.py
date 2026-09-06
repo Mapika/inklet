@@ -243,6 +243,14 @@ def run(request):
     bpy.context.view_layer.update()
     depsgraph = bpy.context.evaluated_depsgraph_get()
     evaluated_camera = camera.evaluated_get(depsgraph)
+    frame = list(evaluated_camera.data.view_frame(scene=scene))
+    if evaluated_camera.data.type == 'PERSP':
+        frame = [value/-value.z for value in frame]
+    projection = dict(type=evaluated_camera.data.type,
+        world_to_camera=[list(row) for row in evaluated_camera.matrix_world.normalized().inverted()],
+        bounds=[min(v.x for v in frame), max(v.x for v in frame),
+                min(v.y for v in frame), max(v.y for v in frame)],
+        near=evaluated_camera.data.clip_start, far=evaluated_camera.data.clip_end)
     anchors = {}
     for name, target in request['landmarks'].items():
         obj = None
@@ -292,6 +300,7 @@ def run(request):
             with open(filename,'rb') as stream:
                 dependency_hashes[str(Path(filename).resolve())] = hashlib.file_digest(stream,'sha256').hexdigest()
     result = dict(scene=scene.name, camera=camera.name, view_layer=layer.name, frame=scene.frame_current,
+                  projection=projection,
                   execution=request['execution'],
                   style=request['style'],
                   width_mm=width, height_mm=height, pixels=pixels,

@@ -58,6 +58,7 @@ nav:
       - Rendering in v3: v3.md
       - Blender scenes: blender-scenes.md
       - GPU rendering and jobs: render-jobs.md
+      - Camera-aware vector paths: scene-paths.md
   - Examples:
       - Figure gallery: examples.md
       - More example recipes: example-library.md

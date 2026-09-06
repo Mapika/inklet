@@ -31,9 +31,10 @@ mat=bpy.data.materials.new('Authored material');mat.use_nodes=True
 tex=mat.node_tree.nodes.new('ShaderNodeTexImage');tex.image=bpy.data.images.load(sys.argv[-2])
 mat.node_tree.links.new(tex.outputs['Color'],mat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
 obj.data.materials.append(mat)
-for name,pos in (('Front',(0,-7,0)),('Side',(5,-7,3))):
+for name,pos in (('Front',(0,-7,0)),('Side',(5,-7,3)),('Perspective',(0,-7,0))):
  bpy.ops.object.camera_add(location=pos);cam=bpy.context.object;cam.name=name
  cam.rotation_euler=(Vector((0,0,0))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=5
+ if name=='Perspective':cam.data.type='PERSP';cam.data.shift_x=.08;cam.data.shift_y=-.04
 bpy.ops.object.light_add(type='AREA',location=(0,-4,5));lamp=bpy.context.object
 lamp.data.energy=500;lamp.rotation_euler=(Vector((0,0,0))-lamp.location).to_track_quat('-Z','Y').to_euler()
 scene=bpy.context.scene;scene.camera=scene.objects['Front'];scene.render.engine='CYCLES'
@@ -182,7 +183,7 @@ def test_inspection_and_quality_settings_are_explicit(scene_file):
     original=scene_file.read_bytes()
     inventory=i.inspect_blend(scene_file)
     scene=inventory['scenes'][0]
-    assert {c['name'] for c in scene['cameras']}=={'Front','Side'}
+    assert {c['name'] for c in scene['cameras']}=={'Front','Side','Perspective'}
     assert 'Empty' in scene['view_layers']
     assert next(o for o in scene['objects'] if o['name']=='Sample')['materials']==['Authored material']
     assert inventory['sha256']==hashlib.sha256(original).hexdigest()
@@ -310,3 +311,34 @@ def test_available_gpu_renders_numeric_passes_without_cpu_fallback(scene_file):
     assert cpu.metadata['cache_key']!=gpu.metadata['cache_key']
     assert cpu.passes['depth'].value(59,29)==pytest.approx(gpu.passes['depth'].value(59,29),rel=1e-5)
     assert i.render_blend(scene_file,**opts).cache_hit
+
+
+@pytest.mark.parametrize('camera', ['Front','Side','Perspective'])
+def test_saved_camera_projects_like_blender_and_depth_hides_interior(scene_file, camera):
+    opts=options(scene_file)
+    opts.update(camera=camera,passes=('depth',),dpi=120,
+                landmarks={'test':[.4,-1,.3],'centre':[0,0,0],'outside':[0,-2,0]})
+    result=i.render_blend(scene_file,**opts)
+    for name,world in (('test',[.4,-1,.3]),('centre',[0,0,0]),('outside',[0,-2,0])):
+        projected=result.project(world)
+        authored=result.diagram.anchor_point(name)
+        assert projected.point.x==pytest.approx(authored.x,abs=1e-4)
+        assert projected.point.y==pytest.approx(authored.y,abs=1e-4)
+    assert result.project([0,0,0]).visible is False
+    assert result.project([0,-2,0]).visible is True
+    # The camera is saved in the snapshot: projection remains usable offline.
+    layer=result.path3d([[-3,0,0],[3,0,0]],stroke='#d85e45',stroke_width=.3)
+    assert layer.notes['scene_overlay']['visible_runs']>=2
+    assert layer.notes['scene_overlay']['hidden_runs']>=1
+    assert layer.width==result.diagram.width
+    assert layer.height==result.diagram.height
+
+
+def test_perspective_depth_is_axial_at_an_off_axis_surface(scene_file):
+    opts=options(scene_file);opts.update(camera='Perspective',passes=('depth',),dpi=150)
+    result=i.render_blend(scene_file,**opts)
+    point=result.project([.7,-1,.3])
+    depth=result.passes['depth']
+    px=int((point.point.x/result.diagram.width+.5)*depth.pixels[0])
+    py=int((point.point.y/result.diagram.height+.5)*depth.pixels[1])
+    assert depth.value(px,py)==pytest.approx(point.depth,abs=.012)

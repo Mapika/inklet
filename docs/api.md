@@ -46,6 +46,8 @@ Fill a shape or shape group with a vector gradient or hatch; retain text and aut
 
 A rendered snapshot, its provenance and whether cached pixels were reused.
 
+* `project(point, *, depth_bias=0.001)` -- Project a world point into centred millimetres; test visibility with depth.
+* `path3d(points, *, hidden='omit', depth_bias=0.001, step_px=1.0, max_samples=200000, **style)` -- Create an aligned vector path with occluded sections omitted, dashed or shown.
 * `object_mask(*names)` -- Return an aligned stencil for named objects; request object_id first.
 
 #### `class ScenePass(name: str, pixels: tuple[int, int], channels: int, width_mm: float, height_mm: float, data: bytes) -> None`
@@ -57,6 +59,10 @@ Immutable little-endian float32 pixels, in top-left row order.
 * `save(path)` -- Save numeric data as .npy without losing precision or changing axes.
 * `to_diagram(*, value_range=None)` -- Visualize a pass with transparent background; requires inklet[images].
 * `object_mask(ids)` -- Make a white alpha stencil for object IDs, aligned with the scene.
+
+#### `class ProjectedPoint(point: inklet.core.geom.Vec2, depth: float, in_frame: bool, visible: bool | None) -> None`
+
+A world point in centred figure millimetres, with camera visibility.
 
 #### `class BlendSceneSpec(path: object, options: dict = <factory>, _dependencies: tuple = ()) -> None`
 

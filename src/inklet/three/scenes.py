@@ -159,6 +159,24 @@ class SceneRender:
     cache_hit: bool
     passes: object = field(default_factory=lambda: MappingProxyType({}))
 
+    def project(self, point, *, depth_bias=1e-3):
+        """Project a world point into centred millimetres; test visibility with depth."""
+        from .scene_projection import project
+        return project(self, point, depth_bias=depth_bias)
+
+    def path3d(self, points, *, hidden='omit', depth_bias=1e-3,
+               step_px=1., max_samples=200_000, **style):
+        """Create an aligned vector path with occluded sections omitted, dashed or shown.
+
+        Requires a depth pass unless hidden='show'. Coordinates are scene-world
+        units. Visibility samples the stroke centreline at step_px intervals;
+        edge precision is limited by the depth resolution. Compose with the
+        scene using overlay(..., align='origin').
+        """
+        from .scene_projection import path3d
+        return path3d(self, points, hidden=hidden, depth_bias=depth_bias,
+                      step_px=step_px, max_samples=max_samples, **style)
+
     def object_mask(self, *names):
         """Return an aligned stencil for named objects; request object_id first."""
         if 'object_id' not in self.passes:

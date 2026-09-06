@@ -143,6 +143,8 @@ and named object masks. Add the `images` extra and run
 Dev3 selects an available GPU automatically, with CPU fallback when none is
 available. [Render queues](https://inklet.readthedocs.io/en/latest/render-jobs/)
 add progress, cancellation, GPU concurrency limits and reuse of identical renders.
+Dev4 adds [camera-aware vector paths](https://inklet.readthedocs.io/en/latest/scene-paths/):
+project world points and omit or dash hidden path sections without rerendering.
 
 [Rendering guide](https://inklet.readthedocs.io/en/latest/v3/) ·
 [Blender setup and scenes](https://inklet.readthedocs.io/en/latest/blender-scenes/).

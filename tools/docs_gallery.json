@@ -1,5 +1,16 @@
 [
   {
+    "id": "scene-paths",
+    "title": "Vector paths in a 3D scene",
+    "category": "3D",
+    "description": "Camera-aware winding paths with hidden and dashed sections.",
+    "requires": "Blender",
+    "image": "gallery/v3-scene-paths.png",
+    "version": "3.0 dev4",
+    "page": "scene-paths/",
+    "featured": false
+  },
+  {
     "id": "interference",
     "title": "Interference",
     "category": "Plots",

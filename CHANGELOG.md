@@ -2,6 +2,10 @@
 
 ## 3.0.0 (development)
 
+- Add saved camera projection and depth-tested vector paths. World points report
+  frame membership and visibility; paths clip to the camera frustum and omit,
+  dash or show hidden sections without rerendering the scene. Record overlay
+  provenance and retain vector paths in SVG/PDF. Add a four-panel sensor example.
 - Redesign the documentation with persistent navigation, a responsive figure
   gallery, source-backed recipe pages, keyboard search and copyable code.
   Add an original SVG logo, reusable brand assets and tutorial export previews.

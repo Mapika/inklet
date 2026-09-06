@@ -401,6 +401,7 @@ from .document import (PublicationProfile, publication, subfigure, Composition, 
 from .document import FigureFormat, PlotDefaults, GuidelineSource, Preset, preset, preset_names, format_names
 from .three.scenes import SceneRender, BlendSceneSpec, render_blend, blend_scene, blend_scene_spec, inspect_blend
 from .three.scene_pass import ScenePass
+from .three.scene_projection import ProjectedPoint
 from .three.quality import RenderQuality, render_quality
 from .three.devices import render_devices
 from .three.render_jobs import RenderQueue, RenderJob, RenderProgress, RenderCancelled
@@ -413,7 +414,7 @@ __all__ = [
     "rendering_capabilities",
     "blend", "mask",
     "LinearGradient", "RadialGradient", "Hatch", "paint",
-    "SceneRender", "ScenePass", "BlendSceneSpec", "render_blend", "blend_scene", "blend_scene_spec",
+    "SceneRender", "ScenePass", "ProjectedPoint", "BlendSceneSpec", "render_blend", "blend_scene", "blend_scene_spec",
     "RenderQuality", "render_quality", "inspect_blend",
     "render_devices", "RenderQueue", "RenderJob", "RenderProgress", "RenderCancelled",
     "to_png", "save_png", "rasterize",
@@ -466,4 +467,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "3.0.0.dev3"
+__version__ = "3.0.0.dev4"

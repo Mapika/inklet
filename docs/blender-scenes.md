@@ -198,7 +198,7 @@ Data passes currently require Cycles; they are not display-colour transformed.
 
 | Pass | Values | Background |
 | --- | --- | --- |
-| `depth` | Blender Z distance in scene units | `1e10` |
+| `depth` | Axial camera Z distance in scene units | `1e10` |
 | `normal` | Signed world-space XYZ surface normal | `(0, 0, 0)` |
 | `object_id` | Integer-valued object index | `0` |
 
