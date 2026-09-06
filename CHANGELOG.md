@@ -2,6 +2,15 @@
 
 ## 3.0.0 (development)
 
+- Default Cycles scenes to available GPU devices with CPU fallback when discovery
+  finds none. Add explicit backend/device selection and actual-device provenance.
+- Add cancellable render queues with bounded worker/GPU concurrency, progress
+  updates and reuse of simultaneous identical requests within one Python process.
+  Allow 900 seconds by default for first-use GPU kernel compilation.
+- Add device discovery to the Python API and `inklet doctor --devices`, plus a
+  multi-view rendering example and GPU/CPU integration validation.
+- Correct projected dimension placement in the architectural example, improve
+  its typography, and allow explicit stroke widths on dimension witness lines.
 - Add draft/preview/final render quality, explicit denoising/adaptive sampling,
   scene inspection and a Cycles/Freestyle sketch style.
 - Add eight curated showcase recipes, offline gallery filtering, source and

@@ -1,6 +1,6 @@
 [project]
 name = "inklet"
-version = "3.0.0.dev2"
+version = "3.0.0.dev3"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
 authors = [{name = "Mark Marosi"}]

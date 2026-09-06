@@ -572,9 +572,9 @@ def dimension(a, b, text: str | Diagram | None = None, *,
     if witness and mm(offset) != 0.0:
         over = normal * (mm(offset) + _sign(mm(offset)) * mm(tick) / 2.0)
         parts.append(polyline((pa, pa + over), kind=kind,
-                              stroke_width=theme.hairline, **style))
+                              **({'stroke_width':theme.hairline} | style)))
         parts.append(polyline((pb, pb + over), kind=kind,
-                              stroke_width=theme.hairline, **style))
+                              **({'stroke_width':theme.hairline} | style)))
     if text is not None:
         body = text if isinstance(text, Diagram) else _text(text, size, "center", {})
         if plate:

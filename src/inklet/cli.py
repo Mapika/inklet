@@ -19,7 +19,7 @@ import time
 from urllib.parse import quote, urlsplit
 
 
-def doctor():
+def doctor(*, devices=False):
     """Return available optional renderers without importing heavy dependencies."""
     from .three.blender import find_blender, BlenderError
     try:
@@ -27,7 +27,7 @@ def doctor():
         blender={'path':str(found.path),'version':found.release}
     except BlenderError:
         blender=None
-    return {
+    report = {
         'python': sys.version.split()[0],
         'pillow': importlib.util.find_spec('PIL') is not None,
         'numpy': importlib.util.find_spec('numpy') is not None,
@@ -37,6 +37,11 @@ def doctor():
         'poppler': shutil.which('pdftoppm'),
         'fontconfig': shutil.which('fc-match'),
     }
+    if devices:
+        from .three.devices import render_devices
+        try: report['render_devices']=render_devices() if blender else None
+        except BlenderError as error: report['render_devices']={'error':str(error)}
+    return report
 
 
 def load_figure(script):
@@ -184,7 +189,8 @@ def watch(script,output,*,name='figure',dpi=None,port=8765,interval=.5,extra=(),
 def main(argv=None):
     parser=argparse.ArgumentParser(prog='inklet',description=__doc__)
     sub=parser.add_subparsers(dest='command',required=True)
-    sub.add_parser('doctor',help='check optional preview dependencies')
+    doctor_parser=sub.add_parser('doctor',help='check optional preview dependencies')
+    doctor_parser.add_argument('--devices',action='store_true',help='also probe Blender GPU devices')
     for name in ('build','watch'):
         p=sub.add_parser(name)
         p.add_argument('script',type=Path)
@@ -203,7 +209,7 @@ def main(argv=None):
     args=parser.parse_args(argv)
     try:
         if args.command=='doctor':
-            print(json.dumps(doctor(),indent=2));return 0
+            print(json.dumps(doctor(devices=args.devices),indent=2));return 0
         from .render.bundle import validate_options
         validate_options(args.name,150 if args.dpi is None else args.dpi,'embed')
         if args.command=='build':

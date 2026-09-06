@@ -87,10 +87,13 @@ baseline. See [revision review](export-review.md#compare-revisions).
 
 ```sh
 inklet doctor
+inklet doctor --devices
 ```
 
 Reports Python, Pillow, NumPy, resvg, Blender (path/version), Chrome/Chromium,
 Poppler and Fontconfig as JSON.
+`--devices` also starts a short Blender subprocess to list Cycles GPU backends,
+device IDs and discovery errors. It does not render a test scene.
 This command does not validate fonts or figure geometry, and missing optional
 tools do not cause a failing exit code. Use [installation](installation.md)
 and [troubleshooting](troubleshooting.md) to resolve missing dependencies.

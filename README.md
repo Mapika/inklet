@@ -135,6 +135,9 @@ checkout with `python -m pip install -e '.[render]'` and run
 Scene rendering also supports view layers, numeric depth/normal/object-ID passes
 and named object masks. Add the `images` extra and run
 `python examples/v3_scene_passes.py` for a six-panel example with NumPy exports.
+Dev3 selects an available GPU automatically, with CPU fallback when none is
+available. [Render queues](https://inklet.readthedocs.io/en/latest/render-jobs/)
+add progress, cancellation, GPU concurrency limits and reuse of identical renders.
 
 [Rendering guide](https://inklet.readthedocs.io/en/latest/v3/) ·
 [Blender setup and scenes](https://inklet.readthedocs.io/en/latest/blender-scenes/).

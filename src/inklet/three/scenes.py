@@ -1,5 +1,6 @@
 """Complete .blend scenes as physically sized, annotated figure layers."""
 from dataclasses import dataclass, field
+from contextlib import contextmanager
 import glob
 import hashlib
 import json
@@ -7,7 +8,11 @@ import math
 from pathlib import Path
 import subprocess
 import tempfile
+import threading
+import time
 from types import MappingProxyType
+import warnings
+from weakref import WeakValueDictionary
 
 from ..assets.cache import cache_root
 from ..core import Diagram, ImagePrim, Vec2
@@ -15,9 +20,35 @@ from ..document.spec import BuildSpec, fingerprint, length, materialize
 from ..themes.color import parse_color
 from .scene_pass import ScenePass
 from .quality import quality_options
+from .devices import device_options
+from .render_jobs import check_cancel, emit, run_process
 
 PIPELINE_VERSION = 2
 _WORKER = Path(__file__).with_name('blender')/'scene_worker.py'
+_locks = WeakValueDictionary()
+_locks_guard = threading.Lock()
+
+
+@contextmanager
+def _render_lock(key, timeout, cancel, progress):
+    with _locks_guard:
+        lock=_locks.get(key)
+        if lock is None:
+            lock=threading.Lock();_locks[key]=lock
+    deadline=time.monotonic()+timeout
+    acquired=False
+    try:
+        check_cancel(cancel)
+        acquired=lock.acquire(blocking=False)
+        if not acquired: emit(progress,'waiting','Waiting for an identical scene render')
+        while not acquired:
+            check_cancel(cancel)
+            if time.monotonic()>=deadline: raise _error('Timed out waiting for an identical scene render')
+            acquired=lock.acquire(timeout=min(.05,max(0,deadline-time.monotonic())))
+        check_cancel(cancel)
+        yield max(.001,deadline-time.monotonic())
+    finally:
+        if acquired: lock.release()
 
 
 def _error(message):
@@ -145,9 +176,10 @@ class SceneRender:
 def render_blend(path, *, width, height=None, camera=None, scene=None, frame=None,
                  dpi=None, engine=None, samples=None, seed=0, transparent=True,
                  landmarks=None, objects=None, collections=None, bindings=None,
-                 assets=(), cache=None, blender=None, timeout=300, threads=4,
+                 assets=(), cache=None, blender=None, timeout=900, threads=4,
                  max_pixels=40_000_000, view_layer=None, passes=(), quality=None,
-                 denoise=None, noise_threshold=None, style='authored'):
+                 denoise=None, noise_threshold=None, style='authored',
+                 device='AUTO', devices=None, fallback='cpu', progress=None, cancel=None):
     """Render an existing .blend file without modifying it.
 
     Preserve authored cameras, materials, lights and colour management. Choose
@@ -165,10 +197,21 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
 
     Blender is a subprocess with automatic Python execution disabled. The
     compositor and sequencer are bypassed; their file-output nodes are not run.
-    Cycles uses CPU, a fixed seed and the requested sample count. Reproducibility
+    Cycles defaults to an available GPU, falling back to CPU when none is found.
+    device selects AUTO, CPU, CUDA, OPTIX, HIP, ONEAPI or METAL. devices optionally
+    selects exact IDs from render_devices(). fallback='error' requires a GPU.
+    Fallback applies to discovery, not a failed render. Progress receives
+    RenderProgress updates; cancel accepts a threading.Event. Identical requests
+    in this Python process share work through the validated disk cache.
+    Cycles uses a fixed seed and the requested sample count. Reproducibility
     across different Blender builds or hardware is not guaranteed.
     """
     from .blender.discover import find_blender
+    if progress is not None and not callable(progress): raise TypeError('progress must be callable')
+    if cancel is not None and not callable(getattr(cancel,'is_set',None)):
+        raise TypeError('cancel must provide is_set(), for example threading.Event')
+    check_cancel(cancel)
+    emit(progress,'preparing','Preparing scene render')
     source = Path(path).expanduser().resolve()
     if source.suffix.lower() != '.blend' or not source.is_file():
         raise ValueError(f'Expected an existing .blend file: {source}')
@@ -204,18 +247,45 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
         if names is not None and any(not isinstance(name, str) for name in names):
             raise ValueError(f'{key} must be a sequence of names')
     binary = find_blender(blender)
+    # EEVEE chooses its graphics context itself; Cycles device preferences do not apply.
+    if engine=='BLENDER_EEVEE_NEXT':
+        if device not in ('AUTO','CPU') or devices:
+            raise ValueError('Explicit GPU device selection requires CYCLES')
+        execution=device_options('CPU',None,fallback,binary,timeout=timeout)
+        execution.update(requested=device,backend='EEVEE')
+    else:
+        execution=device_options(device,devices,fallback,binary,timeout=timeout,
+                                 cancel=cancel,progress=progress)
+    if execution['fallback_reason']:
+        emit(progress,'fallback',execution['fallback_reason']+'; using CPU')
+        if execution['requested']!='AUTO':
+            warnings.warn(execution['fallback_reason']+'; using CPU',RuntimeWarning,stacklevel=2)
+    emit(progress,'device','Selected '+execution['backend']+
+         (': '+', '.join(d['name'] for d in execution['devices']) if execution['devices'] else ''))
     request = dict(width=width, height=height, camera=camera, scene=scene, frame=frame,
         dpi=dpi, engine=engine, samples=samples, seed=seed, transparent=transparent,
         landmarks=_landmarks(landmarks or {}), objects=objects, collections=collections,
         bindings=_bindings(bindings or {}), threads=threads, max_pixels=max_pixels,
         view_layer=view_layer, passes=passes, quality=quality.name if quality else None,
-        denoise=denoise, noise_threshold=noise_threshold, style=style)
+        denoise=denoise, noise_threshold=noise_threshold, style=style, execution=execution)
     inputs = _dependencies([source, *assets])
+    result=_render_scene(source,assets,binary,request,inputs,cache,timeout,cancel,progress)
+    check_cancel(cancel)
+    emit(progress,'complete','Scene render ready',1)
+    return result
+
+
+def _render_scene(source, assets, binary, request, inputs, cache, timeout, cancel, progress):
     key_data = dict(pipeline=PIPELINE_VERSION, worker=_hash(_WORKER),
                     blender=dict(path=str(binary.path), version=binary.release),
                     inputs=inputs, request=request)
     key = hashlib.sha256(json.dumps(key_data, sort_keys=True, allow_nan=False).encode()).hexdigest()
     directory = cache_root(cache)/'scenes'/key
+    with _render_lock(key,timeout,cancel,progress) as remaining:
+        return _read_or_render(source,assets,binary,request,inputs,directory,key,remaining,cancel,progress)
+
+
+def _read_or_render(source, assets, binary, request, inputs, directory, key, timeout, cancel, progress):
     record = _cached(directory)
     data = None
     pass_data = MappingProxyType({})
@@ -226,6 +296,7 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
             if record is not None: pass_data = _read_passes(directory, record)
         except (OSError, ValueError, KeyError, TypeError):record=None
     hit = record is not None
+    if hit: emit(progress,'cached','Reusing a validated scene render',1)
     if record is None:
         directory.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='.render-', dir=directory) as scratch:
@@ -235,7 +306,8 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
                        '--background', str(source), '--python-exit-code', '1',
                        '--python', str(_WORKER), '--', str(stage/'request.json')]
             try:
-                process = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
+                emit(progress,'starting','Starting Blender')
+                process = run_process(command, timeout=timeout, cancel=cancel, progress=progress)
             except subprocess.TimeoutExpired:
                 raise _error(f'Scene render exceeded {timeout:g} seconds') from None
             if process.returncode or not (stage/'scene.json').is_file():
@@ -250,6 +322,9 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
                           image_sha256=_hash(stage/'image.png'))
             data=(stage/'image.png').read_bytes()
             pass_data = _read_passes(stage, record)
+            check_cancel(cancel)
+            emit(progress,'committing','Saving the complete scene snapshot')
+            check_cancel(cancel)
             # Commit pixels first and the validating manifest last. Each render
             # owns its staging directory, including concurrent identical requests.
             (stage/'image.png').replace(directory/'image.png')

@@ -53,7 +53,7 @@ bpy.ops.wm.save_as_mainfile(filepath=sys.argv[-1])
 
 
 def options(scene_file):
-    return dict(width=50,dpi=60,samples=2,cache=scene_file.parent/'cache',
+    return dict(width=50,dpi=60,samples=2,device='CPU',cache=scene_file.parent/'cache',
                 landmarks={'origin':'Sample','surface':{'object':'Sample','point':[0,-1,0]}},camera='Front')
 
 
@@ -250,3 +250,63 @@ bpy.ops.wm.save_as_mainfile(filepath=portable)
     rendered=i.render_blend(portable,**options(scene_file),quality='draft')
     assert rendered.diagram.prim.data.startswith(b'\x89PNG')
     assert portable.read_bytes()==original
+
+
+def test_queued_identical_renders_share_work_and_report_cache_hits(scene_file,tmp_path):
+    opts=options(scene_file)|{'cache':tmp_path/'cache'}
+    events=[]
+    with i.RenderQueue(max_workers=2) as queue:
+        jobs=[queue.submit(scene_file,**opts,progress=events.append) for _ in range(2)]
+        results=[job.result(30) for job in jobs]
+    assert sorted(result.cache_hit for result in results)==[False,True]
+    assert sum(event.phase=='starting' for event in events)==1
+    assert results[0].diagram.prim.data==results[1].diagram.prim.data
+    assert all(job.progress.phase=='complete' for job in jobs)
+
+
+def test_cancelled_blender_render_never_commits_incomplete_cache(scene_file,tmp_path):
+    import threading
+    cancel=threading.Event();events=[]
+    def progress(event):
+        events.append(event)
+        if event.phase=='rendering':cancel.set()
+    opts=options(scene_file)|{'cache':tmp_path/'cache'}
+    with pytest.raises(i.RenderCancelled):
+        i.render_blend(scene_file,**opts,progress=progress,cancel=cancel)
+    assert any(event.phase=='rendering' for event in events)
+    assert not list((tmp_path/'cache').rglob('manifest.json'))
+    assert not list((tmp_path/'cache').rglob('.render-*'))
+    assert not i.render_blend(scene_file,**opts).cache_hit
+
+
+def test_auto_cpu_fallback_is_recorded_and_explicit_cpu_remains_available(scene_file,monkeypatch):
+    from inklet.three import devices
+    monkeypatch.setattr(devices,'_inventory',lambda *a,**k:{'backends':{}})
+    opts=options(scene_file);opts.pop('device')
+    result=i.render_blend(scene_file,**opts)
+    assert result.metadata['execution']['requested']=='AUTO'
+    assert result.metadata['execution']['backend']=='CPU'
+    assert result.metadata['execution']['fallback_reason']
+    explicit=i.render_blend(scene_file,**opts,device='CPU')
+    assert explicit.metadata['cache_key']!=result.metadata['cache_key']
+    with pytest.raises(BlenderError,match='No matching'):
+        i.render_blend(scene_file,**opts,fallback='error')
+
+
+def test_available_gpu_renders_numeric_passes_without_cpu_fallback(scene_file):
+    inventory=i.render_devices()
+    backend=next((name for name,info in inventory['backends'].items() if info['devices']),None)
+    if backend is None:pytest.skip('No Cycles GPU device available')
+    selected=inventory['backends'][backend]['devices'][0]['id']
+    opts=options(scene_file)|dict(device=backend,devices=[selected],fallback='error',
+                                 passes=('depth','normal','object_id'))
+    gpu=i.render_blend(scene_file,**opts)
+    assert gpu.metadata['sampling']['device']=='GPU'
+    assert gpu.metadata['execution']['backend']==backend
+    assert [d['id'] for d in gpu.metadata['execution']['devices']]==[selected]
+    assert gpu.passes['normal'].channels==3
+    assert gpu.passes['object_id'].value(59,29)>0
+    cpu=i.render_blend(scene_file,**(opts|dict(device='CPU',devices=None)))
+    assert cpu.metadata['cache_key']!=gpu.metadata['cache_key']
+    assert cpu.passes['depth'].value(59,29)==pytest.approx(gpu.passes['depth'].value(59,29),rel=1e-5)
+    assert i.render_blend(scene_file,**opts).cache_hit

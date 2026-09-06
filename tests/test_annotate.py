@@ -261,6 +261,14 @@ def test_a_dimension_label_rides_on_the_line():
     assert node.bbox.center.x == pytest.approx(15.0, abs=1e-6)
 
 
+def test_dimension_witness_lines_accept_explicit_stroke_width():
+    node=inklet.dimension((0,0),(30,0),'30',offset=5,stroke_width=.45)
+    lines=[p for p in inklet.resolve(node).values()
+           if p.diagram.kind=='dimension' and p.diagram.prim is not None]
+    assert len(lines)==5
+    assert all(p.style.stroke_width==.45 for p in lines)
+
+
 def test_a_zero_length_dimension_is_refused():
     with pytest.raises(ValueError, match="two distinct points"):
         inklet.dimension((3, 3), (3, 3), "0")

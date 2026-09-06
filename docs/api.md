@@ -65,7 +65,7 @@ Deferred scene rendering with file and live-data cache invalidation.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 
-#### `render_blend(path, *, width, height=None, camera=None, scene=None, frame=None, dpi=None, engine=None, samples=None, seed=0, transparent=True, landmarks=None, objects=None, collections=None, bindings=None, assets=(), cache=None, blender=None, timeout=300, threads=4, max_pixels=40000000, view_layer=None, passes=(), quality=None, denoise=None, noise_threshold=None, style='authored')`
+#### `render_blend(path, *, width, height=None, camera=None, scene=None, frame=None, dpi=None, engine=None, samples=None, seed=0, transparent=True, landmarks=None, objects=None, collections=None, bindings=None, assets=(), cache=None, blender=None, timeout=900, threads=4, max_pixels=40000000, view_layer=None, passes=(), quality=None, denoise=None, noise_threshold=None, style='authored', device='AUTO', devices=None, fallback='cpu', progress=None, cancel=None)`
 
 Render an existing .blend file without modifying it.
 
@@ -88,6 +88,33 @@ Get immutable draft, preview or final settings, with validated overrides.
 #### `inspect_blend(path, *, blender=None, timeout=30)`
 
 List authored scenes, cameras, view layers, objects and materials without rendering.
+
+#### `render_devices(*, blender=None, timeout=30, refresh=False)`
+
+List Cycles backends, device IDs and discovery errors without rendering.
+
+#### `class RenderQueue(max_workers=2, *, max_gpu_jobs=1)`
+
+Schedule scene renders with worker and GPU concurrency limits.
+
+* `submit(path, **options)` -- Queue render_blend arguments and return a cancellable RenderJob.
+* `shutdown(*, wait=True, cancel=False)` -- Stop accepting jobs; optionally cancel pending and running renders.
+
+#### `class RenderJob()`
+
+A queued or running scene render with cancellation and its latest update.
+
+* `cancel()` -- Request cancellation, including for running Blender processes.
+* `done()`
+* `result(timeout=None)` -- Wait for a SceneRender; timeout only limits this wait, not the render.
+
+#### `class RenderProgress(phase: str, message: str, fraction: float | None = None) -> None`
+
+One render update; fraction is optional and refers to the current phase.
+
+#### `class RenderCancelled`
+
+Rendering was cancelled before a complete snapshot was committed.
 
 #### `to_png(root, *, dpi=150, **options)`
 

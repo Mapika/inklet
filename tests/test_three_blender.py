@@ -430,7 +430,7 @@ def test_the_backend_never_imports_bpy_in_process():
     source = "".join(
         path.read_text(encoding="utf-8")
         for path in sorted(Path(inklet.__file__).parent.glob("three/blender/*.py"))
-        if path.name not in ("script.py", "scene_worker.py")
+        if path.name not in ("script.py", "scene_worker.py", "device_worker.py")
     )
     assert "import bpy" not in source
 

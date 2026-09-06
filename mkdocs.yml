@@ -44,6 +44,7 @@ nav:
   - Guides:
       - Rendering in v3: v3.md
       - Blender scenes: blender-scenes.md
+      - GPU rendering and jobs: render-jobs.md
       - Presets: presets.md
       - Page layout: layout.md
       - Plotting: plotting.md

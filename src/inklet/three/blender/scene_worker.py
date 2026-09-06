@@ -10,6 +10,29 @@ from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Vector
 
 
+def event(phase,message):
+    print('INKLET_EVENT '+json.dumps(dict(phase=phase,message=message)),flush=True)
+
+
+def select_device(scene,execution):
+    backend=execution['backend']
+    if backend=='CPU':
+        scene.cycles.device='CPU'
+        return
+    preferences=bpy.context.preferences.addons['cycles'].preferences
+    preferences.compute_device_type=backend
+    found=preferences.get_devices_for_type(backend)
+    selected={d['id'] for d in execution['devices']}
+    available={d.id for d in found if d.type==backend}
+    if not selected or not selected <= available:
+        raise ValueError('Selected GPU devices are no longer available; refresh render_devices()')
+    for item in preferences.devices:
+        item.use=item.type==backend and item.id in selected
+    if not preferences.has_active_device():
+        raise ValueError('Blender could not activate the selected GPU devices')
+    scene.cycles.device='GPU'
+
+
 def prepare_passes(scene, layer, names, stage):
     """Use a fresh compositor; authored output nodes must never execute."""
     if not names:
@@ -109,6 +132,7 @@ def sketch_style(scene, layer, dpi):
 
 
 def run(request):
+    event('preparing','Loading scene, camera and view layer')
     scene = bpy.data.scenes.get(request['scene']) if request['scene'] else bpy.context.scene
     if scene is None:
         raise ValueError(f"Scene not found: {request['scene']!r}")
@@ -174,16 +198,20 @@ def run(request):
         scene.cycles.samples = request['samples']
         scene.cycles.seed = request['seed']
         scene.cycles.use_animated_seed = False
-        scene.cycles.device = 'CPU'
+        select_device(scene,request['execution'])
         if request['denoise'] is not None:
             scene.cycles.use_denoising = request['denoise']
         if request['noise_threshold'] is not None:
             scene.cycles.use_adaptive_sampling = request['noise_threshold'] > 0
             scene.cycles.adaptive_threshold = request['noise_threshold']
     else:
+        if request['execution']['requested'] not in ('AUTO','CPU'):
+            raise ValueError('Explicit GPU device selection requires CYCLES')
+        request['execution'].update(backend='EEVEE',devices=[],fallback_reason=None)
         if request['denoise'] is not None or request['noise_threshold'] is not None:
             raise ValueError('Quality presets, denoise and noise_threshold currently require CYCLES')
         scene.eevee.taa_render_samples = request['samples']
+    event('device','Using '+request['execution']['backend'])
     # The requested frame is the entire page, independent of authored crop borders.
     original_aspect = (scene.render.resolution_y*scene.render.pixel_aspect_y /
                        (scene.render.resolution_x*scene.render.pixel_aspect_x))
@@ -264,6 +292,7 @@ def run(request):
             with open(filename,'rb') as stream:
                 dependency_hashes[str(Path(filename).resolve())] = hashlib.file_digest(stream,'sha256').hexdigest()
     result = dict(scene=scene.name, camera=camera.name, view_layer=layer.name, frame=scene.frame_current,
+                  execution=request['execution'],
                   style=request['style'],
                   width_mm=width, height_mm=height, pixels=pixels,
                   engine=scene.render.engine, blender=bpy.app.version_string,
@@ -278,7 +307,9 @@ def run(request):
     stage = Path(request['output'])
     result['object_ids'] = prepare_passes(scene, layer, request['passes'], stage)
     scene.render.filepath = str(stage/'image.png')
+    event('rendering','Rendering with '+request['execution']['backend'])
     bpy.ops.render.render(write_still=True, scene=scene.name)
+    event('extracting','Collecting scene pixels and numeric passes')
     result['passes'] = collect_passes(request['passes'], stage, pixels) if request['passes'] else {}
     (stage/'scene.json').write_text(json.dumps(result, indent=2))
 

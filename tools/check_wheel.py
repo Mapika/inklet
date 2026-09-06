@@ -66,6 +66,8 @@ if __name__ == "__main__":
         assert "inklet[render]" in str(error)
     else:
         raise AssertionError("PNG unexpectedly works without its optional renderer")
+    with i.RenderQueue(max_workers=1): pass
+    assert i.RenderProgress('queued','Waiting').fraction is None
     print("Installed wheel API passed", i.__version__)
 '''
 

@@ -17,7 +17,9 @@ inklet doctor
 optional tools. If Blender is not discovered automatically, set
 `INKLET_BLENDER` to its executable, or pass `blender='/path/to/blender'` to the
 render function. Blender remains optional for ordinary plots and vector output.
-The complete-scene integration is tested with Blender 4.2.23 LTS and Cycles CPU.
+The complete-scene integration is tested with Blender 4.2.23 LTS on CPU and
+Blender 4.5.13 LTS on CPU and CUDA. GPU support also depends on the Blender build
+and installed drivers. See [GPU rendering and jobs](render-jobs.md).
 
 ## Inspect before rendering
 
@@ -65,9 +67,12 @@ view layer. Only the selected layer is rendered.
 Authored materials, lights and colour-management settings are preserved.
 `transparent=True` removes the world background while retaining lighting.
 `engine=None` uses the authored engine; supported engines are `CYCLES` and
-`BLENDER_EEVEE_NEXT`. Cycles uses CPU rendering with an explicit seed and sample
-count. EEVEE depends on a working graphics context and is not tested on every
-headless environment. `threads=` defaults to 4; `timeout=` defaults to 300 seconds.
+`BLENDER_EEVEE_NEXT`. Cycles uses an available GPU by default and CPU if no GPU
+is available. Use `device='CPU'` to force CPU rendering. The seed and sample
+count are explicit. EEVEE depends on a working graphics context and is not tested
+on every headless environment. `threads=` defaults to 4; `timeout=` defaults to
+900 seconds to allow first-use GPU kernel compilation. Cancellation can stop a
+running render earlier.
 A render may contain at most 40 million pixels unless `max_pixels=` is changed.
 
 ## Quality and sketch rendering
@@ -94,7 +99,7 @@ the quality preset. Quality objects are immutable. Without a quality preset,
 DPI/samples retain the previous defaults of 150/32 and denoising/adaptive
 sampling retain the scene's authored settings. A zero noise threshold disables
 adaptive sampling. The manifest records the effective sampling settings.
-These quality presets require Cycles and use CPU rendering.
+These quality presets require Cycles and work with CPU or GPU rendering.
 
 For architectural studies and explanatory illustrations:
 

@@ -33,6 +33,12 @@ if len(sys.argv)>1:
     assert result.passes['depth'].value(0,0) > 0
     assert result.passes['normal'].channels == 3
     assert result.metadata['sampling']['denoise'] is True
+    assert result.metadata['execution']['requested']=='AUTO'
+    with i.RenderQueue(max_workers=2) as queue:
+        jobs=[queue.submit(sys.argv[1],width=50,camera='Overview',dpi=60,samples=2,
+            engine='CYCLES',cache='queue-cache') for _ in range(2)]
+        snapshots=[job.result() for job in jobs]
+    assert sorted(r.cache_hit for r in snapshots)==[False,True]
 print('Installed render extra: PNG, SVG, PDF, review and optional Blender scene passed',i.__version__)
 '''
 
