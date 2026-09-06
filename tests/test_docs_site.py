@@ -75,6 +75,9 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     quickstart = (site/'quickstart/index.html').read_text()
     assert 'README example</a>' in quickstart
     assert 'class="codehilite"' in quickstart
+    assert f'inklet.css?v={commit[:12]}' in quickstart
+    assert f'inklet.js?v={commit[:12]}' in quickstart
+    assert 'search/main.js' not in quickstart
     assert f'https://github.com/Mapika/inklet/blob/{commit}/README.md' in quickstart
     assert f'https://github.com/Mapika/inklet/blob/{commit}/CONTRIBUTING.md' in quickstart
     assert 'https://github.com/Mapika/inklet/blob/master/' not in quickstart

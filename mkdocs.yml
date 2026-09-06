@@ -9,6 +9,7 @@ site_dir: out/docs-site
 theme:
   name: mkdocs
   custom_dir: tools/docs_theme
+  search_index_only: true
   highlightjs: false
   color_mode: light
   user_color_mode_toggle: true

@@ -5,6 +5,7 @@ outside docs/ point at the GitHub repository.
 """
 from pathlib import Path
 import ast
+import hashlib
 import json
 import os
 import posixpath
@@ -33,6 +34,14 @@ def repository_ref():
 
 
 def on_config(config):
+    # A deployed page must not reuse a previous theme's cached CSS or JS.
+    assets = [*config['extra_css'], *config['extra_javascript']]
+    digest = hashlib.sha256()
+    for asset in assets:
+        digest.update((DOCS/str(asset)).read_bytes())
+    config['extra']['asset_version'] = (
+        os.environ.get('READTHEDOCS_GIT_COMMIT_HASH') or digest.hexdigest()
+    )[:12]
     # Navigation URLs bypass Markdown rewriting, but need the same revision.
     repo_url = config['repo_url'].rstrip('/')
     ref = quote(repository_ref(), safe='')
