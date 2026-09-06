@@ -4,16 +4,9 @@ Eight figures made with Inklet: mathematical plots, original 3D illustrations
 and an architectural interior. Each recipe includes its data definition or asset
 credits. These are **v3 development** examples; install from a checkout.
 
-<div class="showcase-grid">
-<article><a href="../gallery/showcase-interference.png"><img src="../gallery/showcase-interference.png" alt="Two-source wave interference field" loading="lazy"></a><h2>Interference</h2><p>Two analytic radial waves and one shared colour scale.</p></article>
-<article><a href="../gallery/showcase-attractor.png"><img src="../gallery/showcase-attractor.png" alt="Vector Lorenz trajectory coloured by time" loading="lazy"></a><h2>Deterministic chaos</h2><p>A numerically integrated Lorenz trajectory with vector strokes.</p></article>
-<article><a href="../gallery/showcase-wave-packets.png"><img src="../gallery/showcase-wave-packets.png" alt="Vertically offset analytic wave packets" loading="lazy"></a><h2>Travelling wave packets</h2><p>Gaussian-windowed oscillations at eighteen parameter values.</p></article>
-<article><a href="../gallery/showcase-photonics.png"><img src="../gallery/showcase-photonics.png" alt="Rendered photonic chip with an illustrative transmission plot" loading="lazy"></a><h2>Integrated photonics</h2><p>Original device illustration beside an analytic transmission curve.</p></article>
-<article><a href="../gallery/showcase-lattice.png"><img src="../gallery/showcase-lattice.png" alt="Turquoise lattice between compression plates" loading="lazy"></a><h2>Designed porosity</h2><p>A procedural lattice specimen; no mechanical results are implied.</p></article>
-<article><a href="../gallery/showcase-helix.png"><img src="../gallery/showcase-helix.png" alt="Two coloured helices with repeated connecting links" loading="lazy"></a><h2>Paired helices</h2><p>A parametric illustration, not an atomistic molecular structure.</p></article>
-<article><a href="../gallery/showcase-architecture.png"><img src="../gallery/showcase-architecture.png" alt="Architectural interior with two textured armchairs" loading="lazy"></a><h2>A room for daylight</h2><p>Original room geometry with CC0 furniture by Vibrant Nordic / Poly Haven.</p></article>
-<article><a href="../gallery/showcase-architecture-sketch.png"><img src="../gallery/showcase-architecture-sketch.png" alt="The same interior with pale surfaces and irregular sketch outlines" loading="lazy"></a><h2>From scene to sketch</h2><p>The same scene and camera, rendered with the sketch style.</p></article>
-</div>
+Browse the [figure gallery](examples.md) for full previews, individual recipes,
+requirements and source links. This page explains how to rebuild and reuse the
+complete collection.
 
 ## Build and download the collection
 

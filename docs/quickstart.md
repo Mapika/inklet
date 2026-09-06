@@ -4,6 +4,12 @@ This tutorial uses only the core installation until the optional review step.
 All data are simulated. The Python blocks on this page run in order and are
 checked by the documentation tests.
 
+![The completed tutorial: a response curve and grouped outcomes in two labelled panels](assets/examples/quickstart.png)
+
+**What you will make.** A figure with two labelled panels, shared typography and
+physical page dimensions. [View the SVG](assets/examples/quickstart.svg) or
+[download the PDF](assets/examples/quickstart.pdf).
+
 ## Define the data and plot
 
 ```python

@@ -1,4 +1,8 @@
-# Inklet documentation
+---
+layout: home
+title: Overview
+---
+## Documentation directory
 
 Inklet builds scientific figures from Python. A figure can contain plots,
 measured diagrams, images and native 3D artwork, with shared typography and

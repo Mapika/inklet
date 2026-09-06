@@ -2,6 +2,9 @@
 
 ## 3.0.0 (development)
 
+- Redesign the documentation with persistent navigation, a responsive figure
+  gallery, source-backed recipe pages, keyboard search and copyable code.
+  Add an original SVG logo, reusable brand assets and tutorial export previews.
 - Default Cycles scenes to available GPU devices with CPU fallback when discovery
   finds none. Add explicit backend/device selection and actual-device provenance.
 - Add cancellable render queues with bounded worker/GPU concurrency, progress

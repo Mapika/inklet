@@ -1,0 +1,4 @@
+<article class="gallery-card" data-category="{{ entry.category }}" data-title="{{ entry.title }} {{ entry.description }}">
+  <a class="card-image" href="{{ entry.page|url }}" tabindex="-1" aria-hidden="true"><img src="{{ entry.image|url }}" alt="" loading="lazy" width="640" height="480"></a>
+  <div class="card-copy"><div class="card-meta"><span>{{ entry.category }}</span><span>{{ entry.version }}</span></div><h2><a href="{{ entry.page|url }}">{{ entry.title }}</a></h2><p>{{ entry.description }}</p><div class="card-bottom"><span>{{ entry.requires }}</span><a href="{{ entry.page|url }}" aria-label="{{ entry.title }}: view example">View example ↗</a></div></div>
+</article>

@@ -1,0 +1,17 @@
+<section class="home-hero">
+  <div class="hero-copy"><div class="eyebrow"><span class="status-dot"></span> A Python library for scientific figures</div>
+    <h1>Your data.<br>Your diagrams.<br><em>One complete figure.</em></h1>
+    <p>Compose plots, measured diagrams and 3D scenes with shared typography. Export them together as SVG, PDF or PNG.</p>
+    <div class="hero-actions"><a class="button primary" href="{{ 'quickstart/'|url }}">Build your first figure <span>→</span></a><a class="button" href="{{ 'examples/'|url }}">Explore the gallery</a></div>
+    <div class="install-command"><code>pip install inklet</code><button type="button" data-copy="pip install inklet" aria-label="Copy installation command">Copy</button></div>
+    <p class="install-note">Python 3.11+ · MIT licensed · Blender optional</p>
+  </div>
+  <a class="hero-figure" href="{{ 'stress20/'|url }}"><div class="figure-topline"><span>MADE WITH INKLET</span><span>20 panels / one page</span></div><img src="{{ 'gallery/stress20.png'|url }}" alt="Twenty-panel Inklet figure combining 3D surfaces, architecture, networks and scientific plots" fetchpriority="high"><div class="figure-caption"><span>Plots, diagrams and native 3D</span><span>See the figure ↗</span></div></a>
+</section>
+<div class="capability-strip"><span>Physical page dimensions</span><span>Editable vector exports</span><span>Live data &amp; shared scales</span><span>Reusable style presets</span></div>
+<section class="home-section"><div class="section-heading"><div><div class="eyebrow">Start with a figure</div><h2>See what you can make.</h2></div><a href="{{ 'examples/'|url }}">Browse all examples →</a></div>
+<div class="featured-grid">{% for entry in docs_gallery if entry.featured %}{% include 'card.html' %}{% endfor %}</div></section>
+<section class="home-section"><div class="section-heading"><div><div class="eyebrow">From first plot to final page</div><h2>A practical place to start.</h2></div></div>
+<div class="learning-grid"><a href="{{ 'quickstart/'|url }}"><span class="step-number">01</span><h3>Make a first figure</h3><p>Define data, draw a plot, and save your first SVG and PDF.</p><span>Follow the tutorial →</span></a><a href="{{ 'layout/'|url }}"><span class="step-number">02</span><h3>Build the whole page</h3><p>Arrange panels, share scales, and add labels at a physical size.</p><span>Learn page layout →</span></a><a href="{{ 'export-review/'|url }}"><span class="step-number">03</span><h3>Review and export</h3><p>Check diagnostics and inspect the finished figure before sharing it.</p><span>Explore exports →</span></a></div></section>
+<section class="development-note"><div><span class="eyebrow">In development · Inklet 3.0</span><h2>Bring complete Blender scenes into your figures.</h2><p>Authored materials, GPU rendering, numeric passes and vector annotations.</p></div><a class="button" href="{{ 'render-jobs/'|url }}">Explore v3 rendering →</a></section>
+<details class="home-reference"><summary>More guides and project information</summary><div class="prose">{{ page.content }}</div></details>

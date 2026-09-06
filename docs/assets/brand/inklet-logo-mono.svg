@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="212" height="52" viewBox="0 0 212 52" role="img" aria-labelledby="title"><title id="title">Inklet</title><g transform="translate(0 2)"><path d="M12 0H37L48 11V36Q48 48 36 48H12Q0 48 0 36V12Q0 0 12 0Z" fill="#172f32"/>
+<path d="M11 12v25h26" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17 29c7 0 6-12 16-12h3" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="36" cy="17" r="3.4" fill="#fff"/></g><g transform="translate(68 4)"><g fill="none" stroke="#172f32" stroke-width="5.6" stroke-linecap="round" stroke-linejoin="round">
+<path d="M3 17v21M17 38V17m0 7c0-12 19-12 19 0v14M48 5v33m17-21L48 30m8-6 11 14M78 5v28q0 5 5 5M94 27h20c0-16-20-16-20 0 0 13 13 16 20 9M128 9v23q0 9 10 5m-17-19h17"/>
+</g><circle cx="3" cy="6" r="3" fill="#172f32"/></g></svg>

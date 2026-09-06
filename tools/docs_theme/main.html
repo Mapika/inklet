@@ -1,0 +1,53 @@
+{% macro navigation(items) %}
+{% for item in items %}
+{% if item.children %}
+<details class="nav-group" {% if item.active or item.title in ['Get started', 'Guides', 'Examples'] %}open{% endif %}>
+  <summary>{{ item.title }}</summary><div>{{ navigation(item.children) }}</div>
+</details>
+{% else %}<a href="{{ item.url|url }}" {% if item.active %}aria-current="page"{% endif %}>{{ item.title }}</a>{% endif %}
+{% endfor %}
+{% endmacro %}
+<!doctype html>
+<html lang="en" data-bs-theme="light" class="no-js">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% if page and not page.is_homepage %}{{ page.title }} · {% endif %}Inklet documentation</title>
+  <meta name="description" content="{{ page.meta.description if page and page.meta.description else config.site_description }}">
+  {% if page and page.canonical_url %}<link rel="canonical" href="{{ page.canonical_url }}">{% endif %}
+  <link rel="icon" href="{{ 'assets/brand/inklet-icon.svg'|url }}" type="image/svg+xml">
+  {% for path in config.extra_css %}<link rel="stylesheet" href="{{ path|url }}">{% endfor %}
+  {% for path in config.extra_javascript %}<script src="{{ path|url }}" defer></script>{% endfor %}
+</head>
+<body data-search-index="{{ 'search/search_index.json'|url }}" data-site-root="{{ '.'|url }}" class="{% if page and page.meta.layout %}layout-{{ page.meta.layout }}{% endif %}">
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="{{ '.'|url }}" aria-label="Inklet documentation home"><img src="{{ 'assets/brand/inklet-logo.svg'|url }}" alt="Inklet" width="122" height="30"><span class="brand-docs">/ docs</span></a>
+  {% if docs_version %}<span class="version">{{ docs_version }}</span>{% endif %}
+  <nav class="top-links" aria-label="Primary"><a href="{{ 'quickstart/'|url }}">Learn</a><a href="{{ 'examples/'|url }}">Gallery</a><a href="{{ 'api/'|url }}">Reference</a><a href="{{ config.repo_url }}">GitHub ↗</a></nav>
+  <button class="search-trigger" type="button" data-search-open><span>Search docs</span><kbd>/</kbd></button>
+  <button class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false">Menu</button>
+</header>
+<div class="site-layout">
+  <aside class="sidebar" id="sidebar"><nav aria-label="Documentation">{{ navigation(nav) }}</nav><div class="sidebar-note">Python figures.<br>Measured in millimetres.</div></aside>
+  <main id="main-content" tabindex="-1">
+    {% block content %}
+    {% if page.meta.layout == 'home' %}{% include 'home.html' %}
+    {% elif page.meta.layout == 'gallery' %}
+      <div class="page-intro prose">{{ page.content }}</div>{% include 'gallery.html' %}
+    {% else %}
+      <div class="reading-layout"><article class="prose">
+        <div class="eyebrow">{% if page.parent %}{{ page.parent.title }}{% else %}Documentation{% endif %}</div>
+        {{ page.content }}
+        <nav class="page-pagination" aria-label="Adjacent pages">{% if page.previous_page %}<a href="{{ page.previous_page.url|url }}"><small>Previous</small>{{ page.previous_page.title }}</a>{% endif %}{% if page.next_page %}<a href="{{ page.next_page.url|url }}"><small>Next</small>{{ page.next_page.title }} →</a>{% endif %}</nav>
+      </article><aside class="page-toc"><nav aria-label="On this page"><p>On this page</p>{% for item in page.toc %}{% for child in item.children %}<a href="{{ child.url }}">{{ child.title }}</a>{% endfor %}{% endfor %}</nav></aside></div>
+    {% endif %}
+    {% endblock %}
+    <footer class="site-footer"><span>Inklet · Mark Marosi · MIT</span><a href="{{ 'installation/'|url }}">Installation</a><a href="{{ config.repo_url }}/issues">Report an issue ↗</a></footer>
+  </main>
+</div>
+<dialog class="search-dialog" aria-labelledby="search-title">
+  <div class="search-heading"><h2 id="search-title">Search documentation</h2><button type="button" data-search-close aria-label="Close search">Close <kbd>Esc</kbd></button></div>
+  <label class="sr-only" for="docs-search">Search terms</label><input id="docs-search" type="search" placeholder="Try “scatter”, “Blender” or “presets”…" autocomplete="off">
+  <p class="search-status" role="status">Type to search guides, examples and the API.</p><div class="search-results"></div>
+</dialog>
+</body></html>

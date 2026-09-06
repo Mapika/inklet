@@ -8,6 +8,7 @@ docs_dir: docs
 site_dir: out/docs-site
 theme:
   name: mkdocs
+  custom_dir: tools/docs_theme
   highlightjs: false
   color_mode: light
   user_color_mode_toggle: true
@@ -17,8 +18,10 @@ plugins:
 hooks:
   - tools/docs_site.py
 extra_css:
-  - stylesheets/inklet.css
   - stylesheets/code.css
+  - stylesheets/inklet.css
+extra_javascript:
+  - javascripts/inklet.js
 markdown_extensions:
   - admonition
   - fenced_code
@@ -42,9 +45,6 @@ nav:
       - First figure: quickstart.md
       - Authoring model: concepts.md
   - Guides:
-      - Rendering in v3: v3.md
-      - Blender scenes: blender-scenes.md
-      - GPU rendering and jobs: render-jobs.md
       - Presets: presets.md
       - Page layout: layout.md
       - Plotting: plotting.md
@@ -53,9 +53,23 @@ nav:
       - 3D and images: three-images.md
       - Export and review: export-review.md
       - Troubleshooting: troubleshooting.md
+  - Rendering:
+      - Rendering in v3: v3.md
+      - Blender scenes: blender-scenes.md
+      - GPU rendering and jobs: render-jobs.md
   - Examples:
-      - Showcase library: showcase.md
-      - Gallery: examples.md
+      - Figure gallery: examples.md
+      - More example recipes: example-library.md
+      - Rebuild the showcase: showcase.md
+      - Figure recipes:
+          - Interference: recipes/interference.md
+          - Deterministic chaos: recipes/attractor.md
+          - Travelling wave packets: recipes/wave-packets.md
+          - Integrated photonics: recipes/photonics.md
+          - Designed porosity: recipes/lattice.md
+          - Paired helices: recipes/helix.md
+          - Architectural interior: recipes/architecture.md
+          - Architectural sketch: recipes/architecture-sketch.md
       - Twenty-panel stress test: stress20.md
       - Direct drawing cookbook: cookbook.md
   - Reference:
@@ -64,6 +78,7 @@ nav:
       - Publication plots: publication-plots.md
       - Diagram components: diagram-components.md
   - Project:
+      - Logo and brand assets: brand.md
       - Migration: migration.md
       - Version 2: v2.md
       - Version 2.5: v2.5.md

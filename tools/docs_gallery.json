@@ -1,0 +1,178 @@
+[
+  {
+    "id": "interference",
+    "title": "Interference",
+    "category": "Plots",
+    "description": "Two radial waves, one shared colour scale.",
+    "requires": "Core + render",
+    "image": "gallery/showcase-interference.png",
+    "version": "3.0 dev",
+    "page": "recipes/interference/",
+    "featured": true
+  },
+  {
+    "id": "architecture",
+    "title": "An architectural interior",
+    "category": "Architecture",
+    "description": "Authored materials, textured furniture and an orthographic camera.",
+    "requires": "Blender + CC0 asset",
+    "image": "gallery/showcase-architecture.png",
+    "version": "3.0 dev",
+    "page": "recipes/architecture/",
+    "featured": true
+  },
+  {
+    "id": "attractor",
+    "title": "Deterministic chaos",
+    "category": "Plots",
+    "description": "A Lorenz trajectory, drawn as continuous vector strokes.",
+    "requires": "Core + render",
+    "image": "gallery/showcase-attractor.png",
+    "version": "3.0 dev",
+    "page": "recipes/attractor/",
+    "featured": false
+  },
+  {
+    "id": "photonics",
+    "title": "Integrated photonics",
+    "category": "3D",
+    "description": "A rendered device and an analytic transmission curve.",
+    "requires": "Blender",
+    "image": "gallery/showcase-photonics.png",
+    "version": "3.0 dev",
+    "page": "recipes/photonics/",
+    "featured": true
+  },
+  {
+    "id": "wave-packets",
+    "title": "Travelling wave packets",
+    "category": "Plots",
+    "description": "Eighteen offset signals with a consistent drawing order.",
+    "requires": "Core + render",
+    "image": "gallery/showcase-wave-packets.png",
+    "version": "3.0 dev",
+    "page": "recipes/wave-packets/",
+    "featured": false
+  },
+  {
+    "id": "architecture-sketch",
+    "title": "From scene to sketch",
+    "category": "Architecture",
+    "description": "The same room and camera, with matte surfaces and outlines.",
+    "requires": "Blender + CC0 asset",
+    "image": "gallery/showcase-architecture-sketch.png",
+    "version": "3.0 dev",
+    "page": "recipes/architecture-sketch/",
+    "featured": false
+  },
+  {
+    "id": "lattice",
+    "title": "Designed porosity",
+    "category": "3D",
+    "description": "A procedural strut lattice between two compression plates.",
+    "requires": "Blender",
+    "image": "gallery/showcase-lattice.png",
+    "version": "3.0 dev",
+    "page": "recipes/lattice/",
+    "featured": false
+  },
+  {
+    "id": "helix",
+    "title": "Paired helices",
+    "category": "3D",
+    "description": "Parametric backbones and repeated connecting links.",
+    "requires": "Blender",
+    "image": "gallery/showcase-helix.png",
+    "version": "3.0 dev",
+    "page": "recipes/helix/",
+    "featured": false
+  },
+  {
+    "id": "stress20",
+    "title": "Twenty panels, one page",
+    "category": "Layout",
+    "description": "Native 3D, diagrams and statistical plots in one measured document.",
+    "requires": "Core + render",
+    "image": "gallery/stress20.png",
+    "version": "2.6",
+    "page": "stress20/",
+    "featured": false
+  },
+  {
+    "id": "jobs",
+    "title": "One scene, four views",
+    "category": "Architecture",
+    "description": "GPU renders, a material change and editable vector annotations.",
+    "requires": "Blender",
+    "image": "gallery/v3-render-jobs.png",
+    "version": "3.0 dev",
+    "page": "render-jobs/",
+    "featured": false
+  },
+  {
+    "id": "plots",
+    "title": "Sixteen plot types",
+    "category": "Plots",
+    "description": "A practical collection of marks, axes, scales and legends.",
+    "requires": "Core",
+    "image": "gallery/plots.png",
+    "version": "2.6",
+    "page": "example-library/#plot-collection",
+    "featured": false
+  },
+  {
+    "id": "process",
+    "title": "A methods diagram",
+    "category": "Diagrams",
+    "description": "Connected stages, named ports, loops and measured labels.",
+    "requires": "Core",
+    "image": "gallery/process.png",
+    "version": "2.6",
+    "page": "example-library/#methods-flow",
+    "featured": false
+  },
+  {
+    "id": "part",
+    "title": "A measured 3D part",
+    "category": "3D",
+    "description": "Native mesh rendering with dimensions and a callout.",
+    "requires": "Core",
+    "image": "gallery/part.png",
+    "version": "2.6",
+    "page": "example-library/#labelled-3d-part",
+    "featured": false
+  },
+  {
+    "id": "season",
+    "title": "Time series and heatmaps",
+    "category": "Plots",
+    "description": "Date axes, a colour scale, a second axis and a labelled peak.",
+    "requires": "Core",
+    "image": "gallery/season.png",
+    "version": "2.6",
+    "page": "example-library/#time-series-and-heatmap",
+    "featured": false
+  },
+  {
+    "id": "polar",
+    "title": "Polar response",
+    "category": "Plots",
+    "description": "An orientation tuning curve and a rose histogram.",
+    "requires": "Core",
+    "image": "gallery/polar.png",
+    "version": "2.6",
+    "page": "example-library/#polar-response",
+    "featured": false
+  },
+  {
+    "id": "presets",
+    "title": "One figure, different presets",
+    "category": "Layout",
+    "description": "Scientific, educational and presentation styles.",
+    "requires": "Core + render",
+    "image": "gallery/presets.png",
+    "version": "2.6",
+    "page": "presets/",
+    "featured": false
+  }
+]

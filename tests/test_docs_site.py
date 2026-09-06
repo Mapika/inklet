@@ -17,9 +17,12 @@ class References(HTMLParser):
     def __init__(self):
         super().__init__()
         self.references = []
+        self.ids = set()
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        if attrs.get('id'):
+            self.ids.add(attrs['id'])
         # Canonical URLs identify the hosted page; they are not fetched assets.
         if tag == 'link' and 'canonical' in attrs.get('rel', '').split():
             return
@@ -44,6 +47,10 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert build.returncode == 0, build.stdout+build.stderr
     pages = list(site.rglob('*.html'))
     assert len(pages) >= 25
+    parsed_pages = {}
+    for page in pages:
+        parser = References();parser.feed(page.read_text())
+        parsed_pages[page.resolve()] = parser
     for page in pages:
         html = page.read_text()
         assert '<p>```' not in html, f'malformed code fence in {page}'
@@ -62,6 +69,9 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
             else:
                 path = (page.parent/unquote(url.path)).resolve()
             assert path.is_relative_to(site) and path.exists(), f'{page}: missing {target}'
+            destination = path/'index.html' if path.is_dir() else path
+            if url.fragment and destination in parsed_pages:
+                assert unquote(url.fragment) in parsed_pages[destination].ids, f'{page}: missing anchor {target}'
     quickstart = (site/'quickstart/index.html').read_text()
     assert 'README example</a>' in quickstart
     assert 'class="codehilite"' in quickstart
@@ -72,3 +82,16 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     search = json.loads((site/'search/search_index.json').read_text())
     locations = {item['location'].split('#')[0] for item in search['docs']}
     assert {'data/','plotting/','api/','cli/','quickstart/'}.issubset(locations)
+    assert {'recipes/interference/', 'recipes/architecture/', 'brand/'}.issubset(locations)
+    recipe = (site/'recipes/interference/index.html').read_text()
+    assert 'recipe:interference' not in recipe
+    assert 'interference' in recipe and 'math' in recipe
+    assert f'https://github.com/Mapika/inklet/blob/{commit}/examples/showcase/figures.py' in recipe
+    gallery = json.loads((ROOT/'tools/docs_gallery.json').read_text())
+    for entry in gallery:
+        assert (site/entry['image']).is_file()
+        location = urlsplit(entry['page'])
+        destination = (site/location.path/'index.html').resolve()
+        assert destination in parsed_pages
+        if location.fragment:
+            assert location.fragment in parsed_pages[destination].ids

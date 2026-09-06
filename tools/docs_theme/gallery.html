@@ -1,0 +1,5 @@
+<div class="gallery-toolbar" hidden><div class="gallery-filters" role="group" aria-label="Filter by figure type"><button type="button" data-filter="all" aria-pressed="true">All figures</button>{% for category in ['Plots','Diagrams','3D','Architecture','Layout'] %}<button type="button" data-filter="{{ category }}" aria-pressed="false">{{ category }}</button>{% endfor %}</div><label class="gallery-search"><span class="sr-only">Find a figure</span><input type="search" placeholder="Find a figure…" id="gallery-query"></label></div>
+<p class="gallery-count" role="status">{{ docs_gallery|length }} examples · select a figure for source and instructions</p>
+<div class="gallery-grid">{% for entry in docs_gallery %}{% include 'card.html' %}{% endfor %}</div>
+<p class="gallery-empty" hidden>No figures match. Try another search or choose a different category.</p>
+<div class="gallery-help"><h2>Ready to adapt an example?</h2><p>Start with the <a href="{{ 'installation/'|url }}">installation guide</a>. Examples marked 3.0 dev require a development checkout. See <a href="{{ 'showcase/'|url }}">rebuilding the showcase</a> for the complete collection and asset credits.</p></div>

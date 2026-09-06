@@ -4,9 +4,12 @@ Gallery images are included from their existing location. Links to source
 outside docs/ point at the GitHub repository.
 """
 from pathlib import Path
+import ast
+import json
 import os
 import posixpath
 import re
+import tomllib
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,4 +79,17 @@ def rewrite_links(markdown, source_path, repo_url, ref='master'):
 
 
 def on_page_markdown(markdown, page, config, files):
+    def recipe(match):
+        source = (ROOT/'examples/showcase/figures.py').read_text()
+        function = next(node for node in ast.parse(source).body
+                        if isinstance(node, ast.FunctionDef) and node.name == match[1])
+        return '```python\nimport math\nimport inklet as i\n\n\n' + ast.get_source_segment(source, function) + '\n```'
+    markdown = re.sub(r'<!-- recipe:([a-z_]+) -->', recipe, markdown)
     return rewrite_links(markdown,Path(page.file.abs_src_path),config['repo_url'],repository_ref())
+
+
+def on_page_context(context, page, config, nav):
+    context['docs_gallery'] = json.loads((ROOT/'tools/docs_gallery.json').read_text())
+    version = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
+    context['docs_version'] = version.replace('.0.dev', ' dev ')
+    return context

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-labelledby="title"><title id="title">Inklet</title><path d="M12 0H37L48 11V36Q48 48 36 48H12Q0 48 0 36V12Q0 0 12 0Z" fill="#172f32"/>
+<path d="M11 12v25h26" fill="none" stroke="#fafbf9" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17 29c7 0 6-12 16-12h3" fill="none" stroke="#fafbf9" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="36" cy="17" r="3.4" fill="#e6ac66"/></svg>
