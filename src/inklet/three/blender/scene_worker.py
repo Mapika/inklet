@@ -247,7 +247,15 @@ def run(request):
         anchors[name] = dict(x_mm=projected.x*width, y_mm=(1-projected.y)*height,
                              depth=float(projected.z), in_frame=in_frame, occluded=hidden,
                              world=list(point))
-    dependencies = sorted(set(bpy.utils.blend_paths(absolute=True, packed=False, local=False)))
+    # Appended IDs retain source-library hints for future reuse. Their data are
+    # already local; these hints are not dependencies of the rendered scene.
+    # Clear only the in-memory hints, leaving actual linked libraries intact.
+    for datablock in bpy.data.user_map():
+        reference = datablock.library_weak_reference
+        if reference:
+            reference.filepath = ''
+    dependencies = sorted({path for path in
+        bpy.utils.blend_paths(absolute=True, packed=False, local=False) if path})
     dependency_hashes = {}
     for path in dependencies:
         paths = glob.glob(path.replace('<UDIM>', '[0-9][0-9][0-9][0-9]')) if '<UDIM>' in path else [path]

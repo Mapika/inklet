@@ -224,3 +224,29 @@ bpy.ops.wm.save_as_mainfile(filepath=sys.argv[-1])
     assert (Image.open(BytesIO(overridden.diagram.prim.data)).tobytes()
             ==Image.open(BytesIO(sketch.diagram.prim.data)).tobytes())
     with pytest.raises(ValueError,match='style'):i.render_blend(scene_file,**opts,style='unknown')
+
+
+def test_packed_appended_scene_does_not_require_its_original_library(scene_file,tmp_path):
+    library=tmp_path/'source.blend';portable=tmp_path/'portable.blend'
+    script=tmp_path/'append.py'
+    script.write_text('''import bpy,sys
+original,library,portable=sys.argv[-3:]
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add();bpy.context.object.name='Appended cube'
+bpy.ops.wm.save_as_mainfile(filepath=library)
+bpy.ops.wm.open_mainfile(filepath=original)
+with bpy.data.libraries.load(library,link=False) as (source,dest):
+ dest.objects=['Appended cube']
+obj=dest.objects[0];bpy.context.scene.collection.objects.link(obj);obj.hide_render=True
+assert any(i.library_weak_reference for i in bpy.data.user_map())
+bpy.ops.file.pack_all()
+bpy.ops.wm.save_as_mainfile(filepath=portable)
+''')
+    subprocess.run([str(find_blender().path),'--background','--factory-startup','--disable-autoexec',
+                    '--python-exit-code','1','--python',str(script),'--',str(scene_file),str(library),str(portable)],
+                   check=True,capture_output=True,timeout=60)
+    library.unlink()
+    original=portable.read_bytes()
+    rendered=i.render_blend(portable,**options(scene_file),quality='draft')
+    assert rendered.diagram.prim.data.startswith(b'\x89PNG')
+    assert portable.read_bytes()==original
