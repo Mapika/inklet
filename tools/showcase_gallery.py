@@ -144,6 +144,8 @@ def main():
     for name in ('figures.py','blender_scenes.py','assets.lock.json','README.md'):
         shutil.copy2(ROOT/'examples/showcase'/name,source/name)
     shutil.copy2(__file__,source/'showcase_gallery.py')
+    for name in ('LICENSE','THIRD_PARTY_NOTICES.md'):
+        shutil.copy2(ROOT/name,source/name)
     catalog=dict(version=i.__version__,quality=args.quality,figures=records,assets=assets,
                  sources={path.name:file_hash(path) for path in sorted(source.iterdir()) if path.is_file()})
     (output/'catalog.json').write_text(json.dumps(catalog,indent=2)+'\n')
