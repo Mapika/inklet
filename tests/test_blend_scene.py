@@ -38,9 +38,16 @@ bpy.ops.object.light_add(type='AREA',location=(0,-4,5));lamp=bpy.context.object
 lamp.data.energy=500;lamp.rotation_euler=(Vector((0,0,0))-lamp.location).to_track_quat('-Z','Y').to_euler()
 scene=bpy.context.scene;scene.camera=scene.objects['Front'];scene.render.engine='CYCLES'
 scene.render.resolution_x=200;scene.render.resolution_y=100;scene.view_settings.view_transform='Standard'
+collection=bpy.data.collections.new('Geometry');scene.collection.children.link(collection)
+for owner in list(obj.users_collection):owner.objects.unlink(obj)
+collection.objects.link(obj)
+empty=scene.view_layers.new('Empty');empty.layer_collection.children['Geometry'].exclude=True
+scene.use_nodes=True
+output=scene.node_tree.nodes.new('CompositorNodeOutputFile');output.base_path=sys.argv[-1]+'.forbidden'
+scene.node_tree.links.new(scene.node_tree.nodes.get('Render Layers').outputs['Image'],output.inputs[0])
 bpy.ops.wm.save_as_mainfile(filepath=sys.argv[-1])
 ''')
-    subprocess.run([str(find_blender().path),'--background','--factory-startup','--python',str(script),
+    subprocess.run([str(find_blender().path),'--background','--factory-startup','--python-exit-code','1','--python',str(script),
                     '--',str(texture),str(path)],check=True,capture_output=True,timeout=60)
     return path
 
@@ -115,3 +122,57 @@ def test_corrupt_cache_and_missing_asset_are_not_reused(scene_file):
     try:
         with pytest.raises(BlenderError,match='texture.png'):i.render_blend(scene_file,**opts)
     finally:asset.write_bytes(data)
+
+
+def test_numeric_passes_orientation_units_masks_and_cache(scene_file):
+    import numpy as np
+    from io import BytesIO
+    from PIL import Image
+    opts=options(scene_file)
+    opts.update(passes=('normal','object_id','depth'), bindings={'Sample':{'location':[0,0,.5]}})
+    before=scene_file.read_bytes()
+    result=i.render_blend(scene_file,**opts)
+    beauty=i.render_blend(scene_file,**{k:v for k,v in opts.items() if k!='passes'})
+    a=np.array(Image.open(BytesIO(beauty.diagram.prim.data)),dtype=int)
+    b=np.array(Image.open(BytesIO(result.diagram.prim.data)),dtype=int)
+    assert np.abs(a-b).max()<=1  # Extracting data must preserve the beauty render.
+    depth=result.passes['depth'];normal=result.passes['normal'];ids=result.passes['object_id']
+    w,h=depth.pixels
+    assert depth.value(w//2,h//2)==pytest.approx(6,abs=.01)
+    assert normal.value(w//2,h//2)==pytest.approx((0,-1,0),abs=.001)
+    assert ids.value(w//2,h//2)==result.metadata['object_ids']['Sample']
+    assert depth.value(0,0)==pytest.approx(1e10)
+    mask=ids.to_numpy()>0
+    assert np.where(mask)[0].mean()<h/2-3  # +Z is upwards in the output image
+    assert not depth.to_numpy().flags.writeable
+    with pytest.raises(TypeError):result.passes['depth']=None
+    stencil=result.object_mask('Sample')
+    assert stencil.bbox==result.diagram.bbox
+    assert stencil.anchor_point('origin')==result.diagram.anchor_point('origin')
+    assert i.render_blend(scene_file,**opts).cache_hit
+    assert not scene_file.with_suffix('.blend.forbidden').exists()
+    assert scene_file.read_bytes()==before
+    cached=opts['cache']/'scenes'/result.metadata['cache_key']/'depth.f32'
+    cached.write_bytes(b'corrupt')
+    rebuilt=i.render_blend(scene_file,**opts)
+    assert not rebuilt.cache_hit
+    assert rebuilt.passes['depth'].data==depth.data
+    assert depth.value(w//2,h//2)==pytest.approx(6,abs=.01)
+    npy=scene_file.parent/'depth.npy';depth.save(npy)
+    assert np.array_equal(np.load(npy),depth.to_numpy())
+
+
+def test_view_layer_selection_and_errors(scene_file):
+    from PIL import Image
+    from io import BytesIO
+    opts=options(scene_file);opts['landmarks']={}
+    result=i.render_blend(scene_file,**opts,view_layer='Empty',passes=('object_id',))
+    assert result.metadata['view_layer']=='Empty'
+    assert not result.passes['object_id'].to_numpy().any()
+    assert Image.open(BytesIO(result.diagram.prim.data)).getchannel('A').getextrema()==(0,0)
+    with pytest.raises(BlenderError,match='View layer not found'):
+        i.render_blend(scene_file,**opts,view_layer='Missing')
+    with pytest.raises(ValueError,match='sequence'):
+        i.render_blend(scene_file,**opts,passes='depth')
+    with pytest.raises(ValueError,match='must not repeat'):
+        i.render_blend(scene_file,**opts,passes=('depth','depth'))

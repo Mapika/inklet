@@ -17,6 +17,15 @@ assert i.__version__ == version("inklet")
 assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
+import struct
+depth = i.ScenePass('depth', (1, 1), 1, 10, 10, struct.pack('<f', 2.5))
+assert depth.value(0, 0) == 2.5
+try:
+    depth.to_numpy()
+except i.DiagramError as error:
+    assert 'inklet[images]' in str(error)
+else:
+    raise AssertionError('Pass arrays unexpectedly imported NumPy')
 def make_document():
     data = i.dataset({"x": [0, 1, 2], "y": [1, 3, 2]}, name="wheel smoke")
     p = i.plot_spec(x=(0, 2), y=i.shared_scale(data.column("y")))

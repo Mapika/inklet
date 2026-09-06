@@ -19,6 +19,7 @@ def main():
     scene=args.scene.resolve() if args.scene else output/'lab.blend'
     if not args.scene and (args.rebuild_scene or not scene.is_file()):
         subprocess.run([str(find_blender().path),'--background','--factory-startup',
+                        '--python-exit-code','1',
                         '--python',str(ROOT/'examples/blender/lab_scene.py'),'--',str(scene)],
                        check=True,timeout=60,capture_output=True)
     spec=importlib.util.spec_from_file_location('v3_example',ROOT/'examples/v3_rendering.py')

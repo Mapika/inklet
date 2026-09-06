@@ -128,6 +128,9 @@ The development branch adds complete Blender scenes with projected object labels
 browser-free PNG export, vector gradients/hatching and group blending. Install a
 checkout with `python -m pip install -e '.[render]'` and run
 `python tools/v3_showcase.py` for the mixed scene-and-plot example.
+Scene rendering also supports view layers, numeric depth/normal/object-ID passes
+and named object masks. Add the `images` extra and run
+`python examples/v3_scene_passes.py` for a six-panel example with NumPy exports.
 
 [Rendering guide](https://inklet.readthedocs.io/en/latest/v3/) ·
 [Blender setup and scenes](https://inklet.readthedocs.io/en/latest/blender-scenes/).

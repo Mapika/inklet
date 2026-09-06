@@ -400,6 +400,7 @@ from .document import (PublicationProfile, publication, subfigure, Composition, 
                        Series, SharedScale, dataset, shared_scale, CategoryEncoding, FileRef, DerivedData, derive)
 from .document import FigureFormat, PlotDefaults, GuidelineSource, Preset, preset, preset_names, format_names
 from .three.scenes import SceneRender, BlendSceneSpec, render_blend, blend_scene, blend_scene_spec
+from .three.scene_pass import ScenePass
 from .render.raster import to_png, save_png, rasterize
 from .render.brushes import LinearGradient, RadialGradient, Hatch, paint
 from .render.composite import blend, mask
@@ -409,7 +410,7 @@ __all__ = [
     "rendering_capabilities",
     "blend", "mask",
     "LinearGradient", "RadialGradient", "Hatch", "paint",
-    "SceneRender", "BlendSceneSpec", "render_blend", "blend_scene", "blend_scene_spec",
+    "SceneRender", "ScenePass", "BlendSceneSpec", "render_blend", "blend_scene", "blend_scene_spec",
     "to_png", "save_png", "rasterize",
     # live documents
     "PublicationProfile", "publication",
@@ -460,4 +461,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "3.0.0.dev0"
+__version__ = "3.0.0.dev1"

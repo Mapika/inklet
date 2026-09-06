@@ -42,9 +42,21 @@ Parallel vector strokes with spacing/width in local millimetres.
 
 Fill a shape or shape group with a vector gradient or hatch; retain text and authored strokes.
 
-#### `class SceneRender(diagram: inklet.core.diagram.Diagram, metadata: dict, cache_hit: bool) -> None`
+#### `class SceneRender(diagram: inklet.core.diagram.Diagram, metadata: dict, cache_hit: bool, passes: object = <factory>) -> None`
 
 A rendered snapshot, its provenance and whether cached pixels were reused.
+
+* `object_mask(*names)` -- Return an aligned stencil for named objects; request object_id first.
+
+#### `class ScenePass(name: str, pixels: tuple[int, int], channels: int, width_mm: float, height_mm: float, data: bytes) -> None`
+
+Immutable little-endian float32 pixels, in top-left row order.
+
+* `value(x, y)` -- Read one pixel without NumPy; normals return an XYZ tuple.
+* `to_numpy()` -- Return a read-only H×W or H×W×3 NumPy view; requires inklet[images].
+* `save(path)` -- Save numeric data as .npy without losing precision or changing axes.
+* `to_diagram(*, value_range=None)` -- Visualize a pass with transparent background; requires inklet[images].
+* `object_mask(ids)` -- Make a white alpha stencil for object IDs, aligned with the scene.
 
 #### `class BlendSceneSpec(path: object, options: dict = <factory>, _dependencies: tuple = ()) -> None`
 
@@ -53,7 +65,7 @@ Deferred scene rendering with file and live-data cache invalidation.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 
-#### `render_blend(path, *, width, height=None, camera=None, scene=None, frame=None, dpi=150, engine=None, samples=32, seed=0, transparent=True, landmarks=None, objects=None, collections=None, bindings=None, assets=(), cache=None, blender=None, timeout=300, threads=4, max_pixels=40000000)`
+#### `render_blend(path, *, width, height=None, camera=None, scene=None, frame=None, dpi=150, engine=None, samples=32, seed=0, transparent=True, landmarks=None, objects=None, collections=None, bindings=None, assets=(), cache=None, blender=None, timeout=300, threads=4, max_pixels=40000000, view_layer=None, passes=())`
 
 Render an existing .blend file without modifying it.
 

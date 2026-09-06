@@ -7,13 +7,15 @@ import math
 from pathlib import Path
 import subprocess
 import tempfile
+from types import MappingProxyType
 
 from ..assets.cache import cache_root
 from ..core import Diagram, ImagePrim, Vec2
 from ..document.spec import BuildSpec, fingerprint, length, materialize
 from ..themes.color import parse_color
+from .scene_pass import ScenePass
 
-PIPELINE_VERSION = 1
+PIPELINE_VERSION = 2
 _WORKER = Path(__file__).with_name('blender')/'scene_worker.py'
 
 
@@ -102,19 +104,48 @@ def _cached(directory):
     return None
 
 
+def _read_passes(directory, record):
+    result = {}
+    for name, info in record.get('passes', {}).items():
+        if name not in ('depth', 'normal', 'object_id') or info['file'] != name + '.f32':
+            raise ValueError('Invalid scene pass in cache')
+        data = (directory / info['file']).read_bytes()
+        if hashlib.sha256(data).hexdigest() != info['sha256']:
+            raise ValueError('Corrupt scene pass in cache')
+        result[name] = ScenePass(name, tuple(record['pixels']), info['channels'],
+                                 record['width_mm'], record['height_mm'], data)
+    if set(result) != set(record['request']['passes']):
+        raise ValueError('Missing scene passes in cache')
+    return MappingProxyType(result)
+
+
 @dataclass(frozen=True)
 class SceneRender:
     """A rendered snapshot, its provenance and whether cached pixels were reused."""
     diagram: Diagram
     metadata: dict
     cache_hit: bool
+    passes: object = field(default_factory=lambda: MappingProxyType({}))
+
+    def object_mask(self, *names):
+        """Return an aligned stencil for named objects; request object_id first."""
+        if 'object_id' not in self.passes:
+            raise ValueError("Request passes=('object_id',) to make object masks")
+        try:
+            ids = [self.metadata['object_ids'][name] for name in names]
+        except KeyError as error:
+            raise ValueError(f'Unknown scene object: {error.args[0]}') from None
+        mask = self.passes['object_id'].object_mask(ids)
+        for name, point in self.diagram.anchors.items():
+            mask.anchor(name, point)
+        return mask
 
 
 def render_blend(path, *, width, height=None, camera=None, scene=None, frame=None,
                  dpi=150, engine=None, samples=32, seed=0, transparent=True,
                  landmarks=None, objects=None, collections=None, bindings=None,
                  assets=(), cache=None, blender=None, timeout=300, threads=4,
-                 max_pixels=40_000_000):
+                 max_pixels=40_000_000, view_layer=None, passes=()):
     """Render an existing .blend file without modifying it.
 
     Preserve authored cameras, materials, lights and colour management. Choose
@@ -122,6 +153,8 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
     Landmarks accept object names, world XYZ or {object, point} local XYZ.
     Bindings explicitly override object color, location, rotation_euler, scale
     or hide_render. Include extra simulation/sequence files in assets.
+    Select a view_layer by name; otherwise use the active layer. Optional Cycles
+    passes are depth, normal and object_id, returned as immutable numeric pixels.
 
     Blender is a subprocess with automatic Python execution disabled. The
     compositor and sequencer are bypassed; their file-output nodes are not run.
@@ -145,6 +178,16 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
     if engine not in (None, 'CYCLES', 'BLENDER_EEVEE_NEXT'):
         raise ValueError('engine must be CYCLES or BLENDER_EEVEE_NEXT')
     if not isinstance(transparent, bool): raise ValueError('transparent must be a boolean')
+    if isinstance(passes, str):
+        raise ValueError('passes must be a sequence of depth, normal or object_id')
+    passes = tuple(passes)
+    if any(name not in ('depth', 'normal', 'object_id') for name in passes):
+        raise ValueError('Unknown scene pass; choose depth, normal or object_id')
+    if len(set(passes)) != len(passes):
+        raise ValueError('Scene passes must not repeat')
+    passes = tuple(sorted(passes))
+    if view_layer is not None and (not isinstance(view_layer, str) or not view_layer):
+        raise ValueError('view_layer must be a non-empty name')
     for key, names in (('objects', objects), ('collections', collections)):
         if isinstance(names, str): raise ValueError(f'{key} must be a sequence of names')
         if names is not None and any(not isinstance(name, str) for name in names):
@@ -153,7 +196,8 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
     request = dict(width=width, height=height, camera=camera, scene=scene, frame=frame,
         dpi=dpi, engine=engine, samples=samples, seed=seed, transparent=transparent,
         landmarks=_landmarks(landmarks or {}), objects=objects, collections=collections,
-        bindings=_bindings(bindings or {}), threads=threads, max_pixels=max_pixels)
+        bindings=_bindings(bindings or {}), threads=threads, max_pixels=max_pixels,
+        view_layer=view_layer, passes=passes)
     inputs = _dependencies([source, *assets])
     key_data = dict(pipeline=PIPELINE_VERSION, worker=_hash(_WORKER),
                     blender=dict(path=str(binary.path), version=binary.release),
@@ -162,11 +206,13 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
     directory = cache_root(cache)/'scenes'/key
     record = _cached(directory)
     data = None
+    pass_data = MappingProxyType({})
     if record is not None:
         try:
             data=(directory/'image.png').read_bytes()
             if hashlib.sha256(data).hexdigest()!=record['image_sha256']:record=None
-        except OSError:record=None
+            if record is not None: pass_data = _read_passes(directory, record)
+        except (OSError, ValueError, KeyError, TypeError):record=None
     hit = record is not None
     if record is None:
         directory.mkdir(parents=True, exist_ok=True)
@@ -191,9 +237,12 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
             record.update(source=str(source), cache_key=key, request=request,
                           image_sha256=_hash(stage/'image.png'))
             data=(stage/'image.png').read_bytes()
+            pass_data = _read_passes(stage, record)
             # Commit pixels first and the validating manifest last. Each render
             # owns its staging directory, including concurrent identical requests.
             (stage/'image.png').replace(directory/'image.png')
+            for name in pass_data:
+                (stage / (name + '.f32')).replace(directory / (name + '.f32'))
             manifest = stage/'manifest.json'
             manifest.write_text(json.dumps(record, sort_keys=True, indent=2)+'\n')
             manifest.replace(directory/'manifest.json')
@@ -203,7 +252,7 @@ def render_blend(path, *, width, height=None, camera=None, scene=None, frame=Non
     for name, point in record['landmarks'].items():
         diagram.anchor(name, Vec2(point['x_mm']-record['width_mm']/2,
                                  point['y_mm']-record['height_mm']/2))
-    return SceneRender(diagram, record, hit)
+    return SceneRender(diagram, record, hit, pass_data)
 
 
 def blend_scene(path, **options):

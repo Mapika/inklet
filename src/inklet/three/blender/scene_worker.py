@@ -10,11 +10,84 @@ from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Vector
 
 
+def prepare_passes(scene, layer, names, stage):
+    """Use a fresh compositor; authored output nodes must never execute."""
+    if not names:
+        return {}
+    if scene.render.engine != 'CYCLES':
+        raise ValueError('Data passes currently require CYCLES')
+    layer.use_pass_z = 'depth' in names
+    layer.use_pass_normal = 'normal' in names
+    layer.use_pass_object_index = 'object_id' in names
+    object_ids = {}
+    if 'object_id' in names:
+        objects = sorted(scene.objects, key=lambda obj: obj.name)
+        if len(objects) > 32767:
+            raise ValueError('Object ID passes support at most 32767 scene objects')
+        for index, obj in enumerate(objects, 1):
+            obj.pass_index = index
+            object_ids[obj.name] = index
+    scene.use_nodes = True
+    tree = scene.node_tree
+    tree.nodes.clear()
+    source = tree.nodes.new('CompositorNodeRLayers')
+    source.layer = layer.name
+    composite = tree.nodes.new('CompositorNodeComposite')
+    tree.links.new(source.outputs['Image'], composite.inputs['Image'])
+    for name in names:
+        output = tree.nodes.new('CompositorNodeOutputFile')
+        output.base_path = str(stage)
+        output.file_slots[0].path = name + '-'
+        output.format.file_format = 'OPEN_EXR'
+        output.format.color_depth = '32'
+        output.format.color_mode = 'RGBA'
+        socket = {'depth': 'Depth', 'normal': 'Normal', 'object_id': 'IndexOB'}[name]
+        tree.links.new(source.outputs[socket], output.inputs[0])
+    scene.render.use_compositing = True
+    return object_ids
+
+
+def collect_passes(names, stage, pixels):
+    # NumPy ships inside Blender. The host can read individual values with only
+    # the standard library; no EXR reader is required in an Inklet installation.
+    import numpy as np
+    result = {}
+    for name in names:
+        files = list(stage.glob(name + '-*.exr'))
+        if len(files) != 1:
+            raise ValueError(f'Expected one rendered {name} pass')
+        image = bpy.data.images.load(str(files[0]), check_existing=False)
+        image.colorspace_settings.name = 'Non-Color'
+        values = np.empty(len(image.pixels), dtype=np.float32)
+        image.pixels.foreach_get(values)
+        channels = 3 if name == 'normal' else 1
+        # Blender images start at bottom-left; Inklet arrays start at top-left.
+        values = values.reshape(pixels[1], pixels[0], 4)[::-1, :, :channels]
+        data = np.ascontiguousarray(values, dtype='<f4').tobytes()
+        filename = name + '.f32'
+        (stage / filename).write_bytes(data)
+        result[name] = dict(file=filename, sha256=hashlib.sha256(data).hexdigest(),
+                            channels=channels, dtype='<f4', origin='top-left')
+        result[name].update({'depth': dict(units='Blender scene units', background=1e10),
+                             'normal': dict(space='world', background=[0, 0, 0]),
+                             'object_id': dict(background=0, antialiased=False)}[name])
+        bpy.data.images.remove(image)
+        files[0].unlink()
+    return result
+
+
 def run(request):
     scene = bpy.data.scenes.get(request['scene']) if request['scene'] else bpy.context.scene
     if scene is None:
         raise ValueError(f"Scene not found: {request['scene']!r}")
     bpy.context.window.scene = scene
+    layer = (scene.view_layers.get(request['view_layer']) if request['view_layer']
+             else bpy.context.view_layer)
+    if layer is None:
+        raise ValueError(f"View layer not found: {request['view_layer']!r}")
+    bpy.context.window.view_layer = layer
+    for candidate in scene.view_layers:
+        candidate.use = candidate == layer
     if request['camera']:
         scene.camera = scene.objects.get(request['camera'])
     camera = scene.camera
@@ -141,7 +214,7 @@ def run(request):
         for filename in paths:
             with open(filename,'rb') as stream:
                 dependency_hashes[str(Path(filename).resolve())] = hashlib.file_digest(stream,'sha256').hexdigest()
-    result = dict(scene=scene.name, camera=camera.name, frame=scene.frame_current,
+    result = dict(scene=scene.name, camera=camera.name, view_layer=layer.name, frame=scene.frame_current,
                   width_mm=width, height_mm=height, pixels=pixels,
                   engine=scene.render.engine, blender=bpy.app.version_string,
                   color_management=dict(view_transform=scene.view_settings.view_transform,
@@ -149,8 +222,10 @@ def run(request):
                       gamma=scene.view_settings.gamma),
                   landmarks=anchors, dependencies=dependencies, dependency_hashes=dependency_hashes)
     stage = Path(request['output'])
+    result['object_ids'] = prepare_passes(scene, layer, request['passes'], stage)
     scene.render.filepath = str(stage/'image.png')
     bpy.ops.render.render(write_still=True, scene=scene.name)
+    result['passes'] = collect_passes(request['passes'], stage, pixels) if request['passes'] else {}
     (stage/'scene.json').write_text(json.dumps(result, indent=2))
 
 

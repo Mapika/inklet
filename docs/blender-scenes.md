@@ -41,6 +41,9 @@ returns `metadata` and `cache_hit`. Width/height are millimetres; omitting heigh
 preserves the authored render aspect ratio. Specify `scene=` to select a named
 scene and `frame=` for an animation frame. A named camera must belong to that
 scene. Perspective and orthographic cameras are supported.
+Use `view_layer='Experiment'` to select a view layer and preserve its collection
+exclusions, holdouts and material override. Otherwise Inklet uses the active
+view layer. Only the selected layer is rendered.
 
 Authored materials, lights and colour-management settings are preserved.
 `transparent=True` removes the world background while retaining lighting.
@@ -110,10 +113,92 @@ its original pixels and metadata. For arbitrary material node groups, simulation
 or geometry-node controls, author those changes in Blender; bindings deliberately
 support a defined property set.
 
+## Depth, normal and object-ID passes
+
+Cycles can return numeric passes alongside the rendered image:
+
+```python
+result = i.render_blend('apparatus.blend', width=90, camera='Overview',
+    engine='CYCLES', dpi=300, samples=64,
+    passes=('depth', 'normal', 'object_id'))
+depth = result.passes['depth']
+print(depth.value(100, 80))
+```
+
+`ScenePass.value(x, y)` reads one pixel with no additional Python dependencies.
+Passes contain immutable float32 bytes, with rows starting at the **top-left**.
+They have exactly the same pixel dimensions and physical bounds as the scene.
+Data passes currently require Cycles; they are not display-colour transformed.
+
+| Pass | Values | Background |
+| --- | --- | --- |
+| `depth` | Blender Z distance in scene units | `1e10` |
+| `normal` | Signed world-space XYZ surface normal | `(0, 0, 0)` |
+| `object_id` | Integer-valued object index | `0` |
+
+With `inklet[images]` installed, `depth.to_numpy()` returns a read-only `H × W`
+array; normals return `H × W × 3`. `depth.save('depth.npy')` saves the numeric
+array without changing precision or axes. A `SceneRender` retains the pass
+bytes even if its original scene or cache files disappear.
+
+Pass visualizations are ordinary image panels:
+
+```python
+depth_panel = depth.to_diagram(value_range=(5, 20))
+normal_panel = result.passes['normal'].to_diagram()
+id_panel = result.passes['object_id'].to_diagram()
+```
+
+Depth maps near to white and far to black; use the same explicit `value_range`
+when comparing views. Without it, Inklet derives and records each image's
+foreground range. Normals map `[-1, 1]` to RGB. Object IDs use a repeating
+eight-colour preview palette; read numeric values to distinguish every object.
+Background pixels are transparent. Visualizations retain the source-data hash
+and chosen range in figure manifests.
+
+### Select objects from a rendered image
+
+```python
+stencil = result.object_mask('Electrode', 'Controller')
+cutout = i.mask(result.diagram, stencil, mode='alpha', dpi=300)
+```
+
+The stencil uses white opaque pixels for selected objects and transparent pixels
+elsewhere. It preserves the scene's bounds and registered anchors. Apply it in
+the same coordinates as the original render before placing or scaling the cutout.
+Request `object_id` before calling `object_mask`; unknown names raise an error.
+
+Inklet assigns IDs in sorted object-name order and records the mapping in
+`result.metadata['object_ids']`. Adding or renaming objects can change IDs, so
+use this mapping rather than assuming an ID is stable between different scenes.
+The source `.blend` file and its authored indices are not saved or changed.
+
+Blender's Z and object-index passes are not antialiased. Hard masks can therefore
+have jagged edges and do not recover hidden geometry. Transparency follows the
+selected view layer's pass alpha threshold; these masks are not Cryptomatte or
+optical transmission masks. See Blender's [render-pass reference](https://docs.blender.org/manual/en/4.2/render/layers/passes.html).
+
+![Rendered scene, depth, normals, object IDs, mask and cutout](../gallery/v3-scene-passes.png)
+
+Run the [six-panel example](../examples/v3_scene_passes.py) after creating the
+laboratory scene with `python tools/v3_showcase.py`:
+
+```sh
+python examples/v3_scene_passes.py
+```
+
+It exports SVG/PDF/PNG, an HTML review, and all three numeric `.npy` arrays.
+Regular figure bundles record pass hashes and properties; save `.npy` files
+explicitly when you also need the numeric data outside Python.
+
 ## Dependencies, caching and limits
 
 The disk cache records the source scene, referenced external files, Blender
 version/path, worker version, camera/frame, render settings and bindings.
+The selected view layer and requested passes are part of the cache key. Every
+cached pass is checked against its recorded hash; a missing or damaged pass
+causes a fresh render. Passes add roughly 4 bytes per scalar pixel and 12 bytes
+per normal pixel, in addition to Blender's own render memory.
 Changed or missing dependencies invalidate a cached render. Changed inputs
 during rendering cause a failure, and incomplete renders are not reused.
 Specify `assets=[...]` for additional simulation caches, image-sequence frames
@@ -128,10 +213,12 @@ guaranteed. `cache=` changes the cache directory, or set `INKLET_CACHE_DIR`.
 Source `.blend` files are never saved by the renderer. Automatic embedded Python
 execution is disabled. The authored compositor and video sequencer are bypassed,
 so file-output nodes cannot write to the scene's original output locations.
+When passes are requested, Inklet creates a fresh compositor in the subprocess
+that writes only to its temporary directory. It extracts full-precision EXR
+channels there; no EXR reader is needed in the host Python environment.
 Scenes requiring scripted drivers or compositor effects need adaptation. This
 is a rendered scene image, not a general Blender-to-vector conversion.
-Depth/normal/object-ID image passes and animation/video export are not included
-in this development build.
+Animation/video export and Cryptomatte are not included in this development build.
 
 After the first successful bundle, `inklet watch` includes scene dependencies
 from its manifest. Use `--watch` for additional dependencies and

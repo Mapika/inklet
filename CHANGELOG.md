@@ -2,6 +2,10 @@
 
 ## 3.0.0 (development)
 
+- Add Cycles depth, world-normal and object-ID passes with immutable float32
+  snapshots, NumPy export, physically aligned previews and named object masks.
+- Select authored Blender view layers, validate every cached pass, and isolate
+  pass extraction from authored compositor output nodes. Add a six-panel example.
 - Render complete Blender scenes with named cameras, scene/frame selection,
   material and lighting preservation, projected landmarks and explicit data bindings.
 - Cache scene pixels with source/asset hashes and render settings; embed snapshots
