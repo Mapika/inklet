@@ -35,17 +35,19 @@ tests/test_scene_templates.py`, then build `tools/v3_showcase.py`. Select an
 installation with `INKLET_BLENDER`; legacy Grease Pencil vector baking requires
 4.2 LTS even when complete scenes use 4.5.
 
-The figure job uses Ubuntu 24.04, Python 3.12, Chrome, Poppler, DejaVu and Noto
-fonts. The visual checker verifies the DejaVu file hashes before comparisons;
-font mismatches fail rather than refreshing references. Review artifacts and
+The figure job uses Ubuntu 24.04, Python 3.12, Chrome Stable 145.0.7632.45,
+Poppler 24.02.0, DejaVu and Noto fonts. The visual checker verifies the renderer
+versions and DejaVu file hashes before comparisons; mismatches fail with an
+environment error. Review artifacts and
 test reports are retained for seven days, including on failed runs. The static
 documentation site is included in the artifact. Hosting is configured separately
 through Read the Docs.
 
 The workflow uses the official [uv setup action](https://docs.astral.sh/uv/guides/integration/github/).
 Action references are pinned to commits. Python test dependencies are locked;
-system fonts and renderers come from the runner and Ubuntu packages, so this is
-not a fully hermetic rendering environment.
+the visual browser archive is pinned by version and SHA-256. System fonts and
+Poppler still come from Ubuntu packages, so this is not a fully hermetic
+rendering environment.
 
 Local equivalents:
 

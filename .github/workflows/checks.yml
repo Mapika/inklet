@@ -26,8 +26,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-dejavu-core fonts-dejavu-extra fonts-noto-core fonts-liberation fonts-urw-base35 poppler-utils
-          google-chrome --version
           pdftoppm -v
+      - name: Install the reviewed visual browser
+        env:
+          CHROME_VERSION: '145.0.7632.45'
+          CHROME_SHA256: 6aed53fe777ca9a58a680b848a80022300566fb902424291e054984a784c73a2
+        run: |
+          curl --fail --location --retry 3 "https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}-1_amd64.deb" --output "$RUNNER_TEMP/chrome.deb"
+          printf '%s  %s\n' "$CHROME_SHA256" "$RUNNER_TEMP/chrome.deb" | sha256sum --check
+          dpkg-deb -x "$RUNNER_TEMP/chrome.deb" "$RUNNER_TEMP/visual-browser"
+          mkdir -p "$RUNNER_TEMP/visual-browser/bin"
+          ln -s ../opt/google/chrome/google-chrome "$RUNNER_TEMP/visual-browser/bin/google-chrome"
+          echo "$RUNNER_TEMP/visual-browser/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/visual-browser/bin/google-chrome" --version
       - name: Install locked test dependencies
         run: |
           uv venv

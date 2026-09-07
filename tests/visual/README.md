@@ -9,8 +9,19 @@ ignored. Geometry tests remain responsible for exact coordinates.
 
 Requires Pillow, Chrome/Chromium, Poppler and DejaVu Sans. The font checksums in
 `baseline/fonts.json` prevent accidental font substitution from becoming a
-misleading rendering regression. Use a consistent browser and Poppler version
-when generating baselines; engine changes can also alter antialiasing.
+misleading rendering regression. `baseline/renderers.json` also checks the
+browser and Poppler versions before rendering; engine changes can alter
+antialiasing even when the SVG is identical. CI extracts Chrome Stable
+145.0.7632.45 from a fixed, SHA-256-verified package and uses Poppler 24.02.0
+from Ubuntu 24.04. These pins apply to the baseline checks, not to Inklet users.
+
+For local Linux checks, download the same browser using the commands in
+`.github/workflows/checks.yml` (the “Install the reviewed visual browser” step),
+using a local scratch directory in place of `$RUNNER_TEMP`. Prepend its `bin`
+directory to `PATH` when running the checker. This leaves the system browser
+unchanged. Chrome/Chromium with the same version is also accepted. When
+intentionally upgrading a renderer, review every difference and update its
+recorded version together with the baselines and CI pin.
 
 Use `--update` only after inspecting intended changes. This explicitly replaces
 the baselines; normal runs never update them. The fixtures cover embedded

@@ -9,7 +9,9 @@ import hashlib
 import html
 import importlib.util
 import json
+import re
 import shutil
+import subprocess
 import sys
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -27,6 +29,22 @@ def main():
     args=parser.parse_args()
     out=args.output.resolve();out.mkdir(parents=True,exist_ok=True)
     baseline=ROOT/'tests/visual/baseline';baseline.mkdir(exist_ok=True)
+    renderers={}
+    for kind,names in [('chrome',('google-chrome','chromium','chromium-browser')),
+                       ('poppler',('pdftoppm',))]:
+        executable=next((p for name in names if (p:=shutil.which(name))),None)
+        if executable is None:
+            raise SystemExit(f'Visual checks require {kind} on PATH.')
+        result=subprocess.run([executable,'--version' if kind=='chrome' else '-v'],
+                              capture_output=True,text=True,check=True,timeout=10)
+        match=re.search(r'\b\d+\.\d+\.\d+(?:\.\d+)?\b',result.stdout+result.stderr)
+        if match is None:
+            raise SystemExit(f'Cannot determine {kind} version.')
+        renderers[kind]=match.group()
+    renderer_manifest=baseline/'renderers.json'
+    if not args.update and (not renderer_manifest.exists() or json.loads(renderer_manifest.read_text())!=renderers):
+        raise SystemExit(f'Visual baseline renderer mismatch: found {renderers}. Use the versions in {renderer_manifest}; see tests/visual/README.md. Do not update baselines to hide an environment mismatch.')
+    (out/'renderers.json').write_text(json.dumps(renderers,indent=2)+'\n')
     fonts={f'{weight}-{italic}':hashlib.sha256(Path(find_font('DejaVu Sans',weight,italic).path).read_bytes()).hexdigest()
            for weight,italic in [('regular',False),('bold',False),('regular',True)]}
     manifest=baseline/'fonts.json'
@@ -68,7 +86,9 @@ def main():
                     record={'case':stem,'changed_fraction':changed,'passed':changed<=.001}
                     failed |= not record['passed']
                 records.append(record)
-    if args.update:manifest.write_text(json.dumps(fonts,indent=2)+'\n')
+    if args.update:
+        manifest.write_text(json.dumps(fonts,indent=2)+'\n')
+        renderer_manifest.write_text(json.dumps(renderers,indent=2)+'\n')
     (out/'results.json').write_text(json.dumps(records,indent=2)+'\n')
     rows=''.join(f'<section><h2>{html.escape(r["case"])}</h2><p>{html.escape(str(r))}</p><div>'+''.join(
         f'<figure><figcaption>{label}</figcaption><img src="{r["case"]}{suffix}.png"></figure>'
