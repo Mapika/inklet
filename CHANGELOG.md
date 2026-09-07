@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.1.0.dev4 — research preview (unreleased)
+
+- Add an optional calibrated volume API for immutable ZYX arrays, physical XYZ
+  coordinates, crops, orthogonal slices, vector scale bars and label measurements.
+- Extract calibrated segmentation surfaces with explicit consent for artificial
+  boundary caps. Keep display subsampling separate from voxel-count measurements.
+- Add a six-panel real COSEM microscopy example with GPU-rendered organelles,
+  source-ID callouts, matching sections and volume charts. Record source hashes,
+  calibration, overlapping masks, boundary flags and rendering evidence.
+- Document the experimental API, executable recipe and CC BY 4.0 data attribution.
+- Fix intermittent missing strokes in Blender 4.2 SVG exports by exporting a
+  fresh copy of the baked drawing. Exercise legacy line-art integrity in CI.
+
 ## 3.1.0.dev3 — research preview (unreleased)
 
 - Add optional physical label-displacement costs and hard per-label movement

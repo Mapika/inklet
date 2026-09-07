@@ -1,6 +1,6 @@
 [project]
 name = "inklet"
-version = "3.1.0.dev3"
+version = "3.1.0.dev4"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
 authors = [{name = "Mark Marosi"}]
@@ -50,6 +50,8 @@ render = ["resvg-py>=0.3.3,<0.4", "pillow>=10.0"]
 # optional Blender backend's raster tracing, not for the built-in renderer,
 # which was measured and does not benefit (see inklet/three/deps.py).
 three = ["trimesh>=4.0", "numpy>=1.24"]
+# Experimental calibrated microscopy and segmentation surfaces.
+volume = ["numpy>=1.24", "pillow>=10.0", "scikit-image>=0.24,<0.26"]
 
 [build-system]
 requires = ["hatchling"]

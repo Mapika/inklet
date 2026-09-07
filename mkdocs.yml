@@ -65,10 +65,12 @@ nav:
       - Research preview: research-preview.md
       - Regions and crossings study: research-study.md
       - Physical label movement: research-revision.md
+      - Calibrated microscopy volumes: calibrated-volumes.md
   - Examples:
       - Figure gallery: examples.md
       - More example recipes: example-library.md
       - Coordinated biology figures: biology-panels.md
+      - Real microscopy and organelles: real-biology.md
       - Rebuild the showcase: showcase.md
       - Figure recipes:
           - Interference: recipes/interference.md

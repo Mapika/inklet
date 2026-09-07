@@ -79,3 +79,25 @@ The mesh and textures are downloaded only when requested and stored under
 `out/showcase/assets/`; they are not included in the Python package. Generated
 architectural gallery images incorporate this asset. The remaining showcase
 geometry, scene setup, plots and code are original Inklet work.
+
+## COSEM electron microscopy and organelle segmentations
+
+The real-biology example uses a fixed crop of pyramid level `s4` from
+**jrc_hela-3**, provided by the **COSEM Project Team / HHMI Janelia Research
+Campus**, under **CC BY 4.0**.
+
+- Data registry and license: https://registry.opendata.aws/janelia-cosem/
+- License text: https://creativecommons.org/licenses/by/4.0/
+- Publication: Heinrich et al., *Whole-cell organelle segmentation in volume
+  electron microscopy*, Nature 599, 141–146 (2021),
+  https://doi.org/10.1038/s41586-021-03977-3
+- Source objects and checksums: `examples/biology/organelle.lock.json`
+
+`gallery/real-biology.png` and the corresponding documented figure are derived
+from these data: spatial cropping, intensity windowing, colored mask overlays,
+surface extraction, lighting, annotations and quantitative summaries are Inklet
+example processing. This derived figure retains **CC BY 4.0**, rather than the
+code's MIT license. Attribution appears in the figure and documentation. Raw
+volumes, downloaded chunks, generated mesh files and Blender scenes are not
+bundled in the repository or wheel; the recipe retrieves the recorded objects.
+Accessed 7 September 2026. No endorsement by HHMI or the authors is implied.

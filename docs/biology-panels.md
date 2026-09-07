@@ -64,6 +64,9 @@ tracks, clustered matrices and annotated molecular or cellular 3D structures.
 Those capabilities need explicit identities, units, data provenance and honest
 visibility handling. A biological-looking image alone does not establish them.
 
-The [revision preview](research-revision.md) now constrains label movement in
-3D figure plans. Coordinated revision across those scenes and these data panels,
-and validation against real openly licensed biological data, are next experiments.
+The [real microscopy example](real-biology.md) now connects calibrated sections,
+annotated organelle surfaces and volume charts from openly licensed COSEM data.
+The [calibrated volume API](calibrated-volumes.md) preserves physical coordinates
+and measurement identities. The [revision preview](research-revision.md)
+constrains label movement in 3D figure plans; coordinated revision across scenes
+and data panels remains a further experiment.

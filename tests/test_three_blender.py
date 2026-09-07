@@ -676,7 +676,7 @@ def test_the_bake_is_byte_identical_under_a_different_hash_seed(tmp_path):
 def test_fresh_exports_preserve_every_baked_stroke(tmp_path):
     """A dense bake must reach the SVG intact, including after scene updates."""
     exports = []
-    for _ in range(4):
+    for _ in range(8):
         drawing = line_art(MESHES / "brain-lh.obj", width=60.0, camera="left",
                            cache_dir=tmp_path / "cache", refresh=True)
         assert len(drawing.polylines) == drawing.report["strokes"]["lines"]["strokes"]

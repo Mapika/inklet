@@ -17,6 +17,13 @@ assert i.__version__ == version("inklet")
 assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
+from inklet.experimental.volume import Volume
+try:
+    Volume([[[1]]], (1,1,1), 'um', source_id='wheel')
+except ImportError as error:
+    assert 'inklet[volume]' in str(error)
+else:
+    raise AssertionError('Volume silently imported optional numerical dependencies')
 assert set(i.scene_templates())=={'laboratory','product','architecture'}
 assert (Path(i.__file__).parent/'three/blender/template_worker.py').is_file()
 import struct

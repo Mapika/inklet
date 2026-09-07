@@ -23,7 +23,10 @@ dense scatter and scalar field are rasterized; the other artwork remains vector.
 The development branch includes an opt-in [figure-planning research preview](https://inklet.readthedocs.io/en/latest/research-preview/)
 with camera selection, measured labels and [physical revision limits](https://inklet.readthedocs.io/en/latest/research-revision/).
 A [six-panel biology example](https://inklet.readthedocs.io/en/latest/biology-panels/)
-uses 4,500 synthetic cells across coordinated plots. Stable 3.0 remains available on PyPI.
+uses 4,500 synthetic cells across coordinated plots. A
+[real microscopy example](https://inklet.readthedocs.io/en/latest/real-biology/)
+connects calibrated sections, GPU-rendered organelles and measured volumes from
+the same COSEM data. Stable 3.0 remains available on PyPI.
 
 ## Install
 

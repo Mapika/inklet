@@ -1,5 +1,16 @@
 [
   {
+    "id": "real-biology",
+    "title": "Real microscopy and organelles",
+    "category": "3D",
+    "description": "Calibrated HeLa sections, annotated organelle surfaces and measurements from COSEM data.",
+    "requires": "Blender + volume extra",
+    "image": "gallery/real-biology.png",
+    "version": "Research preview",
+    "page": "real-biology/",
+    "featured": true
+  },
+  {
     "id": "biology-panels",
     "title": "Coordinated biology figures",
     "category": "Plots",

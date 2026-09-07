@@ -36,7 +36,7 @@ __all__ = ["build_script", "SCRIPT_VERSION", "METADATA_MARKER", "IMPORTERS"]
 
 #: Bump when a change in here would draw the same mesh differently. It is part
 #: of the cache key, so an entry made by an older script is never served.
-SCRIPT_VERSION = 5
+SCRIPT_VERSION = 6
 
 #: The bake script appends its own report to the SVG behind this marker, so one
 #: cached file carries both the drawing and what produced it.
@@ -482,8 +482,12 @@ def main():
             "camera frame, or every line type may be filtered out"
         )
 
-    # The SVG exporter reads evaluated data. Baking can leave that cache with
-    # an earlier, incomplete line layer; mark the data dirty before updating.
+    # The SVG exporter reads evaluated data. Merely tagging the baked datablock
+    # dirty can still export an earlier, incomplete line layer. Detach the baked
+    # modifiers and copy the final strokes into a fresh datablock so evaluation
+    # cannot reuse the transient data from the bake.
+    baked.grease_pencil_modifiers.clear()
+    baked.data = baked.data.copy()
     baked.data.update_tag()
     baked.update_tag(refresh={"DATA"})
     bpy.context.view_layer.update()

@@ -1,0 +1,5 @@
+# Optional source-data reader for this specific archived N5 example.
+# Install Inklet's volume and render extras separately.
+zarr==2.18.7
+numcodecs==0.15.1
+fsspec==2026.7.0
