@@ -22,6 +22,17 @@
     "featured": false
   },
   {
+    "id": "diagram-review",
+    "title": "Measured architecture and connections",
+    "category": "Diagrams",
+    "description": "Wrapped modules, stable ports and connector labels that reserve space against nodes, lines and other labels.",
+    "requires": "Core + render",
+    "image": "gallery/diagram-review.png",
+    "version": "Research preview",
+    "page": "diagram-engine/",
+    "featured": false
+  },
+  {
     "id": "stress20",
     "title": "Twenty panels, one page",
     "category": "Layout",

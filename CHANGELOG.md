@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.0.dev11 — development preview (unreleased)
+
+- Reserve connector-label plates during placement and reconsider labels against
+  later shafts and relocated loops. Try additional local clearance when closely
+  spaced channels leave no room directly beside a line.
+- Add `module(..., max_width=...)` for measured text wrapping. Include label
+  offsets in module dimensions; fail clearly when content cannot fit its limits.
+- Prune contained routing obstacles with a spatial sweep, including diagrams
+  above the previous 200-obstacle cutoff. Preserve deterministic duplicate ties.
+- Add an architecture review, before/after label specimens and reproducible
+  dense-graph benchmarks, with external captions and CI checks.
+
 ## 3.1.0.dev10 — development preview (unreleased)
 
 - Render dense raster scatter directly from shared marker prototypes, preserving

@@ -601,43 +601,32 @@ def _curved_subpath(curves: tuple, start_inset: float, end_inset: float,
 
 def route_all(links: Iterable[Link], placements: Mapping[str, Placement],
               obstacles: Sequence[Rect | Obstacle] | None = None) -> Diagram:
-    """Route every link into one overlay group, in the order given.
+    """Route links in declaration order, reserving each shaft and label.
 
-    Each shaft joins the ink the next link is routed against, so a detour
-    steps around the connectors already on the page instead of being drawn
-    along them. Order therefore matters -- the first link declared gets the
-    inside lane -- which is the only sense in which routing one link is not
-    independent of the rest, and it is the sense a reader wants: the figure is
-    drawn in the order it was written.
+    A second pass checks automatic loops and labels against later connectors.
+    Labels avoid node artwork, other label plates and every other shaft.
+    Clear initial positions are retained. Placement uses bounded candidates;
+    dense diagrams may still need author-supplied spacing or waypoints.
     """
     if obstacles is None:
         obstacles = _obstacles(placements)
     marked = _as_obstacles(obstacles)
     drawn: list[tuple[Vec2, Vec2]] = []
     out: list[Diagram] = []
+    label_obstacles: list[Obstacle] = []
     decided: list[tuple[Link, _Plan, list[str], slice]] = []
     for spec in links:
         plan, flags = _route_points(spec, placements, marked, drawn)
-        routed = _assemble(spec, plan, flags, marked, drawn)
+        routed = _assemble(spec, plan, flags, marked + tuple(label_obstacles), drawn)
+        plate = _label_rect(routed)
+        if plate is not None:
+            label_obstacles.append(Obstacle('', plate))
         start = len(drawn)
         drawn.extend(_shaft_segments(routed))
         decided.append((spec, plan, flags, slice(start, len(drawn))))
         out.append(routed)
 
-    # A loop picks its side against the ink it can see, and in declaration
-    # order that is whatever was written before it -- which on a state machine
-    # is usually one arrow in and nothing else, so the arc goes east and the
-    # transition drawn three lines later goes straight through it. Decide it
-    # again now, against every shaft. Same reasoning as the label pass below,
-    # and the same price: a re-decided loop costs one more route, and a figure
-    # where the first answer was already right is untouched.
-    #
-    # A label is ink too, and a plate is opaque, so the side an arc picks has
-    # to see the plates as well as the shafts -- otherwise it dodges a shaft
-    # only to have someone else's label land on it, which is what happened to
-    # `examples/state_machine.py`'s `retry`. The plates are the ones the first
-    # routing pass placed: a reservation list, not a prediction, which is why
-    # this is one extra pass rather than a fixed point between two placers.
+    # Reconsider automatic loop sides against all shafts and label plates.
     plates = [_label_rect(node) for node in out]
     for index, (spec, plan, flags, own) in enumerate(decided):
         if not _is_loop(spec) or spec.loop not in (None, "auto"):
@@ -650,6 +639,7 @@ def route_all(links: Iterable[Link], placements: Mapping[str, Placement],
         if again.spine == plan.spine:
             continue
         out[index] = _assemble(spec, again, again_flags, marked, others)
+        plates[index] = _label_rect(out[index])
         decided[index] = (spec, again, again_flags, own)
         fresh = list(_shaft_segments(out[index]))
         if len(fresh) == own.stop - own.start:
@@ -658,19 +648,21 @@ def route_all(links: Iterable[Link], placements: Mapping[str, Placement],
             # rather than shifting every slice after it.
             drawn[own] = fresh
 
-    # A label is placed knowing only the links declared before it, because
-    # that is all there is to know at the time. When one routed later ends up
-    # drawn across it, place it again -- against every shaft this time. Only
-    # then: a figure with no such collision comes out exactly as it did
-    # before, and a re-placed label costs one label placement, not a reroute.
+    # Later routes and relocated loops may obstruct an earlier label. Reserve
+    # current positions of every other plate and update each reservation when
+    # its label moves, so later labels see the revised positions.
     for index, (spec, plan, flags, own) in enumerate(decided):
         plate = None if spec.label is None else _label_rect(out[index])
         if plate is None:
             continue
         others = drawn[:own.start] + drawn[own.stop:]
-        if not any(_run_inside(plate, a, b) > 0.0 for a, b in others):
+        reserved = tuple(Obstacle('', rect) for other, rect in enumerate(plates)
+                         if other != index and rect is not None)
+        if (not any(_run_inside(plate, a, b) > 0.0 for a, b in others)
+                and _blocked_area(plate, marked + reserved) <= 0.0):
             continue
-        out[index] = _assemble(spec, plan, flags, marked, others)
+        out[index] = _assemble(spec, plan, flags, marked + reserved, others)
+        plates[index] = _label_rect(out[index])
     return Diagram(children=tuple(out), kind="links")
 
 
@@ -905,11 +897,6 @@ _CUT_TOL = 1e-7
 #: an elbow is a better outcome than a build that appears to hang.
 _MAX_LATTICE_NODES = 60_000
 
-#: Obstacle count past which the contained-box prune (quadratic) is skipped.
-#: A figure that dense overruns the node cap anyway, so the prune would only
-#: be paying for a fallback it cannot prevent.
-_PRUNE_LIMIT = 200
-
 #: Sides are tried in this order, and the search settles ties in favour of
 #: whichever it saw first, so this is the house style for a route that has a
 #: genuine choice: leave upwards, else to the left. That is where a reader
@@ -1069,18 +1056,34 @@ def _blocking_boxes(obstacles: Sequence[Obstacle], own: frozenset[str],
 
 
 def _drop_contained(boxes: list[Rect]) -> list[Rect]:
-    """Drop boxes swallowed whole by another box.
+    """Remove contained obstacles, preserving input order and duplicate ties.
 
-    A label inside its own box is the overwhelming case, and it contributes
-    four lattice lines that buy nothing -- the box already blocks everything
-    the text does. Halving the coordinates on an axis quarters the lattice,
-    which on a real figure is the difference between a search and a wait.
+    Sweep on the axis with less average overlap. Only intervals covering the
+    current leading edge can contain a box; exact containment still checks
+    both axes. Pruning remains active above 200 obstacles, where nested text
+    boxes otherwise add enough redundant coordinates to exhaust the router.
     """
-    if len(boxes) > _PRUNE_LIMIT:
+    if len(boxes) < 2:
         return boxes
-    return [box for i, box in enumerate(boxes)
-            if not any(_covers(other, box) and (_area(other) > _area(box) or j < i)
-                       for j, other in enumerate(boxes) if j != i)]
+    x_span = max(b.x1 for b in boxes)-min(b.x0 for b in boxes)
+    y_span = max(b.y1 for b in boxes)-min(b.y0 for b in boxes)
+    vertical = y_span/max(sum(b.height for b in boxes), EPS) > x_span/max(sum(b.width for b in boxes), EPS)
+    intervals = [(b.y0,b.y1) if vertical else (b.x0,b.x1) for b in boxes]
+    order = sorted(range(len(boxes)), key=lambda j: (intervals[j][0], j))
+    areas = [_area(b) for b in boxes]
+    active: list[int] = []
+    removed: set[int] = set()
+    cursor = 0
+    for i in order:
+        low = intervals[i][0]
+        while cursor < len(order) and intervals[order[cursor]][0] <= low+_INSIDE_TOL:
+            active.append(order[cursor])
+            cursor += 1
+        active = [j for j in active if intervals[j][1] >= low-_INSIDE_TOL]
+        if any(j != i and (areas[j] > areas[i] or j < i) and _covers(boxes[j], boxes[i])
+               for j in active):
+            removed.add(i)
+    return [box for i, box in enumerate(boxes) if i not in removed]
 
 
 def _detour_points(src: _End, dst: _End, standoff: float, boxes: Sequence[Rect],
@@ -2264,6 +2267,23 @@ def _place_label(label: Diagram, points: list[Vec2], side: str, offset: float,
                        + _crossed_length(spot, own))
             if blocked <= 0.0:
                 best = (blocked, centre)
+                break
+    if best[0] > 0.0:
+        # Parallel channels can leave no room immediately beside a shaft.
+        # Try two additional label-sized clearances, still near this route.
+        for step in (1, 2):
+            for at, normal in _label_candidates(points, box, side, offset, total):
+                extent = _half_extent(box, normal)
+                centre = at + normal * (offset + extent + step*(2*extent+1.0))
+                spot = Rect.from_size(box.width, box.height, centre)
+                blocked = (_blocked_area(spot, obstacles)
+                           + _crossed_length(spot, drawn)
+                           + _crossed_length(spot, own))
+                if blocked < best[0]:
+                    best = (blocked, centre)
+                if blocked <= 0.0:
+                    break
+            if best[0] <= 0.0:
                 break
     delta = best[1] - box.center
     return Diagram(children=(label.translated(delta.x, delta.y),), kind=LABEL_KIND)

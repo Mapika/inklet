@@ -12,6 +12,7 @@ class ModuleSpec(BuildSpec):
 
     Minimum dimensions, padding and label offsets are physical millimetres.
     A fixed height can be requested with max_height equal to min_height.
+    max_width wraps string labels; oversized unbreakable content raises.
     """
     label: object
     min_width: float = 20
@@ -22,6 +23,7 @@ class ModuleSpec(BuildSpec):
     text_style: dict = field(default_factory=dict)
     box_style: dict = field(default_factory=dict)
     label_offset: tuple = (0,0)
+    max_width: float | None = None
 
     def __post_init__(self):
         self._validate()
@@ -43,6 +45,9 @@ class ModuleSpec(BuildSpec):
         if self.max_height is not None:
             self.max_height = length(self.max_height, 'maximum height')
             if self.max_height < self.min_height: raise ValueError('maximum height is below minimum height')
+        if self.max_width is not None:
+            self.max_width = length(self.max_width, 'maximum width')
+            if self.max_width < self.min_width: raise ValueError('maximum width is below minimum width')
         for name, point in self.ports.items():
             if not isinstance(name,str) or not name: raise ValueError('ports need non-empty names')
             if len(point) != 2 or any(not 0 <= float(v) <= 1 for v in point):
@@ -55,14 +60,26 @@ class ModuleSpec(BuildSpec):
         from .. import box, text
         self._validate()
         label = materialize(self.label, context)
-        body = label if isinstance(label, Diagram) else text(label, markup=False, **self.text_style)
-        w = max(self.min_width, body.width+2*self.pad)
-        h = max(self.min_height, body.height+2*self.pad)
+        dx,dy = self.label_offset
+        horizontal = 2*(self.pad+abs(dx))
+        vertical = 2*(self.pad+abs(dy))
+        options = {'markup':False, **self.text_style}
+        if self.max_width is not None:
+            available = self.max_width-horizontal
+            if available <= 0:
+                raise LayoutError('module maximum width leaves no room for its label and padding')
+            from ..core import mm
+            requested = options.get('width')
+            options['width'] = available if requested is None else min(mm(requested), available)
+        body = label if isinstance(label, Diagram) else text(label, **options)
+        w = max(self.min_width, body.width+horizontal)
+        h = max(self.min_height, body.height+vertical)
+        if self.max_width is not None and w > self.max_width+1e-7:
+            raise LayoutError('module label exceeds its maximum width; shorten unbreakable text or increase max_width')
         if self.max_height is not None and h > self.max_height:
             raise LayoutError('module label exceeds its maximum height; reduce lines or increase max_height')
         frame = box(width=w, height=h, pad=0, **self.box_style)
         frame = frame.translated(-frame.bbox.x0, -frame.bbox.y0)
-        dx,dy = self.label_offset
         body = body.translated(w/2+dx-body.bbox.center.x, h/2+dy-body.bbox.center.y)
         node = Diagram(children=(frame,body), kind='module',
                        envelope_override=Envelope.from_rect(Rect(0,0,w,h)))
@@ -71,5 +88,10 @@ class ModuleSpec(BuildSpec):
 
 
 def module(label, **options):
-    """Create a live architecture module; width follows measured label edits."""
+    """Create a measured module with fractional ports.
+
+    Width follows label edits. Set max_width to wrap text within a physical
+    limit, including padding and label_offset. Unbreakable text or Diagram
+    labels that exceed the limit raise LayoutError; labels are never scaled.
+    """
     return ModuleSpec(label, **freeze(options))

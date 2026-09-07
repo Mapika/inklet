@@ -1,0 +1,54 @@
+{
+  "schema": "inklet.diagram-benchmark/1",
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "source_sha256": "e57600c985943190e5f06496bee183ec37a29290a551750eac54743ab227caeb",
+  "runs": [
+    {
+      "version": "3.1.0.dev11",
+      "layout_seconds": 0.007419027999276295,
+      "routing_seconds": 0.07661079202080145,
+      "svg_seconds": 0.004043846012791619,
+      "pruning_seconds": 0.0012419710110407323,
+      "remaining_obstacles": 225,
+      "nodes": 36,
+      "edges": 54,
+      "route_flags": [],
+      "svg_bytes": 111659
+    },
+    {
+      "version": "3.1.0.dev11",
+      "layout_seconds": 0.007516819023294374,
+      "routing_seconds": 0.0754575320170261,
+      "svg_seconds": 0.005829658010043204,
+      "pruning_seconds": 0.00118299201130867,
+      "remaining_obstacles": 225,
+      "nodes": 36,
+      "edges": 54,
+      "route_flags": [],
+      "svg_bytes": 111659
+    },
+    {
+      "version": "3.1.0.dev11",
+      "layout_seconds": 0.0073389660101383924,
+      "routing_seconds": 0.07468353200238198,
+      "svg_seconds": 0.004518288013059646,
+      "pruning_seconds": 0.0012034079991281033,
+      "remaining_obstacles": 225,
+      "nodes": 36,
+      "edges": 54,
+      "route_flags": [],
+      "svg_bytes": 111659
+    }
+  ],
+  "median": {
+    "layout_seconds": 0.007419027999276295,
+    "routing_seconds": 0.0754575320170261,
+    "svg_seconds": 0.004518288013059646,
+    "pruning_seconds": 0.0012034079991281033,
+    "remaining_obstacles": 225,
+    "nodes": 36,
+    "edges": 54,
+    "svg_bytes": 111659
+  }
+}

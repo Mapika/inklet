@@ -75,6 +75,7 @@ nav:
       - Figure gallery: examples.md
       - Everyday plots from CSV: general-plots.md
       - Rendering and layout review: rendering-engine.md
+      - Diagram engine review: diagram-engine.md
       - More example recipes: example-library.md
       - Coordinated biology figures: biology-panels.md
       - Real microscopy and organelles: real-biology.md

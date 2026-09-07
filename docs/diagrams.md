@@ -4,6 +4,9 @@ Use `composition()` when positions should depend on measured component sizes.
 Use `document()` or `subfigure()` for grids. The direct combinators remain
 useful for simple rows, stacks and fixed diagrams.
 
+The development [diagram engine review](diagram-engine.md) includes an
+architecture example, connector-label comparisons and routing measurements.
+
 ## A measured architecture
 
 ```python

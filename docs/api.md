@@ -217,7 +217,7 @@ A scalar layout expression evaluated after its dependencies are measured.
 
 Create a measured composition; see Composition for coordinate semantics.
 
-#### `class ModuleSpec(label: object, min_width: float = 20, min_height: float = 12, pad: float = 3, max_height: float | None = None, ports: dict = <factory>, text_style: dict = <factory>, box_style: dict = <factory>, label_offset: tuple = (0, 0)) -> None`
+#### `class ModuleSpec(label: object, min_width: float = 20, min_height: float = 12, pad: float = 3, max_height: float | None = None, ports: dict = <factory>, text_style: dict = <factory>, box_style: dict = <factory>, label_offset: tuple = (0, 0), max_width: float | None = None) -> None`
 
 A label-sized module. Port coordinates are fractions of its box.
 
@@ -227,7 +227,7 @@ A label-sized module. Port coordinates are fractions of its box.
 
 #### `module(label, **options)`
 
-Create a live architecture module; width follows measured label edits.
+Create a measured module with fractional ports.
 
 #### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
 
@@ -923,7 +923,7 @@ Turn a spec into geometry: shaft, heads and label, in world coordinates.
 
 #### `route_all(links: 'Iterable[Link]', placements: 'Mapping[str, Placement]', obstacles: 'Sequence[Rect | Obstacle] | None' = None) -> 'Diagram'`
 
-Route every link into one overlay group, in the order given.
+Route links in declaration order, reserving each shaft and label.
 
 #### `figure(width: 'float | str' = 89.0, **kwargs) -> 'Figure'`
 

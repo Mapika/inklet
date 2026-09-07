@@ -1,0 +1,60 @@
+{
+  "schema": "inklet.diagram-benchmark/1",
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "source_sha256": "48a72fb35e88ea5bb6ce282bd2eb7aeeb915b998e50ff1a9bc96ce8bfa3134fb",
+  "runs": [
+    {
+      "version": "3.1.0.dev10",
+      "layout_seconds": 0.0075665620097424835,
+      "routing_seconds": 0.10212538100313395,
+      "svg_seconds": 0.004638735990738496,
+      "pruning_seconds": 1.2289965525269508e-06,
+      "remaining_obstacles": 450,
+      "nodes": 36,
+      "edges": 54,
+      "route_flags": [
+        "no-clear-route"
+      ],
+      "svg_bytes": 111711
+    },
+    {
+      "version": "3.1.0.dev10",
+      "layout_seconds": 0.007710450008744374,
+      "routing_seconds": 0.10397938298410736,
+      "svg_seconds": 0.004410369991092011,
+      "pruning_seconds": 1.1440133675932884e-06,
+      "remaining_obstacles": 450,
+      "nodes": 36,
+      "edges": 54,
+      "route_flags": [
+        "no-clear-route"
+      ],
+      "svg_bytes": 111711
+    },
+    {
+      "version": "3.1.0.dev10",
+      "layout_seconds": 0.007772340992232785,
+      "routing_seconds": 0.10243568001897074,
+      "svg_seconds": 0.005315304995747283,
+      "pruning_seconds": 1.6199774108827114e-06,
+      "remaining_obstacles": 450,
+      "nodes": 36,
+      "edges": 54,
+      "route_flags": [
+        "no-clear-route"
+      ],
+      "svg_bytes": 111711
+    }
+  ],
+  "median": {
+    "layout_seconds": 0.007710450008744374,
+    "routing_seconds": 0.10243568001897074,
+    "svg_seconds": 0.004638735990738496,
+    "pruning_seconds": 1.2289965525269508e-06,
+    "remaining_obstacles": 450,
+    "nodes": 36,
+    "edges": 54,
+    "svg_bytes": 111711
+  }
+}
