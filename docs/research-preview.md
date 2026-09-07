@@ -8,7 +8,7 @@ It is not part of the stable 3.0 PyPI package. Signatures and report formats may
 ![Original and revised laboratory figures planned from four camera candidates](../gallery/research-figure-planner.png)
 
 [Full-size comparison](../gallery/research-figure-planner.png) ·
-[Executable example](https://github.com/Mapika/inklet/blob/master/examples/research_figure_planner.py) ·
+[Executable example](../examples/research_figure_planner.py) ·
 [Recorded results](assets/research-preview/comparison.json)
 
 ## What this preview implements
