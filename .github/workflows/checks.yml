@@ -92,6 +92,7 @@ jobs:
         run: uv run --no-project python tools/check_render_wheel.py out/dist/inklet-*.whl
 
   blender:
+    name: Blender ${{ matrix.version }} CPU
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:

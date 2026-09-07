@@ -283,6 +283,15 @@ def _fc_query(pattern: str) -> tuple[str, int] | None:
 
 def _scan_match(family: str, weight: int, italic: bool) -> tuple[str, int] | None:
     """Filename-matched fallback for machines without fontconfig."""
+    families = [name.strip().strip("'\"") for name in family.split(',') if name.strip()]
+    if len(families) > 1:
+        for name in families:
+            found = _scan_match(name, weight, italic)
+            if found is not None:
+                return found
+        return None
+    if families:
+        family = families[0]
     generic = _GENERIC_FAMILIES.get(family.strip().lower())
     wanted = _GENERIC_FALLBACKS[generic] if generic else (_normalize(family),)
 

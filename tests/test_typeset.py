@@ -92,6 +92,34 @@ def test_a_family_nothing_can_satisfy_raises_something_actionable(monkeypatch):
         find_font.cache_clear()
 
 
+@pytest.mark.parametrize('family,expected', [
+    ('Missing, Arial, sans-serif', 'Arial.ttf'),
+    ('"DejaVu Sans", Arial, sans-serif', 'DejaVuSans.ttf'),
+    ('Arial, "DejaVu Sans", sans-serif', 'Arial.ttf'),
+    ('Missing, sans-serif', 'DejaVuSans.ttf'),
+    ('"Arial"', 'Arial.ttf'),
+    ('Missing, Also Missing', None),
+])
+def test_font_stack_scan_uses_first_installed_family(monkeypatch, family, expected):
+    from pathlib import Path
+    monkeypatch.setattr('inklet.typeset.fonts._installed_fonts',
+                        lambda: (Path('DejaVuSans.ttf'), Path('Arial.ttf')))
+    found = _scan_match(family, 400, False)
+    assert (Path(found[0]).name if found else None) == expected
+
+
+def test_default_theme_text_works_without_fontconfig(monkeypatch):
+    import inklet as i
+    monkeypatch.setattr('inklet.typeset.fonts._fc_match', lambda *args: None)
+    find_font.cache_clear()
+    try:
+        node = i.text('A default theme label', markup=False)
+        assert node.width > 0
+        assert i.to_pdf(node).startswith(b'%PDF')
+    finally:
+        find_font.cache_clear()
+
+
 def test_face_scales_metrics_to_the_type_size():
     face = find_font("sans")
     ascent, descent, _ = face.metrics(pt(7))

@@ -4,6 +4,8 @@
 
 The v3 feature set is frozen for release-candidate review.
 
+- Resolve font-family fallback lists in order when fontconfig is unavailable,
+  fixing default-theme text on Windows without requiring extra fonts.
 - Add macOS and Windows installed-wheel checks and pinned Blender 4.2/4.5
   CPU integration jobs. Document the 2.6 upgrade and tested support boundaries.
 - Report an actionable error when legacy vector line-art baking is requested
