@@ -1,7 +1,7 @@
 """Read the hash-locked, calibrated two-channel Allen Institute example."""
 from pathlib import Path
 
-from inklet.experimental.volume import Volume
+from inklet.experimental.tiff import read_tiff
 from .data import fetch
 
 LOCK=Path(__file__).with_name('cells3d.lock.json')
@@ -9,17 +9,13 @@ LOCK=Path(__file__).with_name('cells3d.lock.json')
 
 def load(root):
     """Verify before reading; keep network access in the example, outside Inklet."""
-    import tifffile
     record=fetch(root,lock_path=LOCK)
-    with tifffile.TiffFile(Path(root)/record['files'][0]['path']) as source:
-        if source.series[0].axes!=record['axes']:
-            raise ValueError('Unexpected fluorescence TIFF axes')
-        array=source.asarray()
-    if list(array.shape)!=record['shape'] or str(array.dtype)!=record['dtype']:
+    image=read_tiff(Path(root)/record['files'][0]['path'],
+        spacing_zyx=record['spacing_zyx'],unit=record['unit'],origin_xyz=record['origin_xyz'],
+        channel_names=record['channels'],source_id='Allen Institute / cells3d')
+    report=image.report()
+    if report['native_axes']!=record['axes']:
+        raise ValueError('Unexpected fluorescence TIFF axes')
+    if report['source_shape']!=record['shape'] or any(str(v.data.dtype)!=record['dtype'] for v in image.volumes):
         raise ValueError('Unexpected fluorescence source shape or dtype')
-    if record['axes']!='ZCYX' or len(record['channels'])!=array.shape[1]:
-        raise ValueError('Unexpected fluorescence source channel axes')
-    volumes={name:Volume(array[:,index],tuple(record['spacing_zyx']),record['unit'],
-        tuple(record['origin_xyz']),f'Allen Institute / cells3d / channel {index} / {name}')
-        for index,name in enumerate(record['channels'])}
-    return volumes,record
+    return image.channels,dict(record,tiff_import=report)

@@ -32,6 +32,8 @@ share angled sampling planes across 3D views, microscopy and label measurements.
 add thickness, coverage maps and a shared physical ROI for source measurements.
 [Fluorescence channels and vector contours](https://inklet.readthedocs.io/en/latest/fluorescence-biology/)
 combine real multichannel signals, calibrated zooms and recorded segmentation processing.
+[Per-label intensity measurements](https://inklet.readthedocs.io/en/latest/label-intensities/)
+add calibrated TIFF import, native and section statistics, and reusable CSV/JSON tables.
 Stable 3.0 remains available on PyPI.
 
 ## Install

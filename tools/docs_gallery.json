@@ -1,5 +1,16 @@
 [
   {
+    "id": "label-intensities",
+    "title": "From microscopy labels to intensity plots",
+    "category": "Plots",
+    "description": "Real TIFF channels, persistent label IDs, native and section measurements, region selection and reusable CSV tables.",
+    "requires": "volume + render extras",
+    "image": "gallery/label-intensities.png",
+    "version": "Research preview",
+    "page": "label-intensities/",
+    "featured": true
+  },
+  {
     "id": "fluorescence-biology",
     "title": "Fluorescence channels and contours",
     "category": "Plots",

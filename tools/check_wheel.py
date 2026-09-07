@@ -30,6 +30,8 @@ assert region.outline(plane, width=40).width >= 40
 assert slab.report()['samples'] == 5
 from inklet.experimental.channels import Channel, Composite
 from inklet.experimental.contours import LabelContour
+from inklet.experimental.measurements import LabelMeasurements, measure_labels
+from inklet.experimental.tiff import TiffImage, read_tiff
 assert find_spec("numpy") is None
 try:
     Volume([[[1]]], (1,1,1), 'um', source_id='wheel')

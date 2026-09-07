@@ -65,6 +65,7 @@ Check the installed package with
 | `python -m pip install -e '.[render]'` | Browser-free PNG, masks and raster layers (v3) |
 | `python -m pip install -e '.[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
 | `python -m pip install -e '.[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
+| `python -m pip install -e '.[volume]'` | Experimental calibrated microscopy, TIFF import and label measurements |
 | `python -m pip install -e '.[dev]'` | Pytest for development |
 | `python -m pip install -e '.[docs]'` | MkDocs for the searchable documentation site |
 

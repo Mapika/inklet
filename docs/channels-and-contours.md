@@ -49,6 +49,10 @@ doc.add('legend', composite.legend())
 figure = doc.compile()
 ```
 
+Use [per-label intensity measurements](label-measurements.md) to quantify the
+unwindowed channel values underlying these images. [TIFF import](microscopy-tiff.md)
+provides named, calibrated scalar volumes for local acquisitions.
+
 ## Channel display contracts
 
 `Channel(name, sampled, color, window, weight=1)` accepts an intensity

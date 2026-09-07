@@ -69,6 +69,8 @@ nav:
       - Oblique microscopy sections: oblique-sections.md
       - Slab projections and regions: slabs-and-regions.md
       - Channels and label contours: channels-and-contours.md
+      - Per-label intensity measurements: label-measurements.md
+      - Microscopy TIFF import: microscopy-tiff.md
   - Examples:
       - Figure gallery: examples.md
       - More example recipes: example-library.md
@@ -77,6 +79,7 @@ nav:
       - Shared oblique section planes: oblique-biology.md
       - Slabs and linked biology regions: slab-biology.md
       - Fluorescence channels and contours: fluorescence-biology.md
+      - Microscopy intensity plots: label-intensities.md
       - Rebuild the showcase: showcase.md
       - Figure recipes:
           - Interference: recipes/interference.md

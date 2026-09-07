@@ -43,7 +43,9 @@ scipy==1.18.1
     #   inklet (pyproject.toml)
     #   scikit-image
 tifffile==2026.8.23
-    # via scikit-image
+    # via
+    #   inklet (pyproject.toml)
+    #   scikit-image
 trimesh==5.1.0
     # via inklet (pyproject.toml)
 uharfbuzz==0.56.1

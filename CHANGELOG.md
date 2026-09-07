@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.0.dev8 — research preview (unreleased)
+
+- Add per-label native and sampled intensity tables with explicit coverage,
+  physical region selection, exact label identities and CSV/JSON exports.
+- Add local scalar TIFF, ImageJ and single-file OME-TIFF import with explicit
+  calibration, channel identities, time selection and hashed source provenance.
+- Add a six-panel real microscopy example linking contours to intensity means,
+  within-component spread, section comparisons and native region fractions.
+
 ## 3.1.0.dev7 — research preview (unreleased)
 
 - Add registered microscopy channel composites with explicit display windows,

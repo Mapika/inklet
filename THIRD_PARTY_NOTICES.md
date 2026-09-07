@@ -125,3 +125,8 @@ components, sampled label contours and quantitative summaries. The generated
 components are illustrative, without reference annotations or an accuracy claim.
 The original data remain CC0; no raw TIFF is bundled in the repository or wheel.
 Accessed 7 September 2026. No endorsement by the Allen Institute is implied.
+
+`gallery/label-intensities.png` reuses the same CC0 source. This derived figure
+and recipe are MIT, Mark Marosi. They add native, sampled-section and region
+intensity tables, population spread and CSV exports using the generated
+components above; no additional segmentation validation is implied.
