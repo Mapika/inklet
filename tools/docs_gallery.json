@@ -1,5 +1,16 @@
 [
   {
+    "id": "slab-biology",
+    "title": "Slabs and linked biology regions",
+    "category": "3D",
+    "description": "Mean, minimum and maximum microscopy projections, coverage maps and source measurements linked to a physical ROI.",
+    "requires": "Blender + volume extra",
+    "image": "gallery/slab-biology.png",
+    "version": "Research preview",
+    "page": "slab-biology/",
+    "featured": true
+  },
+  {
     "id": "oblique-biology",
     "title": "Shared oblique section planes",
     "category": "3D",

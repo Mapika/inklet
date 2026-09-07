@@ -28,6 +28,8 @@ uses 4,500 synthetic cells across coordinated plots. A
 connects calibrated sections, GPU-rendered organelles and measured volumes from
 the same COSEM data. [Oblique sections](https://inklet.readthedocs.io/en/latest/oblique-biology/)
 share angled sampling planes across 3D views, microscopy and label measurements.
+[Slab projections and linked regions](https://inklet.readthedocs.io/en/latest/slab-biology/)
+add thickness, coverage maps and a shared physical ROI for source measurements.
 Stable 3.0 remains available on PyPI.
 
 ## Install

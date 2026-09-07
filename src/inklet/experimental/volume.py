@@ -99,6 +99,11 @@ class Volume:
         from .sections import reslice
         return reslice(self, plane, kind=kind)
 
+    def project_slab(self, slab, *, reduction, region=None):
+        """Project physical intensity samples, optionally restricted to a shared region."""
+        from .slabs import project_slab
+        return project_slab(self, slab, reduction=reduction, region=region)
+
     def measure(self, label):
         """Voxel-count volume, centroid and boundary status of one integer label.
 

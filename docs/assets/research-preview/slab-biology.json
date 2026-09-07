@@ -1,0 +1,2123 @@
+{
+  "schema": "inklet.slab-biology/0.1",
+  "inklet_version": "3.1.0.dev6",
+  "dataset": "jrc_hela-3",
+  "source_level": "s4",
+  "source_grid": {
+    "schema": "inklet.volume/0.1",
+    "source_id": "jrc_hela-3/em/fibsem-uint16/s4",
+    "shape_zyx": [
+      600,
+      62,
+      550
+    ],
+    "spacing_zyx": [
+      0.05184000000000002,
+      0.064,
+      0.064
+    ],
+    "unit": "um",
+    "metres_per_unit": 1e-06,
+    "origin_xyz": [
+      5.15,
+      0.03,
+      2.097900000000001
+    ],
+    "origin_convention": "centre of voxel [0,0,0]",
+    "bounds_xyz": [
+      [
+        5.118,
+        -0.0020000000000000018,
+        2.071980000000001
+      ],
+      [
+        40.318,
+        3.9659999999999997,
+        33.17598000000001
+      ]
+    ]
+  },
+  "source_lock": "examples/biology/organelle.lock.json",
+  "license": "CC-BY-4.0",
+  "publication": "https://doi.org/10.1038/s41586-021-03977-3",
+  "evidence": {
+    "slab": {
+      "schema": "inklet.slab/0.1",
+      "plane": {
+        "schema": "inklet.section-plane/0.1",
+        "centre_xyz": [
+          22.190109912484807,
+          1.8995990362918327,
+          15.623785534291548
+        ],
+        "right_xyz": [
+          0.9396926207859084,
+          0.0,
+          0.3420201433256687
+        ],
+        "up_xyz": [
+          -0.3411869994463997,
+          0.0697564737441253,
+          0.9374035767904598
+        ],
+        "normal_xyz": [
+          -0.023858119147858983,
+          -0.9975640502598242,
+          0.06554964362940052
+        ],
+        "shape_yx": [
+          351,
+          401
+        ],
+        "spacing_yx": [
+          0.08,
+          0.08
+        ],
+        "unit": "um",
+        "extent": [
+          32.08,
+          28.080000000000002
+        ],
+        "corners_xyz": [
+          [
+            2.327174802851385,
+            2.878979927659352,
+            23.29892865348588
+          ],
+          [
+            32.47251407766333,
+            2.878979927659352,
+            34.27093485137333
+          ],
+          [
+            42.05304502211823,
+            0.9202181449243134,
+            7.948642415097218
+          ],
+          [
+            11.907705747306288,
+            0.9202181449243134,
+            -3.023363782790236
+          ]
+        ],
+        "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+      },
+      "thickness": 3.2,
+      "samples": 41,
+      "step": 0.07804878048780488,
+      "sampling": "equal-width bin midpoints along plane normal",
+      "first_offset": -1.5609756097560976,
+      "last_offset": 1.5609756097560976
+    },
+    "selection": {
+      "schema": "inklet.box-region/0.1",
+      "selection_id": "ROI-1",
+      "lower_xyz": [
+        12.0,
+        0.4,
+        17.0
+      ],
+      "upper_xyz": [
+        24.0,
+        2.8,
+        27.0
+      ],
+      "unit": "um",
+      "membership": "voxel or sample centres; lower inclusive, upper exclusive"
+    },
+    "centre_section": {
+      "schema": "inklet.sampled-section/0.1",
+      "source": {
+        "schema": "inklet.volume/0.1",
+        "source_id": "jrc_hela-3/em/fibsem-uint16/s4",
+        "shape_zyx": [
+          600,
+          62,
+          550
+        ],
+        "spacing_zyx": [
+          0.05184000000000002,
+          0.064,
+          0.064
+        ],
+        "unit": "um",
+        "metres_per_unit": 1e-06,
+        "origin_xyz": [
+          5.15,
+          0.03,
+          2.097900000000001
+        ],
+        "origin_convention": "centre of voxel [0,0,0]",
+        "bounds_xyz": [
+          [
+            5.118,
+            -0.0020000000000000018,
+            2.071980000000001
+          ],
+          [
+            40.318,
+            3.9659999999999997,
+            33.17598000000001
+          ]
+        ]
+      },
+      "plane": {
+        "schema": "inklet.section-plane/0.1",
+        "centre_xyz": [
+          22.190109912484807,
+          1.8995990362918327,
+          15.623785534291548
+        ],
+        "right_xyz": [
+          0.9396926207859084,
+          0.0,
+          0.3420201433256687
+        ],
+        "up_xyz": [
+          -0.3411869994463997,
+          0.0697564737441253,
+          0.9374035767904598
+        ],
+        "normal_xyz": [
+          -0.023858119147858983,
+          -0.9975640502598242,
+          0.06554964362940052
+        ],
+        "shape_yx": [
+          351,
+          401
+        ],
+        "spacing_yx": [
+          0.08,
+          0.08
+        ],
+        "unit": "um",
+        "extent": [
+          32.08,
+          28.080000000000002
+        ],
+        "corners_xyz": [
+          [
+            2.327174802851385,
+            2.878979927659352,
+            23.29892865348588
+          ],
+          [
+            32.47251407766333,
+            2.878979927659352,
+            34.27093485137333
+          ],
+          [
+            42.05304502211823,
+            0.9202181449243134,
+            7.948642415097218
+          ],
+          [
+            11.907705747306288,
+            0.9202181449243134,
+            -3.023363782790236
+          ]
+        ],
+        "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+      },
+      "kind": "intensity",
+      "interpolation": "trilinear",
+      "boundary": "edge hold inside voxel edges; invalid outside source extent",
+      "valid_pixels": 131502,
+      "total_pixels": 140751,
+      "dtype": "float64"
+    },
+    "projections": {
+      "mean": {
+        "schema": "inklet.slab-projection/0.1",
+        "source": {
+          "schema": "inklet.volume/0.1",
+          "source_id": "jrc_hela-3/em/fibsem-uint16/s4",
+          "shape_zyx": [
+            600,
+            62,
+            550
+          ],
+          "spacing_zyx": [
+            0.05184000000000002,
+            0.064,
+            0.064
+          ],
+          "unit": "um",
+          "metres_per_unit": 1e-06,
+          "origin_xyz": [
+            5.15,
+            0.03,
+            2.097900000000001
+          ],
+          "origin_convention": "centre of voxel [0,0,0]",
+          "bounds_xyz": [
+            [
+              5.118,
+              -0.0020000000000000018,
+              2.071980000000001
+            ],
+            [
+              40.318,
+              3.9659999999999997,
+              33.17598000000001
+            ]
+          ]
+        },
+        "slab": {
+          "schema": "inklet.slab/0.1",
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              22.190109912484807,
+              1.8995990362918327,
+              15.623785534291548
+            ],
+            "right_xyz": [
+              0.9396926207859084,
+              0.0,
+              0.3420201433256687
+            ],
+            "up_xyz": [
+              -0.3411869994463997,
+              0.0697564737441253,
+              0.9374035767904598
+            ],
+            "normal_xyz": [
+              -0.023858119147858983,
+              -0.9975640502598242,
+              0.06554964362940052
+            ],
+            "shape_yx": [
+              351,
+              401
+            ],
+            "spacing_yx": [
+              0.08,
+              0.08
+            ],
+            "unit": "um",
+            "extent": [
+              32.08,
+              28.080000000000002
+            ],
+            "corners_xyz": [
+              [
+                2.327174802851385,
+                2.878979927659352,
+                23.29892865348588
+              ],
+              [
+                32.47251407766333,
+                2.878979927659352,
+                34.27093485137333
+              ],
+              [
+                42.05304502211823,
+                0.9202181449243134,
+                7.948642415097218
+              ],
+              [
+                11.907705747306288,
+                0.9202181449243134,
+                -3.023363782790236
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "thickness": 3.2,
+          "samples": 41,
+          "step": 0.07804878048780488,
+          "sampling": "equal-width bin midpoints along plane normal",
+          "first_offset": -1.5609756097560976,
+          "last_offset": 1.5609756097560976
+        },
+        "reduction": "mean",
+        "interpolation": "trilinear intensity",
+        "boundary": "edge hold inside source voxel edges; outside source or region excluded",
+        "normalization": "mean divides by contributing samples; no zero padding",
+        "selection": null,
+        "valid_pixels": 131777,
+        "total_pixels": 140751,
+        "complete_pixels": 61284,
+        "count_histogram": [
+          {
+            "count": 0,
+            "pixels": 8974
+          },
+          {
+            "count": 1,
+            "pixels": 22
+          },
+          {
+            "count": 2,
+            "pixels": 17
+          },
+          {
+            "count": 3,
+            "pixels": 18
+          },
+          {
+            "count": 4,
+            "pixels": 22
+          },
+          {
+            "count": 5,
+            "pixels": 19
+          },
+          {
+            "count": 6,
+            "pixels": 19
+          },
+          {
+            "count": 7,
+            "pixels": 18
+          },
+          {
+            "count": 8,
+            "pixels": 21
+          },
+          {
+            "count": 9,
+            "pixels": 20
+          },
+          {
+            "count": 10,
+            "pixels": 16
+          },
+          {
+            "count": 11,
+            "pixels": 20
+          },
+          {
+            "count": 12,
+            "pixels": 20
+          },
+          {
+            "count": 13,
+            "pixels": 20
+          },
+          {
+            "count": 14,
+            "pixels": 18
+          },
+          {
+            "count": 15,
+            "pixels": 22
+          },
+          {
+            "count": 16,
+            "pixels": 18
+          },
+          {
+            "count": 17,
+            "pixels": 20
+          },
+          {
+            "count": 18,
+            "pixels": 20
+          },
+          {
+            "count": 19,
+            "pixels": 19
+          },
+          {
+            "count": 20,
+            "pixels": 21
+          },
+          {
+            "count": 21,
+            "pixels": 16
+          },
+          {
+            "count": 22,
+            "pixels": 19
+          },
+          {
+            "count": 23,
+            "pixels": 23
+          },
+          {
+            "count": 24,
+            "pixels": 19
+          },
+          {
+            "count": 25,
+            "pixels": 18
+          },
+          {
+            "count": 26,
+            "pixels": 23
+          },
+          {
+            "count": 27,
+            "pixels": 18
+          },
+          {
+            "count": 28,
+            "pixels": 21
+          },
+          {
+            "count": 29,
+            "pixels": 19
+          },
+          {
+            "count": 30,
+            "pixels": 22
+          },
+          {
+            "count": 31,
+            "pixels": 19
+          },
+          {
+            "count": 32,
+            "pixels": 399
+          },
+          {
+            "count": 33,
+            "pixels": 3033
+          },
+          {
+            "count": 34,
+            "pixels": 3960
+          },
+          {
+            "count": 35,
+            "pixels": 8697
+          },
+          {
+            "count": 36,
+            "pixels": 10033
+          },
+          {
+            "count": 37,
+            "pixels": 10698
+          },
+          {
+            "count": 38,
+            "pixels": 10951
+          },
+          {
+            "count": 39,
+            "pixels": 11022
+          },
+          {
+            "count": 40,
+            "pixels": 11093
+          },
+          {
+            "count": 41,
+            "pixels": 61284
+          }
+        ]
+      },
+      "min": {
+        "schema": "inklet.slab-projection/0.1",
+        "source": {
+          "schema": "inklet.volume/0.1",
+          "source_id": "jrc_hela-3/em/fibsem-uint16/s4",
+          "shape_zyx": [
+            600,
+            62,
+            550
+          ],
+          "spacing_zyx": [
+            0.05184000000000002,
+            0.064,
+            0.064
+          ],
+          "unit": "um",
+          "metres_per_unit": 1e-06,
+          "origin_xyz": [
+            5.15,
+            0.03,
+            2.097900000000001
+          ],
+          "origin_convention": "centre of voxel [0,0,0]",
+          "bounds_xyz": [
+            [
+              5.118,
+              -0.0020000000000000018,
+              2.071980000000001
+            ],
+            [
+              40.318,
+              3.9659999999999997,
+              33.17598000000001
+            ]
+          ]
+        },
+        "slab": {
+          "schema": "inklet.slab/0.1",
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              22.190109912484807,
+              1.8995990362918327,
+              15.623785534291548
+            ],
+            "right_xyz": [
+              0.9396926207859084,
+              0.0,
+              0.3420201433256687
+            ],
+            "up_xyz": [
+              -0.3411869994463997,
+              0.0697564737441253,
+              0.9374035767904598
+            ],
+            "normal_xyz": [
+              -0.023858119147858983,
+              -0.9975640502598242,
+              0.06554964362940052
+            ],
+            "shape_yx": [
+              351,
+              401
+            ],
+            "spacing_yx": [
+              0.08,
+              0.08
+            ],
+            "unit": "um",
+            "extent": [
+              32.08,
+              28.080000000000002
+            ],
+            "corners_xyz": [
+              [
+                2.327174802851385,
+                2.878979927659352,
+                23.29892865348588
+              ],
+              [
+                32.47251407766333,
+                2.878979927659352,
+                34.27093485137333
+              ],
+              [
+                42.05304502211823,
+                0.9202181449243134,
+                7.948642415097218
+              ],
+              [
+                11.907705747306288,
+                0.9202181449243134,
+                -3.023363782790236
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "thickness": 3.2,
+          "samples": 41,
+          "step": 0.07804878048780488,
+          "sampling": "equal-width bin midpoints along plane normal",
+          "first_offset": -1.5609756097560976,
+          "last_offset": 1.5609756097560976
+        },
+        "reduction": "min",
+        "interpolation": "trilinear intensity",
+        "boundary": "edge hold inside source voxel edges; outside source or region excluded",
+        "normalization": "mean divides by contributing samples; no zero padding",
+        "selection": null,
+        "valid_pixels": 131777,
+        "total_pixels": 140751,
+        "complete_pixels": 61284,
+        "count_histogram": [
+          {
+            "count": 0,
+            "pixels": 8974
+          },
+          {
+            "count": 1,
+            "pixels": 22
+          },
+          {
+            "count": 2,
+            "pixels": 17
+          },
+          {
+            "count": 3,
+            "pixels": 18
+          },
+          {
+            "count": 4,
+            "pixels": 22
+          },
+          {
+            "count": 5,
+            "pixels": 19
+          },
+          {
+            "count": 6,
+            "pixels": 19
+          },
+          {
+            "count": 7,
+            "pixels": 18
+          },
+          {
+            "count": 8,
+            "pixels": 21
+          },
+          {
+            "count": 9,
+            "pixels": 20
+          },
+          {
+            "count": 10,
+            "pixels": 16
+          },
+          {
+            "count": 11,
+            "pixels": 20
+          },
+          {
+            "count": 12,
+            "pixels": 20
+          },
+          {
+            "count": 13,
+            "pixels": 20
+          },
+          {
+            "count": 14,
+            "pixels": 18
+          },
+          {
+            "count": 15,
+            "pixels": 22
+          },
+          {
+            "count": 16,
+            "pixels": 18
+          },
+          {
+            "count": 17,
+            "pixels": 20
+          },
+          {
+            "count": 18,
+            "pixels": 20
+          },
+          {
+            "count": 19,
+            "pixels": 19
+          },
+          {
+            "count": 20,
+            "pixels": 21
+          },
+          {
+            "count": 21,
+            "pixels": 16
+          },
+          {
+            "count": 22,
+            "pixels": 19
+          },
+          {
+            "count": 23,
+            "pixels": 23
+          },
+          {
+            "count": 24,
+            "pixels": 19
+          },
+          {
+            "count": 25,
+            "pixels": 18
+          },
+          {
+            "count": 26,
+            "pixels": 23
+          },
+          {
+            "count": 27,
+            "pixels": 18
+          },
+          {
+            "count": 28,
+            "pixels": 21
+          },
+          {
+            "count": 29,
+            "pixels": 19
+          },
+          {
+            "count": 30,
+            "pixels": 22
+          },
+          {
+            "count": 31,
+            "pixels": 19
+          },
+          {
+            "count": 32,
+            "pixels": 399
+          },
+          {
+            "count": 33,
+            "pixels": 3033
+          },
+          {
+            "count": 34,
+            "pixels": 3960
+          },
+          {
+            "count": 35,
+            "pixels": 8697
+          },
+          {
+            "count": 36,
+            "pixels": 10033
+          },
+          {
+            "count": 37,
+            "pixels": 10698
+          },
+          {
+            "count": 38,
+            "pixels": 10951
+          },
+          {
+            "count": 39,
+            "pixels": 11022
+          },
+          {
+            "count": 40,
+            "pixels": 11093
+          },
+          {
+            "count": 41,
+            "pixels": 61284
+          }
+        ]
+      },
+      "max": {
+        "schema": "inklet.slab-projection/0.1",
+        "source": {
+          "schema": "inklet.volume/0.1",
+          "source_id": "jrc_hela-3/em/fibsem-uint16/s4",
+          "shape_zyx": [
+            600,
+            62,
+            550
+          ],
+          "spacing_zyx": [
+            0.05184000000000002,
+            0.064,
+            0.064
+          ],
+          "unit": "um",
+          "metres_per_unit": 1e-06,
+          "origin_xyz": [
+            5.15,
+            0.03,
+            2.097900000000001
+          ],
+          "origin_convention": "centre of voxel [0,0,0]",
+          "bounds_xyz": [
+            [
+              5.118,
+              -0.0020000000000000018,
+              2.071980000000001
+            ],
+            [
+              40.318,
+              3.9659999999999997,
+              33.17598000000001
+            ]
+          ]
+        },
+        "slab": {
+          "schema": "inklet.slab/0.1",
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              22.190109912484807,
+              1.8995990362918327,
+              15.623785534291548
+            ],
+            "right_xyz": [
+              0.9396926207859084,
+              0.0,
+              0.3420201433256687
+            ],
+            "up_xyz": [
+              -0.3411869994463997,
+              0.0697564737441253,
+              0.9374035767904598
+            ],
+            "normal_xyz": [
+              -0.023858119147858983,
+              -0.9975640502598242,
+              0.06554964362940052
+            ],
+            "shape_yx": [
+              351,
+              401
+            ],
+            "spacing_yx": [
+              0.08,
+              0.08
+            ],
+            "unit": "um",
+            "extent": [
+              32.08,
+              28.080000000000002
+            ],
+            "corners_xyz": [
+              [
+                2.327174802851385,
+                2.878979927659352,
+                23.29892865348588
+              ],
+              [
+                32.47251407766333,
+                2.878979927659352,
+                34.27093485137333
+              ],
+              [
+                42.05304502211823,
+                0.9202181449243134,
+                7.948642415097218
+              ],
+              [
+                11.907705747306288,
+                0.9202181449243134,
+                -3.023363782790236
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "thickness": 3.2,
+          "samples": 41,
+          "step": 0.07804878048780488,
+          "sampling": "equal-width bin midpoints along plane normal",
+          "first_offset": -1.5609756097560976,
+          "last_offset": 1.5609756097560976
+        },
+        "reduction": "max",
+        "interpolation": "trilinear intensity",
+        "boundary": "edge hold inside source voxel edges; outside source or region excluded",
+        "normalization": "mean divides by contributing samples; no zero padding",
+        "selection": null,
+        "valid_pixels": 131777,
+        "total_pixels": 140751,
+        "complete_pixels": 61284,
+        "count_histogram": [
+          {
+            "count": 0,
+            "pixels": 8974
+          },
+          {
+            "count": 1,
+            "pixels": 22
+          },
+          {
+            "count": 2,
+            "pixels": 17
+          },
+          {
+            "count": 3,
+            "pixels": 18
+          },
+          {
+            "count": 4,
+            "pixels": 22
+          },
+          {
+            "count": 5,
+            "pixels": 19
+          },
+          {
+            "count": 6,
+            "pixels": 19
+          },
+          {
+            "count": 7,
+            "pixels": 18
+          },
+          {
+            "count": 8,
+            "pixels": 21
+          },
+          {
+            "count": 9,
+            "pixels": 20
+          },
+          {
+            "count": 10,
+            "pixels": 16
+          },
+          {
+            "count": 11,
+            "pixels": 20
+          },
+          {
+            "count": 12,
+            "pixels": 20
+          },
+          {
+            "count": 13,
+            "pixels": 20
+          },
+          {
+            "count": 14,
+            "pixels": 18
+          },
+          {
+            "count": 15,
+            "pixels": 22
+          },
+          {
+            "count": 16,
+            "pixels": 18
+          },
+          {
+            "count": 17,
+            "pixels": 20
+          },
+          {
+            "count": 18,
+            "pixels": 20
+          },
+          {
+            "count": 19,
+            "pixels": 19
+          },
+          {
+            "count": 20,
+            "pixels": 21
+          },
+          {
+            "count": 21,
+            "pixels": 16
+          },
+          {
+            "count": 22,
+            "pixels": 19
+          },
+          {
+            "count": 23,
+            "pixels": 23
+          },
+          {
+            "count": 24,
+            "pixels": 19
+          },
+          {
+            "count": 25,
+            "pixels": 18
+          },
+          {
+            "count": 26,
+            "pixels": 23
+          },
+          {
+            "count": 27,
+            "pixels": 18
+          },
+          {
+            "count": 28,
+            "pixels": 21
+          },
+          {
+            "count": 29,
+            "pixels": 19
+          },
+          {
+            "count": 30,
+            "pixels": 22
+          },
+          {
+            "count": 31,
+            "pixels": 19
+          },
+          {
+            "count": 32,
+            "pixels": 399
+          },
+          {
+            "count": 33,
+            "pixels": 3033
+          },
+          {
+            "count": 34,
+            "pixels": 3960
+          },
+          {
+            "count": 35,
+            "pixels": 8697
+          },
+          {
+            "count": 36,
+            "pixels": 10033
+          },
+          {
+            "count": 37,
+            "pixels": 10698
+          },
+          {
+            "count": 38,
+            "pixels": 10951
+          },
+          {
+            "count": 39,
+            "pixels": 11022
+          },
+          {
+            "count": 40,
+            "pixels": 11093
+          },
+          {
+            "count": 41,
+            "pixels": 61284
+          }
+        ]
+      }
+    },
+    "restricted": {
+      "schema": "inklet.slab-projection/0.1",
+      "source": {
+        "schema": "inklet.volume/0.1",
+        "source_id": "jrc_hela-3/em/fibsem-uint16/s4",
+        "shape_zyx": [
+          600,
+          62,
+          550
+        ],
+        "spacing_zyx": [
+          0.05184000000000002,
+          0.064,
+          0.064
+        ],
+        "unit": "um",
+        "metres_per_unit": 1e-06,
+        "origin_xyz": [
+          5.15,
+          0.03,
+          2.097900000000001
+        ],
+        "origin_convention": "centre of voxel [0,0,0]",
+        "bounds_xyz": [
+          [
+            5.118,
+            -0.0020000000000000018,
+            2.071980000000001
+          ],
+          [
+            40.318,
+            3.9659999999999997,
+            33.17598000000001
+          ]
+        ]
+      },
+      "slab": {
+        "schema": "inklet.slab/0.1",
+        "plane": {
+          "schema": "inklet.section-plane/0.1",
+          "centre_xyz": [
+            22.190109912484807,
+            1.8995990362918327,
+            15.623785534291548
+          ],
+          "right_xyz": [
+            0.9396926207859084,
+            0.0,
+            0.3420201433256687
+          ],
+          "up_xyz": [
+            -0.3411869994463997,
+            0.0697564737441253,
+            0.9374035767904598
+          ],
+          "normal_xyz": [
+            -0.023858119147858983,
+            -0.9975640502598242,
+            0.06554964362940052
+          ],
+          "shape_yx": [
+            351,
+            401
+          ],
+          "spacing_yx": [
+            0.08,
+            0.08
+          ],
+          "unit": "um",
+          "extent": [
+            32.08,
+            28.080000000000002
+          ],
+          "corners_xyz": [
+            [
+              2.327174802851385,
+              2.878979927659352,
+              23.29892865348588
+            ],
+            [
+              32.47251407766333,
+              2.878979927659352,
+              34.27093485137333
+            ],
+            [
+              42.05304502211823,
+              0.9202181449243134,
+              7.948642415097218
+            ],
+            [
+              11.907705747306288,
+              0.9202181449243134,
+              -3.023363782790236
+            ]
+          ],
+          "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+        },
+        "thickness": 3.2,
+        "samples": 41,
+        "step": 0.07804878048780488,
+        "sampling": "equal-width bin midpoints along plane normal",
+        "first_offset": -1.5609756097560976,
+        "last_offset": 1.5609756097560976
+      },
+      "reduction": "mean",
+      "interpolation": "trilinear intensity",
+      "boundary": "edge hold inside source voxel edges; outside source or region excluded",
+      "normalization": "mean divides by contributing samples; no zero padding",
+      "selection": {
+        "schema": "inklet.box-region/0.1",
+        "selection_id": "ROI-1",
+        "lower_xyz": [
+          12.0,
+          0.4,
+          17.0
+        ],
+        "upper_xyz": [
+          24.0,
+          2.8,
+          27.0
+        ],
+        "unit": "um",
+        "membership": "voxel or sample centres; lower inclusive, upper exclusive"
+      },
+      "valid_pixels": 19043,
+      "total_pixels": 140751,
+      "complete_pixels": 0,
+      "count_histogram": [
+        {
+          "count": 0,
+          "pixels": 121708
+        },
+        {
+          "count": 1,
+          "pixels": 23
+        },
+        {
+          "count": 2,
+          "pixels": 20
+        },
+        {
+          "count": 3,
+          "pixels": 24
+        },
+        {
+          "count": 4,
+          "pixels": 29
+        },
+        {
+          "count": 5,
+          "pixels": 21
+        },
+        {
+          "count": 6,
+          "pixels": 24
+        },
+        {
+          "count": 7,
+          "pixels": 25
+        },
+        {
+          "count": 8,
+          "pixels": 27
+        },
+        {
+          "count": 9,
+          "pixels": 22
+        },
+        {
+          "count": 10,
+          "pixels": 24
+        },
+        {
+          "count": 11,
+          "pixels": 26
+        },
+        {
+          "count": 12,
+          "pixels": 27
+        },
+        {
+          "count": 13,
+          "pixels": 20
+        },
+        {
+          "count": 14,
+          "pixels": 26
+        },
+        {
+          "count": 15,
+          "pixels": 27
+        },
+        {
+          "count": 16,
+          "pixels": 25
+        },
+        {
+          "count": 17,
+          "pixels": 23
+        },
+        {
+          "count": 18,
+          "pixels": 24
+        },
+        {
+          "count": 19,
+          "pixels": 28
+        },
+        {
+          "count": 20,
+          "pixels": 357
+        },
+        {
+          "count": 21,
+          "pixels": 962
+        },
+        {
+          "count": 22,
+          "pixels": 1573
+        },
+        {
+          "count": 23,
+          "pixels": 2130
+        },
+        {
+          "count": 24,
+          "pixels": 2237
+        },
+        {
+          "count": 25,
+          "pixels": 2239
+        },
+        {
+          "count": 26,
+          "pixels": 2239
+        },
+        {
+          "count": 27,
+          "pixels": 2239
+        },
+        {
+          "count": 28,
+          "pixels": 2056
+        },
+        {
+          "count": 29,
+          "pixels": 1461
+        },
+        {
+          "count": 30,
+          "pixels": 851
+        },
+        {
+          "count": 31,
+          "pixels": 234
+        }
+      ]
+    },
+    "measurements": [
+      {
+        "schema": "inklet.region-measurement/0.1",
+        "selection": {
+          "schema": "inklet.box-region/0.1",
+          "selection_id": "ROI-1",
+          "lower_xyz": [
+            12.0,
+            0.4,
+            17.0
+          ],
+          "upper_xyz": [
+            24.0,
+            2.8,
+            27.0
+          ],
+          "unit": "um",
+          "membership": "voxel or sample centres; lower inclusive, upper exclusive"
+        },
+        "source": {
+          "schema": "inklet.volume/0.1",
+          "source_id": "jrc_hela-3/labels/nucleus_seg/s4",
+          "shape_zyx": [
+            600,
+            62,
+            550
+          ],
+          "spacing_zyx": [
+            0.05184000000000002,
+            0.064,
+            0.064
+          ],
+          "unit": "um",
+          "metres_per_unit": 1e-06,
+          "origin_xyz": [
+            5.15,
+            0.03,
+            2.097900000000001
+          ],
+          "origin_convention": "centre of voxel [0,0,0]",
+          "bounds_xyz": [
+            [
+              5.118,
+              -0.0020000000000000018,
+              2.071980000000001
+            ],
+            [
+              40.318,
+              3.9659999999999997,
+              33.17598000000001
+            ]
+          ]
+        },
+        "label": 1,
+        "voxel_count": 561128,
+        "volume": 119.14803412992005,
+        "volume_unit": "um^3",
+        "available_voxel_count": 1371458,
+        "available_grid_volume": 291.21078362112013,
+        "estimator": "source voxel-centre selection; full voxel volumes; supplied grid only"
+      },
+      {
+        "schema": "inklet.region-measurement/0.1",
+        "selection": {
+          "schema": "inklet.box-region/0.1",
+          "selection_id": "ROI-1",
+          "lower_xyz": [
+            12.0,
+            0.4,
+            17.0
+          ],
+          "upper_xyz": [
+            24.0,
+            2.8,
+            27.0
+          ],
+          "unit": "um",
+          "membership": "voxel or sample centres; lower inclusive, upper exclusive"
+        },
+        "source": {
+          "schema": "inklet.volume/0.1",
+          "source_id": "jrc_hela-3/labels/mito_seg/s4",
+          "shape_zyx": [
+            600,
+            62,
+            550
+          ],
+          "spacing_zyx": [
+            0.05184000000000002,
+            0.064,
+            0.064
+          ],
+          "unit": "um",
+          "metres_per_unit": 1e-06,
+          "origin_xyz": [
+            5.15,
+            0.03,
+            2.097900000000001
+          ],
+          "origin_convention": "centre of voxel [0,0,0]",
+          "bounds_xyz": [
+            [
+              5.118,
+              -0.0020000000000000018,
+              2.071980000000001
+            ],
+            [
+              40.318,
+              3.9659999999999997,
+              33.17598000000001
+            ]
+          ]
+        },
+        "label": 157,
+        "voxel_count": 22410,
+        "volume": 4.758464102400001,
+        "volume_unit": "um^3",
+        "available_voxel_count": 1371458,
+        "available_grid_volume": 291.21078362112013,
+        "estimator": "source voxel-centre selection; full voxel volumes; supplied grid only"
+      },
+      {
+        "schema": "inklet.region-measurement/0.1",
+        "selection": {
+          "schema": "inklet.box-region/0.1",
+          "selection_id": "ROI-1",
+          "lower_xyz": [
+            12.0,
+            0.4,
+            17.0
+          ],
+          "upper_xyz": [
+            24.0,
+            2.8,
+            27.0
+          ],
+          "unit": "um",
+          "membership": "voxel or sample centres; lower inclusive, upper exclusive"
+        },
+        "source": {
+          "schema": "inklet.volume/0.1",
+          "source_id": "jrc_hela-3/labels/mito_seg/s4",
+          "shape_zyx": [
+            600,
+            62,
+            550
+          ],
+          "spacing_zyx": [
+            0.05184000000000002,
+            0.064,
+            0.064
+          ],
+          "unit": "um",
+          "metres_per_unit": 1e-06,
+          "origin_xyz": [
+            5.15,
+            0.03,
+            2.097900000000001
+          ],
+          "origin_convention": "centre of voxel [0,0,0]",
+          "bounds_xyz": [
+            [
+              5.118,
+              -0.0020000000000000018,
+              2.071980000000001
+            ],
+            [
+              40.318,
+              3.9659999999999997,
+              33.17598000000001
+            ]
+          ]
+        },
+        "label": 124,
+        "voxel_count": 2650,
+        "volume": 0.5626920960000003,
+        "volume_unit": "um^3",
+        "available_voxel_count": 1371458,
+        "available_grid_volume": 291.21078362112013,
+        "estimator": "source voxel-centre selection; full voxel volumes; supplied grid only"
+      }
+    ],
+    "depth_profile": [
+      {
+        "offset": -1.5609756097560976,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -1.482926829268293,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -1.404878048780488,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -1.326829268292683,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -1.2487804878048783,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -1.170731707317073,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -1.0926829268292682,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -1.0146341463414634,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -0.9365853658536587,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -0.8585365853658538,
+        "pixels": 0,
+        "mean_intensity": null
+      },
+      {
+        "offset": -0.7804878048780488,
+        "pixels": 237,
+        "mean_intensity": 23184.579665300418
+      },
+      {
+        "offset": -0.7024390243902439,
+        "pixels": 1085,
+        "mean_intensity": 23554.0672295942
+      },
+      {
+        "offset": -0.6243902439024391,
+        "pixels": 2546,
+        "mean_intensity": 23602.481877581715
+      },
+      {
+        "offset": -0.5463414634146341,
+        "pixels": 4605,
+        "mean_intensity": 23384.783212864866
+      },
+      {
+        "offset": -0.46829268292682935,
+        "pixels": 6852,
+        "mean_intensity": 23171.44308949692
+      },
+      {
+        "offset": -0.3902439024390244,
+        "pixels": 9098,
+        "mean_intensity": 22919.293401647778
+      },
+      {
+        "offset": -0.31219512195121946,
+        "pixels": 11344,
+        "mean_intensity": 22722.55758549691
+      },
+      {
+        "offset": -0.23414634146341468,
+        "pixels": 13588,
+        "mean_intensity": 22578.606717881965
+      },
+      {
+        "offset": -0.15609756097560973,
+        "pixels": 15758,
+        "mean_intensity": 22473.20847343804
+      },
+      {
+        "offset": -0.07804878048780495,
+        "pixels": 17381,
+        "mean_intensity": 22409.65025460789
+      },
+      {
+        "offset": 0.0,
+        "pixels": 18391,
+        "mean_intensity": 22375.995540594144
+      },
+      {
+        "offset": 0.07804878048780495,
+        "pixels": 18788,
+        "mean_intensity": 22380.552136207105
+      },
+      {
+        "offset": 0.1560975609756099,
+        "pixels": 18789,
+        "mean_intensity": 22400.615769053486
+      },
+      {
+        "offset": 0.2341463414634145,
+        "pixels": 18791,
+        "mean_intensity": 22399.522704504376
+      },
+      {
+        "offset": 0.31219512195121946,
+        "pixels": 18790,
+        "mean_intensity": 22384.262746958546
+      },
+      {
+        "offset": 0.3902439024390244,
+        "pixels": 18791,
+        "mean_intensity": 22363.63843867909
+      },
+      {
+        "offset": 0.46829268292682935,
+        "pixels": 18791,
+        "mean_intensity": 22339.671176168977
+      },
+      {
+        "offset": 0.5463414634146343,
+        "pixels": 18792,
+        "mean_intensity": 22345.86661797419
+      },
+      {
+        "offset": 0.6243902439024389,
+        "pixels": 18790,
+        "mean_intensity": 22365.32671908992
+      },
+      {
+        "offset": 0.7024390243902439,
+        "pixels": 18795,
+        "mean_intensity": 22369.065354636514
+      },
+      {
+        "offset": 0.7804878048780488,
+        "pixels": 18794,
+        "mean_intensity": 22370.608524943396
+      },
+      {
+        "offset": 0.8585365853658538,
+        "pixels": 18794,
+        "mean_intensity": 22375.345702448758
+      },
+      {
+        "offset": 0.9365853658536587,
+        "pixels": 18793,
+        "mean_intensity": 22388.86923540205
+      },
+      {
+        "offset": 1.0146341463414632,
+        "pixels": 18796,
+        "mean_intensity": 22404.55982168189
+      },
+      {
+        "offset": 1.0926829268292682,
+        "pixels": 18794,
+        "mean_intensity": 22425.084664037622
+      },
+      {
+        "offset": 1.170731707317073,
+        "pixels": 18792,
+        "mean_intensity": 22430.07126345056
+      },
+      {
+        "offset": 1.2487804878048783,
+        "pixels": 18793,
+        "mean_intensity": 22450.24518552567
+      },
+      {
+        "offset": 1.3268292682926832,
+        "pixels": 18794,
+        "mean_intensity": 22452.460117641935
+      },
+      {
+        "offset": 1.4048780487804877,
+        "pixels": 18793,
+        "mean_intensity": 22435.27773386365
+      },
+      {
+        "offset": 1.4829268292682927,
+        "pixels": 18791,
+        "mean_intensity": 22390.49659729844
+      },
+      {
+        "offset": 1.5609756097560976,
+        "pixels": 18776,
+        "mean_intensity": 22205.662354905147
+      }
+    ]
+  },
+  "array_archive": {
+    "file": "projection-arrays.npz",
+    "sha256": "a0116f23c0b48b335c71dcdbfe96aaffcca7909e0c67e153727e250adb461498"
+  },
+  "camera": "Overview",
+  "scene_overlays": [
+    {
+      "node_id": "cell-scene/0/1",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 5636,
+      "visible_runs": 30,
+      "hidden_runs": 29
+    },
+    {
+      "node_id": "cell-scene/0/2",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 5636,
+      "visible_runs": 13,
+      "hidden_runs": 9
+    },
+    {
+      "node_id": "cell-scene/0/3",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 57,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/4",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 57,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/5",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 57,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/6",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 57,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/7",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 461,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/8",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 46,
+      "visible_runs": 3,
+      "hidden_runs": 3
+    },
+    {
+      "node_id": "cell-scene/0/9",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 567,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/10",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 46,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/11",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 567,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/12",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 461,
+      "visible_runs": 8,
+      "hidden_runs": 8
+    },
+    {
+      "node_id": "cell-scene/0/13",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 567,
+      "visible_runs": 3,
+      "hidden_runs": 4
+    },
+    {
+      "node_id": "cell-scene/0/14",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 567,
+      "visible_runs": 7,
+      "hidden_runs": 6
+    },
+    {
+      "node_id": "cell-scene/0/15",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 461,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/16",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 46,
+      "visible_runs": 1,
+      "hidden_runs": 1
+    },
+    {
+      "node_id": "cell-scene/0/17",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 46,
+      "visible_runs": 1,
+      "hidden_runs": 0
+    },
+    {
+      "node_id": "cell-scene/0/18",
+      "transform": {
+        "a": 1.0,
+        "b": 0.0,
+        "c": 0.0,
+        "d": 1.0,
+        "e": 150.0,
+        "f": 139.6803
+      },
+      "source_cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92",
+      "hidden": "dash",
+      "depth_bias": 0.04,
+      "step_px": 1.0,
+      "samples": 461,
+      "visible_runs": 4,
+      "hidden_runs": 4
+    }
+  ],
+  "render": {
+    "blender": "4.5.13 LTS",
+    "execution": {
+      "backend": "CUDA",
+      "devices": [
+        {
+          "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+          "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+        }
+      ],
+      "fallback_reason": null,
+      "host": {
+        "machine": "x86_64",
+        "processor": "x86_64",
+        "system": "Linux"
+      },
+      "requested": "AUTO"
+    },
+    "projection": {
+      "bounds": [
+        -37.489036560058594,
+        37.489036560058594,
+        -23.433223724365234,
+        23.433223724365234
+      ],
+      "far": 1000.0,
+      "near": 0.009999999776482582,
+      "type": "ORTHO",
+      "world_to_camera": [
+        [
+          0.9690970182418823,
+          0.24667932093143463,
+          0.0,
+          -22.504863739013672
+        ],
+        [
+          -0.07831109315156937,
+          0.3076506555080414,
+          0.9482711553573608,
+          -15.543010711669922
+        ],
+        [
+          0.2339189201593399,
+          -0.9189669489860535,
+          0.31746113300323486,
+          -68.93751525878906
+        ],
+        [
+          -0.0,
+          0.0,
+          -0.0,
+          1.0
+        ]
+      ]
+    },
+    "pixels": [
+      3638,
+      2274
+    ],
+    "width_mm": 280.0,
+    "height_mm": 175.0,
+    "cache_key": "e6300e95e202c7cdb845e21da6a218b37971ef0ce06b02503cb73df8e3cd7c92"
+  }
+}

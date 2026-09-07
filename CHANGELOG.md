@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.0.dev6 — research preview (unreleased)
+
+- Add physical slab mean, minimum and maximum intensity projections with streaming
+  reduction, per-pixel contributing counts and explicit missing-data handling.
+- Link stable box regions across oblique sections, depth-restricted projections,
+  3D outlines and source-grid measurements preserving exact integer label IDs.
+- Add a nine-panel real COSEM figure with coverage maps, ROI depth profiles,
+  numerical evidence and executable documentation.
+
 ## 3.1.0.dev5 — research preview (unreleased)
 
 - Add explicit physical oblique section planes shared by microscopy, label masks

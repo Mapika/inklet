@@ -21,6 +21,13 @@ from inklet.experimental.volume import Volume
 from inklet.experimental.sections import Plane
 plane = Plane((0,0,0), (1,0,0), (0,1,0), (10,20), (.1,.1), 'um')
 assert plane.extent == (2,1)
+from inklet.experimental.slabs import Slab
+from inklet.experimental.regions import BoxRegion
+slab = Slab(plane, .5, 5)
+region = BoxRegion('wheel-region', (-1,-1,-1), (1,1,1), 'um')
+assert len(region.edges) == 12 and len(region.intersection(plane)) == 4
+assert region.outline(plane, width=40).width >= 40
+assert slab.report()['samples'] == 5
 assert find_spec("numpy") is None
 try:
     Volume([[[1]]], (1,1,1), 'um', source_id='wheel')
