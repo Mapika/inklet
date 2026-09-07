@@ -336,6 +336,12 @@ class Diagram:
             if any(end in renamed for end in node.attached_to):
                 object.__setattr__(node, "attached_to", tuple(
                     renamed.get(end, end) for end in node.attached_to))
+            # Crossing declarations also name nodes. Keep references outside
+            # the copied subtree, and redirect internal ones to the new shapes.
+            crosses = node.notes.get('crosses')
+            if isinstance(crosses, (tuple, list)):
+                node.notes['crosses'] = tuple(renamed.get(end, end) if isinstance(end, str)
+                                              else end for end in crosses)
         return clone
 
     def _copied(self, renamed: dict[str, str]) -> "Diagram":

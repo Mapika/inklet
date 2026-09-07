@@ -49,14 +49,9 @@ __all__ = ["CROSSES_NOTE", "crossing", "declared_crossings"]
 #: The note a stroke keeps its declared crossings on: a tuple of node ids, in
 #: the order the author named them.
 #:
-#: Ids rather than node references because that is what the reader has -- the
-#: linter works from a `{id: node}` table -- and because holding the object
-#: would keep a whole subtree alive off a note. The cost is that `copy()`
-#: remints ids and does not rewrite this note, so a declared crossing inside a
-#: copied subtree goes quiet and the finding comes back. That fails in the safe
-#: direction (a false positive returns; nothing is silenced that should not be)
-#: and `Diagram.copy` already does exactly this rewrite for `attached_to`, so
-#: the fix is core's when someone needs it.
+#: Ids rather than node references because the linter uses an id table and
+#: references would retain entire subtrees. Diagram.copy rewrites internal
+#: crossing ids and preserves declarations naming shapes outside the copy.
 CROSSES_NOTE = "crosses"
 
 

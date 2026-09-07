@@ -177,6 +177,59 @@ class SceneRender:
         return path3d(self, points, hidden=hidden, depth_bias=depth_bias,
                       step_px=step_px, max_samples=max_samples, **style)
 
+    def annotate3d(self, point, text, *, side='n', clear=2., hidden='omit',
+                   depth_bias=1e-3, leader=True, head='none', size=None,
+                   avoid=(), leader_style=None, **text_style):
+        """Label a world point; omit hidden targets or dash their screen-space leader.
+
+        Returns an overlay layer, without scene pixels. Compose with
+        overlay(..., align='origin'). Label extents participate in layout.
+        side, clear, avoid and text styling follow annotate().
+        """
+        from .scene_annotations import annotate3d
+        return annotate3d(self, point, text, side=side, clear=clear, hidden=hidden,
+            depth_bias=depth_bias, leader=leader, head=head, size=size,
+            avoid=avoid, leader_style=leader_style, **text_style)
+
+    def dimension3d(self, a, b, text=None, *, scale=1., unit='scene units',
+                    precision=3, offset=0., hidden='omit', depth_bias=1e-3,
+                    size=None, tick=1.2, witness=True, plate=True, **style):
+        """Dimension projected endpoints, labelled with their true 3D distance.
+
+        scale converts world units into the explicitly named unit. offset,
+        tick and size are page lengths. Visibility tests the two endpoints;
+        hidden='dash' dashes the whole dimension if either is obscured.
+        """
+        from .scene_annotations import dimension3d
+        return dimension3d(self, a, b, text, scale=scale, unit=unit,
+            precision=precision, offset=offset, hidden=hidden, depth_bias=depth_bias,
+            size=size, tick=tick, witness=witness, plate=plate, **style)
+
+    def arrow3d(self, a, b, *, hidden='omit', depth_bias=1e-3,
+                head='triangle', head_size=1.6, step_px=1., max_samples=200_000, **style):
+        """Depth-test a world-space shaft with a constant page-size arrowhead.
+
+        Hidden or out-of-frame tips have no head, unless hidden='show' reveals
+        an in-frame tip. Head visibility samples its tip, not its full area.
+        """
+        from .scene_annotations import arrow3d
+        return arrow3d(self, a, b, hidden=hidden, depth_bias=depth_bias,
+            head=head, head_size=head_size, step_px=step_px, max_samples=max_samples, **style)
+
+    def angle3d(self, a, vertex, b, text=None, *, radius=None, precision=1,
+                hidden='omit', depth_bias=1e-3, side='n', clear=2., size=None,
+                step_px=1., max_samples=200_000, **style):
+        """Measure the 3D angle a-vertex-b and project an arc in its world plane.
+
+        radius uses world units; the default is 30% of the shorter arm.
+        The minor arc uses 64 segments. Labels use degrees and page-size text.
+        Collinear or zero-length arms are rejected.
+        """
+        from .scene_annotations import angle3d
+        return angle3d(self, a, vertex, b, text, radius=radius, precision=precision,
+            hidden=hidden, depth_bias=depth_bias, side=side, clear=clear, size=size,
+            step_px=step_px, max_samples=max_samples, **style)
+
     def object_mask(self, *names):
         """Return an aligned stencil for named objects; request object_id first."""
         if 'object_id' not in self.passes:

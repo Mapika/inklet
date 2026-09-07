@@ -6,7 +6,7 @@ from ..core import ImagePrim, Affine
 def rendering_manifest(root):
     from dataclasses import asdict
     from .brushes import PaintedPrim
-    scenes, rasters, resources, paints, blends, overlays = [], [], {}, {}, set(), []
+    scenes, rasters, resources, paints, blends, overlays, annotations = [], [], {}, {}, set(), [], []
     def visit(node,parent):
         world=parent@node.transform
         if isinstance(node.prim,PaintedPrim):
@@ -15,6 +15,8 @@ def rendering_manifest(root):
         if node.kind=='blend': blends.add(node.notes['blend_mode'])
         if 'scene_overlay' in node.notes:
             overlays.append(dict(node_id=node.id, transform=asdict(world), **node.notes['scene_overlay']))
+        if 'scene_annotation' in node.notes:
+            annotations.append(dict(node_id=node.id, transform=asdict(world), **node.notes['scene_annotation']))
         if isinstance(node.prim,ImagePrim) and 'scene_render' in node.notes:
             scenes.append(dict(node_id=node.id, transform=asdict(world), **node.notes['scene_render']))
         if isinstance(node.prim,ImagePrim) and 'raster_layer' in node.notes:
@@ -27,7 +29,8 @@ def rendering_manifest(root):
             item['placements'] += 1
         for child in node.children: visit(child,world)
     visit(root,Affine())
-    return dict(schema_version=1, scenes=scenes, scene_overlays=overlays, raster_layers=rasters,
+    return dict(schema_version=1, scenes=scenes, scene_overlays=overlays,
+                scene_annotations=annotations, raster_layers=rasters,
                 image_resources=list(resources.values()),paint_resources=list(paints.values()),
                 blend_modes=sorted(blends))
 

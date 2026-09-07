@@ -2,6 +2,12 @@
 
 ## 3.0.0 (development)
 
+- Add scene labels, depth-tested arrows, true world-space length dimensions
+  and angle measurements with editable vector exports. Preserve annotation
+  bounds outside scene images, expose hidden-target policies, and record
+  measured values and unit conversions. Add a complete four-panel example.
+- Preserve declared crossing targets when copying diagrams and honour those
+  declarations for routed leaders without suppressing unrelated crossings.
 - Add saved camera projection and depth-tested vector paths. World points report
   frame membership and visibility; paths clip to the camera frustum and omit,
   dash or show hidden sections without rerendering the scene. Record overlay

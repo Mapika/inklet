@@ -40,6 +40,11 @@ if len(sys.argv)>1:
     path=result.path3d([world,[world[0]+1,world[1],world[2]]],hidden='dash',stroke='red')
     assert '<image' not in i.to_svg(path)
     assert i.to_pdf(path).startswith(b'%PDF')
+    label=result.annotate3d(world,'Connector',hidden='show',side='e',clear=5)
+    measure=result.dimension3d(world,[world[0]+.2,world[1],world[2]],hidden='show',scale=100,unit='mm')
+    assert abs(measure.notes['scene_annotation']['value']-20)<1e-8
+    assert '<image' not in i.to_svg(label)
+    assert i.to_pdf(measure).startswith(b'%PDF')
     with i.RenderQueue(max_workers=2) as queue:
         jobs=[queue.submit(sys.argv[1],width=50,camera='Overview',dpi=60,samples=2,
             engine='CYCLES',cache='queue-cache') for _ in range(2)]

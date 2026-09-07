@@ -59,6 +59,7 @@ nav:
       - Blender scenes: blender-scenes.md
       - GPU rendering and jobs: render-jobs.md
       - Camera-aware vector paths: scene-paths.md
+      - Scene annotations and measurements: scene-annotations.md
   - Examples:
       - Figure gallery: examples.md
       - More example recipes: example-library.md

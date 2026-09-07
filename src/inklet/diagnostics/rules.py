@@ -2565,6 +2565,8 @@ def _crossable(ctx: LintContext, owner: str, endpoints: Sequence[str],
     """True when this link has no business touching this shape."""
     if ctx.is_related(owner, shape.id) or ctx.is_attached(owner, shape.id):
         return False
+    if ctx.crosses_by_declaration(owner, shape.id):
+        return False
     # A container the link starts or ends *inside*: an arrow leaving a panel
     # has to cross the panel's own outline, and reporting that would fire on
     # every figure that nests anything.

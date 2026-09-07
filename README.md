@@ -145,6 +145,8 @@ available. [Render queues](https://inklet.readthedocs.io/en/latest/render-jobs/)
 add progress, cancellation, GPU concurrency limits and reuse of identical renders.
 Dev4 adds [camera-aware vector paths](https://inklet.readthedocs.io/en/latest/scene-paths/):
 project world points and omit or dash hidden path sections without rerendering.
+Dev5 adds [scene annotations and measurements](https://inklet.readthedocs.io/en/latest/scene-annotations/):
+labels, arrows, true 3D lengths and angle arcs with editable text and vector geometry.
 
 [Rendering guide](https://inklet.readthedocs.io/en/latest/v3/) ·
 [Blender setup and scenes](https://inklet.readthedocs.io/en/latest/blender-scenes/).

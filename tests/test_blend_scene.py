@@ -332,6 +332,17 @@ def test_saved_camera_projects_like_blender_and_depth_hides_interior(scene_file,
     assert layer.notes['scene_overlay']['hidden_runs']>=1
     assert layer.width==result.diagram.width
     assert layer.height==result.diagram.height
+    assert not result.annotate3d((0,0,0),'Interior').children
+    annotation=result.annotate3d((0,-2,0),'Front',side='e',clear=5)
+    assert annotation.notes['scene_annotation']['shown']
+    dimension=result.dimension3d((-.5,-2,0),(.5,-2,0),scale=100,unit='mm')
+    assert dimension.notes['scene_annotation']['value']==100
+    assert dimension.notes['scene_annotation']['shown']
+    assert '<image' not in i.to_svg(dimension)
+    arrow=result.arrow3d((0,-2,0),(0,0,0),hidden='dash')
+    assert not arrow.notes['scene_annotation']['head_shown']
+    angle=result.angle3d((.5,-2,0),(0,-2,0),(0,-2,.5))
+    assert angle.notes['scene_annotation']['degrees']==pytest.approx(90)
 
 
 def test_perspective_depth_is_axial_at_an_off_axis_surface(scene_file):

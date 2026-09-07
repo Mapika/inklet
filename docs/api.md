@@ -48,6 +48,10 @@ A rendered snapshot, its provenance and whether cached pixels were reused.
 
 * `project(point, *, depth_bias=0.001)` -- Project a world point into centred millimetres; test visibility with depth.
 * `path3d(points, *, hidden='omit', depth_bias=0.001, step_px=1.0, max_samples=200000, **style)` -- Create an aligned vector path with occluded sections omitted, dashed or shown.
+* `annotate3d(point, text, *, side='n', clear=2.0, hidden='omit', depth_bias=0.001, leader=True, head='none', size=None, avoid=(), leader_style=None, **text_style)` -- Label a world point; omit hidden targets or dash their screen-space leader.
+* `dimension3d(a, b, text=None, *, scale=1.0, unit='scene units', precision=3, offset=0.0, hidden='omit', depth_bias=0.001, size=None, tick=1.2, witness=True, plate=True, **style)` -- Dimension projected endpoints, labelled with their true 3D distance.
+* `arrow3d(a, b, *, hidden='omit', depth_bias=0.001, head='triangle', head_size=1.6, step_px=1.0, max_samples=200000, **style)` -- Depth-test a world-space shaft with a constant page-size arrowhead.
+* `angle3d(a, vertex, b, text=None, *, radius=None, precision=1, hidden='omit', depth_bias=0.001, side='n', clear=2.0, size=None, step_px=1.0, max_samples=200000, **style)` -- Measure the 3D angle a-vertex-b and project an arc in its world plane.
 * `object_mask(*names)` -- Return an aligned stencil for named objects; request object_id first.
 
 #### `class ScenePass(name: str, pixels: tuple[int, int], channels: int, width_mm: float, height_mm: float, data: bytes) -> None`

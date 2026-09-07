@@ -1,5 +1,16 @@
 [
   {
+    "id": "scene-annotations",
+    "title": "Measurements in a rendered scene",
+    "category": "3D",
+    "description": "World-space dimensions, angles, labels and depth-tested arrows.",
+    "requires": "Blender",
+    "image": "gallery/v3-scene-annotations.png",
+    "version": "3.0 dev5",
+    "page": "scene-annotations/",
+    "featured": false
+  },
+  {
     "id": "scene-paths",
     "title": "Vector paths in a 3D scene",
     "category": "3D",

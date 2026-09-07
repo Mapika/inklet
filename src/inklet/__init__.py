@@ -467,4 +467,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "3.0.0.dev4"
+__version__ = "3.0.0.dev5"
