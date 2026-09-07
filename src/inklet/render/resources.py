@@ -7,6 +7,7 @@ def rendering_manifest(root):
     from dataclasses import asdict
     from .brushes import PaintedPrim
     scenes, rasters, resources, paints, blends, overlays, annotations = [], [], {}, {}, set(), [], []
+    image_hashes = {}
     def visit(node,parent):
         world=parent@node.transform
         if isinstance(node.prim,PaintedPrim):
@@ -23,7 +24,12 @@ def rendering_manifest(root):
             rasters.append(dict(node_id=node.id, transform=asdict(world), **node.notes['raster_layer']))
         if isinstance(node.prim, ImagePrim):
             p=node.prim
-            key = hashlib.sha256(p.data).hexdigest() if p.data is not None else p.source
+            if p.data is not None:
+                key = image_hashes.get(p.data)
+                if key is None:
+                    key = image_hashes[p.data] = hashlib.sha256(p.data).hexdigest()
+            else:
+                key = p.source
             item=resources.setdefault(key, dict(sha256=key if p.data is not None else None,
                                                source=p.source, placements=0, pixels=p.pixel_size))
             item['placements'] += 1

@@ -149,8 +149,15 @@ class _Resources:
 
     def image(self, prim: ImagePrim) -> str:
         data = getattr(prim, "data", None)
-        key = (hashlib.md5(data).hexdigest() if data is not None
-               else f"path:{prim.source}")
+        if data is not None:
+            hashes = getattr(self, '_image_hashes', None)
+            if hashes is None:
+                hashes = self._image_hashes = {}
+            key = hashes.get(data)
+            if key is None:
+                key = hashes[data] = hashlib.md5(data).hexdigest()
+        else:
+            key = f"path:{prim.source}"
         # The same bytes asked to resample two different ways are two
         # XObjects, because `/Interpolate` lives in the image dictionary.
         key = f"{key}:{getattr(prim, 'smooth', None)!r}"
@@ -636,16 +643,10 @@ def _drawables(node: Diagram) -> int:
     return count
 
 
-def _world_box(node: Diagram, world: Affine) -> Rect:
+def _world_box(node: Diagram, world: Affine, style: Style) -> Rect:
     """The subtree's bounding box in page millimetres, for a form's `/BBox`."""
-    try:
-        box = node.local_bbox
-    except DiagramError:
-        return Rect(0.0, 0.0, 0.0, 0.0)
-    corners = [world.apply(point) for point in box.corners]
-    xs = [p.x for p in corners]
-    ys = [p.y for p in corners]
-    return Rect(min(xs), min(ys), max(xs), max(ys))
+    from .bounds import painted_bounds
+    return painted_bounds(node, world, style) or Rect(0., 0., 0., 0.)
 
 
 def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
@@ -672,7 +673,7 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
         mode=node.notes['blend_mode']
         inner=c.child()
         _emit_contents(inner,node,world,style,1.)
-        name=c.shared.form(inner.render(),_world_box(node,world),isolated=True)
+        name=c.shared.form(inner.render(),_world_box(node,world,style),isolated=True)
         state=c.shared.blends.setdefault(mode,f'BM{len(c.shared.blends)}')
         c.op('q');c.op(f'/{state}','gs')
         if alpha*(1. if own is None else own) < 1:
@@ -684,7 +685,7 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
         if _drawables(node) > 1:
             inner = c.child()
             _emit_contents(inner, node, world, style, 1.0)
-            name = c.shared.form(inner.render(), _world_box(node, world))
+            name = c.shared.form(inner.render(), _world_box(node, world, style))
             c.op("q")
             c.op(f"/{c.alpha(alpha * own)}", "gs")
             c.op(f"/{name}", "Do")

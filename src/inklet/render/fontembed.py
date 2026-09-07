@@ -285,6 +285,10 @@ def _subset_sfnt(path: str, index: int, gids: frozenset[int]) -> SfntSubset:
     # are the encoding, so they cannot be renumbered.
     options.retain_gids = True
     options.layout_features = []
+    # PDF places the already-shaped glyph IDs. Drop shaping tables before
+    # the subsetter decompiles them; pruning them afterwards needlessly reads
+    # every lookup in a large font. Composite glyph closure stays enabled.
+    options.drop_tables += ["GSUB", "GPOS", "GDEF", "BASE", "JSTF", "MATH"]
     subsetter = subset.Subsetter(options=options)
     subsetter.populate(gids=sorted(gids))
     subsetter.subset(font)

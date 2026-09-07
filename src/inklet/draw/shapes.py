@@ -150,7 +150,7 @@ def marker(kind: str = "circle", size: float | str | None = None,
             f"unknown marker {kind!r}; known markers are {', '.join(MARKER_KINDS)}"
         )
     s = _MARKER_OF_TYPE * active_theme().font_size if size is None else mm(size)
-    if s <= 0:
+    if not math.isfinite(s) or s <= 0:
         raise ValueError(f"a marker needs a positive size, got {size!r}")
     builder = _MARKERS[kind]
     prim = builder(s)

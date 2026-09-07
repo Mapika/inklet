@@ -147,6 +147,10 @@ class _Writer:
         self.paper = paper
         self.glyphs = _GlyphDefs()
         self.faces = _FaceUse()
+        # Scoped to one export: repeated scene/image placements encode once,
+        # while a file edited between exports is read again.
+        self.image_payloads = {}
+        self.image_keys = {}
     # numbers and attributes
 
     def nums(self, values: Sequence[float], sep: str = " ") -> str:
@@ -723,14 +727,21 @@ def _image(prim: ImagePrim, w: _Writer, kind: str | None = None) -> None:
         # the first they understand, so both go out.
         attrs.append(("image-rendering", "pixelated"))
         attrs.append(("style", "image-rendering:crisp-edges"))
-    payload = _data_uri(prim)
+    resource = ('bytes', prim.data) if prim.data is not None else ('path', prim.source)
+    if resource not in w.image_payloads:
+        w.image_payloads[resource] = _data_uri(prim)
+    payload = w.image_payloads[resource]
     if payload is None:
         # A missing file is a broken link, not a crash: emit the path and say so.
         w.line(_comment(f"image not embedded, file unreadable: {prim.source}"))
         attrs.append(("xlink:href", prim.source))
     else:
         import hashlib
-        key=hashlib.sha256((payload+str(_smooth(prim,kind))).encode()).hexdigest()[:20]
+        resource_key = (resource, _smooth(prim,kind))
+        key = w.image_keys.get(resource_key)
+        if key is None:
+            key=hashlib.sha256((payload+str(_smooth(prim,kind))).encode()).hexdigest()[:20]
+            w.image_keys[resource_key] = key
         registry=getattr(w,'image_defs',None)
         if registry is None: registry=w.image_defs={}
         if key in registry:

@@ -4,11 +4,49 @@ from __future__ import annotations
 import io
 import math
 from dataclasses import replace
+from functools import lru_cache
 
-from ..core import Affine, Diagram, DiagramError, EllipsePrim, ImagePrim, PathPrim, Rect, RectPrim, Vec2, resolve
+from ..core import Affine, Diagram, DiagramError, EllipsePrim, ImagePrim, PathPrim, Rect, RectPrim, Style, Vec2, resolve
 from ..draw.coords import active_theme, as_drawn
 from ..themes.color import parse_color
 from ..render.paint import MITER_LIMIT
+
+
+def raster_scatter_points(panel, points, *, size=None, color=None, marker='circle',
+                          dpi=300, clip=None, **style):
+    """Resolve marker prototypes once, without building a tree per point."""
+    from .marks import _per_point
+    from ..draw.shapes import marker as make_marker
+    from ..figure import apply_theme
+    data = [tuple(p) for p in points]
+    if not data:
+        raise DiagramError('scatter() was given no points')
+    sizes = _per_point(size, len(data), 'size')
+    fills = _per_point(color, len(data), 'color')
+    theme = active_theme()
+    kind = style.pop('kind', 'place')
+    group_style = Style(**style)
+    opacity = 1. if group_style.opacity is None else group_style.opacity
+    group_style = replace(group_style, opacity=1.)
+
+    @lru_cache(maxsize=128)
+    def prototype(size, fill):
+        node = make_marker(marker, size)
+        if fill is not None:
+            node = node.styled(fill=fill)
+        root = apply_theme(Diagram(children=(node,), style=group_style, kind=kind), theme)
+        placed = next(p for p in resolve(root, base_style=theme.style_for('root')).values()
+                      if p.diagram.prim is not None)
+        return placed.diagram.prim, placed.world, placed.style, placed.bbox
+
+    records = []
+    for point, size, fill in zip(data, sizes, fills):
+        prim, world, paint, bounds = prototype(size, fill)
+        p = panel.point(*point)
+        dx, dy = p.x-bounds.center.x, p.y-bounds.center.y
+        records.append((prim, Affine.translation(dx, dy) @ world, paint,
+                        Rect(bounds.x0+dx, bounds.y0+dy, bounds.x1+dx, bounds.y1+dy)))
+    return _raster_markers(records, opacity=opacity, dpi=dpi, clip=clip)
 
 
 def raster_scatter(node: Diagram, *, dpi: float = 300, clip: Rect | None = None) -> Diagram:
@@ -18,12 +56,6 @@ def raster_scatter(node: Diagram, *, dpi: float = 300, clip: Rect | None = None)
     retains the vector layer's physical coordinates, including overhangs when
     clipping is disabled. Group opacity is applied once after compositing.
     """
-    if not math.isfinite(dpi) or dpi <= 0:
-        raise ValueError("scatter dpi must be finite and positive")
-    try:
-        from PIL import Image, ImageDraw
-    except ImportError:
-        raise DiagramError('scatter(raster=True) requires Pillow; install inklet[images]') from None
     from ..figure import apply_theme
 
     theme = active_theme()
@@ -32,13 +64,23 @@ def raster_scatter(node: Diagram, *, dpi: float = 300, clip: Rect | None = None)
     placements = [p for p in resolve(apply_theme(node, theme),
                                     base_style=theme.style_for('root')).values()
                   if p.diagram.prim is not None]
-    if any(p.style.stroke_dash for p in placements):
+    records = [(p.diagram.prim, p.world, p.style, p.bbox) for p in placements]
+    return _raster_markers(records, opacity=opacity, dpi=dpi, clip=clip)
+
+
+def _raster_markers(records, *, opacity, dpi, clip):
+    if not math.isfinite(dpi) or dpi <= 0:
+        raise ValueError("scatter dpi must be finite and positive")
+    try:
+        from PIL import Image, ImageDraw
+    except ImportError:
+        raise DiagramError('scatter(raster=True) requires Pillow; install inklet[images]') from None
+    if any(style.stroke_dash for _, _, style, _ in records):
         raise DiagramError("raster scatter does not support dashed marker outlines; use raster=False")
     boxes = []
-    for p in placements:
-        b = p.bbox
-        pad = (p.style.stroke_width or 0)/2 if p.style.stroke not in (None,'none') else 0
-        if p.style.stroke_linejoin == "miter" and isinstance(p.diagram.prim, (RectPrim, PathPrim)):
+    for shape, world, style, b in records:
+        pad = (style.stroke_width or 0)/2 if style.stroke not in (None,'none') else 0
+        if style.stroke_linejoin == "miter" and isinstance(shape, (RectPrim, PathPrim)):
             pad *= MITER_LIMIT
         boxes.append(Rect(b.x0-pad,b.y0-pad,b.x1+pad,b.y1+pad))
     box = clip or Rect(min(b.x0 for b in boxes), min(b.y0 for b in boxes),
@@ -52,19 +94,17 @@ def raster_scatter(node: Diagram, *, dpi: float = 300, clip: Rect | None = None)
     sx,sy=width*aa/box.width,height*aa/box.height
     def pixel(v): return ((v.x-box.x0)*sx,(v.y-box.y0)*sy)
     painted=set()
-    for p,b in zip(placements,boxes):
+    for (shape, world, style, _), b in zip(records,boxes):
         if b.x1 < box.x0 or b.x0 > box.x1 or b.y1 < box.y0 or b.y0 > box.y1: continue
         x0=max(0,math.floor((b.x0-box.x0)*sx)-2)
         y0=max(0,math.floor((b.y0-box.y0)*sy)-2)
         x1=min(width*aa,math.ceil((b.x1-box.x0)*sx)+3)
         y1=min(height*aa,math.ceil((b.y1-box.y0)*sy)+3)
         if x1<=x0 or y1<=y0: continue
-        shape=p.diagram.prim
         size=(x1-x0,y1-y0)
         patch=Image.new('RGBA',size)
-        style=p.style
         def local(v):
-            x,y=pixel(p.world.apply(v));return (x-x0,y-y0)
+            x,y=pixel(world.apply(v));return (x-x0,y-y0)
         def mask(stroke):
             m=Image.new('L',size)
             d=ImageDraw.Draw(m)

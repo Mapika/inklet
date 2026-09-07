@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, fields, replace
+from functools import lru_cache
 
 from .units import UnitError, mm
 
@@ -109,6 +110,7 @@ class Style:
                 "font_weight='bold', font_style='italic'"
             )
 
+    @lru_cache(maxsize=4096)
     def over(self, base: Style | None) -> Style:
         """Resolve self against an inherited style, self winning where set.
 
@@ -120,10 +122,10 @@ class Style:
         if base is None:
             return self
         merged = object.__new__(Style)
-        for field_ in fields(self):
-            mine = getattr(self, field_.name)
-            object.__setattr__(merged, field_.name,
-                               getattr(base, field_.name) if mine is None else mine)
+        for name in _STYLE_FIELDS:
+            mine = getattr(self, name)
+            object.__setattr__(merged, name,
+                               getattr(base, name) if mine is None else mine)
         return merged
 
     def with_(self, **kwargs) -> Style:
@@ -131,7 +133,7 @@ class Style:
 
     @property
     def is_empty(self) -> bool:
-        return all(getattr(self, f.name) is None for f in fields(self))
+        return all(getattr(self, name) is None for name in _STYLE_FIELDS)
 
 
 def _is_number(value) -> bool:
@@ -176,4 +178,5 @@ def _dash(value) -> tuple[float, ...]:
     return tuple(out)
 
 
+_STYLE_FIELDS = tuple(f.name for f in fields(Style))
 EMPTY_STYLE = Style()

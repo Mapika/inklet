@@ -233,7 +233,7 @@ Create a live architecture module; width follows measured label edits.
 
 A physical page containing named, live figure definitions.
 
-* `add(name, item, *, row=None, column=0, rowspan=1, colspan=1, min_width=None, min_height=None)` -- Place a named cell. Omitted row appends below existing cells.
+* `add(name, item, *, row=None, column=0, rowspan=1, colspan=1, min_width=None, min_height=None, align='center')` -- Place a named cell; align fixed artwork by a compass point.
 * `configure(**options)` -- Validate page changes together before applying them.
 * `use_preset(selected, *, format=None, keep_overrides=True, **options)` -- Switch presets and remeasure live content, preserving explicit page options.
 * `replace(name, item)` -- Replace a cell definition while retaining its layout constraints.

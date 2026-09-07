@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.1.0.dev10 — development preview (unreleased)
+
+- Render dense raster scatter directly from shared marker prototypes, preserving
+  input order, opacity, clipping, physical marker sizes and vector axes.
+- Reuse immutable styles and measured geometry; avoid rebuilding fixed component
+  factories during layout passes and page resizes. Solve ordinary grid tracks
+  directly and share plot margins without pairwise cell scans.
+- Reserve panel-letter space for fixed drawings inside nested grids. Add compass
+  cell alignment (`align='nw'`, etc.) without scaling artwork or typography.
+- Include strokes, curves and text halos in PDF transparency-group bounds so
+  compositing cannot clip ink to its narrower layout envelope.
+- Avoid repeated image encoding/hashing within an export and skip unused shaping
+  tables when embedding already-shaped PDF glyphs. Keep SVG font shaping intact.
+- Add fresh-process rendering benchmarks, a four-panel review figure and a
+  before/after PDF comparison, with external captions and reproducible recipes.
+
 ## 3.1.0.dev9 — development preview (unreleased)
 
 - Refine plot appearance with lighter default axes and top/bottom legends that

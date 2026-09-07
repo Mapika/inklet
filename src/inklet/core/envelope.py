@@ -149,7 +149,7 @@ class Envelope:
         return Envelope(support, parts)
 
     def transform(self, t: Affine) -> Envelope:
-        if self.support is None:
+        if self.support is None or t.is_identity:
             return self
         # `extent` rather than `support`: a transform is where the layout tree
         # is stitched together, so the same inner envelope is asked the same

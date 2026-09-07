@@ -11,6 +11,17 @@
     "featured": true
   },
   {
+    "id": "engine-review",
+    "title": "Rendering and nested layout",
+    "category": "Layout",
+    "description": "Dense scatter, complete transparent strokes, text halos and aligned fixed drawings in nested grids.",
+    "requires": "Core + render",
+    "image": "gallery/engine-review.png",
+    "version": "Research preview",
+    "page": "rendering-engine/",
+    "featured": false
+  },
+  {
     "id": "stress20",
     "title": "Twenty panels, one page",
     "category": "Layout",

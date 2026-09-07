@@ -543,11 +543,20 @@ class Panel:
             color = self._series_color(name, color)
         self._note(name, "marker", marker=marker,
                    color=color if isinstance(color, str) else None)
-        node = _marks.scatter(self, points, size=size, color=color,
-                              marker=marker, **style)
         if not isinstance(raster, bool):
             raise ValueError("scatter raster must be True or False")
-        if raster:
+        direct_raster = raster and not {'anchor', 'origin'}.intersection(style)
+        if direct_raster:
+            from .scatter_raster import raster_scatter_points
+            node = raster_scatter_points(self, points, size=size, color=color,
+                                         marker=marker, dpi=dpi,
+                                         clip=self.area if (self.clip if clip is None else clip) else None,
+                                         **style)
+            clip = False
+        else:
+            node = _marks.scatter(self, points, size=size, color=color,
+                                  marker=marker, **style)
+        if raster and not direct_raster:
             from .scatter_raster import raster_scatter
             node = raster_scatter(node, dpi=dpi,
                                   clip=self.area if (self.clip if clip is None else clip) else None)

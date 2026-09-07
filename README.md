@@ -23,7 +23,9 @@ dense scatter and scalar field are rasterized; the other artwork remains vector.
 The development branch adds [everyday plots from CSV tables](https://inklet.readthedocs.io/en/latest/general-plots/),
 with typed input, lighter axes and legends that fit the available width. The
 example covers machine-learning, engineering and business data, with separate
-manuscript captions. Other opt-in research work includes
+manuscript captions. The [rendering engine update](https://inklet.readthedocs.io/en/latest/rendering-engine/)
+improves dense scatter, repeated-image exports and nested layouts, with measured
+benchmarks and PDF quality comparisons. Other opt-in research work includes
 [complete figure planning](https://inklet.readthedocs.io/en/latest/research-preview/)
 and [calibrated microscopy](https://inklet.readthedocs.io/en/latest/calibrated-volumes/).
 Stable 3.0 remains available on PyPI.

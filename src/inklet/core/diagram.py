@@ -355,6 +355,9 @@ class Diagram:
             name=self.name,
             envelope_override=self.envelope_override,
             attached_to=self.attached_to,
+            # Renumbering does not change geometry. Retain immutable envelope
+            # and trace values while keeping the cache dictionary independent.
+            _cache=dict(self._cache),
         )
         clone.anchors.update(self.anchors)
         clone.notes.update(self.notes)

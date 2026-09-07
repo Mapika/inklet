@@ -7,6 +7,7 @@ from pathlib import Path
 from types import MappingProxyType
 import hashlib
 import json
+from itertools import accumulate
 import math
 import re
 import time
@@ -18,7 +19,7 @@ from ..links import link, route_all
 from ..diagnostics import lint, format_report
 from ..render.paint import resolve_paint
 from ..themes import Theme, theme as get_theme
-from .spec import BuildSpec, PlotSpec, fingerprint, length, themed
+from .spec import BuildSpec, ComponentSpec, PlotSpec, fingerprint, length, themed
 from .data import Dataset
 
 
@@ -36,6 +37,7 @@ class Cell:
     colspan: int = 1
     min_width: float = 20
     min_height: float = 15
+    align: str = 'center'
 
 
 class BuildContext:
@@ -57,6 +59,10 @@ class BuildContext:
             raise TypeError('document cells need a Diagram, Panel, PlotSpec or ComponentSpec')
         if id(item) in self.active:
             raise DiagramError('cyclic document dependency')
+        # Fixed factories never receive cell dimensions. Reuse their result
+        # across measurement passes and page resizes.
+        if isinstance(item, ComponentSpec) and not item.responsive:
+            width = height = None
         key = (id(item), repr(fingerprint(item)), width, height, repr(self.theme), repr(self.preset))
         if key in self.cache:
             self.hits += 1
@@ -88,15 +94,35 @@ def _tracks(count, weights, constraints, available, gap, axis):
     for start,span,required,_ in constraints:
         spans[start,span]=max(spans.get((start,span),0),required-gap*(span-1))
     prefix=[0.]*(count+1)
+    ending = {}
+    for (start,span),required in spans.items():
+        ending.setdefault(start+span,[]).append((start,required))
     for end in range(1,count+1):
         prefix[end]=max([prefix[end-1]]+[prefix[start]+required
-                         for (start,span),required in spans.items() if start+span==end])
+                         for start,required in ending.get(end,())])
     minimum=prefix[-1]+gap*(count-1)
     if available is not None and minimum>available+1e-6:
         raise LayoutError(f'{axis} requires at least {minimum:.2f} mm; only {available:.2f} mm is available '
                           f'for cells {", ".join(c[3] for c in constraints)}. Increase the page size or reduce cell minima.')
     total=prefix[-1] if available is None else available-gap*(count-1)
-    tracks=[total*w/sum(weights) for w in weights]
+    weight_sum = sum(weights)
+    tracks=[total*w/weight_sum for w in weights]
+    if all(span == 1 for _, span in spans):
+        floors = [max(0., spans.get((index, 1), 0.)) for index in range(count)]
+        remaining = max(0., total-sum(floors))
+        if remaining == 0:
+            return floors
+        # Projection onto a simplex with per-track lower bounds. This is
+        # exact in O(n log n); ordinary grids need no iterative span solver.
+        values = [target-floor for target, floor in zip(tracks, floors)]
+        partial = 0.
+        threshold = 0.
+        for rank, value in enumerate(sorted(values, reverse=True), 1):
+            partial += value
+            candidate = (partial-remaining)/rank
+            if value > candidate:
+                threshold = candidate
+        return [floor+max(0., value-threshold) for floor, value in zip(floors, values)]
     sets=[(tuple(range(count)),total,True)]
     sets.extend(((index,),0.,False) for index in range(count))
     sets.extend((tuple(range(start,start+span)),required,False) for (start,span),required in spans.items())
@@ -111,7 +137,9 @@ def _tracks(count, weights, constraints, available, gap, axis):
             for j in indices: tracks[j]+=correction+adjustment
             corrections[index]=-adjustment
         if max(abs(a-b) for a,b in zip(before,tracks))<1e-8:
-            if abs(sum(tracks)-total)<1e-6 and min(tracks)>=-1e-6:
+            if (abs(sum(tracks)-total)<1e-6 and min(tracks)>=-1e-6
+                    and all(sum(tracks[start:start+span]) >= required-1e-6
+                            for (start,span),required in spans.items())):
                 return [max(0.,v) for v in tracks]
     raise LayoutError(f'{axis} constraints did not converge; simplify overlapping spans')
 
@@ -252,20 +280,27 @@ class Document(BuildSpec):
             if not self.columns: raise ValueError('document needs at least one column')
 
     def add(self, name, item, *, row=None, column=0, rowspan=1, colspan=1,
-            min_width=None, min_height=None):
-        """Place a named cell. Omitted row appends below existing cells."""
+            min_width=None, min_height=None, align='center'):
+        """Place a named cell; align fixed artwork by a compass point.
+
+        Omitted row appends below existing cells. ``align`` accepts ``center``,
+        ``n``, ``s``, ``e``, ``w`` and the four corners. It positions artwork
+        within its cell without scaling. Plots fill their available data
+        regions and retain shared axis alignment.
+        """
         if not isinstance(name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*',name):
             raise ValueError('cell names start with a letter and contain letters, digits, underscores or hyphens')
         if any(c.name == name for c in self._cells): raise DiagramError(f'duplicate cell {name!r}')
+        if align not in ('center','n','s','e','w','nw','ne','sw','se'):
+            raise ValueError('cell align must be center, n, s, e, w, nw, ne, sw or se')
         row = max((c.row+c.rowspan for c in self._cells), default=0) if row is None else row
         for value,label,minimum in [(row,'row',0),(column,'column',0),(rowspan,'rowspan',1),(colspan,'colspan',1)]:
             if not isinstance(value,int) or isinstance(value,bool) or value < minimum:
                 raise ValueError(f'{label} must be an integer >= {minimum}')
         if column+colspan > len(self.columns): raise LayoutError(f'cell {name!r} extends beyond the columns')
-        occupied = {(r,c) for r in range(row,row+rowspan) for c in range(column,column+colspan)}
         for other in self._cells:
-            if occupied.intersection((r,c) for r in range(other.row,other.row+other.rowspan)
-                                     for c in range(other.column,other.column+other.colspan)):
+            if (row < other.row+other.rowspan and other.row < row+rowspan
+                    and column < other.column+other.colspan and other.column < column+colspan):
                 raise LayoutError(f'cell {name!r} overlaps {other.name!r}')
         if isinstance(item,Diagram):
             default_w,default_h = item.width,item.height
@@ -273,7 +308,7 @@ class Document(BuildSpec):
             default_w,default_h = 20,15
         cell=Cell(name,item,row,column,rowspan,colspan,
                   length(default_w if min_width is None else min_width,'minimum width'),
-                  length(default_h if min_height is None else min_height,'minimum height'))
+                  length(default_h if min_height is None else min_height,'minimum height'),align)
         self._cells.append(cell)
         self._last=None
         return item
@@ -340,7 +375,7 @@ class Document(BuildSpec):
         return ('subfigure', self.width, self.height, self.columns, self.margin,
                 self.gap, self.row_gap, fingerprint(self._letters, trail),
                 tuple((c.name, c.row, c.column, c.rowspan, c.colspan,
-                       c.min_width, c.min_height, fingerprint(c.item, trail)) for c in self._cells),
+                       c.min_width, c.min_height, c.align, fingerprint(c.item, trail)) for c in self._cells),
                 fingerprint(self._links, trail))
 
     def render(self, context, width=None, height=None):
@@ -354,13 +389,14 @@ class Document(BuildSpec):
     def _layout(self, context, width, height):
         if not self._cells: raise LayoutError('cannot compile an empty document')
         theme = context.theme
+        cell_indices = {c.name:index for index,c in enumerate(self._cells)}
         def decorate(node, cell):
             if not self._letters: return node
             from ..draw.annotate import letters
             options = dict(self._letters)
             if context.preset is not None:
                 options.setdefault('style', context.preset.letter_style)
-            start = chr(ord(options.pop('start')) + self._cells.index(cell))
+            start = chr(ord(options.pop('start')) + cell_indices[cell.name])
             with themed(theme):
                 tagged = letters([node], start=start, **options)[0]
             for name,point in node.anchors.items(): tagged.anchor(name,node.transform.apply(point))
@@ -369,11 +405,13 @@ class Document(BuildSpec):
         widths=_tracks(len(self.columns),self.columns,
                        [(c.column,c.colspan,c.min_width,c.name) for c in self._cells],
                        width-2*self.margin,self.gap,'width')
+        x_prefix = tuple(accumulate(widths,initial=0.))
         # Auto-height preserves authored data-region heights plus measured furniture.
         natural_heights = {}
-        if height is None:
-            for c in self._cells:
-                cell_width = sum(widths[c.column:c.column+c.colspan])+self.gap*(c.colspan-1)
+        for c in self._cells:
+            fixed = isinstance(c.item, Diagram) or (isinstance(c.item, ComponentSpec) and not c.item.responsive)
+            if height is None or fixed:
+                cell_width = x_prefix[c.column+c.colspan]-x_prefix[c.column]+self.gap*(c.colspan-1)
                 natural = context.build(c.item, cell_width,
                                         c.item.height if isinstance(c.item, PlotSpec) else None)
                 natural_heights[c.name] = decorate(natural, c).height
@@ -381,10 +419,11 @@ class Document(BuildSpec):
                         [(c.row,c.rowspan,max(c.min_height, natural_heights.get(c.name,0)),c.name)
                          for c in self._cells],
                         None if height is None else height-2*self.margin,self.row_gap,'height')
-        boxes={c.name:Rect(self.margin+sum(widths[:c.column])+self.gap*c.column,
-                           self.margin+sum(heights[:c.row])+self.row_gap*c.row,
-                           self.margin+sum(widths[:c.column+c.colspan])+self.gap*(c.column+c.colspan-1),
-                           self.margin+sum(heights[:c.row+c.rowspan])+self.row_gap*(c.row+c.rowspan-1))
+        y_prefix = tuple(accumulate(heights,initial=0.))
+        boxes={c.name:Rect(self.margin+x_prefix[c.column]+self.gap*c.column,
+                           self.margin+y_prefix[c.row]+self.row_gap*c.row,
+                           self.margin+x_prefix[c.column+c.colspan]+self.gap*(c.column+c.colspan-1),
+                           self.margin+y_prefix[c.row+c.rowspan]+self.row_gap*(c.row+c.rowspan-1))
                for c in self._cells}
         margins={c.name:(0.,0.,0.,0.) for c in self._cells}
         nodes={}
@@ -411,16 +450,17 @@ class Document(BuildSpec):
                     measured[c.name]=tuple(max(0.,v,old) for v,old in zip(
                         (a.x0-b.x0,b.x1-a.x1,a.y0-b.y0,b.y1-a.y1),margins[c.name]))
             # Share plot margins among unspanned cells in each column/row.
+            columns, row_groups = {}, {}
             for c in self._cells:
                 if not isinstance(c.item,PlotSpec): continue
-                m=list(measured[c.name])
-                for other in self._cells:
-                    if not isinstance(other.item,PlotSpec): continue
-                    n=measured[other.name]
-                    if c.column==other.column and c.colspan==other.colspan:
-                        m[0],m[1]=max(m[0],n[0]),max(m[1],n[1])
-                    if c.row==other.row and c.rowspan==other.rowspan:
-                        m[2],m[3]=max(m[2],n[2]),max(m[3],n[3])
+                left,right,top,bottom = measured[c.name]
+                a,b = columns.get((c.column,c.colspan),(0.,0.))
+                columns[c.column,c.colspan] = max(a,left),max(b,right)
+                a,b = row_groups.get((c.row,c.rowspan),(0.,0.))
+                row_groups[c.row,c.rowspan] = max(a,top),max(b,bottom)
+            for c in self._cells:
+                if not isinstance(c.item,PlotSpec): continue
+                m = (*columns[c.column,c.colspan], *row_groups[c.row,c.rowspan])
                 # Monotonic margins prevent tick-thinning oscillations.
                 measured[c.name]=tuple(max(a,b) for a,b in zip(m,margins[c.name]))
             if all(max(abs(a-b) for a,b in zip(measured[n],margins[n]))<.005 for n in margins): break
@@ -439,6 +479,10 @@ class Document(BuildSpec):
                 dx,dy=box.x0+left-area.x0,box.y0+top-area.y0
             else:
                 dx,dy=box.center.x-actual.center.x,box.center.y-actual.center.y
+                if c.align in ('w','nw','sw'): dx=box.x0-actual.x0
+                elif c.align in ('e','ne','se'): dx=box.x1-actual.x1
+                if c.align in ('n','nw','ne'): dy=box.y0-actual.y0
+                elif c.align in ('s','sw','se'): dy=box.y1-actual.y1
             handles[c.name]=node
             # Always wrap: at zero offset translated() returns the original
             # node, whose semantic kind (e.g. abutting artwork) must survive.
@@ -470,7 +514,7 @@ class Document(BuildSpec):
         theme=get_theme(self.theme) if isinstance(self.theme,str) else self.theme
         if not self._cells: raise LayoutError('cannot compile an empty document')
         context=BuildContext(theme,self._cache,self.preset)
-        signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,
+        signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram)) else id(context.build(c.item)))
                          for c in self._cells)
         key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset))
@@ -500,9 +544,10 @@ class Document(BuildSpec):
                for path in sorted(font_paths)]
         from ..assets.provenance import credits
         from .. import __version__
+        alignment = {c.name:c.align for c in self._cells}
         metadata=dict(assets=[asdict(p) for p in credits(program.root)],schema_version=2,inklet_version=__version__,width_mm=width,height_mm=page_height,fonts=fonts,
                       cells={name:dict(x=box.x0,y=box.y0,width=box.width,height=box.height,
-                                       node_id=program.ids[handles[name].id]) for name,box in boxes.items()},
+                                       node_id=program.ids[handles[name].id],align=alignment[name]) for name,box in boxes.items()},
                       datasets=_sources([c.item for c in self._cells]))
         from ..render.resources import rendering_manifest
         metadata['rendering'] = rendering_manifest(program.root)

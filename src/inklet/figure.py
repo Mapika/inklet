@@ -99,7 +99,7 @@ def apply_theme(root: Diagram, theme: Theme) -> Diagram:
                            for child in node.children),
             style=style,
             id=node.id,
-            _cache={},
+            _cache=dict(node._cache),
             anchors=dict(node.anchors),
         )
         _carry_annotations(node, clone)

@@ -35,6 +35,24 @@ a row or column share relevant furniture margins within that grid.
 
 ## Nested subfigures
 
+In the development preview, fixed artwork can align to a cell edge or corner:
+
+```python
+aligned = i.document(width=100, height=60, columns=2).letters()
+aligned.add('input', i.component(i.box, 'Input', width=30, height=18),
+            row=0, column=0, align='nw')
+aligned.add('model', i.component(i.box, 'Model', width=30, height=30),
+            row=0, column=1, align='nw')
+assert aligned.compile().root.width == 100
+```
+
+`align` defaults to `center`; it also accepts `n`, `s`, `e`, `w`, `nw`, `ne`,
+`sw` and `se`. The decorated artwork, including its panel letter, aligns within
+the cell. This positions geometry without scaling it. Plot cells continue to
+fill their available data regions and share axis margins. The compiler also
+preserves fixed drawings' measured letter space when a parent assigns a final
+height to an automatically sized subfigure.
+
 ```python
 pair = i.subfigure(columns=2, gap=6).letters()
 pair.add('control', left, row=0, column=0, min_height=50)
@@ -68,6 +86,11 @@ During natural-height measurement, `height` can be `None`. Return a measurable
 `Diagram`; account for its full bounds, including labels. A responsive factory
 receives both keywords even if it only uses one. Ordinary `component()` calls
 keep their factory's authored dimensions.
+
+The development engine reuses a fixed factory's result across measurement
+passes and page resizes when its arguments, dependencies and theme are unchanged.
+Factories must be deterministic. Responsive factories still receive the new
+cell dimensions and rebuild when those dimensions change.
 
 ## Resize and replace
 

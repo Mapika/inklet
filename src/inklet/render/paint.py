@@ -55,6 +55,6 @@ def resolve_paint(root, *, stable_ids=False):
         children = tuple(visit(child, replace(effective, opacity=None)) for child in node.children)
         return replace(node, id=ids[node.id], style=style, children=children, anchors=dict(node.anchors),
                        attached_to=tuple(ids.get(v,v) for v in node.attached_to),
-                       notes=notes(node.notes), _cache={})
+                       notes=notes(node.notes), _cache=dict(node._cache))
     result = visit(root, DEFAULT_PAINT)
     return PaintProgram(result, count, MappingProxyType(ids))
