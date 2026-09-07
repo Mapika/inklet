@@ -2,6 +2,15 @@
 
 These additions support composite figures such as the [twenty-panel stress test](stress20.md).
 
+For manuscript figures, keep panel letters, axes, units, scale bars, legends and
+necessary annotations in the artwork. Put the figure title, panel descriptions,
+methods and attribution in the manuscript caption. Avoid embedding a suptitle or
+paragraphs of explanatory prose in the figure. Presentation and teaching figures
+can use headings when they help the audience.
+
+The [microscopy intensity example](label-intensities.md) exports separate
+`caption.tex` and `caption.txt` files alongside its SVG/PDF/PNG artwork.
+
 ```python
 import inklet
 

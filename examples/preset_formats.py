@@ -51,7 +51,6 @@ def make_journal():
             .axes(x='Condition', y='Outcome / a.u.'))
     panels.add('conditions', bars, row=0, column=1)
     doc.add('panels', panels)
-    doc.add('caption', i.component(i.text, 'Simulated data. A single response trace and outcomes for three conditions.'))
     return doc
 
 
@@ -61,5 +60,9 @@ def documents():
 
 if __name__ == '__main__':
     from pathlib import Path
+    caption='Simulated data. (a) A single response trace. (b) Outcomes for three conditions.'
     for name, doc in documents().items():
-        doc.export(Path('out/preset-formats')/name)
+        output=Path('out/preset-formats')/name
+        doc.export(output)
+        if name=='journal':
+            (output/'caption.tex').write_text('\\caption{'+caption+'}\n')

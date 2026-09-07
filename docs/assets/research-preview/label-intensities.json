@@ -5425,8 +5425,10 @@
   },
   "exports": {
     "section.csv": "aac12ef0446121325a3e78a9119404ea5fdb40d6074112f9d255215349a9a67a",
+    "caption.tex": "9c1ed0907950add971c631bd7a1aa0c2055cacd5f02b90f102f2e9fd5183e110",
     "native.csv": "2bdf548130f44b85e8521d017f4c1a0acd9427919a6b4d3b6a1d69b3e5e0d23c",
     "roi.csv": "834990b9da0774a4e41241ca0c47b9c95b8a7dfd302ab82add6c4d8b1b22ed42",
+    "caption.txt": "61d690b320cf0d4a76b9242df8f4a103e8120f67b6fa80c1303d937c600776b7",
     "sampled-arrays.npz": "aa46d6a24dfc70b5d731167abcd2bceb498e746ac354d52acf80f1c12edfeabb"
   }
 }

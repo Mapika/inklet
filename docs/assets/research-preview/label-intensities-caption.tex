@@ -1,0 +1,24 @@
+\caption{Per-component fluorescence intensities in a calibrated microscopy volume.
+(a) Two-channel Allen Institute for Cell Science cells3d data on a plane tilted 10\(^{\circ}\) from XY.
+Membranes are cyan and nuclei magenta. Gold contours follow generated label pixels;
+dashed gold indicates source or image coverage limits. Numeric badges retain component IDs.
+White outlines ROI-1. (b) Central 128 by 128 sample zoom, retaining the overview's 260 nm sampling.
+Scale bars, 10 \(\mu\mathrm{m}\). (c) Native nuclear mean \(\pm\) population standard deviation of voxel intensities
+for the six largest native components visible in a. Whiskers describe within-component
+spread, not standard errors or confidence intervals. (d) Native mean membrane versus nuclear
+intensity for all 17 generated components. (e) Section versus native nuclear mean for the
+same 11 section-visible IDs; the dashed diagonal indicates equal means. (f) Percentage of
+native labelled voxel centres inside ROI-1, in the same six-ID order as c. ROI-1 spans the
+available Z depth; selection uses a half-open physical box, not an oblique image crop.
+Native ZYX spacing is 290 / 260 / 260 nm. Labels use 0.5 \(\mu\mathrm{m}\) Gaussian smoothing, nuclear
+intensity greater than 12000, 6-connected components, and a minimum volume of 20 \(\mu\mathrm{m}^3\).
+These illustrative threshold components are not validated nuclei; touching structures can
+merge and dim structures can be missed. Native boundary flags and section coverage edges
+are recorded. Native statistics use original voxels; section statistics use trilinear
+intensities and nearest-neighbour labels on the same plane. Display windows are 1200 to
+11000 for membranes and 3500 to 22000 for nuclei, with unit weights and additive display RGB.
+Windows do not alter measurements. Each component is one point in d and e, not an independent
+biological replicate. No background correction, intensity calibration or colocalization is
+inferred. Source data: Allen Institute for Cell Science / scikit-image cells3d, CC0.
+Processing and figure: Mark Marosi, MIT. Source hashes, methods, counts and plotted values
+accompany the figure.}

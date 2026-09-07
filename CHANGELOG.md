@@ -8,6 +8,8 @@
   calibration, channel identities, time selection and hashed source provenance.
 - Add a six-panel real microscopy example linking contours to intensity means,
   within-component spread, section comparisons and native region fractions.
+  Keep manuscript prose in separate LaTeX/text captions and export panel artwork
+  without embedded titles or descriptions.
 
 ## 3.1.0.dev7 — research preview (unreleased)
 

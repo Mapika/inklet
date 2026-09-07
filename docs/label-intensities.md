@@ -8,7 +8,8 @@ identify masks and table rows. It uses the Allen Institute for Cell Science
 [Full-size figure](../gallery/label-intensities.png) ·
 [Executable recipe](../examples/label_intensities.py) ·
 [Source, measurements and plotted values](assets/research-preview/label-intensities.json) ·
-[Native CSV table](assets/research-preview/label-intensities-native.csv)
+[Native CSV table](assets/research-preview/label-intensities-native.csv) ·
+[LaTeX caption](assets/research-preview/label-intensities-caption.tex)
 
 ![Six-panel microscopy figure with numbered gold component contours, a calibrated region zoom, mean and standard deviation marks, comparisons of channel and section intensities, and percentages of labelled voxels inside the region.](../gallery/label-intensities.png)
 
@@ -31,11 +32,16 @@ Native ZYX spacing is 290 / 260 / 260 nm. Channel identity, TIFF axes, supplied
 calibration, source hash and reader version accompany the output.
 
 `out/label-intensities/` contains the SVG/PDF/PNG figure, HTML review,
-`measurements.json`, `sampled-arrays.npz`, and separate `native`, `section` and
+`measurements.json`, `sampled-arrays.npz`, `caption.tex`, `caption.txt`, and separate `native`, `section` and
 `roi` tables in both CSV and JSON. The section archive contains the unwindowed
 channel values, integer labels and validity mask. The main evidence file includes
-all tables and plotted coordinates; export hashes identify the CSV and archive
+all tables and plotted coordinates; export hashes identify the CSV, archive and caption
 bytes. Import CSV `label_id` as text to preserve arbitrary-size identities.
+
+The figure artwork contains panel letters, axes, a channel legend, component IDs
+and scale bars. The title, panel descriptions, methods and attribution are kept
+in the external caption. In a LaTeX `figure` environment, place the image first,
+then `\input{caption.tex}`. Edit the caption for the manuscript's context.
 
 ## Read the panels
 

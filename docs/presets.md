@@ -19,6 +19,11 @@ doc.add('response', plot)
 doc.save('response.svg', 'response.pdf')
 ```
 
+For scientific manuscript figures, use panel letters and necessary scientific
+labels in the artwork; place titles, descriptions and methods in the manuscript
+caption. Presets style the content you author and do not automatically remove
+text. See [publication figure composition](publication-plots.md).
+
 ## Choose a family
 
 | Preset | Default format | Intended use |
