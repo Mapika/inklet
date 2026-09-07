@@ -18,9 +18,12 @@ class References(HTMLParser):
         super().__init__()
         self.references = []
         self.ids = set()
+        self.gallery_filters = set()
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        if tag == 'button' and attrs.get('data-filter'):
+            self.gallery_filters.add(attrs['data-filter'])
         if attrs.get('id'):
             self.ids.add(attrs['id'])
         # Canonical URLs identify the hosted page; they are not fetched assets.
@@ -92,6 +95,7 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert f'https://github.com/Mapika/inklet/blob/{commit}/examples/showcase/figures.py' in recipe
     gallery = json.loads((ROOT/'tools/docs_gallery.json').read_text())
     for entry in gallery:
+        assert entry['category'] in parsed_pages[(site/'examples/index.html').resolve()].gallery_filters
         assert (site/entry['image']).is_file()
         location = urlsplit(entry['page'])
         destination = (site/location.path/'index.html').resolve()

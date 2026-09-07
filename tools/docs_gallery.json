@@ -2,7 +2,7 @@
   {
     "id": "biology-panels",
     "title": "Coordinated biology figures",
-    "category": "Scientific",
+    "category": "Plots",
     "description": "Six coordinated plots from 4,500 synthetic cells and 60 genes.",
     "requires": "Python",
     "image": "gallery/biology-panels.png",
