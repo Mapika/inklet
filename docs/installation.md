@@ -3,8 +3,7 @@
 Inklet requires Python 3.11 or later and an installed TrueType/OpenType font.
 The core Python dependencies are HarfBuzz bindings and fontTools.
 
-This page covers the **3.0.0rc1** checkout. The ordinary PyPI install still
-selects 2.6; use the checkout instructions below to try RC1. See the
+This page covers **Inklet 3.0**. See the
 [compatibility matrix](compatibility.md) for tested platforms and Blender versions.
 
 ## From PyPI
@@ -26,10 +25,11 @@ Activate the environment or prefix commands with `.venv/bin/` on Linux/macOS.
 
 | Install from PyPI | Adds |
 |---|---|
+| `python -m pip install 'inklet[render]'` | Browser-free PNG, masks and raster layers |
 | `python -m pip install 'inklet[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
 | `python -m pip install 'inklet[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
 
-Extras can be combined: `python -m pip install 'inklet[images,three]'`.
+Extras can be combined: `python -m pip install 'inklet[render,images,three]'`.
 The built-in 3D renderer works without the `three` extra or Blender. Optional
 cutout/tracing tools such as `rembg` and `potrace` are not included in `images`.
 
@@ -89,8 +89,8 @@ Low-level text uses `size=i.pt(8)` for 8-point type. See
 
 ## Visual review
 
-V3 uses resvg for PNG output and review previews. Install from a
-checkout with `python -m pip install -e '.[render]'`. SVG and PDF saving need no
+V3 uses resvg for PNG output and review previews. Install with
+`python -m pip install 'inklet[render]'`. SVG and PDF saving need no
 browser; figures containing raster images also need Pillow (included in `render`).
 
 Poppler's `pdftoppm` supplies the independent PDF preview. Install `poppler-utils`
@@ -99,8 +99,8 @@ comparison while retaining the PDF file and HTML review.
 
 Chrome/Chromium is only needed for the explicit `--png-backend chromium` preview
 path or the independent SVG regression tests. See [Blender scenes](blender-scenes.md)
-for optional Blender setup. Released 2.6 uses the earlier Chromium preview path;
-its instructions are in the [stable guide](https://inklet.readthedocs.io/en/stable/installation/).
+for optional Blender setup and [migration](migration.md#from-26-to-30) for
+the change from the earlier Chromium preview path.
 
 ```sh
 python -m inklet doctor

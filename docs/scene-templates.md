@@ -1,6 +1,6 @@
 # Reusable scene templates
 
-Available in **3.0.0.dev6**. Create an editable Blender scene directly from an
+Available in **3.0**. Create an editable Blender scene directly from an
 installed Inklet package. Templates include original geometry, materials,
 studio lighting, named cameras and landmark empties. Creation requires Blender
 4.2 or later, but does not render pixels or download assets.

@@ -1,6 +1,6 @@
 # Camera-aware vector paths
 
-Available in **3.0.0.dev4**. Add a trajectory, construction line or route to a
+Available in **3.0**. Add a trajectory, construction line or route to a
 rendered scene, while keeping that path editable in SVG and PDF. The saved
 camera and depth pass determine where the path appears and which parts objects
 hide. Editing a path does not run Blender again.

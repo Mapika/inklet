@@ -6,7 +6,7 @@
     "description": "A detailed cutaway with twelve callouts, measurements and detail views.",
     "requires": "Blender",
     "image": "gallery/v3-complex-scene.png",
-    "version": "3.0 dev6",
+    "version": "3.0",
     "page": "complex-scene/",
     "featured": true
   },
@@ -17,7 +17,7 @@
     "description": "Packaged laboratory, product and architectural scenes with named cameras.",
     "requires": "Blender",
     "image": "gallery/v3-scene-templates.png",
-    "version": "3.0 dev6",
+    "version": "3.0",
     "page": "scene-templates/",
     "featured": false
   },
@@ -28,7 +28,7 @@
     "description": "World-space dimensions, angles, labels and depth-tested arrows.",
     "requires": "Blender",
     "image": "gallery/v3-scene-annotations.png",
-    "version": "3.0 dev5",
+    "version": "3.0",
     "page": "scene-annotations/",
     "featured": false
   },
@@ -39,7 +39,7 @@
     "description": "Camera-aware winding paths with hidden and dashed sections.",
     "requires": "Blender",
     "image": "gallery/v3-scene-paths.png",
-    "version": "3.0 dev4",
+    "version": "3.0",
     "page": "scene-paths/",
     "featured": false
   },
@@ -50,7 +50,7 @@
     "description": "Two radial waves, one shared colour scale.",
     "requires": "Core + render",
     "image": "gallery/showcase-interference.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "recipes/interference/",
     "featured": true
   },
@@ -61,7 +61,7 @@
     "description": "Authored materials, textured furniture and an orthographic camera.",
     "requires": "Blender + CC0 asset",
     "image": "gallery/showcase-architecture.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "recipes/architecture/",
     "featured": true
   },
@@ -72,7 +72,7 @@
     "description": "A Lorenz trajectory, drawn as continuous vector strokes.",
     "requires": "Core + render",
     "image": "gallery/showcase-attractor.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "recipes/attractor/",
     "featured": false
   },
@@ -83,7 +83,7 @@
     "description": "A rendered device and an analytic transmission curve.",
     "requires": "Blender",
     "image": "gallery/showcase-photonics.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "recipes/photonics/",
     "featured": true
   },
@@ -94,7 +94,7 @@
     "description": "Eighteen offset signals with a consistent drawing order.",
     "requires": "Core + render",
     "image": "gallery/showcase-wave-packets.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "recipes/wave-packets/",
     "featured": false
   },
@@ -105,7 +105,7 @@
     "description": "The same room and camera, with matte surfaces and outlines.",
     "requires": "Blender + CC0 asset",
     "image": "gallery/showcase-architecture-sketch.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "recipes/architecture-sketch/",
     "featured": false
   },
@@ -116,7 +116,7 @@
     "description": "A procedural strut lattice between two compression plates.",
     "requires": "Blender",
     "image": "gallery/showcase-lattice.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "recipes/lattice/",
     "featured": false
   },
@@ -127,7 +127,7 @@
     "description": "Parametric backbones and repeated connecting links.",
     "requires": "Blender",
     "image": "gallery/showcase-helix.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "recipes/helix/",
     "featured": false
   },
@@ -149,7 +149,7 @@
     "description": "GPU renders, a material change and editable vector annotations.",
     "requires": "Blender",
     "image": "gallery/v3-render-jobs.png",
-    "version": "3.0 dev",
+    "version": "3.0",
     "page": "render-jobs/",
     "featured": false
   },

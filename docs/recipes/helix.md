@@ -1,6 +1,6 @@
 # Paired helices
 
-Parametric backbones and repeated connecting links. **Inklet 3.0 development.**
+Parametric backbones and repeated connecting links. **Inklet 3.0.**
 
 ![Paired helices](../../gallery/showcase-helix.png)
 

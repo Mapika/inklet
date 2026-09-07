@@ -1,6 +1,6 @@
 # An architectural interior
 
-Authored materials, textured furniture and an orthographic camera. **Inklet 3.0 development.**
+Authored materials, textured furniture and an orthographic camera. **Inklet 3.0.**
 
 ![An architectural interior](../../gallery/showcase-architecture.png)
 

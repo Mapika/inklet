@@ -1,6 +1,6 @@
 # Designed porosity
 
-A procedural strut lattice between two compression plates. **Inklet 3.0 development.**
+A procedural strut lattice between two compression plates. **Inklet 3.0.**
 
 ![Designed porosity](../../gallery/showcase-lattice.png)
 

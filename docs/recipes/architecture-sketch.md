@@ -1,6 +1,6 @@
 # From scene to sketch
 
-The same room and camera, with matte surfaces and outlines. **Inklet 3.0 development.**
+The same room and camera, with matte surfaces and outlines. **Inklet 3.0.**
 
 ![From scene to sketch](../../gallery/showcase-architecture-sketch.png)
 

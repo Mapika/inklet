@@ -2,10 +2,9 @@
 
 ## From 2.6 to 3.0
 
-**3.0.0rc1** is a release candidate available from a checkout. The feature set
-is frozen while compatibility and release checks run. Ordinary `pip install
-inklet` still installs stable 2.6. See [installation](installation.md) and the
-[tested support matrix](compatibility.md).
+Upgrade the core package with `python -m pip install --upgrade inklet`, or include
+rendering dependencies with `python -m pip install --upgrade 'inklet[render]'`.
+See [installation](installation.md) and the [tested support matrix](compatibility.md).
 
 Existing `figure()`, `document()`, plotting, layout, presets and vector export
 APIs remain supported. There is no required rewrite of a 2.6 figure. The main
@@ -13,11 +12,11 @@ upgrade change is the **default PNG preview renderer**, now resvg instead of
 Chromium. Install the `render` extra for PNG export, masks and rasterization:
 
 ```sh
-python -m pip install -e '.[render]'
+python -m pip install --upgrade 'inklet[render]'
 ```
 
-Run that command from the cloned repository. `images` supplies Pillow and
-NumPy, but does not supply resvg. Combine extras as `.[render,images,three]`
+`images` supplies Pillow and NumPy, but does not supply resvg. Combine extras
+as `inklet[render,images,three]`
 when you also need image processing, numeric arrays or additional mesh formats.
 
 | Operation | 2.6 | 3.0 |

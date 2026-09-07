@@ -31,8 +31,9 @@ python -m pip install inklet
 ```
 
 SVG/PDF output and the built-in 3D renderer need no browser or external rendering
-engine. Text needs an installed font. For PNG layers and visual review, install
-`python -m pip install 'inklet[images]'` plus Chrome/Chromium and Poppler.
+engine. Text needs an installed font. For PNG output and visual review, install
+`python -m pip install 'inklet[render]'`. Poppler adds independent PDF previews;
+use `compare_pdf=False` or `--no-pdf-preview` for a review without it.
 See [installation](https://inklet.readthedocs.io/en/stable/installation/) for system packages, Windows activation,
 optional dependencies and environment checks.
 
@@ -127,34 +128,31 @@ drawings. See [the authoring model](https://inklet.readthedocs.io/en/stable/conc
 - Reproducible appearance requires consistent inputs, fonts and dependencies.
   The export manifest records dataset and font hashes for comparison.
 
-## V3 release candidate
+## Rendering in 3.0
 
-The [showcase library](https://inklet.readthedocs.io/en/latest/showcase/) includes
-eight mathematical, 3D and architectural figures, with realistic and sketch
-renderings. Each has executable source and explicit data/asset provenance.
+Inklet 3.0 combines complete Blender scenes with vector plots, labels and
+measurements. Cycles uses an available GPU and falls back to CPU when none is
+found. Render queues provide progress, cancellation and bounded concurrency.
+Saved camera projection and numeric passes support depth-tested paths, object
+masks and world-space dimensions without rerendering an annotation change.
 
-Version **3.0.0rc1** freezes the v3 feature set. It adds complete Blender scenes with projected object labels,
-browser-free PNG export, vector gradients/hatching and group blending. Install a
-checkout with `python -m pip install -e '.[render]'` and run
-`python tools/v3_showcase.py` for the mixed scene-and-plot example.
-Scene rendering also supports view layers, numeric depth/normal/object-ID passes
-and named object masks. Add the `images` extra and run
-`python examples/v3_scene_passes.py` for a six-panel example with NumPy exports.
-Dev3 selects an available GPU automatically, with CPU fallback when none is
-available. [Render queues](https://inklet.readthedocs.io/en/latest/render-jobs/)
-add progress, cancellation, GPU concurrency limits and reuse of identical renders.
-Dev4 adds [camera-aware vector paths](https://inklet.readthedocs.io/en/latest/scene-paths/):
-project world points and omit or dash hidden path sections without rerendering.
-Dev5 adds [scene annotations and measurements](https://inklet.readthedocs.io/en/latest/scene-annotations/):
-labels, arrows, true 3D lengths and angle arcs with editable text and vector geometry.
-Dev6 adds [reusable scene templates](https://inklet.readthedocs.io/en/latest/scene-templates/)
-and a [fully annotated laboratory cutaway](https://inklet.readthedocs.io/en/latest/complex-scene/).
+Three editable templates cover laboratory apparatus, product presentation and
+architecture. The [annotated laboratory](https://inklet.readthedocs.io/en/stable/complex-scene/)
+combines 265 objects, twelve callouts, a measured footprint, two detail views and
+an analytic response plot.
 
-[Rendering guide](https://inklet.readthedocs.io/en/latest/v3/) ·
-[Blender setup and scenes](https://inklet.readthedocs.io/en/latest/blender-scenes/).
-PyPI and the stable documentation remain on 2.6 until v3 is released.
-See the [upgrade guide](https://inklet.readthedocs.io/en/latest/migration/#from-26-to-30)
-and [compatibility matrix](https://inklet.readthedocs.io/en/latest/compatibility/).
+![An annotated laboratory cutaway with detail views and a response plot](https://raw.githubusercontent.com/Mapika/inklet/v3.0.0/gallery/v3-complex-scene.png)
+
+PNG export uses resvg and needs no browser. Gradients, hatching and group
+blending remain vector in SVG/PDF. Masks and explicit rasterization create image
+layers; keep editable text outside them. Blender is installed separately and
+remains optional for ordinary plots and native vector 3D.
+
+[Rendering guide](https://inklet.readthedocs.io/en/stable/v3/) ·
+[Scene templates](https://inklet.readthedocs.io/en/stable/scene-templates/) ·
+[Showcase library](https://inklet.readthedocs.io/en/stable/showcase/) ·
+[Upgrade from 2.6](https://inklet.readthedocs.io/en/stable/migration/#from-26-to-30) ·
+[Compatibility](https://inklet.readthedocs.io/en/stable/compatibility/)
 
 ## Documentation and development
 

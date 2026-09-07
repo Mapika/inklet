@@ -2,4 +2,4 @@
 <p class="gallery-count" role="status">{{ docs_gallery|length }} examples · select a figure for source and instructions</p>
 <div class="gallery-grid">{% for entry in docs_gallery %}{% include 'card.html' %}{% endfor %}</div>
 <p class="gallery-empty" hidden>No figures match. Try another search or choose a different category.</p>
-<div class="gallery-help"><h2>Ready to adapt an example?</h2><p>Start with the <a href="{{ 'installation/'|url }}">installation guide</a>. Examples marked 3.0 dev require a development checkout. See <a href="{{ 'showcase/'|url }}">rebuilding the showcase</a> for the complete collection and asset credits.</p></div>
+<div class="gallery-help"><h2>Ready to adapt an example?</h2><p>Start with the <a href="{{ 'installation/'|url }}">installation guide</a>. Example scripts live in the repository; install the rendering extras to rebuild them. See <a href="{{ 'showcase/'|url }}">rebuilding the showcase</a> for the complete collection and asset credits.</p></div>

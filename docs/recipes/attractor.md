@@ -1,6 +1,6 @@
 # Deterministic chaos
 
-A Lorenz trajectory, drawn as continuous vector strokes. **Inklet 3.0 development.**
+A Lorenz trajectory, drawn as continuous vector strokes. **Inklet 3.0.**
 
 ![Deterministic chaos](../../gallery/showcase-attractor.png)
 

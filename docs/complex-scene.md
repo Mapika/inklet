@@ -1,6 +1,6 @@
 # An annotated laboratory cutaway
 
-A complete **3.0.0.dev6** example combining a detailed 3D scene with vector
+A complete **3.0** example combining a detailed 3D scene with vector
 annotations, a dimension, a projected transfer route, two detail views and an
 analytic response plot. All geometry is original and uses no downloaded assets.
 

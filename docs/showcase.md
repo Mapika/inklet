@@ -2,7 +2,7 @@
 
 Eight figures made with Inklet: mathematical plots, original 3D illustrations
 and an architectural interior. Each recipe includes its data definition or asset
-credits. These are **v3 development** examples; install from a checkout.
+credits. These examples use **Inklet 3.0**; their source scripts are in the repository.
 
 Browse the [figure gallery](examples.md) for full previews, individual recipes,
 requirements and source links. This page explains how to rebuild and reuse the

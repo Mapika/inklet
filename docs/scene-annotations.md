@@ -1,6 +1,6 @@
 # Scene annotations and measurements
 
-Available in **3.0.0.dev5**. Add labels, arrows, length dimensions and angle
+Available in **3.0**. Add labels, arrows, length dimensions and angle
 measurements to a rendered scene. Geometry uses world coordinates; text,
 leader clearance, offsets and stroke widths use page units. All four helpers
 return vector overlay layers without copying the scene image.

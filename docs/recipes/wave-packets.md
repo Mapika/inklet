@@ -1,6 +1,6 @@
 # Travelling wave packets
 
-Eighteen offset signals with a consistent drawing order. **Inklet 3.0 development.**
+Eighteen offset signals with a consistent drawing order. **Inklet 3.0.**
 
 ![Travelling wave packets](../../gallery/showcase-wave-packets.png)
 

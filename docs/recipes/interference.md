@@ -1,6 +1,6 @@
 # Interference
 
-Two radial waves, one shared colour scale. **Inklet 3.0 development.**
+Two radial waves, one shared colour scale. **Inklet 3.0.**
 
 ![Interference](../../gallery/showcase-interference.png)
 

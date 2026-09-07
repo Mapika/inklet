@@ -1,9 +1,7 @@
-# Compatibility and RC1
+# Compatibility
 
-**3.0.0rc1** freezes the v3 feature set. The candidate accepts correctness,
-installation and documentation fixes. New rendering features are deferred
-until after 3.0. PyPI and the stable documentation remain on 2.6; the checkout
-and `latest` documentation contain the candidate.
+Inklet **3.0** supports the environments and rendering paths below.
+The matrix distinguishes installed-package checks from full integration tests.
 
 ## Test coverage
 
@@ -68,18 +66,18 @@ Template creation preserves existing files on failure. Its default atomic
 no-overwrite commit requires filesystem hard-link support; explicit
 `overwrite=True` uses atomic replacement. See [template creation](scene-templates.md).
 
-## Candidate acceptance
+## Release acceptance
 
 Before a stable tag:
 
 1. Require green figure, wheel and Blender jobs on the exact release commit.
 2. Build the wheel and source archive, check metadata with Twine, and run isolated
    wheel checks against those files. Build the wheel from the source archive too.
-3. Review the rendered examples and verify `latest` docs point to the candidate
+3. Review the rendered examples and verify `latest` docs point to the release
    commit. Follow the [2.6 migration example](migration.md#from-26-to-30).
 4. Freeze the release files with `SHA256SUMS`, then attach those exact files to
    the release. The [publishing workflow](release-checks.md#publishing-to-pypi)
    is a separate manual step.
 
-A green candidate is not itself a stable release. No prerelease or stable PyPI
-upload is triggered by these checks.
+Package publication is separate from validation. These checks do not upload
+anything to PyPI.

@@ -1,16 +1,15 @@
 # Complete Blender scenes
 
-Available in **3.0.0rc1**. Use an existing `.blend` scene as a figure
+Available in **3.0**. Use an existing `.blend` scene as a figure
 panel while keeping Inklet annotations, axes and plots vector.
 
 ## Setup
 
 Install [Blender](https://www.blender.org/download/) separately (tested with
-4.2 LTS and 4.5 LTS),
-then install the optional Python dependencies from an Inklet checkout:
+4.2 LTS and 4.5 LTS), then install the rendering extra:
 
 ```sh
-python -m pip install -e '.[render]'
+python -m pip install 'inklet[render]'
 inklet doctor
 ```
 
@@ -289,7 +288,7 @@ that writes only to its temporary directory. It extracts full-precision EXR
 channels there; no EXR reader is needed in the host Python environment.
 Scenes requiring scripted drivers or compositor effects need adaptation. This
 is a rendered scene image, not a general Blender-to-vector conversion.
-Animation/video export and Cryptomatte are not included in this development build.
+Animation/video export and Cryptomatte are not included in 3.0.
 
 After the first successful bundle, `inklet watch` includes scene dependencies
 from its manifest. Use `--watch` for additional dependencies and

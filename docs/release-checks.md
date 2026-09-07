@@ -28,7 +28,7 @@ successful discovery before running scene, pass, projection, annotation,
 template and render-job tests. Both jobs also generate and render all three
 templates from an installed wheel. The ordinary figure job still skips optional
 Blender integrations. GPU rendering is checked locally, not on hosted runners.
-See the [support matrix and RC1 acceptance criteria](compatibility.md).
+See the [support matrix and release acceptance criteria](compatibility.md).
 
 Run scene integrations locally with `python -m pytest tests/test_blend_scene.py
 tests/test_scene_templates.py`, then build `tools/v3_showcase.py`. Select an
@@ -94,7 +94,7 @@ The separate [publishing workflow](../.github/workflows/publish.yml) uploads
 the wheel and source archive from an existing, published GitHub release.
 It verifies the release's `SHA256SUMS` and runs Twine's strict metadata checks.
 It does not rebuild the packages, so GitHub and PyPI receive identical files.
-The workflow accepts stable release tags such as `v2.6.0` and runs from `master`.
+The workflow accepts stable release tags such as `v3.0.0` and runs from `master`.
 
 The project already has an active trusted publisher with these settings:
 
@@ -121,10 +121,10 @@ The same operations are available through the GitHub CLI:
 
 ```bash
 # Validate the existing release without uploading.
-gh workflow run publish.yml --ref master -f tag=v2.6.0 -F dry_run=true
+gh workflow run publish.yml --ref master -f tag=v3.0.0 -F dry_run=true
 
 # Publish the verified release assets.
-gh workflow run publish.yml --ref master -f tag=v2.6.0 -F dry_run=false
+gh workflow run publish.yml --ref master -f tag=v3.0.0 -F dry_run=false
 ```
 
 For subsequent versions, run release checks, create the tag and GitHub release,

@@ -1,8 +1,9 @@
 # Changelog
 
-## 3.0.0rc1
+## 3.0.0 — 2026-09-07
 
-The v3 feature set is frozen for release-candidate review.
+Complete Blender scene rendering, GPU jobs, vector annotations and browser-free
+PNG export. Existing plotting, document and SVG/PDF APIs remain supported.
 
 - Resolve font-family fallback lists in order when fontconfig is unavailable,
   fixing default-theme text on Windows without requiring extra fonts.

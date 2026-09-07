@@ -1,6 +1,6 @@
 # GPU rendering and jobs
 
-Available in **3.0 development**. Cycles scene renders now default to
+Available in **3.0**. Cycles scene renders now default to
 `device='AUTO', fallback='cpu'`: use an available GPU, otherwise CPU.
 Blender stays optional for ordinary plots and vector exports.
 

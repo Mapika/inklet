@@ -1,6 +1,6 @@
 # Integrated photonics
 
-A rendered device and an analytic transmission curve. **Inklet 3.0 development.**
+A rendered device and an analytic transmission curve. **Inklet 3.0.**
 
 ![Integrated photonics](../../gallery/showcase-photonics.png)
 

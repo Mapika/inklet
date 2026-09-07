@@ -61,7 +61,7 @@ Open the HTML file locally, or use [watch mode](cli.md#watch-and-preview).
 | Output | Contents |
 |---|---|
 | `experiment.svg`, `experiment.pdf` | Vector exports |
-| `experiment.png` | Chrome/Chromium rendering of the SVG |
+| `experiment.png` | resvg rendering of the SVG (default) |
 | `experiment-pdf.png` | Independent Poppler rendering of the PDF |
 | `experiment.html` | Review page with downloads, filters and SVG highlights |
 | `experiment-diagnostics.txt`, `experiment-diagnostics.json` | Findings with codes, severity, geometry and targets |

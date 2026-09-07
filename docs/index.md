@@ -43,10 +43,10 @@ scripts. Start with the small examples before running the
 
 ## Existing users and contributors
 
-The guides describe Inklet 2.6, including [presets and physical formats](presets.md).
+The guides describe Inklet 3.0, including [presets and physical formats](presets.md).
 The direct drawing API is still supported.
-[Migration](migration.md) covers both the old package name and moving to live
-documents. [V2](v2.md) and [v2.5](v2.5.md) document their respective additions.
+[Migration](migration.md) covers upgrading from 2.6, the old package name and
+moving to live documents. [V2](v2.md) and [v2.5](v2.5.md) document their respective additions.
 
 For development, see [contributing](../CONTRIBUTING.md),
 [release checks](release-checks.md), [the compilation contract](design/v2.md)
@@ -54,5 +54,5 @@ and [the changelog](../CHANGELOG.md). The older
 [page-grid design study](design/page_grid.md) describes a pre-v2 decision,
 not the current document API.
 
-The [v3 development build](v3.md) adds complete [Blender scenes](blender-scenes.md),
+The [3.0 release](v3.md) adds complete [Blender scenes](blender-scenes.md),
 browser-free PNG export and vector gradients, hatching and blending.
