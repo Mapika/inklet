@@ -115,8 +115,9 @@ selection, keyboard pan/zoom and opening a downloaded state.
 - Keep the existing static compiler authoritative for measured layout and vector
   export. The browser scene is a snapshot, not a replacement document model.
 - Line and bar identity/picking now have explicit boundary rules and independent
-  query checks in the [mixed-plot preview](../linked-plots.md). Region geometry
-  and arbitrary linked figures still need their own semantics and tests.
+  query checks in the [mixed-plot preview](../linked-plots.md). The
+  [region preview](../linked-maps.md) adds polygon semantics and a native fill
+  oracle. Arbitrary linked figures still need further primitives and tests.
 - Introduce explicit scene/update validation and table adapters before accepting
   browser-side data replacement. Saved views currently require matching data
   and scene revisions.

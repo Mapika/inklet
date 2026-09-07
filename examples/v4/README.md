@@ -18,7 +18,10 @@ SVG/PDF/PNG export and 20 precompiled offline HTML states. Python supports
 arbitrary subsets/multiple selections; this browser experiment offers only the
 four named filters and one selected region at a time.
 
-Remaining: geographic rendering, date-series fixtures and plots, distribution
+The [regional map example](../../docs/linked-maps.md) now supplies geographic
+polygon rendering, arbitrary ID filters and direct picking.
+
+Remaining: date-series fixtures and plots, distribution
 and faceting views, generic browser picking/zoom, and arbitrary browser data
 updates. The current HTML is an experiment in state/export fidelity, not a new
 renderer or a general dashboard API.
@@ -110,3 +113,24 @@ The restored HTML applies the saved state on opening. The
 [guide](../../docs/linked-plots.md) documents endpoint selection, filtering gaps,
 bar widths/baselines, clipping and current scope. `tests/test_browser_figure.py`
 checks mixed geometry against an independent exhaustive picker and Python SVG.
+
+## Regional maps and geometry review
+
+`regional_analysis.py` joins the original region GeoJSON and CSV by string IDs.
+Two maps, revenue bars and a scatter panel share selection/filter state. Fixed
+color bins retain their legends when filtering. `region_shapes.py` exercises
+holes, concave boundaries, multipolygon islands and overlapping features.
+Both examples use a flat longitude/latitude view with equal physical degree
+scales; these invented regions do not support geographic measurement claims.
+
+```sh
+python examples/v4/regional_analysis.py --output out/v4-regions
+python examples/v4/regional_analysis.py --group North --output out/v4-north
+python examples/v4/regional_analysis.py --state /path/to/view.json --output out/v4-restored
+python examples/v4/region_shapes.py --output out/v4-region-shapes
+```
+
+The [guide](../../docs/linked-maps.md) documents the supported GeoJSON subset,
+strict joins, missing values, source-order picking and static reconstruction.
+`tests/test_browser_regions.py` checks geometry validation, native browser fill
+agreement and Python/browser vector and raster agreement.

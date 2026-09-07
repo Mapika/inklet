@@ -16,6 +16,7 @@ from xml.etree import ElementTree as ET
 
 from ...core import resolve
 from ..selection import KeyedTable, SelectionState
+from .regions import GeoRegions
 
 SCHEMA = 'inklet.browser-scatter/0.1'
 STATE_SCHEMA = 'inklet.browser-view/0.1'
@@ -108,6 +109,76 @@ class BarView(_CartesianView):
             raise ValueError('bar orientation must be vertical or horizontal')
 
 
+@dataclass(frozen=True)
+class RegionView:
+    """Flat longitude/latitude map fitted with equal physical degree scales.
+
+    Extent is (west, south, east, north). Colors use explicit half-open value
+    bins: below first break, between breaks, at/above the last break. A missing
+    value uses missing_color. Values and legend never rescale during filtering.
+    """
+    name: str
+    regions: GeoRegions
+    extent: tuple[float,float,float,float]
+    value: str | None = None
+    breaks: tuple[float,...] = ()
+    colors: tuple[str,...] = ('#34786b',)
+    value_label: str = ''
+    missing_color: str = '#d4d9d6'
+
+    def __post_init__(self):
+        if not isinstance(self.name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*',self.name):
+            raise ValueError('view name needs a stable document cell identifier')
+        if not isinstance(self.regions,GeoRegions): raise ValueError('regions must be GeoRegions')
+        extent=tuple(self.extent)
+        if (len(extent)!=4 or not all(_finite(v) for v in extent) or
+                not -180<=extent[0]<extent[2]<=180 or not -90<=extent[1]<extent[3]<=90):
+            raise ValueError('extent needs increasing west/south/east/north degree bounds')
+        breaks=tuple(self.breaks); colors=tuple(self.colors)
+        if not all(_finite(v) for v in breaks) or any(a>=b for a,b in zip(breaks,breaks[1:])):
+            raise ValueError('breaks must be finite and strictly increasing')
+        if len(colors)!=len(breaks)+1 or any(not isinstance(c,str) or not re.fullmatch('#[0-9a-fA-F]{6}',c) for c in (*colors,self.missing_color)):
+            raise ValueError('provide one hex color per bin and a hex missing color')
+        if self.value is not None and (not isinstance(self.value,str) or not self.value):
+            raise ValueError('value must be a column name or None')
+        if self.value is None and breaks: raise ValueError('breaks require a value column')
+        if not isinstance(self.value_label,str): raise ValueError('value label must be a string')
+        object.__setattr__(self,'extent',extent);object.__setattr__(self,'breaks',breaks);object.__setattr__(self,'colors',colors)
+
+    def _legend(self, missing=False):
+        if self.value is None: return []
+        if not self.breaks: labels=['All values']
+        else:
+            labels=[f'< {self.breaks[0]:g}']
+            labels += [f'{a:g}–< {b:g}' for a,b in zip(self.breaks,self.breaks[1:])]
+            labels += [f'≥ {self.breaks[-1]:g}']
+        entries=list(zip(labels,self.colors))
+        if missing: entries.append(('Missing',self.missing_color))
+        return entries
+
+
+def _region_layer(view,table,bounds):
+    west,south,east,north=view.extent
+    scale=min(bounds[2]/(east-west),bounds[3]/(north-south))
+    if not math.isfinite(scale): raise ValueError('region extent is too small to project')
+    w,h=(east-west)*scale,(north-south)*scale
+    clip=[round(bounds[0]+(bounds[2]-w)/2,6),round(bounds[1]+(bounds[3]-h)/2,6),round(w,6),round(h,6)]
+    def project(p): return [round(clip[0]+(p[0]-west)*scale,6),round(clip[1]+(north-p[1])*scale,6)]
+    features=dict(view.regions.features);marks=[]
+    for n,key in enumerate(table.row_ids):
+        value=table.columns[view.value][n] if view.value is not None else 0
+        color=view.missing_color if value is None else view.colors[sum(value>=b for b in view.breaks)]
+        for polygon in features[key]:
+            rings=[[project(p) for p in ring] for ring in polygon]
+            vertices=[p for ring in rings for p in ring]
+            xs,ys=zip(*vertices)
+            marks.append(dict(kind='polygon',ids=[key],geometry=rings,color=color,
+                              bounds=[min(xs),min(ys),max(xs),max(ys)]))
+    return dict(name=view.name,clip=clip,marks=marks,color=view.colors[0],value=view.value,
+                legend=view._legend(any(v is None for v in table.columns[view.value]) if view.value else False),
+                projection='plate-carree',extent=view.extent,geometry_digest=view.regions.digest)
+
+
 def _marks(layer):
     if 'marks' in layer: return layer['marks']
     return [dict(kind='circle', ids=[key], geometry=[x,y,layer['radius']])
@@ -116,7 +187,12 @@ def _marks(layer):
 
 def _svg_mark(mark, color, selected=False):
     """Shared physical geometry and styling contract for static vector export."""
-    g=mark['geometry']; kind=mark['kind']
+    g=mark['geometry']; kind=mark['kind']; color=mark.get('color',color)
+    if kind=='polygon':
+        path=' '.join('M '+' L '.join(f'{x} {y}' for x,y in ring)+' Z' for ring in g)
+        return 'path',{'d':path,'fill-rule':'evenodd','fill':'none' if selected else color,
+                       'stroke':'#bd5636' if selected else '#ffffff',
+                       'stroke-width':'.6' if selected else '.2','stroke-linejoin':'round'}
     if kind=='circle':
         tag='circle'; attrs=dict(cx=g[0],cy=g[1],r=g[2]+(.3 if selected else 0))
     elif kind=='rect':
@@ -132,7 +208,7 @@ def _svg_mark(mark, color, selected=False):
 
 
 class BrowserFigure:
-    """Measured linked circles, line segments and bars with fixed linear axes.
+    """Measured linked circles, line segments, bars and geographic regions.
 
     The scene snapshots a keyed table. Null coordinate pairs omit marks and
     break lines. Page zoom never recomputes domains, ticks or layout.
@@ -141,19 +217,35 @@ class BrowserFigure:
     def __init__(self, table: KeyedTable, views, *, width=190, columns=None):
         import inklet as i
         views=tuple(views)
-        if not views or len(views)>4 or any(type(v) not in (ScatterView,LineView,BarView) for v in views):
-            raise ValueError('provide one to four scatter, line or bar view definitions')
+        if not views or len(views)>4 or any(type(v) not in (ScatterView,LineView,BarView,RegionView) for v in views):
+            raise ValueError('provide one to four scatter, line, bar or region view definitions')
         if len({v.name for v in views})!=len(views): raise ValueError('view names must be unique')
         columns=min(2,len(views)) if columns is None else columns
         if type(columns) is not int or not 1<=columns<=4: raise ValueError('columns must be from 1 to 4')
         doc=i.document(width=width,columns=columns,gap=9,margin=6).letters()
         for index,view in enumerate(views):
-            for column in (view.x,view.y):
-                if column not in table.columns: raise ValueError(f'unknown column: {column}')
-                if any(v is not None and not _finite(v) for v in table.columns[column]):
-                    raise ValueError(f'coordinate column {column!r} must be numeric or null')
-            p=i.plot_spec(x=view.x_domain,y=view.y_domain,height=58)
-            p.axes(x=view.x_label or view.x,y=view.y_label or view.y)
+            if isinstance(view,RegionView):
+                if set(view.regions.feature_ids)!=set(table.row_ids):
+                    missing=set(table.row_ids)-set(view.regions.feature_ids)
+                    extra=set(view.regions.feature_ids)-set(table.row_ids)
+                    raise ValueError(f'region/table ID mismatch: missing geometry {sorted(missing)}, unmatched geometry {sorted(extra)}')
+                if view.value is not None:
+                    if view.value not in table.columns: raise ValueError(f'unknown value column: {view.value}')
+                    if any(v is not None and not _finite(v) for v in table.columns[view.value]):
+                        raise ValueError('region values must be numeric or null')
+                p=i.plot_spec(x=(0,1),y=(0,1),height=58)
+                # Reserve the full map area even though browser marks are added
+                # later. A legend-only panel would otherwise fit to its text.
+                p.line([(0,0),(1,1)],stroke='none',stroke_width=0)
+                entries=view._legend(any(v is None for v in table.columns[view.value]) if view.value else False)
+                if entries: p.legend(entries=entries,side='bottom',title=view.value_label or view.value,markup=False)
+            else:
+                for column in (view.x,view.y):
+                    if column not in table.columns: raise ValueError(f'unknown column: {column}')
+                    if any(v is not None and not _finite(v) for v in table.columns[column]):
+                        raise ValueError(f'coordinate column {column!r} must be numeric or null')
+                p=i.plot_spec(x=view.x_domain,y=view.y_domain,height=58)
+                p.axes(x=view.x_label or view.x,y=view.y_label or view.y)
             doc.add(view.name,p,row=index//columns,column=index%columns)
         figure=doc.compile()
         if any(d.severity=='error' for d in figure.diagnostics): raise ValueError(figure.report())
@@ -171,6 +263,8 @@ class BrowserFigure:
             if (t.a,t.b,t.c,t.d)!=(1.,0.,0.,1.): raise ValueError('unsupported transformed plot cell')
             bounds=[rect.x0+t.e,rect.y0+t.f,rect.width,rect.height]
             bounds=[round(v,6) for v in bounds]
+            if isinstance(view,RegionView):
+                layers.append(_region_layer(view,table,bounds));continue
             def project(x,y):
                 px=bounds[0]+(x-view.x_domain[0])/(view.x_domain[1]-view.x_domain[0])*bounds[2]
                 py=bounds[1]+(1-(y-view.y_domain[0])/(view.y_domain[1]-view.y_domain[0]))*bounds[3]
@@ -201,6 +295,7 @@ class BrowserFigure:
             layers.append(layer)
         payload=dict(schema=self._schema,table=table.name,data_digest=table.digest,row_ids=table.row_ids,
                      columns=dict(table.columns),width=width_mm,height=height_mm,frame=frame,layers=layers)
+        if table.key!='id': payload['key']=table.key
         raw=json.dumps(payload,sort_keys=True,separators=(',',':'),allow_nan=False)
         payload['scene_digest']=hashlib.sha256(raw.encode()).hexdigest()
         self._json=json.dumps(payload,separators=(',',':'),allow_nan=False)

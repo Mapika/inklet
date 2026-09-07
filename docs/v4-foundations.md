@@ -125,7 +125,8 @@ and hybrid modes with measured text, clipping and dense scatter. It implements
 direct picking, arbitrary visible/selected subsets, page pan/zoom and portable
 view state. The [backend decision](design/browser-backends.md) is deliberately
 limited to fixed-axis circular scatter. The [mixed-plot preview](linked-plots.md) now extends geometry and picking to
-lines and bars. Next add regions and connect the regional analysis workflow.
+lines and bars. The [region map preview](linked-maps.md) adds polygon joins and a first regional
+analysis figure. Next support explicit data updates and broaden that workflow.
 
 The three reference projects now have small, attributed fixtures and numerical
 checks. The analyst project has the linked-plot prototype; maps/facets and the

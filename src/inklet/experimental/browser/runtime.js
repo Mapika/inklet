@@ -2,6 +2,20 @@
 const NS='http://www.w3.org/2000/svg';
 function element(tag,attrs={}){const e=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));return e;}
 function inside(x,y,b){return x>=b[0]&&x<=b[0]+b[2]&&y>=b[1]&&y<=b[1]+b[3];}
+function polygonPath(rings){return rings.map(r=>'M '+r.map(p=>p.join(' ')).join(' L ')+' Z').join(' ');}
+function polygonContains(x,y,rings){
+  let contained=false;
+  for(const ring of rings)for(let n=1;n<ring.length;n++){
+    const a=ring[n-1],b=ring[n],dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy);
+    if(length){
+      const along=(x-a[0])*(dx/length)+(y-a[1])*(dy/length);
+      const across=Math.abs((x-a[0])*(dy/length)-(y-a[1])*(dx/length));
+      if(across<=1e-10&&along>=-1e-10&&along<=length+1e-10)return true;
+    }
+    if((a[1]>y)!==(b[1]>y)&&x<a[0]+(y-a[1])/(b[1]-a[1])*(b[0]-a[0]))contained=!contained;
+  }
+  return contained;
+}
 function download(value,name,type){const url=URL.createObjectURL(new Blob([value],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 let rendererId=0;
 class ScatterRenderer{
@@ -41,7 +55,7 @@ class ScatterRenderer{
         }
         else{
           const pad=item.kind==='line'?item.width/2:0,b=layer.clip;
-          box=item.kind==='rect'?[g[0],g[1],g[0]+g[2],g[1]+g[3]]:
+          box=item.kind==='polygon'?item.bounds:item.kind==='rect'?[g[0],g[1],g[0]+g[2],g[1]+g[3]]:
             [Math.min(g[0],g[2])-pad,Math.min(g[1],g[3])-pad,Math.max(g[0],g[2])+pad,Math.max(g[1],g[3])+pad];
           box=[Math.max(box[0],b[0]),Math.max(box[1],b[1]),Math.min(box[2],b[0]+b[2]),Math.min(box[3],b[1]+b[3])];
         }
@@ -79,7 +93,8 @@ class ScatterRenderer{
         if(seen.has(item))continue;seen.add(item);
         if(!this.markShown(item)||!inside(x,y,item.layer.clip))continue;
         const g=item.geometry;let distance,allowed=tolerance,id=item.id;
-        if(item.kind==='circle'){distance=Math.hypot(x-g[0],y-g[1]);allowed+=g[2];}
+        if(item.kind==='polygon'){if(!polygonContains(x,y,g))continue;distance=0;}
+        else if(item.kind==='circle'){distance=Math.hypot(x-g[0],y-g[1]);allowed+=g[2];}
         else if(item.kind==='rect')distance=Math.hypot(Math.max(g[0]-x,0,x-g[0]-g[2]),Math.max(g[1]-y,0,y-g[1]-g[3]));
         else{
           // Normalize before subtraction/dot products to avoid overflow for
@@ -101,7 +116,11 @@ class ScatterRenderer{
   svgMarks(target,selectedOnly=false,prefix='live-clip-'){
     const groups=this.clips(target,prefix);
     for(const item of selectedOnly?this.selectedItems():this.items){if(!this.markShown(item))continue;
-      const g=item.geometry;let tag=item.kind,attrs;
+      const g=item.geometry,color=item.color??item.layer.color;let tag=item.kind,attrs;
+      if(tag==='polygon'){
+        groups[item.layerIndex].append(element('path',{d:polygonPath(g),'fill-rule':'evenodd',fill:selectedOnly?'none':color,
+          stroke:selectedOnly?'#bd5636':'#ffffff','stroke-width':selectedOnly?.6:.2,'stroke-linejoin':'round'}));continue;
+      }
       if(tag==='circle')attrs={cx:g[0],cy:g[1],r:g[2]+(selectedOnly?.3:0)};
       else if(tag==='rect')attrs={x:g[0],y:g[1],width:g[2],height:g[3]};
       else attrs={x1:g[0],y1:g[1],x2:g[2],y2:g[3],'stroke-width':item.width+(selectedOnly?.6:0),'stroke-linecap':'round',stroke:selectedOnly?'#bd5636':item.layer.color};
@@ -117,7 +136,12 @@ class ScatterRenderer{
       ctx.fillStyle=layer.color;ctx.lineCap='round';
       for(const item of this.layerItems[n]){
         if(!this.markShown(item)||(selectedOnly&&!item.ids.some(id=>this.selected.has(id))))continue;
-        const g=item.geometry;ctx.beginPath();ctx.strokeStyle=selectedOnly?'#bd5636':layer.color;
+        const g=item.geometry;ctx.beginPath();ctx.fillStyle=item.color??layer.color;ctx.strokeStyle=selectedOnly?'#bd5636':layer.color;
+        if(item.kind==='polygon'){
+          for(const ring of g){ctx.moveTo(...ring[0]);for(const p of ring.slice(1))ctx.lineTo(...p);ctx.closePath();}
+          ctx.globalAlpha=1;ctx.lineWidth=selectedOnly?.6:.2;ctx.lineJoin='round';ctx.strokeStyle=selectedOnly?'#bd5636':'#ffffff';
+          if(!selectedOnly)ctx.fill('evenodd');ctx.stroke();continue;
+        }
         ctx.globalAlpha=selectedOnly||item.kind==='line'?1:.65;ctx.lineWidth=.3;
         if(item.kind==='circle')ctx.arc(g[0],g[1],g[2]+(selectedOnly?.3:0),0,2*Math.PI);
         else if(item.kind==='rect')ctx.rect(...g);
@@ -188,7 +212,7 @@ function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));con
   const start=page*20;if(start>=visible.length&&page)page=0;tableBody.replaceChildren();
   for(const id of visible.slice(page*20,page*20+20)){const n=runtime.rowIndex.get(id),tr=document.createElement('tr');
     const th=document.createElement('th');th.scope='row';th.textContent=id;tr.append(th);
-    for(const column of Object.keys(scene.columns).filter(c=>c!=='id')){const td=document.createElement('td');const value=scene.columns[column][n];td.textContent=typeof value==='number'?Number(value.toPrecision(6)).toString():(value??'Missing');tr.append(td);}
+    for(const column of Object.keys(scene.columns).filter(c=>c!==(scene.key??'id'))){const td=document.createElement('td');const value=scene.columns[column][n];td.textContent=typeof value==='number'?Number(value.toPrecision(6)).toString():(value??'Missing');tr.append(td);}
     const td=document.createElement('td'),button=document.createElement('button');button.textContent=runtime.selected.has(id)?'Deselect':'Select';button.setAttribute('aria-label',button.textContent+' '+id);button.setAttribute('aria-pressed',runtime.selected.has(id));
     button.onclick=()=>{toggle(id,true);document.getElementById('id-filter').focus();};td.append(button);tr.append(td);tableBody.append(tr);
   }
@@ -197,7 +221,7 @@ function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));con
 }
 function toggle(id,multi){const selected=multi?new Set(runtime.selected):new Set();if(selected.has(id))selected.delete(id);else selected.add(id);runtime.select([...selected]);message();}
 function action(fn){try{fn();error.textContent='';message();}catch(e){error.textContent=e.message;}}
-const headers=document.getElementById('headers');for(const label of ['Row ID',...Object.keys(scene.columns).filter(c=>c!=='id'),'Selection']){const th=document.createElement('th');th.scope='col';th.textContent=label;headers.append(th);}
+const headers=document.getElementById('headers');for(const label of ['Row ID',...Object.keys(scene.columns).filter(c=>c!==(scene.key??'id')),'Selection']){const th=document.createElement('th');th.scope='col';th.textContent=label;headers.append(th);}
 document.getElementById('backend').onchange=e=>action(()=>runtime.setBackend(e.target.value));
 document.getElementById('id-filter').oninput=e=>action(()=>{const q=e.target.value;page=0;runtime.setVisible(q?scene.row_ids.filter(id=>id.includes(q)):null);});
 document.getElementById('clear').onclick=()=>action(()=>runtime.select([]));
@@ -211,7 +235,11 @@ const stage=document.getElementById('stage');let drag=null,moved=false;
 stage.onpointerdown=e=>{if(e.button!==0)return;stage.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,viewport:[...runtime.viewport]};moved=false;stage.setPointerCapture(e.pointerId);};
 stage.onpointermove=e=>{const p=runtime.point(e.clientX,e.clientY);if(!p)return;
   if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>3)moved=true;if(moved){const s=runtime.mapping().scale;action(()=>runtime.setViewport([drag.viewport[0]-dx/s,drag.viewport[1]-dy/s,drag.viewport[2],drag.viewport[3]]));}}
-  else{const hit=runtime.pick(p.x,p.y,4/runtime.mapping().scale);document.getElementById('hover').textContent=hit?`${hit.id} · ${hit.layer.x}: ${Number(scene.columns[hit.layer.x][runtime.rowIndex.get(hit.id)].toPrecision(6))} · ${hit.layer.y}: ${Number(scene.columns[hit.layer.y][runtime.rowIndex.get(hit.id)].toPrecision(6))}`:'Point at a mark to inspect its row ID.';}
+  else{const hit=runtime.pick(p.x,p.y,4/runtime.mapping().scale);
+    const fields=hit?(hit.kind==='polygon'?[hit.layer.value].filter(Boolean):[hit.layer.x,hit.layer.y]):[];
+    const values=fields.map(column=>{const value=scene.columns[column][runtime.rowIndex.get(hit.id)];return `${column}: ${value===null?'Missing':Number(value.toPrecision(6))}`;});
+    document.getElementById('hover').textContent=hit?[hit.id,...values].join(' · '):'Point at a mark to inspect its row ID.';
+  }
 };
 stage.onpointerup=e=>{if(!drag)return;drag=null;if(!moved){const p=runtime.point(e.clientX,e.clientY),hit=p&&runtime.pick(p.x,p.y,4/runtime.mapping().scale);if(hit)toggle(hit.id,e.ctrlKey||e.metaKey||e.shiftKey);}stage.releasePointerCapture(e.pointerId);};
 stage.onpointercancel=()=>{drag=null;};

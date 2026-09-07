@@ -95,6 +95,7 @@ nav:
   - 4.0 foundations: v4-foundations.md
   - Browser rendering study: browser-rendering.md
   - Linked lines, bars and scatter: linked-plots.md
+  - Linked region maps: linked-maps.md
   - Overview and availability: research-preview.md
   - Figure planning studies:
     - Regions and crossings: research-study.md

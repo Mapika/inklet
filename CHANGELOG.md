@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add experimental GeoJSON polygon/multipolygon joins and linked region maps,
+  including holes, shared row identities, fixed color bins, missing values and
+  clipped picking across SVG/canvas/hybrid modes. Preserve physical map aspect
+  and reserve its measured layout area. Add regional analysis and geometry
+  review examples, native browser fill checks and vector/raster export agreement.
+
 - Extend the experimental browser runtime to linked lines, scatter and signed
   vertical/horizontal bars. Preserve missing/filter gaps, support reversed axes
   and nonzero baselines, and share clipped geometry with static SVG exports.

@@ -142,8 +142,10 @@ now cover the fifth step for fixed-axis scatter. The measured
 [backend decision](design/browser-backends.md) retains SVG by default with an
 explicit hybrid option for dense points. [Mixed linked plots](linked-plots.md)
 now extend that runtime to source-ordered lines and signed bars, including
-static reconstruction and directly restored HTML. Regions, maps, table adapters
-and the integrated reference workflows remain outstanding.
+static reconstruction and directly restored HTML. [Linked region maps](linked-maps.md)
+now add a bounded GeoJSON polygon join, holes, fixed color bins and a first
+regional analysis figure. Table adapters, time series/facets and the complete
+reference workflows remain outstanding.
 
 
 Start phase A with a small, reviewable sequence:
