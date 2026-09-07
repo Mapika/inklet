@@ -147,6 +147,8 @@ Dev4 adds [camera-aware vector paths](https://inklet.readthedocs.io/en/latest/sc
 project world points and omit or dash hidden path sections without rerendering.
 Dev5 adds [scene annotations and measurements](https://inklet.readthedocs.io/en/latest/scene-annotations/):
 labels, arrows, true 3D lengths and angle arcs with editable text and vector geometry.
+Dev6 adds [reusable scene templates](https://inklet.readthedocs.io/en/latest/scene-templates/)
+and a [fully annotated laboratory cutaway](https://inklet.readthedocs.io/en/latest/complex-scene/).
 
 [Rendering guide](https://inklet.readthedocs.io/en/latest/v3/) ·
 [Blender setup and scenes](https://inklet.readthedocs.io/en/latest/blender-scenes/).

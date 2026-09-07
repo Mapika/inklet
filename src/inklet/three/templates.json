@@ -1,0 +1,47 @@
+{
+  "laboratory": {
+    "title": "Laboratory apparatus",
+    "description": "A reaction vessel, controller and probe on a compact bench.",
+    "revision": 1,
+    "unit": "dm",
+    "metres_per_unit": 0.1,
+    "cameras": {"Overview": "Orthographic assembly view", "Detail": "Perspective vessel view", "Front": "Orthographic front elevation"},
+    "landmarks": {"vessel": "Target vessel", "probe": "Target probe", "controller": "Target controller"},
+    "parameters": {
+      "radius": {"default": 0.8, "min": 0.5, "max": 1.2, "description": "Vessel radius in scene units"},
+      "height": {"default": 2.0, "min": 1.0, "max": 3.0, "description": "Vessel height in scene units"},
+      "fill_fraction": {"default": 0.6, "min": 0.1, "max": 0.9, "description": "Fraction of the vessel occupied by illustrative fluid"},
+      "accent": {"default": "#237f83", "type": "color", "description": "Fluid and display colour as #RRGGBB"}
+    }
+  },
+  "product": {
+    "title": "Product studio",
+    "description": "A desktop instrument with a display, control dial and layered enclosure.",
+    "revision": 1,
+    "unit": "dm",
+    "metres_per_unit": 0.1,
+    "cameras": {"Overview": "Orthographic three-quarter view", "Detail": "Perspective control-panel view", "Front": "Orthographic front elevation"},
+    "landmarks": {"display": "Target display", "control": "Target control", "enclosure": "Target enclosure"},
+    "parameters": {
+      "width": {"default": 2.8, "min": 1.8, "max": 4.0, "description": "Enclosure width in scene units"},
+      "depth": {"default": 1.8, "min": 1.2, "max": 3.0, "description": "Enclosure depth in scene units"},
+      "height": {"default": 1.1, "min": 0.8, "max": 2.0, "description": "Enclosure height in scene units"},
+      "accent": {"default": "#246a72", "type": "color", "description": "Enclosure colour as #RRGGBB"}
+    }
+  },
+  "architecture": {
+    "title": "Architectural room",
+    "description": "An open-front room with a rear window, timber screen and original furniture.",
+    "revision": 1,
+    "unit": "m",
+    "metres_per_unit": 1.0,
+    "cameras": {"Overview": "Orthographic room view", "Detail": "Perspective interior view", "Plan": "Orthographic top view"},
+    "landmarks": {"seating": "Target seating", "window": "Target window", "table": "Target table", "width_left": "Width left", "width_right": "Width right"},
+    "parameters": {
+      "width": {"default": 5.4, "min": 4.0, "max": 8.0, "description": "Interior floor width in metres"},
+      "depth": {"default": 4.2, "min": 3.0, "max": 6.0, "description": "Interior floor depth in metres"},
+      "height": {"default": 2.9, "min": 2.4, "max": 4.0, "description": "Room height in metres"},
+      "accent": {"default": "#3c7770", "type": "color", "description": "Upholstery colour as #RRGGBB"}
+    }
+  }
+}

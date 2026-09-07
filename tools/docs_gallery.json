@@ -1,5 +1,27 @@
 [
   {
+    "id": "complex-scene",
+    "title": "An instrumented laboratory",
+    "category": "3D",
+    "description": "A detailed cutaway with twelve callouts, measurements and detail views.",
+    "requires": "Blender",
+    "image": "gallery/v3-complex-scene.png",
+    "version": "3.0 dev6",
+    "page": "complex-scene/",
+    "featured": true
+  },
+  {
+    "id": "scene-templates",
+    "title": "Three editable scene templates",
+    "category": "3D",
+    "description": "Packaged laboratory, product and architectural scenes with named cameras.",
+    "requires": "Blender",
+    "image": "gallery/v3-scene-templates.png",
+    "version": "3.0 dev6",
+    "page": "scene-templates/",
+    "featured": false
+  },
+  {
     "id": "scene-annotations",
     "title": "Measurements in a rendered scene",
     "category": "3D",

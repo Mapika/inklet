@@ -2,6 +2,11 @@
 
 ## 3.0.0 (development)
 
+- Add packaged laboratory, product and architectural scene templates with
+  validated parameters, named cameras/landmarks, portable geometry and atomic
+  output creation. Preserve original template settings in scene provenance.
+  Add a six-view comparison and a complex annotated laboratory cutaway with
+  twelve callouts, a dimension, projected route, detail views and an analytic plot.
 - Add scene labels, depth-tested arrows, true world-space length dimensions
   and angle measurements with editable vector exports. Preserve annotation
   bounds outside scene images, expose hidden-target policies, and record

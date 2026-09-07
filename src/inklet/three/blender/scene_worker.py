@@ -14,6 +14,17 @@ def event(phase,message):
     print('INKLET_EVENT '+json.dumps(dict(phase=phase,message=message)),flush=True)
 
 
+def template_metadata(scene):
+    value = scene.get('inklet_template')
+    if not isinstance(value, str):
+        return None
+    try:
+        record = json.loads(value)
+    except ValueError:
+        return None
+    return record if isinstance(record, dict) else None
+
+
 def select_device(scene,execution):
     backend=execution['backend']
     if backend=='CPU':
@@ -313,6 +324,8 @@ def run(request):
                       look=scene.view_settings.look, exposure=scene.view_settings.exposure,
                       gamma=scene.view_settings.gamma),
                   landmarks=anchors, dependencies=dependencies, dependency_hashes=dependency_hashes)
+    if template_metadata(scene) is not None:
+        result['template'] = template_metadata(scene)
     stage = Path(request['output'])
     result['object_ids'] = prepare_passes(scene, layer, request['passes'], stage)
     scene.render.filepath = str(stage/'image.png')
@@ -327,6 +340,7 @@ def inspect(request):
     scenes = []
     for scene in bpy.data.scenes:
         scenes.append(dict(name=scene.name, engine=scene.render.engine,
+            template=template_metadata(scene),
             camera=scene.camera.name if scene.camera else None,
             cameras=[dict(name=obj.name, type=obj.data.type, lens=obj.data.lens)
                      for obj in scene.objects if obj.type == 'CAMERA'],

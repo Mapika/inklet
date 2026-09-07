@@ -87,6 +87,14 @@ A complete Blender scene as a Diagram; see render_blend for options.
 
 Create a live scene panel that responds to asset and data changes.
 
+#### `scene_templates()`
+
+Return a fresh JSON-compatible catalogue; Blender is not required.
+
+#### `create_scene(template, path, *, parameters=None, blender=None, overwrite=False, timeout=90, progress=None, cancel=None)`
+
+Create an editable .blend from laboratory, product or architecture.
+
 #### `class RenderQuality(name: str, dpi: float, samples: int, denoise: bool, noise_threshold: float) -> None`
 
 Physical resolution and Cycles sampling settings for scene renders.

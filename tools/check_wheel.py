@@ -17,6 +17,8 @@ assert i.__version__ == version("inklet")
 assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
+assert set(i.scene_templates())=={'laboratory','product','architecture'}
+assert (Path(i.__file__).parent/'three/blender/template_worker.py').is_file()
 import struct
 depth = i.ScenePass('depth', (1, 1), 1, 10, 10, struct.pack('<f', 2.5))
 assert depth.value(0, 0) == 2.5

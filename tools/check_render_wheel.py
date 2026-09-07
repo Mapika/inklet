@@ -22,7 +22,7 @@ assert Image.open(BytesIO(png)).width==890
 assert b'/ShadingType 2' in Path('figure.pdf').read_bytes()
 assert 'Installed render wheel' in Path('figure.svg').read_text()
 fig.export('bundle',compare_pdf=False)
-if len(sys.argv)>1:
+if len(sys.argv)>1 and sys.argv[1]!='--templates':
     inventory=i.inspect_blend(sys.argv[1])
     assert inventory['scenes']
     result=i.render_blend(sys.argv[1],width=50,camera='Overview',dpi=60,samples=2,
@@ -50,6 +50,13 @@ if len(sys.argv)>1:
             engine='CYCLES',cache='queue-cache') for _ in range(2)]
         snapshots=[job.result() for job in jobs]
     assert sorted(r.cache_hit for r in snapshots)==[False,True]
+if '--templates' in sys.argv:
+    for name,definition in i.scene_templates().items():
+        path=i.create_scene(name,name+'.blend')
+        result=i.render_blend(path,width=40,dpi=60,samples=2,camera='Overview',
+            landmarks=definition['landmarks'])
+        assert result.metadata['template']['name']==name
+        assert result.diagram.prim.data.startswith(b'\\x89PNG')
 print('Installed render extra: PNG, SVG, PDF, review and optional Blender scene passed',i.__version__)
 '''
 
@@ -58,6 +65,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('wheel',type=Path)
     parser.add_argument('--scene',type=Path,help='Optional generated laboratory .blend file')
+    parser.add_argument('--templates',action='store_true',help='Create and render packaged templates with Blender')
     args=parser.parse_args();wheel=args.wheel.resolve()
     env={k:v for k,v in os.environ.items() if k not in ('PYTHONPATH','PYTHONHOME','PYTHONSTARTUP','VIRTUAL_ENV')}
     with tempfile.TemporaryDirectory(prefix='inklet-render-wheel-') as scratch:
@@ -65,7 +73,8 @@ def main():
         python=root/'env'/('Scripts/python.exe' if os.name=='nt' else 'bin/python')
         subprocess.run(['uv','pip','install','--python',str(python),str(wheel)+'[render]'],check=True,env=env,cwd=root,timeout=180)
         (root/'author.py').write_text(SCRIPT)
-        subprocess.run([str(python),'author.py',*([str(args.scene.resolve())] if args.scene else [])],
+        subprocess.run([str(python),'author.py',*([str(args.scene.resolve())] if args.scene else []),
+                        *(['--templates'] if args.templates else [])],
                        check=True,env=env,cwd=root,timeout=300)
     return 0
 
