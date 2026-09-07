@@ -20,6 +20,10 @@ figure.save('part.svg', 'part.pdf')
 assert not any(d.severity == 'error' for d in figure.diagnostics)
 ```
 
+![Shaded vector cube in a document cell](assets/guides/three-images-1.png)
+
+*Rendered from the code above.*
+
 `width` and `height` control the drawing size on the page. `view=(azimuth,
 elevation)` sets the camera angles. Styles include `lineart`, `shaded`, `solid`,
 `toon` and `wireframe`; crease and hidden-line options control edge detail.
@@ -40,6 +44,10 @@ scene = i.component(i.scene, parts, width=55, view=(35, 25),
 doc.replace('part', scene)
 assert doc.compile().to_svg() != figure.to_svg()
 ```
+
+![A sphere and base with depth ordering across scene parts](assets/guides/three-images-2.png)
+
+*Rendered from the code above.*
 
 Each part may have a local position, rotation, scale and colour. `order='exact'`
 resolves depth across part faces and is useful when objects intersect or their

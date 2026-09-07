@@ -29,6 +29,10 @@ card = inklet.fit(lambda w: inklet.box(inklet.text(BODY, width=w)), width=52)
 assert card.width == 52.0
 ```
 
+![A text card fitted to a physical column width](assets/guides/cookbook-wrapped-card.png)
+
+*Rendered from the code above.*
+
 The number you are solving for is yours -- a wrap width here, a plot area
 elsewhere, a radius, a font size. `fit` only compares what comes back against
 the target. Because text wraps in whole words the measurement moves in jumps,
@@ -63,6 +67,10 @@ fig.link(junction.at("center"), aside, route="orthogonal")
 
 assert fig.lint() == []
 ```
+
+![A flow with a branch connected off its main sequence](assets/guides/cookbook-branch.png)
+
+*Rendered from the code above.*
 
 Two details carry the recipe. `through=[junction]` tells the spine's arrow that
 passing over the join is not a collision. And the branch starts at
@@ -100,6 +108,10 @@ pipeline.add_to(fig)
 assert pipeline["seg"] is boxes["seg"]     # the very box, still yours
 assert [d for d in fig.lint() if d.severity == "error"] == []
 ```
+
+![A graph arranged automatically](assets/guides/cookbook-graph.png)
+
+*Rendered from the code above.*
 
 `graph` returns a `Graph`, not a `Diagram`, because a graph is two things: a
 laid-out picture and a set of arrows that can only be routed once the picture
@@ -177,6 +189,10 @@ arms = matched("Allocated to intervention (n = 408)",
 assert arms.height < 12.0
 ```
 
+![Boxes with matched measured dimensions](assets/guides/cookbook-equal-boxes.png)
+
+*Rendered from the code above.*
+
 ---
 
 ## A hole in a grid
@@ -190,6 +206,10 @@ cells = [inklet.box("a"), inklet.spacer(0.01, 0.01), inklet.box("c"), inklet.box
 sparse = inklet.grid(cells, cols=2, col_gap=4, row_gap=4)
 assert sparse.height > sparse.width
 ```
+
+![A grid with an intentionally empty cell](assets/guides/cookbook-sparse-grid.png)
+
+*Rendered from the code above.*
 
 ---
 
@@ -215,6 +235,10 @@ chart = inklet.overlay([line, dots, tags], align="origin")
 assert chart.bbox.width > 36          # the labels hang off the right-hand end
 assert inklet.lint(chart) == []
 ```
+
+![Separate mark groups using shared coordinates](assets/guides/cookbook-layers.png)
+
+*Rendered from the code above.*
 
 Without it there is nothing to see and nothing to catch: each group is centred
 on its own box, the labelled group is the widest, and the three slide apart by
@@ -251,6 +275,10 @@ arms = inklet.clip(part, inklet.Rect(-1, 8, 31, 19))
 assert inklet.to_svg(arms).count("Z") == 2      # two rings, not one bridged ring
 ```
 
+![A drawing cut to a shape boundary](assets/guides/cookbook-cutout.png)
+
+*Rendered from the code above.*
+
 A window across both arms of that U leaves two separate pieces, and they come
 back as two. That is worth an assertion because the textbook algorithm
 (Sutherland-Hodgman) answers with one ring joined by a zero-width bridge along
@@ -276,6 +304,10 @@ ion = inklet.text("Ca^{2+} influx, ΔF/F_{0}")
 assert ion.prim.lines[0].runs                 # small, shifted runs
 assert inklet.text("file_name or m^-1").prim.lines[0].runs == ()
 ```
+
+![A mathematical formula with measured subscripts](assets/guides/cookbook-formula.png)
+
+*Rendered from the code above.*
 
 The scripts are shaped in the same face at 65% of the size and measured like
 everything else, so a box around a formula fits it, a wrapped paragraph
@@ -330,6 +362,10 @@ assert inklet.text(raw, markup=False).prim.lines[0].text == raw
 assert inklet.text(inklet.escape_markup(raw)).prim.lines[0].text == raw
 ```
 
+![Inline bold, italic and coloured text](assets/guides/cookbook-inline-type.png)
+
+*Rendered from the code above.*
+
 Bold and italic are *faces*, not a synthetic slant or a double strike: they
 are found by the same fontconfig lookup that finds the regular one, each run
 is shaped in its own face, and those run advances are what the wrapper
@@ -366,6 +402,10 @@ reasons = inklet.box(bullets("Did not meet inclusion criteria (n = 241)",
 assert reasons.width > 0
 ```
 
+![A list with measured hanging indents](assets/guides/cookbook-list.png)
+
+*Rendered from the code above.*
+
 The gap between items is leading, not clearance, and `CROWDING` knows the
 difference: lines of type stacked in one container are exempt from the
 millimetre floor that applies between objects.
@@ -399,6 +439,10 @@ p.axis("bottom", ticks=[0, 12, 24, 40, 52], label="Weeks from randomisation")
 schedule = p.build()
 assert inklet.lint(schedule) == []
 ```
+
+![An intervention schedule with a shaded data span](assets/guides/cookbook-span.png)
+
+*Rendered from the code above.*
 
 **A `band` scale puts `categories[0]` at the low end of the range**, and a
 panel's y axis runs upward from the bottom of the plot area -- so the first
@@ -499,6 +543,10 @@ key = inklet.vstack([
 
 assert inklet.lint(key) == []
 ```
+
+![A legend made from custom symbols](assets/guides/cookbook-custom-key.png)
+
+*Rendered from the code above.*
 
 ---
 
@@ -623,6 +671,10 @@ heatmap = inklet.hstack([p.build(), key], gap=6, align="center")
 assert inklet.lint(heatmap) == []
 ```
 
+![A matrix and colour key using the same scale](assets/guides/cookbook-heatmap.png)
+
+*Rendered from the code above.*
+
 Three things that are easy to get wrong and are handled for you. Cells overlap
 their neighbours slightly, so no pale antialiasing seam draws a grid over the
 picture. They carry `kind="mark"`, so 360 cells are not 700 CROWDING findings.
@@ -669,6 +721,10 @@ p.marks(inklet.marker("circle", 0.8),
 violin = p.build()
 assert [d for d in inklet.lint(violin) if d.code == "CROWDING"] == []
 ```
+
+![A violin outline mapped through plot coordinates](assets/guides/cookbook-violin.png)
+
+*Rendered from the code above.*
 
 Drop the `kind="mark"` and every point that lands near the outline it belongs
 to is reported. The exemption needs **both** sides declared -- a mark near a
@@ -804,6 +860,10 @@ protocol.add(scene)
 assert protocol.lint() == []
 ```
 
+![A measured callout clearing its target](assets/guides/cookbook-callout.png)
+
+*Rendered from the code above.*
+
 `within=` is how the second call is told which drawing to measure in: the
 target is buried in a tree by then, and a label placed against the box's own
 frame would ignore everything around it.
@@ -854,6 +914,10 @@ plot.add(main.build())
 assert plot.lint() == []
 ```
 
+![A plot with an inset and a comparison bracket](assets/guides/cookbook-inset.png)
+
+*Rendered from the code above.*
+
 The inset is scaled to `width=` as a fraction of the plot area -- 0.35 by
 default -- and that scales its *type* too, which is honest: a third-size inset
 has third-size tick labels and `inklet.lint` will say so at 5pt. Build the sub
@@ -890,6 +954,10 @@ sheet = inklet.figure(width="178mm")
 sheet.add(inklet.hstack(tagged, gap=8))
 assert sheet.lint() == []
 ```
+
+![Panel letters placed around measured artwork](assets/guides/cookbook-letters.png)
+
+*Rendered from the code above.*
 
 `start="c"` continues a sequence across a figure built in pieces, and
 `style="paren"` or `"upper"` matches the journal. The letters are `kind="title"`
@@ -931,6 +999,10 @@ sheet = inklet.figure(width="120mm")
 sheet.add(inklet.hstack([bars.build(), spread.build()], gap=10, align="top"))
 assert sheet.lint() == []
 ```
+
+![Bars with error bars beside a histogram of simulated observations](assets/guides/cookbook-bars-histogram.png)
+
+*Rendered from the code above.*
 
 One series of bars is a grey tint with an ink outline, because a lone series
 has nothing to be distinguished *from* and colour would only be decoration.
@@ -979,6 +1051,10 @@ cellfig.add(cell.build())
 assert cellfig.lint() == []
 ```
 
+![Current and efficiency against time on independent y scales](assets/guides/cookbook-twin-axis.png)
+
+*Rendered from the code above.*
+
 Build the panel you called `twin_y` on, never the twin: the twin shares the
 parent's content and has none of its own. `color=` tints the second axis --
 spine, ticks and numbers together -- which is the only thing telling a reader
@@ -1024,6 +1100,10 @@ gridfig.add(inklet.facets(cells, cols=2, count=4,
 assert gridfig.lint() == []
 ```
 
+![Four related plots with shared axes](assets/guides/cookbook-facets.png)
+
+*Rendered from the code above.*
+
 Every panel keeps its spine and its ticks; only the repeated *numbers* go, so
 an inner panel is still a plot with a scale on it. The shared names are centred
 on the block of plot areas, not on the grid's bounding box -- centring on the
@@ -1060,6 +1140,10 @@ spelled = small.to_svg(compact=False)     # every coordinate from the origin
 assert len(packed) < 0.75 * len(spelled)
 assert small.to_svg() == packed           # and byte-identical on a re-render
 ```
+
+![A sampled sinusoid exported with compact vector path syntax](assets/guides/cookbook-dense.png)
+
+*Rendered from the code above.*
 
 `compact=True` packs every path, however short; `compact=False` packs none.
 Reach for `False` when a person is going to open the file and edit the
@@ -1144,6 +1228,10 @@ assert [part.name for part in plates] == ["far", "near"]
 assert sheet.lint(rules=["LINK_CROSSES"]) == []
 ```
 
+![Multiple solids assembled in a vector scene](assets/guides/cookbook-scene.png)
+
+*Rendered from the code above.*
+
 `through=(rig,)` is the other half. A leader aimed into an assembly usually has
 to cross something on its way in -- a cage rod, an outer plate -- and that is
 not a mistake; citing the whole scene exempts every part inside it, because the
@@ -1202,6 +1290,10 @@ sheet = inklet.figure(width="89mm")
 sheet.add(drilled)
 assert sheet.lint(rules=["OFF_CANVAS"]) == []
 ```
+
+![A three-dimensional plate with a hole](assets/guides/cookbook-hole.png)
+
+*Rendered from the code above.*
 
 `axis=` defaults to `"z"` and takes `"x"`, `"-y"`, or a vector; `at=` is a point
 in the mesh's own frame that the axis passes through; `group=` names the wall
@@ -1285,6 +1377,10 @@ counted = inklet.solid("torus", width=40, view="three-quarter", style="toon",
 assert inklet.lint(cartoon) == [] and inklet.lint(counted) == []
 ```
 
+![A vector solid with three-tone shading and weighted edges](assets/guides/cookbook-toon.png)
+
+*Rendered from the code above.*
+
 `shading="smooth"` is the part worth knowing about on its own. Flat shading
 gives a facet one tone, so a band boundary follows facet edges and staircases;
 the auto-tessellation picks segment counts from the *outline's* chord error,
@@ -1321,6 +1417,10 @@ sig.axes(x="t / h", y="signal").legend(corner="ne")
 assert [e.name for e in sig.keys] == ["model", "observed"]
 assert inklet.lint(sig.build()) == []
 ```
+
+![A response and uncertainty band with a matching legend](assets/guides/cookbook-series-key.png)
+
+*Rendered from the code above.*
 
 Three things fall out of the record that are tedious to keep true by hand.
 
@@ -1372,6 +1472,10 @@ fig.add(heat.build())
 assert len(fig.to_svg()) < 60_000
 ```
 
+![A raster matrix with vector labels and a colour key](assets/guides/cookbook-matrix.png)
+
+*Rendered from the code above.*
+
 `raster="auto"` is the default: vector below the threshold, pixels above it.
 `raster=True` forces it -- worth doing for a matrix you know is going into a
 figure with twenty others -- and `raster=False` keeps rectangles no matter how
@@ -1415,6 +1519,10 @@ epi.axes(x="2024", y="cases / week")
 assert inklet.lint(epi.build()) == []
 ```
 
+![Observations plotted against calendar dates](assets/guides/cookbook-dates.png)
+
+*Rendered from the code above.*
+
 The ticks walk the calendar rather than adding a constant, which is the whole
 reason this is not a `linear` with a formatter: months are not 30 days, and an
 axis that ticks every 30.44 days puts a label three days into February. Ticks
@@ -1452,6 +1560,10 @@ note.arrow((0.4, 58), (2.0, 24))
 note.axes(x="month", y="cases / week")
 assert inklet.lint(note.build()) == []
 ```
+
+![An annotation positioned using plot data coordinates](assets/guides/cookbook-annotation.png)
+
+*Rendered from the code above.*
 
 `text(x, y, ...)` puts a label on a data point; `anchor=` is a compass point on
 the *label*, so `anchor="w"` sets its west edge on the datum and the writing
@@ -1544,6 +1656,10 @@ fig.link(b, b, loop="e", label="tick")
 assert fig.lint() == []
 ```
 
+![Routes with explicit waypoints and loops](assets/guides/cookbook-routes.png)
+
+*Rendered from the code above.*
+
 The automatic side is decided against every other shaft on the page, and
 against the plate every other label reserves, not just the ones declared
 before it. Name the side anyway when two sides are equally clear and you have
@@ -1586,6 +1702,10 @@ here = places[turned.id]
 assert round((here.point("tip") - here.point("center")).length, 6) == 13.0
 assert fig.lint() == []
 ```
+
+![A connector attached to a transformed component anchor](assets/guides/cookbook-anchor.png)
+
+*Rendered from the code above.*
 
 Two things it deliberately will not do. A **compass** name is not a point of a
 shape but a side of a box, so it is always answered from the node you asked --
@@ -1640,6 +1760,10 @@ fig.add(rig)
 assert rig.at("case.ne") is not None
 assert fig.lint(rules=["DEPTH_ORDER"]) == []
 ```
+
+![An annotated part of a three-dimensional scene](assets/guides/cookbook-scene-overlay.png)
+
+*Rendered from the code above.*
 
 The depth story is one sentence, and it is what the option costs: **an overlay
 is always on top.** It was not in the pass that settles depth, so it hides
@@ -1720,6 +1844,10 @@ page.add(bars.build())
 assert page.lint(rules=["OVERLAP"]) == []
 ```
 
+![Data clipped at a plot boundary](assets/guides/cookbook-clipping.png)
+
+*Rendered from the code above.*
+
 ---
 
 ## Rounding every elbow at once, and pointing at a node by name
@@ -1765,6 +1893,10 @@ page = inklet.figure(width=90)
 flow.add_to(page)
 assert page.lint(rules=["LINK_CROSSES"]) == []
 ```
+
+![Rounded connections between named diagram nodes](assets/guides/cookbook-elbows.png)
+
+*Rendered from the code above.*
 
 ---
 
@@ -1812,6 +1944,10 @@ assert f'stroke="{TH.paper}"' in marked
 assert 'font-style="italic"' in marked
 assert "talic" in onto.prim.font_path          # measured in the italic face
 ```
+
+![A text label with a halo over coloured artwork](assets/guides/cookbook-halo.png)
+
+*Rendered from the code above.*
 
 ## A PDF a reviewer can search
 
@@ -1930,6 +2066,10 @@ rig = inklet.scene([("shell", shell, {"crease": 120.0}),
 assert inklet.lint(rig) == []
 ```
 
+![Scene parts with separate crease-angle settings](assets/guides/cookbook-creases.png)
+
+*Rendered from the code above.*
+
 The shell's own facet edges stay quiet at 120 degrees and the bead's corners
 ink at 20. A part that names no angle takes the scene's shared `crease`, which
 is the same rule `stroke_width` already followed, so a scene says both the
@@ -2029,6 +2169,10 @@ assert abs(abs(hi - lo) - 7.0) < 1e-9      # half the 14mm difference
 assert abs(max(area_tops(topped)) - min(area_tops(topped))) < 1e-9
 ```
 
+![Unequal-height panels aligned along their top edges](assets/guides/cookbook-unequal-panels.png)
+
+*Rendered from the code above.*
+
 `inklet.plot_area(node)` is the reader, and it is public for exactly this: a
 figure that composes panels by hand can ask where a node's data region is
 instead of measuring its box. **It answers in the frame `node.bbox` is in**,
@@ -2078,6 +2222,10 @@ snug = inklet.graph(boxes, EDGES, direction="down", fit=inklet.COLUMN_SINGLE)
 
 assert snug.width <= loose.width
 ```
+
+![A layered graph fitted to its available column width](assets/guides/cookbook-fit-graph.png)
+
+*Rendered from the code above.*
 
 Two things it deliberately does not do. It has no opinion about a drawing
 that already fits -- pass a `fit` wider than the layout and you get the same
@@ -2148,6 +2296,10 @@ pagefig.add(page)
 
 assert pagefig.lint() == []
 ```
+
+![Completed panels arranged on a page grid](assets/guides/cookbook-page-grid.png)
+
+*Rendered from the code above.*
 
 `axes=False` is not a lesser `facets`. `cols`, `count`, `gap` and the alignment
 all behave the same; what goes is the shared `x_label`, `y_label` and the
@@ -2239,6 +2391,10 @@ fig.add(panel)
 assert fig.lint() == []
 ```
 
+![A protein drawing made from coordinate data](assets/guides/cookbook-protein.png)
+
+*Rendered from the code above.*
+
 **How finely to sample it** is a question about the page, not about the
 protein, so both answers are computed from the scale the model will be drawn
 at. `sides_for` chooses the points round the section and `steps_for` the
@@ -2318,6 +2474,10 @@ page.add(both.build())
 assert page.lint() == []
 ```
 
+![Individual observations over a boxplot summary](assets/guides/cookbook-swarm.png)
+
+*Rendered from the code above.*
+
 ## Cutting the empty middle out of an axis
 
 Three colony counts in the tens and one in the hundreds. On a linear axis the
@@ -2363,6 +2523,10 @@ codes = {d.code for d in paper.lint()}
 assert codes == {"BREAK_DISTORTS"}
 assert all(d.severity == "info" for d in paper.lint())
 ```
+
+![A plot with an explicitly broken numeric axis](assets/guides/cookbook-broken-axis.png)
+
+*Rendered from the code above.*
 
 `BREAK_DISTORTS` is graded **info** because a broken axis is a legitimate thing
 to decide to do — an inset costs a second panel, a log scale misrepresents
@@ -2447,6 +2611,10 @@ assert [d.code for d in after.lint()
         if d.code in ("CROWDING", "OVERLAP", "LINK_CROSSES")] == []
 ```
 
+![A dense plot with adjusted labels](assets/guides/cookbook-labels.png)
+
+*Rendered from the code above.*
+
 Two properties make it safe to leave in a script. It is a **fixed point** —
 running it again changes nothing, so a build that calls it twice is not a bug:
 
@@ -2494,6 +2662,10 @@ sheet = inklet.figure(width="120mm", theme="nature", margin=4)
 sheet.add(fates.diagram)
 assert sheet.lint() == []
 ```
+
+![A flow diagram whose widths encode quantities](assets/guides/cookbook-flow-width.png)
+
+*Rendered from the code above.*
 
 The rank of a node comes from the flows, and so does its height: every bar is
 `max(inflow, outflow)` tall at one shared scale, chosen so the busiest column
@@ -2618,6 +2790,10 @@ sheet.add(rose.build())
 assert sheet.lint() == []
 ```
 
+![Polar observations and a directional summary](assets/guides/cookbook-polar.png)
+
+*Rendered from the code above.*
+
 Ticks come off an *angular* lattice, not the 1/2/5 one: whole divisors of a
 turn, so an axis is labelled every 30 degrees or every π/4 and never every 0.7
 radians. Radian panels are written as fractions of π for the same reason --
@@ -2710,6 +2886,10 @@ sheet = inklet.figure(width="70mm", margin=4)
 sheet.add(inklet.drawn([rim, *ring], kind=inklet.abutting("compass")))
 assert sheet.lint() == []
 ```
+
+![Text following a curved path](assets/guides/cookbook-text-path.png)
+
+*Rendered from the code above.*
 
 Three things worth knowing about the result. Each shaping cluster becomes its
 own live text node, so `save(text="embed")` still writes words a reader can

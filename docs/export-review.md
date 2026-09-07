@@ -6,6 +6,10 @@ Changing the authoring objects afterwards does not change that snapshot.
 V3 adds direct PNG export, vector brushes and rendered scene layers; see
 [the v3 rendering guide](v3.md). The review PNG now uses the `render` extra.
 
+![A four-panel figure exported as SVG, PDF and PNG with a separate caption](../gallery/plot-engine-review.png)
+
+The [plot review recipe](plotting-engine.md) exports this same drawing as SVG, PDF and PNG, with separate manuscript captions.
+
 ## Save vectors
 
 ```python

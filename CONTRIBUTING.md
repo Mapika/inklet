@@ -57,6 +57,14 @@ uv pip install -r requirements-docs.txt
 .venv/bin/python -m mkdocs serve
 ```
 
+Guide figures are generated from the Python blocks in their Markdown pages.
+Install the `render` and `volume` extras, then run
+`.venv/bin/python tools/docs_previews.py` to regenerate `docs/assets/guides/`.
+`tools/docs_previews.json` selects the block and drawing object for each preview;
+update it when moving snippets. Keep the preview beside its code, write useful
+alt text, and put scientific figure descriptions outside the artwork. A guide
+using a larger gallery figure should link to its recipe and data attribution.
+
 The static site is written to `out/docs-site/`; local serving uses port 8000.
 The [MkDocs configuration reference](https://www.mkdocs.org/user-guide/configuration/)
 describes navigation and strict validation. CI builds the site and uploads it

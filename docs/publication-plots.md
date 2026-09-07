@@ -24,6 +24,10 @@ p.bars(["All", "Binding", "Catalysis"], [.8, .5, .7], orient="h",
 p.axes()
 ```
 
+![Grouped horizontal categories with individual bar colours](assets/guides/publication-plots-1.png)
+
+*Rendered from the code above.*
+
 `bar_colors` colours individual bars in a single series. A mapping preserves category colours when the input is reordered or filtered; a sequence follows input order. `colors` continues to colour multiple series. Use a separate categorical legend when each bar has its own colour. `grouped_band` takes ordered groups or a mapping of group names to categories. `gap` is extra spacing in units of a category step. Group names specify organization; they do not automatically add heading labels.
 
 ```python
@@ -38,6 +42,10 @@ p.inset(zoom, side="right", width=None, pad=3,
         zoom=(80, 100, 80, 100), plate=False)
 ```
 
+![Scatter plot with an external inset and connectors to the selected region](assets/guides/publication-plots-2.png)
+
+*Rendered from the code above.*
+
 External inset placement uses the completed parent and child at build time, so axes and labels may be added after `inset()`. `side` accepts left, right, top or bottom; `align` accepts start, center or end and aligns plot areas. `width=None` preserves the child's physical dimensions and typography. Changes to either panel invalidate the external inset layout; repeated unchanged builds remain cached. Translating or scaling the resulting composition keeps its connectors together. Cyclic inset relationships are rejected.
 
 Rasterization requires `inklet[images]` (Pillow). Only the requested scatter layer becomes a PNG; axes, legends and other marks remain vector. DPI describes the layer at its authored physical size; scaling the complete figure changes its effective print resolution. Group opacity is applied once after marker compositing. The raster path supports standard markers, solid outlines and clipping, with a 16-million-pixel output limit. Rasterization can increase PDF size or build time; compare exports for the intended density and print size.
@@ -49,6 +57,10 @@ p.stackarea([0, 1, 2], [[1, 2, 1], [2, 1, 2]], baseline=.5,
 p.axes()
 p.legend()
 ```
+
+![Two stacked contributions with a nonzero baseline and legend](assets/guides/publication-plots-3.png)
+
+*Rendered from the code above.*
 
 `stackarea` accepts series-major, finite, nonnegative values. The baseline may be a finite scalar or a value per x-coordinate. Signed stacked areas require explicitly calculated `fill_between` bands.
 
@@ -72,6 +84,10 @@ p.axes()
 selected.group_labels(p, side='left')  # Add after axes for clearance.
 p.legend(side='right', markup=False)
 ```
+
+![Filtered categories with group labels and a matching legend](assets/guides/publication-plots-4.png)
+
+*Rendered from the code above.*
 
 `bar_colors=selected` records category legend entries for the supplied bars.
 For other mark types, use `selected[key]` for colour and

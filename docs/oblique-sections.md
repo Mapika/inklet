@@ -58,6 +58,10 @@ doc.add('section', i.vstack([picture, key], gap=3))
 figure = doc.compile()
 ```
 
+![An oblique intensity slice with its matching physical scale bar](assets/guides/oblique-sections-2.png)
+
+*Rendered from the code above.*
+
 Page widths are in millimetres; scale-bar lengths are in the plane's physical
 unit. Scale image and key together if resizing later. `plane.world(row, column)`
 returns a physical XYZ position. `plane.project()` returns image-centred page

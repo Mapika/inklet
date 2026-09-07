@@ -100,6 +100,7 @@
       matches.forEach(({doc}) => {
         const url = new URL(doc.location, root);
         if (url.origin !== location.origin || !url.pathname.startsWith(root.pathname)) return;
+        url.searchParams.set('v', document.body.dataset.pageVersion);
         const link = document.createElement('a'); link.href = url.href;
         const context = document.createElement('small');
         context.textContent = [doc.section, doc.page_title].filter(Boolean).join(' · ');

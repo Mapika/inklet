@@ -16,6 +16,10 @@ fig.link(db.at('output'), matrix.at('row-0'))
 fig.save('features.svg', 'features.pdf', text='embed')
 ```
 
+![A sequence database connected to a labelled feature matrix](assets/guides/diagram-components-1.png)
+
+*Rendered from the code above.*
+
 All three components have `input` and `output` anchors. Matrices also expose
 `row-0`, `column-0`, and subsequent indices, plus `matrix-nw` and `matrix-se`.
 Sequences expose `item-0` and subsequent indices. Set a sequence's `pitch` to a

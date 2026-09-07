@@ -58,6 +58,10 @@ doc.add('section', i.vstack([picture, key], gap=3))
 figure = doc.compile()
 ```
 
+![Calibrated segmentation slice with a physical scale bar](assets/guides/calibrated-volumes-3.png)
+
+*Rendered from the code above.*
+
 The width is in **page millimetres**; the scale-bar length is in **volume units**.
 Physical spacing determines image aspect ratio. The second displayed axis points
 up: Z sections show XY, Y sections show XZ, and X sections show YZ. The PNG pixel

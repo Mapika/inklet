@@ -31,6 +31,10 @@ doc.add('comparison', p)
 doc.save('comparison.svg', 'comparison.pdf')
 ```
 
+![Categorical bars for illustrative control and treatment responses](assets/guides/plot-types-1.png)
+
+*Rendered from the code above.*
+
 `bar_colors` maps colours to categories. For grouped bars, `colors` maps colours
 to series. Define [shared categories](data.md) when subsets must retain their
 labels and colours. The numbers above are illustrative, not experimental data.

@@ -6,6 +6,7 @@ outside docs/ point at the GitHub repository.
 from pathlib import Path
 import ast
 import hashlib
+import html
 import json
 import os
 import posixpath
@@ -59,6 +60,13 @@ def on_config(config):
         return value
 
     config['nav'] = rewrite(config['nav'])
+    # HTML is cached too: new navigation must not link to an old page shell.
+    navigation = json.dumps(config['nav'], sort_keys=True).encode()
+    templates = b''.join(p.read_bytes() for p in sorted((ROOT/'tools/docs_theme').glob('*.html')))
+    config['extra']['page_version'] = (
+        os.environ.get('READTHEDOCS_GIT_COMMIT_HASH')
+        or hashlib.sha256(navigation + templates).hexdigest()
+    )[:12]
     return config
 
 
@@ -136,3 +144,24 @@ def on_post_build(config):
         entries.append(entry)
     data['docs'] = entries
     path.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+
+
+def on_post_page(output, page, config):
+    """Version local page links, keeping canonical URLs and assets unchanged.
+
+    Read the Docs serves HTML with a 30-minute cache lifetime. A navigation
+    rebuild can otherwise mix new and old page shells in the same browser.
+    """
+    from urllib.parse import parse_qsl, urlencode
+
+    def version(match):
+        prefix, target = match.groups()
+        url = urlsplit(html.unescape(target))
+        if url.scheme or url.netloc or not url.path or not url.path.endswith(('/', '.html')):
+            return match.group()
+        query = dict(parse_qsl(url.query, keep_blank_values=True))
+        query['v'] = config['extra']['page_version']
+        target = urlunsplit((url.scheme, url.netloc, url.path, urlencode(query), url.fragment))
+        return prefix + html.escape(target, quote=True) + '"'
+
+    return re.sub(r'(<a\b[^>]*?\bhref=")([^"]*)"', version, output)

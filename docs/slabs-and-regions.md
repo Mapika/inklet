@@ -40,11 +40,14 @@ image = projection.diagram(width=100, window=(0, 100))
 outline = region.outline(plane, width=100, stroke='#b33279', stroke_width=.5)
 linked = i.overlay([image, outline], align='origin')
 doc = i.document(width=120, columns=1, margin=8)
-doc.add('title', i.text('ROI-1 / mean intensity', size=i.pt(12)))
 doc.add('image', linked)
 doc.add('scale', plane.scalebar(2, width=100))
 figure = doc.compile()
 ```
+
+![A mean-intensity slab projection with a linked region and scale bar](assets/guides/slabs-and-regions-1.png)
+
+*Rendered from the code above.*
 
 For a saved-camera render, draw each `(start, end)` in `region.edges` using
 `rendered.path3d([start, end], hidden='dash', ...)`. All twelve edges use the

@@ -21,6 +21,10 @@ For an executable real-data workflow, run the [label intensity example](label-in
 Its source helper verifies the downloaded file against a pinned SHA-256 before
 calling this importer. The core importer performs no downloads.
 
+![Fluorescence channels and measurements imported from microscopy TIFF data](../gallery/fluorescence-biology.png)
+
+The [fluorescence example](fluorescence-biology.md) uses imported TIFF channels. See that page for the source acquisition, calibration and reproducible recipe.
+
 ## Explicit acquisition choices
 
 `read_tiff(path, *, spacing_zyx, unit, source_id, channel_names=None,

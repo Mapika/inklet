@@ -27,6 +27,10 @@ assert first.to_svg() != second.to_svg()
 assert second.metadata['datasets'][0]['revision'] == 1
 ```
 
+![Two plots sharing a y scale after the treatment data are updated](assets/guides/data-1.png)
+
+*Rendered from the code above.*
+
 All columns must have equal lengths. `update()` validates the complete table
 before changing it; failed updates leave the old table intact. Changing the
 number of rows requires updating every affected column in the same call.
@@ -77,6 +81,10 @@ encoding.select(['treated'])
 after = bar_doc.compile()
 assert 'Control' in before.to_svg() and 'Control' not in after.to_svg()
 ```
+
+![Filtered treatment category retaining its original colour](assets/guides/data-3.png)
+
+*Rendered from the code above.*
 
 Selection and table edits are separate operations: update both before compiling.
 An encoding supplies stable colours, display labels and scale categories.

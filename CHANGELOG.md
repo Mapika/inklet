@@ -11,6 +11,9 @@
 - Restructure documentation around plotting, whole figures, diagrams and 3D.
   Keep research studies and project history in separate sections, retain existing
   page URLs, and add plot-selection, axes and dense-data guides.
+- Version internal documentation links so cached page HTML cannot mix navigation
+  layouts after a deployment. Add 65 previews rendered directly from guide and
+  cookbook snippets, plus linked example figures throughout the practical guides.
 - Add section-filtered search with page context, a four-panel rendering review,
   axis comparisons and fresh-process line benchmarks.
 

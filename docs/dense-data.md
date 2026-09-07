@@ -29,6 +29,10 @@ doc.add('signal', p)
 doc.save('signal.svg', 'signal.pdf')
 ```
 
+![Twenty thousand sinusoid samples rendered with a 0.02 mm line tolerance](assets/guides/dense-data-1.png)
+
+*Rendered from the code above.*
+
 The tolerance is applied **after mapping through the plot scales**, including
 logarithmic scales. Every removed vertex is within that distance of the segment
 that replaces it. Endpoints and global x/y extrema are retained. A resized live

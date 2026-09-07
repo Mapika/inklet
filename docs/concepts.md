@@ -15,6 +15,10 @@ direct drawing API when you need explicit, fixed geometry.
 | `Diagram` | A concrete drawing tree with geometry and anchors | Transform, style or copy it for direct composition |
 | `Panel` / `Figure` | Direct plot construction / page assembly | Build explicitly; document placement keeps their authored size |
 
+![A complete figure combining dense points, images, diagrams and measured layout](../gallery/engine-review.png)
+
+The [engine review recipe](rendering-engine.md) compiles plots, images and fixed diagrams into one document.
+
 ## Compilation
 
 `doc.compile()` evaluates explicit dependencies, measures labels and plot

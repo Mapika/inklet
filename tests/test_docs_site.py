@@ -101,6 +101,30 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     axis_page=site/'axes-and-scales/index.html'
     assert parsed_pages[axis_page.resolve()].expanded_groups==2
     assert 'id="search-section"' in axis_page.read_text()
+    gpu_page = site/'render-jobs/index.html'
+    gpu_html = gpu_page.read_text()
+    assert parsed_pages[gpu_page.resolve()].expanded_groups == 2
+    assert '<summary>3D and images</summary>' in gpu_html
+    assert '<summary>Rendering</summary>' not in gpu_html
+    assert f'../render-jobs/?v={commit[:12]}' in axis_page.read_text()
+    assert f'data-page-version="{commit[:12]}"' in gpu_html
+    # Practical guides must show artwork, not only the logo in the page header.
+    guide_pages = ('plotting', 'plot-types', 'axes-and-scales', 'dense-data', 'data',
+                   'layout', 'presets', 'export-review', 'diagrams', 'diagram-components',
+                   'three-images', 'publication-plots', 'calibrated-volumes',
+                   'oblique-sections', 'slabs-and-regions', 'channels-and-contours',
+                   'label-measurements', 'microscopy-tiff', 'concepts', 'cookbook')
+    for guide in guide_pages:
+        images = [target for tag, target in parsed_pages[(site/guide/'index.html').resolve()].references
+                  if tag == 'img' and '/brand/' not in target]
+        assert images, f'{guide} has no rendered example'
+    previews = json.loads((ROOT/'tools/docs_previews.json').read_text())
+    for preview in previews:
+        guide = preview['page'].removesuffix('.md')
+        html = (site/guide/'index.html').read_text()
+        assert f'assets/guides/{preview["image"]}' in html
+        assert (site/'assets/guides'/preview['image']).stat().st_size > 100
+
     recipe = (site/'recipes/interference/index.html').read_text()
     assert 'recipe:interference' not in recipe
     assert 'interference' in recipe and 'math' in recipe

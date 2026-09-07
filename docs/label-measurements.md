@@ -9,6 +9,10 @@ The returned table supplies plots, CSV exports and JSON provenance. Display
 windows, channel colors and composite clipping do not enter the calculation.
 See the [real microscopy example](label-intensities.md) for a complete figure.
 
+![Per-label microscopy intensities linked to images and segmentation](../gallery/label-intensities.png)
+
+The [complete microscopy intensity example](label-intensities.md) connects measured label tables to plots. Its recipe and data attribution are included there.
+
 ## A complete example
 
 ```python

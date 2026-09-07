@@ -54,6 +54,10 @@ doc.add('response', p)
 doc.save('axes.svg', 'axes.pdf')
 ```
 
+![Frequency response with measured bold tick labels and aligned gridlines](assets/guides/axes-and-scales-1.png)
+
+*Rendered from the code above.*
+
 Pass the same tick-selection options to `grid(x_options=..., y_options=...)`
 and the corresponding axis to keep gridlines aligned with the ticks that remain
 visible. These dictionaries accept `tick_values()` options; axis-only settings

@@ -1,0 +1,457 @@
+[
+  {
+    "page": "plot-types.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plot-types-1.png",
+    "alt": "Categorical bars for illustrative control and treatment responses"
+  },
+  {
+    "page": "axes-and-scales.md",
+    "block": 1,
+    "object": "doc",
+    "image": "axes-and-scales-1.png",
+    "alt": "Frequency response with measured bold tick labels and aligned gridlines"
+  },
+  {
+    "page": "dense-data.md",
+    "block": 1,
+    "object": "doc",
+    "image": "dense-data-1.png",
+    "alt": "Twenty thousand sinusoid samples rendered with a 0.02 mm line tolerance"
+  },
+  {
+    "page": "plotting.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plotting-1.png",
+    "alt": "A line and individual observations with axes and an external legend"
+  },
+  {
+    "page": "plotting.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plotting-2.png",
+    "alt": "Treatment response with a shaded uncertainty interval"
+  },
+  {
+    "page": "data.md",
+    "block": 1,
+    "object": "second",
+    "image": "data-1.png",
+    "alt": "Two plots sharing a y scale after the treatment data are updated"
+  },
+  {
+    "page": "data.md",
+    "block": 3,
+    "object": "after",
+    "image": "data-3.png",
+    "alt": "Filtered treatment category retaining its original colour"
+  },
+  {
+    "page": "layout.md",
+    "block": 3,
+    "object": "page",
+    "image": "layout-3.png",
+    "alt": "Two panels in a nested subfigure with measured panel letters"
+  },
+  {
+    "page": "diagrams.md",
+    "block": 1,
+    "object": "second",
+    "image": "diagrams-1.png",
+    "alt": "Observations connected to a shared encoder and prediction module"
+  },
+  {
+    "page": "diagram-components.md",
+    "block": 1,
+    "object": "fig",
+    "image": "diagram-components-1.png",
+    "alt": "A sequence database connected to a labelled feature matrix"
+  },
+  {
+    "page": "three-images.md",
+    "block": 1,
+    "object": "figure",
+    "image": "three-images-1.png",
+    "alt": "Shaded vector cube in a document cell"
+  },
+  {
+    "page": "three-images.md",
+    "block": 2,
+    "object": "doc",
+    "image": "three-images-2.png",
+    "alt": "A sphere and base with depth ordering across scene parts"
+  },
+  {
+    "page": "publication-plots.md",
+    "block": 1,
+    "object": "p",
+    "image": "publication-plots-1.png",
+    "alt": "Grouped horizontal categories with individual bar colours"
+  },
+  {
+    "page": "publication-plots.md",
+    "block": 2,
+    "object": "p",
+    "image": "publication-plots-2.png",
+    "alt": "Scatter plot with an external inset and connectors to the selected region"
+  },
+  {
+    "page": "publication-plots.md",
+    "block": 3,
+    "object": "p",
+    "image": "publication-plots-3.png",
+    "alt": "Two stacked contributions with a nonzero baseline and legend"
+  },
+  {
+    "page": "publication-plots.md",
+    "block": 4,
+    "object": "p",
+    "image": "publication-plots-4.png",
+    "alt": "Filtered categories with group labels and a matching legend"
+  },
+  {
+    "page": "calibrated-volumes.md",
+    "block": 3,
+    "object": "figure",
+    "image": "calibrated-volumes-3.png",
+    "alt": "Calibrated segmentation slice with a physical scale bar"
+  },
+  {
+    "page": "oblique-sections.md",
+    "block": 2,
+    "object": "figure",
+    "image": "oblique-sections-2.png",
+    "alt": "An oblique intensity slice with its matching physical scale bar"
+  },
+  {
+    "page": "slabs-and-regions.md",
+    "block": 1,
+    "object": "figure",
+    "image": "slabs-and-regions-1.png",
+    "alt": "A mean-intensity slab projection with a linked region and scale bar"
+  },
+  {
+    "page": "channels-and-contours.md",
+    "block": 1,
+    "object": "figure",
+    "image": "channels-and-contours-1.png",
+    "alt": "Simulated magenta and cyan signals with a label contour, scale bar and legend"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 3,
+    "object": "fig",
+    "image": "cookbook-branch.png",
+    "alt": "A flow with a branch connected off its main sequence"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 4,
+    "object": "fig",
+    "image": "cookbook-graph.png",
+    "alt": "A graph arranged automatically"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 29,
+    "object": "protocol",
+    "image": "cookbook-callout.png",
+    "alt": "A measured callout clearing its target"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 31,
+    "object": "plot",
+    "image": "cookbook-inset.png",
+    "alt": "A plot with an inset and a comparison bracket"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 32,
+    "object": "sheet",
+    "image": "cookbook-letters.png",
+    "alt": "Panel letters placed around measured artwork"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 33,
+    "object": "sheet",
+    "image": "cookbook-bars-histogram.png",
+    "alt": "Bars with error bars beside a histogram of simulated observations"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 34,
+    "object": "cellfig",
+    "image": "cookbook-twin-axis.png",
+    "alt": "Current and efficiency against time on independent y scales"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 35,
+    "object": "gridfig",
+    "image": "cookbook-facets.png",
+    "alt": "Four related plots with shared axes"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 36,
+    "object": "small",
+    "image": "cookbook-dense.png",
+    "alt": "A sampled sinusoid exported with compact vector path syntax"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 38,
+    "object": "sheet",
+    "image": "cookbook-scene.png",
+    "alt": "Multiple solids assembled in a vector scene"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 40,
+    "object": "sheet",
+    "image": "cookbook-hole.png",
+    "alt": "A three-dimensional plate with a hole"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 45,
+    "object": "fig",
+    "image": "cookbook-matrix.png",
+    "alt": "A raster matrix with vector labels and a colour key"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 50,
+    "object": "fig",
+    "image": "cookbook-routes.png",
+    "alt": "Routes with explicit waypoints and loops"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 51,
+    "object": "fig",
+    "image": "cookbook-anchor.png",
+    "alt": "A connector attached to a transformed component anchor"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 53,
+    "object": "fig",
+    "image": "cookbook-scene-overlay.png",
+    "alt": "An annotated part of a three-dimensional scene"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 55,
+    "object": "page",
+    "image": "cookbook-clipping.png",
+    "alt": "Data clipped at a plot boundary"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 57,
+    "object": "page",
+    "image": "cookbook-elbows.png",
+    "alt": "Rounded connections between named diagram nodes"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 75,
+    "object": "pagefig",
+    "image": "cookbook-page-grid.png",
+    "alt": "Completed panels arranged on a page grid"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 77,
+    "object": "fig",
+    "image": "cookbook-protein.png",
+    "alt": "A protein drawing made from coordinate data"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 80,
+    "object": "page",
+    "image": "cookbook-swarm.png",
+    "alt": "Individual observations over a boxplot summary"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 82,
+    "object": "paper",
+    "image": "cookbook-broken-axis.png",
+    "alt": "A plot with an explicitly broken numeric axis"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 86,
+    "object": "after",
+    "image": "cookbook-labels.png",
+    "alt": "A dense plot with adjusted labels"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 89,
+    "object": "sheet",
+    "image": "cookbook-flow-width.png",
+    "alt": "A flow diagram whose widths encode quantities"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 95,
+    "object": "sheet",
+    "image": "cookbook-polar.png",
+    "alt": "Polar observations and a directional summary"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 100,
+    "object": "sheet",
+    "image": "cookbook-text-path.png",
+    "alt": "Text following a curved path"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 2,
+    "object": "card",
+    "image": "cookbook-wrapped-card.png",
+    "alt": "A text card fitted to a physical column width"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 6,
+    "object": "arms",
+    "image": "cookbook-equal-boxes.png",
+    "alt": "Boxes with matched measured dimensions"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 7,
+    "object": "sparse",
+    "image": "cookbook-sparse-grid.png",
+    "alt": "A grid with an intentionally empty cell"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 8,
+    "object": "chart",
+    "image": "cookbook-layers.png",
+    "alt": "Separate mark groups using shared coordinates"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 10,
+    "object": "part",
+    "image": "cookbook-cutout.png",
+    "alt": "A drawing cut to a shape boundary"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 11,
+    "object": "formula",
+    "image": "cookbook-formula.png",
+    "alt": "A mathematical formula with measured subscripts"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 12,
+    "object": "caption",
+    "image": "cookbook-inline-type.png",
+    "alt": "Inline bold, italic and coloured text"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 13,
+    "object": "reasons",
+    "image": "cookbook-list.png",
+    "alt": "A list with measured hanging indents"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 14,
+    "object": "schedule",
+    "image": "cookbook-span.png",
+    "alt": "An intervention schedule with a shaded data span"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 19,
+    "object": "key",
+    "image": "cookbook-custom-key.png",
+    "alt": "A legend made from custom symbols"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 22,
+    "object": "heatmap",
+    "image": "cookbook-heatmap.png",
+    "alt": "A matrix and colour key using the same scale"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 23,
+    "object": "violin",
+    "image": "cookbook-violin.png",
+    "alt": "A violin outline mapped through plot coordinates"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 43,
+    "object": "cartoon",
+    "image": "cookbook-toon.png",
+    "alt": "A vector solid with three-tone shading and weighted edges"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 44,
+    "object": "sig",
+    "image": "cookbook-series-key.png",
+    "alt": "A response and uncertainty band with a matching legend"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 46,
+    "object": "epi",
+    "image": "cookbook-dates.png",
+    "alt": "Observations plotted against calendar dates"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 47,
+    "object": "note",
+    "image": "cookbook-annotation.png",
+    "alt": "An annotation positioned using plot data coordinates"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 59,
+    "object": "panel",
+    "image": "cookbook-halo.png",
+    "alt": "A text label with a halo over coloured artwork"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 64,
+    "object": "rig",
+    "image": "cookbook-creases.png",
+    "alt": "Scene parts with separate crease-angle settings"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 68,
+    "object": "topped",
+    "image": "cookbook-unequal-panels.png",
+    "alt": "Unequal-height panels aligned along their top edges"
+  },
+  {
+    "page": "cookbook.md",
+    "block": 71,
+    "object": "snug",
+    "image": "cookbook-fit-graph.png",
+    "alt": "A layered graph fitted to its available column width"
+  }
+]

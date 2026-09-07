@@ -42,12 +42,15 @@ image = i.overlay([
 ], align='origin')
 
 doc = i.document(width=120, columns=1, margin=8)
-doc.add('title', i.text('Two signals and label 157', size=i.pt(12)))
 doc.add('image', image)
 doc.add('scale', plane.scalebar(2, width=100))
 doc.add('legend', composite.legend())
 figure = doc.compile()
 ```
+
+![Simulated magenta and cyan signals with a label contour, scale bar and legend](assets/guides/channels-and-contours-1.png)
+
+*Rendered from the code above.*
 
 Use [per-label intensity measurements](label-measurements.md) to quantify the
 unwindowed channel values underlying these images. [TIFF import](microscopy-tiff.md)

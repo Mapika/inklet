@@ -63,6 +63,10 @@ page['experiment']['control'].configure(y=(0, 6))
 assert page.compile().root.width == 183
 ```
 
+![Two panels in a nested subfigure with measured panel letters](assets/guides/layout-3.png)
+
+*Rendered from the code above.*
+
 Subfigures inherit the parent theme and share its geometry cache. Labels added
 by `letters()` are measured and have space reserved. Local names such as
 `control` can be reused in different subfigures; compiled identities include

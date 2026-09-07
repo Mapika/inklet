@@ -27,6 +27,10 @@ doc.add('response', p, min_height=60)
 doc.compile().save('plot.svg')
 ```
 
+![A line and individual observations with axes and an external legend](assets/guides/plotting-1.png)
+
+*Rendered from the code above.*
+
 `clip=True` clips data marks at the plot area. It does not suppress axes or
 outside legends. Inklet does not clip out-of-domain marks unless requested.
 Logarithmic domains and values must be positive.
@@ -59,6 +63,10 @@ uncertain.axes(x='Time', y='Response').legend(side='bottom')
 doc.replace('response', uncertain)
 assert 'Treatment' in doc.compile().to_svg()
 ```
+
+![Treatment response with a shaded uncertainty interval](assets/guides/plotting-2.png)
+
+*Rendered from the code above.*
 
 `Series.lower` and `Series.upper` are absolute y coordinates, not error sizes.
 For `errorbars(points, yerr=...)`, values are distances from each point.

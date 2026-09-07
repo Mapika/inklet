@@ -32,6 +32,10 @@ assert first.to_svg() != second.to_svg()
 second.save('architecture.svg', 'architecture.pdf')
 ```
 
+![Observations connected to a shared encoder and prediction module](assets/guides/diagrams-1.png)
+
+*Rendered from the code above.*
+
 Modules grow from shaped text, padding and minimum sizes. Since downstream x
 positions refer to ports, changing the encoder label moves its output and the
 following module. Links resolve after placement. Unsatisfied constraints and
