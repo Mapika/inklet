@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.0.dev2 — research preview (unreleased)
+
+- Add author-supplied surface regions with minimum visible-sample fractions and
+  projected extents, evaluated at each candidate image size.
+- Add optional crossing penalties with bounded, deterministic label moves and
+  swaps that preserve visibility requirements and author locks. Report the
+  distinction between exact linear assignment and local crossing refinement.
+- Record label positions and physical displacement during revisions.
+- Add a reproducible four-scene, three-width study comparing point constraints,
+  region constraints and crossing-aware planning, including infeasible cases.
+
 ## 3.1.0.dev1 — research preview (unreleased)
 
 - Add an opt-in experimental planner for camera subsets, measured vector labels

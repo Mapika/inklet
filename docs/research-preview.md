@@ -11,11 +11,15 @@ It is not part of the stable 3.0 PyPI package. Signatures and report formats may
 [Executable example](../examples/research_figure_planner.py) ·
 [Recorded results](assets/research-preview/comparison.json)
 
+The [second preview](research-study.md) adds sampled regions, optional crossing
+reduction and physical label-movement measurements. The recorded comparison on
+this page remains the original dev1 baseline.
+
 ## What this preview implements
 
 | Direction | Available now | Still to investigate |
 | --- | --- | --- |
-| Joint figure planning | Enumerate camera subsets and image sizes; assign labels using measured text and saved depth | Generate cameras, cutaways, inset crops, arbitrary panel arrangements and crossing-aware leaders |
+| Joint figure planning | Enumerate camera subsets and image sizes; assign labels using measured text and saved depth | Generate cameras, cutaways, inset crops, arbitrary panel arrangements and globally optimized leader routing |
 | Shared meaning | Stable target IDs and authoritative world points; explicit length conversion shared by a dimension and caption | Typed relationships across plots, scene objects and data; derived-value provenance |
 | Author-preserving revision | Required views, locked label slots, penalties for changing earlier choices | Direct manipulation, absolute page-position locks and editing structured figure specifications |
 
@@ -218,8 +222,9 @@ planning baselines before making claims about figure quality or time saved.
 
 - One depth sample tests a point, not whether an entire component is recognizable.
   Glass, silhouettes and points inside geometry require careful interpretation.
-- Leader crossings, overlaps with scene features and minimum object size are not
-  optimized. Labels are single-line and use two external columns.
+- The original comparison uses no crossing penalty or region constraints. The
+  [second preview](research-study.md) adds these as explicit options. Labels
+  remain single-line and use two external columns.
 - There is no continuous camera optimizer, automatic cutaway generator, arbitrary
   panel packing, interactive editor or Python source rewriter.
 - Reports explain common failure categories; they do not compute a minimal

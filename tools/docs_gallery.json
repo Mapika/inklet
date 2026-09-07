@@ -1,5 +1,16 @@
 [
   {
+    "id": "research-planner-study",
+    "title": "Regions and label crossings",
+    "category": "3D",
+    "description": "A four-scene research study with sampled visibility, projected size and author constraints.",
+    "requires": "Blender",
+    "image": "gallery/research-planner-study.png",
+    "version": "Research preview",
+    "page": "research-study/",
+    "featured": false
+  },
+  {
     "id": "research-figure-planner",
     "title": "Planning a complete figure",
     "category": "3D",
