@@ -1,5 +1,16 @@
 [
   {
+    "id": "research-figure-planner",
+    "title": "Planning a complete figure",
+    "category": "3D",
+    "description": "Joint camera and label choices, with preserved author constraints during revision.",
+    "requires": "Blender",
+    "image": "gallery/research-figure-planner.png",
+    "version": "Research preview",
+    "page": "research-preview/",
+    "featured": false
+  },
+  {
     "id": "complex-scene",
     "title": "An instrumented laboratory",
     "category": "3D",

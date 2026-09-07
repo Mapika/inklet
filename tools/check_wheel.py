@@ -22,6 +22,15 @@ assert (Path(i.__file__).parent/'three/blender/template_worker.py').is_file()
 import struct
 depth = i.ScenePass('depth', (1, 1), 1, 10, 10, struct.pack('<f', 2.5))
 assert depth.value(0, 0) == 2.5
+from inklet.experimental.figure_planner import Length, Target, View, plan
+snapshot = i.SceneRender(i.spacer(10, 10), dict(width_mm=10, height_mm=10,
+    pixels=[1,1], projection=dict(type='ORTHO', bounds=[-2,2,-2,2], near=.1, far=20,
+    world_to_camera=[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])), False, {'depth': depth})
+planned = plan([Target('point', 'Point', (0,0,-1))], [View('front', snapshot)])
+assert planned.feasible and planned.placements[0].visible is True
+assert '<text' in i.to_svg(planned.diagram())
+assert i.to_pdf(planned.diagram()).startswith(b'%PDF')
+assert Length.between((0,0,0), (3,4,0), metres_per_unit=.001).label('mm') == '5 mm'
 assert i.render_quality('final').samples == 256
 try:
     depth.to_numpy()

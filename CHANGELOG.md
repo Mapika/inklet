@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.0.dev1 — research preview (unreleased)
+
+- Add an opt-in experimental planner for camera subsets, measured vector labels
+  and page sizes, with explicit visibility constraints and infeasibility reports.
+- Preserve stable target identities, required views and author label-slot locks;
+  penalize changed choices when revising a previous plan.
+- Add explicit immutable length conversion for shared dimension/caption values.
+- Add a procedural laboratory comparison with independent and joint baselines,
+  a geometry/page revision, recorded failures and reproducible JSON evidence.
+
+
 ## 3.0.0 — 2026-09-07
 
 Complete Blender scene rendering, GPU jobs, vector annotations and browser-free

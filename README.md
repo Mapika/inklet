@@ -20,6 +20,10 @@ This [twenty-panel stress test](https://inklet.readthedocs.io/en/stable/stress20
 5,580 mesh triangles and 7,200 vector events. Its data are simulated. Only the
 dense scatter and scalar field are rasterized; the other artwork remains vector.
 
+The development branch includes an opt-in [figure-planning research preview](https://inklet.readthedocs.io/en/latest/research-preview/)
+with camera selection, measured labels and preserved author constraints. Stable
+3.0 remains available on PyPI.
+
 ## Install
 
 Python **3.11 or later** is required. Install from [PyPI](https://pypi.org/project/inklet/):

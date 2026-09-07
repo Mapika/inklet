@@ -62,6 +62,7 @@ nav:
       - Scene annotations and measurements: scene-annotations.md
       - Reusable scene templates: scene-templates.md
       - Complex annotated scene: complex-scene.md
+      - Research preview: research-preview.md
   - Examples:
       - Figure gallery: examples.md
       - More example recipes: example-library.md

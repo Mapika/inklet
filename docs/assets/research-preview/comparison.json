@@ -1,0 +1,3833 @@
+{
+  "experimental": true,
+  "depth_bias_scene_units": 0.04,
+  "scene_metres_per_unit": 1,
+  "locked_slot": {
+    "target": "exhaust-manifold",
+    "view": "Overview",
+    "side": "e",
+    "row": 2
+  },
+  "planning_seconds": 0.057144446996971965,
+  "footprint": {
+    "metres": 8.0,
+    "millimetres": 8000.0
+  },
+  "revision_slot_changes": {
+    "revised-with-lock": [
+      "gas-supply"
+    ],
+    "revised-without-history": [
+      "detector",
+      "feed-pump",
+      "flow-cell",
+      "gas-supply",
+      "reactor-a",
+      "reactor-b",
+      "recirculator",
+      "sample-rack",
+      "transfer-line"
+    ]
+  },
+  "renders": {
+    "original": {
+      "Overview": {
+        "cache_key": "22d44c8fbc53de2a91209c0f6db17d9848d4a5a68d1a612dcd2edd668918b659",
+        "pixels": [
+          1417,
+          1028
+        ],
+        "blender": "4.5.13 LTS",
+        "execution": {
+          "backend": "CUDA",
+          "devices": [
+            {
+              "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+              "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+            }
+          ],
+          "fallback_reason": null,
+          "host": {
+            "machine": "x86_64",
+            "processor": "x86_64",
+            "system": "Linux"
+          },
+          "requested": "AUTO"
+        },
+        "quality": "final"
+      },
+      "Process": {
+        "cache_key": "3b4d3a63059157d0a7df9996a663c2a21458de091ae3feb6f83a4c6657696c8b",
+        "pixels": [
+          1417,
+          1028
+        ],
+        "blender": "4.5.13 LTS",
+        "execution": {
+          "backend": "CUDA",
+          "devices": [
+            {
+              "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+              "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+            }
+          ],
+          "fallback_reason": null,
+          "host": {
+            "machine": "x86_64",
+            "processor": "x86_64",
+            "system": "Linux"
+          },
+          "requested": "AUTO"
+        },
+        "quality": "final"
+      },
+      "Analysis": {
+        "cache_key": "edaa28a8dacd030bb5571c78b85f922380c1e51ece10e6efa520cf9bc9c1cc8d",
+        "pixels": [
+          1417,
+          1028
+        ],
+        "blender": "4.5.13 LTS",
+        "execution": {
+          "backend": "CUDA",
+          "devices": [
+            {
+              "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+              "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+            }
+          ],
+          "fallback_reason": null,
+          "host": {
+            "machine": "x86_64",
+            "processor": "x86_64",
+            "system": "Linux"
+          },
+          "requested": "AUTO"
+        },
+        "quality": "final"
+      },
+      "Services": {
+        "cache_key": "9c0a008ed81364fdc6acad42a0c7c42d2f964b91bb20659b27f51ae3e9ee543a",
+        "pixels": [
+          1417,
+          1028
+        ],
+        "blender": "4.5.13 LTS",
+        "execution": {
+          "backend": "CUDA",
+          "devices": [
+            {
+              "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+              "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+            }
+          ],
+          "fallback_reason": null,
+          "host": {
+            "machine": "x86_64",
+            "processor": "x86_64",
+            "system": "Linux"
+          },
+          "requested": "AUTO"
+        },
+        "quality": "final"
+      }
+    },
+    "moved-gas": {
+      "Overview": {
+        "cache_key": "64154195a25d7512c6aa7dcd58f2f0f039d2612f45b135739b272a699929273c",
+        "pixels": [
+          1417,
+          1028
+        ],
+        "blender": "4.5.13 LTS",
+        "execution": {
+          "backend": "CUDA",
+          "devices": [
+            {
+              "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+              "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+            }
+          ],
+          "fallback_reason": null,
+          "host": {
+            "machine": "x86_64",
+            "processor": "x86_64",
+            "system": "Linux"
+          },
+          "requested": "AUTO"
+        },
+        "quality": "final"
+      },
+      "Process": {
+        "cache_key": "180f21cfd1f1b3a8ae14fbdcae7a771ca61f7150d3bd61c980d34e5231fde3e8",
+        "pixels": [
+          1417,
+          1028
+        ],
+        "blender": "4.5.13 LTS",
+        "execution": {
+          "backend": "CUDA",
+          "devices": [
+            {
+              "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+              "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+            }
+          ],
+          "fallback_reason": null,
+          "host": {
+            "machine": "x86_64",
+            "processor": "x86_64",
+            "system": "Linux"
+          },
+          "requested": "AUTO"
+        },
+        "quality": "final"
+      },
+      "Analysis": {
+        "cache_key": "6f3619eb4ce1a3175bcdb2a848a86b8b2cd17b4987885e2723077ebc8f686b99",
+        "pixels": [
+          1417,
+          1028
+        ],
+        "blender": "4.5.13 LTS",
+        "execution": {
+          "backend": "CUDA",
+          "devices": [
+            {
+              "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+              "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+            }
+          ],
+          "fallback_reason": null,
+          "host": {
+            "machine": "x86_64",
+            "processor": "x86_64",
+            "system": "Linux"
+          },
+          "requested": "AUTO"
+        },
+        "quality": "final"
+      },
+      "Services": {
+        "cache_key": "8973521f558cbdb72a42dd0d2e85c862a475a5d8bae4391955455eb16c02050c",
+        "pixels": [
+          1417,
+          1028
+        ],
+        "blender": "4.5.13 LTS",
+        "execution": {
+          "backend": "CUDA",
+          "devices": [
+            {
+              "id": "CUDA_NVIDIA GeForce RTX 5090 Laptop GPU_0000:01:00",
+              "name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+            }
+          ],
+          "fallback_reason": null,
+          "host": {
+            "machine": "x86_64",
+            "processor": "x86_64",
+            "system": "Linux"
+          },
+          "requested": "AUTO"
+        },
+        "quality": "final"
+      }
+    }
+  },
+  "visibility": {
+    "Overview": {
+      "exhaust-manifold": true,
+      "cable-tray": true,
+      "reactor-a": true,
+      "reactor-b": true,
+      "feed-pump": true,
+      "control-display": true,
+      "sample-rack": true,
+      "flow-cell": true,
+      "detector": true,
+      "gas-supply": true,
+      "recirculator": true,
+      "transfer-line": false
+    },
+    "Process": {
+      "exhaust-manifold": true,
+      "cable-tray": false,
+      "reactor-a": true,
+      "reactor-b": true,
+      "feed-pump": false,
+      "control-display": true,
+      "sample-rack": true,
+      "flow-cell": true,
+      "detector": false,
+      "gas-supply": false,
+      "recirculator": false,
+      "transfer-line": true
+    },
+    "Analysis": {
+      "exhaust-manifold": false,
+      "cable-tray": false,
+      "reactor-a": false,
+      "reactor-b": true,
+      "feed-pump": true,
+      "control-display": false,
+      "sample-rack": true,
+      "flow-cell": true,
+      "detector": true,
+      "gas-supply": true,
+      "recirculator": true,
+      "transfer-line": false
+    },
+    "Services": {
+      "exhaust-manifold": true,
+      "cable-tray": true,
+      "reactor-a": true,
+      "reactor-b": true,
+      "feed-pump": false,
+      "control-display": true,
+      "sample-rack": true,
+      "flow-cell": true,
+      "detector": true,
+      "gas-supply": true,
+      "recirculator": true,
+      "transfer-line": true
+    }
+  },
+  "cases": {
+    "overview-only": {
+      "schema": "inklet.figure-plan/0.1",
+      "experimental": true,
+      "feasible": false,
+      "views": [],
+      "width_mm": 180.0,
+      "height_mm": 0.0,
+      "image_width_mm": 0.0,
+      "font_pt": 8.0,
+      "score": null,
+      "issues": [
+        "No eligible view for targets: transfer-line. Add a view or revise the explicit visibility requirement."
+      ],
+      "evaluated": 0,
+      "moved": [],
+      "placements": [],
+      "alternatives": [],
+      "constraints": {
+        "max_height_mm": 240.0,
+        "min_image_width_mm": 45.0,
+        "font_family": "Helvetica Neue, Helvetica, Arial, sans-serif",
+        "label_sizes_mm": {
+          "cable-tray": {
+            "width": 13.306777777777777,
+            "height": 3.843866666666666
+          },
+          "control-display": {
+            "width": 19.834577777777778,
+            "height": 3.843866666666666
+          },
+          "detector": {
+            "width": 11.509022222222221,
+            "height": 3.843866666666666
+          },
+          "exhaust-manifold": {
+            "width": 23.074488888888887,
+            "height": 3.843866666666666
+          },
+          "feed-pump": {
+            "width": 14.971888888888888,
+            "height": 3.843866666666666
+          },
+          "flow-cell": {
+            "width": 11.198577777777777,
+            "height": 3.843866666666666
+          },
+          "gas-supply": {
+            "width": 14.458244444444444,
+            "height": 3.843866666666666
+          },
+          "reactor-a": {
+            "width": 12.71411111111111,
+            "height": 3.843866666666666
+          },
+          "reactor-b": {
+            "width": 12.745155555555554,
+            "height": 3.843866666666666
+          },
+          "recirculator": {
+            "width": 15.841133333333332,
+            "height": 3.843866666666666
+          },
+          "sample-rack": {
+            "width": 16.11488888888889,
+            "height": 3.843866666666666
+          },
+          "transfer-line": {
+            "width": 16.470488888888887,
+            "height": 3.843866666666666
+          }
+        },
+        "max_views": 3,
+        "image_scales": [
+          1.0,
+          0.8
+        ],
+        "required_views": [
+          "Overview"
+        ],
+        "locks": [],
+        "depth_bias_scene_units": 0.04,
+        "view_penalty": 80.0,
+        "move_penalty": 25.0,
+        "shrink_penalty": 80.0,
+        "previous_slots": {},
+        "previous_views": [],
+        "visibility": {
+          "Overview": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          }
+        }
+      },
+      "total_leader_mm": 0,
+      "targets": [
+        {
+          "id": "cable-tray",
+          "label": "Cable tray",
+          "world": [
+            2.4000000953674316,
+            0.7900000214576721,
+            2.880000114440918
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "control-display",
+          "label": "Control display",
+          "world": [
+            2.299999952316284,
+            1.6399999856948853,
+            1.8200000524520874
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "detector",
+          "label": "Detector",
+          "world": [
+            1.350000023841858,
+            -1.5800000429153442,
+            1.340000033378601
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "exhaust-manifold",
+          "label": "Exhaust manifold",
+          "world": [
+            0.07930457592010498,
+            2.063729763031006,
+            3.143129825592041
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "feed-pump",
+          "label": "Feed pump",
+          "world": [
+            1.100000023841858,
+            1.0099999904632568,
+            1.2999999523162842
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "flow-cell",
+          "label": "Flow cell",
+          "world": [
+            0.5299999713897705,
+            -1.25,
+            1.3300000429153442
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "gas-supply",
+          "label": "Gas supply",
+          "world": [
+            -3.3499999046325684,
+            -0.8799999952316284,
+            1.1200000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-a",
+          "label": "Reactor A",
+          "world": [
+            -2.0,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-b",
+          "label": "Reactor B",
+          "world": [
+            -0.699999988079071,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "recirculator",
+          "label": "Recirculator",
+          "world": [
+            3.0,
+            -1.75,
+            0.8299999833106995
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "sample-rack",
+          "label": "Sample rack",
+          "world": [
+            -0.8500000238418579,
+            -1.6200000047683716,
+            1.3700000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "transfer-line",
+          "label": "Transfer line",
+          "world": [
+            -1.2999999523162842,
+            0.6499999761581421,
+            2.700000047683716
+          ],
+          "visibility": "visible"
+        }
+      ],
+      "sources": {
+        "Overview": "22d44c8fbc53de2a91209c0f6db17d9848d4a5a68d1a612dcd2edd668918b659"
+      }
+    },
+    "coverage-first": {
+      "schema": "inklet.figure-plan/0.1",
+      "experimental": true,
+      "feasible": true,
+      "views": [
+        "Overview",
+        "Process"
+      ],
+      "width_mm": 180.0,
+      "height_mm": 155.9871857777778,
+      "image_width_mm": 100.68081777777779,
+      "font_pt": 8.0,
+      "score": 593.1859901431129,
+      "issues": [],
+      "evaluated": 2,
+      "moved": [],
+      "placements": [
+        {
+          "target": "cable-tray",
+          "view": "Overview",
+          "side": "e",
+          "row": 4,
+          "x": 53.340408888888895,
+          "y": -8.765799999999999,
+          "target_x": 19.82709533215747,
+          "target_y": -7.744958328088256,
+          "visible": true,
+          "leader_mm": 32.52958573882459
+        },
+        {
+          "target": "control-display",
+          "view": "Process",
+          "side": "e",
+          "row": 3,
+          "x": 53.340408888888895,
+          "y": -14.609666666666666,
+          "target_x": 43.87409458560743,
+          "target_y": -13.423320815983008,
+          "visible": true,
+          "leader_mm": 8.554165385445048
+        },
+        {
+          "target": "detector",
+          "view": "Overview",
+          "side": "e",
+          "row": 7,
+          "x": 53.340408888888895,
+          "y": 8.765799999999999,
+          "target_x": 1.2732925933943016,
+          "target_y": 8.563995267158205,
+          "visible": true,
+          "leader_mm": 51.06751897801861
+        },
+        {
+          "target": "exhaust-manifold",
+          "view": "Overview",
+          "side": "e",
+          "row": 2,
+          "x": 53.340408888888895,
+          "y": -20.453533333333333,
+          "target_x": 10.599261049703976,
+          "target_y": -19.460801304340528,
+          "visible": true,
+          "leader_mm": 41.75309433212126
+        },
+        {
+          "target": "feed-pump",
+          "view": "Overview",
+          "side": "e",
+          "row": 5,
+          "x": 53.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": 12.249405480466201,
+          "target_y": -0.31404458738745084,
+          "visible": true,
+          "leader_mm": 40.17680222241919
+        },
+        {
+          "target": "flow-cell",
+          "view": "Process",
+          "side": "e",
+          "row": 9,
+          "x": 53.340408888888895,
+          "y": 20.453533333333333,
+          "target_x": 47.619752257526194,
+          "target_y": 19.622964303516035,
+          "visible": true,
+          "leader_mm": 4.801602877202589
+        },
+        {
+          "target": "gas-supply",
+          "view": "Overview",
+          "side": "w",
+          "row": 5,
+          "x": -53.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": -26.588464574663718,
+          "target_y": -3.5638806106083605,
+          "visible": true,
+          "leader_mm": 25.760102690914184
+        },
+        {
+          "target": "reactor-a",
+          "view": "Process",
+          "side": "w",
+          "row": 7,
+          "x": -53.340408888888895,
+          "y": 8.765799999999999,
+          "target_x": -20.076722401534223,
+          "target_y": 6.440962105020285,
+          "visible": true,
+          "leader_mm": 32.34865225570607
+        },
+        {
+          "target": "reactor-b",
+          "view": "Process",
+          "side": "e",
+          "row": 6,
+          "x": 53.340408888888895,
+          "y": 2.921933333333333,
+          "target_x": 1.0238015489151209,
+          "target_y": 1.1863947550364882,
+          "visible": true,
+          "leader_mm": 51.34623560994297
+        },
+        {
+          "target": "recirculator",
+          "view": "Overview",
+          "side": "e",
+          "row": 8,
+          "x": 53.340408888888895,
+          "y": 14.609666666666666,
+          "target_x": 11.424200243807475,
+          "target_y": 16.77421873633143,
+          "visible": true,
+          "leader_mm": 40.974130094481886
+        },
+        {
+          "target": "sample-rack",
+          "view": "Process",
+          "side": "e",
+          "row": 10,
+          "x": 53.340408888888895,
+          "y": 26.297399999999996,
+          "target_x": 29.378412488912385,
+          "target_y": 26.624858693923414,
+          "visible": true,
+          "leader_mm": 22.96438317579149
+        },
+        {
+          "target": "transfer-line",
+          "view": "Process",
+          "side": "w",
+          "row": 4,
+          "x": -53.340408888888895,
+          "y": -8.765799999999999,
+          "target_x": -3.433525363101953,
+          "target_y": -9.289542549420485,
+          "visible": true,
+          "leader_mm": 48.90971678224504
+        }
+      ],
+      "alternatives": [
+        {
+          "score": 593.1859901431129,
+          "views": [
+            "Overview",
+            "Process"
+          ],
+          "image_width_mm": 100.68081777777779,
+          "height_mm": 155.9871857777778,
+          "moved": []
+        },
+        {
+          "score": 655.3535830450892,
+          "views": [
+            "Overview",
+            "Process"
+          ],
+          "image_width_mm": 125.85102222222223,
+          "height_mm": 192.4839822222222,
+          "moved": []
+        }
+      ],
+      "constraints": {
+        "max_height_mm": 240.0,
+        "min_image_width_mm": 45.0,
+        "font_family": "Helvetica Neue, Helvetica, Arial, sans-serif",
+        "label_sizes_mm": {
+          "cable-tray": {
+            "width": 13.306777777777777,
+            "height": 3.843866666666666
+          },
+          "control-display": {
+            "width": 19.834577777777778,
+            "height": 3.843866666666666
+          },
+          "detector": {
+            "width": 11.509022222222221,
+            "height": 3.843866666666666
+          },
+          "exhaust-manifold": {
+            "width": 23.074488888888887,
+            "height": 3.843866666666666
+          },
+          "feed-pump": {
+            "width": 14.971888888888888,
+            "height": 3.843866666666666
+          },
+          "flow-cell": {
+            "width": 11.198577777777777,
+            "height": 3.843866666666666
+          },
+          "gas-supply": {
+            "width": 14.458244444444444,
+            "height": 3.843866666666666
+          },
+          "reactor-a": {
+            "width": 12.71411111111111,
+            "height": 3.843866666666666
+          },
+          "reactor-b": {
+            "width": 12.745155555555554,
+            "height": 3.843866666666666
+          },
+          "recirculator": {
+            "width": 15.841133333333332,
+            "height": 3.843866666666666
+          },
+          "sample-rack": {
+            "width": 16.11488888888889,
+            "height": 3.843866666666666
+          },
+          "transfer-line": {
+            "width": 16.470488888888887,
+            "height": 3.843866666666666
+          }
+        },
+        "max_views": 3,
+        "image_scales": [
+          1.0,
+          0.8
+        ],
+        "required_views": [
+          "Overview",
+          "Process"
+        ],
+        "locks": [],
+        "depth_bias_scene_units": 0.04,
+        "view_penalty": 80.0,
+        "move_penalty": 25.0,
+        "shrink_penalty": 80.0,
+        "previous_slots": {},
+        "previous_views": [],
+        "visibility": {
+          "Overview": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          },
+          "Process": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": false,
+              "visible": false
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": false,
+              "visible": false
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          }
+        }
+      },
+      "total_leader_mm": 401.1859901431129,
+      "targets": [
+        {
+          "id": "cable-tray",
+          "label": "Cable tray",
+          "world": [
+            2.4000000953674316,
+            0.7900000214576721,
+            2.880000114440918
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "control-display",
+          "label": "Control display",
+          "world": [
+            2.299999952316284,
+            1.6399999856948853,
+            1.8200000524520874
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "detector",
+          "label": "Detector",
+          "world": [
+            1.350000023841858,
+            -1.5800000429153442,
+            1.340000033378601
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "exhaust-manifold",
+          "label": "Exhaust manifold",
+          "world": [
+            0.07930457592010498,
+            2.063729763031006,
+            3.143129825592041
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "feed-pump",
+          "label": "Feed pump",
+          "world": [
+            1.100000023841858,
+            1.0099999904632568,
+            1.2999999523162842
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "flow-cell",
+          "label": "Flow cell",
+          "world": [
+            0.5299999713897705,
+            -1.25,
+            1.3300000429153442
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "gas-supply",
+          "label": "Gas supply",
+          "world": [
+            -3.3499999046325684,
+            -0.8799999952316284,
+            1.1200000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-a",
+          "label": "Reactor A",
+          "world": [
+            -2.0,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-b",
+          "label": "Reactor B",
+          "world": [
+            -0.699999988079071,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "recirculator",
+          "label": "Recirculator",
+          "world": [
+            3.0,
+            -1.75,
+            0.8299999833106995
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "sample-rack",
+          "label": "Sample rack",
+          "world": [
+            -0.8500000238418579,
+            -1.6200000047683716,
+            1.3700000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "transfer-line",
+          "label": "Transfer line",
+          "world": [
+            -1.2999999523162842,
+            0.6499999761581421,
+            2.700000047683716
+          ],
+          "visibility": "visible"
+        }
+      ],
+      "sources": {
+        "Overview": "22d44c8fbc53de2a91209c0f6db17d9848d4a5a68d1a612dcd2edd668918b659",
+        "Process": "3b4d3a63059157d0a7df9996a663c2a21458de091ae3feb6f83a4c6657696c8b"
+      }
+    },
+    "joint": {
+      "schema": "inklet.figure-plan/0.1",
+      "experimental": true,
+      "feasible": true,
+      "views": [
+        "Overview",
+        "Services"
+      ],
+      "width_mm": 180.0,
+      "height_mm": 155.9871857777778,
+      "image_width_mm": 100.68081777777779,
+      "font_pt": 8.0,
+      "score": 576.7529516501475,
+      "issues": [],
+      "evaluated": 14,
+      "moved": [],
+      "placements": [
+        {
+          "target": "cable-tray",
+          "view": "Services",
+          "side": "e",
+          "row": 4,
+          "x": 53.340408888888895,
+          "y": -8.765799999999999,
+          "target_x": 29.162298136644907,
+          "target_y": -4.562732261474767,
+          "visible": true,
+          "leader_mm": 23.56431194953962
+        },
+        {
+          "target": "control-display",
+          "view": "Services",
+          "side": "e",
+          "row": 5,
+          "x": 53.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": 26.14813384416292,
+          "target_y": -3.030292206344253,
+          "visible": true,
+          "leader_mm": 26.19250354907457
+        },
+        {
+          "target": "detector",
+          "view": "Services",
+          "side": "e",
+          "row": 10,
+          "x": 53.340408888888895,
+          "y": 26.297399999999996,
+          "target_x": 22.094793023096248,
+          "target_y": 29.685285724494126,
+          "visible": true,
+          "leader_mm": 30.43792632961619
+        },
+        {
+          "target": "exhaust-manifold",
+          "view": "Overview",
+          "side": "e",
+          "row": 2,
+          "x": 53.340408888888895,
+          "y": -20.453533333333333,
+          "target_x": 10.599261049703976,
+          "target_y": -19.460801304340528,
+          "visible": true,
+          "leader_mm": 41.75309433212126
+        },
+        {
+          "target": "feed-pump",
+          "view": "Overview",
+          "side": "e",
+          "row": 5,
+          "x": 53.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": 12.249405480466201,
+          "target_y": -0.31404458738745084,
+          "visible": true,
+          "leader_mm": 40.17680222241919
+        },
+        {
+          "target": "flow-cell",
+          "view": "Services",
+          "side": "e",
+          "row": 9,
+          "x": 53.340408888888895,
+          "y": 20.453533333333333,
+          "target_x": 11.829228695222918,
+          "target_y": 28.266778729890397,
+          "visible": true,
+          "leader_mm": 41.26691482215485
+        },
+        {
+          "target": "gas-supply",
+          "view": "Services",
+          "side": "w",
+          "row": 11,
+          "x": -53.340408888888895,
+          "y": 32.14126666666667,
+          "target_x": -34.151441580360874,
+          "target_y": 32.98183770833601,
+          "visible": true,
+          "leader_mm": 18.208927808262874
+        },
+        {
+          "target": "reactor-a",
+          "view": "Services",
+          "side": "w",
+          "row": 7,
+          "x": -53.340408888888895,
+          "y": 8.765799999999999,
+          "target_x": -22.785763982481985,
+          "target_y": 7.9583333991832035,
+          "visible": true,
+          "leader_mm": 29.56586301744422
+        },
+        {
+          "target": "reactor-b",
+          "view": "Services",
+          "side": "w",
+          "row": 6,
+          "x": -53.340408888888895,
+          "y": 2.921933333333333,
+          "target_x": -7.649661428128687,
+          "target_y": 5.896612153924068,
+          "visible": true,
+          "leader_mm": 44.790753834478316
+        },
+        {
+          "target": "recirculator",
+          "view": "Services",
+          "side": "e",
+          "row": 11,
+          "x": 53.340408888888895,
+          "y": 32.14126666666667,
+          "target_x": 41.67596899102105,
+          "target_y": 32.64185178983893,
+          "visible": true,
+          "leader_mm": 10.676759007803469
+        },
+        {
+          "target": "sample-rack",
+          "view": "Overview",
+          "side": "w",
+          "row": 6,
+          "x": -53.340408888888895,
+          "y": 2.921933333333333,
+          "target_x": -13.562649844568945,
+          "target_y": 3.1502928646258415,
+          "visible": true,
+          "leader_mm": 38.778440218098616
+        },
+        {
+          "target": "transfer-line",
+          "view": "Services",
+          "side": "w",
+          "row": 5,
+          "x": -53.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": -13.612697721296591,
+          "target_y": 3.951096964077796,
+          "visible": true,
+          "leader_mm": 39.3406545591342
+        }
+      ],
+      "alternatives": [
+        {
+          "score": 576.7529516501475,
+          "views": [
+            "Overview",
+            "Services"
+          ],
+          "image_width_mm": 100.68081777777779,
+          "height_mm": 155.9871857777778,
+          "moved": []
+        },
+        {
+          "score": 581.4918185043064,
+          "views": [
+            "Analysis",
+            "Overview",
+            "Process"
+          ],
+          "image_width_mm": 100.68081777777779,
+          "height_mm": 236.9807786666667,
+          "moved": []
+        },
+        {
+          "score": 593.1859901431129,
+          "views": [
+            "Overview",
+            "Process"
+          ],
+          "image_width_mm": 100.68081777777779,
+          "height_mm": 155.9871857777778,
+          "moved": []
+        },
+        {
+          "score": 602.5083230863138,
+          "views": [
+            "Overview",
+            "Process",
+            "Services"
+          ],
+          "image_width_mm": 100.68081777777779,
+          "height_mm": 236.9807786666667,
+          "moved": []
+        },
+        {
+          "score": 620.019550441571,
+          "views": [
+            "Analysis",
+            "Overview",
+            "Services"
+          ],
+          "image_width_mm": 100.68081777777779,
+          "height_mm": 236.9807786666667,
+          "moved": []
+        }
+      ],
+      "constraints": {
+        "max_height_mm": 240.0,
+        "min_image_width_mm": 45.0,
+        "font_family": "Helvetica Neue, Helvetica, Arial, sans-serif",
+        "label_sizes_mm": {
+          "cable-tray": {
+            "width": 13.306777777777777,
+            "height": 3.843866666666666
+          },
+          "control-display": {
+            "width": 19.834577777777778,
+            "height": 3.843866666666666
+          },
+          "detector": {
+            "width": 11.509022222222221,
+            "height": 3.843866666666666
+          },
+          "exhaust-manifold": {
+            "width": 23.074488888888887,
+            "height": 3.843866666666666
+          },
+          "feed-pump": {
+            "width": 14.971888888888888,
+            "height": 3.843866666666666
+          },
+          "flow-cell": {
+            "width": 11.198577777777777,
+            "height": 3.843866666666666
+          },
+          "gas-supply": {
+            "width": 14.458244444444444,
+            "height": 3.843866666666666
+          },
+          "reactor-a": {
+            "width": 12.71411111111111,
+            "height": 3.843866666666666
+          },
+          "reactor-b": {
+            "width": 12.745155555555554,
+            "height": 3.843866666666666
+          },
+          "recirculator": {
+            "width": 15.841133333333332,
+            "height": 3.843866666666666
+          },
+          "sample-rack": {
+            "width": 16.11488888888889,
+            "height": 3.843866666666666
+          },
+          "transfer-line": {
+            "width": 16.470488888888887,
+            "height": 3.843866666666666
+          }
+        },
+        "max_views": 3,
+        "image_scales": [
+          1.0,
+          0.8
+        ],
+        "required_views": [
+          "Overview"
+        ],
+        "locks": [],
+        "depth_bias_scene_units": 0.04,
+        "view_penalty": 80.0,
+        "move_penalty": 25.0,
+        "shrink_penalty": 80.0,
+        "previous_slots": {},
+        "previous_views": [],
+        "visibility": {
+          "Analysis": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": false,
+              "visible": false
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": false,
+              "visible": false
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": false,
+              "visible": false
+            }
+          },
+          "Overview": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          },
+          "Process": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": false,
+              "visible": false
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": false,
+              "visible": false
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          },
+          "Services": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          }
+        }
+      },
+      "total_leader_mm": 384.7529516501474,
+      "targets": [
+        {
+          "id": "cable-tray",
+          "label": "Cable tray",
+          "world": [
+            2.4000000953674316,
+            0.7900000214576721,
+            2.880000114440918
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "control-display",
+          "label": "Control display",
+          "world": [
+            2.299999952316284,
+            1.6399999856948853,
+            1.8200000524520874
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "detector",
+          "label": "Detector",
+          "world": [
+            1.350000023841858,
+            -1.5800000429153442,
+            1.340000033378601
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "exhaust-manifold",
+          "label": "Exhaust manifold",
+          "world": [
+            0.07930457592010498,
+            2.063729763031006,
+            3.143129825592041
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "feed-pump",
+          "label": "Feed pump",
+          "world": [
+            1.100000023841858,
+            1.0099999904632568,
+            1.2999999523162842
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "flow-cell",
+          "label": "Flow cell",
+          "world": [
+            0.5299999713897705,
+            -1.25,
+            1.3300000429153442
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "gas-supply",
+          "label": "Gas supply",
+          "world": [
+            -3.3499999046325684,
+            -0.8799999952316284,
+            1.1200000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-a",
+          "label": "Reactor A",
+          "world": [
+            -2.0,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-b",
+          "label": "Reactor B",
+          "world": [
+            -0.699999988079071,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "recirculator",
+          "label": "Recirculator",
+          "world": [
+            3.0,
+            -1.75,
+            0.8299999833106995
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "sample-rack",
+          "label": "Sample rack",
+          "world": [
+            -0.8500000238418579,
+            -1.6200000047683716,
+            1.3700000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "transfer-line",
+          "label": "Transfer line",
+          "world": [
+            -1.2999999523162842,
+            0.6499999761581421,
+            2.700000047683716
+          ],
+          "visibility": "visible"
+        }
+      ],
+      "sources": {
+        "Analysis": "edaa28a8dacd030bb5571c78b85f922380c1e51ece10e6efa520cf9bc9c1cc8d",
+        "Overview": "22d44c8fbc53de2a91209c0f6db17d9848d4a5a68d1a612dcd2edd668918b659",
+        "Process": "3b4d3a63059157d0a7df9996a663c2a21458de091ae3feb6f83a4c6657696c8b",
+        "Services": "9c0a008ed81364fdc6acad42a0c7c42d2f964b91bb20659b27f51ae3e9ee543a"
+      }
+    },
+    "revised-with-lock": {
+      "schema": "inklet.figure-plan/0.1",
+      "experimental": true,
+      "feasible": true,
+      "views": [
+        "Overview",
+        "Services"
+      ],
+      "width_mm": 155.0,
+      "height_mm": 156.23398222222224,
+      "image_width_mm": 100.85102222222223,
+      "font_pt": 8.0,
+      "score": 573.6585289681636,
+      "issues": [],
+      "evaluated": 14,
+      "moved": [
+        "gas-supply"
+      ],
+      "placements": [
+        {
+          "target": "cable-tray",
+          "view": "Services",
+          "side": "e",
+          "row": 4,
+          "x": 53.42551111111111,
+          "y": -8.765799999999999,
+          "target_x": 29.2115980217931,
+          "target_y": -4.570445719975146,
+          "visible": true,
+          "leader_mm": 23.59811345898221
+        },
+        {
+          "target": "control-display",
+          "view": "Services",
+          "side": "e",
+          "row": 5,
+          "x": 53.42551111111111,
+          "y": -2.921933333333333,
+          "target_x": 26.192338179133937,
+          "target_y": -3.035415021324,
+          "visible": true,
+          "leader_mm": 26.233423154344468
+        },
+        {
+          "target": "detector",
+          "view": "Services",
+          "side": "e",
+          "row": 10,
+          "x": 53.42551111111111,
+          "y": 26.297399999999996,
+          "target_x": 22.1321450436163,
+          "target_y": 29.7354697384546,
+          "visible": true,
+          "leader_mm": 30.49108176038718
+        },
+        {
+          "target": "exhaust-manifold",
+          "view": "Overview",
+          "side": "e",
+          "row": 2,
+          "x": 53.42551111111111,
+          "y": -20.453533333333333,
+          "target_x": 10.617179471289191,
+          "target_y": -19.493700469718384,
+          "visible": true,
+          "leader_mm": 41.819481385801396
+        },
+        {
+          "target": "feed-pump",
+          "view": "Overview",
+          "side": "e",
+          "row": 5,
+          "x": 53.42551111111111,
+          "y": -2.921933333333333,
+          "target_x": 12.27011352893656,
+          "target_y": -0.3145754907482583,
+          "visible": true,
+          "leader_mm": 40.24102253741875
+        },
+        {
+          "target": "flow-cell",
+          "view": "Services",
+          "side": "e",
+          "row": 9,
+          "x": 53.42551111111111,
+          "y": 20.453533333333333,
+          "target_x": 11.849226420139303,
+          "target_y": 28.31456470815464,
+          "visible": true,
+          "leader_mm": 41.33998541757509
+        },
+        {
+          "target": "gas-supply",
+          "view": "Overview",
+          "side": "w",
+          "row": 5,
+          "x": -53.42551111111111,
+          "y": -2.921933333333333,
+          "target_x": -31.033058126920025,
+          "target_y": -0.5908792084045948,
+          "visible": true,
+          "leader_mm": 21.522093259948743
+        },
+        {
+          "target": "reactor-a",
+          "view": "Services",
+          "side": "w",
+          "row": 7,
+          "x": -53.42551111111111,
+          "y": 8.765799999999999,
+          "target_x": -22.82428411358025,
+          "target_y": 7.971787240190945,
+          "visible": true,
+          "leader_mm": 29.612057107400684
+        },
+        {
+          "target": "reactor-b",
+          "view": "Services",
+          "side": "w",
+          "row": 6,
+          "x": -53.42551111111111,
+          "y": 2.921933333333333,
+          "target_x": -7.662593448371476,
+          "target_y": 5.906580583044084,
+          "visible": true,
+          "leader_mm": 44.86343087751075
+        },
+        {
+          "target": "recirculator",
+          "view": "Services",
+          "side": "e",
+          "row": 11,
+          "x": 53.42551111111111,
+          "y": 32.14126666666667,
+          "target_x": 41.746423674498665,
+          "target_y": 32.69703398215873,
+          "visible": true,
+          "leader_mm": 10.694248297504364
+        },
+        {
+          "target": "sample-rack",
+          "view": "Overview",
+          "side": "w",
+          "row": 6,
+          "x": -53.42551111111111,
+          "y": 2.921933333333333,
+          "target_x": -13.585577978576405,
+          "target_y": 3.1556185449162464,
+          "visible": true,
+          "leader_mm": 38.840645291718104
+        },
+        {
+          "target": "transfer-line",
+          "view": "Services",
+          "side": "w",
+          "row": 5,
+          "x": -53.42551111111111,
+          "y": -2.921933333333333,
+          "target_x": -13.63571046299042,
+          "target_y": 3.9577764317118524,
+          "visible": true,
+          "leader_mm": 39.4029464195719
+        }
+      ],
+      "alternatives": [
+        {
+          "score": 573.6585289681636,
+          "views": [
+            "Overview",
+            "Services"
+          ],
+          "image_width_mm": 100.85102222222223,
+          "height_mm": 156.23398222222224,
+          "moved": [
+            "gas-supply"
+          ]
+        },
+        {
+          "score": 587.796947406476,
+          "views": [
+            "Overview",
+            "Services"
+          ],
+          "image_width_mm": 80.68081777777779,
+          "height_mm": 126.9871857777778,
+          "moved": [
+            "detector",
+            "gas-supply",
+            "recirculator"
+          ]
+        },
+        {
+          "score": 667.1183840330218,
+          "views": [
+            "Overview",
+            "Process",
+            "Services"
+          ],
+          "image_width_mm": 100.85102222222223,
+          "height_mm": 237.35097333333334,
+          "moved": [
+            "flow-cell",
+            "gas-supply"
+          ]
+        },
+        {
+          "score": 674.8900625571283,
+          "views": [
+            "Analysis",
+            "Overview",
+            "Services"
+          ],
+          "image_width_mm": 100.85102222222223,
+          "height_mm": 237.35097333333334,
+          "moved": [
+            "feed-pump",
+            "gas-supply"
+          ]
+        },
+        {
+          "score": 701.8744720942652,
+          "views": [
+            "Overview",
+            "Process",
+            "Services"
+          ],
+          "image_width_mm": 80.68081777777779,
+          "height_mm": 193.4807786666667,
+          "moved": [
+            "detector",
+            "flow-cell",
+            "gas-supply",
+            "recirculator"
+          ]
+        }
+      ],
+      "constraints": {
+        "max_height_mm": 240.0,
+        "min_image_width_mm": 45.0,
+        "font_family": "Helvetica Neue, Helvetica, Arial, sans-serif",
+        "label_sizes_mm": {
+          "cable-tray": {
+            "width": 13.306777777777777,
+            "height": 3.843866666666666
+          },
+          "control-display": {
+            "width": 19.834577777777778,
+            "height": 3.843866666666666
+          },
+          "detector": {
+            "width": 11.509022222222221,
+            "height": 3.843866666666666
+          },
+          "exhaust-manifold": {
+            "width": 23.074488888888887,
+            "height": 3.843866666666666
+          },
+          "feed-pump": {
+            "width": 14.971888888888888,
+            "height": 3.843866666666666
+          },
+          "flow-cell": {
+            "width": 11.198577777777777,
+            "height": 3.843866666666666
+          },
+          "gas-supply": {
+            "width": 14.458244444444444,
+            "height": 3.843866666666666
+          },
+          "reactor-a": {
+            "width": 12.71411111111111,
+            "height": 3.843866666666666
+          },
+          "reactor-b": {
+            "width": 12.745155555555554,
+            "height": 3.843866666666666
+          },
+          "recirculator": {
+            "width": 15.841133333333332,
+            "height": 3.843866666666666
+          },
+          "sample-rack": {
+            "width": 16.11488888888889,
+            "height": 3.843866666666666
+          },
+          "transfer-line": {
+            "width": 16.470488888888887,
+            "height": 3.843866666666666
+          }
+        },
+        "max_views": 3,
+        "image_scales": [
+          1.0,
+          0.8
+        ],
+        "required_views": [
+          "Overview"
+        ],
+        "locks": [
+          {
+            "target": "exhaust-manifold",
+            "view": "Overview",
+            "side": "e",
+            "row": 2
+          }
+        ],
+        "depth_bias_scene_units": 0.04,
+        "view_penalty": 80.0,
+        "move_penalty": 25.0,
+        "shrink_penalty": 80.0,
+        "previous_slots": {
+          "cable-tray": [
+            "Services",
+            "e",
+            4
+          ],
+          "control-display": [
+            "Services",
+            "e",
+            5
+          ],
+          "detector": [
+            "Services",
+            "e",
+            10
+          ],
+          "exhaust-manifold": [
+            "Overview",
+            "e",
+            2
+          ],
+          "feed-pump": [
+            "Overview",
+            "e",
+            5
+          ],
+          "flow-cell": [
+            "Services",
+            "e",
+            9
+          ],
+          "gas-supply": [
+            "Services",
+            "w",
+            11
+          ],
+          "reactor-a": [
+            "Services",
+            "w",
+            7
+          ],
+          "reactor-b": [
+            "Services",
+            "w",
+            6
+          ],
+          "recirculator": [
+            "Services",
+            "e",
+            11
+          ],
+          "sample-rack": [
+            "Overview",
+            "w",
+            6
+          ],
+          "transfer-line": [
+            "Services",
+            "w",
+            5
+          ]
+        },
+        "previous_views": [
+          "Overview",
+          "Services"
+        ],
+        "visibility": {
+          "Analysis": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": false,
+              "visible": false
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": false,
+              "visible": false
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": false,
+              "visible": false
+            }
+          },
+          "Overview": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          },
+          "Process": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": false,
+              "visible": false
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": false,
+              "visible": false
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          },
+          "Services": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          }
+        }
+      },
+      "total_leader_mm": 388.65852896816364,
+      "targets": [
+        {
+          "id": "cable-tray",
+          "label": "Cable tray",
+          "world": [
+            2.4000000953674316,
+            0.7900000214576721,
+            2.880000114440918
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "control-display",
+          "label": "Control display",
+          "world": [
+            2.299999952316284,
+            1.6399999856948853,
+            1.8200000524520874
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "detector",
+          "label": "Detector",
+          "world": [
+            1.350000023841858,
+            -1.5800000429153442,
+            1.340000033378601
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "exhaust-manifold",
+          "label": "Exhaust manifold",
+          "world": [
+            0.07930457592010498,
+            2.063729763031006,
+            3.143129825592041
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "feed-pump",
+          "label": "Feed pump",
+          "world": [
+            1.100000023841858,
+            1.0099999904632568,
+            1.2999999523162842
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "flow-cell",
+          "label": "Flow cell",
+          "world": [
+            0.5299999713897705,
+            -1.25,
+            1.3300000429153442
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "gas-supply",
+          "label": "Gas supply",
+          "world": [
+            -3.3499999046325684,
+            -1.7799999713897705,
+            1.1200000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-a",
+          "label": "Reactor A",
+          "world": [
+            -2.0,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-b",
+          "label": "Reactor B",
+          "world": [
+            -0.699999988079071,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "recirculator",
+          "label": "Recirculator",
+          "world": [
+            3.0,
+            -1.75,
+            0.8299999833106995
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "sample-rack",
+          "label": "Sample rack",
+          "world": [
+            -0.8500000238418579,
+            -1.6200000047683716,
+            1.3700000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "transfer-line",
+          "label": "Transfer line",
+          "world": [
+            -1.2999999523162842,
+            0.6499999761581421,
+            2.700000047683716
+          ],
+          "visibility": "visible"
+        }
+      ],
+      "sources": {
+        "Analysis": "6f3619eb4ce1a3175bcdb2a848a86b8b2cd17b4987885e2723077ebc8f686b99",
+        "Overview": "64154195a25d7512c6aa7dcd58f2f0f039d2612f45b135739b272a699929273c",
+        "Process": "180f21cfd1f1b3a8ae14fbdcae7a771ca61f7150d3bd61c980d34e5231fde3e8",
+        "Services": "8973521f558cbdb72a42dd0d2e85c862a475a5d8bae4391955455eb16c02050c"
+      }
+    },
+    "revised-without-history": {
+      "schema": "inklet.figure-plan/0.1",
+      "experimental": true,
+      "feasible": true,
+      "views": [
+        "Overview",
+        "Services"
+      ],
+      "width_mm": 155.0,
+      "height_mm": 126.9871857777778,
+      "image_width_mm": 80.68081777777779,
+      "font_pt": 8.0,
+      "score": 508.8436466983367,
+      "issues": [],
+      "evaluated": 14,
+      "moved": [],
+      "placements": [
+        {
+          "target": "cable-tray",
+          "view": "Services",
+          "side": "e",
+          "row": 4,
+          "x": 43.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": 23.369278417434483,
+          "target_y": -3.6563565759801167,
+          "visible": true,
+          "leader_mm": 18.985725260125218
+        },
+        {
+          "target": "control-display",
+          "view": "Services",
+          "side": "e",
+          "row": 5,
+          "x": 43.340408888888895,
+          "y": 2.921933333333333,
+          "target_x": 20.95387054330715,
+          "target_y": -2.4283320170592,
+          "visible": true,
+          "leader_mm": 22.060909613953385
+        },
+        {
+          "target": "detector",
+          "view": "Services",
+          "side": "e",
+          "row": 8,
+          "x": 43.340408888888895,
+          "y": 20.453533333333333,
+          "target_x": 17.70571603489304,
+          "target_y": 23.78837579076368,
+          "visible": true,
+          "leader_mm": 24.864001587846744
+        },
+        {
+          "target": "exhaust-manifold",
+          "view": "Overview",
+          "side": "e",
+          "row": 2,
+          "x": 43.340408888888895,
+          "y": -14.609666666666666,
+          "target_x": 8.493743577031353,
+          "target_y": -15.59496037577471,
+          "visible": true,
+          "leader_mm": 33.86121836975159
+        },
+        {
+          "target": "feed-pump",
+          "view": "Overview",
+          "side": "e",
+          "row": 4,
+          "x": 43.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": 9.81609082314925,
+          "target_y": -0.2516603925986066,
+          "visible": true,
+          "leader_mm": 32.63545246536415
+        },
+        {
+          "target": "flow-cell",
+          "view": "Services",
+          "side": "e",
+          "row": 7,
+          "x": 43.340408888888895,
+          "y": 14.609666666666666,
+          "target_x": 9.479381136111442,
+          "target_y": 22.651651766523713,
+          "visible": true,
+          "leader_mm": 33.845309138803245
+        },
+        {
+          "target": "gas-supply",
+          "view": "Overview",
+          "side": "w",
+          "row": 4,
+          "x": -43.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": -24.826446501536022,
+          "target_y": -0.4727033667236759,
+          "visible": true,
+          "leader_mm": 17.689346803982897
+        },
+        {
+          "target": "reactor-a",
+          "view": "Services",
+          "side": "w",
+          "row": 6,
+          "x": -43.340408888888895,
+          "y": 8.765799999999999,
+          "target_x": -18.2594272908642,
+          "target_y": 6.377429792152756,
+          "visible": true,
+          "leader_mm": 24.201624530316728
+        },
+        {
+          "target": "reactor-b",
+          "view": "Services",
+          "side": "w",
+          "row": 5,
+          "x": -43.340408888888895,
+          "y": 2.921933333333333,
+          "target_x": -6.130074758697181,
+          "target_y": 4.725264466435267,
+          "visible": true,
+          "leader_mm": 36.25583822070949
+        },
+        {
+          "target": "recirculator",
+          "view": "Services",
+          "side": "e",
+          "row": 9,
+          "x": 43.340408888888895,
+          "y": 26.297399999999996,
+          "target_x": 33.39713893959894,
+          "target_y": 26.15762718572698,
+          "visible": true,
+          "leader_mm": 8.944426793820444
+        },
+        {
+          "target": "sample-rack",
+          "view": "Overview",
+          "side": "w",
+          "row": 5,
+          "x": -43.340408888888895,
+          "y": 2.921933333333333,
+          "target_x": -10.868462382861123,
+          "target_y": 2.5244948359329973,
+          "visible": true,
+          "leader_mm": 31.47449640803643
+        },
+        {
+          "target": "transfer-line",
+          "view": "Services",
+          "side": "w",
+          "row": 4,
+          "x": -43.340408888888895,
+          "y": -2.921933333333333,
+          "target_x": -10.908568370392336,
+          "target_y": 3.166221145369482,
+          "visible": true,
+          "leader_mm": 32.025297505626405
+        }
+      ],
+      "alternatives": [
+        {
+          "score": 508.8436466983367,
+          "views": [
+            "Overview",
+            "Services"
+          ],
+          "image_width_mm": 80.68081777777779,
+          "height_mm": 126.9871857777778,
+          "moved": []
+        },
+        {
+          "score": 515.4991516342036,
+          "views": [
+            "Overview",
+            "Process"
+          ],
+          "image_width_mm": 80.68081777777779,
+          "height_mm": 126.9871857777778,
+          "moved": []
+        },
+        {
+          "score": 541.8795159475453,
+          "views": [
+            "Analysis",
+            "Overview",
+            "Process"
+          ],
+          "image_width_mm": 80.68081777777779,
+          "height_mm": 193.4807786666667,
+          "moved": []
+        },
+        {
+          "score": 548.0997403665565,
+          "views": [
+            "Overview",
+            "Process",
+            "Services"
+          ],
+          "image_width_mm": 80.68081777777779,
+          "height_mm": 193.4807786666667,
+          "moved": []
+        },
+        {
+          "score": 548.6585289681636,
+          "views": [
+            "Overview",
+            "Services"
+          ],
+          "image_width_mm": 100.85102222222223,
+          "height_mm": 156.23398222222224,
+          "moved": []
+        }
+      ],
+      "constraints": {
+        "max_height_mm": 240.0,
+        "min_image_width_mm": 45.0,
+        "font_family": "Helvetica Neue, Helvetica, Arial, sans-serif",
+        "label_sizes_mm": {
+          "cable-tray": {
+            "width": 13.306777777777777,
+            "height": 3.843866666666666
+          },
+          "control-display": {
+            "width": 19.834577777777778,
+            "height": 3.843866666666666
+          },
+          "detector": {
+            "width": 11.509022222222221,
+            "height": 3.843866666666666
+          },
+          "exhaust-manifold": {
+            "width": 23.074488888888887,
+            "height": 3.843866666666666
+          },
+          "feed-pump": {
+            "width": 14.971888888888888,
+            "height": 3.843866666666666
+          },
+          "flow-cell": {
+            "width": 11.198577777777777,
+            "height": 3.843866666666666
+          },
+          "gas-supply": {
+            "width": 14.458244444444444,
+            "height": 3.843866666666666
+          },
+          "reactor-a": {
+            "width": 12.71411111111111,
+            "height": 3.843866666666666
+          },
+          "reactor-b": {
+            "width": 12.745155555555554,
+            "height": 3.843866666666666
+          },
+          "recirculator": {
+            "width": 15.841133333333332,
+            "height": 3.843866666666666
+          },
+          "sample-rack": {
+            "width": 16.11488888888889,
+            "height": 3.843866666666666
+          },
+          "transfer-line": {
+            "width": 16.470488888888887,
+            "height": 3.843866666666666
+          }
+        },
+        "max_views": 3,
+        "image_scales": [
+          1.0,
+          0.8
+        ],
+        "required_views": [
+          "Overview"
+        ],
+        "locks": [],
+        "depth_bias_scene_units": 0.04,
+        "view_penalty": 80.0,
+        "move_penalty": 25.0,
+        "shrink_penalty": 80.0,
+        "previous_slots": {},
+        "previous_views": [],
+        "visibility": {
+          "Analysis": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": false,
+              "visible": false
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": false,
+              "visible": false
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": false,
+              "visible": false
+            }
+          },
+          "Overview": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          },
+          "Process": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": false,
+              "visible": false
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": false,
+              "visible": false
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          },
+          "Services": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          }
+        }
+      },
+      "total_leader_mm": 316.8436466983367,
+      "targets": [
+        {
+          "id": "cable-tray",
+          "label": "Cable tray",
+          "world": [
+            2.4000000953674316,
+            0.7900000214576721,
+            2.880000114440918
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "control-display",
+          "label": "Control display",
+          "world": [
+            2.299999952316284,
+            1.6399999856948853,
+            1.8200000524520874
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "detector",
+          "label": "Detector",
+          "world": [
+            1.350000023841858,
+            -1.5800000429153442,
+            1.340000033378601
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "exhaust-manifold",
+          "label": "Exhaust manifold",
+          "world": [
+            0.07930457592010498,
+            2.063729763031006,
+            3.143129825592041
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "feed-pump",
+          "label": "Feed pump",
+          "world": [
+            1.100000023841858,
+            1.0099999904632568,
+            1.2999999523162842
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "flow-cell",
+          "label": "Flow cell",
+          "world": [
+            0.5299999713897705,
+            -1.25,
+            1.3300000429153442
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "gas-supply",
+          "label": "Gas supply",
+          "world": [
+            -3.3499999046325684,
+            -1.7799999713897705,
+            1.1200000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-a",
+          "label": "Reactor A",
+          "world": [
+            -2.0,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-b",
+          "label": "Reactor B",
+          "world": [
+            -0.699999988079071,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "recirculator",
+          "label": "Recirculator",
+          "world": [
+            3.0,
+            -1.75,
+            0.8299999833106995
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "sample-rack",
+          "label": "Sample rack",
+          "world": [
+            -0.8500000238418579,
+            -1.6200000047683716,
+            1.3700000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "transfer-line",
+          "label": "Transfer line",
+          "world": [
+            -1.2999999523162842,
+            0.6499999761581421,
+            2.700000047683716
+          ],
+          "visibility": "visible"
+        }
+      ],
+      "sources": {
+        "Analysis": "6f3619eb4ce1a3175bcdb2a848a86b8b2cd17b4987885e2723077ebc8f686b99",
+        "Overview": "64154195a25d7512c6aa7dcd58f2f0f039d2612f45b135739b272a699929273c",
+        "Process": "180f21cfd1f1b3a8ae14fbdcae7a771ca61f7150d3bd61c980d34e5231fde3e8",
+        "Services": "8973521f558cbdb72a42dd0d2e85c862a475a5d8bae4391955455eb16c02050c"
+      }
+    },
+    "too-narrow": {
+      "schema": "inklet.figure-plan/0.1",
+      "experimental": true,
+      "feasible": false,
+      "views": [],
+      "width_mm": 70.0,
+      "height_mm": 0.0,
+      "image_width_mm": 0.0,
+      "font_pt": 8.0,
+      "score": null,
+      "issues": [
+        "Labels leave too little image width; increase page width or shorten labels."
+      ],
+      "evaluated": 0,
+      "moved": [],
+      "placements": [],
+      "alternatives": [],
+      "constraints": {
+        "max_height_mm": 240.0,
+        "min_image_width_mm": 45.0,
+        "font_family": "Helvetica Neue, Helvetica, Arial, sans-serif",
+        "label_sizes_mm": {
+          "cable-tray": {
+            "width": 13.306777777777777,
+            "height": 3.843866666666666
+          },
+          "control-display": {
+            "width": 19.834577777777778,
+            "height": 3.843866666666666
+          },
+          "detector": {
+            "width": 11.509022222222221,
+            "height": 3.843866666666666
+          },
+          "exhaust-manifold": {
+            "width": 23.074488888888887,
+            "height": 3.843866666666666
+          },
+          "feed-pump": {
+            "width": 14.971888888888888,
+            "height": 3.843866666666666
+          },
+          "flow-cell": {
+            "width": 11.198577777777777,
+            "height": 3.843866666666666
+          },
+          "gas-supply": {
+            "width": 14.458244444444444,
+            "height": 3.843866666666666
+          },
+          "reactor-a": {
+            "width": 12.71411111111111,
+            "height": 3.843866666666666
+          },
+          "reactor-b": {
+            "width": 12.745155555555554,
+            "height": 3.843866666666666
+          },
+          "recirculator": {
+            "width": 15.841133333333332,
+            "height": 3.843866666666666
+          },
+          "sample-rack": {
+            "width": 16.11488888888889,
+            "height": 3.843866666666666
+          },
+          "transfer-line": {
+            "width": 16.470488888888887,
+            "height": 3.843866666666666
+          }
+        },
+        "max_views": 3,
+        "image_scales": [
+          1.0,
+          0.8
+        ],
+        "required_views": [
+          "Overview"
+        ],
+        "locks": [],
+        "depth_bias_scene_units": 0.04,
+        "view_penalty": 80.0,
+        "move_penalty": 25.0,
+        "shrink_penalty": 80.0,
+        "previous_slots": {},
+        "previous_views": [],
+        "visibility": {
+          "Analysis": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": false,
+              "visible": false
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": false,
+              "visible": false
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": false,
+              "visible": false
+            }
+          },
+          "Overview": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          },
+          "Process": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": false,
+              "visible": false
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": false,
+              "visible": false
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          },
+          "Services": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": true
+            }
+          }
+        }
+      },
+      "total_leader_mm": 0,
+      "targets": [
+        {
+          "id": "cable-tray",
+          "label": "Cable tray",
+          "world": [
+            2.4000000953674316,
+            0.7900000214576721,
+            2.880000114440918
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "control-display",
+          "label": "Control display",
+          "world": [
+            2.299999952316284,
+            1.6399999856948853,
+            1.8200000524520874
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "detector",
+          "label": "Detector",
+          "world": [
+            1.350000023841858,
+            -1.5800000429153442,
+            1.340000033378601
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "exhaust-manifold",
+          "label": "Exhaust manifold",
+          "world": [
+            0.07930457592010498,
+            2.063729763031006,
+            3.143129825592041
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "feed-pump",
+          "label": "Feed pump",
+          "world": [
+            1.100000023841858,
+            1.0099999904632568,
+            1.2999999523162842
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "flow-cell",
+          "label": "Flow cell",
+          "world": [
+            0.5299999713897705,
+            -1.25,
+            1.3300000429153442
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "gas-supply",
+          "label": "Gas supply",
+          "world": [
+            -3.3499999046325684,
+            -0.8799999952316284,
+            1.1200000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-a",
+          "label": "Reactor A",
+          "world": [
+            -2.0,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-b",
+          "label": "Reactor B",
+          "world": [
+            -0.699999988079071,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "recirculator",
+          "label": "Recirculator",
+          "world": [
+            3.0,
+            -1.75,
+            0.8299999833106995
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "sample-rack",
+          "label": "Sample rack",
+          "world": [
+            -0.8500000238418579,
+            -1.6200000047683716,
+            1.3700000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "transfer-line",
+          "label": "Transfer line",
+          "world": [
+            -1.2999999523162842,
+            0.6499999761581421,
+            2.700000047683716
+          ],
+          "visibility": "visible"
+        }
+      ],
+      "sources": {
+        "Analysis": "edaa28a8dacd030bb5571c78b85f922380c1e51ece10e6efa520cf9bc9c1cc8d",
+        "Overview": "22d44c8fbc53de2a91209c0f6db17d9848d4a5a68d1a612dcd2edd668918b659",
+        "Process": "3b4d3a63059157d0a7df9996a663c2a21458de091ae3feb6f83a4c6657696c8b",
+        "Services": "9c0a008ed81364fdc6acad42a0c7c42d2f964b91bb20659b27f51ae3e9ee543a"
+      }
+    },
+    "strict-depth": {
+      "schema": "inklet.figure-plan/0.1",
+      "experimental": true,
+      "feasible": false,
+      "views": [],
+      "width_mm": 180.0,
+      "height_mm": 0.0,
+      "image_width_mm": 0.0,
+      "font_pt": 8.0,
+      "score": null,
+      "issues": [
+        "No eligible view for targets: transfer-line. Add a view or revise the explicit visibility requirement."
+      ],
+      "evaluated": 0,
+      "moved": [],
+      "placements": [],
+      "alternatives": [],
+      "constraints": {
+        "max_height_mm": 240.0,
+        "min_image_width_mm": 45.0,
+        "font_family": "Helvetica Neue, Helvetica, Arial, sans-serif",
+        "label_sizes_mm": {
+          "cable-tray": {
+            "width": 13.306777777777777,
+            "height": 3.843866666666666
+          },
+          "control-display": {
+            "width": 19.834577777777778,
+            "height": 3.843866666666666
+          },
+          "detector": {
+            "width": 11.509022222222221,
+            "height": 3.843866666666666
+          },
+          "exhaust-manifold": {
+            "width": 23.074488888888887,
+            "height": 3.843866666666666
+          },
+          "feed-pump": {
+            "width": 14.971888888888888,
+            "height": 3.843866666666666
+          },
+          "flow-cell": {
+            "width": 11.198577777777777,
+            "height": 3.843866666666666
+          },
+          "gas-supply": {
+            "width": 14.458244444444444,
+            "height": 3.843866666666666
+          },
+          "reactor-a": {
+            "width": 12.71411111111111,
+            "height": 3.843866666666666
+          },
+          "reactor-b": {
+            "width": 12.745155555555554,
+            "height": 3.843866666666666
+          },
+          "recirculator": {
+            "width": 15.841133333333332,
+            "height": 3.843866666666666
+          },
+          "sample-rack": {
+            "width": 16.11488888888889,
+            "height": 3.843866666666666
+          },
+          "transfer-line": {
+            "width": 16.470488888888887,
+            "height": 3.843866666666666
+          }
+        },
+        "max_views": 3,
+        "image_scales": [
+          1.0,
+          0.8
+        ],
+        "required_views": [
+          "Overview"
+        ],
+        "locks": [],
+        "depth_bias_scene_units": 0.001,
+        "view_penalty": 80.0,
+        "move_penalty": 25.0,
+        "shrink_penalty": 80.0,
+        "previous_slots": {},
+        "previous_views": [],
+        "visibility": {
+          "Analysis": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": false,
+              "visible": false
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": false,
+              "visible": false
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": false,
+              "visible": false
+            }
+          },
+          "Overview": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": true
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          },
+          "Process": {
+            "cable-tray": {
+              "in_frame": false,
+              "visible": false
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": false,
+              "visible": false
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": false,
+              "visible": false
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": false,
+              "visible": false
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          },
+          "Services": {
+            "cable-tray": {
+              "in_frame": true,
+              "visible": true
+            },
+            "control-display": {
+              "in_frame": true,
+              "visible": true
+            },
+            "detector": {
+              "in_frame": true,
+              "visible": true
+            },
+            "exhaust-manifold": {
+              "in_frame": true,
+              "visible": true
+            },
+            "feed-pump": {
+              "in_frame": true,
+              "visible": false
+            },
+            "flow-cell": {
+              "in_frame": true,
+              "visible": true
+            },
+            "gas-supply": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-a": {
+              "in_frame": true,
+              "visible": true
+            },
+            "reactor-b": {
+              "in_frame": true,
+              "visible": true
+            },
+            "recirculator": {
+              "in_frame": true,
+              "visible": true
+            },
+            "sample-rack": {
+              "in_frame": true,
+              "visible": true
+            },
+            "transfer-line": {
+              "in_frame": true,
+              "visible": false
+            }
+          }
+        }
+      },
+      "total_leader_mm": 0,
+      "targets": [
+        {
+          "id": "cable-tray",
+          "label": "Cable tray",
+          "world": [
+            2.4000000953674316,
+            0.7900000214576721,
+            2.880000114440918
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "control-display",
+          "label": "Control display",
+          "world": [
+            2.299999952316284,
+            1.6399999856948853,
+            1.8200000524520874
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "detector",
+          "label": "Detector",
+          "world": [
+            1.350000023841858,
+            -1.5800000429153442,
+            1.340000033378601
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "exhaust-manifold",
+          "label": "Exhaust manifold",
+          "world": [
+            0.07930457592010498,
+            2.063729763031006,
+            3.143129825592041
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "feed-pump",
+          "label": "Feed pump",
+          "world": [
+            1.100000023841858,
+            1.0099999904632568,
+            1.2999999523162842
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "flow-cell",
+          "label": "Flow cell",
+          "world": [
+            0.5299999713897705,
+            -1.25,
+            1.3300000429153442
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "gas-supply",
+          "label": "Gas supply",
+          "world": [
+            -3.3499999046325684,
+            -0.8799999952316284,
+            1.1200000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-a",
+          "label": "Reactor A",
+          "world": [
+            -2.0,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "reactor-b",
+          "label": "Reactor B",
+          "world": [
+            -0.699999988079071,
+            1.1200000047683716,
+            1.850000023841858
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "recirculator",
+          "label": "Recirculator",
+          "world": [
+            3.0,
+            -1.75,
+            0.8299999833106995
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "sample-rack",
+          "label": "Sample rack",
+          "world": [
+            -0.8500000238418579,
+            -1.6200000047683716,
+            1.3700000047683716
+          ],
+          "visibility": "visible"
+        },
+        {
+          "id": "transfer-line",
+          "label": "Transfer line",
+          "world": [
+            -1.2999999523162842,
+            0.6499999761581421,
+            2.700000047683716
+          ],
+          "visibility": "visible"
+        }
+      ],
+      "sources": {
+        "Analysis": "edaa28a8dacd030bb5571c78b85f922380c1e51ece10e6efa520cf9bc9c1cc8d",
+        "Overview": "22d44c8fbc53de2a91209c0f6db17d9848d4a5a68d1a612dcd2edd668918b659",
+        "Process": "3b4d3a63059157d0a7df9996a663c2a21458de091ae3feb6f83a4c6657696c8b",
+        "Services": "9c0a008ed81364fdc6acad42a0c7c42d2f964b91bb20659b27f51ae3e9ee543a"
+      }
+    }
+  }
+}
