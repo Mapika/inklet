@@ -324,3 +324,67 @@ def test_region_guide_example_runs_against_saved_projection():
     for block in re.findall(r'^```python\n(.*?)^```',guide.read_text(),re.M|re.S):
         exec(block,namespace)
     assert namespace['result'].feasible
+
+
+def test_physical_movement_penalty_trades_leader_length_for_stability():
+    targets = [Target('a','Alpha',(-1,1,-1)),Target('b','Beta',(1,-1,-1))]
+    before = plan(targets,[view()],image_scales=(1,))
+    revised = [replace(t,world=(-t.world[0],-t.world[1],-1)) for t in targets]
+    options = dict(previous=before,move_penalty=0,image_scales=(1,))
+    fresh = plan(revised,[view()],**options)
+    stable = plan(revised,[view()],**options,displacement_penalty=10)
+    movement = lambda p: sum(p.report()['constraints']['revision_displacement_mm'].values())
+    assert movement(fresh) > 100
+    assert movement(stable) == pytest.approx(0)
+    assert stable.report()['total_leader_mm'] > fresh.report()['total_leader_mm']
+    # Check the complete stated objective, independently of its stored terms.
+    assert stable.score == pytest.approx(stable.report()['total_leader_mm']+80+10*movement(stable))
+    for p in (fresh,stable):
+        assert sum(p.report()['score_terms'].values()) == pytest.approx(p.score)
+        for alternative in p.alternatives:
+            assert sum(alternative['score_terms'].values()) == pytest.approx(alternative['score'])
+
+
+def test_movement_cap_uses_mm_even_when_slot_lock_does_not_change():
+    target = Target('a','Alpha',(1,0,-1))
+    before = plan([target],[view()],width=180,image_scales=(1,))
+    p = before.placements[0]
+    options = dict(width=150,image_scales=(1,),previous=before,
+                   locks=[SlotLock(p.target,p.view,p.side,p.row)])
+    unconstrained = plan([target],[view()],**options)
+    distance = math.dist(before.label_positions()['a'],unconstrained.label_positions()['a'])
+    assert distance > 25 and not unconstrained.moved
+    assert plan([target],[view()],**options,max_displacement_mm=distance).feasible
+    rejected = plan([target],[view()],**options,max_displacement_mm=distance-.01)
+    assert not rejected.feasible and 'movement limit' in ' '.join(rejected.issues)
+    assert rejected.report()['score_terms'] is None
+    with pytest.raises(ValueError,match='infeasible'): rejected.diagram()
+
+
+def test_movement_cap_includes_preceding_panels_and_new_ids_are_unconstrained():
+    target = Target('a','Alpha',(0,0,-1))
+    before = plan([target],[view('a'),view('b')],required_views=['a','b'],max_height=400,
+                  locks=[SlotLock('a','b','w',0)],image_scales=(1,))
+    assert before.feasible
+    after = plan([target],[view('b')],previous=before,max_displacement_mm=0,image_scales=(1,))
+    assert not after.feasible
+    new = plan([replace(target,id='new')],[view('b')],previous=before,max_displacement_mm=0,image_scales=(1,))
+    assert new.feasible and new.report()['constraints']['revision_displacement_mm'] == {}
+
+
+def test_crossing_refinement_cannot_override_zero_movement_cap():
+    a,b = Target('a','A',(-1,1,-1)),Target('b','B',(-1,-1,-1))
+    before = plan([a,b],[view()],image_scales=(1,),
+        locks=[SlotLock('a','front','e',2),SlotLock('b','front','e',10)])
+    targets = [replace(a,world=b.world),replace(b,world=a.world)]
+    after = plan(targets,[view()],previous=before,image_scales=(1,),move_penalty=0,
+                 max_displacement_mm=0,crossing_penalty=5000)
+    assert after.feasible and len(after.report()['crossing_pairs']) == 1
+    assert after.label_positions() == before.label_positions()
+
+
+@pytest.mark.parametrize('options', [dict(displacement_penalty=-1),dict(displacement_penalty=math.nan),
+    dict(max_displacement_mm=-1),dict(max_displacement_mm=math.inf),dict(displacement_penalty=1),
+    dict(max_displacement_mm=0)])
+def test_invalid_movement_controls_or_missing_history(options):
+    with pytest.raises(ValueError): plan([Target('a','A',(0,0,-1))],[view()],**options)

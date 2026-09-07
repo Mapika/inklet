@@ -107,6 +107,16 @@ class Placement:
         return self.view, self.side, self.row
 
 
+def _panel_centres(names, image_width, ratios):
+    """Panel centre y coordinates measured from the complete plan's top edge."""
+    offsets, top = {}, 0.
+    for name in names:
+        height = image_width*ratios[name]
+        offsets[name] = top+1+height/2
+        top += height+8
+    return offsets
+
+
 @dataclass(frozen=True)
 class Plan:
     """A feasible layout or an explicit failure; no partial success rendering."""
@@ -129,7 +139,7 @@ class Plan:
 
     def report(self):
         """JSON-compatible evidence including coordinates, IDs and render keys."""
-        return dict(schema='inklet.figure-plan/0.2', experimental=True,
+        return dict(schema='inklet.figure-plan/0.3', experimental=True,
             feasible=self.feasible, views=list(self.views), width_mm=self.width,
             height_mm=self.height, image_width_mm=self.image_width,
             font_pt=self.font_pt, score=self.score, issues=list(self.issues),
@@ -137,6 +147,7 @@ class Plan:
             placements=[asdict(p) for p in self.placements],
             alternatives=deepcopy(list(self.alternatives)),
             constraints=deepcopy(self._settings),
+            score_terms=deepcopy(self._settings.get('score_terms')),
             total_leader_mm=sum(p.leader_mm for p in self.placements),
             crossing_pairs=crossing_pairs(self.placements, self.image_width),
             label_positions_mm=self.label_positions(),
@@ -146,12 +157,9 @@ class Plan:
     def label_positions(self):
         """Inner-edge label centres in mm from the plan's top-left corner."""
         candidates = {v.id: v.render for v in self._views}
-        offsets, top = {}, 0.
-        for name in self.views:
-            scene = candidates[name]
-            height = self.image_width*scene.metadata['height_mm']/scene.metadata['width_mm']
-            offsets[name] = top+1+height/2
-            top += height+8
+        ratios = {name: scene.metadata['height_mm']/scene.metadata['width_mm']
+                  for name, scene in candidates.items()}
+        offsets = _panel_centres(self.views, self.image_width, ratios)
         return {p.target: [self.width/2+p.x, offsets[p.view]+p.y] for p in self.placements}
 
     def diagram(self, *, show_regions=False):
@@ -268,14 +276,22 @@ def plan(targets, views, *, width=180., max_height=240., font_pt=8.,
          min_image_width=45., max_views=3, image_scales=(1., .8),
          required_views=(), locks=(), previous=None, view_penalty=80.,
          move_penalty=25., shrink_penalty=80., depth_bias=1e-3,
-         max_evaluations=2000, crossing_penalty=0., max_refinement_steps=12):
+         max_evaluations=2000, crossing_penalty=0., max_refinement_steps=12,
+         displacement_penalty=0., max_displacement_mm=None):
     """Jointly enumerate view subsets/sizes and solve measured label assignment.
 
     Hard constraints: page width/height, minimum image width, fixed label size,
-    depth visibility, distinct label slots, required views and author slot locks.
+    depth visibility, distinct label slots, required views, author slot locks,
+    and optionally max_displacement_mm for every surviving prior target.
     Cost (mm-equivalent): total leader length + view_penalty per view +
     move_penalty per changed prior slot or added/removed prior view +
-    shrink_penalty * (1-image_scale) per view + crossing_penalty per crossing pair.
+    shrink_penalty * (1-image_scale) per view + crossing_penalty per crossing pair
+    + displacement_penalty per mm of label movement from the previous plan.
+
+    Movement uses inner-edge label centres from each plan's top-left corner,
+    including page resizing and stacked-panel offsets. Active movement controls
+    require previous; new targets have no prior position and are unconstrained.
+    These coordinates precede any enclosing document layout or transformation.
 
     Two outside label columns use real text measurements; panels stack vertically.
     All panels use the same width, selected from image_scales. Exhaustive only
@@ -304,6 +320,9 @@ def plan(targets, views, *, width=180., max_height=240., font_pt=8.,
     min_image_width = _positive(min_image_width, 'min_image_width')
     view_penalty = _positive(view_penalty, 'view_penalty', zero=True)
     move_penalty = _positive(move_penalty, 'move_penalty', zero=True)
+    displacement_penalty = _positive(displacement_penalty, 'displacement_penalty', zero=True)
+    if max_displacement_mm is not None:
+        max_displacement_mm = _positive(max_displacement_mm, 'max_displacement_mm', zero=True)
     shrink_penalty = _positive(shrink_penalty, 'shrink_penalty', zero=True)
     depth_bias = _positive(depth_bias, 'depth_bias', zero=True)
     scales = tuple(sorted({_positive(s, 'image_scale') for s in image_scales}, reverse=True))
@@ -311,6 +330,8 @@ def plan(targets, views, *, width=180., max_height=240., font_pt=8.,
         raise ValueError('image_scales must contain values in (0, 1]')
     if previous is not None and not previous.feasible:
         raise ValueError('previous must be a feasible Plan')
+    if previous is None and (displacement_penalty or max_displacement_mm is not None):
+        raise ValueError('Movement controls require a feasible previous plan')
     target_ids, view_ids = {t.id for t in targets}, {v.id for v in views}
     required = set(required_views)
     lock_map = {}
@@ -329,6 +350,7 @@ def plan(targets, views, *, width=180., max_height=240., font_pt=8.,
     targets = tuple(sorted(targets, key=lambda t: t.id))
     views = tuple(sorted(views, key=lambda v: v.id))
     old = {p.target: p.slot for p in previous.placements} if previous else {}
+    old_positions = previous.label_positions() if previous else {}
     labels = tuple(i.text(t.label, size=i.pt(font_pt), text_fill='#172f32') for t in targets)
     boxes = [body.bbox for body in labels]
     column = max(b.width for b in boxes)+4
@@ -352,6 +374,9 @@ def plan(targets, views, *, width=180., max_height=240., font_pt=8.,
         max_views=max_views, image_scales=list(scales), required_views=sorted(required),
         locks=[asdict(lock) for lock in locks], depth_bias_scene_units=depth_bias,
         view_penalty=view_penalty, move_penalty=move_penalty, shrink_penalty=shrink_penalty,
+        displacement_penalty=displacement_penalty, max_displacement_mm=max_displacement_mm,
+        previous_positions_mm=old_positions,
+        displacement_reference='label inner-edge centre from plan top-left, before document transforms',
         crossing_penalty=crossing_penalty, max_refinement_steps=max_refinement_steps,
         assignment_method='local_refinement' if crossing_penalty else 'linear_exact',
         regions={v.id: {t.id: regions[v.id, t.id] for t in targets if t.region} for v in views},
@@ -412,6 +437,7 @@ def plan(targets, views, *, width=180., max_height=240., font_pt=8.,
                 height = sum(iw*ratios[name]+2 for name in names)+6*(k-1)
                 if iw < min_image_width or height > max_height:
                     continue
+                offsets = _panel_centres(names, iw, ratios)
                 slots = []
                 for view in subset:
                     h = iw*ratios[view.id]
@@ -433,7 +459,10 @@ def plan(targets, views, *, width=180., max_height=240., font_pt=8.,
                                               y-p.point.y*scale)+.5
                         allowed = eligible(t, name, iw) and (t.id not in lock_map or lock_map[t.id] == (name, side, row))
                         moved = t.id in old and old[t.id] != (name, side, row)
-                        row_costs.append(distance+move_penalty*moved if allowed else math.inf)
+                        displacement = math.dist((width/2+x, offsets[name]+y), old_positions[t.id]) if t.id in old_positions else 0.
+                        if max_displacement_mm is not None and displacement > max_displacement_mm+1e-9:
+                            allowed = False
+                        row_costs.append(distance+move_penalty*moved+displacement_penalty*displacement if allowed else math.inf)
                         row_lengths.append(distance)
                         row_lines.append(leader_points(p.point.x*scale, p.point.y*scale, x, y, side, iw))
                     costs.append(row_costs)
@@ -453,19 +482,28 @@ def plan(targets, views, *, width=180., max_height=240., font_pt=8.,
                     placements.append(Placement(t.id, name, side, row, x, y,
                         p.point.x*scale, p.point.y*scale, p.visible, lengths[index][slot_index]))
                 changed_views = len(set(names)^set(previous.views)) if previous else 0
-                score = sum(costs[n][col] for n, col in enumerate(assigned))+view_penalty*k+shrink_penalty*(1-fraction)*k+move_penalty*changed_views+crossing_penalty*refinement['crossings']
                 moved = tuple(p.target for p in placements if p.target in old and p.slot != old[p.target])
-                solutions.append((score, names, iw, height, tuple(placements), moved, refinement))
+                displacement = sum(math.dist((width/2+p.x, offsets[p.view]+p.y), old_positions[p.target])
+                                   for p in placements if p.target in old_positions)
+                terms = dict(leaders=sum(p.leader_mm for p in placements), views=view_penalty*k,
+                    shrink=shrink_penalty*(1-fraction)*k, changed_slots=move_penalty*len(moved),
+                    changed_views=move_penalty*changed_views, crossings=crossing_penalty*refinement['crossings'],
+                    displacement=displacement_penalty*displacement)
+                score = sum(terms.values())
+                solutions.append((score, names, iw, height, tuple(placements), moved, refinement, terms))
     if not solutions:
-        return failure(['No layout satisfies page height, image width, point/region visibility, minimum region span and label slots together. Increase page bounds/max_views, add suitable views, or revise locks.'], evaluated)
+        messages = ['No layout satisfies page height, image width, point/region visibility, minimum region span and label slots together. Increase page bounds/max_views, add suitable views, or revise locks.']
+        if max_displacement_mm is not None:
+            messages.append(f'The label movement limit of {max_displacement_mm:g} mm is also enforced. Try relaxing max_displacement_mm or retaining the prior page geometry; this failure does not identify a unique conflicting constraint.')
+        return failure(messages, evaluated)
     solutions.sort(key=lambda s: (s[0], s[1], -s[2]))
-    score, names, iw, height, placements, moved, refinement = solutions[0]
+    score, names, iw, height, placements, moved, refinement, terms = solutions[0]
     alternatives = tuple(dict(score=s[0], views=list(s[1]), image_width_mm=s[2],
-                              height_mm=s[3], moved=list(s[5]), refinement=s[6]) for s in solutions[:5])
+                              height_mm=s[3], moved=list(s[5]), refinement=s[6], score_terms=s[7]) for s in solutions[:5])
     settings['refinement'] = refinement
+    settings['score_terms'] = terms
     result = Plan(True, names, placements, width, height, iw, font_pt, score, (), alternatives,
                 evaluated, moved, targets, views, settings, labels)
-    old_positions = previous.label_positions() if previous else {}
     settings['revision_displacement_mm'] = {key: math.dist(pos, old_positions[key])
         for key, pos in result.label_positions().items() if key in old_positions}
     settings['selected_regions'] = {p.target: dict(regions[p.view, p.target],

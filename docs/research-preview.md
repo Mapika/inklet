@@ -13,7 +13,8 @@ It is not part of the stable 3.0 PyPI package. Signatures and report formats may
 
 The [second preview](research-study.md) adds sampled regions, optional crossing
 reduction and physical label-movement measurements. The recorded comparison on
-this page remains the original dev1 baseline.
+this page remains the original dev1 baseline. The [third preview](research-revision.md)
+adds physical movement costs and hard limits, alongside a [biology example](biology-panels.md).
 
 ## What this preview implements
 

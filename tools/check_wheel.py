@@ -32,6 +32,10 @@ assert planned.feasible and planned.placements[0].visible is True
 assert '<text' in i.to_svg(planned.diagram())
 assert i.to_pdf(planned.diagram()).startswith(b'%PDF')
 assert planned.report()['constraints']['selected_regions']['point']['visible_fraction'] == 1
+revised = plan([Target('point', 'Point', (1,0,-1))], [View('front', snapshot)],
+               previous=planned, displacement_penalty=10, max_displacement_mm=0)
+assert revised.feasible and revised.label_positions() == planned.label_positions()
+assert abs(sum(revised.report()['score_terms'].values())-revised.score) < 1e-9
 assert Length.between((0,0,0), (3,4,0), metres_per_unit=.001).label('mm') == '5 mm'
 assert i.render_quality('final').samples == 256
 try:

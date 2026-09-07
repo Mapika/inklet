@@ -1,5 +1,27 @@
 [
   {
+    "id": "biology-panels",
+    "title": "Coordinated biology figures",
+    "category": "Scientific",
+    "description": "Six coordinated plots from 4,500 synthetic cells and 60 genes.",
+    "requires": "Python",
+    "image": "gallery/biology-panels.png",
+    "version": "Research preview",
+    "page": "biology-panels/",
+    "featured": true
+  },
+  {
+    "id": "research-revision",
+    "title": "Physical label movement",
+    "category": "3D",
+    "description": "Controlled revision with movement costs, hard limits and explicit failures.",
+    "requires": "Blender",
+    "image": "gallery/research-revision.png",
+    "version": "Research preview",
+    "page": "research-revision/",
+    "featured": false
+  },
+  {
     "id": "research-planner-study",
     "title": "Regions and label crossings",
     "category": "3D",

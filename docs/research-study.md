@@ -86,7 +86,8 @@ coordinates describe the plan itself, before a document places or transforms it.
 Physical movement is reported as evidence; the current preservation cost still
 penalizes slot changes rather than distance moved.
 
-Report schema is now `inklet.figure-plan/0.2`. The added region evidence,
+The recorded dev2 report schema is `inklet.figure-plan/0.2`.
+The [third preview](research-revision.md) adds movement controls and schema 0.3. The added region evidence,
 refinement status, crossing pairs and page positions are experimental.
 
 ## Reproduce the study

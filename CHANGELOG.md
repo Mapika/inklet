@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.1.0.dev3 — research preview (unreleased)
+
+- Add optional physical label-displacement costs and hard per-label movement
+  limits during figure revision, including page and stacked-panel changes.
+- Report every objective term, prior page positions and movement constraints
+  in experimental figure-plan schema 0.3.
+- Add a controlled page-revision study and a six-panel biology example with
+  4,500 synthetic cells, shared expression data, area-scaled marker fractions,
+  distributions, annotated mean shifts and gene correlations.
+
 ## 3.1.0.dev2 — research preview (unreleased)
 
 - Add author-supplied surface regions with minimum visible-sample fractions and

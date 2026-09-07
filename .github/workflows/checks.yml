@@ -48,6 +48,8 @@ jobs:
         run: .venv/bin/python tools/preset_gallery.py --output out/presets
       - name: Build the mathematical showcase library
         run: .venv/bin/python tools/showcase_gallery.py --plots-only --quality preview
+      - name: Coordinated biology figure and data export
+        run: .venv/bin/python examples/biology_panels.py --output out/biology
       - name: Complete figure visual regressions
         run: .venv/bin/python tools/visual_check.py --output out/visual
       - name: Complete figure performance checks
