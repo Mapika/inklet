@@ -380,7 +380,7 @@ def _values(value, count: int, name: str) -> tuple[float, ...]:
 def bars(panel, at: Sequence, heights, *, width: float = 0.8,
          baseline: float = 0.0, orient: str = "v",
          stacked: bool | None = None, grouped: bool | None = None,
-         gap: float = 0.12, colors=None, bar_colors=None, **style) -> Diagram:
+         gap: float = 0.12, colors=None, bar_colors=None, **style) -> Diagram | None:
     """Rectangles from a baseline, one per value. See `Panel.bars`."""
     places = list(at)
     series = _series(heights)
@@ -429,7 +429,7 @@ def bars(panel, at: Sequence, heights, *, width: float = 0.8,
                                *_extent(orient, abs(p1 - p0), abs(b - a)),
                                fills[s] if per_bar is None else per_bar[index], stroke, stroke_width))
     if not cells:
-        raise DiagramError("bars() had nothing to draw: every value was zero")
+        return None  # A valid all-baseline series has no painted rectangles.
     return draw_place(cells, **style)
 
 

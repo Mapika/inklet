@@ -39,6 +39,10 @@ doc.save('comparison.svg', 'comparison.pdf')
 to series. Define [shared categories](data.md) when subsets must retain their
 labels and colours. The numbers above are illustrative, not experimental data.
 
+Unstacked values equal to the baseline draw no rectangle; stacked contributions
+of zero also draw nothing. If every bar has zero length, the series remains
+valid and retains the axes and any requested legend entries.
+
 ## Add meaning and arrange the page
 
 - [Axes and scales](axes-and-scales.md): numeric, logarithmic, categorical and date coordinates; tick labels and typography.

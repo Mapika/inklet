@@ -38,6 +38,9 @@ assert second.metadata['datasets'][0]['revision'] == 1
 All columns must have equal lengths. `update()` validates the complete table
 before changing it; failed updates leave the old table intact. Changing the
 number of rows requires updating every affected column in the same call.
+Dataset cells snapshot nested arrays as tuples, so caller edits cannot change
+the table without an explicit `update()`. Recorded component array arguments
+retain their separate read-only ndarray snapshot behavior described above.
 `column()` returns a live reference to one column; `points()` returns paired
 coordinates. Use `data.columns` for the current immutable values.
 

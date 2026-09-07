@@ -39,6 +39,14 @@ def test_invalid_categories_and_failed_marks_do_not_add_legend_entries():
     with pytest.raises(DiagramError):definition().subset(['missing'])
     with pytest.raises(DiagramError):definition().subset([])
     p=inklet.panel(20,20,x=['a'])
-    with pytest.raises(DiagramError):p.bars(['a'],[0],bar_colors=definition())
+    with pytest.raises(DiagramError):p.bars(['a'],[1,2],bar_colors=definition())
     assert not p.keys
     with pytest.raises(DiagramError):definition().group_labels(p)
+
+
+def test_zero_bars_keep_their_category_legend_without_painting_marks():
+    p=inklet.panel(40,30,x=['a'],y=(0,1))
+    p.bars(['a'],[0],bar_colors=definition()).axes().legend()
+    assert [(key.name,key.fill) for key in p.keys]==[('Alpha','#246')]
+    assert not p._content
+    assert 'Alpha' in inklet.to_svg(p.build())

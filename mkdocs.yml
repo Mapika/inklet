@@ -92,6 +92,7 @@ nav:
   - Compatibility: compatibility.md
   - Migration: migration.md
 - Research preview:
+  - 4.0 foundations: v4-foundations.md
   - Overview and availability: research-preview.md
   - Figure planning studies:
     - Regions and crossings: research-study.md

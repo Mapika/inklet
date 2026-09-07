@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Start 4.0 phase A with experimental keyed tables and versioned selection
+  state, explicit rebasing for changed data, three attributed reference
+  fixtures and a finite offline linked-plot example with reproducible exports.
+- Snapshot nested dataset array cells so external mutation cannot silently
+  change values without invalidating compiled figures.
+- Allow all-baseline bar series to retain axes and legends without drawing
+  rectangles or aborting compilation.
+- Add dependency/fitting/metadata compiler timings and fresh-process edit,
+  resize and export benchmarks with explicit local regression ceilings.
+- Keep documentation navigation against the left viewport edge on wide
+  displays; remove the centered shell's 380 px outer gap at 2560 px width.
+
 - Document the proposed 4.0 product and engine roadmap, delivery phases and
   acceptance criteria. Reserve animation and presentation authoring for 5.0.
 

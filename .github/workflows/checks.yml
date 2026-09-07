@@ -59,6 +59,10 @@ jobs:
         run: .venv/bin/python tools/preset_gallery.py --output out/presets
       - name: Common CSV plotting example
         run: .venv/bin/python examples/general_plots.py --output out/general-plots
+      - name: Experimental selection and revision baseline
+        run: |
+          .venv/bin/python examples/v4/linked_selection.py --output out/v4-linked
+          .venv/bin/python tools/benchmark_v4.py --repeat 1 --label ci --output out/v4-baseline.json
       - name: Build the mathematical showcase library
         run: .venv/bin/python tools/showcase_gallery.py --plots-only --quality preview
       - name: Coordinated biology figure and data export

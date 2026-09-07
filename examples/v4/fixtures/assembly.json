@@ -1,0 +1,10 @@
+{
+  "unit": "mm",
+  "components": [
+    {"id":"base","shape":"box","size":[80,40,5],"center":[0,0,2.5]},
+    {"id":"support","shape":"box","size":[10,10,30],"center":[-25,0,20]},
+    {"id":"sensor","shape":"box","size":[20,16,12],"center":[20,0,11]}
+  ],
+  "response": {"load_N":[0,10,20,30],"displacement_mm":[0,0.2,0.4,0.6]},
+  "expected": {"footprint_mm":[80,40],"height_mm":35,"sensor_center_distance_from_support_mm":45.89117562233506}
+}

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from collections.abc import Mapping
 import hashlib
 import math
 from pathlib import Path
@@ -48,9 +49,13 @@ class Dataset:
 
     @staticmethod
     def _validate(columns):
+        from .spec import _ndarray
         def snapshot(value):
+            # Iterating a 2D array yields writable row views. Dataset values
+            # are immutable tuples, including arrays nested inside a cell.
+            if _ndarray(value): return snapshot(value.tolist())
             if isinstance(value,(tuple,list)): return tuple(snapshot(v) for v in value)
-            if isinstance(value,dict): return MappingProxyType({k:snapshot(v) for k,v in value.items()})
+            if isinstance(value,Mapping): return MappingProxyType({k:snapshot(v) for k,v in value.items()})
             return value
         if any(not isinstance(k,str) for k in columns):
             raise DiagramError('dataset column names must be strings')

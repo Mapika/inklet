@@ -631,6 +631,9 @@ class Panel:
 
         `names=` is one name per *series*, not per bar -- the bars are named by
         the axis -- and gives `legend()` a swatch in each series' own colour.
+        Unstacked values equal to the baseline draw no rectangle; stacked
+        contributions of zero also draw nothing. If every bar has zero length,
+        the series remains valid and retains axes and requested legend entries.
         """
         clip = _clip_flag(style)
         if names is not None and bar_colors is not None:
@@ -649,7 +652,7 @@ class Panel:
         if isinstance(bar_colors, CategorySet):
             for label, color in bar_colors.subset(at).legend_entries:
                 self._note(label, "area", fill=color, color=color)
-        return self.draw(node, clip=clip)
+        return self.draw(*(() if node is None else (node,)), clip=clip)
 
     def hist(self, values: Sequence[float], bins: int | Sequence[float] = 10, *,
              range: tuple[float, float] | None = None, density: bool = False,

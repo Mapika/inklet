@@ -1,0 +1,531 @@
+{
+  "schema": "inklet.v4-baseline/0.1",
+  "label": "v3.1.0",
+  "environment": {
+    "python": "3.12.3 (main, Jun 19 2026, 12:46:00) [GCC 13.3.0]",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "cpu": "Intel(R) Core(TM) Ultra 9 285H"
+  },
+  "method": "Fresh process per sample; imports/setup excluded; RSS includes process and validation; medians of repeats. System font/filesystem caches may be warm.",
+  "cases": [
+    {
+      "case": "ordinary",
+      "median": {
+        "cold": 0.06864355999277905,
+        "cached": 8.068198803812265e-05,
+        "data_edit": 0.05275110399816185,
+        "label_edit": 0.027863894996698946,
+        "resize": 0.06643098097993061,
+        "resize_back": 0.02570562800974585,
+        "svg_seconds": 0.002316992002306506,
+        "pdf_seconds": 0.014234225993277505,
+        "peak_rss_mib": 59.203125
+      },
+      "runs": [
+        {
+          "case": "ordinary",
+          "points_per_panel": 100,
+          "version": "3.1.0",
+          "stages": {
+            "cold": {
+              "seconds": 0.06864355999277905,
+              "compiler": {
+                "build_seconds": 0.0685694369894918,
+                "layout_seconds": 0.04575927701080218,
+                "paint_seconds": 0.006548602978000417,
+                "diagnostics_seconds": 0.015210663026664406,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "cached": {
+              "seconds": 7.378999725915492e-05
+            },
+            "data_edit": {
+              "seconds": 0.050476367003284395,
+              "compiler": {
+                "build_seconds": 0.050381706008920446,
+                "layout_seconds": 0.015541620989097282,
+                "paint_seconds": 0.00635445601074025,
+                "diagnostics_seconds": 0.02731969699379988,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "label_edit": {
+              "seconds": 0.027863894996698946,
+              "compiler": {
+                "build_seconds": 0.027814038010546938,
+                "layout_seconds": 0.005627776990877464,
+                "paint_seconds": 0.006309040007181466,
+                "diagnostics_seconds": 0.01496063100057654,
+                "cache_hits": 3,
+                "builds": 3,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "resize": {
+              "seconds": 0.05179973199847154,
+              "compiler": {
+                "build_seconds": 0.051726659992709756,
+                "layout_seconds": 0.02974441199330613,
+                "paint_seconds": 0.0060695940046571195,
+                "diagnostics_seconds": 0.014961156994104385,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "resize_back": {
+              "seconds": 0.02576610300457105,
+              "compiler": {
+                "build_seconds": 0.025496253016171977,
+                "layout_seconds": 0.0017889830050989985,
+                "paint_seconds": 0.006567290984094143,
+                "diagnostics_seconds": 0.016138188017066568,
+                "cache_hits": 6,
+                "builds": 0,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            }
+          },
+          "svg_seconds": 0.0023057729995343834,
+          "pdf_seconds": 0.013667528983205557,
+          "svg_bytes": 109809,
+          "pdf_bytes": 6755,
+          "peak_rss_mib": 60.8359375,
+          "correctness": "cached/clean, old snapshot and resize round trip passed"
+        },
+        {
+          "case": "ordinary",
+          "points_per_panel": 100,
+          "version": "3.1.0",
+          "stages": {
+            "cold": {
+              "seconds": 0.06417651099036448,
+              "compiler": {
+                "build_seconds": 0.06409284501569346,
+                "layout_seconds": 0.040146014012862,
+                "paint_seconds": 0.00721599199459888,
+                "diagnostics_seconds": 0.015481043985346332,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "cached": {
+              "seconds": 8.068198803812265e-05
+            },
+            "data_edit": {
+              "seconds": 0.05275110399816185,
+              "compiler": {
+                "build_seconds": 0.052688374009449035,
+                "layout_seconds": 0.01710284801083617,
+                "paint_seconds": 0.005865415994776413,
+                "diagnostics_seconds": 0.028785897011402994,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "label_edit": {
+              "seconds": 0.026895107002928853,
+              "compiler": {
+                "build_seconds": 0.026846978988032788,
+                "layout_seconds": 0.00596689700614661,
+                "paint_seconds": 0.0057879870000761,
+                "diagnostics_seconds": 0.014208385982783511,
+                "cache_hits": 3,
+                "builds": 3,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "resize": {
+              "seconds": 0.06643098097993061,
+              "compiler": {
+                "build_seconds": 0.06636703701224178,
+                "layout_seconds": 0.04494754402549006,
+                "paint_seconds": 0.006004372000461444,
+                "diagnostics_seconds": 0.01448414399055764,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "resize_back": {
+              "seconds": 0.022844536986667663,
+              "compiler": {
+                "build_seconds": 0.022625000012340024,
+                "layout_seconds": 0.0016718709957785904,
+                "paint_seconds": 0.005932505999226123,
+                "diagnostics_seconds": 0.014068121003219858,
+                "cache_hits": 6,
+                "builds": 0,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            }
+          },
+          "svg_seconds": 0.002316992002306506,
+          "pdf_seconds": 0.014234225993277505,
+          "svg_bytes": 109809,
+          "pdf_bytes": 6755,
+          "peak_rss_mib": 59.1640625,
+          "correctness": "cached/clean, old snapshot and resize round trip passed"
+        },
+        {
+          "case": "ordinary",
+          "points_per_panel": 100,
+          "version": "3.1.0",
+          "stages": {
+            "cold": {
+              "seconds": 0.10760981199564412,
+              "compiler": {
+                "build_seconds": 0.10749324699281715,
+                "layout_seconds": 0.07468074100324884,
+                "paint_seconds": 0.012109310977393761,
+                "diagnostics_seconds": 0.01842425699578598,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "cached": {
+              "seconds": 9.061998571269214e-05
+            },
+            "data_edit": {
+              "seconds": 0.06585410999832675,
+              "compiler": {
+                "build_seconds": 0.06574953399831429,
+                "layout_seconds": 0.022358357993653044,
+                "paint_seconds": 0.0062352130189538,
+                "diagnostics_seconds": 0.03603767298045568,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "label_edit": {
+              "seconds": 0.02961976799997501,
+              "compiler": {
+                "build_seconds": 0.029526560014346614,
+                "layout_seconds": 0.007130223995773122,
+                "paint_seconds": 0.006258020002860576,
+                "diagnostics_seconds": 0.015150349005125463,
+                "cache_hits": 3,
+                "builds": 3,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "resize": {
+              "seconds": 0.06809144400176592,
+              "compiler": {
+                "build_seconds": 0.06798962000175379,
+                "layout_seconds": 0.044235098001081496,
+                "paint_seconds": 0.006638847000431269,
+                "diagnostics_seconds": 0.016115837992401794,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            },
+            "resize_back": {
+              "seconds": 0.02570562800974585,
+              "compiler": {
+                "build_seconds": 0.02545682800700888,
+                "layout_seconds": 0.0023740239848848432,
+                "paint_seconds": 0.007006060011917725,
+                "diagnostics_seconds": 0.015061757003422827,
+                "cache_hits": 6,
+                "builds": 0,
+                "layout_passes": 2,
+                "node_count": 330
+              }
+            }
+          },
+          "svg_seconds": 0.0031416350102517754,
+          "pdf_seconds": 0.015375996008515358,
+          "svg_bytes": 109809,
+          "pdf_bytes": 6755,
+          "peak_rss_mib": 59.203125,
+          "correctness": "cached/clean, old snapshot and resize round trip passed"
+        }
+      ]
+    },
+    {
+      "case": "dense-vector",
+      "median": {
+        "cold": 0.6398545569973066,
+        "cached": 0.00011135800741612911,
+        "data_edit": 0.718604827998206,
+        "label_edit": 0.24038647298584692,
+        "resize": 0.778857119003078,
+        "resize_back": 0.228244851983618,
+        "svg_seconds": 0.039654859981965274,
+        "pdf_seconds": 0.08764400699874386,
+        "peak_rss_mib": 257.265625
+      },
+      "runs": [
+        {
+          "case": "dense-vector",
+          "points_per_panel": 3000,
+          "version": "3.1.0",
+          "stages": {
+            "cold": {
+              "seconds": 0.6877932900097221,
+              "compiler": {
+                "build_seconds": 0.6864031470031478,
+                "layout_seconds": 0.40540469699772075,
+                "paint_seconds": 0.19080268198740669,
+                "diagnostics_seconds": 0.07943642299505882,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "cached": {
+              "seconds": 0.0001181639963760972
+            },
+            "data_edit": {
+              "seconds": 0.9697827310010325,
+              "compiler": {
+                "build_seconds": 0.9680735689762514,
+                "layout_seconds": 0.6386424499796703,
+                "paint_seconds": 0.24633803401957266,
+                "diagnostics_seconds": 0.0721914469904732,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "label_edit": {
+              "seconds": 0.24419306899653748,
+              "compiler": {
+                "build_seconds": 0.24284034201991744,
+                "layout_seconds": 0.03163041701191105,
+                "paint_seconds": 0.12441927200416103,
+                "diagnostics_seconds": 0.07644606300164014,
+                "cache_hits": 3,
+                "builds": 3,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "resize": {
+              "seconds": 0.8127543209993746,
+              "compiler": {
+                "build_seconds": 0.8113429340010043,
+                "layout_seconds": 0.4161431660177186,
+                "paint_seconds": 0.30512777299736626,
+                "diagnostics_seconds": 0.07884042098885402,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "resize_back": {
+              "seconds": 0.22537110600387678,
+              "compiler": {
+                "build_seconds": 0.22382566099986434,
+                "layout_seconds": 0.015199874003883451,
+                "paint_seconds": 0.12333740599569865,
+                "diagnostics_seconds": 0.07519449800020084,
+                "cache_hits": 6,
+                "builds": 0,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            }
+          },
+          "svg_seconds": 0.039654859981965274,
+          "pdf_seconds": 0.08871827402617782,
+          "svg_bytes": 1909387,
+          "pdf_bytes": 43336,
+          "peak_rss_mib": 257.265625,
+          "correctness": "cached/clean, old snapshot and resize round trip passed"
+        },
+        {
+          "case": "dense-vector",
+          "points_per_panel": 3000,
+          "version": "3.1.0",
+          "stages": {
+            "cold": {
+              "seconds": 0.6363155030121561,
+              "compiler": {
+                "build_seconds": 0.6350227959919721,
+                "layout_seconds": 0.37560585400206037,
+                "paint_seconds": 0.18006269898614846,
+                "diagnostics_seconds": 0.06839583101100288,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "cached": {
+              "seconds": 0.0001098229840863496
+            },
+            "data_edit": {
+              "seconds": 0.715116790990578,
+              "compiler": {
+                "build_seconds": 0.7136568060086574,
+                "layout_seconds": 0.3968036260048393,
+                "paint_seconds": 0.235169602005044,
+                "diagnostics_seconds": 0.07088339500478469,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "label_edit": {
+              "seconds": 0.24038647298584692,
+              "compiler": {
+                "build_seconds": 0.23903605199302547,
+                "layout_seconds": 0.03088931299862452,
+                "paint_seconds": 0.11987323500216007,
+                "diagnostics_seconds": 0.07731114499620162,
+                "cache_hits": 3,
+                "builds": 3,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "resize": {
+              "seconds": 0.7692097660037689,
+              "compiler": {
+                "build_seconds": 0.7676931209862232,
+                "layout_seconds": 0.38604029797716066,
+                "paint_seconds": 0.29061279402230866,
+                "diagnostics_seconds": 0.07956810999894515,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "resize_back": {
+              "seconds": 0.23201617898303084,
+              "compiler": {
+                "build_seconds": 0.23052339602145366,
+                "layout_seconds": 0.015323696017730981,
+                "paint_seconds": 0.12445316498633474,
+                "diagnostics_seconds": 0.07976551601313986,
+                "cache_hits": 6,
+                "builds": 0,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            }
+          },
+          "svg_seconds": 0.0402184950071387,
+          "pdf_seconds": 0.08719926999765448,
+          "svg_bytes": 1909387,
+          "pdf_bytes": 43336,
+          "peak_rss_mib": 257.41015625,
+          "correctness": "cached/clean, old snapshot and resize round trip passed"
+        },
+        {
+          "case": "dense-vector",
+          "points_per_panel": 3000,
+          "version": "3.1.0",
+          "stages": {
+            "cold": {
+              "seconds": 0.6398545569973066,
+              "compiler": {
+                "build_seconds": 0.6385080119944178,
+                "layout_seconds": 0.37573638500180095,
+                "paint_seconds": 0.17997669900069013,
+                "diagnostics_seconds": 0.07206664598197676,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "cached": {
+              "seconds": 0.00011135800741612911
+            },
+            "data_edit": {
+              "seconds": 0.718604827998206,
+              "compiler": {
+                "build_seconds": 0.7170287950139027,
+                "layout_seconds": 0.4051380400196649,
+                "paint_seconds": 0.2297301029902883,
+                "diagnostics_seconds": 0.07123751600738615,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "label_edit": {
+              "seconds": 0.23875563498586416,
+              "compiler": {
+                "build_seconds": 0.2373892450123094,
+                "layout_seconds": 0.03238819300895557,
+                "paint_seconds": 0.1187700160080567,
+                "diagnostics_seconds": 0.07557224199990742,
+                "cache_hits": 3,
+                "builds": 3,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "resize": {
+              "seconds": 0.778857119003078,
+              "compiler": {
+                "build_seconds": 0.7773339569976088,
+                "layout_seconds": 0.3877787219826132,
+                "paint_seconds": 0.3034250670170877,
+                "diagnostics_seconds": 0.07564911700319499,
+                "cache_hits": 0,
+                "builds": 6,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            },
+            "resize_back": {
+              "seconds": 0.228244851983618,
+              "compiler": {
+                "build_seconds": 0.22662248098640703,
+                "layout_seconds": 0.01602319101220928,
+                "paint_seconds": 0.12009528698399663,
+                "diagnostics_seconds": 0.07967909699073061,
+                "cache_hits": 6,
+                "builds": 0,
+                "layout_passes": 2,
+                "node_count": 6130
+              }
+            }
+          },
+          "svg_seconds": 0.03792069299379364,
+          "pdf_seconds": 0.08764400699874386,
+          "svg_bytes": 1909387,
+          "pdf_bytes": 43336,
+          "peak_rss_mib": 257.17578125,
+          "correctness": "cached/clean, old snapshot and resize round trip passed"
+        }
+      ]
+    }
+  ]
+}

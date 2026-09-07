@@ -520,6 +520,7 @@ class Document(BuildSpec):
                          for c in self._cells)
         key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset))
         if self._last is not None and self._last[0]==key: return self._last[1]
+        dependency_seconds=time.perf_counter()-started
         content, boxes, handles, page_height, passes = self._layout(context, width, height)
         layout_seconds=time.perf_counter()-started
         with themed(theme):
@@ -556,8 +557,12 @@ class Document(BuildSpec):
         if self.preset is not None:
             metadata['preset'] = self.preset.as_dict()
             metadata['preset']['page_overrides'] = sorted(self._preset_overrides)
-        stats=dict(build_seconds=time.perf_counter()-started,layout_seconds=layout_seconds,
+        finished=time.perf_counter()
+        stats=dict(build_seconds=finished-started,layout_seconds=layout_seconds,
                    paint_seconds=paint_finished-started-layout_seconds,diagnostics_seconds=diagnostics_seconds,
+                   dependency_seconds=dependency_seconds,
+                   fitting_seconds=layout_seconds-dependency_seconds,
+                   metadata_seconds=finished-paint_finished-diagnostics_seconds,
                    cache_hits=context.hits,
                    builds=context.misses,layout_passes=passes,node_count=program.node_count)
         result=CompiledFigure(figure,MappingProxyType(boxes),diagnostics,

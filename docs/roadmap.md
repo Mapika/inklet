@@ -5,6 +5,10 @@ baseline. The capabilities below are targets, not available APIs or dated
 release promises. Implementation decisions become commitments after the
 prototype and acceptance checks described here.
 
+Phase A has started: [the foundations report](v4-foundations.md) records the
+first fixtures, engine corrections, baseline timings and offline selection
+prototype. The full browser-backend comparison remains an upcoming gate.
+
 ## Product direction
 
 Inklet 4.0 should let people build connected visual documents from Python:

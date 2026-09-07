@@ -1,0 +1,9 @@
+{
+  "schema": "inklet.v4-fixtures/0.1",
+  "author": "Mark Marosi",
+  "license": "MIT",
+  "method": "simulated",
+  "description": "Original synthetic acceptance fixtures. Regions are invented rectangles in longitude/latitude degrees, not real administrative boundaries. Revenue/cost are illustrative kEUR. Assembly response and image intensities are constructed values, not observations or solved physics.",
+  "regional_expected": {"rows":4,"revenue_total_kEUR":200,"cost_total_kEUR":120,"north_revenue_kEUR":100,"south_revenue_kEUR":100},
+  "files": ["regions.csv","regions.geojson","assembly.json","measurement.json"]
+}

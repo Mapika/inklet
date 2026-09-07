@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regional analysis · Inklet preview</title>
+<style>
+:root{color-scheme:light;--ink:#173b34;--accent:#34786b;--line:#d5dfda}
+*{box-sizing:border-box}body{margin:0;background:#f3f5f1;color:var(--ink);font:16px/1.55 system-ui,sans-serif}
+main{max-width:1120px;margin:48px auto;padding:0 24px}header{display:flex;justify-content:space-between;align-items:center;gap:20px}
+h1{font-size:30px;line-height:1.2;margin:8px 0}h2{font-size:19px}p{max-width:80ch}.tag{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#426657}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:end;margin:28px 0 18px}label{display:block;font-size:14px;font-weight:600}
+select,button,input{font:inherit;color:inherit}select,button,.upload{border:1px solid #b3c6bd;background:white;border-radius:6px;padding:8px 12px;min-height:44px}
+select{display:block;margin-top:6px;min-width:160px}button{cursor:pointer}button:hover,.upload:hover{background:#e3ebe5}button.primary{background:var(--ink);color:white}
+:focus-visible{outline:3px solid #bd5636;outline-offset:3px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}.upload{font-weight:400;cursor:pointer}.upload input{display:block;max-width:240px;font-size:12px}
+.figure{background:white;border:1px solid var(--line);border-radius:10px;padding:18px;overflow:auto}.figure svg{width:100%;height:auto;min-width:500px;display:block}
+#status{min-height:25px}#error{color:#9a2d21}table{border-collapse:collapse;width:100%;background:white}caption{text-align:left;font-size:19px;font-weight:600;margin:20px 0 10px}th,td{text-align:left;border-bottom:1px solid var(--line);padding:10px 14px}th{font-size:14px}tr.selected{background:#f9e9df}td button{padding:4px 10px;font-size:14px}.note{font-size:14px;color:#53695e}footer{border-top:1px solid var(--line);margin-top:30px;padding-top:18px}.table-wrap{overflow:auto}
+@media(max-width:650px){main{margin:24px auto;padding:0 14px}h1{font-size:25px}header{display:block}.figure{padding:8px}.controls{gap:12px}select{min-width:140px}}
+</style>
+<main>
+<header><div><div class="tag">Inklet · 4.0 experiment</div><h1>Regional analysis</h1></div><span class="tag">Synthetic data · kEUR</span></header>
+<p>Compare regional revenue and costs. Select a region to highlight it in both plots, or filter the visible regions. The table provides the same values and selection controls.</p>
+<div class="controls">
+<label>Selected region<select id="selected"><!--OPTIONS--></select></label>
+<label>Visible group<select id="group"><option>All regions</option><option>North</option><option>South</option><option>No regions</option></select></label>
+<button id="reset">Reset</button>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+<div id="figure" class="figure" role="img" aria-label="Linked revenue bar chart and cost versus revenue scatter plot. Values follow in the table."></div>
+<p class="note">Orange marks indicate the selected region. Axes and category positions stay fixed while filtering.</p>
+<div class="actions"><button id="save" class="primary">Save selection</button><button id="svg">Download current SVG</button><label class="upload">Open saved selection<input id="load" type="file" accept=".json,application/json"></label></div>
+<p id="error" role="alert"></p>
+<div class="table-wrap"><table><caption>Visible observations</caption><thead><tr><th scope="col">Region</th><th scope="col">Revenue / kEUR</th><th scope="col">Cost / kEUR</th><th scope="col">Selection</th></tr></thead><tbody id="rows"></tbody></table></div>
+<footer class="note">Original simulated data, MIT, Mark Marosi. This experiment contains 20 figures precompiled by Python. It works offline for these selections and filters; it does not execute Python or compile new data in the browser. Save the selection JSON to reproduce its state in Python.</footer>
+</main>
+<script id="states" type="application/json">/*STATES*/</script>
+<script>
+'use strict';
+const states = JSON.parse(document.getElementById('states').textContent);
+const selected = document.getElementById('selected'), group = document.getElementById('group');
+let current;
+function render(){
+  current = states.find(s => s.selected === selected.value && s.group === group.value);
+  document.getElementById('figure').innerHTML = current.svg;
+  const data = current.rows, tbody = document.getElementById('rows');
+  tbody.replaceChildren();
+  data.id.forEach((id,n) => {
+    const row = document.createElement('tr');
+    if(id === selected.value) row.className='selected';
+    for(const value of [data.label[n],data.revenue[n],data.cost[n]]){
+      const cell=document.createElement('td');cell.textContent=value;row.append(cell);
+    }
+    const cell=document.createElement('td'), button=document.createElement('button');
+    button.textContent=id===selected.value?'Selected':'Select';
+    button.setAttribute('aria-label','Select '+data.label[n]);
+    button.setAttribute('aria-pressed',String(id===selected.value));
+    button.addEventListener('click',()=>{selected.value=id;render();document.getElementById('selected').focus();});
+    cell.append(button);row.append(cell);tbody.append(row);
+  });
+  if(!data.id.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=4;cell.textContent='No regions are visible.';row.append(cell);tbody.append(row);}
+  const label=selected.options[selected.selectedIndex].text;
+  document.getElementById('status').textContent = data.id.length+' regions visible. '+
+    (selected.value ? label+' selected'+(data.id.includes(selected.value)?'.':' (hidden by the filter).'):'No region selected.');
+  document.getElementById('error').textContent='';
+}
+function download(text,name,type){
+  const url=URL.createObjectURL(new Blob([text],{type}));
+  const link=document.createElement('a');link.href=url;link.download=name;link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+selected.addEventListener('change',render);group.addEventListener('change',render);
+document.getElementById('reset').addEventListener('click',()=>{selected.value='';group.value='All regions';render();});
+document.getElementById('save').addEventListener('click',()=>download(JSON.stringify(current.state,null,2)+'\n','selection.json','application/json'));
+document.getElementById('svg').addEventListener('click',()=>download(current.svg,'selected-figure.svg','image/svg+xml'));
+document.getElementById('load').addEventListener('change',async event=>{
+  const file=event.target.files[0];if(!file)return;
+  try{
+    if(file.size>65536)throw Error('Selection file is too large.');
+    const value=JSON.parse(await file.text()), expected=['schema','table','data_digest','selected_ids','visible_ids'];
+    if(!value || typeof value!=='object' || Object.keys(value).length!==expected.length || !expected.every(k=>Object.hasOwn(value,k)))throw Error('Invalid selection file.');
+    const equalIds=(a,b)=>a===null ? b===null : Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every(x=>typeof x==='string')&&new Set(a).size===a.length&&a.every(x=>b.includes(x));
+    const match=states.find(s=>s.state.schema===value.schema&&s.state.table===value.table&&s.state.data_digest===value.data_digest&&equalIds(value.selected_ids,s.state.selected_ids)&&equalIds(value.visible_ids,s.state.visible_ids));
+    if(!match)throw Error('This selection uses changed data or a state outside this preview. Rebase changed data in Python.');
+    selected.value=match.selected;group.value=match.group;render();
+  }catch(error){document.getElementById('error').textContent=error.message;}
+  finally{event.target.value='';}
+});
+selected.value='north-east';render();
+</script>
+</html>

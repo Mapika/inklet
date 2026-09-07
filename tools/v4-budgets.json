@@ -1,0 +1,9 @@
+{
+  "schema": "inklet.v4-budgets/0.1",
+  "environment": {"cpu":"Intel(R) Core(TM) Ultra 9 285H","python":"3.12","system":"Linux"},
+  "rationale": "Initial local ceilings chosen after three fresh-process samples of v3.1.0, before engine optimization. Allow scheduling variance; these are regression ceilings, not interactive UX targets. RSS includes validation and exports. Different machines need separately reviewed budgets.",
+  "limits": {
+    "ordinary": {"cold":0.15,"cached":0.003,"data_edit":0.12,"label_edit":0.075,"resize":0.15,"resize_back":0.075,"svg_seconds":0.008,"pdf_seconds":0.04,"peak_rss_mib":100},
+    "dense-vector": {"cold":1.3,"cached":0.003,"data_edit":1.5,"label_edit":0.6,"resize":1.6,"resize_back":0.6,"svg_seconds":0.10,"pdf_seconds":0.25,"peak_rss_mib":360}
+  }
+}
