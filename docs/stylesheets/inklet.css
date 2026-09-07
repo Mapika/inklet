@@ -213,8 +213,7 @@ kbd {
 }
 
 .site-layout {
-  max-width:1800px;
-  margin:auto;
+  width:100%;
   display:grid;
   grid-template-columns:var(--sidebar) minmax(0,1fr)
 }
