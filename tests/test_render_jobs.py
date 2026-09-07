@@ -48,11 +48,11 @@ def test_timeout_stops_descendants_after_parent_has_exited(tmp_path):
         run_process([sys.executable,'-c',script],timeout=.5)
     pid=int(pidfile.read_text())
     try:
-        os.kill(pid,0)
-    except ProcessLookupError:
+        state=Path(f'/proc/{pid}/stat').read_text().split()[2]
+    except FileNotFoundError:
         return
     # An orphan may briefly remain as a zombie until the system reaps it.
-    assert Path(f'/proc/{pid}/stat').read_text().split()[2]=='Z'
+    assert state=='Z'
 
 
 def test_queue_limits_gpu_jobs_and_cancels_a_waiting_job(monkeypatch):
