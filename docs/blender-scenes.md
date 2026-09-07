@@ -1,11 +1,12 @@
 # Complete Blender scenes
 
-Available in **3.0 development**. Use an existing `.blend` scene as a figure
+Available in **3.0.0rc1**. Use an existing `.blend` scene as a figure
 panel while keeping Inklet annotations, axes and plots vector.
 
 ## Setup
 
-Install [Blender 4.2 LTS or newer](https://www.blender.org/download/) separately,
+Install [Blender](https://www.blender.org/download/) separately (tested with
+4.2 LTS and 4.5 LTS),
 then install the optional Python dependencies from an Inklet checkout:
 
 ```sh
@@ -20,6 +21,10 @@ render function. Blender remains optional for ordinary plots and vector output.
 The complete-scene integration is tested with Blender 4.2.23 LTS on CPU and
 Blender 4.5.13 LTS on CPU and CUDA. GPU support also depends on the Blender build
 and installed drivers. See [GPU rendering and jobs](render-jobs.md).
+
+Legacy vector line-art baking uses a different Grease Pencil API and requires
+Blender **4.2 LTS**. This restriction does not apply to `render_blend()`, scene
+templates or the scene sketch style. See the [support matrix](compatibility.md).
 
 ## Inspect before rendering
 

@@ -324,6 +324,13 @@ def bake_svg(mesh: Path, out: Path, *, script: str,
     nothing.
     """
     found = find_blender(blender)
+    if found.version[:2] != (4, 2):
+        raise BlenderError(
+            f"Vector line-art baking requires Blender 4.2 LTS; found {found.release}. "
+            "Select a 4.2 executable with blender= or INKLET_BLENDER. "
+            "Complete-scene rendering with render_blend() supports newer Blender builds; "
+            "this restriction applies only to the legacy Grease Pencil SVG backend."
+        )
     with tempfile.TemporaryDirectory(prefix="inklet-lineart-") as workspace:
         program = Path(workspace) / "bake.py"
         program.write_text(script, encoding="utf-8")

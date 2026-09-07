@@ -127,13 +127,13 @@ drawings. See [the authoring model](https://inklet.readthedocs.io/en/stable/conc
 - Reproducible appearance requires consistent inputs, fonts and dependencies.
   The export manifest records dataset and font hashes for comparison.
 
-## V3 development
+## V3 release candidate
 
 The [showcase library](https://inklet.readthedocs.io/en/latest/showcase/) includes
 eight mathematical, 3D and architectural figures, with realistic and sketch
 renderings. Each has executable source and explicit data/asset provenance.
 
-The development branch adds complete Blender scenes with projected object labels,
+Version **3.0.0rc1** freezes the v3 feature set. It adds complete Blender scenes with projected object labels,
 browser-free PNG export, vector gradients/hatching and group blending. Install a
 checkout with `python -m pip install -e '.[render]'` and run
 `python tools/v3_showcase.py` for the mixed scene-and-plot example.
@@ -153,6 +153,8 @@ and a [fully annotated laboratory cutaway](https://inklet.readthedocs.io/en/late
 [Rendering guide](https://inklet.readthedocs.io/en/latest/v3/) ·
 [Blender setup and scenes](https://inklet.readthedocs.io/en/latest/blender-scenes/).
 PyPI and the stable documentation remain on 2.6 until v3 is released.
+See the [upgrade guide](https://inklet.readthedocs.io/en/latest/migration/#from-26-to-30)
+and [compatibility matrix](https://inklet.readthedocs.io/en/latest/compatibility/).
 
 ## Documentation and development
 

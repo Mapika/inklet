@@ -85,6 +85,7 @@ nav:
   - Project:
       - Logo and brand assets: brand.md
       - Migration: migration.md
+      - Compatibility and RC1: compatibility.md
       - Version 2: v2.md
       - Version 2.5: v2.5.md
       - Release checks: release-checks.md

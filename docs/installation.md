@@ -3,6 +3,10 @@
 Inklet requires Python 3.11 or later and an installed TrueType/OpenType font.
 The core Python dependencies are HarfBuzz bindings and fontTools.
 
+This page covers the **3.0.0rc1** checkout. The ordinary PyPI install still
+selects 2.6; use the checkout instructions below to try RC1. See the
+[compatibility matrix](compatibility.md) for tested platforms and Blender versions.
+
 ## From PyPI
 
 ```sh
@@ -22,7 +26,7 @@ Activate the environment or prefix commands with `.venv/bin/` on Linux/macOS.
 
 | Install from PyPI | Adds |
 |---|---|
-| `python -m pip install 'inklet[images]'` | Pillow and NumPy for images, raster layers and PNG previews |
+| `python -m pip install 'inklet[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
 | `python -m pip install 'inklet[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
 
 Extras can be combined: `python -m pip install 'inklet[images,three]'`.
@@ -59,12 +63,13 @@ Check the installed package with
 | Install from the checkout | Adds |
 |---|---|
 | `python -m pip install -e '.[render]'` | Browser-free PNG, masks and raster layers (v3) |
-| `python -m pip install -e '.[images]'` | Pillow and NumPy for images, raster layers and PNG previews |
+| `python -m pip install -e '.[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
 | `python -m pip install -e '.[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
 | `python -m pip install -e '.[dev]'` | Pytest for development |
 | `python -m pip install -e '.[docs]'` | MkDocs for the searchable documentation site |
 
-Extras can be combined: `python -m pip install -e '.[dev,images,three,docs]'`.
+Extras can be combined: `python -m pip install -e '.[dev,render,images,three,docs]'`.
+The `render` extra supplies resvg for v3 PNG output; `images` alone does not.
 
 ## Fonts
 
@@ -84,7 +89,7 @@ Low-level text uses `size=i.pt(8)` for 8-point type. See
 
 ## Visual review
 
-V3 development uses resvg for PNG output and review previews. Install from a
+V3 uses resvg for PNG output and review previews. Install from a
 checkout with `python -m pip install -e '.[render]'`. SVG and PDF saving need no
 browser; figures containing raster images also need Pillow (included in `render`).
 

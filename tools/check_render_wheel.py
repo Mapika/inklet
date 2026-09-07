@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 import os
+import shutil
 import subprocess
 import tempfile
 import venv
@@ -69,9 +70,12 @@ def main():
     args=parser.parse_args();wheel=args.wheel.resolve()
     env={k:v for k,v in os.environ.items() if k not in ('PYTHONPATH','PYTHONHOME','PYTHONSTARTUP','VIRTUAL_ENV')}
     with tempfile.TemporaryDirectory(prefix='inklet-render-wheel-') as scratch:
-        root=Path(scratch);venv.EnvBuilder().create(root/'env')
+        root=Path(scratch);uv=shutil.which('uv')
+        venv.EnvBuilder(with_pip=uv is None).create(root/'env')
         python=root/'env'/('Scripts/python.exe' if os.name=='nt' else 'bin/python')
-        subprocess.run(['uv','pip','install','--python',str(python),str(wheel)+'[render]'],check=True,env=env,cwd=root,timeout=180)
+        install=([uv,'pip','install','--python',str(python)] if uv else
+                 [str(python),'-m','pip','install','--disable-pip-version-check'])
+        subprocess.run([*install,str(wheel)+'[render]'],check=True,env=env,cwd=root,timeout=180)
         (root/'author.py').write_text(SCRIPT)
         subprocess.run([str(python),'author.py',*([str(args.scene.resolve())] if args.scene else []),
                         *(['--templates'] if args.templates else [])],

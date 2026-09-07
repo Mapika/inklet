@@ -10,7 +10,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = ('README.md', 'docs/quickstart.md', 'docs/concepts.md', 'docs/layout.md',
          'docs/plotting.md', 'docs/data.md', 'docs/diagrams.md',
-         'docs/three-images.md', 'docs/export-review.md', 'docs/cli.md', 'docs/presets.md', 'docs/v3.md')
+         'docs/three-images.md', 'docs/export-review.md', 'docs/cli.md', 'docs/presets.md', 'docs/v3.md',
+         'docs/migration.md')
 BLOCK = re.compile(r'(?:(<!-- Requires preview renderers\. -->)\n\n)?^```python\n(.*?)^```',re.MULTILINE | re.DOTALL)
 
 
@@ -31,7 +32,7 @@ def test_guide_python_examples(relative, tmp_path, monkeypatch):
         i.use_theme(original_theme)
 
 
-@pytest.mark.parametrize('relative', ('docs/quickstart.md','docs/export-review.md'))
+@pytest.mark.parametrize('relative', ('docs/quickstart.md','docs/export-review.md','docs/migration.md'))
 def test_optional_review_examples(relative, tmp_path, monkeypatch):
     if (not importlib.util.find_spec('PIL') or not shutil.which('pdftoppm')
             or not any(shutil.which(n) for n in ('google-chrome','chromium','chromium-browser'))):

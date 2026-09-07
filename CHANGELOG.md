@@ -1,6 +1,14 @@
 # Changelog
 
-## 3.0.0 (development)
+## 3.0.0rc1
+
+The v3 feature set is frozen for release-candidate review.
+
+- Add macOS and Windows installed-wheel checks and pinned Blender 4.2/4.5
+  CPU integration jobs. Document the 2.6 upgrade and tested support boundaries.
+- Report an actionable error when legacy vector line-art baking is requested
+  with Blender outside 4.2 LTS; complete-scene rendering remains separate.
+- Let the installed render-wheel check use pip when uv is unavailable.
 
 - Add packaged laboratory, product and architectural scene templates with
   validated parameters, named cameras/landmarks, portable geometry and atomic

@@ -423,6 +423,19 @@ def test_importing_inklet_does_not_need_blender():
     assert inklet.__name__ == "inklet"
 
 
+@pytest.mark.parametrize('version', [(4, 3, 0), (4, 5, 13), (5, 0, 0)])
+def test_legacy_line_art_rejects_new_grease_pencil_before_baking(tmp_path, monkeypatch, version):
+    import importlib
+    from types import SimpleNamespace
+    backend = importlib.import_module('inklet.three.blender.lineart')
+    monkeypatch.setattr(backend, 'find_blender', lambda _: SimpleNamespace(
+        version=version, release='.'.join(map(str, version))))
+    monkeypatch.setattr(backend.subprocess, 'run', lambda *a, **k: pytest.fail('Bake started'))
+    with pytest.raises(BlenderError, match='Vector line-art baking requires Blender 4.2 LTS'):
+        backend.bake_svg(tmp_path/'mesh.obj', tmp_path/'drawing.svg', script='')
+    assert not (tmp_path/'drawing.svg').exists()
+
+
 def test_the_backend_never_imports_bpy_in_process():
     """bpy in the host interpreter would be a 400MB dependency and a second
     Python. Blender is a subprocess, always."""
