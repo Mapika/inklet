@@ -147,7 +147,7 @@ def on_post_build(config):
 
 
 def on_post_page(output, page, config):
-    """Version local page links, keeping canonical URLs and assets unchanged.
+    """Version local page links and figure previews, keeping canonical URLs unchanged.
 
     Read the Docs serves HTML with a 30-minute cache lifetime. A navigation
     rebuild can otherwise mix new and old page shells in the same browser.
@@ -157,11 +157,15 @@ def on_post_page(output, page, config):
     def version(match):
         prefix, target = match.groups()
         url = urlsplit(html.unescape(target))
-        if url.scheme or url.netloc or not url.path or not url.path.endswith(('/', '.html')):
+        figure = url.path.endswith('.png') and any(
+            folder in url.path for folder in ('assets/guides/', 'gallery/'))
+        if url.scheme or url.netloc or not url.path or not (
+                figure or url.path.endswith(('/', '.html'))):
             return match.group()
         query = dict(parse_qsl(url.query, keep_blank_values=True))
         query['v'] = config['extra']['page_version']
         target = urlunsplit((url.scheme, url.netloc, url.path, urlencode(query), url.fragment))
         return prefix + html.escape(target, quote=True) + '"'
 
-    return re.sub(r'(<a\b[^>]*?\bhref=")([^"]*)"', version, output)
+    output = re.sub(r'(<a\b[^>]*?\bhref=")([^"]*)"', version, output)
+    return re.sub(r'(<img\b[^>]*?\bsrc=")([^"]*)"', version, output)

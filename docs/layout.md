@@ -9,7 +9,9 @@ measured composition when components need an irregular arrangement.
 import inklet as i
 
 left = i.plot_spec(x=(0, 2), y=(0, 5)).line([(0, 1), (1, 3), (2, 2)]).axes()
-right = i.plot_spec(x=(0, 2), y=(0, 5)).bars([0, 1, 2], [2, 4, 3]).axes()
+right = i.plot_spec(x=(-.5, 2.5), y=(0, 5))
+right.bars([0, 1, 2], [2, 4, 3], width=.8)
+right.axis('bottom', ticks=[0, 1, 2]).axis('left')
 doc = i.document(width=180, columns=[1, 1], gap=8, row_gap=5, margin=5)
 doc.add('left', left, row=0, column=0, min_width=60, min_height=50)
 doc.add('right', right, row=0, column=1, min_width=60, min_height=50)
@@ -18,6 +20,11 @@ doc.add('caption', i.component(i.text, 'Two simulated measurements'),
 figure = doc.compile()
 assert figure.cells['caption'].width == 170
 ```
+
+On numeric scales, bars are centred at their x positions and `width` is in
+data units. Include their full width in the domain: these bars extend from
+−0.4 to 2.4, inside the chosen limits of −0.5 to 2.5. Categorical scales
+reserve a slot for each category automatically.
 
 Rows and columns are zero-based. Omitting `row` appends below existing cells;
 it does not fill the next unused column. `rowspan` and `colspan` reserve multiple

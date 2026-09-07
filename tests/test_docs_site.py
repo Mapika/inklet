@@ -101,6 +101,7 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     axis_page=site/'axes-and-scales/index.html'
     assert parsed_pages[axis_page.resolve()].expanded_groups==2
     assert 'id="search-section"' in axis_page.read_text()
+    assert f'../assets/guides/axes-and-scales-1.png?v={commit[:12]}' in axis_page.read_text()
     gpu_page = site/'render-jobs/index.html'
     gpu_html = gpu_page.read_text()
     assert parsed_pages[gpu_page.resolve()].expanded_groups == 2

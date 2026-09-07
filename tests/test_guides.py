@@ -88,10 +88,14 @@ def test_page_versions_preserve_filters_anchors_and_external_links():
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
     markup = ('<a href="../render-jobs/#devices">GPU</a>'
               '<a href="../examples/?type=3D&amp;q=room#gallery">Gallery</a>'
+              '<img src="../assets/guides/layout-3.png" alt="Layout">'
+              '<a href="../gallery/plots.png">Full figure</a>'
               '<a href="#local">Here</a><a href="../asset.png">Image</a>'
               '<a href="https://example.com/guide/">External</a>'
               '<link rel="canonical" href="https://inklet.readthedocs.io/en/latest/">')
     result = module.on_post_page(markup, None, {'extra': {'page_version': 'revision'}})
+    assert '../assets/guides/layout-3.png?v=revision' in result
+    assert '../gallery/plots.png?v=revision' in result
     assert '../render-jobs/?v=revision#devices' in result
     assert '../examples/?type=3D&amp;q=room&amp;v=revision#gallery' in result
     for unchanged in ('href="#local"', 'href="../asset.png"',
