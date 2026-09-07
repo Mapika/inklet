@@ -2,7 +2,7 @@
 
 These are development fixtures and a first interaction experiment. They do not
 implement the complete workflows in the [roadmap](../../docs/roadmap.md).
-All fixture data and geometry are original simulated MIT material by Mark Marosi;
+The small fixtures under `fixtures/` are original simulated MIT material by Mark Marosi;
 see [the manifest](fixtures/manifest.json). No external downloads are needed.
 
 ## Regional analysis
@@ -134,3 +134,21 @@ The [guide](../../docs/linked-maps.md) documents the supported GeoJSON subset,
 strict joins, missing values, source-order picking and static reconstruction.
 `tests/test_browser_regions.py` checks geometry validation, native browser fill
 agreement and Python/browser vector and raster agreement.
+
+## Real world population map
+
+`world_population.py` uses real Natural Earth country boundaries and population
+estimates with linked world/Europe views. Hungary starts selected; search accepts
+country names and continents. The historical source snapshot is mostly dated
+2019, with each row's year retained. Nothing is simulated in these map inputs.
+
+```sh
+python examples/v4/world_population.py --output out/v4-world
+python examples/v4/world_population.py --state /path/to/view.json --output out/v4-restored
+python tools/prepare_world_map.py --check
+```
+
+The first two commands work offline. The last verifies prepared inputs against
+a checksum-pinned source download. See [the real map guide](../../docs/world-map.md),
+[source manifest](data/world-map-source.json) and
+[third-party notice](../../THIRD_PARTY_NOTICES.md) for attribution and transformations.

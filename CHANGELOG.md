@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Make a real Natural Earth country/population map the main geographic example,
+  with linked world/Europe views, pinned public-domain inputs and source years.
+  Add country/continent search, explicit HTML attribution and exact integer
+  table display; retain the invented region shapes as regression fixtures.
+
 - Add experimental GeoJSON polygon/multipolygon joins and linked region maps,
   including holes, shared row identities, fixed color bins, missing values and
   clipped picking across SVG/canvas/hybrid modes. Preserve physical map aspect

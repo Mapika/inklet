@@ -1,0 +1,30 @@
+{
+  "dataset": "Natural Earth Admin 0 countries, 1:110m",
+  "source_url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/9380cca83db5f9aef52d5e762765100745f84b27/geojson/ne_110m_admin_0_countries.geojson",
+  "source_revision": "9380cca83db5f9aef52d5e762765100745f84b27",
+  "source_sha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f",
+  "license": "Public domain",
+  "license_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "credit": "Made with Natural Earth",
+  "retrieved": "2026-09-08",
+  "source_features": 177,
+  "features": 176,
+  "transformations": [
+    "Remove verified legacy CRS84 declaration; retain longitude/latitude coordinates unchanged.",
+    "Exclude Antarctica (ATA); retain the other 176 source country/map units.",
+    "Set feature IDs from ADM0_A3; sort by that source code. These are Natural Earth codes, not a guaranteed ISO list.",
+    "Copy ADMIN, CONTINENT, POP_EST and POP_YEAR to CSV. Derive population_millions as POP_EST / 1000000.",
+    "Strip unused GeoJSON properties; retain all polygon parts and holes without simplifying coordinates."
+  ],
+  "population_year_counts": {
+    "2014": 1,
+    "2016": 1,
+    "2017": 3,
+    "2019": 169,
+    "2020": 2
+  },
+  "files": {
+    "world-countries.geojson": "bf3af05d4fa56fa7386e225d09c1b8319b2d8982b7035f66fc6787f1592dcda7",
+    "world-population.csv": "436bfe98677faba813826bc272ef0be2a5b27a6ebfdfd437aca4cd278d0e8265"
+  }
+}

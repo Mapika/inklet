@@ -130,3 +130,16 @@ Accessed 7 September 2026. No endorsement by the Allen Institute is implied.
 and recipe are MIT, Mark Marosi. They add native, sampled-section and region
 intensity tables, population spread and CSV exports using the generated
 components above; no additional segmentation validation is implied.
+
+## Natural Earth country maps
+
+`examples/v4/data/world-countries.geojson` and `world-population.csv` are derived
+from Natural Earth's Admin 0 countries at 1:110m. Made with Natural Earth. The
+map data are [public domain](https://www.naturalearthdata.com/about/terms-of-use/).
+The [source manifest](examples/v4/data/world-map-source.json) pins repository
+commit `9380cca83db5f9aef52d5e762765100745f84b27`, the input checksum and all
+transformations. Antarctica is excluded; retained geometry is not simplified
+further. Population estimates and their individual years come from the source
+snapshot and are not current estimates. The original example code is MIT.
+
+Source and terms checked on 2026-09-08.

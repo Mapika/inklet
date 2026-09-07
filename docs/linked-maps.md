@@ -5,6 +5,21 @@ by linked bars and scatter plots. Select a region in either map to select its
 row across all panels, filter regions, save the view, and reconstruct it in
 Python. This is an experimental checkout feature, **not part of PyPI 3.1.0**.
 
+![Real country map colored by Natural Earth's population estimates](assets/v4/world-population.png)
+
+[Open the real world and Europe maps](assets/v4/world-population.html) ·
+[Source data, provenance and recipe](world-map.md)
+
+The main example uses real public-domain Natural Earth boundaries and its
+historical population estimates, mostly dated 2019. Country selection links the
+world and Europe views. Search by country name or continent; the source year
+is retained for every row. See the [real-map guide](world-map.md) for details.
+
+## Small regression example
+
+The four-region figure below is a deliberately simple test fixture. It remains
+useful for checking expected totals, joins and selection behavior.
+
 ![Revenue and cost maps linked to revenue bars and a cost/revenue scatter plot](assets/v4/regional-analysis.png)
 
 [Open the regional analysis](assets/v4/regional-analysis.html) ·

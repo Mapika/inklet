@@ -33,9 +33,8 @@ Captions and controls remain outside the scientific artwork.
    vector points with the same measured axes and outlined text.
 
 Page zoom enlarges or moves the existing drawing. It does not change data
-domains, generate ticks or recompile the layout. Hover values and table numbers
-use six significant digits for display; embedded source values retain their
-precision. The HTML includes its data, runtime and glyph outlines and works
+domains, generate ticks or recompile the layout. Hover values and noninteger table numbers use six significant digits for
+display; integer table values and embedded source values retain their precision. The HTML includes its data, runtime and glyph outlines and works
 without a server, remote fonts or network requests.
 
 ## Build and reconstruct in Python

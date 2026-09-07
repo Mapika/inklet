@@ -361,19 +361,27 @@ class BrowserFigure:
         ET.register_namespace('xlink','http://www.w3.org/1999/xlink')
         return ET.tostring(root,encoding='unicode')
 
-    def to_html(self, *, title='Linked plot views', backend='svg', state=None):
+    def to_html(self, *, title='Linked plot views', backend='svg', state=None,
+                attribution='Built with Inklet.', search_columns=()):
+        if not isinstance(attribution,str): raise ValueError('attribution must be a string')
+        if isinstance(search_columns,str): raise ValueError('search columns must be a sequence of column names')
+        search_columns=tuple(search_columns)
+        if any(c not in self.table.columns for c in search_columns): raise ValueError('unknown search column')
         if state is not None: self.validate_state(state)
         if backend not in ('svg','canvas','hybrid'): raise ValueError('unknown browser backend')
         template=Path(__file__).with_name('page.html').read_text(encoding='utf-8')
         script=Path(__file__).with_name('runtime.js').read_text(encoding='utf-8')
         script=script.replace("/*DEFAULT_BACKEND*/'svg'",json.dumps(backend))
+        script=script.replace('/*SEARCH_COLUMNS*/[]',json.dumps(search_columns).replace('<','\\u003c'))
         script=script.replace('/*INITIAL_STATE*/null',json.dumps(state,allow_nan=False).replace('<','\\u003c'))
         p=self.payload()
         template=template.replace('/*ASPECT*/190/78',f"{p['width']}/{p['height']}")
         replacements={'<!--TITLE-->':html.escape(title),
+                      '<!--ATTRIBUTION-->':html.escape(attribution),
+                      '<!--FILTER_LABEL-->':'Search rows' if search_columns else 'Row ID contains',
                       '/*PAYLOAD*/':self._json.replace('<','\\u003c'), '/*RUNTIME*/':script}
         # Substitute once: authored strings may themselves contain template tokens.
-        return re.sub(r'<!--TITLE-->|/\*PAYLOAD\*/|/\*RUNTIME\*/',
+        return re.sub(r'<!--TITLE-->|<!--ATTRIBUTION-->|<!--FILTER_LABEL-->|/\*PAYLOAD\*/|/\*RUNTIME\*/',
                       lambda match: replacements[match.group()],template)
 
 

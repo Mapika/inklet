@@ -96,6 +96,7 @@ nav:
   - Browser rendering study: browser-rendering.md
   - Linked lines, bars and scatter: linked-plots.md
   - Linked region maps: linked-maps.md
+  - Real world map: world-map.md
   - Overview and availability: research-preview.md
   - Figure planning studies:
     - Regions and crossings: research-study.md

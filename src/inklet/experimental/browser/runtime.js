@@ -212,7 +212,7 @@ function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));con
   const start=page*20;if(start>=visible.length&&page)page=0;tableBody.replaceChildren();
   for(const id of visible.slice(page*20,page*20+20)){const n=runtime.rowIndex.get(id),tr=document.createElement('tr');
     const th=document.createElement('th');th.scope='row';th.textContent=id;tr.append(th);
-    for(const column of Object.keys(scene.columns).filter(c=>c!==(scene.key??'id'))){const td=document.createElement('td');const value=scene.columns[column][n];td.textContent=typeof value==='number'?Number(value.toPrecision(6)).toString():(value??'Missing');tr.append(td);}
+    for(const column of Object.keys(scene.columns).filter(c=>c!==(scene.key??'id'))){const td=document.createElement('td');const value=scene.columns[column][n];td.textContent=typeof value==='number'?(Number.isInteger(value)?String(value):Number(value.toPrecision(6)).toString()):(value??'Missing');tr.append(td);}
     const td=document.createElement('td'),button=document.createElement('button');button.textContent=runtime.selected.has(id)?'Deselect':'Select';button.setAttribute('aria-label',button.textContent+' '+id);button.setAttribute('aria-pressed',runtime.selected.has(id));
     button.onclick=()=>{toggle(id,true);document.getElementById('id-filter').focus();};td.append(button);tr.append(td);tableBody.append(tr);
   }
@@ -223,7 +223,10 @@ function toggle(id,multi){const selected=multi?new Set(runtime.selected):new Set
 function action(fn){try{fn();error.textContent='';message();}catch(e){error.textContent=e.message;}}
 const headers=document.getElementById('headers');for(const label of ['Row ID',...Object.keys(scene.columns).filter(c=>c!==(scene.key??'id')),'Selection']){const th=document.createElement('th');th.scope='col';th.textContent=label;headers.append(th);}
 document.getElementById('backend').onchange=e=>action(()=>runtime.setBackend(e.target.value));
-document.getElementById('id-filter').oninput=e=>action(()=>{const q=e.target.value;page=0;runtime.setVisible(q?scene.row_ids.filter(id=>id.includes(q)):null);});
+const searchColumns=/*SEARCH_COLUMNS*/[];
+document.getElementById('id-filter').oninput=e=>action(()=>{const q=e.target.value.toLowerCase();page=0;
+  runtime.setVisible(q?scene.row_ids.filter((id,n)=>[id,...searchColumns.map(c=>scene.columns[c][n])].some(v=>String(v??'').toLowerCase().includes(q))):null);
+});
 document.getElementById('clear').onclick=()=>action(()=>runtime.select([]));
 document.getElementById('zoom-in').onclick=()=>action(()=>runtime.zoom(1.5));document.getElementById('zoom-out').onclick=()=>action(()=>runtime.zoom(1/1.5));
 document.getElementById('reset-view').onclick=()=>action(()=>runtime.setViewport([0,0,scene.width,scene.height]));
