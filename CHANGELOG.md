@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Document the proposed 4.0 product and engine roadmap, delivery phases and
+  acceptance criteria. Reserve animation and presentation authoring for 5.0.
+
 ## 3.1.0 — 2026-09-07
 
 Improved plotting, rendering speed, diagram layout and illustrated documentation.

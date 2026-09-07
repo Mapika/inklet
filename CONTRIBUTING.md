@@ -4,6 +4,11 @@ Use a focused change with a runnable example or minimal reproducer. Describe
 the resulting behavior and how it was checked. Keep numerical inputs and
 expected results explicit; use simulated data when source data cannot be shared.
 
+The [4.0 roadmap](docs/roadmap.md) connects planned user workflows to delivery
+phases and acceptance criteria. Read the [proposed engine plan](docs/design/v4.md)
+when developing new rendering, interaction or authoring capabilities. These are
+planning documents; current contracts continue to apply until changed explicitly.
+
 ## Development environment
 
 From a checkout with Python 3.12 and `uv` installed:

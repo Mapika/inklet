@@ -29,6 +29,12 @@ then cover axes, dense data, page layout and exports. Figure planning and micros
 ship under `inklet.experimental` as a [research preview](https://inklet.readthedocs.io/en/stable/research-preview/):
 their signatures and report schemas may change.
 
+The [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) proposes broader
+plotting, maps, interactive documents, technical/scientific visualization and
+visual editing, supported by [engine improvements](https://inklet.readthedocs.io/en/latest/design/v4/).
+These are development targets; animation and presentation authoring are reserved
+for the 5.0 direction.
+
 ## Install
 
 Python **3.11 or later** is required. Install from [PyPI](https://pypi.org/project/inklet/):

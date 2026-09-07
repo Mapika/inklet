@@ -52,6 +52,7 @@ The direct drawing API is still supported.
 moving to live documents. [V2](v2.md) and [v2.5](v2.5.md) document their respective additions.
 
 For development, see [contributing](../CONTRIBUTING.md),
+[the 4.0 roadmap](roadmap.md),
 [release checks](release-checks.md), [the compilation contract](design/v2.md)
 and [the changelog](../CHANGELOG.md). The older
 [page-grid design study](design/page_grid.md) describes a pre-v2 decision,

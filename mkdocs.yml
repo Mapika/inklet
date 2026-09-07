@@ -111,12 +111,14 @@ nav:
     - Fluorescence channels: fluorescence-biology.md
     - Microscopy intensity plots: label-intensities.md
 - Project:
+  - Roadmap to 4.0: roadmap.md
   - Contributing: https://github.com/Mapika/inklet/blob/master/CONTRIBUTING.md
   - Changelog: https://github.com/Mapika/inklet/blob/master/CHANGELOG.md
   - Release checks: release-checks.md
   - Logo and brand assets: brand.md
   - Engine measurements: rendering-engine.md
   - Design and history:
+    - Proposed 4.0 engine: design/v4.md
     - Version 3: v3.md
     - Version 2.5: v2.5.md
     - Version 2: v2.md
