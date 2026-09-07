@@ -1,0 +1,4 @@
+model,latency,accuracy
+Baseline,18,0.81
+Refined,24,0.86
+Ensemble,39,0.91

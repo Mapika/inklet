@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.0.dev9 — development preview (unreleased)
+
+- Refine plot appearance with lighter default axes and top/bottom legends that
+  fit their columns to measured space without shrinking labels. Measure explicit
+  legend font sizes before layout; preserve explicit axis and column overrides.
+- Add typed local CSV input with source hashes, exact integer identifiers and
+  clear errors for malformed rows, ambiguous headers and invalid numeric values.
+- Add a six-panel general plotting example spanning machine learning, engineering
+  and business, with simulated CSV inputs, a styling comparison and external captions.
+- Rebalance the gallery and development overview across plotting, diagrams,
+  architecture and scientific applications.
+
 ## 3.1.0.dev8 — research preview (unreleased)
 
 - Add per-label native and sampled intensity tables with explicit coverage,

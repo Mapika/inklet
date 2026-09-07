@@ -20,20 +20,12 @@ This [twenty-panel stress test](https://inklet.readthedocs.io/en/stable/stress20
 5,580 mesh triangles and 7,200 vector events. Its data are simulated. Only the
 dense scatter and scalar field are rasterized; the other artwork remains vector.
 
-The development branch includes an opt-in [figure-planning research preview](https://inklet.readthedocs.io/en/latest/research-preview/)
-with camera selection, measured labels and [physical revision limits](https://inklet.readthedocs.io/en/latest/research-revision/).
-A [six-panel biology example](https://inklet.readthedocs.io/en/latest/biology-panels/)
-uses 4,500 synthetic cells across coordinated plots. A
-[real microscopy example](https://inklet.readthedocs.io/en/latest/real-biology/)
-connects calibrated sections, GPU-rendered organelles and measured volumes from
-the same COSEM data. [Oblique sections](https://inklet.readthedocs.io/en/latest/oblique-biology/)
-share angled sampling planes across 3D views, microscopy and label measurements.
-[Slab projections and linked regions](https://inklet.readthedocs.io/en/latest/slab-biology/)
-add thickness, coverage maps and a shared physical ROI for source measurements.
-[Fluorescence channels and vector contours](https://inklet.readthedocs.io/en/latest/fluorescence-biology/)
-combine real multichannel signals, calibrated zooms and recorded segmentation processing.
-[Per-label intensity measurements](https://inklet.readthedocs.io/en/latest/label-intensities/)
-add calibrated TIFF import, native and section statistics, and reusable CSV/JSON tables.
+The development branch adds [everyday plots from CSV tables](https://inklet.readthedocs.io/en/latest/general-plots/),
+with typed input, lighter axes and legends that fit the available width. The
+example covers machine-learning, engineering and business data, with separate
+manuscript captions. Other opt-in research work includes
+[complete figure planning](https://inklet.readthedocs.io/en/latest/research-preview/)
+and [calibrated microscopy](https://inklet.readthedocs.io/en/latest/calibrated-volumes/).
 Stable 3.0 remains available on PyPI.
 
 ## Install

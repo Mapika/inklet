@@ -61,6 +61,13 @@ Name a series with `name=` to create a legend entry; a per-point colour array
 does not describe a single legend category. Use [category definitions](data.md)
 when filtering should preserve category colours and labels.
 
+On the development branch, top/bottom legends choose a measured number of
+columns to fit the plot width. Pass `columns=1` to stack explicitly, or
+`columns='auto', max_width=...` to control the available space. An entry that
+cannot fit is reported rather than clipped or reduced in type size.
+`font_size=` is measured before layout. The [general plotting example](general-plots.md)
+shows these changes together with lighter default axis rules.
+
 ## Insets and secondary axes
 
 ```python

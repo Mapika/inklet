@@ -231,3 +231,30 @@ def test_a_legend_can_run_in_columns() -> None:
 def test_a_legend_needs_an_entry() -> None:
     with pytest.raises(ValueError, match="at least one entry"):
         legend(())
+
+
+def test_auto_columns_use_measured_width_and_keep_order():
+    entries=[('Short','#123456'),('A longer series','#654321'),('Third','#345678')]
+    wide=legend(entries,columns='auto',max_width=100)
+    widths=[legend([entry]).width for entry in entries]
+    narrow=legend(entries,columns='auto',max_width=max(widths)+.1)
+    assert wide.height<narrow.height
+    assert narrow.width<=max(widths)+.1
+    assert [p.diagram.prim.text for p in placed(narrow,LEGEND_LABEL_KIND)]==[e[0] for e in entries]
+    assert [p.diagram.prim.text for p in placed(wide,LEGEND_LABEL_KIND)]==[e[0] for e in entries]
+
+
+def test_auto_legend_does_not_hide_or_shrink_an_oversized_label():
+    for options in ({'columns':'auto'},{'columns':0},{'columns':True},{'max_width':0},
+                    {'columns':'auto','max_width':1},{'columns':'auto','max_width':20,'title':'A very long descriptive legend title'}):
+        with pytest.raises(ValueError):legend([('signal','#123456')],**options)
+
+
+def test_legend_font_size_is_measured_before_fitting_columns():
+    entries=[('Reference','#123456'),('Candidate','#654321')]
+    small=legend(entries,columns=2,font_size='6pt')
+    large=legend(entries,columns='auto',max_width=small.width+.1,font_size='12pt')
+    assert large.height>2*small.height
+    assert large.width<=small.width+.1
+    for p in placed(large,LEGEND_LABEL_KIND):
+        assert p.diagram.prim.font_size==pytest.approx(12*25.4/72)

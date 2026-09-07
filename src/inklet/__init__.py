@@ -397,7 +397,7 @@ def _check_content(what: str, content, width, height) -> None:
 
 from .document import (PublicationProfile, publication, subfigure, Composition, LayoutValue, composition, ModuleSpec, module, Document, CompiledFigure, LayoutError, document, PlotSpec,
                        ComponentSpec, plot_spec, component, Dataset, DataRef, Source,
-                       Series, SharedScale, dataset, shared_scale, CategoryEncoding, FileRef, DerivedData, derive)
+                       Series, SharedScale, dataset, shared_scale, CategoryEncoding, FileRef, DerivedData, derive, read_csv)
 from .document import FigureFormat, PlotDefaults, GuidelineSource, Preset, preset, preset_names, format_names
 from .three.scenes import SceneRender, BlendSceneSpec, render_blend, blend_scene, blend_scene_spec, inspect_blend
 from .three.scene_pass import ScenePass
@@ -426,7 +426,7 @@ __all__ = [
     "subfigure", "Composition", "LayoutValue", "composition", "ModuleSpec", "module",
     "Document", "CompiledFigure", "LayoutError", "document", "PlotSpec", "ComponentSpec",
     "plot_spec", "component", "Dataset", "DataRef", "Source", "Series", "SharedScale",
-    "dataset", "shared_scale", "CategoryEncoding", "FileRef", "DerivedData", "derive",
+    "dataset", "read_csv", "shared_scale", "CategoryEncoding", "FileRef", "DerivedData", "derive",
     # authoring
     "text", "label", "title", "box", "circle", "asset", "escape_markup",
     "strip_markup",
@@ -469,4 +469,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "3.1.0.dev8"
+__version__ = "3.1.0.dev9"

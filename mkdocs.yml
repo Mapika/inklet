@@ -73,6 +73,7 @@ nav:
       - Microscopy TIFF import: microscopy-tiff.md
   - Examples:
       - Figure gallery: examples.md
+      - Everyday plots from CSV: general-plots.md
       - More example recipes: example-library.md
       - Coordinated biology figures: biology-panels.md
       - Real microscopy and organelles: real-biology.md

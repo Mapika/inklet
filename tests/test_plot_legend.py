@@ -185,3 +185,16 @@ def test_a_colorbar_without_a_matrix_says_what_to_do() -> None:
     p = panel(40, 30, x=(0, 1), y=(0, 1))
     with pytest.raises(DiagramError, match="matrix"):
         p.colorbar()
+
+
+def test_top_and_bottom_legends_fit_columns_but_explicit_stacking_survives():
+    def make(width,**options):
+        p=panel(width,30,x=(0,2),y=(0,1))
+        for name in ('Reference','Candidate','Optimized'):p.line(LINE,name=name)
+        p.legend(side='bottom',**options)
+        return p
+    automatic=make(75);stacked=make(75,columns=1);narrow=make(20)
+    assert automatic._over[-1].height<stacked._over[-1].height
+    assert narrow._over[-1].height>automatic._over[-1].height
+    assert narrow._over[-1].width<=20
+    assert texts(automatic.build())==texts(stacked.build())==texts(narrow.build())

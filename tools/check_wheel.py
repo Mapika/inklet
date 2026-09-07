@@ -17,6 +17,9 @@ assert i.__version__ == version("inklet")
 assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
+Path('table.csv').write_text('x,y\\n0,1\\n1,2\\n')
+table = i.read_csv('table.csv', types={'x': int, 'y': float}, method='simulated')
+assert table.columns['y'] == (1., 2.) and table.source.sha256
 from inklet.experimental.volume import Volume
 from inklet.experimental.sections import Plane
 plane = Plane((0,0,0), (1,0,0), (0,1,0), (10,20), (.1,.1), 'um')

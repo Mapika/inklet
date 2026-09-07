@@ -1,5 +1,60 @@
 [
   {
+    "id": "general-plots",
+    "title": "Everyday plots from CSV",
+    "category": "Plots",
+    "description": "Machine-learning, engineering and business tables with lighter axes, fitted legends and separate manuscript captions.",
+    "requires": "Core + render",
+    "image": "gallery/general-plots.png",
+    "version": "Research preview",
+    "page": "general-plots/",
+    "featured": true
+  },
+  {
+    "id": "stress20",
+    "title": "Twenty panels, one page",
+    "category": "Layout",
+    "description": "Native 3D, diagrams and statistical plots in one measured document.",
+    "requires": "Core + render",
+    "image": "gallery/stress20.png",
+    "version": "2.6",
+    "page": "stress20/",
+    "featured": true
+  },
+  {
+    "id": "architecture",
+    "title": "An architectural interior",
+    "category": "Architecture",
+    "description": "Authored materials, textured furniture and an orthographic camera.",
+    "requires": "Blender + CC0 asset",
+    "image": "gallery/showcase-architecture.png",
+    "version": "3.0",
+    "page": "recipes/architecture/",
+    "featured": true
+  },
+  {
+    "id": "process",
+    "title": "A methods diagram",
+    "category": "Diagrams",
+    "description": "Connected stages, named ports, loops and measured labels.",
+    "requires": "Core",
+    "image": "gallery/process.png",
+    "version": "2.6",
+    "page": "example-library/#methods-flow",
+    "featured": true
+  },
+  {
+    "id": "interference",
+    "title": "Interference",
+    "category": "Plots",
+    "description": "Two radial waves, one shared colour scale.",
+    "requires": "Core + render",
+    "image": "gallery/showcase-interference.png",
+    "version": "3.0",
+    "page": "recipes/interference/",
+    "featured": true
+  },
+  {
     "id": "label-intensities",
     "title": "From microscopy labels to intensity plots",
     "category": "Plots",
@@ -19,7 +74,7 @@
     "image": "gallery/fluorescence-biology.png",
     "version": "Research preview",
     "page": "fluorescence-biology/",
-    "featured": true
+    "featured": false
   },
   {
     "id": "slab-biology",
@@ -30,7 +85,7 @@
     "image": "gallery/slab-biology.png",
     "version": "Research preview",
     "page": "slab-biology/",
-    "featured": true
+    "featured": false
   },
   {
     "id": "oblique-biology",
@@ -41,7 +96,7 @@
     "image": "gallery/oblique-biology.png",
     "version": "Research preview",
     "page": "oblique-biology/",
-    "featured": true
+    "featured": false
   },
   {
     "id": "real-biology",
@@ -52,7 +107,7 @@
     "image": "gallery/real-biology.png",
     "version": "Research preview",
     "page": "real-biology/",
-    "featured": true
+    "featured": false
   },
   {
     "id": "biology-panels",
@@ -63,7 +118,7 @@
     "image": "gallery/biology-panels.png",
     "version": "Research preview",
     "page": "biology-panels/",
-    "featured": true
+    "featured": false
   },
   {
     "id": "research-revision",
@@ -143,28 +198,6 @@
     "featured": false
   },
   {
-    "id": "interference",
-    "title": "Interference",
-    "category": "Plots",
-    "description": "Two radial waves, one shared colour scale.",
-    "requires": "Core + render",
-    "image": "gallery/showcase-interference.png",
-    "version": "3.0",
-    "page": "recipes/interference/",
-    "featured": true
-  },
-  {
-    "id": "architecture",
-    "title": "An architectural interior",
-    "category": "Architecture",
-    "description": "Authored materials, textured furniture and an orthographic camera.",
-    "requires": "Blender + CC0 asset",
-    "image": "gallery/showcase-architecture.png",
-    "version": "3.0",
-    "page": "recipes/architecture/",
-    "featured": true
-  },
-  {
     "id": "attractor",
     "title": "Deterministic chaos",
     "category": "Plots",
@@ -231,17 +264,6 @@
     "featured": false
   },
   {
-    "id": "stress20",
-    "title": "Twenty panels, one page",
-    "category": "Layout",
-    "description": "Native 3D, diagrams and statistical plots in one measured document.",
-    "requires": "Core + render",
-    "image": "gallery/stress20.png",
-    "version": "2.6",
-    "page": "stress20/",
-    "featured": false
-  },
-  {
     "id": "jobs",
     "title": "One scene, four views",
     "category": "Architecture",
@@ -261,17 +283,6 @@
     "image": "gallery/plots.png",
     "version": "2.6",
     "page": "example-library/#plot-collection",
-    "featured": false
-  },
-  {
-    "id": "process",
-    "title": "A methods diagram",
-    "category": "Diagrams",
-    "description": "Connected stages, named ports, loops and measured labels.",
-    "requires": "Core",
-    "image": "gallery/process.png",
-    "version": "2.6",
-    "page": "example-library/#methods-flow",
     "featured": false
   },
   {

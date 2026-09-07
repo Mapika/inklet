@@ -14,6 +14,7 @@ emits no defs; each band is drawn into the next one so that no seam shows.
 from __future__ import annotations
 
 from typing import Callable, Iterable, Sequence
+import math
 
 from ..core import COLUMN_SINGLE, Affine, Diagram, RectPrim, Vec2, mm
 from ..draw.coords import active_theme, as_drawn, drawn_group
@@ -142,7 +143,8 @@ def _outline(span: float, depth: float, vertical: bool) -> Diagram:
     return Diagram(prim=RectPrim(width, height), kind=SPINE_KIND)
 
 
-def legend(entries: Sequence[tuple[str, object]], *, columns: int = 1,
+def legend(entries: Sequence[tuple[str, object]], *, columns: int | str = 1,
+           max_width: float | str | None = None, font_size: float | str | None = None,
            swatch: float | str | None = None, gap: float | str | None = None,
            row_gap: float | str | None = None, title: str | None = None,
            markup: bool = True, kind: str = LEGEND_KIND, **style) -> Diagram:
@@ -151,6 +153,10 @@ def legend(entries: Sequence[tuple[str, object]], *, columns: int = 1,
     An entry is `(name, colour)` -- painted as a square swatch -- or
     `(name, diagram)`, which uses that diagram as the swatch, so a scatter's
     legend can show the very marker the scatter used.
+
+    `columns='auto', max_width=...` chooses the largest measured column count
+    that fits, preserving row-major entry order and text size. A single entry
+    or title wider than the limit raises an error instead of clipping text.
 
     Names read inklet's inline markup, because a key is the one place a figure
     must be able to write `ChR2 (//n// = 12)` or `//Notch1//^{+/-}`, and no
@@ -166,8 +172,18 @@ def legend(entries: Sequence[tuple[str, object]], *, columns: int = 1,
     """
     if not entries:
         raise ValueError("a legend needs at least one entry")
+    if columns != 'auto' and (type(columns) is not int or columns < 1):
+        raise ValueError("legend columns must be a positive integer or 'auto'")
+    limit = None if max_width is None else mm(max_width)
+    if limit is not None and (not math.isfinite(limit) or limit <= 0):
+        raise ValueError('legend max_width must be finite and positive')
+    if columns == 'auto' and limit is None:
+        raise ValueError("legend columns='auto' requires max_width")
     theme = active_theme()
-    size = (SWATCH_OF_TYPE * theme.font_size_small if swatch is None
+    label_size = theme.font_size_small if font_size is None else mm(font_size)
+    if not math.isfinite(label_size) or label_size <= 0:
+        raise ValueError('legend font_size must be finite and positive')
+    size = (SWATCH_OF_TYPE * label_size if swatch is None
             else mm(swatch))
     # Half an em, not a whole one: a swatch is a piece of the same line as the
     # word it names, and a full space between them reads as two columns.
@@ -181,17 +197,30 @@ def legend(entries: Sequence[tuple[str, object]], *, columns: int = 1,
     # an unpartnered delimiter is ordinary text. `markup=False` is there for
     # the name that really did come out of a column header.
     rows = [
-        hstack([_swatch(value, size), text_node(str(name), theme.font_size_small,
+        hstack([_swatch(value, size), text_node(str(name), label_size,
                                                 LEGEND_LABEL_KIND, markup=markup)],
                gap=inner, align="center")
         for name, value in entries
     ]
+    if columns == 'auto':
+        # Row-major order stays stable. Use measured column maxima, including
+        # complete swatches, rather than a character-count approximation.
+        columns = 1
+        for candidate in range(len(rows), 0, -1):
+            width = sum(max(row.width for row in rows[col::candidate])
+                        for col in range(candidate)) + inner*2*(candidate-1)
+            if width <= limit:
+                columns = candidate
+                break
     body = (vstack(rows, gap=between, align="left") if columns == 1
             else grid_layout(rows, cols=columns, col_gap=inner * 2,
                              row_gap=between, align="left"))
     if title is not None:
-        body = vstack([text_node(title, theme.font_size_small, LEGEND_LABEL_KIND),
+        body = vstack([text_node(title, label_size, LEGEND_LABEL_KIND),
                        body], gap=between, align="left")
+    if limit is not None and body.width > limit + 1e-9:
+        raise ValueError(f'legend needs {body.width:.2f} mm but max_width is {limit:.2f} mm; '
+                         'increase the width or shorten/split an entry')
     node = Diagram(children=(body,), kind=kind)
     return node.styled(**style) if style else node
 

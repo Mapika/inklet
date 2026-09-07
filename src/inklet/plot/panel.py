@@ -1129,7 +1129,8 @@ class Panel:
 
     def legend(self, *, corner: str | None = "ne", side: str | None = None,
                entries: Sequence[tuple[str, object]] | None = None,
-               columns: int = 1, swatch: float | str | None = None,
+               columns: int | str | None = None, max_width: float | str | None = None,
+               swatch: float | str | None = None,
                pad: float | str | None = None, plate: bool | None = None,
                title: str | None = None, markup: bool = True,
                **style) -> "Panel":
@@ -1154,12 +1155,18 @@ class Panel:
         `(name, diagram)` pairs, which is the escape hatch for a key that
         describes something this panel did not draw.
 
+        Top/bottom legends fit their columns to the plot width by default.
+        Pass `columns=1` to stack entries explicitly, or `columns='auto'` and
+        `max_width=...` to choose another measured width. Text is never shrunk.
+
         A `name=` is prose the figure wrote about one curve, so it reads inline
         markup -- `p.line(mean, name="ChR2 (//n// = 12)")` sets that `n` in
         italic, which is the only spelling a style guide accepts. Pass
         `markup=False` for names lifted out of a data file.
         """
         theme = active_theme()
+        if swatch is None and 'font_size' in style:
+            swatch = SWATCH_OF_TYPE * mm(style['font_size'])
         rows = list(entries) if entries is not None else self._legend_rows(swatch)
         if not rows:
             raise DiagramError(
@@ -1167,7 +1174,11 @@ class Panel:
                 "scatter(), marks(), hist() or band(), names= to bars(), or "
                 "give legend(entries=[...]) directly"
             )
-        node = make_legend(rows, columns=columns, swatch=swatch, title=title,
+        if columns is None:
+            columns = 'auto' if side in ('top', 'bottom') else 1
+        if columns == 'auto' and max_width is None:
+            max_width = self.width if side is not None else self.width - 2*(theme.gap('s') if pad is None else mm(pad))
+        node = make_legend(rows, columns=columns, max_width=max_width, swatch=swatch, title=title,
                            markup=markup, **style)
         gap = theme.gap("s") if pad is None else mm(pad)
         if side is not None:

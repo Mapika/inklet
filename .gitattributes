@@ -1,2 +1,4 @@
 # PDB records use fixed-width, space-padded columns.
 *.pdb whitespace=-blank-at-eol
+# Keep example source hashes stable across platforms.
+examples/data/general-plots/*.csv text eol=lf

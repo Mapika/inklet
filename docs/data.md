@@ -99,3 +99,42 @@ For CSV files, read and validate the file in your author script using Python's
 `csv` module or your existing data tools, then create the dataset. Use
 `inklet watch figure.py --watch data.csv` to rerun the script when it changes.
 See [CLI reference](cli.md) for watch scope and file handling.
+
+## Typed CSV input
+
+The development branch adds `read_csv`. It returns the same live `Dataset` used
+above and needs no pandas or NumPy dependency. This example creates a small local
+file so the complete workflow can be run as written:
+
+```python
+from pathlib import Path
+
+csv_path = Path('example-response.csv')
+csv_path.write_text('time,signal,group\n0,1,control\n1,3,control\n2,2,treated\n')
+measurements = i.read_csv(
+    csv_path, types={'time': float, 'signal': float},
+    units={'time': 's', 'signal': 'mV'},
+    name='response table', citation='Illustrative CSV', method='simulated',
+)
+assert measurements.columns['group'] == ('control', 'control', 'treated')
+assert measurements.source.sha256
+```
+
+`types` is required and maps selected headers to `str`, `int` or `float`.
+Unspecified columns remain strings; this preserves identifiers such as `001`.
+Integer conversion retains Python's exact integer precision. Float conversion
+rejects NaN and infinity. Empty numeric cells, malformed rows, duplicate or empty
+headers and type names absent from the file raise errors. Rows are never silently
+dropped, padded or filled. Empty string cells are allowed in string columns.
+
+Input defaults to comma-delimited UTF-8 with optional BOM. Set `delimiter` and
+`encoding` explicitly for other files; quoting and embedded newlines follow the
+standard CSV reader. A blank physical row is rejected as a malformed record.
+The `Source` records the absolute local path and SHA-256 of the bytes actually
+parsed. It records input provenance, not validation of the supplied units or
+measurements. Declare `method='simulated'` for simulated data.
+
+Reading creates a snapshot; editing the file does not mutate an existing table.
+Read it again to import changed bytes, or use `Dataset.update()` for explicit live
+edits. The [six-panel general plotting example](general-plots.md) uses this path
+for machine-learning, engineering and business tables.

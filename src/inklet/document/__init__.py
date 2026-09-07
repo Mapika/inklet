@@ -16,3 +16,6 @@ __all__ += ["PublicationProfile", "publication"]
 
 from .presets import FigureFormat, PlotDefaults, GuidelineSource, Preset, preset, preset_names, format_names
 __all__ += ["FigureFormat", "PlotDefaults", "GuidelineSource", "Preset", "preset", "preset_names", "format_names"]
+
+from .data_io import read_csv
+__all__ += ['read_csv']

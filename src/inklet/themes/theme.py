@@ -156,7 +156,7 @@ class Theme:
                 # the spine overshoots the corner. Nobody would notice one; a
                 # reader notices a plot where every tick is blunt.
                 return Style(
-                    fill="none", stroke=self.ink, stroke_width=self.stroke,
+                    fill="none", stroke=self.ink, stroke_width=self.hairline,
                     stroke_linecap="butt", stroke_linejoin="miter",
                 )
             case "plot-area":

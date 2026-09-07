@@ -331,6 +331,10 @@ One live numeric domain computed from all supplied column references.
 
 Create a versioned Dataset with units and an optional source record.
 
+#### `read_csv(path, *, types, units=None, name='data', citation=None, method='measured', encoding='utf-8-sig', delimiter=',')`
+
+Read a local CSV into a Dataset with explicit types and source provenance.
+
 #### `shared_scale(*columns, padding=0.05, include_zero=False, kind='linear')`
 
 Share a live numeric domain across plots, rejecting incompatible units.
@@ -587,7 +591,7 @@ A drawing region plus the scales that map data into it.
 * `twin_y(scale=None, *, side: 'str' = 'right', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second y scale over the same area, and a handle that draws in it.
 * `twin_x(scale=None, *, side: 'str' = 'top', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second x scale over the same area -- wavelength above frequency, or a second time base. `twin_y` explains the shape of it.
 * `title(content: 'str | Diagram', *, align: 'str' = 'center', pad: 'float | str | None' = None) -> "'Panel'"` -- A heading over the panel, clear of whatever is already in it.
-* `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int' = 1, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, **style) -> "'Panel'"` -- A key built from the series this panel actually drew.
+* `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int | str | None' = None, max_width: 'float | str | None' = None, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, **style) -> "'Panel'"` -- A key built from the series this panel actually drew.
 * `colorbar(*, side: 'str' = 'right', source=None, scale: 'Scale | None' = None, length: 'float | str | None' = None, pad: 'float | str | None' = None, **kwargs) -> "'Panel'"` -- The ramp this panel's matrix was coloured through, as a key beside it.
 * `text(x, y, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, front: 'bool' = True, **style) -> "'Panel'"` -- Words at one **data** point.
 * `arrow(a: 'Sequence', b: 'Sequence', *, head: 'str' = 'triangle', label: 'str | Diagram | None' = None, front: 'bool' = True, **style) -> "'Panel'"` -- An arrow from one **data** point to another.
@@ -615,7 +619,7 @@ One axis of a plot.
 
 A continuous ramp with an axis against it.
 
-#### `legend(entries: 'Sequence[tuple[str, object]]', *, columns: 'int' = 1, swatch: 'float | str | None' = None, gap: 'float | str | None' = None, row_gap: 'float | str | None' = None, title: 'str | None' = None, markup: 'bool' = True, kind: 'str' = 'legend', **style) -> 'Diagram'`
+#### `legend(entries: 'Sequence[tuple[str, object]]', *, columns: 'int | str' = 1, max_width: 'float | str | None' = None, font_size: 'float | str | None' = None, swatch: 'float | str | None' = None, gap: 'float | str | None' = None, row_gap: 'float | str | None' = None, title: 'str | None' = None, markup: 'bool' = True, kind: 'str' = 'legend', **style) -> 'Diagram'`
 
 Swatches and their names.
 
