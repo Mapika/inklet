@@ -126,7 +126,9 @@ direct picking, arbitrary visible/selected subsets, page pan/zoom and portable
 view state. The [backend decision](design/browser-backends.md) is deliberately
 limited to fixed-axis circular scatter. The [mixed-plot preview](linked-plots.md) now extends geometry and picking to
 lines and bars. The [region map preview](linked-maps.md) adds polygon joins and a first regional
-analysis figure. Next support explicit data updates and broaden that workflow.
+analysis figure. [Explicit data replacement](data-revisions.md) now recompiles
+figures with retained selections, viewport policy and a revision report. The
+world map demonstrates revised CSV input and a source-year cohort.
 
 The three reference projects now have small, attributed fixtures and numerical
 checks. The analyst project has the linked-plot prototype; maps/facets and the

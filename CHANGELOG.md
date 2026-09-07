@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add explicit experimental figure data replacement with preserved row identity,
+  selected/filtered ID reconciliation, viewport policy and a revision report.
+  Rebuild geometry and exports without mutating the old figure. Extend the real
+  world map with a source-year cohort and user-supplied CSV replacement workflow.
+
 - Make a real Natural Earth country/population map the main geographic example,
   with linked world/Europe views, pinned public-domain inputs and source years.
   Add country/continent search, explicit HTML attribution and exact integer

@@ -5,7 +5,7 @@ clips marks to measured plot areas, and preserves explicit row identities.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import hashlib
 import html
 import json
@@ -300,10 +300,59 @@ class BrowserFigure:
         payload['scene_digest']=hashlib.sha256(raw.encode()).hexdigest()
         self._json=json.dumps(payload,separators=(',',':'),allow_nan=False)
         self.table=table
+        self._views=views
+        self._width=width
+        self._columns=columns
 
     def payload(self):
         """Return an independent copy of the portable scene data."""
         return json.loads(self._json)
+
+    def replace_data(self, table: KeyedTable, *, state=None, views=None,
+                     width=None, columns=None, missing='error', viewport='reset'):
+        """Compile revised data and explicitly transfer an old view state.
+
+        Returns a FigureRevision containing a new BrowserFigure, state and
+        change report. The original stays usable, including on failure. Table
+        name and key must stay the same. Removed selected/filtered IDs fail
+        unless missing='drop'. New rows enter only an all-rows filter.
+
+        View definitions and layout are reused unless supplied. Map geometry
+        must still join exactly: supply revised RegionViews if IDs change.
+        Viewport resets to the new page by default; 'preserve' explicitly keeps
+        the old physical page rectangle, subject to the new figure's limits.
+        """
+        if not isinstance(table,KeyedTable): raise ValueError('table must be a KeyedTable')
+        if table.key!=self.table.key: raise ValueError('replacement must retain the key column')
+        if viewport not in ('reset','preserve'): raise ValueError('viewport must be reset or preserve')
+        selection,old_viewport=self.validate_state(self.state() if state is None else state)
+        rebased=selection.rebase(table,missing=missing)
+        revised=BrowserFigure(table,self._views if views is None else views,
+                              width=self._width if width is None else width,
+                              columns=self._columns if columns is None else columns)
+        new_state=revised.state(rebased.state,
+                                viewport=old_viewport if viewport=='preserve' else None)
+        before=self.table; old_ids=set(before.row_ids); new_ids=set(table.row_ids)
+        common=old_ids & new_ids
+        old_columns=set(before.columns); new_columns=set(table.columns)
+        # Compare JSON representations, so bool/number and int/float changes
+        # are reported consistently with the table digest's serialization.
+        def rows(source):
+            return {key:json.dumps({c:values[n] for c,values in source.columns.items()},
+                                   sort_keys=True,separators=(',',':'),allow_nan=False)
+                    for n,key in enumerate(source.row_ids) if key in common}
+        old_rows,new_rows=rows(before),rows(table)
+        report=dict(schema='inklet.browser-revision/0.1',table=table.name,key=table.key,
+                    previous_data_digest=before.digest,data_digest=table.digest,
+                    previous_scene_digest=self.payload()['scene_digest'],
+                    scene_digest=revised.payload()['scene_digest'],
+                    added_ids=sorted(new_ids-old_ids),removed_ids=sorted(old_ids-new_ids),
+                    changed_ids=sorted(k for k in common if old_rows[k]!=new_rows[k]),
+                    added_columns=sorted(new_columns-old_columns),removed_columns=sorted(old_columns-new_columns),
+                    order_changed=[k for k in before.row_ids if k in common]!=[k for k in table.row_ids if k in common],
+                    removed_selected=rebased.removed_selected,removed_visible=rebased.removed_visible,
+                    missing_policy=missing,viewport_policy=viewport)
+        return FigureRevision(revised,json.dumps(new_state),json.dumps(report))
 
     def state(self, selection=None, *, viewport=None):
         selection=selection or SelectionState.for_table(self.table)
@@ -383,6 +432,20 @@ class BrowserFigure:
         # Substitute once: authored strings may themselves contain template tokens.
         return re.sub(r'<!--TITLE-->|<!--ATTRIBUTION-->|<!--FILTER_LABEL-->|/\*PAYLOAD\*/|/\*RUNTIME\*/',
                       lambda match: replacements[match.group()],template)
+
+
+@dataclass(frozen=True)
+class FigureRevision:
+    """Recompiled figure with independent copies of its saved state and report."""
+    figure: BrowserFigure
+    _state_json: str = field(repr=False)
+    _report_json: str = field(repr=False)
+
+    def state(self):
+        return json.loads(self._state_json)
+
+    def report(self):
+        return json.loads(self._report_json)
 
 
 class BrowserScatter(BrowserFigure):

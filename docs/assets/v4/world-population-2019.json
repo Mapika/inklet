@@ -1,0 +1,33 @@
+{
+  "schema": "inklet.browser-revision/0.1",
+  "table": "natural-earth-population",
+  "key": "id",
+  "previous_data_digest": "4480ec116f57002a987b5d21ce56d8ae6bbd6655437e9ac9ced814438f25f20f",
+  "data_digest": "c580f7dd06892ed0e322b22682a82ff38adc7c558fbca094137c2e52c718a45b",
+  "previous_scene_digest": "e2350fdc9a0a3fba960d5cc54e1442941063c4ac8db42d50e39dd7b84b33803c",
+  "scene_digest": "7de361ea4889f6a537c4c0eb582fb82062d7745b9b8b6957c386fc1204ba4f3d",
+  "added_ids": [],
+  "removed_ids": [
+    "ATF",
+    "CYN",
+    "ERI",
+    "FLK",
+    "SAH",
+    "SOL",
+    "TWN"
+  ],
+  "changed_ids": [],
+  "added_columns": [],
+  "removed_columns": [],
+  "order_changed": false,
+  "removed_selected": [],
+  "removed_visible": [],
+  "missing_policy": "error",
+  "viewport_policy": "reset",
+  "source": {
+    "file": "world-population.csv",
+    "sha256": "436bfe98677faba813826bc272ef0be2a5b27a6ebfdfd437aca4cd278d0e8265",
+    "kind": "pinned source year subset",
+    "year": 2019
+  }
+}

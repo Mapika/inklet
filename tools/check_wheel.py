@@ -27,6 +27,10 @@ mixed = BrowserFigure(keyed, [LineView('line','x','y',(0,1),(0,3)),
                              BarView('bar','x','y',(-1,2),(0,3))])
 assert '<line' in mixed.to_svg() and '<rect' in mixed.to_svg()
 assert 'class ScatterRenderer' in mixed.to_html(state=mixed.state())
+revision = mixed.replace_data(KeyedTable('wheel', {'id':['b','c'], 'x':[1,2], 'y':[3,2]}))
+assert revision.report()['changed_ids'] == ['b'] and revision.report()['removed_ids'] == ['a']
+assert '<rect' in revision.figure.to_svg(revision.state())
+assert 'class ScatterRenderer' in revision.figure.to_html(state=revision.state())
 regions = GeoRegions((('a', ((((0,0),(1,0),(1,1),(0,1),(0,0)),),)),
                       ('b', ((((1,0),(2,0),(2,1),(1,1),(1,0)),),))))
 region_scene = BrowserFigure(keyed, [RegionView('map',regions,(0,0,2,1))])

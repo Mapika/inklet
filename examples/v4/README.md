@@ -152,3 +152,22 @@ The first two commands work offline. The last verifies prepared inputs against
 a checksum-pinned source download. See [the real map guide](../../docs/world-map.md),
 [source manifest](data/world-map-source.json) and
 [third-party notice](../../THIRD_PARTY_NOTICES.md) for attribution and transformations.
+
+## Revised data and saved views
+
+The same real map recipe can replace its table with a source-year cohort or a
+supplied population CSV. It writes revised HTML/SVG, a saved view, the effective
+CSV and `revision.json`. Geometry is explicitly restricted to the requested
+country IDs; new IDs without pinned source geometry fail.
+
+```sh
+python examples/v4/world_population.py --year 2019 --output out/v4-revision
+python examples/v4/world_population.py --year 2019 --rebase-state /path/to/original-view.json --missing drop --output out/v4-revision
+python examples/v4/world_population.py --year 2019 --state out/v4-revision/view.json --output out/v4-restored
+python examples/v4/world_population.py --csv /path/to/population.csv --rebase-state /path/to/original-view.json --output out/v4-csv
+```
+
+See [Replace figure data](../../docs/data-revisions.md) for schema, identity,
+filter and viewport rules. `tests/test_browser_revision.py` covers changed rows,
+order/layout changes, explicit drop reports, CSV provenance, strict saved-state
+validation and browser/Python export agreement.

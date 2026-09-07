@@ -39,6 +39,10 @@ footer. The static `figure.svg` contains both linked maps; `world.svg` supplies
 the single-map overview. The supported GeoJSON subset and map behavior are
 described in the [region guide](linked-maps.md).
 
+To replace the table with revised values or a source-year cohort while retaining
+valid selections, follow [Replace figure data](data-revisions.md). It includes a
+169-country example, a change report and exact saved-view reconstruction.
+
 ## What was imported
 
 The source is Natural Earth's **Admin 0 countries at 1:110m**, exported at pinned
