@@ -332,7 +332,15 @@ class BrowserFigure:
                               columns=self._columns if columns is None else columns)
         new_state=revised.state(rebased.state,
                                 viewport=old_viewport if viewport=='preserve' else None)
-        before=self.table; old_ids=set(before.row_ids); new_ids=set(table.row_ids)
+        report=self._revision_report(revised)
+        report.update(removed_selected=rebased.removed_selected,removed_visible=rebased.removed_visible,
+                      missing_policy=missing,viewport_policy=viewport)
+        return FigureRevision(revised,json.dumps(new_state),json.dumps(report))
+
+    def _revision_report(self, revised):
+        """Static differences shared by Python and embedded browser revisions."""
+        before=self.table; table=revised.table
+        old_ids=set(before.row_ids); new_ids=set(table.row_ids)
         common=old_ids & new_ids
         old_columns=set(before.columns); new_columns=set(table.columns)
         # Compare JSON representations, so bool/number and int/float changes
@@ -342,17 +350,14 @@ class BrowserFigure:
                                    sort_keys=True,separators=(',',':'),allow_nan=False)
                     for n,key in enumerate(source.row_ids) if key in common}
         old_rows,new_rows=rows(before),rows(table)
-        report=dict(schema='inklet.browser-revision/0.1',table=table.name,key=table.key,
+        return dict(schema='inklet.browser-revision/0.1',table=table.name,key=table.key,
                     previous_data_digest=before.digest,data_digest=table.digest,
                     previous_scene_digest=self.payload()['scene_digest'],
                     scene_digest=revised.payload()['scene_digest'],
                     added_ids=sorted(new_ids-old_ids),removed_ids=sorted(old_ids-new_ids),
                     changed_ids=sorted(k for k in common if old_rows[k]!=new_rows[k]),
                     added_columns=sorted(new_columns-old_columns),removed_columns=sorted(old_columns-new_columns),
-                    order_changed=[k for k in before.row_ids if k in common]!=[k for k in table.row_ids if k in common],
-                    removed_selected=rebased.removed_selected,removed_visible=rebased.removed_visible,
-                    missing_policy=missing,viewport_policy=viewport)
-        return FigureRevision(revised,json.dumps(new_state),json.dumps(report))
+                    order_changed=[k for k in before.row_ids if k in common]!=[k for k in table.row_ids if k in common])
 
     def state(self, selection=None, *, viewport=None):
         selection=selection or SelectionState.for_table(self.table)
@@ -411,18 +416,31 @@ class BrowserFigure:
         return ET.tostring(root,encoding='unicode')
 
     def to_html(self, *, title='Linked plot views', backend='svg', state=None,
-                attribution='Built with Inklet.', search_columns=()):
+                attribution='Built with Inklet.', search_columns=(),
+                revision_label='Original', revisions=()):
         if not isinstance(attribution,str): raise ValueError('attribution must be a string')
         if isinstance(search_columns,str): raise ValueError('search columns must be a sequence of column names')
         search_columns=tuple(search_columns)
         if any(c not in self.table.columns for c in search_columns): raise ValueError('unknown search column')
         if state is not None: self.validate_state(state)
         if backend not in ('svg','canvas','hybrid'): raise ValueError('unknown browser backend')
+        revisions=tuple(revisions)
+        if len(revisions)>7 or any(not isinstance(r,RevisionOption) for r in revisions):
+            raise ValueError('provide up to seven RevisionOption alternatives')
+        options=(RevisionOption(revision_label,self,attribution,search_columns),*revisions)
+        if len({r.label for r in options})!=len(options): raise ValueError('revision labels must be unique')
+        if any(r.figure.table.name!=self.table.name or r.figure.table.key!=self.table.key for r in options):
+            raise ValueError('revisions must retain the table name and key column')
+        catalog=dict(labels=[r.label for r in options],
+                     alternatives=[dict(scene=r.figure.payload(),attribution=r.attribution,
+                                        search_columns=r.search_columns) for r in revisions],
+                     reports=[[a.figure._revision_report(b.figure) for b in options] for a in options] if revisions else [])
         template=Path(__file__).with_name('page.html').read_text(encoding='utf-8')
         script=Path(__file__).with_name('runtime.js').read_text(encoding='utf-8')
-        script=script.replace("/*DEFAULT_BACKEND*/'svg'",json.dumps(backend))
-        script=script.replace('/*SEARCH_COLUMNS*/[]',json.dumps(search_columns).replace('<','\\u003c'))
-        script=script.replace('/*INITIAL_STATE*/null',json.dumps(state,allow_nan=False).replace('<','\\u003c'))
+        script_values={"/*DEFAULT_BACKEND*/'svg'":backend,'/*SEARCH_COLUMNS*/[]':search_columns,
+                       '/*INITIAL_STATE*/null':state,'/*REVISION_CATALOG*/null':catalog}
+        script=re.sub('|'.join(re.escape(k) for k in script_values),
+                      lambda m:json.dumps(script_values[m.group()],allow_nan=False).replace('<','\\u003c'),script)
         p=self.payload()
         template=template.replace('/*ASPECT*/190/78',f"{p['width']}/{p['height']}")
         replacements={'<!--TITLE-->':html.escape(title),
@@ -432,6 +450,24 @@ class BrowserFigure:
         # Substitute once: authored strings may themselves contain template tokens.
         return re.sub(r'<!--TITLE-->|<!--ATTRIBUTION-->|<!--FILTER_LABEL-->|/\*PAYLOAD\*/|/\*RUNTIME\*/',
                       lambda match: replacements[match.group()],template)
+
+
+@dataclass(frozen=True)
+class RevisionOption:
+    """A named Python-compiled alternative with its own plain-text source credit."""
+    label: str
+    figure: BrowserFigure
+    attribution: str
+    search_columns: tuple[str,...] = ()
+
+    def __post_init__(self):
+        if not isinstance(self.label,str) or not self.label.strip(): raise ValueError('revision label must be nonempty')
+        if not isinstance(self.figure,BrowserFigure): raise ValueError('revision figure must be a BrowserFigure')
+        if not isinstance(self.attribution,str): raise ValueError('revision attribution must be a string')
+        if isinstance(self.search_columns,str): raise ValueError('search columns must be a sequence of column names')
+        columns=tuple(self.search_columns)
+        if any(c not in self.figure.table.columns for c in columns): raise ValueError('unknown search column')
+        object.__setattr__(self,'search_columns',columns)
 
 
 @dataclass(frozen=True)

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Switch between named, Python-compiled data revisions in an offline browser
+  document, with atomic preparation, explicit removed-ID policies, per-revision
+  source credits and downloadable change reports. Dispose replaced renderers,
+  guard in-flight operations and preserve strict saved-state validation. Add a
+  real-map revision demo and browser/Python parity checks, including Unicode IDs.
+
 - Add explicit experimental figure data replacement with preserved row identity,
   selected/filtered ID reconciliation, viewport policy and a revision report.
   Rebuild geometry and exports without mutating the old figure. Extend the real

@@ -66,11 +66,19 @@ class ScatterRenderer{
       }
     }
     this.frameImage=new Image();
-    this.ready=new Promise((resolve,reject)=>{this.frameImage.onload=()=>{this.render();resolve(this);};this.frameImage.onerror=()=>reject(Error('Cannot rasterize the measured frame.'));});
+    this.ready=new Promise((resolve,reject)=>{this.rejectReady=reject;
+      this.frameImage.onload=()=>{try{this.render();resolve(this);}catch(error){reject(error);}};
+      this.frameImage.onerror=()=>reject(Error('Cannot rasterize the measured frame.'));});
     // Explicit pixel dimensions avoid SVG intrinsic-size ambiguity in drawImage.
     const rasterFrame=scene.frame.replace(/<rect id="inklet-background"[^>]*\/>/,'').replace(/width="[^"]+mm"/,`width="${scene.width*5}"`).replace(/height="[^"]+mm"/,`height="${scene.height*5}"`);
     this.frameImage.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(rasterFrame);
     this.resizeObserver=new ResizeObserver(()=>{if(this.frameImage.complete&&this.frameImage.naturalWidth)this.render();});this.resizeObserver.observe(host);
+  }
+  dispose(){
+    if(this.disposed)return;this.disposed=true;this.resizeObserver.disconnect();
+    this.frameImage.onload=null;this.frameImage.onerror=null;this.rejectReady(Error('Renderer disposed'));
+    this.svg.remove();this.canvas.remove();this.canvas.width=this.canvas.height=this.base.width=this.base.height=0;
+    this.index.clear();this.byId.clear();this.items=[];this.layerItems=[];
   }
   mapping(){const r=this.host.getBoundingClientRect(),v=this.viewport,s=Math.min(r.width/v[2],r.height/v[3]);return {width:r.width,height:r.height,scale:s,dx:(r.width-v[2]*s)/2-v[0]*s,dy:(r.height-v[3]*s)/2-v[1]*s};}
   point(clientX,clientY){const m=this.svg.getScreenCTM();if(!m)return null;return new DOMPoint(clientX,clientY).matrixTransform(m.inverse());}
@@ -152,6 +160,7 @@ class ScatterRenderer{
     }
   }
   render(){
+    if(this.disposed)return;
     if(!this.frameImage.complete||!this.frameImage.naturalWidth)return;
     this.svg.setAttribute('viewBox',this.viewport.join(' '));this.markGroup.replaceChildren();this.overlay.replaceChildren();
     const isSVG=this.backend==='svg',isCanvas=this.backend==='canvas';this.canvas.style.display=isSVG?'none':'block';
@@ -170,6 +179,7 @@ class ScatterRenderer{
     this.renderSelection();
   }
   renderSelection(){
+    if(this.disposed)return;
     this.overlay.replaceChildren();
     if(this.backend==='svg'||this.backend==='hybrid')this.svgMarks(this.overlay,true,'selection-clip-');
     if(this.backend!=='svg'){
@@ -203,8 +213,8 @@ class ScatterRenderer{
 }
 window.ScatterRenderer=ScatterRenderer;
 window.FigureRenderer=ScatterRenderer;
-const scene=JSON.parse(document.getElementById('scene').textContent);
-const runtime=new ScatterRenderer(document.getElementById('stage'),scene);window.inklet=runtime;
+let scene=JSON.parse(document.getElementById('scene').textContent);
+let runtime=new ScatterRenderer(document.getElementById('stage'),scene);window.inklet=runtime;
 runtime.backend=/*DEFAULT_BACKEND*/'svg';document.getElementById('backend').value=runtime.backend;
 const status=document.getElementById('status'),error=document.getElementById('error'),tableBody=document.getElementById('rows');let page=0;
 function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));const hidden=[...runtime.selected].filter(id=>!runtime.shown(id)).length;
@@ -220,10 +230,11 @@ function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));con
   document.getElementById('previous').disabled=page===0;document.getElementById('next').disabled=(page+1)*20>=visible.length;
 }
 function toggle(id,multi){const selected=multi?new Set(runtime.selected):new Set();if(selected.has(id))selected.delete(id);else selected.add(id);runtime.select([...selected]);message();}
-function action(fn){try{fn();error.textContent='';message();}catch(e){error.textContent=e.message;}}
-const headers=document.getElementById('headers');for(const label of ['Row ID',...Object.keys(scene.columns).filter(c=>c!==(scene.key??'id')),'Selection']){const th=document.createElement('th');th.scope='col';th.textContent=label;headers.append(th);}
+function action(fn){if(busy)return;try{fn();error.textContent='';message();}catch(e){error.textContent=e.message;}}
+function updateHeaders(){const headers=document.getElementById('headers');headers.replaceChildren();for(const label of ['Row ID',...Object.keys(scene.columns).filter(c=>c!==(scene.key??'id')),'Selection']){const th=document.createElement('th');th.scope='col';th.textContent=label;headers.append(th);}}
+updateHeaders();
 document.getElementById('backend').onchange=e=>action(()=>runtime.setBackend(e.target.value));
-const searchColumns=/*SEARCH_COLUMNS*/[];
+let searchColumns=/*SEARCH_COLUMNS*/[];
 document.getElementById('id-filter').oninput=e=>action(()=>{const q=e.target.value.toLowerCase();page=0;
   runtime.setVisible(q?scene.row_ids.filter((id,n)=>[id,...searchColumns.map(c=>scene.columns[c][n])].some(v=>String(v??'').toLowerCase().includes(q))):null);
 });
@@ -233,10 +244,10 @@ document.getElementById('reset-view').onclick=()=>action(()=>runtime.setViewport
 document.getElementById('previous').onclick=()=>{page--;message();};document.getElementById('next').onclick=()=>{page++;message();};
 document.getElementById('save').onclick=()=>download(JSON.stringify(runtime.state(),null,2)+'\n','view.json','application/json');
 document.getElementById('svg').onclick=()=>download(runtime.exportSVG(),'view.svg','image/svg+xml');
-document.getElementById('load').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>8e6)throw Error('State file exceeds 8 MB');runtime.loadState(JSON.parse(await file.text()));document.getElementById('id-filter').value='';page=0;message();error.textContent='';}catch(err){error.textContent=err.message;}finally{e.target.value='';}};
+document.getElementById('load').onchange=async e=>{const file=e.target.files[0];if(!file||busy)return;setBusy(true);try{if(file.size>8e6)throw Error('State file exceeds 8 MB');runtime.loadState(JSON.parse(await file.text()));document.getElementById('id-filter').value='';page=0;message();error.textContent='';}catch(err){error.textContent=err.message;}finally{e.target.value='';setBusy(false);}};
 const stage=document.getElementById('stage');let drag=null,moved=false;
-stage.onpointerdown=e=>{if(e.button!==0)return;stage.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,viewport:[...runtime.viewport]};moved=false;stage.setPointerCapture(e.pointerId);};
-stage.onpointermove=e=>{const p=runtime.point(e.clientX,e.clientY);if(!p)return;
+stage.onpointerdown=e=>{if(busy||e.button!==0)return;stage.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,viewport:[...runtime.viewport]};moved=false;stage.setPointerCapture(e.pointerId);};
+stage.onpointermove=e=>{if(busy)return;const p=runtime.point(e.clientX,e.clientY);if(!p)return;
   if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>3)moved=true;if(moved){const s=runtime.mapping().scale;action(()=>runtime.setViewport([drag.viewport[0]-dx/s,drag.viewport[1]-dy/s,drag.viewport[2],drag.viewport[3]]));}}
   else{const hit=runtime.pick(p.x,p.y,4/runtime.mapping().scale);
     const fields=hit?(hit.kind==='polygon'?[hit.layer.value].filter(Boolean):[hit.layer.x,hit.layer.y]):[];
@@ -244,8 +255,73 @@ stage.onpointermove=e=>{const p=runtime.point(e.clientX,e.clientY);if(!p)return;
     document.getElementById('hover').textContent=hit?[hit.id,...values].join(' · '):'Point at a mark to inspect its row ID.';
   }
 };
-stage.onpointerup=e=>{if(!drag)return;drag=null;if(!moved){const p=runtime.point(e.clientX,e.clientY),hit=p&&runtime.pick(p.x,p.y,4/runtime.mapping().scale);if(hit)toggle(hit.id,e.ctrlKey||e.metaKey||e.shiftKey);}stage.releasePointerCapture(e.pointerId);};
+stage.onpointerup=e=>{if(busy||!drag)return;drag=null;if(!moved){const p=runtime.point(e.clientX,e.clientY),hit=p&&runtime.pick(p.x,p.y,4/runtime.mapping().scale);if(hit)toggle(hit.id,e.ctrlKey||e.metaKey||e.shiftKey);}stage.releasePointerCapture(e.pointerId);};
 stage.onpointercancel=()=>{drag=null;};
-stage.onkeydown=e=>{const [x,y,w,h]=runtime.viewport;const moves={ArrowLeft:[x-w*.1,y,w,h],ArrowRight:[x+w*.1,y,w,h],ArrowUp:[x,y-h*.1,w,h],ArrowDown:[x,y+h*.1,w,h]};
+stage.onkeydown=e=>{if(busy)return;const [x,y,w,h]=runtime.viewport;const moves={ArrowLeft:[x-w*.1,y,w,h],ArrowRight:[x+w*.1,y,w,h],ArrowUp:[x,y-h*.1,w,h],ArrowDown:[x,y+h*.1,w,h]};
   if(moves[e.key]){e.preventDefault();action(()=>runtime.setViewport(moves[e.key]));}else if(['+','=','-','0'].includes(e.key)){e.preventDefault();action(()=>e.key==='0'?runtime.setViewport([0,0,scene.width,scene.height]):runtime.zoom(e.key==='-'?1/1.5:1.5));}};
-runtime.ready.then(()=>{const initial=/*INITIAL_STATE*/null;if(initial)runtime.loadState(initial);message();}).catch(e=>{error.textContent=e.message;});
+const revisionCatalog=/*REVISION_CATALOG*/null;
+const revisions=[{scene,attribution:document.getElementById('attribution').textContent,search_columns:searchColumns},...revisionCatalog.alternatives];
+let revisionIndex=0,lastReport=null,busy=true,busyFocus=null;
+function setBusy(value){
+  if(value&&!busy)busyFocus=document.activeElement;
+  busy=value;const app=document.getElementById('app');app.inert=value;app.setAttribute('aria-busy',String(value));
+  if(value)drag=null;
+  else if(busyFocus){const target=busyFocus;busyFocus=null;if(target.isConnected&&!target.disabled)target.focus({preventScroll:true});}
+}
+const revisionTarget=document.getElementById('revision-target');
+for(const [index,label] of revisionCatalog.labels.entries()){const option=document.createElement('option');option.value=index;option.textContent=label;revisionTarget.append(option);}
+document.getElementById('revision-controls').hidden=revisions.length<2;
+function revisionStatus(){document.getElementById('revision-current').textContent='Current data: '+revisionCatalog.labels[revisionIndex];}
+function showReport(){
+  document.getElementById('revision-report').textContent=`${lastReport.added_ids.length} added, ${lastReport.removed_ids.length} removed, ${lastReport.changed_ids.length} changed. Dropped selected IDs: ${lastReport.removed_selected.join(', ')||'none'}. Dropped visible IDs: ${lastReport.removed_visible.join(', ')||'none'}. Viewport: ${lastReport.viewport_policy}.`;
+  document.getElementById('revision-details').textContent=JSON.stringify(lastReport,null,2);
+  document.getElementById('save-revision-report').disabled=false;
+}
+async function switchRevision(index,{missing='error',viewport='reset'}={}){
+  if(busy)throw Error('Wait for the current operation to finish');
+  if(!Number.isInteger(index)||index<0||index>=revisions.length)throw Error('Unknown revision');
+  if(!['error','drop'].includes(missing)||!['reset','preserve'].includes(viewport))throw Error('Invalid revision policy');
+  if(index===revisionIndex)return null;
+  const target=revisions[index],oldState=runtime.state(),ids=new Set(target.scene.row_ids),s=oldState.selection;
+  // Python's canonical ID order differs from JS UTF-16 sorting for some
+  // Unicode IDs. Filter the precomputed report to preserve the shared order.
+  const selectedSet=new Set(s.selected_ids),visibleSet=new Set(s.visible_ids??[]);
+  const removedIds=revisionCatalog.reports[revisionIndex][index].removed_ids;
+  const removedSelected=removedIds.filter(id=>selectedSet.has(id)),removedVisible=removedIds.filter(id=>visibleSet.has(id));
+  if(missing==='error'&&(removedSelected.length||removedVisible.length))throw Error(`Revision removes selected IDs: ${removedSelected.join(', ')||'none'}; visible IDs: ${removedVisible.join(', ')||'none'}. Choose Drop removed IDs to apply it.`);
+  const nextState={schema:oldState.schema,scene_digest:target.scene.scene_digest,
+    selection:{...s,table:target.scene.table,data_digest:target.scene.data_digest,selected_ids:s.selected_ids.filter(id=>ids.has(id)),
+      visible_ids:s.visible_ids===null?null:s.visible_ids.filter(id=>ids.has(id))},
+    viewport:viewport==='preserve'?oldState.viewport:[0,0,target.scene.width,target.scene.height]};
+  const report={...revisionCatalog.reports[revisionIndex][index],removed_selected:removedSelected,removed_visible:removedVisible,missing_policy:missing,viewport_policy:viewport};
+  setBusy(true);let candidate=null;const staging=document.createElement('div');
+  staging.className='revision-staging';staging.setAttribute('aria-hidden','true');staging.inert=true;
+  const rect=stage.getBoundingClientRect(),minHeight=parseFloat(getComputedStyle(stage).minHeight)||0;
+  Object.assign(staging.style,{position:'fixed',left:'-100000px',top:'0',width:rect.width+'px',height:Math.max(minHeight,rect.width*target.scene.height/target.scene.width)+'px',visibility:'hidden'});
+  document.body.append(staging);
+  try{
+    candidate=new ScatterRenderer(staging,target.scene);candidate.backend=runtime.backend;
+    await candidate.ready;candidate.loadState(nextState);
+    // Prepare all geometry and state offscreen before replacing the active scene.
+    const previous=runtime;
+    stage.style.aspectRatio=target.scene.width+'/'+target.scene.height;
+    candidate.resizeObserver.disconnect();stage.replaceChildren(...staging.childNodes);candidate.host=stage;
+    runtime=candidate;scene=target.scene;searchColumns=target.search_columns;window.inklet=runtime;
+    revisionIndex=index;lastReport=report;previous.dispose();candidate.resizeObserver.observe(stage);
+    document.getElementById('attribution').textContent=target.attribution;
+    document.getElementById('filter-label').textContent=searchColumns.length?'Search rows':'Row ID contains';
+    document.getElementById('id-filter').value='';document.getElementById('hover').textContent='Point at a mark to inspect its row ID.';
+    page=0;revisionTarget.value=index;updateHeaders();revisionStatus();showReport();message();error.textContent='';
+    return JSON.parse(JSON.stringify(report));
+  }catch(e){if(candidate&&candidate!==runtime)candidate.dispose();throw e;}
+  finally{staging.remove();setBusy(false);}
+}
+document.getElementById('apply-revision').onclick=async()=>{try{await switchRevision(Number(revisionTarget.value),{missing:document.getElementById('revision-missing').value,viewport:document.getElementById('revision-viewport').value});}catch(e){error.textContent=e.message;}};
+document.getElementById('save-revision-report').onclick=()=>{if(lastReport)download(JSON.stringify(lastReport,null,2)+'\n','revision.json','application/json');};
+const documentReady=runtime.ready.then(()=>{const initial=/*INITIAL_STATE*/null;if(initial)runtime.loadState(initial);revisionStatus();message();setBusy(false);});
+documentReady.catch(e=>{error.textContent=e.message;setBusy(false);
+  status.textContent='Figure could not be loaded. Reload this page to try again.';
+  for(const control of document.querySelectorAll('#app button,#app input,#app select'))control.disabled=true;
+  stage.inert=true;
+});
+window.inkletDocument={ready:documentReady,switchRevision,get revisionIndex(){return revisionIndex;},report:()=>lastReport===null?null:JSON.parse(JSON.stringify(lastReport))};

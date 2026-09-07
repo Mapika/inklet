@@ -165,9 +165,23 @@ python examples/v4/world_population.py --year 2019 --output out/v4-revision
 python examples/v4/world_population.py --year 2019 --rebase-state /path/to/original-view.json --missing drop --output out/v4-revision
 python examples/v4/world_population.py --year 2019 --state out/v4-revision/view.json --output out/v4-restored
 python examples/v4/world_population.py --csv /path/to/population.csv --rebase-state /path/to/original-view.json --output out/v4-csv
+python examples/v4/world_population.py --switchable --output out/v4-switchable
+python examples/v4/world_population.py --switchable --year 2019 --state /path/to/cohort-view.json --output out/v4-restored
 ```
 
 See [Replace figure data](../../docs/data-revisions.md) for schema, identity,
 filter and viewport rules. `tests/test_browser_revision.py` covers changed rows,
 order/layout changes, explicit drop reports, CSV provenance, strict saved-state
 validation and browser/Python export agreement.
+
+`--switchable` embeds the original 176-country map and the 169-country source-year
+2019 cohort in one offline HTML page. Browser replacement transfers the current
+selection/filter under explicit missing-ID and viewport policies and exports a
+revision report. Values for retained countries are unchanged. Search for `TWN`,
+select it and clear the search before trying the 2019 cohort: the default policy
+rejects its removal, while `drop` reports the discarded selection. Switching back
+adds the country again without restoring that discarded selection.
+
+To reopen a saved view, select its exact initial revision with `--year 2019` or
+omit `--year` for the original. The switchable recipe rejects supplied CSV files
+and years other than 2019; the Python API can embed other precompiled revisions.

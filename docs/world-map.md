@@ -41,7 +41,10 @@ described in the [region guide](linked-maps.md).
 
 To replace the table with revised values or a source-year cohort while retaining
 valid selections, follow [Replace figure data](data-revisions.md). It includes a
-169-country example, a change report and exact saved-view reconstruction.
+169-country example, a change report and exact saved-view reconstruction. The
+[switchable demo](assets/v4/world-population-revisions.html) embeds both cohorts
+in one offline page. Choose how to handle missing selected IDs before applying
+a revision; each cohort keeps its own source credit.
 
 ## What was imported
 

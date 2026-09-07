@@ -68,6 +68,7 @@ jobs:
           .venv/bin/python examples/v4/region_shapes.py --output out/v4-region-shapes
           .venv/bin/python examples/v4/world_population.py --output out/v4-world
           .venv/bin/python examples/v4/world_population.py --year 2019 --output out/v4-revision
+          .venv/bin/python examples/v4/world_population.py --switchable --output out/v4-switchable
           .venv/bin/python tools/benchmark_v4.py --repeat 1 --label ci --output out/v4-baseline.json
       - name: Build the mathematical showcase library
         run: .venv/bin/python tools/showcase_gallery.py --plots-only --quality preview

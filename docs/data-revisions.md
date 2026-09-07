@@ -5,6 +5,88 @@ Rebuild a linked figure with revised data while retaining valid selections.
 and a report of changed rows. It is available in the development checkout under
 `inklet.experimental.browser`; the published 3.1.0 package does not include it.
 
+Precompiled revisions can also be embedded in one offline HTML file. Choose a
+target revision and transfer the current selection and filter with explicit
+missing-ID and viewport policies. Each revision retains its own data, measured
+layout, source credit and search columns.
+
+![Real world population map used in the switchable revision example](assets/v4/world-population-revisions.png)
+
+[Try switching between the original and 2019 maps](assets/v4/world-population-revisions.html)
+
+## Switch revisions in the browser
+
+The demo embeds the complete 176-country map and the 169-country cohort dated
+2019. It uses the same pinned Natural Earth inputs for both; surviving values
+are unchanged. This compares source cohorts, not population change over time.
+
+1. Open the demo and search for `TWN`. Select its table row, then clear the search
+   so all countries are visible. Taiwan's population year in this source is 2020.
+2. Expand **Data revision**, choose **2019 source cohort · 169 countries** and
+   click **Apply revision** with the default **Removed state IDs** setting.
+   Replacement fails because the selected `TWN` is absent.
+   The original map and selection remain available.
+3. Choose **Drop removed IDs** and apply again. The map now contains 169 countries;
+   the report identifies all seven removed IDs and `TWN` as a discarded
+   selection. Hungary's initial selection survives.
+4. Expand **Last revision report** to download its JSON, save the current view
+   or export vector SVG. Switch back to **All source years · 176 countries** to
+   restore all countries. Discarded selections are not restored automatically.
+   An unfiltered view includes the
+   added countries; an explicit ID filter retains its surviving IDs.
+
+The viewport defaults to **Fit new page**; **Keep page rectangle** explicitly
+preserves its rectangle in page millimetres. Backend choice is retained. Source
+credit and the table update with the revision. A failed transfer keeps the active
+figure unchanged. The report
+describes the most recent successful transfer, rather than a cumulative history.
+
+Generate and reconstruct the switchable example offline:
+
+```sh
+python examples/v4/world_population.py --switchable --output out/v4-switchable
+
+# Reopen a view saved while the 2019 cohort was active.
+python examples/v4/world_population.py --switchable --year 2019 \
+  --state /path/to/cohort-view.json --output out/v4-restored
+
+# Reopen a view saved while all source years were active.
+python examples/v4/world_population.py --switchable \
+  --state /path/to/original-view.json --output out/v4-restored
+```
+
+Saved-view loading still requires the exact active revision. In the browser,
+switch to that revision before loading its saved view. The CLI's `--year 2019`
+selects the cohort as the initial revision; omitting it selects the original.
+Both commands write an SVG reconstructed from the chosen revision and state.
+`--switchable` supports these two source cohorts; it cannot be combined with
+`--csv` or other years.
+
+## Embed your own revisions
+
+```python
+from inklet.experimental.browser import RevisionOption
+
+# figure and revised_figure are independently compiled BrowserFigure objects.
+html = figure.to_html(
+    revision_label="Original observations",
+    attribution="Source for original observations.",
+    revisions=[RevisionOption(
+        label="Corrected observations",
+        figure=revised_figure,
+        attribution="Source and correction details for revised observations.",
+    )],
+)
+```
+
+Provide up to seven alternatives. Revisions must share a table name and key
+column; their rows, geometry and layouts may differ. Each `RevisionOption` can
+set `search_columns` for its own table. This API embeds precompiled figure data
+and makes no network requests. Arbitrary CSV upload and compilation inside the
+browser remain future work.
+
+## A separately rebuilt map
+
 ![Real world map restricted to countries whose source population year is 2019](assets/v4/world-population-2019.png)
 
 [Open the revised world and Europe maps](assets/v4/world-population-2019.html) ·
@@ -83,8 +165,8 @@ sorted. The report schema is `inklet.browser-revision/0.1` and remains experimen
 
 Ordinary state loading still requires the exact scene revision. Use replacement
 explicitly to transfer an old state, then save the returned state for the new
-figure. Python performs replacement and writes a new offline HTML file; live
-CSV upload and scene switching inside an open browser are future work.
+figure. `replace_data()` performs this operation in Python; embedded revisions
+provide the corresponding explicit transfer inside an open browser.
 
 ## Try it with the real map
 
