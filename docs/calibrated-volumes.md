@@ -99,3 +99,7 @@ when the supplied volume is already a downsampled pyramid level.
 
 The [real-biology example](real-biology.md) applies these contracts to an actual
 calibrated FIB-SEM volume, source segmentations and a GPU-rendered 3D scene.
+
+For angled sections, use the [oblique-plane API](oblique-sections.md). It samples
+one physical plane across image and label volumes and supplies matching 3D
+corners, page projection and scale bars, with explicit interpolation and coverage.

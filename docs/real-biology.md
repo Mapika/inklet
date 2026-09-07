@@ -74,6 +74,10 @@ to make a partition. Do not sum the bars into a cell volume.
 
 ## What the rendering establishes
 
+The [oblique-section example](oblique-biology.md) extends this dataset with two
+angled physical planes shared by 3D annotations, image panels, label-area
+comparisons and marked intensity profiles.
+
 The example checks that source IDs, physical coordinates, slices and reported
 values remain connected through the figure pipeline. It is not a reanalysis
 of the paper's biological findings or a validation of its segmentation models.

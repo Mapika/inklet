@@ -30,7 +30,7 @@ def main():
     # Blender's landscape orthographic scale is the horizontal field width.
     rotation=scene.camera.rotation_euler.to_matrix().transposed()
     corners=[rotation@(Vector(p)-scene.camera.location) for p in product(*zip(*bounds))]
-    scene.camera.data.ortho_scale=1.10*max(
+    scene.camera.data.ortho_scale=record.get('camera_margin',1.10)*max(
         2*max(abs(p.x) for p in corners),
         (280/175)*2*max(abs(p.y) for p in corners))
     # Select actual mesh surface points from the camera direction. These are

@@ -39,7 +39,9 @@ resvg-py==0.3.3
 scikit-image==0.25.2
     # via inklet (pyproject.toml)
 scipy==1.18.1
-    # via scikit-image
+    # via
+    #   inklet (pyproject.toml)
+    #   scikit-image
 tifffile==2026.8.23
     # via scikit-image
 trimesh==5.1.0

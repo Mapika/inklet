@@ -18,6 +18,10 @@ assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
 from inklet.experimental.volume import Volume
+from inklet.experimental.sections import Plane
+plane = Plane((0,0,0), (1,0,0), (0,1,0), (10,20), (.1,.1), 'um')
+assert plane.extent == (2,1)
+assert find_spec("numpy") is None
 try:
     Volume([[[1]]], (1,1,1), 'um', source_id='wheel')
 except ImportError as error:

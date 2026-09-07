@@ -1,5 +1,16 @@
 [
   {
+    "id": "oblique-biology",
+    "title": "Shared oblique section planes",
+    "category": "3D",
+    "description": "Angled microscopy and label sections, sampled areas and profiles linked to one 3D scene.",
+    "requires": "Blender + volume extra",
+    "image": "gallery/oblique-biology.png",
+    "version": "Research preview",
+    "page": "oblique-biology/",
+    "featured": true
+  },
+  {
     "id": "real-biology",
     "title": "Real microscopy and organelles",
     "category": "3D",

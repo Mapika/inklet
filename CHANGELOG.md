@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.0.dev5 — research preview (unreleased)
+
+- Add explicit physical oblique section planes shared by microscopy, label masks
+  and saved-camera 3D annotations. Preserve anisotropic source calibration.
+- Use floating-point trilinear intensity sampling and exact nearest-neighbour
+  integer label sampling, with immutable results and separate coverage masks.
+- Add vector scale bars, world/page projection, transparent missing coverage and
+  sampled label-area measurements with recorded interpolation conventions.
+- Add a seven-panel real COSEM example with two section planes, matching masks,
+  cross-sectional area comparisons and marked intensity profiles. Keep plane
+  corners inside the rendered frame and retain source and sampling evidence.
+
 ## 3.1.0.dev4 — research preview (unreleased)
 
 - Add an optional calibrated volume API for immutable ZYX arrays, physical XYZ

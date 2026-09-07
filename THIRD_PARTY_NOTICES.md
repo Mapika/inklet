@@ -93,10 +93,11 @@ Campus**, under **CC BY 4.0**.
   https://doi.org/10.1038/s41586-021-03977-3
 - Source objects and checksums: `examples/biology/organelle.lock.json`
 
-`gallery/real-biology.png` and the corresponding documented figure are derived
+`gallery/real-biology.png`, `gallery/oblique-biology.png` and their documented figures are derived
 from these data: spatial cropping, intensity windowing, colored mask overlays,
-surface extraction, lighting, annotations and quantitative summaries are Inklet
-example processing. This derived figure retains **CC BY 4.0**, rather than the
+surface extraction, lighting, annotations, oblique resampling, mask-area estimates,
+intensity profiles and quantitative summaries are Inklet example processing.
+These derived figures retain **CC BY 4.0**, rather than the
 code's MIT license. Attribution appears in the figure and documentation. Raw
 volumes, downloaded chunks, generated mesh files and Blender scenes are not
 bundled in the repository or wheel; the recipe retrieves the recorded objects.

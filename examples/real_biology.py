@@ -131,6 +131,32 @@ def make_figure(raw,masks,record,scene,rendered):
     return doc.compile()
 
 
+def build_scene(output, arrays, transform, *, blender=None, rebuild=False, camera_margin=1.10):
+    """Shared calibrated organelle scene for the original and oblique figures."""
+    output=Path(output);output.mkdir(parents=True,exist_ok=True)
+    raw,masks,record,scene=prepare(output,arrays,transform)
+    if not np.isfinite(camera_margin) or camera_margin<1:
+        raise ValueError('camera_margin must be finite and at least 1')
+    scene['camera_margin']=camera_margin
+    (output/'meshes.json').write_text(json.dumps(scene,indent=2)+'\n')
+    binary=find_blender(blender).path;blend=output/'organelle.blend'
+    worker=ROOT/'examples/blender/organelle_scene.py'
+    digest=hashlib.sha256((output/'meshes.json').read_bytes()+worker.read_bytes()+templates._WORKER.read_bytes()).hexdigest()
+    stamp=output/'scene-state.json'
+    state=json.loads(stamp.read_text()) if stamp.exists() else {}
+    valid=blend.exists() and state.get('input_sha256')==digest and state.get('blend_sha256')==hashlib.sha256(blend.read_bytes()).hexdigest()
+    if rebuild or not valid:
+        result=subprocess.run([str(binary),'--background','--factory-startup','--disable-autoexec','--threads','4',
+            '--python-exit-code','1','--python',str(ROOT/'examples/blender/organelle_scene.py'),'--',
+            str(templates._WORKER),str(output.resolve()),str(blend.resolve())],capture_output=True,text=True,timeout=180)
+        (output/'creation.log').write_text(result.stdout+result.stderr)
+        if result.returncode:raise RuntimeError(result.stdout[-3000:]+result.stderr[-3000:])
+        stamp.write_text(json.dumps(dict(input_sha256=digest,blend_sha256=hashlib.sha256(blend.read_bytes()).hexdigest()))+'\n')
+    rendered=i.render_blend(blend,camera='Overview',width=280,height=175,dpi=330,quality='final',
+        engine='CYCLES',passes=('depth',),landmarks={a['id']:'Target '+a['id'] for a in scene['anchors']},blender=binary)
+    return raw,masks,record,scene,rendered
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,default=ROOT/'out/real-biology')
@@ -138,22 +164,7 @@ def main():
     parser.add_argument('--rebuild',action='store_true')
     args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=True)
     source=args.output/'source.n5';lock=fetch(source);arrays,transform=load(source)
-    raw,masks,record,scene=prepare(args.output,arrays,transform)
-    binary=find_blender(args.blender).path;blend=args.output/'organelle.blend'
-    worker=ROOT/'examples/blender/organelle_scene.py'
-    digest=hashlib.sha256((args.output/'meshes.json').read_bytes()+worker.read_bytes()+templates._WORKER.read_bytes()).hexdigest()
-    stamp=args.output/'scene-state.json'
-    state=json.loads(stamp.read_text()) if stamp.exists() else {}
-    valid=blend.exists() and state.get('input_sha256')==digest and state.get('blend_sha256')==hashlib.sha256(blend.read_bytes()).hexdigest()
-    if args.rebuild or not valid:
-        result=subprocess.run([str(binary),'--background','--factory-startup','--disable-autoexec','--threads','4',
-            '--python-exit-code','1','--python',str(ROOT/'examples/blender/organelle_scene.py'),'--',
-            str(templates._WORKER),str(args.output.resolve()),str(blend.resolve())],capture_output=True,text=True,timeout=180)
-        (args.output/'creation.log').write_text(result.stdout+result.stderr)
-        if result.returncode:raise RuntimeError(result.stdout[-3000:]+result.stderr[-3000:])
-        stamp.write_text(json.dumps(dict(input_sha256=digest,blend_sha256=hashlib.sha256(blend.read_bytes()).hexdigest()))+'\n')
-    rendered=i.render_blend(blend,camera='Overview',width=280,height=175,dpi=330,quality='final',
-        engine='CYCLES',passes=('depth',),landmarks={a['id']:'Target '+a['id'] for a in scene['anchors']},blender=binary)
+    raw,masks,record,scene,rendered=build_scene(args.output,arrays,transform,blender=args.blender,rebuild=args.rebuild)
     figure=make_figure(raw,masks,record,scene,rendered)
     print(figure.report(),flush=True)
     if any(d.severity=='error' for d in figure.diagnostics):raise RuntimeError(figure.report())

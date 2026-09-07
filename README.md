@@ -26,7 +26,9 @@ A [six-panel biology example](https://inklet.readthedocs.io/en/latest/biology-pa
 uses 4,500 synthetic cells across coordinated plots. A
 [real microscopy example](https://inklet.readthedocs.io/en/latest/real-biology/)
 connects calibrated sections, GPU-rendered organelles and measured volumes from
-the same COSEM data. Stable 3.0 remains available on PyPI.
+the same COSEM data. [Oblique sections](https://inklet.readthedocs.io/en/latest/oblique-biology/)
+share angled sampling planes across 3D views, microscopy and label measurements.
+Stable 3.0 remains available on PyPI.
 
 ## Install
 

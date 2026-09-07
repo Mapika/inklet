@@ -94,6 +94,11 @@ class Volume:
         return Volume(self.data[tuple(slice(a,b) for a,b in zip(start,stop))],
                       self.spacing_zyx,self.unit,self.world(start),self.source_id)
 
+    def reslice(self, plane, *, kind):
+        """Sample an explicit physical plane: linear intensities or nearest labels."""
+        from .sections import reslice
+        return reslice(self, plane, kind=kind)
+
     def measure(self, label):
         """Voxel-count volume, centroid and boundary status of one integer label.
 
