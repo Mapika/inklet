@@ -18,11 +18,15 @@ assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
 from inklet.experimental.selection import KeyedTable
-from inklet.experimental.browser import BrowserScatter, ScatterView
+from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
 browser_scene = BrowserScatter(keyed, [ScatterView('scatter','x','y',(0,1),(0,3))])
 assert 'class ScatterRenderer' in browser_scene.to_html()
 assert '<circle' in browser_scene.to_svg()
+mixed = BrowserFigure(keyed, [LineView('line','x','y',(0,1),(0,3)),
+                             BarView('bar','x','y',(-1,2),(0,3))])
+assert '<line' in mixed.to_svg() and '<rect' in mixed.to_svg()
+assert 'class ScatterRenderer' in mixed.to_html(state=mixed.state())
 Path('table.csv').write_text('x,y\\n0,1\\n1,2\\n')
 table = i.read_csv('table.csv', types={'x': int, 'y': float}, method='simulated')
 assert table.columns['y'] == (1., 2.) and table.source.sha256

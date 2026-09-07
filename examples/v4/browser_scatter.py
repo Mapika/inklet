@@ -34,7 +34,7 @@ def main():
     state=json.loads(args.state.read_text(encoding='utf-8')) if args.state else scene.state()
     (args.output/'figure.svg').write_text(scene.to_svg(state),encoding='utf-8')
     (args.output/'view.json').write_text(json.dumps(state,indent=2)+'\n',encoding='utf-8')
-    (args.output/'index.html').write_text(scene.to_html(title='Linked observations',backend='hybrid'),encoding='utf-8')
+    (args.output/'index.html').write_text(scene.to_html(title='Linked observations',backend='hybrid',state=state),encoding='utf-8')
     (args.output/'scene.json').write_text(json.dumps(scene.payload(),separators=(',',':')),encoding='utf-8')
     print(args.output/'index.html')
 

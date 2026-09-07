@@ -1,4 +1,4 @@
-"""Experimental scatter documents for offline browser rendering.
+"""Experimental linked plot documents for offline browser rendering.
 
 Python owns layout and text shaping. The browser consumes physical geometry,
 clips marks to measured plot areas, and preserves explicit row identities.
@@ -33,8 +33,8 @@ def _box(value):
 
 
 @dataclass(frozen=True)
-class ScatterView:
-    """A linear scatter view with explicit domains and physical marker size."""
+class _CartesianView:
+    """Shared fixed linear axes for measured browser views."""
     name: str
     x: str
     y: str
@@ -42,8 +42,6 @@ class ScatterView:
     y_domain: tuple[float, float]
     x_label: str = ''
     y_label: str = ''
-    radius_mm: float = .45
-    color: str = '#34786b'
 
     def __post_init__(self):
         if not isinstance(self.name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*',self.name):
@@ -57,34 +55,106 @@ class ScatterView:
             if len(domain)!=2 or not all(_finite(v) for v in domain) or domain[0]==domain[1] or not math.isfinite(domain[1]-domain[0]):
                 raise ValueError('linear domains need two distinct finite endpoints')
             object.__setattr__(self,name,domain)
-        if not _finite(self.radius_mm) or not 0<self.radius_mm<=10:
-            raise ValueError('radius must be positive and at most 10 mm')
         if not isinstance(self.color,str) or not re.fullmatch('#[0-9a-fA-F]{6}',self.color):
             raise ValueError('color must be a six-digit hex colour')
 
 
-class BrowserScatter:
-    """A compiled, immutable JSON snapshot for one or more coordinated views.
+@dataclass(frozen=True)
+class ScatterView(_CartesianView):
+    """Circular points with radius in millimetres."""
+    radius_mm: float = .45
+    color: str = '#34786b'
 
-    Supported marks are circular scatter points with linear axes. Missing/null
-    coordinate pairs are omitted per view. Other nonnumeric coordinates fail.
-    Browser zoom navigates the page; it does not recompute data domains or ticks.
+    def __post_init__(self):
+        super().__post_init__()
+        if not _finite(self.radius_mm) or not 0 < self.radius_mm <= 10:
+            raise ValueError('radius must be positive and at most 10 mm')
+
+
+@dataclass(frozen=True)
+class LineView(_CartesianView):
+    """Connect adjacent source rows; null pairs break the line.
+
+    Filtering removes incident segments without bridging gaps. Picking a
+    segment selects its nearer endpoint row (the later endpoint at a tie).
     """
-    def __init__(self, table: KeyedTable, views, *, width=190):
+    line_width_mm: float = .45
+    color: str = '#34786b'
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not _finite(self.line_width_mm) or not 0 < self.line_width_mm <= 10:
+            raise ValueError('line width must be positive and at most 10 mm')
+
+
+@dataclass(frozen=True)
+class BarView(_CartesianView):
+    """Numeric-position bars with width in position-axis data units.
+
+    Vertical bars extend from baseline to y at x; horizontal bars extend from
+    baseline to x at y. Zero-area bars have no visible or pickable mark.
+    """
+    bar_width: float = .8
+    baseline: float = 0
+    orientation: str = 'vertical'
+    color: str = '#34786b'
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not _finite(self.bar_width) or self.bar_width <= 0:
+            raise ValueError('bar width must be finite and positive')
+        if not _finite(self.baseline): raise ValueError('baseline must be finite')
+        if self.orientation not in ('vertical', 'horizontal'):
+            raise ValueError('bar orientation must be vertical or horizontal')
+
+
+def _marks(layer):
+    if 'marks' in layer: return layer['marks']
+    return [dict(kind='circle', ids=[key], geometry=[x,y,layer['radius']])
+            for key,x,y in layer['points']]
+
+
+def _svg_mark(mark, color, selected=False):
+    """Shared physical geometry and styling contract for static vector export."""
+    g=mark['geometry']; kind=mark['kind']
+    if kind=='circle':
+        tag='circle'; attrs=dict(cx=g[0],cy=g[1],r=g[2]+(.3 if selected else 0))
+    elif kind=='rect':
+        tag='rect'; attrs=dict(zip(('x','y','width','height'),g))
+    else:
+        tag='line'; attrs=dict(zip(('x1','y1','x2','y2'),g))
+        attrs.update({'stroke-width':mark['width']+(.6 if selected else 0),
+                      'stroke-linecap':'round','stroke':'#bd5636' if selected else color})
+    if kind!='line':
+        attrs.update({'fill':'none','stroke':'#bd5636','stroke-width':.3} if selected
+                     else {'fill':color,'fill-opacity':.65})
+    return tag,{key:str(value) for key,value in attrs.items()}
+
+
+class BrowserFigure:
+    """Measured linked circles, line segments and bars with fixed linear axes.
+
+    The scene snapshots a keyed table. Null coordinate pairs omit marks and
+    break lines. Page zoom never recomputes domains, ticks or layout.
+    """
+    _schema = 'inklet.browser-figure/0.1'
+    def __init__(self, table: KeyedTable, views, *, width=190, columns=None):
         import inklet as i
         views=tuple(views)
-        if not views or len(views)>4 or any(not isinstance(v,ScatterView) for v in views):
-            raise ValueError('provide one to four ScatterView definitions')
+        if not views or len(views)>4 or any(type(v) not in (ScatterView,LineView,BarView) for v in views):
+            raise ValueError('provide one to four scatter, line or bar view definitions')
         if len({v.name for v in views})!=len(views): raise ValueError('view names must be unique')
-        doc=i.document(width=width,columns=len(views),gap=9,margin=6).letters()
-        for view in views:
+        columns=min(2,len(views)) if columns is None else columns
+        if type(columns) is not int or not 1<=columns<=4: raise ValueError('columns must be from 1 to 4')
+        doc=i.document(width=width,columns=columns,gap=9,margin=6).letters()
+        for index,view in enumerate(views):
             for column in (view.x,view.y):
                 if column not in table.columns: raise ValueError(f'unknown column: {column}')
                 if any(v is not None and not _finite(v) for v in table.columns[column]):
                     raise ValueError(f'coordinate column {column!r} must be numeric or null')
             p=i.plot_spec(x=view.x_domain,y=view.y_domain,height=58)
             p.axes(x=view.x_label or view.x,y=view.y_label or view.y)
-            doc.add(view.name,p,row=0,column=len(doc._cells))
+            doc.add(view.name,p,row=index//columns,column=index%columns)
         figure=doc.compile()
         if any(d.severity=='error' for d in figure.diagnostics): raise ValueError(figure.report())
         # Outlined glyphs preserve Python's shaping without external fonts or
@@ -101,16 +171,35 @@ class BrowserScatter:
             if (t.a,t.b,t.c,t.d)!=(1.,0.,0.,1.): raise ValueError('unsupported transformed plot cell')
             bounds=[rect.x0+t.e,rect.y0+t.f,rect.width,rect.height]
             bounds=[round(v,6) for v in bounds]
-            points=[];missing=0
-            for key,x,y in zip(table.row_ids,table.columns[view.x],table.columns[view.y]):
-                if x is None or y is None: missing+=1;continue
+            def project(x,y):
                 px=bounds[0]+(x-view.x_domain[0])/(view.x_domain[1]-view.x_domain[0])*bounds[2]
                 py=bounds[1]+(1-(y-view.y_domain[0])/(view.y_domain[1]-view.y_domain[0]))*bounds[3]
                 if not math.isfinite(px) or not math.isfinite(py): raise ValueError('projected coordinate overflow')
-                points.append([key,round(px,6),round(py,6)])
-            layers.append(dict(name=view.name,x=view.x,y=view.y,clip=bounds,points=points,
-                               radius=view.radius_mm,color=view.color,missing=missing))
-        payload=dict(schema=SCHEMA,table=table.name,data_digest=table.digest,row_ids=table.row_ids,
+                return [round(px,6),round(py,6)]
+            points=[]; missing=0; marks=[]; previous=None
+            for key,x,y in zip(table.row_ids,table.columns[view.x],table.columns[view.y]):
+                if x is None or y is None:
+                    missing+=1; previous=None; continue
+                px,py=project(x,y)
+                points.append([key,px,py])
+                if isinstance(view,LineView):
+                    if previous is not None:
+                        marks.append(dict(kind='line',ids=[previous[0],key],
+                                          geometry=[*previous[1:],px,py],width=view.line_width_mm))
+                    previous=[key,px,py]
+                elif isinstance(view,BarView):
+                    if view.orientation=='vertical':
+                        a,b=project(x-view.bar_width/2,view.baseline),project(x+view.bar_width/2,y)
+                    else:
+                        a,b=project(view.baseline,y-view.bar_width/2),project(x,y+view.bar_width/2)
+                    box=[min(a[0],b[0]),min(a[1],b[1]),round(abs(b[0]-a[0]),6),round(abs(b[1]-a[1]),6)]
+                    if box[2] and box[3]: marks.append(dict(kind='rect',ids=[key],geometry=box))
+            layer=dict(name=view.name,x=view.x,y=view.y,clip=bounds,points=points,
+                       color=view.color,missing=missing)
+            if isinstance(view,ScatterView): layer['radius']=view.radius_mm
+            else: layer['marks']=marks
+            layers.append(layer)
+        payload=dict(schema=self._schema,table=table.name,data_digest=table.digest,row_ids=table.row_ids,
                      columns=dict(table.columns),width=width_mm,height=height_mm,frame=frame,layers=layers)
         raw=json.dumps(payload,sort_keys=True,separators=(',',':'),allow_nan=False)
         payload['scene_digest']=hashlib.sha256(raw.encode()).hexdigest()
@@ -147,7 +236,7 @@ class BrowserScatter:
         return selection,viewport
 
     def to_svg(self, state=None):
-        """Export the selected page viewport with clipped vector scatter marks."""
+        """Export the selected page viewport with clipped vector marks."""
         selection,viewport=self.validate_state(state if state is not None else self.state())
         p=self.payload();root=ET.fromstring(p['frame']);ns='{http://www.w3.org/2000/svg}'
         root.set('viewBox',' '.join(map(str,viewport)))
@@ -164,24 +253,41 @@ class BrowserScatter:
             ET.SubElement(clip,ns+'rect',dict(zip(('x','y','width','height'),map(str,layer['clip']))))
             group=ET.SubElement(marks,ns+'g',{'clip-path':f'url(#{clip_id})'})
             highlight=ET.SubElement(highlights,ns+'g',{'clip-path':f'url(#{clip_id})'})
-            chosen=[]
-            for key,x,y in layer['points']:
-                if key not in visible: continue
-                ET.SubElement(group,ns+'circle',{'cx':str(x),'cy':str(y),'r':str(layer['radius']),
-                    'fill':layer['color'],'fill-opacity':'0.65'})
-                if key in selected: chosen.append((x,y))
-            for x,y in chosen:
-                ET.SubElement(highlight,ns+'circle',{'cx':str(x),'cy':str(y),'r':str(layer['radius']+.3),
-                    'fill':'none','stroke':'#bd5636','stroke-width':'.3'})
+            for mark in _marks(layer):
+                if not all(key in visible for key in mark['ids']): continue
+                tag,attrs=_svg_mark(mark,layer['color'])
+                ET.SubElement(group,ns+tag,attrs)
+                if any(key in selected for key in mark['ids']):
+                    tag,attrs=_svg_mark(mark,layer['color'],True)
+                    ET.SubElement(highlight,ns+tag,attrs)
         root.insert(1,marks)
         root.append(highlights)
         ET.register_namespace('','http://www.w3.org/2000/svg')
         ET.register_namespace('xlink','http://www.w3.org/1999/xlink')
         return ET.tostring(root,encoding='unicode')
 
-    def to_html(self, *, title='Linked scatter views', backend='svg'):
+    def to_html(self, *, title='Linked plot views', backend='svg', state=None):
+        if state is not None: self.validate_state(state)
         if backend not in ('svg','canvas','hybrid'): raise ValueError('unknown browser backend')
         template=Path(__file__).with_name('page.html').read_text(encoding='utf-8')
         script=Path(__file__).with_name('runtime.js').read_text(encoding='utf-8')
         script=script.replace("/*DEFAULT_BACKEND*/'svg'",json.dumps(backend))
-        return template.replace('<!--TITLE-->',html.escape(title)).replace('/*PAYLOAD*/',self._json.replace('<','\\u003c')).replace('/*RUNTIME*/',script)
+        script=script.replace('/*INITIAL_STATE*/null',json.dumps(state,allow_nan=False).replace('<','\\u003c'))
+        p=self.payload()
+        template=template.replace('/*ASPECT*/190/78',f"{p['width']}/{p['height']}")
+        replacements={'<!--TITLE-->':html.escape(title),
+                      '/*PAYLOAD*/':self._json.replace('<','\\u003c'), '/*RUNTIME*/':script}
+        # Substitute once: authored strings may themselves contain template tokens.
+        return re.sub(r'<!--TITLE-->|/\*PAYLOAD\*/|/\*RUNTIME\*/',
+                      lambda match: replacements[match.group()],template)
+
+
+class BrowserScatter(BrowserFigure):
+    """Compatibility entry point for the original single-row scatter study."""
+    _schema = SCHEMA
+
+    def __init__(self, table, views, *, width=190):
+        views=tuple(views)
+        if any(type(v) is not ScatterView for v in views):
+            raise ValueError('BrowserScatter accepts only ScatterView; use BrowserFigure for mixed marks')
+        super().__init__(table,views,width=width,columns=len(views) or 1)

@@ -63,6 +63,7 @@ jobs:
         run: |
           .venv/bin/python examples/v4/linked_selection.py --output out/v4-linked
           .venv/bin/python examples/v4/browser_scatter.py --count 3000 --output out/v4-browser
+          .venv/bin/python examples/v4/linked_dashboard.py --output out/v4-dashboard
           .venv/bin/python tools/benchmark_v4.py --repeat 1 --label ci --output out/v4-baseline.json
       - name: Build the mathematical showcase library
         run: .venv/bin/python tools/showcase_gallery.py --plots-only --quality preview

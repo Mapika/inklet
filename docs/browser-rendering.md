@@ -1,5 +1,8 @@
 # Offline browser rendering
 
+For the newer mixed line, bar and scatter workflow, see
+[Linked plots](linked-plots.md). This page retains the original scatter study.
+
 This development preview adds direct picking, linked selection, filtering and
 page navigation to measured scatter plots. It lives in
 `inklet.experimental.browser` in the development checkout and is **not included
@@ -46,8 +49,7 @@ python examples/v4/browser_scatter.py --count 3000 --state /path/to/view.json --
 ```
 
 The second command reconstructs `figure.svg` and copies the validated state to
-`view.json`. Its HTML starts with the full dataset; open the saved view there to
-restore it interactively. Use the same row count, source data and scene layout.
+`view.json`. Its HTML now opens with that same saved view already applied. Use the same row count, source data and scene layout.
 Changed revisions are rejected rather than silently applied to different rows.
 
 A minimal scene can be built without the optional raster or numerical packages:

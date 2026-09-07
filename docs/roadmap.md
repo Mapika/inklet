@@ -140,7 +140,9 @@ user workflow as well as its engine change.
 The [browser comparison and direct interaction prototype](browser-rendering.md)
 now cover the fifth step for fixed-axis scatter. The measured
 [backend decision](design/browser-backends.md) retains SVG by default with an
-explicit hybrid option for dense points. General marks, maps, table adapters
+explicit hybrid option for dense points. [Mixed linked plots](linked-plots.md)
+now extend that runtime to source-ordered lines and signed bars, including
+static reconstruction and directly restored HTML. Regions, maps, table adapters
 and the integrated reference workflows remain outstanding.
 
 

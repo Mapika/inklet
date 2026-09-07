@@ -83,8 +83,8 @@ python examples/v4/browser_scatter.py --count 3000 --output out/v4-browser
 python examples/v4/browser_scatter.py --count 3000 --state /path/to/view.json --output out/v4-restored
 ```
 
-The restore command reconstructs the vector `figure.svg`; use Open saved view
-in its HTML to restore browser state. Keep the same count and source revision.
+The restore command reconstructs the vector `figure.svg` and opens its HTML
+with the saved state already applied. Keep the same count and source revision.
 The default example uses hybrid; `BrowserScatter.to_html()` defaults to SVG.
 No optional numerical or raster packages are needed for HTML/SVG generation.
 
@@ -92,3 +92,21 @@ See the [guide](../../docs/browser-rendering.md) and
 [backend measurements](../../docs/design/browser-backends.md). Run
 `tests/test_browser_scatter.py` for geometry/state checks and headless browser
 regressions when Chrome or Chromium is installed.
+
+## Linked monthly operations
+
+`linked_dashboard.py` builds four linked line, scatter and signed bar panels
+from twelve original simulated monthly rows. Missing revenue breaks the line;
+zero-margin bars disappear while their row identity remains in the table.
+Horizontal bars reverse the month axis. Selection, filtering and page navigation
+work with SVG, Canvas 2D and hybrid display; exports remain vector geometry.
+
+```sh
+python examples/v4/linked_dashboard.py --output out/v4-dashboard
+python examples/v4/linked_dashboard.py --state /path/to/view.json --output out/v4-restored
+```
+
+The restored HTML applies the saved state on opening. The
+[guide](../../docs/linked-plots.md) documents endpoint selection, filtering gaps,
+bar widths/baselines, clipping and current scope. `tests/test_browser_figure.py`
+checks mixed geometry against an independent exhaustive picker and Python SVG.

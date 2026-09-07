@@ -24,11 +24,32 @@ class ScatterRenderer{
     this.overlay=element('g');this.svg.append(this.overlay);
     this.frameNodes=[...this.svg.children].filter(n=>n!==this.markGroup&&n!==this.overlay);
     this.base=document.createElement('canvas');this.index=new Map();this.cellSize=4;this.items=[];this.byId=new Map();
-    for(const [layerIndex,layer] of scene.layers.entries())for(const p of layer.points){
-      const item={id:p[0],x:p[1],y:p[2],layer,layerIndex,order:this.items.length};this.items.push(item);if(!this.byId.has(item.id))this.byId.set(item.id,[]);this.byId.get(item.id).push(item);
-      // Off-domain centers can still contribute a clipped edge; retain them.
-      const key=Math.floor(item.x/this.cellSize)+','+Math.floor(item.y/this.cellSize);
-      if(!this.index.has(key))this.index.set(key,[]);this.index.get(key).push(item);
+    this.layerItems=scene.layers.map(()=>[]);
+    this.pickRadius=Math.max(0,...scene.layers.map(l=>l.radius||0));
+    for(const [layerIndex,layer] of scene.layers.entries()){
+      const marks=layer.marks??layer.points.map(p=>({kind:'circle',ids:[p[0]],geometry:[p[1],p[2],layer.radius]}));
+      for(const mark of marks){
+        const g=mark.geometry,item={...mark,id:mark.ids[0],x:g[0],y:g[1],layer,layerIndex,order:this.items.length};
+        this.items.push(item);this.layerItems[layerIndex].push(item);
+        for(const id of item.ids){if(!this.byId.has(id))this.byId.set(id,[]);this.byId.get(id).push(item);}
+        // Circle centers retain the original compact index. Extended marks use
+        // their clipped bounds, so a long off-page segment cannot explode it.
+        let box;
+        if(item.kind==='circle'){
+          const key=Math.floor(g[0]/this.cellSize)+','+Math.floor(g[1]/this.cellSize);
+          if(!this.index.has(key))this.index.set(key,[]);this.index.get(key).push(item);continue;
+        }
+        else{
+          const pad=item.kind==='line'?item.width/2:0,b=layer.clip;
+          box=item.kind==='rect'?[g[0],g[1],g[0]+g[2],g[1]+g[3]]:
+            [Math.min(g[0],g[2])-pad,Math.min(g[1],g[3])-pad,Math.max(g[0],g[2])+pad,Math.max(g[1],g[3])+pad];
+          box=[Math.max(box[0],b[0]),Math.max(box[1],b[1]),Math.min(box[2],b[0]+b[2]),Math.min(box[3],b[1]+b[3])];
+        }
+        if(box[0]>box[2]||box[1]>box[3])continue;
+        for(let gx=Math.floor(box[0]/this.cellSize);gx<=Math.floor(box[2]/this.cellSize);gx++)for(let gy=Math.floor(box[1]/this.cellSize);gy<=Math.floor(box[3]/this.cellSize);gy++){
+          const key=gx+','+gy;if(!this.index.has(key))this.index.set(key,[]);this.index.get(key).push(item);
+        }
+      }
     }
     this.frameImage=new Image();
     this.ready=new Promise((resolve,reject)=>{this.frameImage.onload=()=>{this.render();resolve(this);};this.frameImage.onerror=()=>reject(Error('Cannot rasterize the measured frame.'));});
@@ -40,6 +61,8 @@ class ScatterRenderer{
   mapping(){const r=this.host.getBoundingClientRect(),v=this.viewport,s=Math.min(r.width/v[2],r.height/v[3]);return {width:r.width,height:r.height,scale:s,dx:(r.width-v[2]*s)/2-v[0]*s,dy:(r.height-v[3]*s)/2-v[1]*s};}
   point(clientX,clientY){const m=this.svg.getScreenCTM();if(!m)return null;return new DOMPoint(clientX,clientY).matrixTransform(m.inverse());}
   shown(id){return this.visible===null||this.visible.has(id);}
+  markShown(item){return item.ids.every(id=>this.shown(id));}
+  selectedItems(){return [...new Set([...this.selected].flatMap(id=>this.byId.get(id)||[]))].sort((a,b)=>a.order-b.order);}
   setBackend(name){if(!['svg','canvas','hybrid'].includes(name))throw Error('Unsupported backend');this.backend=name;this.render();}
   setVisible(ids){if(ids!==null&&(!Array.isArray(ids)||new Set(ids).size!==ids.length||ids.some(id=>!this.rowSet.has(id))))throw Error('Unknown or duplicate visible ID');this.visible=ids===null?null:new Set(ids);this.render();}
   select(ids){if(!Array.isArray(ids)||new Set(ids).size!==ids.length||ids.some(id=>!this.rowSet.has(id)))throw Error('Unknown or duplicate selected ID');this.selected=new Set(ids);this.renderSelection();}
@@ -49,13 +72,25 @@ class ScatterRenderer{
   zoom(factor){const [x,y,w,h]=this.viewport;this.setViewport([x+w*(1-1/factor)/2,y+h*(1-1/factor)/2,w/factor,h/factor]);}
   pick(x,y,tolerance=0){
     if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(tolerance)||tolerance<0||tolerance>Math.max(this.scene.width,this.scene.height)||!this.scene.layers.some(l=>inside(x,y,l.clip)))return null;
-    const reach=Math.max(...this.scene.layers.map(l=>l.radius))+tolerance;
+    const reach=this.pickRadius+tolerance,seen=new Set();
     let best=null,bestDistance=Infinity;
     for(let gx=Math.floor((x-reach)/this.cellSize);gx<=Math.floor((x+reach)/this.cellSize);gx++)for(let gy=Math.floor((y-reach)/this.cellSize);gy<=Math.floor((y+reach)/this.cellSize);gy++){
       for(const item of this.index.get(gx+','+gy)||[]){
-        if(!this.shown(item.id)||!inside(x,y,item.layer.clip))continue;
-        const distance=Math.hypot(x-item.x,y-item.y);
-        if(distance<=item.layer.radius+tolerance&&(distance<bestDistance||(distance===bestDistance&&(!best||item.order>best.order)))){best=item;bestDistance=distance;}
+        if(seen.has(item))continue;seen.add(item);
+        if(!this.markShown(item)||!inside(x,y,item.layer.clip))continue;
+        const g=item.geometry;let distance,allowed=tolerance,id=item.id;
+        if(item.kind==='circle'){distance=Math.hypot(x-g[0],y-g[1]);allowed+=g[2];}
+        else if(item.kind==='rect')distance=Math.hypot(Math.max(g[0]-x,0,x-g[0]-g[2]),Math.max(g[1]-y,0,y-g[1]-g[3]));
+        else{
+          // Normalize before subtraction/dot products to avoid overflow for
+          // finite off-domain endpoints. A coincident segment is a round dot.
+          const scale=Math.max(1,...g.map(Math.abs),Math.abs(x),Math.abs(y));
+          const dx=g[2]/scale-g[0]/scale,dy=g[3]/scale-g[1]/scale,length=dx*dx+dy*dy;
+          const t=length?Math.max(0,Math.min(1,((x/scale-g[0]/scale)*dx+(y/scale-g[1]/scale)*dy)/length)):1;
+          distance=Math.hypot(x-((1-t)*g[0]+t*g[2]),y-((1-t)*g[1]+t*g[3]));allowed+=item.width/2;
+          id=item.ids[t<.5-1e-12?0:1];
+        }
+        if(distance<=allowed&&(distance<bestDistance-1e-10||(Math.abs(distance-bestDistance)<=1e-10&&(!best||item.order>best.order)))){best={...item,id};bestDistance=distance;}
       }
     }return best;
   }
@@ -65,19 +100,30 @@ class ScatterRenderer{
   });}
   svgMarks(target,selectedOnly=false,prefix='live-clip-'){
     const groups=this.clips(target,prefix);
-    for(const item of selectedOnly?[...this.selected].flatMap(id=>this.byId.get(id)||[]):this.items){if(!this.shown(item.id))continue;
-      groups[item.layerIndex].append(element('circle',{cx:item.x,cy:item.y,r:item.layer.radius+(selectedOnly?.3:0),fill:selectedOnly?'none':item.layer.color,
-        ...(selectedOnly?{stroke:'#bd5636','stroke-width':.3}:{'fill-opacity':.65})}));
+    for(const item of selectedOnly?this.selectedItems():this.items){if(!this.markShown(item))continue;
+      const g=item.geometry;let tag=item.kind,attrs;
+      if(tag==='circle')attrs={cx:g[0],cy:g[1],r:g[2]+(selectedOnly?.3:0)};
+      else if(tag==='rect')attrs={x:g[0],y:g[1],width:g[2],height:g[3]};
+      else attrs={x1:g[0],y1:g[1],x2:g[2],y2:g[3],'stroke-width':item.width+(selectedOnly?.6:0),'stroke-linecap':'round',stroke:selectedOnly?'#bd5636':item.layer.color};
+      if(tag!=='line')Object.assign(attrs,selectedOnly?{fill:'none',stroke:'#bd5636','stroke-width':.3}:{fill:item.layer.color,'fill-opacity':.65});
+      groups[item.layerIndex].append(element(tag,attrs));
     }
   }
   prepareCanvas(canvas){const m=this.mapping(),dpr=devicePixelRatio||1;
     canvas.width=Math.max(1,Math.round(m.width*dpr));canvas.height=Math.max(1,Math.round(m.height*dpr));
     const ctx=canvas.getContext('2d');ctx.setTransform(canvas.width/m.width*m.scale,0,0,canvas.height/m.height*m.scale,canvas.width/m.width*m.dx,canvas.height/m.height*m.dy);return ctx;}
   canvasMarks(ctx,selectedOnly=false){
-    for(const layer of this.scene.layers){ctx.save();ctx.beginPath();ctx.rect(...layer.clip);ctx.clip();
-      ctx.fillStyle=layer.color;ctx.strokeStyle='#bd5636';ctx.lineWidth=.3;ctx.globalAlpha=selectedOnly?1:.65;
-      for(const p of layer.points){if(!this.shown(p[0])||(selectedOnly&&!this.selected.has(p[0])))continue;
-        ctx.beginPath();ctx.arc(p[1],p[2],layer.radius+(selectedOnly?.3:0),0,2*Math.PI);if(selectedOnly)ctx.stroke();else ctx.fill();}
+    for(const [n,layer] of this.scene.layers.entries()){ctx.save();ctx.beginPath();ctx.rect(...layer.clip);ctx.clip();
+      ctx.fillStyle=layer.color;ctx.lineCap='round';
+      for(const item of this.layerItems[n]){
+        if(!this.markShown(item)||(selectedOnly&&!item.ids.some(id=>this.selected.has(id))))continue;
+        const g=item.geometry;ctx.beginPath();ctx.strokeStyle=selectedOnly?'#bd5636':layer.color;
+        ctx.globalAlpha=selectedOnly||item.kind==='line'?1:.65;ctx.lineWidth=.3;
+        if(item.kind==='circle')ctx.arc(g[0],g[1],g[2]+(selectedOnly?.3:0),0,2*Math.PI);
+        else if(item.kind==='rect')ctx.rect(...g);
+        else{ctx.moveTo(g[0],g[1]);ctx.lineTo(g[2],g[3]);ctx.lineWidth=item.width+(selectedOnly?.6:0);}
+        if(selectedOnly||item.kind==='line')ctx.stroke();else ctx.fill();
+      }
       ctx.restore();
     }
   }
@@ -132,6 +178,7 @@ class ScatterRenderer{
   }
 }
 window.ScatterRenderer=ScatterRenderer;
+window.FigureRenderer=ScatterRenderer;
 const scene=JSON.parse(document.getElementById('scene').textContent);
 const runtime=new ScatterRenderer(document.getElementById('stage'),scene);window.inklet=runtime;
 runtime.backend=/*DEFAULT_BACKEND*/'svg';document.getElementById('backend').value=runtime.backend;
@@ -161,7 +208,7 @@ document.getElementById('save').onclick=()=>download(JSON.stringify(runtime.stat
 document.getElementById('svg').onclick=()=>download(runtime.exportSVG(),'view.svg','image/svg+xml');
 document.getElementById('load').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>8e6)throw Error('State file exceeds 8 MB');runtime.loadState(JSON.parse(await file.text()));document.getElementById('id-filter').value='';page=0;message();error.textContent='';}catch(err){error.textContent=err.message;}finally{e.target.value='';}};
 const stage=document.getElementById('stage');let drag=null,moved=false;
-stage.onpointerdown=e=>{if(e.button!==0)return;stage.focus();drag={x:e.clientX,y:e.clientY,viewport:[...runtime.viewport]};moved=false;stage.setPointerCapture(e.pointerId);};
+stage.onpointerdown=e=>{if(e.button!==0)return;stage.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,viewport:[...runtime.viewport]};moved=false;stage.setPointerCapture(e.pointerId);};
 stage.onpointermove=e=>{const p=runtime.point(e.clientX,e.clientY);if(!p)return;
   if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>3)moved=true;if(moved){const s=runtime.mapping().scale;action(()=>runtime.setViewport([drag.viewport[0]-dx/s,drag.viewport[1]-dy/s,drag.viewport[2],drag.viewport[3]]));}}
   else{const hit=runtime.pick(p.x,p.y,4/runtime.mapping().scale);document.getElementById('hover').textContent=hit?`${hit.id} · ${hit.layer.x}: ${Number(scene.columns[hit.layer.x][runtime.rowIndex.get(hit.id)].toPrecision(6))} · ${hit.layer.y}: ${Number(scene.columns[hit.layer.y][runtime.rowIndex.get(hit.id)].toPrecision(6))}`:'Point at a mark to inspect its row ID.';}
@@ -170,4 +217,4 @@ stage.onpointerup=e=>{if(!drag)return;drag=null;if(!moved){const p=runtime.point
 stage.onpointercancel=()=>{drag=null;};
 stage.onkeydown=e=>{const [x,y,w,h]=runtime.viewport;const moves={ArrowLeft:[x-w*.1,y,w,h],ArrowRight:[x+w*.1,y,w,h],ArrowUp:[x,y-h*.1,w,h],ArrowDown:[x,y+h*.1,w,h]};
   if(moves[e.key]){e.preventDefault();action(()=>runtime.setViewport(moves[e.key]));}else if(['+','=','-','0'].includes(e.key)){e.preventDefault();action(()=>e.key==='0'?runtime.setViewport([0,0,scene.width,scene.height]):runtime.zoom(e.key==='-'?1/1.5:1.5));}};
-runtime.ready.then(message).catch(e=>{error.textContent=e.message;});
+runtime.ready.then(()=>{const initial=/*INITIAL_STATE*/null;if(initial)runtime.loadState(initial);message();}).catch(e=>{error.textContent=e.message;});

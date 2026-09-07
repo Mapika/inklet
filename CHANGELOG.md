@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Extend the experimental browser runtime to linked lines, scatter and signed
+  vertical/horizontal bars. Preserve missing/filter gaps, support reversed axes
+  and nonzero baselines, and share clipped geometry with static SVG exports.
+  Add a four-panel monthly operations example, directly restored HTML state,
+  deterministic picking ties and a fix for pointer focus scrolling tall plots.
+
 - Add an experimental offline scatter renderer with SVG, Canvas 2D and hybrid
   modes, clipped point picking, linked selection, filtering, page pan/zoom and
   saved-view reconstruction in Python. Preserve measured axes and outlined

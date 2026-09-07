@@ -1,5 +1,9 @@
 # Browser backend decision: scatter preview
 
+The later [mixed-plot increment](../linked-plots.md) adds line and rectangle
+geometry to this runtime. The timings below describe the scatter implementation
+at commit `bbd4d55`; they have not been rerun for mixed plots.
+
 **Status:** bounded experimental decision for 4.0 phase A. Retain SVG as the
 Python API default and expose hybrid rendering explicitly for dense scatter.
 Continue to compile layout and text in Python. This does not choose the backend
@@ -110,9 +114,9 @@ selection, keyboard pan/zoom and opening a downloaded state.
 
 - Keep the existing static compiler authoritative for measured layout and vector
   export. The browser scene is a snapshot, not a replacement document model.
-- Generalize identity and picking to lines, bars and region geometry before
-  promising arbitrary linked figures. Add overlap and boundary semantics for
-  each primitive and compare with independent geometric queries.
+- Line and bar identity/picking now have explicit boundary rules and independent
+  query checks in the [mixed-plot preview](../linked-plots.md). Region geometry
+  and arbitrary linked figures still need their own semantics and tests.
 - Introduce explicit scene/update validation and table adapters before accepting
   browser-side data replacement. Saved views currently require matching data
   and scene revisions.
