@@ -49,7 +49,8 @@ def test_timeout_stops_descendants_after_parent_has_exited(tmp_path):
     pid=int(pidfile.read_text())
     try:
         state=Path(f'/proc/{pid}/stat').read_text().split()[2]
-    except FileNotFoundError:
+    except (FileNotFoundError, ProcessLookupError):
+        # Reaping can remove the path before open, or the process during read.
         return
     # An orphan may briefly remain as a zombie until the system reaps it.
     assert state=='Z'
