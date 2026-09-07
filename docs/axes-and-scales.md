@@ -34,7 +34,7 @@ axis name. `labels=False` keeps rules and ticks on an interior shared axis.
 
 ## Measured typography
 
-The development branch measures font overrides before thinning and layout.
+Inklet 3.1 measures font overrides before thinning and layout.
 `font_size` sets the base size for text and spacing; `tick_font_size` and
 `label_font_size` control those roles independently. `font_family`, `font_weight`
 and `font_style` select the measured face. Explicit prebuilt axis-label diagrams

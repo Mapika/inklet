@@ -12,7 +12,7 @@ matching source labels, sampled cross-sectional areas and intensity profiles.
 
 ## Reproduce it
 
-From a development checkout with Blender 4.2 or 4.5 LTS:
+From the release checkout with Blender 4.2 or 4.5 LTS:
 
 ```sh
 python -m pip install -e '.[volume,render]'

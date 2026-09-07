@@ -1,6 +1,6 @@
 # Everyday plots from CSV tables
 
-This development preview combines six common plots from machine learning,
+This example combines six common plots from machine learning,
 engineering and business: training curves, benchmark points, a sensor response,
 residuals, grouped revenue bars and a composition heatmap. All inputs are original
 **simulated data**, supplied as small typed CSV files. SVG/PDF authoring uses only
@@ -15,10 +15,10 @@ Inklet's core dependencies; PNG export adds the render extra.
 
 ## Reproduce it
 
-These changes are in the development branch, outside the stable 3.0 package.
+This example uses Inklet 3.1. Check out `v3.1.0` to reproduce it.
 
 ```bash
-git clone https://github.com/Mapika/inklet.git
+git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/general_plots.py

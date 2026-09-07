@@ -13,7 +13,7 @@ orthogonal sections and quantitative summaries from one fixed spatial crop of
 
 ## Reproduce it
 
-Use a development checkout and Blender 4.2 or 4.5 LTS:
+Use the release checkout and Blender 4.2 or 4.5 LTS:
 
 ```sh
 python -m pip install -e '.[volume,render]'

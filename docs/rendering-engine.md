@@ -1,6 +1,6 @@
 # Rendering and layout review
 
-The 3.1.0.dev10 development engine improves dense raster plots, repeated-image
+Inklet 3.1 improves dense raster plots, repeated-image
 exports, fixed-component reuse and nested layout. It also fixes a PDF clipping
 defect: transparency groups now include the full painted stroke and text halo,
 even when those extend beyond the drawing's layout envelope.
@@ -19,10 +19,10 @@ Descriptions and methods are in the separate caption.
 
 ## Reproduce the figure
 
-These changes are available on the development branch; stable PyPI remains 3.0.
+These changes are included in Inklet 3.1. Check out `v3.1.0` to reproduce this recipe.
 
 ```bash
-git clone https://github.com/Mapika/inklet.git
+git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/engine_review.py

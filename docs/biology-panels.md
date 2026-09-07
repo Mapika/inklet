@@ -12,7 +12,7 @@ annotations and correlations, all derived from one set of measurements.
 
 ## Reproduce it
 
-From a development checkout with the render extra installed:
+From the release checkout with the render extra installed:
 
 ```sh
 python -m pip install -e '.[render]'

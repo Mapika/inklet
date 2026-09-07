@@ -96,7 +96,7 @@ The separate [publishing workflow](../.github/workflows/publish.yml) uploads
 the wheel and source archive from an existing, published GitHub release.
 It verifies the release's `SHA256SUMS` and runs Twine's strict metadata checks.
 It does not rebuild the packages, so GitHub and PyPI receive identical files.
-The workflow accepts stable release tags such as `v3.0.0` and runs from `master`.
+The workflow accepts stable release tags such as `v3.1.0` and runs from `master`.
 
 The project already has an active trusted publisher with these settings:
 
@@ -123,10 +123,10 @@ The same operations are available through the GitHub CLI:
 
 ```bash
 # Validate the existing release without uploading.
-gh workflow run publish.yml --ref master -f tag=v3.0.0 -F dry_run=true
+gh workflow run publish.yml --ref master -f tag=v3.1.0 -F dry_run=true
 
 # Publish the verified release assets.
-gh workflow run publish.yml --ref master -f tag=v3.0.0 -F dry_run=false
+gh workflow run publish.yml --ref master -f tag=v3.1.0 -F dry_run=false
 ```
 
 For subsequent versions, run release checks, create the tag and GitHub release,

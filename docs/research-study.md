@@ -1,8 +1,8 @@
 # Research preview: regions and crossings
 
 The second preview adds sampled-region requirements, optional leader-crossing
-reduction, and physical label-displacement measurements. It is available from
-the development checkout as **3.1.0.dev2** in `inklet.experimental.figure_planner`.
+reduction, and physical label-displacement measurements. Introduced in **3.1.0.dev2**, it ships in Inklet 3.1 under
+`inklet.experimental.figure_planner`. Signatures and report schemas remain experimental.
 The [first preview](research-preview.md) explains camera selection and author locks.
 
 ![Four original scenes planned with sampled-region requirements](../gallery/research-planner-study.png)
@@ -92,7 +92,7 @@ refinement status, crossing pairs and page positions are experimental.
 
 ## Reproduce the study
 
-From a development checkout installed with `pip install -e '.[render]'`:
+From the release checkout installed with `pip install -e '.[render]'`:
 
 ```sh
 python examples/research_planner_study.py --quality final

@@ -20,14 +20,14 @@ This [twenty-panel stress test](https://inklet.readthedocs.io/en/stable/stress20
 5,580 mesh triangles and 7,200 vector events. Its data are simulated. Only the
 dense scatter and scalar field are rasterized; the other artwork remains vector.
 
-The development branch includes [everyday plots from CSV](https://inklet.readthedocs.io/en/latest/general-plots/),
-[faster rendering and nested layouts](https://inklet.readthedocs.io/en/latest/rendering-engine/),
-[measured diagram improvements](https://inklet.readthedocs.io/en/latest/diagram-engine/)
-and [dense vector lines with axis font controls](https://inklet.readthedocs.io/en/latest/plotting-engine/).
-The restructured docs start with [choosing a plot type](https://inklet.readthedocs.io/en/latest/plot-types/),
-then cover axes, dense data, page layout and exports. Experimental figure planning
-and microscopy tools are documented under [Research preview](https://inklet.readthedocs.io/en/latest/research-preview/).
-Stable 3.0 remains available on PyPI.
+Inklet 3.1 adds [everyday plots from CSV](https://inklet.readthedocs.io/en/stable/general-plots/),
+[faster rendering and nested layouts](https://inklet.readthedocs.io/en/stable/rendering-engine/),
+[measured diagram improvements](https://inklet.readthedocs.io/en/stable/diagram-engine/)
+and [dense vector lines with axis font controls](https://inklet.readthedocs.io/en/stable/plotting-engine/).
+The illustrated docs start with [choosing a plot type](https://inklet.readthedocs.io/en/stable/plot-types/),
+then cover axes, dense data, page layout and exports. Figure planning and microscopy
+ship under `inklet.experimental` as a [research preview](https://inklet.readthedocs.io/en/stable/research-preview/):
+their signatures and report schemas may change.
 
 ## Install
 
@@ -137,9 +137,9 @@ drawings. See [the authoring model](https://inklet.readthedocs.io/en/stable/conc
 - Reproducible appearance requires consistent inputs, fonts and dependencies.
   The export manifest records dataset and font hashes for comparison.
 
-## Rendering in 3.0
+## Scene rendering
 
-Inklet 3.0 combines complete Blender scenes with vector plots, labels and
+Inklet combines complete Blender scenes with vector plots, labels and
 measurements. Cycles uses an available GPU and falls back to CPU when none is
 found. Render queues provide progress, cancellation and bounded concurrency.
 Saved camera projection and numeric passes support depth-tested paths, object

@@ -1,11 +1,12 @@
 # Oblique microscopy sections
 
-The 3.1 development preview can sample an arbitrarily oriented physical plane
+Inklet 3.1 can sample an arbitrarily oriented physical plane
 through calibrated microscopy and segmentation arrays. The same `Plane` defines
 the output pixels, scale bar, projected annotations and rectangle in a 3D scene.
-This capability is experimental and is not included in stable 3.0 on PyPI.
+This capability ships under `inklet.experimental`; its signatures and report
+schemas may change. Install with `pip install "inklet[volume,render]==3.1.0"`.
 
-From a development checkout:
+From the release checkout:
 
 ```sh
 python -m pip install -e '.[volume,render]'

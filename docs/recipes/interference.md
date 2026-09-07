@@ -10,7 +10,7 @@ The colour field is the sum of two analytic radial waves. Both sources use the s
 
 ## Run the example
 
-Install the rendering extras from a development checkout. This example does not require Blender or downloaded assets. See [installation](../installation.md) for a development checkout and [showcase setup](../showcase.md#build-and-download-the-collection) for independent PDF previews.
+Install the rendering extras from the release checkout. This example does not require Blender or downloaded assets. See [installation](../installation.md) for the release checkout and [showcase setup](../showcase.md#build-and-download-the-collection) for independent PDF previews.
 
 ```sh
 python -m pip install -e '.[render,images]'

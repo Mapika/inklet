@@ -10,7 +10,7 @@ This uses the same room and camera as the realistic interior. Inklet applies mat
 
 ## Run the example
 
-Install the rendering extras from a development checkout. This example also requires Blender with Cycles and Freestyle. The first build downloads about 12 MB of CC0 furniture and textures; every file is checked against the asset lock. See [installation](../installation.md) for a development checkout and [showcase setup](../showcase.md#build-and-download-the-collection) for independent PDF previews.
+Install the rendering extras from the release checkout. This example also requires Blender with Cycles and Freestyle. The first build downloads about 12 MB of CC0 furniture and textures; every file is checked against the asset lock. See [installation](../installation.md) for the release checkout and [showcase setup](../showcase.md#build-and-download-the-collection) for independent PDF previews.
 
 ```sh
 python -m pip install -e '.[render,images]'

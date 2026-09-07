@@ -12,7 +12,7 @@ vector axes, labels, annotations and legends regardless of that choice.
 
 Raster scatter and matrices require Pillow (`pip install 'inklet[images]'`).
 PNG export additionally needs the `render` extra. Vector line simplification is
-part of the core package on the development branch.
+part of the core package in Inklet 3.1.
 
 ## Reduce vector line geometry
 

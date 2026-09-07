@@ -13,11 +13,11 @@ a region zoom, intensity profiles and area measurements. It uses data from the
 
 ## Reproduce it
 
-Use the development branch and the volume/render extras. Blender is not required
+Use the `v3.1.0` release checkout and the volume/render extras. Blender is not required
 for this example.
 
 ```bash
-git clone https://github.com/Mapika/inklet.git
+git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[volume,render]'
 python examples/fluorescence_biology.py

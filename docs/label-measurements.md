@@ -1,8 +1,9 @@
 # Per-label intensity measurements
 
-The development branch adds `measure_labels` under `inklet.experimental.measurements`.
-Install the [volume extra](calibrated-volumes.md) from a development checkout.
-This API and its report schema are a research preview, outside stable 3.0.
+Inklet 3.1 includes `measure_labels` under `inklet.experimental.measurements`.
+Install the [volume extra](calibrated-volumes.md) with
+`pip install "inklet[volume]==3.1.0"`. This API and its report schema remain
+an experimental research preview.
 
 Measure original channel values on a native voxel grid or on one sampled plane.
 The returned table supplies plots, CSV exports and JSON provenance. Display

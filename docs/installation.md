@@ -3,7 +3,7 @@
 Inklet requires Python 3.11 or later and an installed TrueType/OpenType font.
 The core Python dependencies are HarfBuzz bindings and fontTools.
 
-This page covers **Inklet 3.0**. See the
+This page covers **Inklet 3.1**. See the
 [compatibility matrix](compatibility.md) for tested platforms and Blender versions.
 
 ## From PyPI
@@ -27,16 +27,20 @@ Activate the environment or prefix commands with `.venv/bin/` on Linux/macOS.
 |---|---|
 | `python -m pip install 'inklet[render]'` | Browser-free PNG, masks and raster layers |
 | `python -m pip install 'inklet[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
+| `python -m pip install 'inklet[volume]'` | Experimental calibrated microscopy, TIFF import and label measurements |
 | `python -m pip install 'inklet[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
 
 Extras can be combined: `python -m pip install 'inklet[render,images,three]'`.
 The built-in 3D renderer works without the `three` extra or Blender. Optional
 cutout/tracing tools such as `rembg` and `potrace` are not included in `images`.
 
+The `volume` extra and APIs under `inklet.experimental` are opt-in research
+features. Their signatures and report schemas may change in future releases.
+
 ## From a checkout
 
 ```sh
-git clone https://github.com/Mapika/inklet.git
+git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m venv .venv
 source .venv/bin/activate

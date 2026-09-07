@@ -104,7 +104,7 @@ parameters; byte-identical `.blend` serialization is not promised.
 
 ## Reproduce the six-view figure
 
-From a development checkout:
+From the release checkout:
 
 ```sh
 python examples/v3_scene_templates.py --quality final

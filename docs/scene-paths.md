@@ -99,7 +99,7 @@ do not simulate optical transmission.
 
 ## Reproduce the figure
 
-From a development checkout with Blender and the rendering extras installed:
+From the release checkout with Blender and the rendering extras installed:
 
 ```sh
 python examples/v3_scene_paths.py --quality final

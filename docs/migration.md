@@ -1,4 +1,55 @@
-# Migrating to Inklet 3.0
+# Migrating to Inklet 3.1
+
+## From 3.0 to 3.1
+
+Existing 3.0 plotting, document, diagram, scene and export APIs remain supported.
+Upgrade the core package with `python -m pip install --upgrade inklet`, or use
+`python -m pip install --upgrade 'inklet[render]'` for PNG and raster layers.
+Python 3.11 remains the minimum supported version.
+
+The default axis rules are lighter, and top/bottom legends choose columns using
+measured space. Axis font overrides now affect measurement and tick thinning.
+These changes can alter an existing figure's appearance and panel margins.
+Review regenerated artwork; preserve intentional choices with explicit stroke,
+font and legend-column options rather than assuming pixel-identical defaults.
+
+Dense raster scatter, repeated-image exports and fixed-component layout reuse
+are improved. Vector lines keep every authored vertex by default. To opt into
+physical-tolerance reduction, pass `simplify='0.02mm'` to a straight, open line;
+see [dense data](dense-data.md) for the approximation's limits.
+
+This example uses the new line and measured-axis controls:
+
+```python
+import math
+import inklet as i
+
+points = [(k / 1000, math.sin(k / 1000)) for k in range(6001)]
+p = i.plot_spec(x=(0, 6), y=(-1.1, 1.1), height=35)
+p.line(points, simplify='0.02mm', stroke='#176b9b')
+p.axis('bottom', label='Time / s', tick_font_size='8pt', label_font_size='9pt')
+p.axis('left', label='Response', tick_font_size='8pt', label_font_size='9pt')
+doc = i.document(width=100)
+doc.add('signal', p)
+figure = doc.compile()
+figure.save('migration-31.svg', 'migration-31.pdf')
+assert not any(d.severity == 'error' for d in figure.diagnostics)
+```
+
+![A four-panel review of line reduction, axis typography and matrix labels](../gallery/plot-engine-review.png)
+
+The [plot rendering review](plotting-engine.md) shows these controls in a complete
+figure, with its source and separate manuscript caption.
+
+`read_csv` adds typed tables without pandas. `module(max_width=...)` wraps
+measured labels; document cell alignment supports compass positions such as
+`align='nw'`. See [live data](data.md), [diagrams](diagrams.md) and [layout](layout.md).
+
+The package also includes opt-in tools under `inklet.experimental`. Figure
+planning, microscopy APIs and their report schemas remain experimental and may
+change in later releases. Numerical microscopy requires `inklet[volume]`;
+ordinary plots and native 3D do not acquire those optional dependencies.
+See [the research preview](research-preview.md) before depending on these APIs.
 
 ## From 2.6 to 3.0
 

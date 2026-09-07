@@ -74,7 +74,7 @@ Name a series with `name=` to create a legend entry; a per-point colour array
 does not describe a single legend category. Use [category definitions](data.md)
 when filtering should preserve category colours and labels.
 
-On the development branch, top/bottom legends choose a measured number of
+In Inklet 3.1, top/bottom legends choose a measured number of
 columns to fit the plot width. Pass `columns=1` to stack explicitly, or
 `columns='auto', max_width=...` to control the available space. An entry that
 cannot fit is reported rather than clipped or reduced in type size.
@@ -116,7 +116,7 @@ derived dependency.
 `scatter(..., raster=True, dpi=300)` rasterizes just the marker layer.
 `matrix(..., raster=True)` provides a raster field; use `raster=False` for vector
 cells. These require the `images` extra. Axes and labels stay vector. Raster
-scatter uses shared marker prototypes on the development branch; see the
+scatter uses shared marker prototypes in Inklet 3.1; see the
 [rendering measurements](rendering-engine.md) for its construction cost.
 For dense vector lines, the development `simplify` option reduces geometry at
 an explicit physical tolerance; see [Dense data](dense-data.md).

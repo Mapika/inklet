@@ -1,6 +1,6 @@
 # Compatibility
 
-Inklet **3.0** supports the environments and rendering paths below.
+Inklet **3.1** supports the environments and rendering paths below.
 The matrix distinguishes installed-package checks from full integration tests.
 
 ## Test coverage
@@ -34,6 +34,7 @@ wheel in an isolated environment.
 | Raster images in PDF | Pillow, included in `render` and `images` |
 | Pass access with `value()` | Core package; no NumPy |
 | Pass arrays and `.npy` export | NumPy, included in `images` and `three` |
+| Experimental microscopy, TIFF and label tables | `volume` extra; APIs and schemas may change |
 | Additional mesh formats/repair | `three` extra |
 | `.blend` authoring/rendering | Separate Blender installation; `render` extra for figure exports |
 | Independent PDF preview | Poppler; optional with `compare_pdf=False` |
@@ -60,7 +61,7 @@ Depth-tested overlays sample the saved depth image. Glass, thin geometry,
 silhouettes and object-index masks have documented
 [precision limits](scene-paths.md#precision-and-limits). Scene masks are not
 Cryptomatte. User compositors, embedded Python execution, animation/video export
-and arbitrary simulation bindings are outside the 3.0 feature set.
+and arbitrary simulation bindings are outside the 3.1 feature set.
 
 Template creation preserves existing files on failure. Its default atomic
 no-overwrite commit requires filesystem hard-link support; explicit
@@ -74,7 +75,7 @@ Before a stable tag:
 2. Build the wheel and source archive, check metadata with Twine, and run isolated
    wheel checks against those files. Build the wheel from the source archive too.
 3. Review the rendered examples and verify `latest` docs point to the release
-   commit. Follow the [2.6 migration example](migration.md#from-26-to-30).
+   commit. Follow the [3.1 migration guidance](migration.md#from-30-to-31).
 4. Freeze the release files with `SHA256SUMS`, then attach those exact files to
    the release. The [publishing workflow](release-checks.md#publishing-to-pypi)
    is a separate manual step.

@@ -10,7 +10,7 @@ The chip, waveguides and fibres are an original conceptual illustration. The com
 
 ## Run the example
 
-Install the rendering extras from a development checkout. This example also requires Blender with Cycles and Freestyle. See [installation](../installation.md) for a development checkout and [showcase setup](../showcase.md#build-and-download-the-collection) for independent PDF previews.
+Install the rendering extras from the release checkout. This example also requires Blender with Cycles and Freestyle. See [installation](../installation.md) for the release checkout and [showcase setup](../showcase.md#build-and-download-the-collection) for independent PDF previews.
 
 ```sh
 python -m pip install -e '.[render,images]'

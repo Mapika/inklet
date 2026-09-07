@@ -28,7 +28,7 @@ rendered apparatus. This is a conceptual laboratory, not a construction plan.
 
 ## Build it
 
-From a development checkout with the rendering extras, Blender and Poppler
+From the release checkout with the rendering extras, Blender and Poppler
 installed:
 
 ```sh

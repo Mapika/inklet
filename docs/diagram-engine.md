@@ -1,6 +1,6 @@
 # Diagram engine review
 
-The 3.1.0.dev11 development preview improves measured modules, connector-label
+Inklet 3.1 improves measured modules, connector-label
 placement and obstacle routing. Text can wrap within a module's maximum width;
 labels reserve space against one another; redundant obstacles are removed even
 in larger diagrams.
@@ -19,10 +19,10 @@ The recipe checks diagnostics and rejects errors and warnings.
 
 ## Reproduce it
 
-These changes are on the development branch. Stable PyPI remains 3.0.
+These changes are included in Inklet 3.1. Check out `v3.1.0` to reproduce this recipe.
 
 ```bash
-git clone https://github.com/Mapika/inklet.git
+git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/diagram_review.py

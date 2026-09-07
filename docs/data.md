@@ -110,7 +110,7 @@ See [CLI reference](cli.md) for watch scope and file handling.
 
 ## Typed CSV input
 
-The development branch adds `read_csv`. It returns the same live `Dataset` used
+Inklet 3.1 adds `read_csv`. It returns the same live `Dataset` used
 above and needs no pandas or NumPy dependency. This example creates a small local
 file so the complete workflow can be run as written:
 

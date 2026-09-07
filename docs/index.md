@@ -46,9 +46,9 @@ scripts. Start with the small examples before running the
 
 ## Existing users and contributors
 
-The guides describe Inklet 3.0, including [presets and physical formats](presets.md).
+The guides describe Inklet 3.1, including [presets and physical formats](presets.md).
 The direct drawing API is still supported.
-[Migration](migration.md) covers upgrading from 2.6, the old package name and
+[Migration](migration.md) covers upgrading from 3.0 or 2.6, the old package name and
 moving to live documents. [V2](v2.md) and [v2.5](v2.5.md) document their respective additions.
 
 For development, see [contributing](../CONTRIBUTING.md),

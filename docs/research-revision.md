@@ -1,8 +1,8 @@
 # Controlling label movement during revision
 
 The third research preview adds physical movement costs and hard movement limits
-to the experimental figure planner. It is available in the development checkout,
-not the stable 3.0 PyPI package.
+to the experimental figure planner. It ships in Inklet 3.1 under `inklet.experimental`;
+its signatures and report schemas remain experimental.
 
 ![Four layouts comparing prior author slots, free revision, movement cost and a hard limit](../gallery/research-revision.png)
 

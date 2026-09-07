@@ -1,6 +1,6 @@
 # Plot rendering review
 
-The 3.1.0.dev12 development preview adds optional vector-line reduction with a
+Inklet 3.1 adds optional vector-line reduction with a
 physical error tolerance and measures explicit axis typography before layout.
 It also lets gridlines use the same tick-selection options as their axes.
 
@@ -15,10 +15,10 @@ explanation in a separate caption. It does not infer statistical quantities.
 
 ## Reproduce the figure
 
-These features are on the development branch; stable PyPI remains 3.0.
+These features are included in Inklet 3.1. Check out `v3.1.0` to reproduce this recipe.
 
 ```bash
-git clone https://github.com/Mapika/inklet.git
+git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/plot_engine_review.py

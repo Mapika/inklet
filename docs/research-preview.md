@@ -1,9 +1,10 @@
 # Research preview: planning a complete figure
 
-This is an experimental API on the development branch, after Inklet 3.0.
+Inklet 3.1 includes this opt-in API under `inklet.experimental`.
 It selects authored scene views and measured label positions together, preserves
 explicit author decisions during revision, and records why a request cannot fit.
-It is not part of the stable 3.0 PyPI package. Signatures and report formats may change.
+It remains a research preview. Signatures and report formats may change;
+inclusion in a stable package does not make these APIs stable.
 
 ![Original and revised laboratory figures planned from four camera candidates](../gallery/research-figure-planner.png)
 
@@ -30,10 +31,11 @@ SVG/PDF export keeps the annotations as vectors.
 
 ## Try it
 
-Install the development checkout in a separate environment:
+The API is available with `pip install "inklet[render]==3.1.0"`. To run the
+repository example, install the release checkout in a separate environment:
 
 ```sh
-git clone https://github.com/Mapika/inklet.git
+git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m venv .venv
 source .venv/bin/activate

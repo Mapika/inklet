@@ -1,9 +1,9 @@
 # Importing microscopy TIFF files
 
 `inklet.experimental.tiff.read_tiff` reads local scalar microscopy channels into
-immutable, calibrated `Volume` objects. Install the development branch's
+immutable, calibrated `Volume` objects. Install Inklet 3.1’s
 [volume extra](calibrated-volumes.md), which includes `tifffile`. This is a
-research API, outside stable 3.0.
+research API; signatures and report schemas may change.
 
 ```python
 from inklet.experimental.tiff import read_tiff

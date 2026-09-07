@@ -1,148 +1,71 @@
 # Changelog
 
-## 3.1.0.dev12 — development preview (unreleased)
+## 3.1.0 — 2026-09-07
 
-- Add opt-in vector-line simplification at a physical tolerance after scale
-  mapping. Preserve endpoints and global extrema, record reduction counts, and
-  bound work on difficult paths by retaining additional vertices.
-- Measure axis font overrides before tick selection and layout; add independent
-  tick and axis-label sizes, including colorbars. Match custom axis thinning with
-  `grid(x_options=..., y_options=...)`.
-- Restructure documentation around plotting, whole figures, diagrams and 3D.
-  Keep research studies and project history in separate sections, retain existing
-  page URLs, and add plot-selection, axes and dense-data guides.
-- Version internal documentation links so cached page HTML cannot mix navigation
-  layouts after a deployment. Add 65 previews rendered directly from guide and
-  cookbook snippets, plus linked example figures throughout the practical guides.
-- Add section-filtered search with page context, a four-panel rendering review,
-  axis comparisons and fresh-process line benchmarks.
+Improved plotting, rendering speed, diagram layout and illustrated documentation.
+Existing 3.0 authoring APIs remain supported. Default axis rules are lighter and
+legend layout is more compact, so existing figures can change visually.
 
-## 3.1.0.dev11 — development preview (unreleased)
+### Plots and data
 
-- Reserve connector-label plates during placement and reconsider labels against
-  later shafts and relocated loops. Try additional local clearance when closely
-  spaced channels leave no room directly beside a line.
-- Add `module(..., max_width=...)` for measured text wrapping. Include label
-  offsets in module dimensions; fail clearly when content cannot fit its limits.
-- Prune contained routing obstacles with a spatial sweep, including diagrams
-  above the previous 200-obstacle cutoff. Preserve deterministic duplicate ties.
-- Add an architecture review, before/after label specimens and reproducible
-  dense-graph benchmarks, with external captions and CI checks.
+- Add typed CSV input with source hashes, exact integer identifiers and explicit
+  errors for malformed rows, ambiguous headers and invalid numeric values.
+- Measure axis font overrides before tick selection and layout. Add separate
+  tick/axis-label sizes, including colorbars, and matching grid tick options.
+- Fit top/bottom legends to measured space without shrinking labels. Preserve
+  explicit axis, legend-font and column overrides.
+- Add opt-in vector-line simplification after scale mapping with a physical
+  tolerance. Preserve endpoints and global extrema, record reduction counts,
+  and retain additional vertices when difficult paths reach the work limit.
+  Exact vector geometry remains the default.
 
-## 3.1.0.dev10 — development preview (unreleased)
+### Rendering and layout
 
-- Render dense raster scatter directly from shared marker prototypes, preserving
-  input order, opacity, clipping, physical marker sizes and vector axes.
-- Reuse immutable styles and measured geometry; avoid rebuilding fixed component
-  factories during layout passes and page resizes. Solve ordinary grid tracks
-  directly and share plot margins without pairwise cell scans.
-- Reserve panel-letter space for fixed drawings inside nested grids. Add compass
-  cell alignment (`align='nw'`, etc.) without scaling artwork or typography.
-- Include strokes, curves and text halos in PDF transparency-group bounds so
-  compositing cannot clip ink to its narrower layout envelope.
-- Avoid repeated image encoding/hashing within an export and skip unused shaping
-  tables when embedding already-shaped PDF glyphs. Keep SVG font shaping intact.
-- Add fresh-process rendering benchmarks, a four-panel review figure and a
-  before/after PDF comparison, with external captions and reproducible recipes.
+- Render dense raster scatter from shared marker prototypes. Preserve point
+  order, opacity, clipping and physical marker sizes while keeping axes vector.
+- Reuse immutable styles, measured geometry and fixed-component factories;
+  improve grid-track allocation and shared plot-margin calculation.
+- Preserve panel-letter space in nested fixed drawings and support compass
+  alignment of artwork inside document cells without scaling typography.
+- Include strokes, curves and text halos in PDF transparency-group bounds.
+  Reuse image encoding within an export and reduce unnecessary PDF font tables.
+- Fix intermittent missing strokes in Blender 4.2 vector exports by exporting
+  a fresh drawing copy and using a single legacy bake thread.
 
-## 3.1.0.dev9 — development preview (unreleased)
+### Diagrams
 
-- Refine plot appearance with lighter default axes and top/bottom legends that
-  fit their columns to measured space without shrinking labels. Measure explicit
-  legend font sizes before layout; preserve explicit axis and column overrides.
-- Add typed local CSV input with source hashes, exact integer identifiers and
-  clear errors for malformed rows, ambiguous headers and invalid numeric values.
-- Add a six-panel general plotting example spanning machine learning, engineering
-  and business, with simulated CSV inputs, a styling comparison and external captions.
-- Rebalance the gallery and development overview across plotting, diagrams,
-  architecture and scientific applications.
+- Add measured module wrapping with `max_width`; account for label offsets and
+  fail clearly when content cannot fit its explicit bounds.
+- Reserve connector-label plates during routing and reconsider labels against
+  later shafts, plates and loops. Add clearance candidates for crowded channels.
+- Prune contained obstacles in dense diagrams with deterministic spatial checks.
 
-## 3.1.0.dev8 — research preview (unreleased)
+### Documentation and validation
 
-- Add per-label native and sampled intensity tables with explicit coverage,
-  physical region selection, exact label identities and CSV/JSON exports.
-- Add local scalar TIFF, ImageJ and single-file OME-TIFF import with explicit
-  calibration, channel identities, time selection and hashed source provenance.
-- Add a six-panel real microscopy example linking contours to intensity means,
-  within-component spread, section comparisons and native region fractions.
-  Keep manuscript prose in separate LaTeX/text captions and export panel artwork
-  without embedded titles or descriptions.
+- Organize guides around plots, whole figures, diagrams and 3D, with research
+  studies and project history in separate sections. Preserve existing page URLs.
+- Add plot-selection, axes and dense-data guides, section-filtered search and
+  versioned page links to avoid mixed cached navigation after deployments.
+- Add 65 previews generated from guide/cookbook snippets, everyday CSV plots,
+  rendering and diagram comparisons, and reproducible performance reports.
+- Extend installed-wheel checks, visual regressions, mixed-content stress tests
+  and Blender 4.2/4.5 CPU coverage. Benchmark results are workload-specific;
+  see the linked reports rather than assuming every export becomes faster.
 
-## 3.1.0.dev7 — research preview (unreleased)
+### Experimental research tools
 
-- Add registered microscopy channel composites with explicit display windows,
-  weights, additive RGB clipping reports and missing-channel coverage policies.
-- Add exact vector label-pixel boundaries, preserving integer IDs, holes and
-  disconnected regions while distinguishing observed edges from coverage limits.
-- Add a nine-panel real fluorescence example using hash-locked Allen Institute
-  data, with calibrated zooms, generated-label provenance, profiles and measurements.
+The following ship under `inklet.experimental` in 3.1. They remain opt-in research
+APIs: signatures and report schemas may change independently of stable APIs.
 
-## 3.1.0.dev6 — research preview (unreleased)
-
-- Add physical slab mean, minimum and maximum intensity projections with streaming
-  reduction, per-pixel contributing counts and explicit missing-data handling.
-- Link stable box regions across oblique sections, depth-restricted projections,
-  3D outlines and source-grid measurements preserving exact integer label IDs.
-- Add a nine-panel real COSEM figure with coverage maps, ROI depth profiles,
-  numerical evidence and executable documentation.
-
-## 3.1.0.dev5 — research preview (unreleased)
-
-- Add explicit physical oblique section planes shared by microscopy, label masks
-  and saved-camera 3D annotations. Preserve anisotropic source calibration.
-- Use floating-point trilinear intensity sampling and exact nearest-neighbour
-  integer label sampling, with immutable results and separate coverage masks.
-- Add vector scale bars, world/page projection, transparent missing coverage and
-  sampled label-area measurements with recorded interpolation conventions.
-- Add a seven-panel real COSEM example with two section planes, matching masks,
-  cross-sectional area comparisons and marked intensity profiles. Keep plane
-  corners inside the rendered frame and retain source and sampling evidence.
-
-## 3.1.0.dev4 — research preview (unreleased)
-
-- Add an optional calibrated volume API for immutable ZYX arrays, physical XYZ
-  coordinates, crops, orthogonal slices, vector scale bars and label measurements.
-- Extract calibrated segmentation surfaces with explicit consent for artificial
-  boundary caps. Keep display subsampling separate from voxel-count measurements.
-- Add a six-panel real COSEM microscopy example with GPU-rendered organelles,
-  source-ID callouts, matching sections and volume charts. Record source hashes,
-  calibration, overlapping masks, boundary flags and rendering evidence.
-- Document the experimental API, executable recipe and CC BY 4.0 data attribution.
-- Fix intermittent missing strokes in Blender 4.2 SVG exports by exporting a
-  fresh copy of the baked drawing and using a single legacy bake thread.
-  Exercise export integrity under constrained CPU allocations and in CI.
-
-## 3.1.0.dev3 — research preview (unreleased)
-
-- Add optional physical label-displacement costs and hard per-label movement
-  limits during figure revision, including page and stacked-panel changes.
-- Report every objective term, prior page positions and movement constraints
-  in experimental figure-plan schema 0.3.
-- Add a controlled page-revision study and a six-panel biology example with
-  4,500 synthetic cells, shared expression data, area-scaled marker fractions,
-  distributions, annotated mean shifts and gene correlations.
-
-## 3.1.0.dev2 — research preview (unreleased)
-
-- Add author-supplied surface regions with minimum visible-sample fractions and
-  projected extents, evaluated at each candidate image size.
-- Add optional crossing penalties with bounded, deterministic label moves and
-  swaps that preserve visibility requirements and author locks. Report the
-  distinction between exact linear assignment and local crossing refinement.
-- Record label positions and physical displacement during revisions.
-- Add a reproducible four-scene, three-width study comparing point constraints,
-  region constraints and crossing-aware planning, including infeasible cases.
-
-## 3.1.0.dev1 — research preview (unreleased)
-
-- Add an opt-in experimental planner for camera subsets, measured vector labels
-  and page sizes, with explicit visibility constraints and infeasibility reports.
-- Preserve stable target identities, required views and author label-slot locks;
-  penalize changed choices when revising a previous plan.
-- Add explicit immutable length conversion for shared dimension/caption values.
-- Add a procedural laboratory comparison with independent and joint baselines,
-  a geometry/page revision, recorded failures and reproducible JSON evidence.
-
+- Plan authored camera views and measured label positions with visibility,
+  region, crossing and author-lock constraints; report infeasible requests.
+- Control physical label movement during revision using costs and hard limits.
+- Add calibrated immutable volumes, orthogonal/oblique sections, slab projections,
+  linked regions, segmentation surfaces, channel composites and label contours.
+- Add per-label intensity tables and explicit scalar TIFF/ImageJ/single-file
+  OME-TIFF import, with calibration, coverage and source provenance.
+- Include simulated and attributed real microscopy examples, measurement exports
+  and separate manuscript captions. Numerical microscopy needs the `volume` extra.
 
 ## 3.0.0 — 2026-09-07
 

@@ -35,7 +35,7 @@ a row or column share relevant furniture margins within that grid.
 
 ## Nested subfigures
 
-In the development preview, fixed artwork can align to a cell edge or corner:
+In Inklet 3.1, fixed artwork can align to a cell edge or corner:
 
 ```python
 aligned = i.document(width=100, height=60, columns=2).letters()
@@ -91,7 +91,7 @@ During natural-height measurement, `height` can be `None`. Return a measurable
 receives both keywords even if it only uses one. Ordinary `component()` calls
 keep their factory's authored dimensions.
 
-The development engine reuses a fixed factory's result across measurement
+The engine reuses a fixed factory's result across measurement
 passes and page resizes when its arguments, dependencies and theme are unchanged.
 Factories must be deterministic. Responsive factories still receive the new
 cell dimensions and rebuild when those dimensions change.

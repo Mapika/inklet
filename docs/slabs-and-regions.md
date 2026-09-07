@@ -1,9 +1,9 @@
 # Slab projections and linked regions
 
-The development branch provides `Slab` and `BoxRegion` under
-`inklet.experimental`. Install `inklet[volume]` from the development branch as
+Inklet 3.1 provides `Slab` and `BoxRegion` under
+`inklet.experimental`. Install `inklet[volume]` from PyPI as
 shown in the [calibrated-volume guide](calibrated-volumes.md). These APIs and
-report schemas are a research preview; they are not in stable 3.0.
+report schemas remain an experimental research preview.
 
 A slab samples a finite physical thickness around a [Plane](oblique-sections.md).
 A region is a box in world XYZ coordinates with an explicit selection ID. Use
