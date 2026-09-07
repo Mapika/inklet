@@ -11,7 +11,8 @@
   calibration, overlapping masks, boundary flags and rendering evidence.
 - Document the experimental API, executable recipe and CC BY 4.0 data attribution.
 - Fix intermittent missing strokes in Blender 4.2 SVG exports by exporting a
-  fresh copy of the baked drawing. Exercise legacy line-art integrity in CI.
+  fresh copy of the baked drawing and using a single legacy bake thread.
+  Exercise export integrity under constrained CPU allocations and in CI.
 
 ## 3.1.0.dev3 — research preview (unreleased)
 

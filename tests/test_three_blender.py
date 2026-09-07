@@ -16,6 +16,7 @@ parts that are asymmetric.
 from __future__ import annotations
 
 import math
+import os
 import subprocess
 import sys
 import textwrap
@@ -676,14 +677,23 @@ def test_the_bake_is_byte_identical_under_a_different_hash_seed(tmp_path):
 def test_fresh_exports_preserve_every_baked_stroke(tmp_path):
     """A dense bake must reach the SVG intact, including after scene updates."""
     exports = []
-    for _ in range(8):
-        drawing = line_art(MESHES / "brain-lh.obj", width=60.0, camera="left",
-                           cache_dir=tmp_path / "cache", refresh=True)
-        assert len(drawing.polylines) == drawing.report["strokes"]["lines"]["strokes"]
-        document = read_gpencil_svg(drawing.svg_path.read_text())
-        for layer in document.layers:
-            assert len(layer.polylines) == drawing.report["strokes"][layer.name]["strokes"]
-        exports.append(drawing.svg_path.read_bytes())
+    affinity = os.sched_getaffinity(0) if hasattr(os, 'sched_getaffinity') else None
+    try:
+        for index in range(8):
+            # Child Blender processes inherit the allocation. Exercise the
+            # constrained CPU scheduling used by CI as well as the full host.
+            if affinity and index == 4:
+                os.sched_setaffinity(0, set(sorted(affinity)[:2]))
+            drawing = line_art(MESHES / "brain-lh.obj", width=60.0, camera="left",
+                               cache_dir=tmp_path / "cache", refresh=True)
+            assert len(drawing.polylines) == drawing.report["strokes"]["lines"]["strokes"]
+            document = read_gpencil_svg(drawing.svg_path.read_text())
+            for layer in document.layers:
+                assert len(layer.polylines) == drawing.report["strokes"][layer.name]["strokes"]
+            exports.append(drawing.svg_path.read_bytes())
+    finally:
+        if affinity:
+            os.sched_setaffinity(0, affinity)
     assert all(svg == exports[0] for svg in exports[1:])
 
 

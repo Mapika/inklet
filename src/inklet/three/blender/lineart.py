@@ -62,18 +62,11 @@ ATTEMPTS = 3
 
 #: Threads to give Blender, pinned rather than left to the core count.
 #:
-#: Line Art's output depends on how many threads it ran with. The same bake of
-#: `stress/meshes/brain-lh.obj` gives three different files at one, two and
-#: four threads -- same stroke count, different order and values -- and is
-#: stable from four upwards; two other meshes agree from three upwards. Left
-#: alone, Blender takes the core count, so the same script would draw one
-#: picture on a laptop and another on a build machine, which is exactly the
-#: promise this package makes it does not do. Eight is inside the stable band
-#: with room to spare, and is where Line Art stops getting faster anyway:
-#: 278k faces took 1.6s at eight threads and 2.3s at sixteen. Oversubscribing
-#: a small machine costs little -- the same bake confined to two cores took
-#: 2.9s and produced identical bytes.
-THREADS = 8
+#: Parallel legacy stroke chaining changes stroke order and can lose a stroke
+#: when workers contend on a small CPU allocation. A single bake thread gives
+#: identical exports on both full and two-core allocations. This affects only
+#: legacy vector line art; complete-scene CPU/GPU rendering has its own settings.
+THREADS = 1
 
 #: Fraction of the camera frame left empty on each side when the framing is
 #: automatic. Only visible with `fit="frame"`; with `fit="content"` it simply
