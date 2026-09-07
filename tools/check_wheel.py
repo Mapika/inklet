@@ -28,6 +28,8 @@ region = BoxRegion('wheel-region', (-1,-1,-1), (1,1,1), 'um')
 assert len(region.edges) == 12 and len(region.intersection(plane)) == 4
 assert region.outline(plane, width=40).width >= 40
 assert slab.report()['samples'] == 5
+from inklet.experimental.channels import Channel, Composite
+from inklet.experimental.contours import LabelContour
 assert find_spec("numpy") is None
 try:
     Volume([[[1]]], (1,1,1), 'um', source_id='wheel')

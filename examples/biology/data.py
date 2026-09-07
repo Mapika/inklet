@@ -8,9 +8,9 @@ import urllib.request
 LOCK=Path(__file__).with_name('organelle.lock.json')
 
 
-def fetch(root):
+def fetch(root, *, lock_path=None):
     """Download the recorded objects atomically; never accept changed bytes."""
-    root=Path(root);record=json.loads(LOCK.read_text())
+    root=Path(root);record=json.loads((LOCK if lock_path is None else Path(lock_path)).read_text())
     def one(entry):
         path=Path(entry['path'])
         if path.is_absolute() or '..' in path.parts:raise ValueError('Invalid locked asset path')

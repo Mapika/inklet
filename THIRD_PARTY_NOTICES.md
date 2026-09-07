@@ -104,3 +104,24 @@ code's MIT license. Attribution appears in the figure and documentation. Raw
 volumes, downloaded chunks, generated mesh files and Blender scenes are not
 bundled in the repository or wheel; the recipe retrieves the recorded objects.
 Accessed 7 September 2026. No endorsement by HHMI or the authors is implied.
+
+## Real fluorescence microscopy example
+
+The `cells3d` two-channel fluorescence data were provided by the **Allen
+Institute for Cell Science** and distributed by scikit-image under **CC0**.
+
+- Pinned source and license notice:
+  https://gitlab.com/scikit-image/data/-/raw/5c090b56df3988d988ff97928e2ef2d2cbe38e1b/README.md
+- CC0 text: https://creativecommons.org/publicdomain/zero/1.0/
+- Physical calibration and downsampling:
+  https://scikit-image.org/docs/stable/auto_examples/applications/plot_3d_image_processing.html
+- TIFF object, SHA-256, axes, channel identities and calibration:
+  `examples/biology/cells3d.lock.json`
+
+`gallery/fluorescence-biology.png` is an Inklet-derived figure (MIT, Mark Marosi).
+Its processing includes calibrated resampling, explicit channel display windows,
+additive RGB compositing, slab projections, Gaussian smoothing, threshold-derived
+components, sampled label contours and quantitative summaries. The generated
+components are illustrative, without reference annotations or an accuracy claim.
+The original data remain CC0; no raw TIFF is bundled in the repository or wheel.
+Accessed 7 September 2026. No endorsement by the Allen Institute is implied.

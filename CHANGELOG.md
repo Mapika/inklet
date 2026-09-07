@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.0.dev7 — research preview (unreleased)
+
+- Add registered microscopy channel composites with explicit display windows,
+  weights, additive RGB clipping reports and missing-channel coverage policies.
+- Add exact vector label-pixel boundaries, preserving integer IDs, holes and
+  disconnected regions while distinguishing observed edges from coverage limits.
+- Add a nine-panel real fluorescence example using hash-locked Allen Institute
+  data, with calibrated zooms, generated-label provenance, profiles and measurements.
+
 ## 3.1.0.dev6 — research preview (unreleased)
 
 - Add physical slab mean, minimum and maximum intensity projections with streaming

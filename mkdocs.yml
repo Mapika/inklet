@@ -68,6 +68,7 @@ nav:
       - Calibrated microscopy volumes: calibrated-volumes.md
       - Oblique microscopy sections: oblique-sections.md
       - Slab projections and regions: slabs-and-regions.md
+      - Channels and label contours: channels-and-contours.md
   - Examples:
       - Figure gallery: examples.md
       - More example recipes: example-library.md
@@ -75,6 +76,7 @@ nav:
       - Real microscopy and organelles: real-biology.md
       - Shared oblique section planes: oblique-biology.md
       - Slabs and linked biology regions: slab-biology.md
+      - Fluorescence channels and contours: fluorescence-biology.md
       - Rebuild the showcase: showcase.md
       - Figure recipes:
           - Interference: recipes/interference.md

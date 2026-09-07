@@ -1,0 +1,41 @@
+{
+  "schema": "inklet.example-source/0.1",
+  "dataset": "scikit-image cells3d / Allen Institute for Cell Science",
+  "base_url": "https://gitlab.com/scikit-image/data/-/raw/2cdc5ce89b334d28f06a58c9f0ca21aa6992a5ba/",
+  "files": [
+    {
+      "path": "cells3d.tif",
+      "size": 11414936,
+      "sha256": "afc7c7d80d38bfde09788b4064ac1e64ec14e88454ab785ebdc8dbba5ca3b222"
+    }
+  ],
+  "axes": "ZCYX",
+  "shape": [
+    60,
+    2,
+    256,
+    256
+  ],
+  "dtype": "uint16",
+  "spacing_zyx": [
+    0.29,
+    0.26,
+    0.26
+  ],
+  "unit": "um",
+  "origin_xyz": [
+    0,
+    0,
+    0
+  ],
+  "origin_convention": "local coordinate system; first voxel centre chosen as zero, not a reported stage position",
+  "channels": [
+    "Membranes",
+    "Nuclei"
+  ],
+  "license": "CC0-1.0",
+  "license_source": "https://gitlab.com/scikit-image/data/-/raw/5c090b56df3988d988ff97928e2ef2d2cbe38e1b/README.md",
+  "calibration_source": "https://scikit-image.org/docs/stable/auto_examples/applications/plot_3d_image_processing.html",
+  "calibration_note": "Microscope ZYX spacing 0.29/0.065/0.065 um; distributed image downsampled fourfold in Y and X. Calibration comes from the documented example, not this TIFF's ImageJ header.",
+  "accessed": "2026-09-07"
+}

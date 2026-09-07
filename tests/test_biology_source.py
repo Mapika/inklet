@@ -49,3 +49,28 @@ def test_fetch_rejects_data_where_the_source_records_background(source,monkeypat
     monkeypatch.setattr(module.urllib.request,'urlopen',lambda *a,**k:io.BytesIO(payload))
     (root/'data').mkdir(parents=True);(root/'data/1').write_bytes(b'unexpected')
     with pytest.raises(ValueError,match='absent source chunk'):module.fetch(root)
+
+
+def test_fluorescence_loader_checks_tiff_axes_and_preserves_channel_calibration(tmp_path,monkeypatch):
+    import importlib
+    np=pytest.importorskip('numpy')
+    tifffile=pytest.importorskip('tifffile')
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1]/'examples'))
+    module=importlib.import_module('biology.fluorescence')
+    data_module=importlib.import_module('biology.data')
+    values=np.arange(2*2*4*5,dtype='uint16').reshape(2,2,4,5)
+    buffer=io.BytesIO();tifffile.imwrite(buffer,values,imagej=True,metadata={'axes':'ZCYX'})
+    payload=buffer.getvalue()
+    record=dict(base_url='https://example.invalid/',files=[dict(path='cells.tif',size=len(payload),
+        sha256=hashlib.sha256(payload).hexdigest())],axes='ZCYX',shape=list(values.shape),dtype='uint16',
+        channels=['Membranes','Nuclei'],spacing_zyx=[.29,.26,.26],unit='um',origin_xyz=[0,0,0])
+    lock=tmp_path/'lock.json';lock.write_text(json.dumps(record))
+    monkeypatch.setattr(module,'LOCK',lock)
+    monkeypatch.setattr(data_module.urllib.request,'urlopen',lambda *a,**k:io.BytesIO(payload))
+    volumes,_=module.load(tmp_path/'cache')
+    for index,name in enumerate(record['channels']):
+        np.testing.assert_array_equal(volumes[name].data,values[:,index])
+        assert volumes[name].spacing_zyx==(.29,.26,.26)
+        assert volumes[name].world((1,2,3))==pytest.approx((.78,.52,.29))
+    record['axes']='CZYX';lock.write_text(json.dumps(record))
+    with pytest.raises(ValueError,match='TIFF axes'):module.load(tmp_path/'cache')

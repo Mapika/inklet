@@ -1,0 +1,4879 @@
+{
+  "schema": "inklet.fluorescence-biology/0.1",
+  "inklet_version": "3.1.0.dev7",
+  "source": {
+    "schema": "inklet.example-source/0.1",
+    "dataset": "scikit-image cells3d / Allen Institute for Cell Science",
+    "base_url": "https://gitlab.com/scikit-image/data/-/raw/2cdc5ce89b334d28f06a58c9f0ca21aa6992a5ba/",
+    "files": [
+      {
+        "path": "cells3d.tif",
+        "size": 11414936,
+        "sha256": "afc7c7d80d38bfde09788b4064ac1e64ec14e88454ab785ebdc8dbba5ca3b222"
+      }
+    ],
+    "axes": "ZCYX",
+    "shape": [
+      60,
+      2,
+      256,
+      256
+    ],
+    "dtype": "uint16",
+    "spacing_zyx": [
+      0.29,
+      0.26,
+      0.26
+    ],
+    "unit": "um",
+    "origin_xyz": [
+      0,
+      0,
+      0
+    ],
+    "origin_convention": "local coordinate system; first voxel centre chosen as zero, not a reported stage position",
+    "channels": [
+      "Membranes",
+      "Nuclei"
+    ],
+    "license": "CC0-1.0",
+    "license_source": "https://gitlab.com/scikit-image/data/-/raw/5c090b56df3988d988ff97928e2ef2d2cbe38e1b/README.md",
+    "calibration_source": "https://scikit-image.org/docs/stable/auto_examples/applications/plot_3d_image_processing.html",
+    "calibration_note": "Microscope ZYX spacing 0.29/0.065/0.065 um; distributed image downsampled fourfold in Y and X. Calibration comes from the documented example, not this TIFF's ImageJ header.",
+    "accessed": "2026-09-07"
+  },
+  "evidence": {
+    "centre": {
+      "schema": "inklet.channel-composite/0.1",
+      "plane": {
+        "schema": "inklet.section-plane/0.1",
+        "centre_xyz": [
+          33.15,
+          33.15,
+          8.555
+        ],
+        "right_xyz": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "up_xyz": [
+          0.0,
+          0.984807753012208,
+          0.17364817766693033
+        ],
+        "normal_xyz": [
+          0.0,
+          -0.17364817766693033,
+          0.984807753012208
+        ],
+        "shape_yx": [
+          256,
+          256
+        ],
+        "spacing_yx": [
+          0.26,
+          0.26
+        ],
+        "unit": "um",
+        "extent": [
+          66.56,
+          66.56
+        ],
+        "corners_xyz": [
+          [
+            -0.13000000000000256,
+            65.92440202024628,
+            14.334011352755441
+          ],
+          [
+            66.43,
+            65.92440202024628,
+            14.334011352755441
+          ],
+          [
+            66.43,
+            0.3755979797537137,
+            2.7759886472445583
+          ],
+          [
+            -0.13000000000000256,
+            0.3755979797537137,
+            2.7759886472445583
+          ]
+        ],
+        "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+      },
+      "coverage": "intersection",
+      "channels": [
+        {
+          "name": "Membranes",
+          "color": "#00d5d5",
+          "window": [
+            1200.0,
+            11000.0
+          ],
+          "weight": 1.0,
+          "sampled": {
+            "schema": "inklet.sampled-section/0.1",
+            "source": {
+              "schema": "inklet.volume/0.1",
+              "source_id": "Allen Institute / cells3d / channel 0 / Membranes",
+              "shape_zyx": [
+                60,
+                256,
+                256
+              ],
+              "spacing_zyx": [
+                0.29,
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "metres_per_unit": 1e-06,
+              "origin_xyz": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "origin_convention": "centre of voxel [0,0,0]",
+              "bounds_xyz": [
+                [
+                  -0.13,
+                  -0.13,
+                  -0.145
+                ],
+                [
+                  66.43,
+                  66.43,
+                  17.255
+                ]
+              ]
+            },
+            "plane": {
+              "schema": "inklet.section-plane/0.1",
+              "centre_xyz": [
+                33.15,
+                33.15,
+                8.555
+              ],
+              "right_xyz": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "up_xyz": [
+                0.0,
+                0.984807753012208,
+                0.17364817766693033
+              ],
+              "normal_xyz": [
+                0.0,
+                -0.17364817766693033,
+                0.984807753012208
+              ],
+              "shape_yx": [
+                256,
+                256
+              ],
+              "spacing_yx": [
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "extent": [
+                66.56,
+                66.56
+              ],
+              "corners_xyz": [
+                [
+                  -0.13000000000000256,
+                  65.92440202024628,
+                  14.334011352755441
+                ],
+                [
+                  66.43,
+                  65.92440202024628,
+                  14.334011352755441
+                ],
+                [
+                  66.43,
+                  0.3755979797537137,
+                  2.7759886472445583
+                ],
+                [
+                  -0.13000000000000256,
+                  0.3755979797537137,
+                  2.7759886472445583
+                ]
+              ],
+              "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+            },
+            "kind": "intensity",
+            "interpolation": "trilinear",
+            "boundary": "edge hold inside voxel edges; invalid outside source extent",
+            "valid_pixels": 65536,
+            "total_pixels": 65536,
+            "dtype": "float64"
+          },
+          "valid_pixels": 65536,
+          "below_window": 8470,
+          "above_window": 661
+        },
+        {
+          "name": "Nuclei",
+          "color": "#f25cce",
+          "window": [
+            3500.0,
+            22000.0
+          ],
+          "weight": 1.0,
+          "sampled": {
+            "schema": "inklet.sampled-section/0.1",
+            "source": {
+              "schema": "inklet.volume/0.1",
+              "source_id": "Allen Institute / cells3d / channel 1 / Nuclei",
+              "shape_zyx": [
+                60,
+                256,
+                256
+              ],
+              "spacing_zyx": [
+                0.29,
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "metres_per_unit": 1e-06,
+              "origin_xyz": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "origin_convention": "centre of voxel [0,0,0]",
+              "bounds_xyz": [
+                [
+                  -0.13,
+                  -0.13,
+                  -0.145
+                ],
+                [
+                  66.43,
+                  66.43,
+                  17.255
+                ]
+              ]
+            },
+            "plane": {
+              "schema": "inklet.section-plane/0.1",
+              "centre_xyz": [
+                33.15,
+                33.15,
+                8.555
+              ],
+              "right_xyz": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "up_xyz": [
+                0.0,
+                0.984807753012208,
+                0.17364817766693033
+              ],
+              "normal_xyz": [
+                0.0,
+                -0.17364817766693033,
+                0.984807753012208
+              ],
+              "shape_yx": [
+                256,
+                256
+              ],
+              "spacing_yx": [
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "extent": [
+                66.56,
+                66.56
+              ],
+              "corners_xyz": [
+                [
+                  -0.13000000000000256,
+                  65.92440202024628,
+                  14.334011352755441
+                ],
+                [
+                  66.43,
+                  65.92440202024628,
+                  14.334011352755441
+                ],
+                [
+                  66.43,
+                  0.3755979797537137,
+                  2.7759886472445583
+                ],
+                [
+                  -0.13000000000000256,
+                  0.3755979797537137,
+                  2.7759886472445583
+                ]
+              ],
+              "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+            },
+            "kind": "intensity",
+            "interpolation": "trilinear",
+            "boundary": "edge hold inside voxel edges; invalid outside source extent",
+            "valid_pixels": 65536,
+            "total_pixels": 65536,
+            "dtype": "float64"
+          },
+          "valid_pixels": 65536,
+          "below_window": 2645,
+          "above_window": 1014
+        }
+      ],
+      "valid_pixels": 65536,
+      "total_pixels": 65536,
+      "complete_pixels": 65536,
+      "partial_pixels": 0,
+      "rgb_clipped_pixels": 272,
+      "blending": "additive display RGB after linear channel windowing; clip to [0,1]; no gamma transform"
+    },
+    "slab": {
+      "schema": "inklet.channel-composite/0.1",
+      "plane": {
+        "schema": "inklet.section-plane/0.1",
+        "centre_xyz": [
+          33.15,
+          33.15,
+          8.555
+        ],
+        "right_xyz": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "up_xyz": [
+          0.0,
+          0.984807753012208,
+          0.17364817766693033
+        ],
+        "normal_xyz": [
+          0.0,
+          -0.17364817766693033,
+          0.984807753012208
+        ],
+        "shape_yx": [
+          256,
+          256
+        ],
+        "spacing_yx": [
+          0.26,
+          0.26
+        ],
+        "unit": "um",
+        "extent": [
+          66.56,
+          66.56
+        ],
+        "corners_xyz": [
+          [
+            -0.13000000000000256,
+            65.92440202024628,
+            14.334011352755441
+          ],
+          [
+            66.43,
+            65.92440202024628,
+            14.334011352755441
+          ],
+          [
+            66.43,
+            0.3755979797537137,
+            2.7759886472445583
+          ],
+          [
+            -0.13000000000000256,
+            0.3755979797537137,
+            2.7759886472445583
+          ]
+        ],
+        "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+      },
+      "coverage": "intersection",
+      "channels": [
+        {
+          "name": "Membranes",
+          "color": "#00d5d5",
+          "window": [
+            1200.0,
+            11000.0
+          ],
+          "weight": 1.0,
+          "sampled": {
+            "schema": "inklet.slab-projection/0.1",
+            "source": {
+              "schema": "inklet.volume/0.1",
+              "source_id": "Allen Institute / cells3d / channel 0 / Membranes",
+              "shape_zyx": [
+                60,
+                256,
+                256
+              ],
+              "spacing_zyx": [
+                0.29,
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "metres_per_unit": 1e-06,
+              "origin_xyz": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "origin_convention": "centre of voxel [0,0,0]",
+              "bounds_xyz": [
+                [
+                  -0.13,
+                  -0.13,
+                  -0.145
+                ],
+                [
+                  66.43,
+                  66.43,
+                  17.255
+                ]
+              ]
+            },
+            "slab": {
+              "schema": "inklet.slab/0.1",
+              "plane": {
+                "schema": "inklet.section-plane/0.1",
+                "centre_xyz": [
+                  33.15,
+                  33.15,
+                  8.555
+                ],
+                "right_xyz": [
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                "up_xyz": [
+                  0.0,
+                  0.984807753012208,
+                  0.17364817766693033
+                ],
+                "normal_xyz": [
+                  0.0,
+                  -0.17364817766693033,
+                  0.984807753012208
+                ],
+                "shape_yx": [
+                  256,
+                  256
+                ],
+                "spacing_yx": [
+                  0.26,
+                  0.26
+                ],
+                "unit": "um",
+                "extent": [
+                  66.56,
+                  66.56
+                ],
+                "corners_xyz": [
+                  [
+                    -0.13000000000000256,
+                    65.92440202024628,
+                    14.334011352755441
+                  ],
+                  [
+                    66.43,
+                    65.92440202024628,
+                    14.334011352755441
+                  ],
+                  [
+                    66.43,
+                    0.3755979797537137,
+                    2.7759886472445583
+                  ],
+                  [
+                    -0.13000000000000256,
+                    0.3755979797537137,
+                    2.7759886472445583
+                  ]
+                ],
+                "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+              },
+              "thickness": 8.0,
+              "samples": 32,
+              "step": 0.25,
+              "sampling": "equal-width bin midpoints along plane normal",
+              "first_offset": -3.875,
+              "last_offset": 3.875
+            },
+            "reduction": "max",
+            "interpolation": "trilinear intensity",
+            "boundary": "edge hold inside source voxel edges; outside source or region excluded",
+            "normalization": "mean divides by contributing samples; no zero padding",
+            "selection": null,
+            "valid_pixels": 65536,
+            "total_pixels": 65536,
+            "complete_pixels": 55296,
+            "count_histogram": [
+              {
+                "count": 27,
+                "pixels": 512
+              },
+              {
+                "count": 28,
+                "pixels": 1024
+              },
+              {
+                "count": 29,
+                "pixels": 3072
+              },
+              {
+                "count": 30,
+                "pixels": 2560
+              },
+              {
+                "count": 31,
+                "pixels": 3072
+              },
+              {
+                "count": 32,
+                "pixels": 55296
+              }
+            ]
+          },
+          "valid_pixels": 65536,
+          "below_window": 2,
+          "above_window": 7351
+        },
+        {
+          "name": "Nuclei",
+          "color": "#f25cce",
+          "window": [
+            3500.0,
+            22000.0
+          ],
+          "weight": 1.0,
+          "sampled": {
+            "schema": "inklet.slab-projection/0.1",
+            "source": {
+              "schema": "inklet.volume/0.1",
+              "source_id": "Allen Institute / cells3d / channel 1 / Nuclei",
+              "shape_zyx": [
+                60,
+                256,
+                256
+              ],
+              "spacing_zyx": [
+                0.29,
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "metres_per_unit": 1e-06,
+              "origin_xyz": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "origin_convention": "centre of voxel [0,0,0]",
+              "bounds_xyz": [
+                [
+                  -0.13,
+                  -0.13,
+                  -0.145
+                ],
+                [
+                  66.43,
+                  66.43,
+                  17.255
+                ]
+              ]
+            },
+            "slab": {
+              "schema": "inklet.slab/0.1",
+              "plane": {
+                "schema": "inklet.section-plane/0.1",
+                "centre_xyz": [
+                  33.15,
+                  33.15,
+                  8.555
+                ],
+                "right_xyz": [
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                "up_xyz": [
+                  0.0,
+                  0.984807753012208,
+                  0.17364817766693033
+                ],
+                "normal_xyz": [
+                  0.0,
+                  -0.17364817766693033,
+                  0.984807753012208
+                ],
+                "shape_yx": [
+                  256,
+                  256
+                ],
+                "spacing_yx": [
+                  0.26,
+                  0.26
+                ],
+                "unit": "um",
+                "extent": [
+                  66.56,
+                  66.56
+                ],
+                "corners_xyz": [
+                  [
+                    -0.13000000000000256,
+                    65.92440202024628,
+                    14.334011352755441
+                  ],
+                  [
+                    66.43,
+                    65.92440202024628,
+                    14.334011352755441
+                  ],
+                  [
+                    66.43,
+                    0.3755979797537137,
+                    2.7759886472445583
+                  ],
+                  [
+                    -0.13000000000000256,
+                    0.3755979797537137,
+                    2.7759886472445583
+                  ]
+                ],
+                "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+              },
+              "thickness": 8.0,
+              "samples": 32,
+              "step": 0.25,
+              "sampling": "equal-width bin midpoints along plane normal",
+              "first_offset": -3.875,
+              "last_offset": 3.875
+            },
+            "reduction": "max",
+            "interpolation": "trilinear intensity",
+            "boundary": "edge hold inside source voxel edges; outside source or region excluded",
+            "normalization": "mean divides by contributing samples; no zero padding",
+            "selection": null,
+            "valid_pixels": 65536,
+            "total_pixels": 65536,
+            "complete_pixels": 55296,
+            "count_histogram": [
+              {
+                "count": 27,
+                "pixels": 512
+              },
+              {
+                "count": 28,
+                "pixels": 1024
+              },
+              {
+                "count": 29,
+                "pixels": 3072
+              },
+              {
+                "count": 30,
+                "pixels": 2560
+              },
+              {
+                "count": 31,
+                "pixels": 3072
+              },
+              {
+                "count": 32,
+                "pixels": 55296
+              }
+            ]
+          },
+          "valid_pixels": 65536,
+          "below_window": 0,
+          "above_window": 5901
+        }
+      ],
+      "valid_pixels": 65536,
+      "total_pixels": 65536,
+      "complete_pixels": 65536,
+      "partial_pixels": 0,
+      "rgb_clipped_pixels": 16205,
+      "blending": "additive display RGB after linear channel windowing; clip to [0,1]; no gamma transform"
+    },
+    "zoom": {
+      "schema": "inklet.channel-composite/0.1",
+      "plane": {
+        "schema": "inklet.section-plane/0.1",
+        "centre_xyz": [
+          33.15,
+          33.15,
+          8.555
+        ],
+        "right_xyz": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "up_xyz": [
+          0.0,
+          0.984807753012208,
+          0.17364817766693033
+        ],
+        "normal_xyz": [
+          0.0,
+          -0.17364817766693033,
+          0.984807753012208
+        ],
+        "shape_yx": [
+          128,
+          128
+        ],
+        "spacing_yx": [
+          0.26,
+          0.26
+        ],
+        "unit": "um",
+        "extent": [
+          33.28,
+          33.28
+        ],
+        "corners_xyz": [
+          [
+            16.509999999999998,
+            49.53720101012314,
+            11.44450567637772
+          ],
+          [
+            49.79,
+            49.53720101012314,
+            11.44450567637772
+          ],
+          [
+            49.79,
+            16.762798989876856,
+            5.665494323622279
+          ],
+          [
+            16.509999999999998,
+            16.762798989876856,
+            5.665494323622279
+          ]
+        ],
+        "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+      },
+      "coverage": "intersection",
+      "channels": [
+        {
+          "name": "Membranes",
+          "color": "#00d5d5",
+          "window": [
+            1200.0,
+            11000.0
+          ],
+          "weight": 1.0,
+          "sampled": {
+            "schema": "inklet.sampled-section/0.1",
+            "source": {
+              "schema": "inklet.volume/0.1",
+              "source_id": "Allen Institute / cells3d / channel 0 / Membranes",
+              "shape_zyx": [
+                60,
+                256,
+                256
+              ],
+              "spacing_zyx": [
+                0.29,
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "metres_per_unit": 1e-06,
+              "origin_xyz": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "origin_convention": "centre of voxel [0,0,0]",
+              "bounds_xyz": [
+                [
+                  -0.13,
+                  -0.13,
+                  -0.145
+                ],
+                [
+                  66.43,
+                  66.43,
+                  17.255
+                ]
+              ]
+            },
+            "plane": {
+              "schema": "inklet.section-plane/0.1",
+              "centre_xyz": [
+                33.15,
+                33.15,
+                8.555
+              ],
+              "right_xyz": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "up_xyz": [
+                0.0,
+                0.984807753012208,
+                0.17364817766693033
+              ],
+              "normal_xyz": [
+                0.0,
+                -0.17364817766693033,
+                0.984807753012208
+              ],
+              "shape_yx": [
+                128,
+                128
+              ],
+              "spacing_yx": [
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "extent": [
+                33.28,
+                33.28
+              ],
+              "corners_xyz": [
+                [
+                  16.509999999999998,
+                  49.53720101012314,
+                  11.44450567637772
+                ],
+                [
+                  49.79,
+                  49.53720101012314,
+                  11.44450567637772
+                ],
+                [
+                  49.79,
+                  16.762798989876856,
+                  5.665494323622279
+                ],
+                [
+                  16.509999999999998,
+                  16.762798989876856,
+                  5.665494323622279
+                ]
+              ],
+              "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+            },
+            "kind": "intensity",
+            "interpolation": "trilinear",
+            "boundary": "edge hold inside voxel edges; invalid outside source extent",
+            "valid_pixels": 16384,
+            "total_pixels": 16384,
+            "dtype": "float64"
+          },
+          "valid_pixels": 16384,
+          "below_window": 1477,
+          "above_window": 219
+        },
+        {
+          "name": "Nuclei",
+          "color": "#f25cce",
+          "window": [
+            3500.0,
+            22000.0
+          ],
+          "weight": 1.0,
+          "sampled": {
+            "schema": "inklet.sampled-section/0.1",
+            "source": {
+              "schema": "inklet.volume/0.1",
+              "source_id": "Allen Institute / cells3d / channel 1 / Nuclei",
+              "shape_zyx": [
+                60,
+                256,
+                256
+              ],
+              "spacing_zyx": [
+                0.29,
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "metres_per_unit": 1e-06,
+              "origin_xyz": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "origin_convention": "centre of voxel [0,0,0]",
+              "bounds_xyz": [
+                [
+                  -0.13,
+                  -0.13,
+                  -0.145
+                ],
+                [
+                  66.43,
+                  66.43,
+                  17.255
+                ]
+              ]
+            },
+            "plane": {
+              "schema": "inklet.section-plane/0.1",
+              "centre_xyz": [
+                33.15,
+                33.15,
+                8.555
+              ],
+              "right_xyz": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "up_xyz": [
+                0.0,
+                0.984807753012208,
+                0.17364817766693033
+              ],
+              "normal_xyz": [
+                0.0,
+                -0.17364817766693033,
+                0.984807753012208
+              ],
+              "shape_yx": [
+                128,
+                128
+              ],
+              "spacing_yx": [
+                0.26,
+                0.26
+              ],
+              "unit": "um",
+              "extent": [
+                33.28,
+                33.28
+              ],
+              "corners_xyz": [
+                [
+                  16.509999999999998,
+                  49.53720101012314,
+                  11.44450567637772
+                ],
+                [
+                  49.79,
+                  49.53720101012314,
+                  11.44450567637772
+                ],
+                [
+                  49.79,
+                  16.762798989876856,
+                  5.665494323622279
+                ],
+                [
+                  16.509999999999998,
+                  16.762798989876856,
+                  5.665494323622279
+                ]
+              ],
+              "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+            },
+            "kind": "intensity",
+            "interpolation": "trilinear",
+            "boundary": "edge hold inside voxel edges; invalid outside source extent",
+            "valid_pixels": 16384,
+            "total_pixels": 16384,
+            "dtype": "float64"
+          },
+          "valid_pixels": 16384,
+          "below_window": 833,
+          "above_window": 198
+        }
+      ],
+      "valid_pixels": 16384,
+      "total_pixels": 16384,
+      "complete_pixels": 16384,
+      "partial_pixels": 0,
+      "rgb_clipped_pixels": 124,
+      "blending": "additive display RGB after linear channel windowing; clip to [0,1]; no gamma transform"
+    },
+    "region": {
+      "schema": "inklet.box-region/0.1",
+      "selection_id": "ROI-1",
+      "lower_xyz": [
+        16.509999999999998,
+        16.762798989876856,
+        -0.145
+      ],
+      "upper_xyz": [
+        49.79,
+        49.53720101012314,
+        17.255
+      ],
+      "unit": "um",
+      "membership": "voxel or sample centres; lower inclusive, upper exclusive"
+    },
+    "segmentation": {
+      "method": "Gaussian smoothing, fixed threshold, 6-connected components, size filtering",
+      "gaussian_sigma_um": 0.5,
+      "boundary_mode": "nearest",
+      "threshold": 12000,
+      "threshold_operator": ">",
+      "minimum_volume_um3": 20,
+      "initial_components": 34,
+      "retained_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "id_convention": "SciPy scan-order IDs retained after filtering; no relabelling",
+      "validation": "Illustrative processing only; no reference segmentation or accuracy assessment",
+      "components": [
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 1,
+          "voxel_count": 30743,
+          "volume": 602.685772,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            13.933371499203071,
+            22.67226555638682,
+            11.5406190026998
+          ],
+          "touches_boundary": true
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 2,
+          "voxel_count": 36427,
+          "volume": 714.114908,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            28.80958025640322,
+            40.943786751585364,
+            9.940080983885577
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 3,
+          "voxel_count": 39691,
+          "volume": 778.102364,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            44.956391625305486,
+            52.34809906527928,
+            9.052784258396109
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 4,
+          "voxel_count": 78131,
+          "volume": 1531.680124,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            27.150055163763422,
+            59.460932792361554,
+            9.70458307202007
+          ],
+          "touches_boundary": true
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 5,
+          "voxel_count": 20848,
+          "volume": 408.704192,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            63.63093438219494,
+            57.11266404451266,
+            9.730078664620105
+          ],
+          "touches_boundary": true
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 6,
+          "voxel_count": 9000,
+          "volume": 176.436,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            31.99022666666667,
+            20.911020000000004,
+            9.23434111111111
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 7,
+          "voxel_count": 36919,
+          "volume": 723.760076,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            62.95939543324576,
+            34.17674259866194,
+            10.108658956093068
+          ],
+          "touches_boundary": true
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 8,
+          "voxel_count": 40033,
+          "volume": 784.806932,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            10.96074738340869,
+            35.82213923513102,
+            10.553673219593835
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 9,
+          "voxel_count": 22516,
+          "volume": 441.403664,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            12.926316397228637,
+            47.158752886836034,
+            9.651837804228103
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 10,
+          "voxel_count": 57814,
+          "volume": 1133.385656,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            46.59595392119556,
+            9.49471304528315,
+            10.486198152696579
+          ],
+          "touches_boundary": true
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 11,
+          "voxel_count": 4441,
+          "volume": 87.061364,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            26.578077009682506,
+            16.317473541995046,
+            9.649601441116864
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 12,
+          "voxel_count": 29071,
+          "volume": 569.907884,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            41.77281758453442,
+            25.294831275153932,
+            9.932372811392797
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 13,
+          "voxel_count": 34955,
+          "volume": 685.25782,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            49.15271177227864,
+            37.03244228293521,
+            9.912881132885136
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 14,
+          "voxel_count": 4755,
+          "volume": 93.21702,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            52.095579390115674,
+            63.99144058885384,
+            8.647854889589905
+          ],
+          "touches_boundary": true
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 15,
+          "voxel_count": 8353,
+          "volume": 163.752212,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            5.827822339279301,
+            2.2839722255477075,
+            10.057823536453967
+          ],
+          "touches_boundary": true
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 16,
+          "voxel_count": 16805,
+          "volume": 329.44522,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            20.37043141922047,
+            8.692633144897354,
+            9.796684915203807
+          ],
+          "touches_boundary": false
+        },
+        {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 17,
+          "voxel_count": 2985,
+          "volume": 58.51794,
+          "volume_unit": "um^3",
+          "centroid_xyz": [
+            7.24585594639866,
+            8.605346733668343,
+            9.881762144053601
+          ],
+          "touches_boundary": false
+        }
+      ]
+    },
+    "contours": [
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 1,
+        "observed_segments": 84,
+        "coverage_segments": 0,
+        "observed_length": 37.96,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 1,
+          "sampled_pixels": 675,
+          "area": 45.63,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          157,
+          50
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 2,
+        "observed_segments": 134,
+        "coverage_segments": 0,
+        "observed_length": 56.160000000000004,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 2,
+          "sampled_pixels": 1851,
+          "area": 125.12760000000002,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          95,
+          117
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 3,
+        "observed_segments": 94,
+        "coverage_segments": 0,
+        "observed_length": 48.36,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 3,
+          "sampled_pixels": 1046,
+          "area": 70.70960000000001,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          58,
+          167
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 4,
+        "observed_segments": 168,
+        "coverage_segments": 0,
+        "observed_length": 74.36,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 4,
+          "sampled_pixels": 1409,
+          "area": 95.2484,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          36,
+          83
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 5,
+        "observed_segments": 49,
+        "coverage_segments": 1,
+        "observed_length": 21.580000000000002,
+        "coverage_length": 8.58,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 5,
+          "sampled_pixels": 559,
+          "area": 37.7884,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          34,
+          245
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 6,
+        "observed_segments": 44,
+        "coverage_segments": 0,
+        "observed_length": 22.36,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 6,
+          "sampled_pixels": 253,
+          "area": 17.102800000000002,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent"
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 7,
+        "observed_segments": 175,
+        "coverage_segments": 3,
+        "observed_length": 80.08,
+        "coverage_length": 16.64,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 7,
+          "sampled_pixels": 1557,
+          "area": 105.2532,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          109,
+          233
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 8,
+        "observed_segments": 102,
+        "coverage_segments": 0,
+        "observed_length": 56.68,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 8,
+          "sampled_pixels": 1666,
+          "area": 112.62160000000002,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          118,
+          50
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 9,
+        "observed_segments": 204,
+        "coverage_segments": 0,
+        "observed_length": 89.96000000000001,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 9,
+          "sampled_pixels": 905,
+          "area": 61.178000000000004,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent"
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 12,
+        "observed_segments": 74,
+        "coverage_segments": 0,
+        "observed_length": 39.0,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 12,
+          "sampled_pixels": 995,
+          "area": 67.262,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          154,
+          161
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              256,
+              256
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              66.56,
+              66.56
+            ],
+            "corners_xyz": [
+              [
+                -0.13000000000000256,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                65.92440202024628,
+                14.334011352755441
+              ],
+              [
+                66.43,
+                0.3755979797537137,
+                2.7759886472445583
+              ],
+              [
+                -0.13000000000000256,
+                0.3755979797537137,
+                2.7759886472445583
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 65536,
+          "total_pixels": 65536,
+          "dtype": "uint32"
+        },
+        "label": 13,
+        "observed_segments": 186,
+        "coverage_segments": 0,
+        "observed_length": 88.4,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 13,
+          "sampled_pixels": 1888,
+          "area": 127.62880000000001,
+          "area_unit": "um^2",
+          "valid_area": 4430.2336000000005,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          107,
+          198
+        ]
+      }
+    ],
+    "zoom_contours": [
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              128,
+              128
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              33.28,
+              33.28
+            ],
+            "corners_xyz": [
+              [
+                16.509999999999998,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                16.762798989876856,
+                5.665494323622279
+              ],
+              [
+                16.509999999999998,
+                16.762798989876856,
+                5.665494323622279
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 16384,
+          "total_pixels": 16384,
+          "dtype": "uint32"
+        },
+        "label": 1,
+        "observed_segments": 9,
+        "coverage_segments": 1,
+        "observed_length": 4.16,
+        "coverage_length": 2.6,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 1,
+          "sampled_pixels": 21,
+          "area": 1.4196000000000002,
+          "area_unit": "um^2",
+          "valid_area": 1107.5584000000001,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent"
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              128,
+              128
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              33.28,
+              33.28
+            ],
+            "corners_xyz": [
+              [
+                16.509999999999998,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                16.762798989876856,
+                5.665494323622279
+              ],
+              [
+                16.509999999999998,
+                16.762798989876856,
+                5.665494323622279
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 16384,
+          "total_pixels": 16384,
+          "dtype": "uint32"
+        },
+        "label": 2,
+        "observed_segments": 134,
+        "coverage_segments": 0,
+        "observed_length": 56.160000000000004,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 2,
+          "sampled_pixels": 1851,
+          "area": 125.12760000000002,
+          "area_unit": "um^2",
+          "valid_area": 1107.5584000000001,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          31,
+          53
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              128,
+              128
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              33.28,
+              33.28
+            ],
+            "corners_xyz": [
+              [
+                16.509999999999998,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                16.762798989876856,
+                5.665494323622279
+              ],
+              [
+                16.509999999999998,
+                16.762798989876856,
+                5.665494323622279
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 16384,
+          "total_pixels": 16384,
+          "dtype": "uint32"
+        },
+        "label": 3,
+        "observed_segments": 33,
+        "coverage_segments": 1,
+        "observed_length": 15.860000000000001,
+        "coverage_length": 10.14,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 3,
+          "sampled_pixels": 261,
+          "area": 17.643600000000003,
+          "area_unit": "um^2",
+          "valid_area": 1107.5584000000001,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          4,
+          99
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              128,
+              128
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              33.28,
+              33.28
+            ],
+            "corners_xyz": [
+              [
+                16.509999999999998,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                16.762798989876856,
+                5.665494323622279
+              ],
+              [
+                16.509999999999998,
+                16.762798989876856,
+                5.665494323622279
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 16384,
+          "total_pixels": 16384,
+          "dtype": "uint32"
+        },
+        "label": 6,
+        "observed_segments": 44,
+        "coverage_segments": 0,
+        "observed_length": 22.36,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 6,
+          "sampled_pixels": 253,
+          "area": 17.102800000000002,
+          "area_unit": "um^2",
+          "valid_area": 1107.5584000000001,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          107,
+          55
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              128,
+              128
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              33.28,
+              33.28
+            ],
+            "corners_xyz": [
+              [
+                16.509999999999998,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                16.762798989876856,
+                5.665494323622279
+              ],
+              [
+                16.509999999999998,
+                16.762798989876856,
+                5.665494323622279
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 16384,
+          "total_pixels": 16384,
+          "dtype": "uint32"
+        },
+        "label": 8,
+        "observed_segments": 27,
+        "coverage_segments": 1,
+        "observed_length": 10.66,
+        "coverage_length": 5.98,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 8,
+          "sampled_pixels": 154,
+          "area": 10.410400000000001,
+          "area_unit": "um^2",
+          "valid_area": 1107.5584000000001,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          57,
+          4
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              128,
+              128
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              33.28,
+              33.28
+            ],
+            "corners_xyz": [
+              [
+                16.509999999999998,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                16.762798989876856,
+                5.665494323622279
+              ],
+              [
+                16.509999999999998,
+                16.762798989876856,
+                5.665494323622279
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 16384,
+          "total_pixels": 16384,
+          "dtype": "uint32"
+        },
+        "label": 9,
+        "observed_segments": 27,
+        "coverage_segments": 1,
+        "observed_length": 9.88,
+        "coverage_length": 5.2,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 9,
+          "sampled_pixels": 113,
+          "area": 7.638800000000001,
+          "area_unit": "um^2",
+          "valid_area": 1107.5584000000001,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent"
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              128,
+              128
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              33.28,
+              33.28
+            ],
+            "corners_xyz": [
+              [
+                16.509999999999998,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                16.762798989876856,
+                5.665494323622279
+              ],
+              [
+                16.509999999999998,
+                16.762798989876856,
+                5.665494323622279
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 16384,
+          "total_pixels": 16384,
+          "dtype": "uint32"
+        },
+        "label": 12,
+        "observed_segments": 74,
+        "coverage_segments": 0,
+        "observed_length": 39.0,
+        "coverage_length": 0,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 12,
+          "sampled_pixels": 995,
+          "area": 67.262,
+          "area_unit": "um^2",
+          "valid_area": 1107.5584000000001,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          90,
+          97
+        ]
+      },
+      {
+        "schema": "inklet.label-contour/0.1",
+        "section": {
+          "schema": "inklet.sampled-section/0.1",
+          "source": {
+            "schema": "inklet.volume/0.1",
+            "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+            "shape_zyx": [
+              60,
+              256,
+              256
+            ],
+            "spacing_zyx": [
+              0.29,
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "metres_per_unit": 1e-06,
+            "origin_xyz": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "origin_convention": "centre of voxel [0,0,0]",
+            "bounds_xyz": [
+              [
+                -0.13,
+                -0.13,
+                -0.145
+              ],
+              [
+                66.43,
+                66.43,
+                17.255
+              ]
+            ]
+          },
+          "plane": {
+            "schema": "inklet.section-plane/0.1",
+            "centre_xyz": [
+              33.15,
+              33.15,
+              8.555
+            ],
+            "right_xyz": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "up_xyz": [
+              0.0,
+              0.984807753012208,
+              0.17364817766693033
+            ],
+            "normal_xyz": [
+              0.0,
+              -0.17364817766693033,
+              0.984807753012208
+            ],
+            "shape_yx": [
+              128,
+              128
+            ],
+            "spacing_yx": [
+              0.26,
+              0.26
+            ],
+            "unit": "um",
+            "extent": [
+              33.28,
+              33.28
+            ],
+            "corners_xyz": [
+              [
+                16.509999999999998,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                49.53720101012314,
+                11.44450567637772
+              ],
+              [
+                49.79,
+                16.762798989876856,
+                5.665494323622279
+              ],
+              [
+                16.509999999999998,
+                16.762798989876856,
+                5.665494323622279
+              ]
+            ],
+            "convention": "pixel centres; rows down, columns right; zero-thickness plane"
+          },
+          "kind": "labels",
+          "interpolation": "nearest; half ties to upper index",
+          "boundary": "edge hold inside voxel edges; invalid outside source extent",
+          "valid_pixels": 16384,
+          "total_pixels": 16384,
+          "dtype": "uint32"
+        },
+        "label": 13,
+        "observed_segments": 110,
+        "coverage_segments": 2,
+        "observed_length": 52.260000000000005,
+        "coverage_length": 9.100000000000001,
+        "length_unit": "um",
+        "area": {
+          "source_id": "Allen Institute / cells3d / channel 1 / Nuclei / generated threshold components",
+          "label": 13,
+          "sampled_pixels": 1057,
+          "area": 71.45320000000001,
+          "area_unit": "um^2",
+          "valid_area": 1107.5584000000001,
+          "estimator": "nearest-label pixel-count area"
+        },
+        "estimator": "sampled pixel-edge boundary; no smoothing or diagonal interpolation",
+        "boundary": "observed: both samples valid; coverage: invalid neighbour or image extent",
+        "badge_pixel_yx": [
+          56,
+          115
+        ]
+      }
+    ],
+    "profiles": {
+      "Membranes": {
+        "row": 128,
+        "values": [
+          7589.727075557853,
+          6138.900304884579,
+          3839.6539068253533,
+          3073.649744167463,
+          2717.936459760337,
+          2483.7654536245122,
+          2475.1626368704065,
+          2464.9056398656444,
+          2465.8605638199074,
+          2335.193245188805,
+          2144.984760812213,
+          2087.881134390017,
+          2049.634103055169,
+          1980.6454078624115,
+          2019.8851342428923,
+          1868.8802004481283,
+          1871.1264011321123,
+          1770.1704429854692,
+          1641.9711488615462,
+          1494.6612054266504,
+          1588.682567233611,
+          1549.3594897895387,
+          1594.2573835927394,
+          1605.4139638807742,
+          1565.2179040865558,
+          1353.1881809724753,
+          1345.7570786802899,
+          1475.799937508055,
+          1365.3957163820878,
+          1318.4547904253968,
+          1328.1829697138028,
+          1343.4280600555492,
+          1198.1273843650479,
+          1362.9786910531807,
+          1367.9137664168916,
+          1374.562667684801,
+          1371.1983869544858,
+          1442.9324434937685,
+          1363.9411610973377,
+          1296.4086178814741,
+          1389.5455133957446,
+          1464.2288196387938,
+          1470.3501560998016,
+          1329.353818914398,
+          1374.784767766654,
+          1417.7997492039153,
+          1529.805929906952,
+          1562.4147317416182,
+          1645.80646639985,
+          1571.2054126487194,
+          1371.8697814733375,
+          1470.0661644384497,
+          1471.979950971053,
+          1554.5852929628102,
+          1666.7395965430492,
+          1593.1500207520246,
+          1444.449708822469,
+          1380.2861691776636,
+          1317.9112527252464,
+          1471.5389451188746,
+          1599.4750265480766,
+          1389.8268738902595,
+          1377.755712407021,
+          1460.6786690769509,
+          1336.9503906148627,
+          1355.9876197722315,
+          1529.017613547809,
+          1380.1557274824,
+          1399.8951598632725,
+          1437.2225440059756,
+          1500.9197775272794,
+          1528.5373039389663,
+          1540.4308903477154,
+          1745.8928256936426,
+          1742.0717883098955,
+          1935.4932596671092,
+          2069.825691147221,
+          2470.4994237159076,
+          3652.981054740956,
+          8229.808952685084,
+          8133.516929362105,
+          3749.422466725967,
+          3226.9449305913886,
+          4341.081603765964,
+          4230.263215916695,
+          2842.7334903302403,
+          2483.0388181729595,
+          2222.369310542939,
+          2266.6286856170204,
+          2151.0816229016787,
+          2278.1666089651103,
+          2233.096401401217,
+          2163.442016370137,
+          2255.34239738541,
+          2195.4565337330973,
+          2172.376597679195,
+          2149.0480201051028,
+          2408.3283284094273,
+          2237.25157392919,
+          2307.4629518300985,
+          2338.9982381998943,
+          2227.950361296043,
+          2109.1044214192443,
+          2216.979973217789,
+          2388.7561432403436,
+          2657.777886343503,
+          3257.6186345938677,
+          4632.37525206584,
+          6021.71912561477,
+          7445.2532575816,
+          6946.888194296896,
+          6245.709957938143,
+          5019.642644735485,
+          3699.7981657423165,
+          3174.0166774937775,
+          3076.685937185904,
+          2952.2326631035066,
+          2655.759038257325,
+          2571.249613309509,
+          2546.2294538488914,
+          2664.8284732616276,
+          2931.461746944661,
+          3056.716649626097,
+          3308.3218894898882,
+          3786.6041705317894,
+          3962.662550952654,
+          4478.896315080401,
+          4837.535944381978,
+          5224.874246574511,
+          4918.077585371848,
+          4456.318521937468,
+          4543.968077223406,
+          4933.57195467759,
+          4496.048154237772,
+          3505.2352859140915,
+          2977.7208498183254,
+          2908.6954324407257,
+          2878.0062054491714,
+          2848.68891688021,
+          2598.767179938059,
+          2638.184621594573,
+          2394.7200536291143,
+          2158.520141847538,
+          2188.645874153927,
+          2148.7124922946014,
+          2012.6675504772954,
+          2087.077546582427,
+          2013.5185038235238,
+          1868.8829779718094,
+          1922.8516615570293,
+          2041.1044299998823,
+          1985.9454556620208,
+          2121.6844568804786,
+          2034.8868982944398,
+          2043.3926512999512,
+          1943.0310391129037,
+          2050.030518641574,
+          2147.780515190844,
+          2493.3483390735146,
+          3361.3724957108657,
+          4503.6984910839465,
+          6938.357623705387,
+          8834.623370743688,
+          5748.078440858536,
+          3403.950967533932,
+          2776.6228317946834,
+          3071.2798032888813,
+          3971.8304947891274,
+          5224.567615120323,
+          4449.9836528444785,
+          2716.1133032476446,
+          2186.54281526928,
+          1778.1716582662484,
+          1612.8696512530614,
+          1656.3742352101262,
+          1465.9363363010912,
+          1382.743125382903,
+          1440.1084502565564,
+          1449.5243647593836,
+          1329.0844989190098,
+          1340.9474457607364,
+          1456.3422268073464,
+          1180.3904789496657,
+          1236.2035331148363,
+          1190.3261474154785,
+          1160.3398067150538,
+          853.7558941697196,
+          951.5399882554073,
+          1068.957744507581,
+          951.4133736700114,
+          1169.0703213653226,
+          1229.3528605948509,
+          1189.2639032421018,
+          1212.4698527289286,
+          1201.5493040229444,
+          1153.6769522198906,
+          1192.6096410194975,
+          1163.5047306360275,
+          1209.9072752915254,
+          1182.763980091521,
+          1225.9363606839736,
+          1234.2183406507054,
+          1179.5791731596169,
+          1194.2363621363857,
+          1291.8934003560485,
+          1414.08515610029,
+          1426.0060339039953,
+          1295.8261184688754,
+          1501.2127597983406,
+          1447.0161858623214,
+          1669.9192372458183,
+          1799.4913701067326,
+          1767.63056534156,
+          1888.6913719001823,
+          1916.3494054630883,
+          2179.5543778218207,
+          2918.3051014016846,
+          5861.429554876831,
+          4919.930580754802,
+          2417.1515398268934,
+          1833.358416672589,
+          1896.263747987975,
+          1770.248409621472,
+          1929.5081823406738,
+          1873.1111806380188,
+          1828.2019046044766,
+          1594.095802068355,
+          1579.4462449553146,
+          1557.8388067162628,
+          1617.122656731653,
+          1488.2674918991954,
+          1511.1379884936841,
+          1485.536071496713,
+          1476.4442674221175,
+          1300.0419017582615,
+          1427.7179414360378,
+          1526.4697413512965,
+          1227.374333128679,
+          1251.3746312549652,
+          1202.0754756460676,
+          1179.8355001874856,
+          1318.498960339308,
+          1462.6918528193116,
+          1293.3345090102487,
+          1314.647980064265,
+          1206.6232906503615,
+          1293.5852328291226,
+          1323.110807969386,
+          1329.840643934365,
+          1738.3798944691164,
+          1614.4851403946338,
+          1703.3956602618125,
+          2093.465159925919,
+          2833.413047756531,
+          3961.213478461289,
+          4415.117965634556
+        ],
+        "valid": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "Nuclei": {
+        "row": 128,
+        "values": [
+          3314.1026195777617,
+          3402.50838063033,
+          4311.972989580038,
+          4128.519456445355,
+          4525.630561993393,
+          4276.347794396495,
+          3819.5712651199287,
+          3950.433217267262,
+          4893.595490622829,
+          4321.270427608717,
+          4833.715573176303,
+          5917.060392456822,
+          9531.727476698128,
+          11411.442489897709,
+          14092.406798034397,
+          16776.96895965438,
+          20106.641828055133,
+          20451.168780392898,
+          14921.777375875039,
+          14081.937334523913,
+          15185.37727869688,
+          13827.4766458234,
+          16750.23563182228,
+          18209.78680230402,
+          17066.2098994543,
+          14450.00461342185,
+          16577.667936861522,
+          16850.569935822507,
+          20668.753065799392,
+          15998.825133713419,
+          17614.207585262968,
+          15524.341144278755,
+          16155.738448140713,
+          16681.06932358012,
+          18993.62943157003,
+          22042.111211396277,
+          25831.716525438755,
+          21676.407823343252,
+          18366.531957178337,
+          13910.145845302366,
+          15378.732491977436,
+          15630.515732733258,
+          16427.882701449864,
+          15586.828187876401,
+          17010.805843379334,
+          15845.85033666227,
+          14135.783834502565,
+          14548.848406632245,
+          16355.664688302306,
+          17654.636989684383,
+          16836.9102153968,
+          18316.289397390676,
+          18385.593404168012,
+          18529.57904756484,
+          20413.273685492903,
+          17631.838787072356,
+          19762.472536279787,
+          17078.892213008465,
+          16930.809098178197,
+          15403.337307459893,
+          17025.983301210577,
+          18060.927982790483,
+          23358.539130671903,
+          24099.919988013055,
+          18614.10397614067,
+          21759.36800298104,
+          25641.489285950403,
+          23779.236901277716,
+          27186.83831671638,
+          24061.712024260083,
+          18472.6017323441,
+          13787.996060157522,
+          8018.4306923597,
+          5874.767404406599,
+          5587.665495384663,
+          7181.874243374532,
+          5408.557222600979,
+          5001.8717977151055,
+          4255.971768658513,
+          4789.741207494195,
+          5071.229506673694,
+          3773.9110380011193,
+          4527.849901537536,
+          4502.294138369318,
+          3940.9261041726554,
+          4745.959194110339,
+          3424.098013870622,
+          4738.099782033532,
+          4548.131865655489,
+          4633.293474521898,
+          4316.801056722749,
+          3924.294795088222,
+          4053.229383538291,
+          4629.289457099241,
+          4280.5930462521355,
+          4251.472421562335,
+          4071.068592725126,
+          4515.34014440423,
+          3681.741276119106,
+          4702.193877898579,
+          5126.822508195001,
+          4661.8409251790945,
+          4564.164041333959,
+          3642.2452098959748,
+          4662.733584439464,
+          4480.714767808791,
+          4307.854730806727,
+          5073.337644231774,
+          3552.779721979919,
+          4066.054508005632,
+          4315.098812484644,
+          4615.976440916724,
+          4308.671425108423,
+          3745.294981930544,
+          4616.461154491333,
+          4566.512911777814,
+          3747.2338389383103,
+          4362.907543594634,
+          3795.911564004815,
+          3713.321420429942,
+          4168.9587622925765,
+          4704.608710224342,
+          5238.808653616582,
+          3635.31673598783,
+          4556.083765339542,
+          3577.728173420394,
+          4487.549069992179,
+          3891.639447528453,
+          4228.375140805776,
+          4660.613042488949,
+          4254.817852160613,
+          4778.853498029137,
+          5534.445024770203,
+          4381.125870429239,
+          3937.784731796949,
+          3767.914037011132,
+          3919.8840359931605,
+          3879.692538116617,
+          4265.294888576811,
+          4716.96769217427,
+          3902.3512878833235,
+          4793.619353389345,
+          4350.981536404969,
+          4693.105346489916,
+          4002.468909828229,
+          4187.0687175526855,
+          4546.306331269569,
+          4356.571067663176,
+          2946.4160592661,
+          3984.1694398636873,
+          4580.077374101548,
+          4503.325869541764,
+          3503.7219189131497,
+          4930.436951649719,
+          4920.473674526465,
+          3281.7027817699873,
+          4155.289457099242,
+          4665.436554149965,
+          5027.698315377951,
+          4638.231834987868,
+          3925.881155472503,
+          5355.8550804539445,
+          4882.161817907241,
+          6074.368155715424,
+          5140.422246011778,
+          5314.105169620986,
+          5560.549535598465,
+          5472.899877563464,
+          5956.883611617759,
+          7229.417479855551,
+          6166.570742103729,
+          10723.725426408735,
+          12805.403635258315,
+          15865.974222687953,
+          15755.36145046434,
+          14488.940633398157,
+          11686.232944865624,
+          12952.107537283344,
+          12641.769921918896,
+          10027.841843902333,
+          10717.045532994716,
+          12168.077359210527,
+          11812.16403292195,
+          11339.744057726653,
+          11034.161261937277,
+          10477.411384561705,
+          10186.21523764291,
+          12674.688483974161,
+          14510.183324596088,
+          15380.002391925553,
+          10874.286222110868,
+          12615.354367558772,
+          9656.949012930801,
+          9622.167671428833,
+          9493.483554796436,
+          9960.497445180874,
+          9776.953483221829,
+          11366.382881940517,
+          10491.45037279374,
+          12088.565157291881,
+          9901.808276174439,
+          10392.099346211478,
+          9571.215615375584,
+          13926.916786811367,
+          10729.626483578695,
+          11507.326800704293,
+          13206.32000710452,
+          13154.021733982943,
+          14330.065499215654,
+          15088.964467622416,
+          19626.456867358356,
+          17943.078942221473,
+          12781.407395418179,
+          10049.023016305286,
+          6649.169850822071,
+          4865.782096627462,
+          5068.260628133509,
+          5366.370459221847,
+          5239.156457529271,
+          4725.459494573163,
+          3493.002654011369,
+          4535.695815120255,
+          6739.736208666614,
+          5659.118255410785,
+          5711.583340402602,
+          8384.368610337515,
+          10799.37731257979,
+          15288.399884813964,
+          18432.68004496273,
+          17464.05851940613,
+          15092.91705101227,
+          11964.667243504378,
+          13201.920111717549,
+          14156.167917508441,
+          11884.109474034361,
+          13348.93986260349,
+          13340.719659952661,
+          11478.29244264509,
+          11562.535859001624,
+          13595.073080159254,
+          11469.41652629665,
+          11233.005154052706,
+          14963.846251312043,
+          14174.8652006499,
+          15947.644662379438,
+          14396.482924039483,
+          12596.836898102836,
+          11739.877795976001,
+          13271.097936233868,
+          17977.165328943865,
+          19576.273368608276,
+          18260.13379206477,
+          14992.964028770808,
+          10367.77120715078,
+          8089.558188470651,
+          7176.649588824682
+        ],
+        "valid": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      }
+    },
+    "profile_world_endpoints": [
+      [
+        0.0,
+        33.02197499210841,
+        8.5324257369033
+      ],
+      [
+        66.3,
+        33.02197499210841,
+        8.5324257369033
+      ]
+    ],
+    "histograms": {
+      "Membranes": {
+        "edges": [
+          0.0,
+          2048.0,
+          4096.0,
+          6144.0,
+          8192.0,
+          10240.0,
+          12288.0,
+          14336.0,
+          16384.0,
+          18432.0,
+          20480.0,
+          22528.0,
+          24576.0,
+          26624.0,
+          28672.0,
+          30720.0,
+          32768.0,
+          34816.0,
+          36864.0,
+          38912.0,
+          40960.0,
+          43008.0,
+          45056.0,
+          47104.0,
+          49152.0,
+          51200.0,
+          53248.0,
+          55296.0,
+          57344.0,
+          59392.0,
+          61440.0,
+          63488.0,
+          65536.0
+        ],
+        "counts": [
+          26219,
+          25312,
+          8461,
+          3038,
+          1589,
+          576,
+          209,
+          80,
+          35,
+          8,
+          4,
+          3,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "denominator": 65536
+      },
+      "Nuclei": {
+        "edges": [
+          0.0,
+          2048.0,
+          4096.0,
+          6144.0,
+          8192.0,
+          10240.0,
+          12288.0,
+          14336.0,
+          16384.0,
+          18432.0,
+          20480.0,
+          22528.0,
+          24576.0,
+          26624.0,
+          28672.0,
+          30720.0,
+          32768.0,
+          34816.0,
+          36864.0,
+          38912.0,
+          40960.0,
+          43008.0,
+          45056.0,
+          47104.0,
+          49152.0,
+          51200.0,
+          53248.0,
+          55296.0,
+          57344.0,
+          59392.0,
+          61440.0,
+          63488.0,
+          65536.0
+        ],
+        "counts": [
+          12,
+          9143,
+          29319,
+          9219,
+          2903,
+          3019,
+          3523,
+          3165,
+          2270,
+          1392,
+          698,
+          357,
+          150,
+          80,
+          58,
+          27,
+          46,
+          43,
+          31,
+          19,
+          18,
+          19,
+          18,
+          5,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "denominator": 65536
+      }
+    },
+    "ranked_area_labels": [
+      13,
+      2,
+      8,
+      7,
+      4,
+      3
+    ]
+  },
+  "array_archive": {
+    "file": "sampled-arrays.npz",
+    "sha256": "aa46d6a24dfc70b5d731167abcd2bceb498e746ac354d52acf80f1c12edfeabb"
+  }
+}

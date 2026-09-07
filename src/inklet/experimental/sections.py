@@ -145,6 +145,11 @@ class SampledSection:
                     valid_pixels=int(self.valid.sum()),total_pixels=int(self.valid.size),
                     dtype=str(self.data.dtype))
 
+    def contours(self, label):
+        """Exact sampled-label pixel edges, with source-coverage limits kept separate."""
+        from .contours import LabelContour
+        return LabelContour(self, label)
+
     def measure(self, label):
         """Sampled label area, not 3D volume or a native-resolution measurement."""
         np = _numpy()

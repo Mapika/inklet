@@ -30,6 +30,8 @@ the same COSEM data. [Oblique sections](https://inklet.readthedocs.io/en/latest/
 share angled sampling planes across 3D views, microscopy and label measurements.
 [Slab projections and linked regions](https://inklet.readthedocs.io/en/latest/slab-biology/)
 add thickness, coverage maps and a shared physical ROI for source measurements.
+[Fluorescence channels and vector contours](https://inklet.readthedocs.io/en/latest/fluorescence-biology/)
+combine real multichannel signals, calibrated zooms and recorded segmentation processing.
 Stable 3.0 remains available on PyPI.
 
 ## Install

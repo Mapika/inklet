@@ -1,5 +1,16 @@
 [
   {
+    "id": "fluorescence-biology",
+    "title": "Fluorescence channels and contours",
+    "category": "Plots",
+    "description": "Real multichannel microscopy, exact vector label edges, a calibrated region zoom and measurements with recorded processing.",
+    "requires": "volume + render extras",
+    "image": "gallery/fluorescence-biology.png",
+    "version": "Research preview",
+    "page": "fluorescence-biology/",
+    "featured": true
+  },
+  {
     "id": "slab-biology",
     "title": "Slabs and linked biology regions",
     "category": "3D",
