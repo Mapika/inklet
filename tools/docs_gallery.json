@@ -11,6 +11,17 @@
     "featured": true
   },
   {
+    "id": "plot-engine-review",
+    "title": "Dense lines and measured axes",
+    "category": "Plots",
+    "description": "Vector lines reduced at a physical tolerance, a peak detail, custom axis typography and a measured colorbar.",
+    "requires": "Core + render",
+    "image": "gallery/plot-engine-review.png",
+    "version": "Research preview",
+    "page": "plotting-engine/",
+    "featured": false
+  },
+  {
     "id": "engine-review",
     "title": "Rendering and nested layout",
     "category": "Layout",

@@ -69,6 +69,19 @@ _HORIZONTAL = {"bottom": 1.0, "top": -1.0}
 _VERTICAL = {"left": -1.0, "right": 1.0}
 
 
+def _font_size(value, default):
+    result = default if value is None else mm(value)
+    if isinstance(value,bool) or not math.isfinite(result) or result <= 0:
+        raise ValueError('axis font sizes must be finite positive physical lengths')
+    return result
+
+
+def _font_style(style):
+    return {key:style[key] for key in ('font_family','font_weight','font_style',
+                                      'text_fill','halo','halo_color')
+            if style.get(key) is not None}
+
+
 def text_node(content: str, size: float, kind: str, *, align: str = "center",
               features: dict | None = None, markup: bool = True,
               **style) -> Diagram:
@@ -85,6 +98,11 @@ def text_node(content: str, size: float, kind: str, *, align: str = "center",
     title, a caption -- keeps markup.
     """
     theme = active_theme()
+    if any(key in style for key in ('font_family','font_weight','font_style','font_size','halo')):
+        from .. import text
+        return text(content,size=size if style.get('font_size') is None else style['font_size'],font=style.get('font_family'),
+                    weight=style.get('font_weight'),align=align,features=features,
+                    markup=markup,kind=kind,**style)
     kwargs = dict(font=theme.font_family, size=size, align=align,
                   line_height=theme.line_height)
     if features and _TAKES_FEATURES:
@@ -117,6 +135,8 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
          tnum: bool = True, markup: bool | None = None,
          offset: bool | str | None = None,
          minor: bool | int = False, minor_size: float | str | None = None,
+         tick_font_size: float | str | None = None,
+         label_font_size: float | str | None = None,
          kind: str = AXIS_KIND, **style) -> Diagram:
     """One axis of a plot.
 
@@ -142,6 +162,10 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
 
     A negative `tick_size` puts the ticks inside the plot area, which is the
     convention in several journals.
+
+    `font_size` sets the base text and spacing size. `tick_font_size` and
+    `label_font_size` override the two text roles independently. Font family,
+    weight and italic style are measured before thinning and label placement.
 
     `thin` says whether labels that would collide may be dropped. The default
     asks the scale: continuous ticks thin, a band scale's categories do not.
@@ -194,18 +218,21 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
                  else scale.with_range(0.0, -span))
 
     theme = active_theme()
-    size = theme.font_size_small
-    reach = _TICK_OF_TYPE * theme.font_size if tick_size is None else mm(tick_size)
-    gap = _PAD_OF_TYPE * theme.font_size if tick_pad is None else mm(tick_pad)
-    name_gap = (_LABEL_PAD_OF_TYPE * theme.font_size if label_pad is None
+    base_size = _font_size(style.get('font_size'),theme.font_size)
+    size = _font_size(tick_font_size, _font_size(style.get('font_size'),theme.font_size_small))
+    name_size = _font_size(label_font_size,base_size)
+    text_style = _font_style(style)
+    reach = _TICK_OF_TYPE * base_size if tick_size is None else mm(tick_size)
+    gap = _PAD_OF_TYPE * base_size if tick_pad is None else mm(tick_pad)
+    name_gap = (_LABEL_PAD_OF_TYPE * base_size if label_pad is None
                 else mm(label_pad))
     away = _HORIZONTAL[side] if horizontal else _VERTICAL[side]
 
     values, texts, extents = _tick_set(scale, count, ticks, format, si, size,
                                        horizontal=horizontal, rotate=rotate,
-                                       tnum=tnum, markup=markup)
+                                       tnum=tnum, markup=markup,text_style=text_style)
     positions = [scale.map(v) for v in values]
-    keep = _keep(positions, extents, _CLEAR_OF_TYPE * theme.font_size,
+    keep = _keep(positions, extents, _CLEAR_OF_TYPE * base_size,
                  _thins(scale, thin))
 
     if ticks is not None and thin is None and labels and len(keep) < len(values):
@@ -231,7 +258,7 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
         pieces = minor if isinstance(minor, int) and not isinstance(minor, bool) \
             else None
         small = (_MINOR_OF_MAJOR * reach if minor_size is None else mm(minor_size))
-        clear = _MINOR_CLEAR_OF_TYPE * theme.font_size
+        clear = _MINOR_CLEAR_OF_TYPE * base_size
         for value in scale.minor_ticks(values, pieces, clear):
             at = scale.map(value)
             tip = away * small
@@ -261,13 +288,15 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
         if tail is not None:
             written.append(len(items))
             items.append(_offset_label(tail, scale, positions, extents, keep,
-                                       horizontal, away, edge, size, theme))
+                                       horizontal, away, edge, size, theme,
+                                       text_style=text_style,base_size=base_size))
     _group_slanted(items, written, rotate, positions, extents, keep,
-                   _CLEAR_OF_TYPE * theme.font_size)
+                   _CLEAR_OF_TYPE * base_size)
 
     if label is not None:
         items.append(_axis_label(label, scale, texts, keep if labels else (),
-                                 horizontal, away, edge, name_gap, theme))
+                                 horizontal, away, edge, name_gap, theme,
+                                 size=name_size,text_style=text_style))
     node = place(items, kind=kind, **style)
     breaks = axis_breaks_note(scale, horizontal=horizontal)
     if breaks is not None:
@@ -326,7 +355,7 @@ def _offset_text(scale: Scale, values: Sequence, offset) -> str | None:
 def _offset_label(text: str, scale: Scale, positions: Sequence[float],
                   extents: Sequence[float], keep: Sequence[int],
                   horizontal: bool, away: float, edge: float, size: float,
-                  theme):
+                  theme, *, text_style=None, base_size=None):
     """The shared part of the labels, set once past the last tick.
 
     On the tick labels' own line -- it is one of them, in the sense that it
@@ -338,9 +367,9 @@ def _offset_label(text: str, scale: Scale, positions: Sequence[float],
     # A tick label by kind as well as by role: it is set in the same face, at
     # the same size, on the same line, and every rule that reads a tick label
     # -- contrast, minimum type size -- should read this one too.
-    node = text_node(text, size, TICK_LABEL_KIND, markup=False)
+    node = text_node(text, size, TICK_LABEL_KIND, markup=False, **(text_style or {}))
     box = node.bbox
-    clear = _CLEAR_OF_TYPE * theme.font_size
+    clear = _CLEAR_OF_TYPE * (theme.font_size if base_size is None else base_size)
     ends = scale.range
     if horizontal:
         reach = max([max(ends)]
@@ -357,7 +386,9 @@ def tick_values(scale: Scale, count: int = 5, *, horizontal: bool = True,
                 ticks: Sequence | None = None,
                 format: Callable[[object], str] | str | None = None,
                 si: bool = False, thin: bool | None = None,
-                rotate: float = 0.0, tnum: bool = True) -> tuple:
+                rotate: float = 0.0, tnum: bool = True,
+                font_size=None, tick_font_size=None, font_family=None,
+                font_weight=None, font_style=None, markup=None) -> tuple:
     """The values an axis would actually label, thinning included.
 
     Gridlines ask this so that a rule and a tick can never disagree about where
@@ -365,12 +396,15 @@ def tick_values(scale: Scale, count: int = 5, *, horizontal: bool = True,
     mean there: both feed the collision test that decides what survives.
     """
     theme = active_theme()
+    size = _font_size(tick_font_size,_font_size(font_size,theme.font_size_small))
+    text_style = {k:v for k,v in dict(font_family=font_family,font_weight=font_weight,
+                                    font_style=font_style).items() if v is not None}
     values, _labels, extents = _tick_set(scale, count, ticks, format, si,
-                                         theme.font_size_small,
+                                         size,
                                          horizontal=horizontal, rotate=rotate,
-                                         tnum=tnum)
+                                         tnum=tnum,markup=markup,text_style=text_style)
     positions = [scale.map(v) for v in values]
-    keep = _keep(positions, extents, _CLEAR_OF_TYPE * theme.font_size,
+    keep = _keep(positions, extents, _CLEAR_OF_TYPE * _font_size(font_size,theme.font_size),
                  _thins(scale, thin))
     return tuple(values[i] for i in keep)
 
@@ -396,7 +430,7 @@ def tick_texts(scale: Scale, values: Sequence, format=None,
 
 def _tick_set(scale: Scale, count: int, ticks, format, si: bool, size: float,
               *, horizontal: bool = True, rotate: float = 0.0,
-              tnum: bool = False, markup: bool | None = None
+              tnum: bool = False, markup: bool | None = None, text_style=None
               ) -> tuple[tuple, list[Diagram], list[float]]:
     """The tick values, their labels, and how much axis each label occupies.
 
@@ -413,7 +447,7 @@ def _tick_set(scale: Scale, count: int, ticks, format, si: bool, size: float,
     reads_markup = (getattr(scale, "label_markup", False) if markup is None
                     else markup)
     nodes = [text_node(t, size, TICK_LABEL_KIND, features=features,
-                       markup=reads_markup)
+                       markup=reads_markup, **(text_style or {}))
              for t in texts]
     extents = [_extent(n.bbox, horizontal, rotate) for n in nodes]
     if rotate:
@@ -458,7 +492,8 @@ def _hangs(box, horizontal: bool, away: float, rotate: float) -> Vec2:
 
 
 def _axis_label(label, scale: Scale, labels: Sequence[Diagram], keep: Sequence[int],
-                horizontal: bool, away: float, edge: float, gap: float, theme):
+                horizontal: bool, away: float, edge: float, gap: float, theme,
+                *, size=None, text_style=None):
     """The name of the quantity, clear of the widest tick label.
 
     A vertical axis label is rotated to read bottom-to-top -- the direction
@@ -466,7 +501,8 @@ def _axis_label(label, scale: Scale, labels: Sequence[Diagram], keep: Sequence[i
     tilt their head the wrong way.
     """
     node = (label if isinstance(label, Diagram)
-            else text_node(label, theme.font_size, AXIS_LABEL_KIND))
+            else text_node(label, theme.font_size if size is None else size,
+                           AXIS_LABEL_KIND,**(text_style or {})))
     if not horizontal:
         node = node.rotated(-90.0)
     widest = max((labels[i].bbox.height if horizontal else labels[i].bbox.width)

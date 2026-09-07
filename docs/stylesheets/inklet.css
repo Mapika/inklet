@@ -1532,3 +1532,31 @@ td,th {
   margin: 0;
   background: none;
 }
+
+.search-scope {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:12px 0;
+  color:var(--muted);
+  font-size:14px;
+}
+.search-scope select {
+  max-width:100%;
+  min-width:0;
+  padding:7px 10px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  background:var(--surface);
+  color:var(--ink);
+  font:inherit;
+}
+.search-results small {
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+}
+select:focus-visible {
+  outline:3px solid #bf7134;
+  outline-offset:3px;
+}

@@ -416,7 +416,8 @@ class Panel:
 
     def line(self, points: Iterable[Sequence], *, smooth: float = 0.0,
              closed: bool = False, name: str | None = None, err=None,
-             err_style: str = "band", **style) -> "Panel":
+             err_style: str = "band", simplify: float | str | None = None,
+             **style) -> "Panel":
         """A path through data points: straight by default, curved with
         `smooth`.
 
@@ -429,7 +430,16 @@ class Panel:
         on top of its own uncertainty.
 
         `name=` remembers the series for `legend()`, band included.
+
+        `simplify=0.02` optionally reduces straight, open lines at a tolerance
+        of 0.02 mm after scale mapping. Endpoints and global x/y extrema stay;
+        raw data and uncertainty marks are unchanged. None or zero keeps every
+        point. Reduction can change dash phase and sub-tolerance details.
         """
+        from .simplify import simplify_points, tolerance_mm
+        tolerance = tolerance_mm(simplify)
+        if tolerance and (smooth != 0 or closed):
+            raise ValueError('simplify supports straight, open lines only')
         clip = _clip_flag(style)
         data = [tuple(p) for p in points]
         stroke = self._series_color(name, style.get("stroke"))
@@ -443,7 +453,12 @@ class Panel:
         if smooth > 0:
             return self.draw(draw_curve(mapped, smooth=smooth, closed=closed,
                                         **style), clip=clip)
-        return self.draw(polyline(mapped, closed=closed, **style), clip=clip)
+        reduced = simplify_points(mapped,tolerance) if tolerance else mapped
+        node = polyline(reduced, closed=closed, **style)
+        if tolerance:
+            node.note('line_simplification',dict(tolerance_mm=tolerance,
+                      input_points=len(mapped),output_points=len(reduced)))
+        return self.draw(node, clip=clip)
 
     def band(self, x: Sequence, lo, hi, *, name: str | None = None,
              color: str | None = None, **style) -> "Panel":
@@ -944,22 +959,26 @@ class Panel:
         return self._touched()
 
     def grid(self, *, x: bool = True, y: bool = True, count: int = 5,
+             x_options: dict | None = None, y_options: dict | None = None,
              **style) -> "Panel":
         """Rules at the tick positions, under the data.
 
         The values come from the same thinning the axis uses, so a gridline
         always has a tick and a label on it -- a rule with no number against it
         is furniture pretending to be information.
+
+        x_options and y_options accept tick_values options, such as ticks,
+        format, rotate and font_size, to match custom axis thinning.
         """
         box = self.area
         lines: list[Diagram] = []
         if x:
-            for value in tick_values(self.x, count, horizontal=True):
+            for value in tick_values(self.x, **({'count':count,'horizontal':True} | (x_options or {}))):
                 at = self.x.map(value)
                 lines.append(polyline(((at, box.y0), (at, box.y1)),
                                       kind=GRID_KIND, **style))
         if y:
-            for value in tick_values(self.y, count, horizontal=False):
+            for value in tick_values(self.y, **({'count':count,'horizontal':False} | (y_options or {}))):
                 at = self.y.map(value)
                 lines.append(polyline(((box.x0, at), (box.x1, at)),
                                       kind=GRID_KIND, **style))

@@ -20,16 +20,13 @@ This [twenty-panel stress test](https://inklet.readthedocs.io/en/stable/stress20
 5,580 mesh triangles and 7,200 vector events. Its data are simulated. Only the
 dense scatter and scalar field are rasterized; the other artwork remains vector.
 
-The development branch adds [everyday plots from CSV tables](https://inklet.readthedocs.io/en/latest/general-plots/),
-with typed input, lighter axes and legends that fit the available width. The
-example covers machine-learning, engineering and business data, with separate
-manuscript captions. The [rendering engine update](https://inklet.readthedocs.io/en/latest/rendering-engine/)
-improves dense scatter, repeated-image exports and nested layouts, with measured
-benchmarks and PDF quality comparisons. The [diagram engine update](https://inklet.readthedocs.io/en/latest/diagram-engine/)
-adds bounded module labels, label collision avoidance and denser obstacle routing.
-Other opt-in research work includes
-[complete figure planning](https://inklet.readthedocs.io/en/latest/research-preview/)
-and [calibrated microscopy](https://inklet.readthedocs.io/en/latest/calibrated-volumes/).
+The development branch includes [everyday plots from CSV](https://inklet.readthedocs.io/en/latest/general-plots/),
+[faster rendering and nested layouts](https://inklet.readthedocs.io/en/latest/rendering-engine/),
+[measured diagram improvements](https://inklet.readthedocs.io/en/latest/diagram-engine/)
+and [dense vector lines with axis font controls](https://inklet.readthedocs.io/en/latest/plotting-engine/).
+The restructured docs start with [choosing a plot type](https://inklet.readthedocs.io/en/latest/plot-types/),
+then cover axes, dense data, page layout and exports. Experimental figure planning
+and microscopy tools are documented under [Research preview](https://inklet.readthedocs.io/en/latest/research-preview/).
 Stable 3.0 remains available on PyPI.
 
 ## Install

@@ -72,6 +72,7 @@
 
   const dialog = document.querySelector('.search-dialog');
   const input = document.querySelector('#docs-search');
+  const section = document.querySelector('#search-section');
   const status = document.querySelector('.search-status');
   const results = document.querySelector('.search-results');
   const root = new URL(document.body.dataset.siteRoot.replace(/\/?$/, '/'), location.href);
@@ -92,7 +93,7 @@
     try {
       const index = await loadIndex();
       if (current !== sequence) return;
-      const matches = index.filter(doc => terms.every(term => doc.titleLower.includes(term) || doc.textLower.includes(term)))
+      const matches = index.filter(doc => (!section.value || doc.section === section.value) && terms.every(term => doc.titleLower.includes(term) || doc.textLower.includes(term)))
         .map(doc => ({doc, score: terms.reduce((sum, term) => sum + (doc.titleLower.includes(term) ? 10 : 0), 0)}))
         .sort((a, b) => b.score - a.score).slice(0, 12);
       status.textContent = matches.length ? `Showing ${matches.length} matching sections` : 'No results. Try a shorter term or a different spelling.';
@@ -100,6 +101,8 @@
         const url = new URL(doc.location, root);
         if (url.origin !== location.origin || !url.pathname.startsWith(root.pathname)) return;
         const link = document.createElement('a'); link.href = url.href;
+        const context = document.createElement('small');
+        context.textContent = [doc.section, doc.page_title].filter(Boolean).join(' · ');
         const title = document.createElement('strong');
         const signature = doc.title.indexOf('(');
         title.textContent = doc.title.length <= 110 ? doc.title
@@ -109,7 +112,7 @@
         const text = document.createElement('span');
         const position = Math.max(0, doc.textLower.indexOf(terms[0]) - 45);
         text.textContent = (position ? '…' : '') + doc.text.slice(position, position + 170) + (doc.text.length > position + 170 ? '…' : '');
-        link.append(title, text); results.append(link);
+        link.append(context, title, text); results.append(link);
       });
     } catch (_) {
       if (current === sequence) status.textContent = 'Search could not load. Check your connection and try typing again.';
@@ -120,8 +123,9 @@
   document.querySelector('[data-search-close]').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog && (event.clientX < dialog.getBoundingClientRect().left || event.clientX > dialog.getBoundingClientRect().right || event.clientY < dialog.getBoundingClientRect().top || event.clientY > dialog.getBoundingClientRect().bottom)) dialog.close(); });
   input.addEventListener('input', () => { ++sequence; clearTimeout(timer); timer = setTimeout(search, 120); });
+  section.addEventListener('change', search);
   document.addEventListener('keydown', event => {
-    const typing = event.target.closest('input, textarea, [contenteditable="true"]');
+    const typing = event.target.closest('input, textarea, select, [contenteditable="true"]');
     if ((event.key === '/' && !typing) || ((event.ctrlKey || event.metaKey) && event.key === 'k')) { event.preventDefault(); openSearch(); }
   });
   const headings = [...document.querySelectorAll('.prose h2[id]')];

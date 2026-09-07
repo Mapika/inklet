@@ -2,7 +2,7 @@
 layout: home
 title: Overview
 ---
-## Documentation directory
+## Find the right guide
 
 Inklet builds scientific figures from Python. A figure can contain plots,
 measured diagrams, images and native 3D artwork, with shared typography and
@@ -19,6 +19,9 @@ physical SVG/PDF dimensions.
 
 | You want to… | Read |
 |---|---|
+| Choose a mark for your data | [Plot types](plot-types.md) |
+| Set coordinate scales, tick labels and fonts | [Axes, scales and text](axes-and-scales.md) |
+| Render dense observations or vector lines | [Dense data](dense-data.md) |
 | Apply scientific, educational or branded styling | [Presets](presets.md) |
 | Arrange panels, labels and spanning rows | [Page layout](layout.md) |
 | Choose scales, draw marks and add insets | [Plotting](plotting.md) |
@@ -56,3 +59,8 @@ not the current document API.
 
 The [3.0 release](v3.md) adds complete [Blender scenes](blender-scenes.md),
 browser-free PNG export and vector gradients, hatching and blending.
+
+Research features and microscopy studies have their own navigation section.
+Start with [research preview availability](research-preview.md) before using
+those APIs. Search can be limited to a section such as Plots, Reference or
+Research preview.

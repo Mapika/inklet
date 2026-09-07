@@ -40,74 +40,85 @@ validation:
     unrecognized_links: warn
     anchors: warn
 nav:
-  - Overview: index.md
-  - Get started:
-      - Installation: installation.md
-      - First figure: quickstart.md
-      - Authoring model: concepts.md
-  - Guides:
-      - Presets: presets.md
-      - Page layout: layout.md
-      - Plotting: plotting.md
-      - Live data: data.md
-      - Diagrams: diagrams.md
-      - 3D and images: three-images.md
-      - Export and review: export-review.md
-      - Troubleshooting: troubleshooting.md
-  - Rendering:
-      - Rendering in v3: v3.md
-      - Blender scenes: blender-scenes.md
-      - GPU rendering and jobs: render-jobs.md
-      - Camera-aware vector paths: scene-paths.md
-      - Scene annotations and measurements: scene-annotations.md
-      - Reusable scene templates: scene-templates.md
-      - Complex annotated scene: complex-scene.md
-      - Research preview: research-preview.md
-      - Regions and crossings study: research-study.md
-      - Physical label movement: research-revision.md
-      - Calibrated microscopy volumes: calibrated-volumes.md
-      - Oblique microscopy sections: oblique-sections.md
-      - Slab projections and regions: slabs-and-regions.md
-      - Channels and label contours: channels-and-contours.md
-      - Per-label intensity measurements: label-measurements.md
-      - Microscopy TIFF import: microscopy-tiff.md
-  - Examples:
-      - Figure gallery: examples.md
-      - Everyday plots from CSV: general-plots.md
-      - Rendering and layout review: rendering-engine.md
-      - Diagram engine review: diagram-engine.md
-      - More example recipes: example-library.md
-      - Coordinated biology figures: biology-panels.md
-      - Real microscopy and organelles: real-biology.md
-      - Shared oblique section planes: oblique-biology.md
-      - Slabs and linked biology regions: slab-biology.md
-      - Fluorescence channels and contours: fluorescence-biology.md
-      - Microscopy intensity plots: label-intensities.md
-      - Rebuild the showcase: showcase.md
-      - Figure recipes:
-          - Interference: recipes/interference.md
-          - Deterministic chaos: recipes/attractor.md
-          - Travelling wave packets: recipes/wave-packets.md
-          - Integrated photonics: recipes/photonics.md
-          - Designed porosity: recipes/lattice.md
-          - Paired helices: recipes/helix.md
-          - Architectural interior: recipes/architecture.md
-          - Architectural sketch: recipes/architecture-sketch.md
-      - Twenty-panel stress test: stress20.md
-      - Direct drawing cookbook: cookbook.md
-  - Reference:
-      - Python API: api.md
-      - Command line: cli.md
-      - Publication plots: publication-plots.md
-      - Diagram components: diagram-components.md
-  - Project:
-      - Logo and brand assets: brand.md
-      - Migration: migration.md
-      - Compatibility: compatibility.md
-      - Version 2: v2.md
-      - Version 2.5: v2.5.md
-      - Release checks: release-checks.md
-      - Compilation contract: design/v2.md
-      - Historical grid study: design/page_grid.md
-      - Contributing: https://github.com/Mapika/inklet/blob/master/CONTRIBUTING.md
-      - Changelog: https://github.com/Mapika/inklet/blob/master/CHANGELOG.md
+- Overview: index.md
+- Start here:
+  - Install Inklet: installation.md
+  - First figure: quickstart.md
+  - How Inklet works: concepts.md
+- Plots:
+  - Plotting overview: plotting.md
+  - Choose a plot type: plot-types.md
+  - Axes, scales and text: axes-and-scales.md
+  - Dense data: dense-data.md
+  - Live data and categories: data.md
+  - Advanced plot controls: publication-plots.md
+- Whole figures:
+  - Panel layout: layout.md
+  - Presets and styling: presets.md
+  - Review and export: export-review.md
+- Diagrams:
+  - Measured connections: diagrams.md
+  - Component library: diagram-components.md
+  - Architecture example: diagram-engine.md
+- 3D and images:
+  - Meshes and images: three-images.md
+  - Blender scenes: blender-scenes.md
+  - GPU rendering and jobs: render-jobs.md
+  - Vector paths in scenes: scene-paths.md
+  - Annotations and measurements: scene-annotations.md
+  - Scene templates: scene-templates.md
+  - Annotated scene example: complex-scene.md
+- Examples:
+  - Figure gallery: examples.md
+  - Everyday plots from CSV: general-plots.md
+  - Plot rendering review: plotting-engine.md
+  - Example directory: example-library.md
+  - Direct drawing cookbook: cookbook.md
+  - Twenty-panel figure: stress20.md
+  - Showcase recipes:
+    - Rebuild the showcase: showcase.md
+    - Interference: recipes/interference.md
+    - Deterministic chaos: recipes/attractor.md
+    - Travelling wave packets: recipes/wave-packets.md
+    - Integrated photonics: recipes/photonics.md
+    - Designed porosity: recipes/lattice.md
+    - Paired helices: recipes/helix.md
+    - Architectural interior: recipes/architecture.md
+    - Architectural sketch: recipes/architecture-sketch.md
+- Reference:
+  - Python API: api.md
+  - Command line: cli.md
+  - Troubleshooting: troubleshooting.md
+  - Compatibility: compatibility.md
+  - Migration: migration.md
+- Research preview:
+  - Overview and availability: research-preview.md
+  - Figure planning studies:
+    - Regions and crossings: research-study.md
+    - Physical label movement: research-revision.md
+  - Microscopy guides:
+    - Calibrated volumes: calibrated-volumes.md
+    - Oblique sections: oblique-sections.md
+    - Slab projections and regions: slabs-and-regions.md
+    - Channels and contours: channels-and-contours.md
+    - Per-label intensities: label-measurements.md
+    - TIFF import: microscopy-tiff.md
+  - Biology examples:
+    - Coordinated panels: biology-panels.md
+    - Real microscopy and organelles: real-biology.md
+    - Shared oblique planes: oblique-biology.md
+    - Linked slab regions: slab-biology.md
+    - Fluorescence channels: fluorescence-biology.md
+    - Microscopy intensity plots: label-intensities.md
+- Project:
+  - Contributing: https://github.com/Mapika/inklet/blob/master/CONTRIBUTING.md
+  - Changelog: https://github.com/Mapika/inklet/blob/master/CHANGELOG.md
+  - Release checks: release-checks.md
+  - Logo and brand assets: brand.md
+  - Engine measurements: rendering-engine.md
+  - Design and history:
+    - Version 3: v3.md
+    - Version 2.5: v2.5.md
+    - Version 2: v2.md
+    - Compilation contract: design/v2.md
+    - Historical grid study: design/page_grid.md

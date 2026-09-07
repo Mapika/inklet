@@ -75,6 +75,10 @@ jobs:
         run: |
           .venv/bin/python tools/benchmark_diagrams.py --repeat 1 --output out/diagram-benchmark.json
           .venv/bin/python examples/diagram_review.py --output out/diagram-review
+      - name: Dense vector lines and measured axes
+        run: |
+          .venv/bin/python tools/benchmark_lines.py --repeat 1 --output out/line-benchmark.json
+          .venv/bin/python examples/plot_engine_review.py --output out/plot-engine-review
       - name: Twenty-panel mixed-media stress test
         run: .venv/bin/python tools/stress20.py --output out/stress20
       - name: Preserve review artifacts

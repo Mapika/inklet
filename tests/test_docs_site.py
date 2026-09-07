@@ -19,9 +19,12 @@ class References(HTMLParser):
         self.references = []
         self.ids = set()
         self.gallery_filters = set()
+        self.expanded_groups = 0
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        if tag=='details' and attrs.get('class')=='nav-group' and 'open' in attrs:
+            self.expanded_groups += 1
         if tag == 'button' and attrs.get('data-filter'):
             self.gallery_filters.add(attrs['data-filter'])
         if attrs.get('id'):
@@ -89,6 +92,15 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     locations = {item['location'].split('#')[0] for item in search['docs']}
     assert {'data/','plotting/','api/','cli/','quickstart/'}.issubset(locations)
     assert {'recipes/interference/', 'recipes/architecture/', 'brand/'}.issubset(locations)
+    assert {'plot-types/','axes-and-scales/','dense-data/'}.issubset(locations)
+    assert not any(row['location']=='dense-data/#dense-data' for row in search['docs'])
+    for location,section in [('axes-and-scales/','Plots'),('api/','Reference'),
+                             ('calibrated-volumes/','Research preview')]:
+        rows=[row for row in search['docs'] if row['location'].split('#')[0]==location]
+        assert rows and all(row['section']==section and row['page_title'] for row in rows)
+    axis_page=site/'axes-and-scales/index.html'
+    assert parsed_pages[axis_page.resolve()].expanded_groups==2
+    assert 'id="search-section"' in axis_page.read_text()
     recipe = (site/'recipes/interference/index.html').read_text()
     assert 'recipe:interference' not in recipe
     assert 'interference' in recipe and 'math' in recipe

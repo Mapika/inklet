@@ -1,0 +1,59 @@
+{
+  "schema": "inklet.line-benchmark/1",
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "source_sha256": "e57600c985943190e5f06496bee183ec37a29290a551750eac54743ab227caeb",
+  "cases": [
+    {
+      "mode": "exact",
+      "runs": [
+        {
+          "version": "3.1.0.dev11",
+          "mode": "exact",
+          "compile_seconds": 1.6905565199849661,
+          "svg_seconds": 0.15206538498750888,
+          "pdf_seconds": 0.2731712870008778,
+          "total_seconds": 2.115793191973353,
+          "svg_bytes": 980481,
+          "pdf_bytes": 461067,
+          "input_points": 100001,
+          "output_points": 100001
+        },
+        {
+          "version": "3.1.0.dev11",
+          "mode": "exact",
+          "compile_seconds": 1.656848370010266,
+          "svg_seconds": 0.15743011399172246,
+          "pdf_seconds": 0.2750922859995626,
+          "total_seconds": 2.089370770001551,
+          "svg_bytes": 980481,
+          "pdf_bytes": 461067,
+          "input_points": 100001,
+          "output_points": 100001
+        },
+        {
+          "version": "3.1.0.dev11",
+          "mode": "exact",
+          "compile_seconds": 1.722732628986705,
+          "svg_seconds": 0.15580944099929184,
+          "pdf_seconds": 0.27428126099403016,
+          "total_seconds": 2.152823330980027,
+          "svg_bytes": 980481,
+          "pdf_bytes": 461067,
+          "input_points": 100001,
+          "output_points": 100001
+        }
+      ],
+      "median": {
+        "compile_seconds": 1.6905565199849661,
+        "svg_seconds": 0.15580944099929184,
+        "pdf_seconds": 0.27428126099403016,
+        "total_seconds": 2.115793191973353,
+        "svg_bytes": 980481,
+        "pdf_bytes": 461067,
+        "input_points": 100001,
+        "output_points": 100001
+      }
+    }
+  ]
+}

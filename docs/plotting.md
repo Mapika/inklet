@@ -3,6 +3,11 @@
 Use `plot_spec()` inside a live document. Its methods record the same marks and
 furniture as the direct `Panel` API; the compiler then fits the plot to its cell.
 
+Start with [Choose a plot type](plot-types.md) if you are selecting a mark.
+Use [Axes, scales and text](axes-and-scales.md) for coordinate and typography
+controls, or [Dense data](dense-data.md) for raster layers and vector reduction.
+This page covers how those pieces work together in a live plot.
+
 ## Scales and coordinates
 
 Pass numeric domains such as `x=(0, 10)`, explicit scales such as
@@ -103,8 +108,10 @@ derived dependency.
 `scatter(..., raster=True, dpi=300)` rasterizes just the marker layer.
 `matrix(..., raster=True)` provides a raster field; use `raster=False` for vector
 cells. These require the `images` extra. Axes and labels stay vector. Raster
-scatter still has a significant construction cost at high point counts; measure
-the intended workload instead of assuming raster export is faster.
+scatter uses shared marker prototypes on the development branch; see the
+[rendering measurements](rendering-engine.md) for its construction cost.
+For dense vector lines, the development `simplify` option reduces geometry at
+an explicit physical tolerance; see [Dense data](dense-data.md).
 
 For polar plots, use `i.polar(radius, r=(0, 30), zero='up', winding='cw')`, then
 its `line`, `band`, grid and axis methods, and return `build()` from a component

@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.1.0.dev12 — development preview (unreleased)
+
+- Add opt-in vector-line simplification at a physical tolerance after scale
+  mapping. Preserve endpoints and global extrema, record reduction counts, and
+  bound work on difficult paths by retaining additional vertices.
+- Measure axis font overrides before tick selection and layout; add independent
+  tick and axis-label sizes, including colorbars. Match custom axis thinning with
+  `grid(x_options=..., y_options=...)`.
+- Restructure documentation around plotting, whole figures, diagrams and 3D.
+  Keep research studies and project history in separate sections, retain existing
+  page URLs, and add plot-selection, axes and dense-data guides.
+- Add section-filtered search with page context, a four-panel rendering review,
+  axis comparisons and fresh-process line benchmarks.
+
 ## 3.1.0.dev11 — development preview (unreleased)
 
 - Reserve connector-label plates during placement and reconsider labels against

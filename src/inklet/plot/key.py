@@ -20,7 +20,7 @@ from ..core import COLUMN_SINGLE, Affine, Diagram, RectPrim, Vec2, mm
 from ..draw.coords import active_theme, as_drawn, drawn_group
 from ..draw.shapes import marker
 from ..layout import grid as grid_layout, hstack, vstack
-from .axis import SPINE_KIND, axis, text_node
+from .axis import SPINE_KIND, axis, text_node, _font_style
 from .ramp import Ramp, ramp as make_ramp
 from .scale import Scale, _declare_domain, linear
 
@@ -57,6 +57,8 @@ def colorbar(source, *, domain: tuple[float, float] = (0.0, 1.0),
              format: Callable[[object], str] | None = None,
              steps: int = BANDS, outline: bool = True,
              thin: bool | None = None,
+             tick_font_size: float | str | None = None,
+             label_font_size: float | str | None = None,
              kind: str = COLORBAR_KIND, **style) -> Diagram:
     """A continuous ramp with an axis against it.
 
@@ -97,7 +99,9 @@ def colorbar(source, *, domain: tuple[float, float] = (0.0, 1.0),
         children.append(_outline(span, depth, vertical))
     edge = (depth / 2 if side in ("right", "bottom") else -depth / 2)
     ruler = as_drawn(axis(measure, side=side, label=label, ticks=ticks,
-                          count=count, format=format, thin=thin, spine=False))
+                          count=count, format=format, thin=thin, spine=False,
+                          tick_font_size=tick_font_size,label_font_size=label_font_size,
+                          **(_font_style(style) | ({'font_size':style['font_size']} if 'font_size' in style else {}))))
     children.append(ruler.translated(edge, 0.0) if vertical
                     else ruler.translated(0.0, edge))
     node = drawn_group(children, kind, style)

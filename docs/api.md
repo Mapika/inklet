@@ -564,7 +564,7 @@ A drawing region plus the scales that map data into it.
 * `place(items, *, clip: 'bool | None' = None) -> "'Panel'"` -- `draw.place()` in data coordinates: `((x, y), diagram)` pairs, or bare diagrams that already know where they go.
 * `marks(item: 'Diagram', points: 'Iterable[Sequence]', *, name: 'str | None' = None, **style) -> "'Panel'"` -- A copy of `item` centred on every data point.
 * `matrix(values: 'Sequence[Sequence[float]]', *, ramp, scale: 'Scale | None' = None, x: 'Sequence | None' = None, y: 'Sequence | None' = None, overlap: 'float' = 0.06, missing: 'str | None' = None, raster: 'bool | str' = 'auto', **style) -> "'Panel'"` -- A 2D array of values, one coloured cell each.
-* `line(points: 'Iterable[Sequence]', *, smooth: 'float' = 0.0, closed: 'bool' = False, name: 'str | None' = None, err=None, err_style: 'str' = 'band', **style) -> "'Panel'"` -- A path through data points: straight by default, curved with `smooth`.
+* `line(points: 'Iterable[Sequence]', *, smooth: 'float' = 0.0, closed: 'bool' = False, name: 'str | None' = None, err=None, err_style: 'str' = 'band', simplify: 'float | str | None' = None, **style) -> "'Panel'"` -- A path through data points: straight by default, curved with `smooth`.
 * `band(x: 'Sequence', lo, hi, *, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'Panel'"` -- The shaded envelope between two edges over shared x.
 * `scatter(points: 'Iterable[Sequence]', *, size=None, color=None, ramp=None, scale: 'Scale | None' = None, marker: 'str' = 'circle', name: 'str | None' = None, raster: 'bool' = False, dpi: 'float' = 300, **style) -> "'Panel'"` -- Markers at data points, with size and colour that may be data too.
 * `bars(at: 'Sequence', heights, *, width: 'float' = 0.8, baseline: 'float' = 0.0, orient: 'str' = 'v', stacked: 'bool | None' = None, grouped: 'bool | None' = None, gap: 'float' = 0.12, colors=None, bar_colors=None, names: 'Sequence[str] | None' = None, **style) -> "'Panel'"` -- A rectangle per value, standing on a baseline.
@@ -585,7 +585,7 @@ A drawing region plus the scales that map data into it.
 * `over(*items: 'Diagram', clip: 'bool | None' = None) -> "'Panel'"` -- Content that paints above everything else, like an annotation.
 * `background(**style) -> "'Panel'"` -- Fill the plot area, beneath everything already in it.
 * `outline(**style) -> "'Panel'"` -- A rectangle around the area, drawn over the data.
-* `grid(*, x: 'bool' = True, y: 'bool' = True, count: 'int' = 5, **style) -> "'Panel'"` -- Rules at the tick positions, under the data.
+* `grid(*, x: 'bool' = True, y: 'bool' = True, count: 'int' = 5, x_options: 'dict | None' = None, y_options: 'dict | None' = None, **style) -> "'Panel'"` -- Rules at the tick positions, under the data.
 * `axis(side: 'str' = 'bottom', *, at=None, **kwargs) -> "'Panel'"` -- Hang an axis off one edge, built from this panel's own scale.
 * `axes(x: 'str | None' = None, y: 'str | None' = None, **kwargs) -> "'Panel'"` -- The usual pair: an x axis below and a y axis to the left, labelled.
 * `twin_y(scale=None, *, side: 'str' = 'right', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second y scale over the same area, and a handle that draws in it.
@@ -611,11 +611,11 @@ Panels side by side, their plot areas on one line.
 
 Panels stacked, their plot areas on one vertical line.
 
-#### `axis(scale: 'Scale', *, side: 'str' = 'bottom', label: 'str | Diagram | None' = None, ticks: 'Sequence | None' = None, count: 'int' = 5, format: 'Callable[[object], str] | str | None' = None, si: 'bool' = False, length: 'float | str | None' = None, tick_size: 'float | str | None' = None, tick_pad: 'float | str | None' = None, label_pad: 'float | str | None' = None, spine: 'bool' = True, thin: 'bool | None' = None, labels: 'bool' = True, rotate: 'float' = 0.0, tnum: 'bool' = True, markup: 'bool | None' = None, offset: 'bool | str | None' = None, minor: 'bool | int' = False, minor_size: 'float | str | None' = None, kind: 'str' = 'axis', **style) -> 'Diagram'`
+#### `axis(scale: 'Scale', *, side: 'str' = 'bottom', label: 'str | Diagram | None' = None, ticks: 'Sequence | None' = None, count: 'int' = 5, format: 'Callable[[object], str] | str | None' = None, si: 'bool' = False, length: 'float | str | None' = None, tick_size: 'float | str | None' = None, tick_pad: 'float | str | None' = None, label_pad: 'float | str | None' = None, spine: 'bool' = True, thin: 'bool | None' = None, labels: 'bool' = True, rotate: 'float' = 0.0, tnum: 'bool' = True, markup: 'bool | None' = None, offset: 'bool | str | None' = None, minor: 'bool | int' = False, minor_size: 'float | str | None' = None, tick_font_size: 'float | str | None' = None, label_font_size: 'float | str | None' = None, kind: 'str' = 'axis', **style) -> 'Diagram'`
 
 One axis of a plot.
 
-#### `colorbar(source, *, domain: 'tuple[float, float]' = (0.0, 1.0), scale: 'Scale | None' = None, length: 'float | str | None' = None, thickness: 'float | str | None' = None, side: 'str' = 'right', label: 'str | None' = None, ticks: 'Sequence | None' = None, count: 'int' = 5, format: 'Callable[[object], str] | None' = None, steps: 'int' = 128, outline: 'bool' = True, thin: 'bool | None' = None, kind: 'str' = 'colorbar', **style) -> 'Diagram'`
+#### `colorbar(source, *, domain: 'tuple[float, float]' = (0.0, 1.0), scale: 'Scale | None' = None, length: 'float | str | None' = None, thickness: 'float | str | None' = None, side: 'str' = 'right', label: 'str | None' = None, ticks: 'Sequence | None' = None, count: 'int' = 5, format: 'Callable[[object], str] | None' = None, steps: 'int' = 128, outline: 'bool' = True, thin: 'bool | None' = None, tick_font_size: 'float | str | None' = None, label_font_size: 'float | str | None' = None, kind: 'str' = 'colorbar', **style) -> 'Diagram'`
 
 A continuous ramp with an axis against it.
 

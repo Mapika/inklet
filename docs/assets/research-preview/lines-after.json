@@ -1,0 +1,110 @@
+{
+  "schema": "inklet.line-benchmark/1",
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "source_sha256": "5449491a937ba0f16c5d6b98742dd18677630df550d53545ddb2363464f800fc",
+  "cases": [
+    {
+      "mode": "exact",
+      "runs": [
+        {
+          "version": "3.1.0.dev12",
+          "mode": "exact",
+          "compile_seconds": 1.7114426819898654,
+          "svg_seconds": 0.16348145800293423,
+          "pdf_seconds": 0.2720436750096269,
+          "total_seconds": 2.1469678150024265,
+          "svg_bytes": 980481,
+          "pdf_bytes": 461067,
+          "input_points": 100001,
+          "output_points": 100001
+        },
+        {
+          "version": "3.1.0.dev12",
+          "mode": "exact",
+          "compile_seconds": 1.83348585900967,
+          "svg_seconds": 0.15503937099128962,
+          "pdf_seconds": 0.2706719909911044,
+          "total_seconds": 2.259197220992064,
+          "svg_bytes": 980481,
+          "pdf_bytes": 461067,
+          "input_points": 100001,
+          "output_points": 100001
+        },
+        {
+          "version": "3.1.0.dev12",
+          "mode": "exact",
+          "compile_seconds": 1.6980751320079435,
+          "svg_seconds": 0.1586642870097421,
+          "pdf_seconds": 0.27027579900459386,
+          "total_seconds": 2.1270152180222794,
+          "svg_bytes": 980481,
+          "pdf_bytes": 461067,
+          "input_points": 100001,
+          "output_points": 100001
+        }
+      ],
+      "median": {
+        "compile_seconds": 1.7114426819898654,
+        "svg_seconds": 0.1586642870097421,
+        "pdf_seconds": 0.2706719909911044,
+        "total_seconds": 2.1469678150024265,
+        "svg_bytes": 980481,
+        "pdf_bytes": 461067,
+        "input_points": 100001,
+        "output_points": 100001
+      }
+    },
+    {
+      "mode": "reduced",
+      "runs": [
+        {
+          "version": "3.1.0.dev12",
+          "mode": "reduced",
+          "compile_seconds": 1.2777908600110095,
+          "svg_seconds": 0.09362929701455869,
+          "pdf_seconds": 0.010390253009973094,
+          "total_seconds": 1.3818104100355413,
+          "svg_bytes": 27002,
+          "pdf_bytes": 6491,
+          "input_points": 100001,
+          "output_points": 347
+        },
+        {
+          "version": "3.1.0.dev12",
+          "mode": "reduced",
+          "compile_seconds": 1.2810089650156442,
+          "svg_seconds": 0.09343109899782576,
+          "pdf_seconds": 0.010755073017207906,
+          "total_seconds": 1.3851951370306779,
+          "svg_bytes": 27002,
+          "pdf_bytes": 6491,
+          "input_points": 100001,
+          "output_points": 347
+        },
+        {
+          "version": "3.1.0.dev12",
+          "mode": "reduced",
+          "compile_seconds": 1.2675239500240423,
+          "svg_seconds": 0.08499886200297624,
+          "pdf_seconds": 0.009838925005169585,
+          "total_seconds": 1.362361737032188,
+          "svg_bytes": 27002,
+          "pdf_bytes": 6491,
+          "input_points": 100001,
+          "output_points": 347
+        }
+      ],
+      "median": {
+        "compile_seconds": 1.2777908600110095,
+        "svg_seconds": 0.09343109899782576,
+        "pdf_seconds": 0.010390253009973094,
+        "total_seconds": 1.3818104100355413,
+        "svg_bytes": 27002,
+        "pdf_bytes": 6491,
+        "input_points": 100001,
+        "output_points": 347
+      }
+    }
+  ]
+}

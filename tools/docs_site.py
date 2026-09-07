@@ -101,4 +101,38 @@ def on_page_context(context, page, config, nav):
     context['docs_gallery'] = json.loads((ROOT/'tools/docs_gallery.json').read_text())
     version = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
     context['docs_version'] = version.replace('.0.dev', ' dev ')
+    headings = list(page.toc)
+    if headings and headings[0].level == 1:
+        config['extra']['search_page_heads'][page.url] = headings[0].id
     return context
+
+
+def on_nav(nav, config, files):
+    """Record generated URLs and their top-level navigation section."""
+    pages = {}
+    for page in nav.pages:
+        parent = page
+        while parent.parent is not None:
+            parent = parent.parent
+        pages[page.url] = dict(section=parent.title,page_title=page.title)
+    config['extra']['search_pages'] = pages
+    config['extra']['search_page_heads'] = {}
+    return nav
+
+
+def on_post_build(config):
+    """Attach navigation sections to the search plugin's completed index."""
+    pages = config['extra']['search_pages']
+    path = Path(config['site_dir'])/'search/search_index.json'
+    data = json.loads(path.read_text(encoding='utf-8'))
+    entries = []
+    for entry in data['docs']:
+        page,_,fragment = entry['location'].partition('#')
+        # The page entry already contains its introduction. Indexing the H1
+        # again creates two near-identical results above the useful sections.
+        if fragment and unquote(fragment) == config['extra']['search_page_heads'].get(page):
+            continue
+        entry.update(pages.get(page,{}))
+        entries.append(entry)
+    data['docs'] = entries
+    path.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
