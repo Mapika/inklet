@@ -137,6 +137,13 @@ user workflow as well as its engine change.
 
 ### First implementation increment
 
+The [browser comparison and direct interaction prototype](browser-rendering.md)
+now cover the fifth step for fixed-axis scatter. The measured
+[backend decision](design/browser-backends.md) retains SVG by default with an
+explicit hybrid option for dense points. General marks, maps, table adapters
+and the integrated reference workflows remain outstanding.
+
+
 Start phase A with a small, reviewable sequence:
 
 1. Add the three reference-project briefs and small licensed/simulated fixtures;

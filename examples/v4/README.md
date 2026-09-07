@@ -69,3 +69,26 @@ array snapshots and cached/clean plot agreement. Run `tools/benchmark_v4.py` for
 fresh-process cold/cached/data-edit/label-edit/resize/export measurements.
 The [phase A report](../../docs/v4-foundations.md) explains baseline limitations
 and the local performance budgets.
+
+## Browser renderer study
+
+`browser_scatter.py` compiles measured axes and keyed point geometry for two
+linked scatter views. Its offline HTML draws arbitrary visible/selected subsets
+with SVG, Canvas 2D or hybrid rendering. It supports direct picking, ID filtering,
+page pan/zoom, a keyboard-accessible table and saved-view JSON. It does not
+rescale data domains or implement arbitrary plot primitives.
+
+```sh
+python examples/v4/browser_scatter.py --count 3000 --output out/v4-browser
+python examples/v4/browser_scatter.py --count 3000 --state /path/to/view.json --output out/v4-restored
+```
+
+The restore command reconstructs the vector `figure.svg`; use Open saved view
+in its HTML to restore browser state. Keep the same count and source revision.
+The default example uses hybrid; `BrowserScatter.to_html()` defaults to SVG.
+No optional numerical or raster packages are needed for HTML/SVG generation.
+
+See the [guide](../../docs/browser-rendering.md) and
+[backend measurements](../../docs/design/browser-backends.md). Run
+`tests/test_browser_scatter.py` for geometry/state checks and headless browser
+regressions when Chrome or Chromium is installed.

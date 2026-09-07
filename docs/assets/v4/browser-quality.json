@@ -1,0 +1,21 @@
+{
+  "reference": "SVG screenshot",
+  "pixel_box": [
+    164,
+    313,
+    1276,
+    769
+  ],
+  "results": [
+    {
+      "backend": "canvas",
+      "changed_fraction_over_25": 0.007436813706929194,
+      "mean_max_channel_difference": 0.4906719361353023
+    },
+    {
+      "backend": "hybrid",
+      "changed_fraction_over_25": 0.0013055345197526189,
+      "mean_max_channel_difference": 0.11492450776221129
+    }
+  ]
+}

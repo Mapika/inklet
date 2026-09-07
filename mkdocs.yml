@@ -93,6 +93,7 @@ nav:
   - Migration: migration.md
 - Research preview:
   - 4.0 foundations: v4-foundations.md
+  - Browser rendering study: browser-rendering.md
   - Overview and availability: research-preview.md
   - Figure planning studies:
     - Regions and crossings: research-study.md
@@ -120,6 +121,7 @@ nav:
   - Engine measurements: rendering-engine.md
   - Design and history:
     - Proposed 4.0 engine: design/v4.md
+    - Browser backend decision: design/browser-backends.md
     - Version 3: v3.md
     - Version 2.5: v2.5.md
     - Version 2: v2.md

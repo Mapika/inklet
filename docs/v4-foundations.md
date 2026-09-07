@@ -120,11 +120,12 @@ compiler. Maps, images, meshes and browser latency need additional workloads.
 
 ## Next development gate
 
-The [engine plan](design/v4.md) still requires a measured browser-backend
-comparison using text, clipping and dense content. The current use of precompiled
-SVG does not decide between SVG, canvas or a hybrid runtime for arbitrary data.
-Next prototype mark identity and picking, compare backend fidelity and cost,
-and record the architecture decision before expanding interaction.
+The [browser rendering study](browser-rendering.md) now compares SVG, canvas
+and hybrid modes with measured text, clipping and dense scatter. It implements
+direct picking, arbitrary visible/selected subsets, page pan/zoom and portable
+view state. The [backend decision](design/browser-backends.md) is deliberately
+limited to fixed-axis circular scatter. Next generalize geometry and picking
+to other marks and connect the regional analysis workflow.
 
 The three reference projects now have small, attributed fixtures and numerical
 checks. The analyst project has the linked-plot prototype; maps/facets and the

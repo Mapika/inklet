@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add an experimental offline scatter renderer with SVG, Canvas 2D and hybrid
+  modes, clipped point picking, linked selection, filtering, page pan/zoom and
+  saved-view reconstruction in Python. Preserve measured axes and outlined
+  text, namespace live SVG IDs, and test browser geometry at pixel ratios 1/2.
+  Publish the runnable example and a bounded backend timing/fidelity study.
+
 - Start 4.0 phase A with experimental keyed tables and versioned selection
   state, explicit rebasing for changed data, three attributed reference
   fixtures and a finite offline linked-plot example with reproducible exports.

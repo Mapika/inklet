@@ -1,0 +1,200 @@
+{
+  "schema": "inklet.browser-study/0.1",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "viewport": [
+    1440,
+    1100
+  ],
+  "device_pixel_ratio": 1,
+  "stage": [
+    1112,
+    456.5
+  ],
+  "scene_digest": "8e6b50d97b33404611d906028f6ea1a07c313cc18adaaf5dbeaf187c6fc76f2e",
+  "method": "Seven warm repeats; submission CPU duration and two requestAnimationFrame callbacks (not isolated GPU time); each row appears in two views except one missing coordinate. All backends use the same Python-outlined frame. Index query timing excludes DOM events/table updates; backing bytes cover the two canvas buffers only, not process memory.",
+  "records": [
+    {
+      "rows": 100,
+      "backend": "svg",
+      "redraw": {
+        "submit_median_ms": 1.7000000178813934,
+        "settled_median_ms": 33.30000001192093
+      },
+      "selection": {
+        "submit_median_ms": 0.30000001192092896,
+        "settled_median_ms": 33.30000001192093
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.10000002384185791,
+        "mismatches": 0
+      },
+      "svg_nodes": 522,
+      "canvas_backing_bytes": 0
+    },
+    {
+      "rows": 100,
+      "backend": "canvas",
+      "redraw": {
+        "submit_median_ms": 2.699999988079071,
+        "settled_median_ms": 33.29999998211861
+      },
+      "selection": {
+        "submit_median_ms": 0.9000000059604645,
+        "settled_median_ms": 33.400000005960464
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.09999999403953552,
+        "mismatches": 0
+      },
+      "svg_nodes": 307,
+      "canvas_backing_bytes": 4065472
+    },
+    {
+      "rows": 100,
+      "backend": "hybrid",
+      "redraw": {
+        "submit_median_ms": 1.899999976158142,
+        "settled_median_ms": 33.400000005960464
+      },
+      "selection": {
+        "submit_median_ms": 0.29999998211860657,
+        "settled_median_ms": 33.30000001192093
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.09999999403953552,
+        "mismatches": 0
+      },
+      "svg_nodes": 316,
+      "canvas_backing_bytes": 4065472
+    },
+    {
+      "rows": 3000,
+      "backend": "svg",
+      "redraw": {
+        "submit_median_ms": 22,
+        "settled_median_ms": 50
+      },
+      "selection": {
+        "submit_median_ms": 0.29999998211860657,
+        "settled_median_ms": 33.19999998807907
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.09999999403953552,
+        "mismatches": 0
+      },
+      "svg_nodes": 6322,
+      "canvas_backing_bytes": 0
+    },
+    {
+      "rows": 3000,
+      "backend": "canvas",
+      "redraw": {
+        "submit_median_ms": 9.099999994039536,
+        "settled_median_ms": 33.30000001192093
+      },
+      "selection": {
+        "submit_median_ms": 1,
+        "settled_median_ms": 33.29999998211861
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.09999999403953552,
+        "mismatches": 0
+      },
+      "svg_nodes": 307,
+      "canvas_backing_bytes": 4065472
+    },
+    {
+      "rows": 3000,
+      "backend": "hybrid",
+      "redraw": {
+        "submit_median_ms": 8.200000017881393,
+        "settled_median_ms": 33.400000005960464
+      },
+      "selection": {
+        "submit_median_ms": 0.29999998211860657,
+        "settled_median_ms": 33.20000001788139
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.09999999403953552,
+        "mismatches": 0
+      },
+      "svg_nodes": 316,
+      "canvas_backing_bytes": 4065472
+    },
+    {
+      "rows": 20000,
+      "backend": "svg",
+      "redraw": {
+        "submit_median_ms": 156.09999999403954,
+        "settled_median_ms": 287.09999999403954
+      },
+      "selection": {
+        "submit_median_ms": 0.19999998807907104,
+        "settled_median_ms": 23.19999998807907
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.19999998807907104,
+        "mismatches": 0
+      },
+      "svg_nodes": 40322,
+      "canvas_backing_bytes": 0
+    },
+    {
+      "rows": 20000,
+      "backend": "canvas",
+      "redraw": {
+        "submit_median_ms": 49,
+        "settled_median_ms": 66.5
+      },
+      "selection": {
+        "submit_median_ms": 1,
+        "settled_median_ms": 33.400000005960464
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.10000002384185791,
+        "mismatches": 0
+      },
+      "svg_nodes": 307,
+      "canvas_backing_bytes": 4065472
+    },
+    {
+      "rows": 20000,
+      "backend": "hybrid",
+      "redraw": {
+        "submit_median_ms": 47.89999997615814,
+        "settled_median_ms": 49.900000005960464
+      },
+      "selection": {
+        "submit_median_ms": 0.29999998211860657,
+        "settled_median_ms": 33.5
+      },
+      "pick": {
+        "queries": 200,
+        "p50_ms": 0,
+        "p95_ms": 0.10000002384185791,
+        "mismatches": 0
+      },
+      "svg_nodes": 316,
+      "canvas_backing_bytes": 4065472
+    }
+  ],
+  "transform_error_mm": 1.0048591735576161e-14,
+  "invalid_load_preserves_state": true,
+  "external_resources": []
+}
