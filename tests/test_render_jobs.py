@@ -52,8 +52,10 @@ def test_timeout_stops_descendants_after_parent_has_exited(tmp_path):
     except (FileNotFoundError, ProcessLookupError):
         # Reaping can remove the path before open, or the process during read.
         return
-    # An orphan may briefly remain as a zombie until the system reaps it.
-    assert state=='Z'
+    # proc_pid_stat(5): Z is zombie and X is dead. Either may be observed
+    # during reaping; neither is a surviving descendant. Still reject every
+    # live state, including stopped or sleeping children.
+    assert state in {'Z', 'X'}
 
 
 def test_queue_limits_gpu_jobs_and_cancels_a_waiting_job(monkeypatch):
