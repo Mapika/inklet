@@ -19,12 +19,19 @@ legend layout is more compact, so existing figures can change visually.
   and retain additional vertices when difficult paths reach the work limit.
   Exact vector geometry remains the default.
 
+- Fix numeric NumPy scalar bar input and automatic bracket placement when
+  endpoints map in descending order.
+- Snapshot array inputs and fingerprint their complete contents so explicit
+  replacements cannot collide through truncated NumPy representations.
+
 ### Rendering and layout
 
 - Render dense raster scatter from shared marker prototypes. Preserve point
   order, opacity, clipping and physical marker sizes while keeping axes vector.
 - Reuse immutable styles, measured geometry and fixed-component factories;
   improve grid-track allocation and shared plot-margin calculation.
+- Invalidate parent document caches after edits to nested Cartesian or polar
+  panels, including external inset children and secondary-axis marks.
 - Preserve panel-letter space in nested fixed drawings and support compass
   alignment of artwork inside document cells without scaling typography.
 - Include strokes, curves and text halos in PDF transparency-group bounds.

@@ -41,6 +41,11 @@ assert not any(d.severity == 'error' for d in figure.diagnostics)
 The [plot rendering review](plotting-engine.md) shows these controls in a complete
 figure, with its source and separate manuscript caption.
 
+NumPy array inputs are now copied when recorded, so later edits to the original
+array do not change a pending recipe. Use datasets for live updates or explicitly
+replace/configure the input. Component factories receive arrays with their shape
+and dtype preserved, but must copy them before performing in-place operations.
+
 `read_csv` adds typed tables without pandas. `module(max_width=...)` wraps
 measured labels; document cell alignment supports compass positions such as
 `align='nw'`. See [live data](data.md), [diagrams](diagrams.md) and [layout](layout.md).

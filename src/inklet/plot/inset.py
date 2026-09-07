@@ -271,6 +271,7 @@ def _over_data(panel, lo: float, hi: float, side: str, gap: float) -> float:
     Anything with no data of its own to clear falls back to the edge of the
     plot area.
     """
+    lo, hi = sorted((lo, hi))
     boxes = [box for box in _drawn_boxes(panel)
              if box.x1 >= lo - _EPS and box.x0 <= hi + _EPS] \
         if side in ("n", "s") else \

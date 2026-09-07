@@ -1,7 +1,11 @@
 # Live data and provenance
 
 Use datasets and explicit references when plots must follow data edits.
-Literal lists are snapshotted when an instruction is recorded.
+Literal lists and NumPy arrays are snapshotted when an instruction is recorded.
+Array snapshots retain their shape and dtype and are read-only; component
+factories should create a working copy if they need to mutate an array. Explicit
+`replace()` and `configure()` calls compare complete array contents, including
+values omitted from NumPy’s text representation.
 
 ## A table shared by plots
 

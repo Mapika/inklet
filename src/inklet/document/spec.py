@@ -4,10 +4,14 @@ from __future__ import annotations
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 import inspect
+import hashlib
+import sys
+from copy import deepcopy
 import math
 from collections.abc import Mapping
 
 from ..core import Diagram, DiagramError, mm
+from ..plot import Panel, PolarPanel
 
 
 def length(value, name, *, zero=False):
@@ -28,8 +32,19 @@ def themed(theme):
         inklet._theme_context.reset(token)
 
 
+def _ndarray(value):
+    # An ndarray cannot exist before NumPy is loaded. Keep core imports free
+    # of optional numerical dependencies while preserving array subclasses.
+    numpy = sys.modules.get('numpy')
+    return numpy is not None and isinstance(value, getattr(numpy, 'ndarray', ()))
+
+
 def freeze(value):
-    """Snapshot ordinary containers; retain explicit live dependencies."""
+    """Snapshot ordinary containers and arrays; retain explicit live dependencies."""
+    if _ndarray(value):
+        snapshot = deepcopy(value) if value.dtype.hasobject else value.copy()
+        snapshot.flags.writeable = False
+        return snapshot
     if isinstance(value, dict):
         return {k: freeze(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
@@ -44,6 +59,16 @@ def fingerprint(value, trail=()):
         return value.signature(trail + (id(value),))
     if hasattr(value, 'dependency_key'):
         return value.dependency_key
+    if _ndarray(value):
+        # repr(ndarray) elides middle values: distinct explicit replacements
+        # must never collide just because their displayed edges agree.
+        content = (fingerprint(value.tolist(), trail) if value.dtype.hasobject else
+                   hashlib.sha256(value.tobytes(order='C')).digest())
+        return ('ndarray', type(value), value.shape, value.dtype.str, repr(value.dtype.descr), content)
+    if isinstance(value, (Panel, PolarPanel)):
+        # build() also detects edits in external inset children. Its root gets
+        # a fresh monotonic node ID on invalidation, unlike reusable Python IDs.
+        return ('legacy-panel', value.build().id)
     if isinstance(value, Diagram):
         return ('diagram', id(value))
     if hasattr(value, 'legend_entries'):

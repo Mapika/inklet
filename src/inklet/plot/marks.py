@@ -29,6 +29,7 @@ happens.
 from __future__ import annotations
 
 import math
+from numbers import Real
 from dataclasses import dataclass
 from typing import Mapping, Sequence
 
@@ -286,7 +287,7 @@ def _series(heights) -> tuple[tuple[float, ...], ...]:
     rows = list(heights)
     if not rows:
         raise DiagramError("no heights to draw")
-    if all(isinstance(row, (int, float)) for row in rows):
+    if all(isinstance(row, Real) for row in rows):
         return (tuple(float(v) for v in rows),)
     out = []
     for row in rows:

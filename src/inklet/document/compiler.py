@@ -14,6 +14,7 @@ import time
 
 from ..core import Affine, Diagram, DiagramError, Envelope, Rect, resolve
 from ..draw.coords import plot_area
+from ..plot import Panel, PolarPanel
 from ..figure import Figure, apply_theme
 from ..links import link, route_all
 from ..diagnostics import lint, format_report
@@ -515,7 +516,7 @@ class Document(BuildSpec):
         if not self._cells: raise LayoutError('cannot compile an empty document')
         context=BuildContext(theme,self._cache,self.preset)
         signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,
-                          fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram)) else id(context.build(c.item)))
+                          fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram,Panel,PolarPanel)) else id(context.build(c.item)))
                          for c in self._cells)
         key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset))
         if self._last is not None and self._last[0]==key: return self._last[1]
