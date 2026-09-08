@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Add `RenderScene.to_html()` for offline native-scene viewing, with instanced
+  WebGL2 circle layers, Canvas fallback and native SVG artwork in paint order.
+  Automatic selection avoids recognized software WebGL renderers. Report
+  backend decisions, context loss, display limits and buffer uploads.
+- Keep packed source buffers shared and immutable across browser view changes;
+  reconstruct vector SVG from 64-bit records, including exact source indices.
+- Add a complete interactive figure, shader/fallback/resource tests and native
+  export comparisons. Keyed-row interaction migration and broader GPU geometry
+  remain open; hardware performance is not inferred from software WebGL tests.
+
 - Store dense vector scatter in immutable 36-byte marker records, preserving
   source order, per-point size/colour, physical strokes and native vector output.
   Series with at least 256 points use batches unless placement anchors or

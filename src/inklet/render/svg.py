@@ -830,6 +830,9 @@ def _emit_prim(prim: Prim, style: Style, w: _Writer,
     from .brushes import Hatch, PaintedPrim
     from ..core import MarkerBatchPrim
     if isinstance(prim, MarkerBatchPrim):
+        handler = getattr(w, "marker_handler", None)
+        if handler is not None and handler(prim, style, w):
+            return
         from functools import lru_cache
         @lru_cache(maxsize=128)
         def glyph(shape):
@@ -1042,11 +1045,20 @@ def to_svg(root: Diagram | RenderScene, *, width: float | str | None = None,
     device pixel from where the open one puts it. `render.pathdata` has the
     measurement.
     """
+    return _render_svg(root, width=width, height=height, margin=margin,
+                       background=background, precision=precision, title=title,
+                       compact=compact, text=text)
+
+
+def _render_svg(root, *, width=None, height=None, margin=0., background=None,
+                precision=3, title=None, compact='auto', text='names', marker_handler=None):
+    """Native SVG execution with an optional browser marker-layer writer."""
     root = compile_scene(root)
     root.validate_fonts()
     mode = resolve_text_mode(text)
     paper = background or DEFAULT_PAPER
     w = _Writer(precision, compact, text=mode, paper=paper)
+    w.marker_handler = marker_handler
     content, page_w, page_h = _canvas(root, width, height, margin)
 
     # `<defs>` and `<style>` have to come before what refers to them, and what
@@ -1056,6 +1068,7 @@ def to_svg(root: Diagram | RenderScene, *, width: float | str | None = None,
     body = w
     if mode != "names":
         body = _Writer(precision, compact, text=mode, paper=paper)
+        body.marker_handler = marker_handler
         body.glyphs, body.faces = w.glyphs, w.faces
         body.depth = 1
         w.glyphs.reserve(root)

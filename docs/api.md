@@ -28,6 +28,7 @@ A compiled native scene shared by SVG, PDF and PNG exports.
 * `to_svg(**options)`
 * `to_pdf(**options)`
 * `to_png(**options)`
+* `to_html(*, title='Inklet figure', backend='auto', **options)` -- Offline experimental viewer; WebGL2 circles, Canvas fallback, SVG art.
 * `damage_bounds(previous: 'RenderScene')` -- Conservative old/new ink union for changed placements, in page mm.
 
 #### `compile_scene(root: 'Diagram | RenderScene', *, previous: 'RenderScene | None' = None) -> 'RenderScene'`

@@ -4,6 +4,7 @@ This is the first engine increment **after 4.0.0.dev2**. SVG, PDF and native
 PNG now consume one resolved scene. Compiled documents retain that scene across
 exports and reuse geometry and unchanged nodes across revisions. The next
 increment adds [packed vector markers](marker-batches.md) for dense scatter.
+The [browser viewer](compiled-viewer.md) consumes these snapshots offline.
 
 ![A six-panel native figure with curves, a point cloud, bars, hatching, a processing diagram and a shaded cube](../gallery/render-scene-review.png)
 
@@ -135,8 +136,8 @@ The remaining stages are:
 
 1. Extend the [packed vector markers](marker-batches.md) increment to paths
    and meshes, indexed queries and partial buffer updates.
-2. A browser consumer of the same evaluated scene, followed by hybrid GPU
-   layers with vector axes/text and documented export fallbacks.
+2. Extend the [compiled browser viewer](compiled-viewer.md) beyond its WebGL2
+   circles, Canvas fallback and native vector artwork.
 3. Depth-aware 3D rendering, camera changes and object selection, with explicit
    annotation occlusion rules and a separate boundary for Blender jobs.
 4. Finer dependency invalidation and measured layout constraints, so changing
@@ -145,5 +146,6 @@ The remaining stages are:
 Acceptance will use a 20-panel figure containing a million-point cloud, a
 detailed map, an annotated mesh, images and ordinary charts. Measure edit,
 resize and export behavior separately, including memory and visual agreement.
-GPU acceleration and interactive camera control remain open. Point batching
-is implemented by the subsequent [marker-buffer increment](marker-batches.md).
+Point batching and the initial WebGL2 circle path are implemented by the
+[marker-buffer](marker-batches.md) and [browser-viewer](compiled-viewer.md)
+increments. Interactive camera control and broader GPU primitives remain open.

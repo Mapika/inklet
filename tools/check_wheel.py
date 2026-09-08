@@ -17,6 +17,11 @@ assert i.__version__ == version("inklet")
 assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
+packed = i.panel(40,30,x=(0,1),y=(0,1))
+packed.scatter([(k/300,.5) for k in range(300)],size=.3,color='blue')
+viewer = i.compile_scene(packed.build()).to_html()
+assert 'class CompiledSceneViewer' in viewer and 'drawArraysInstanced' in viewer
+assert 'inklet.compiled-viewer/1' in viewer and '/*SCENE*/' not in viewer
 from inklet.experimental.selection import KeyedTable
 assert find_spec("pandas") is None and find_spec("polars") is None
 for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_polars, 'polars')):

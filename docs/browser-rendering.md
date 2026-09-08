@@ -1,5 +1,9 @@
 # Offline browser rendering
 
+For ordinary native figures, the new [compiled-scene viewer](compiled-viewer.md)
+adds a WebGL2 circle path with Canvas fallback. This guide covers the existing
+keyed-row interaction runtime.
+
 Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
 
 For the newer mixed line, bar and scatter workflow, see

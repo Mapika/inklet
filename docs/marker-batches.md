@@ -125,7 +125,8 @@ python tools/benchmark_batches.py --source /path/to/previous-checkout
 
 ## Remaining engine work
 
-GPU/browser execution, indexed picking, partial buffer updates, packed maps
+The subsequent [compiled-scene viewer](compiled-viewer.md) adds a WebGL2 circle
+path with Canvas fallback and native SVG artwork. Indexed picking, partial buffer updates, packed maps
 and meshes, and finer document-layout invalidation remain separate stages.
 Native vector output still contains one painted element per marker. Trace and
 candidate overlap queries scan records; they do not yet use a spatial index.

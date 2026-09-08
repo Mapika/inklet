@@ -139,6 +139,7 @@ nav:
   - Curves and painted windows: clipping.md
   - Shared compiled scenes: compiled-scenes.md
   - Packed vector markers: marker-batches.md
+  - Compiled-scene browser viewer: compiled-viewer.md
   - Design and history:
     - Proposed 4.0 engine: design/v4.md
     - Browser backend decision: design/browser-backends.md
