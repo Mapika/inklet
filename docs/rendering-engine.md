@@ -1,6 +1,7 @@
 # Rendering and layout review
 
 For the next engine architecture increment after dev2, see
+[packed vector markers](marker-batches.md) and
 [shared compiled scenes](compiled-scenes.md), including revision reuse and
 complete-figure measurements.
 

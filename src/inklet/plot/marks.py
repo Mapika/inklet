@@ -828,6 +828,13 @@ def scatter(panel, points: Sequence[Sequence], *, size=None, color=None,
         raise DiagramError("scatter() was given no points")
     sizes = _per_point(size, len(data), "size")
     fills = _per_point(color, len(data), "color")
+    # Small series retain individually addressable drawing handles. Dense
+    # series use packed records; explicit placement anchors use ordinary nodes.
+    from .breaks import gap_bands
+    broken = any(gap_bands(getattr(panel, axis, None)) for axis in ('x', 'y'))
+    if len(data) >= 256 and not broken and not {'anchor', 'origin'}.intersection(style):
+        from .scatter_batch import scatter_batch
+        return scatter_batch(panel, data, sizes, fills, marker, style)
     placed = []
     for index, point in enumerate(data):
         node = make_marker(marker, sizes[index])

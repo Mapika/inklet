@@ -595,9 +595,18 @@ def _measure_ink(item: Item) -> Rect:
 
 def _ink_gap(ctx: LintContext, first: Item, second: Item) -> float:
     """`_gap`, re-measured on ink when either side is text."""
-    if not (first.is_text or second.is_text):
-        return _gap(first.bbox, second.bbox)
-    return _gap(_ink_box(ctx, first), _ink_box(ctx, second))
+    from ..core import MarkerBatchPrim
+    if first.is_text or second.is_text:
+        batch, text = (second, first) if first.is_text else (first, second)
+        if isinstance(batch.prim, MarkerBatchPrim):
+            box = _ink_box(ctx, text)
+            # The cloud's rectangular extent includes empty space. Refine
+            # clearance on actual marker boxes without expanding the tree.
+            return min((_gap(box, prim.envelope().transform(
+                batch.world @ Affine.translation(x,y)).bbox())
+                        for x,y,prim,_,_ in batch.prim.instances()), default=math.inf)
+        return _gap(_ink_box(ctx, first), _ink_box(ctx, second))
+    return _gap(first.bbox, second.bbox)
 
 
 def _outside(inner: Rect, container: Rect) -> dict[str, float]:
@@ -933,7 +942,9 @@ def _pairable(ctx: LintContext, item: Item) -> bool:
     """
     if not item.draws:
         return False
-    if isinstance(item.prim, PathPrim) and not item.prim.filled:
+    from ..core import MarkerBatchPrim
+    shape = item.prim.shape if isinstance(item.prim, MarkerBatchPrim) else item.prim
+    if isinstance(shape, PathPrim) and not shape.filled:
         return False
     if ctx.paints_parts(item.id):
         return False
@@ -1368,13 +1379,21 @@ def rule_overlap(ctx: LintContext) -> list[Diagnostic]:
         intersection = first.bbox.overlap(second.bbox)
         if intersection is None:
             continue
-        if _contains(first.bbox, second.bbox) or _contains(second.bbox, first.bbox):
-            continue
-        area, intersection = _ink_overlap(first, second, intersection)
-        smaller = min(_ink_area(first), _ink_area(second))
-        if smaller <= 0.0 or area <= 0.0:
-            continue
-        fraction = area / smaller
+        from ..core import MarkerBatchPrim
+        if isinstance(first.prim, MarkerBatchPrim) or isinstance(second.prim, MarkerBatchPrim):
+            batch, text = (second, first) if first.is_text else (first, second)
+            hit = _marker_overlap(batch, text)
+            if hit is None:
+                continue
+            area, fraction, intersection = hit
+        else:
+            if _contains(first.bbox, second.bbox) or _contains(second.bbox, first.bbox):
+                continue
+            area, intersection = _ink_overlap(first, second, intersection)
+            smaller = min(_ink_area(first), _ink_area(second))
+            if smaller <= 0.0 or area <= 0.0:
+                continue
+            fraction = area / smaller
         if fraction < ctx.min_overlap_fraction or area < 0.25:
             continue
         both_text = first.is_text and second.is_text
@@ -1391,6 +1410,47 @@ def rule_overlap(ctx: LintContext) -> list[Diagnostic]:
                   f"along the shorter axis"),
         ))
     return out
+
+
+def _marker_overlap(batch, text):
+    """Test actual marker footprints, never the empty space between points.
+
+    Keep the strongest qualifying collision instead of emitting a warning per
+    point. Only candidate markers allocate temporary diagnostic items.
+    """
+    from dataclasses import replace
+    if isinstance(batch.prim.shape, PathPrim) and not batch.prim.shape.filled:
+        return None
+    best = None
+    unit = batch.prim.shape.envelope().bbox()
+    for x, y, size, _, _ in batch.prim.records():
+        box = Rect(x+unit.x0*size, y+unit.y0*size,
+                   x+unit.x1*size, y+unit.y1*size).transform(batch.world)
+        for region in batch.clip_regions:
+            box = box.overlap(Rect.hull(region)) if box is not None else None
+        if box is None:
+            continue
+        intersection = box.overlap(text.bbox)
+        if intersection is None:
+            continue
+        from ..core.batch import scale_shape
+        prim = scale_shape(batch.prim.shape, size)
+        world = batch.world @ Affine.translation(x,y)
+        box = prim.envelope().transform(world).bbox().overlap(box)
+        if box is None or _contains(box, text.bbox) or _contains(text.bbox, box):
+            continue
+        intersection = box.overlap(text.bbox)
+        if intersection is None:
+            continue
+        item = replace(batch, prim=prim, bbox=box, world=world)
+        area, intersection = _ink_overlap(item, text, intersection)
+        smaller = min(_ink_area(item), _ink_area(text))
+        if smaller <= 0 or area < .25:
+            continue
+        fraction = area/smaller
+        if best is None or fraction > best[1]:
+            best = area, fraction, intersection
+    return best
 
 
 def _rings(item: Item) -> list[list[Vec2]] | None:

@@ -12,7 +12,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping
 
-from ..core import Affine, Diagram, DiagramError, EllipsePrim, ImagePrim, PhantomPrim, Rect, RectPrim, Style, TextPrim, Vec2
+from ..core import MarkerBatchPrim, Affine, Diagram, DiagramError, EllipsePrim, ImagePrim, PhantomPrim, Rect, RectPrim, Style, TextPrim, Vec2
 from ..core.diagram import _inside_clips
 from ..core.style import EMPTY_STYLE
 from .bounds import geometry_bounds, primitive_bounds
@@ -281,6 +281,11 @@ def compile_scene(root: Diagram | RenderScene, *, previous: RenderScene | None =
         box = root.bbox
     except DiagramError:
         box = Rect(0.,0.,0.,0.)
+    stats['marker_instances'] = sum(len(n.prim) for n in nodes.values()
+                                    if isinstance(n.prim, MarkerBatchPrim))
+    buffers = {id(resource.prim.data): resource.prim.data for _, resource in resources.values()
+               if isinstance(resource.prim, MarkerBatchPrim)}
+    stats['marker_buffer_bytes'] = sum(len(data) for data in buffers.values())
     return RenderScene(resolved,box,MappingProxyType(stats),tuple(changes),
                        MappingProxyType(nodes),MappingProxyType(resources),
                        MappingProxyType(images),MappingProxyType(fonts))

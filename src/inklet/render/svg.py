@@ -828,6 +828,24 @@ def _shape(prim: Prim, style: Style, w: _Writer) -> Shape | None:
 def _emit_prim(prim: Prim, style: Style, w: _Writer,
                kind: str | None = None) -> None:
     from .brushes import Hatch, PaintedPrim
+    from ..core import MarkerBatchPrim
+    if isinstance(prim, MarkerBatchPrim):
+        from functools import lru_cache
+        @lru_cache(maxsize=128)
+        def glyph(shape):
+            return _shape(shape, style, w)
+        for x, y, shape, fill, source in prim.instances():
+            encoded = glyph(shape)
+            if encoded is None:
+                continue
+            tag, geometry = encoded
+            attrs = [('transform', f'translate({w.n(x)} {w.n(y)})'),
+                     ('data-source-index', str(source))]
+            # Open markers explicitly suppress filling, even under a palette.
+            if fill is not None and not (isinstance(shape, PathPrim) and not shape.filled):
+                attrs.append(('fill', fill))
+            w.empty(tag, attrs + geometry)
+        return
     if isinstance(prim, PhantomPrim):
         return  # Envelope only. It has no ink and must leave no trace in the file.
     shape = _shape(prim, style, w)

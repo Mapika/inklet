@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Store dense vector scatter in immutable 36-byte marker records, preserving
+  source order, per-point size/colour, physical strokes and native vector output.
+  Series with at least 256 points use batches unless placement anchors or
+  broken axes require individual nodes. Dense point handles become batch
+  handles; source indices remain inspectable in buffers and SVG elements.
+- Stream batches through SVG/PDF with bounded prototype caches, preserve
+  geometric clipping and painted windows, and retain batch geometry on revisions.
+- Check packed palettes against colour keys and inspect individual marker
+  footprints for text overlaps, avoiding false collisions over empty cloud space.
+- Add a 38,300-marker four-panel review, native-backend fidelity tests and
+  reproducible construction/export/memory measurements, including a separate
+  million-point construction test.
+
 - Compile a shared native render scene for SVG, PDF and PNG, resolving styles,
   transforms, clipping and compositing once. Retain it across document exports.
 - Reuse unchanged scene nodes and geometry across revisions; share small shapes
@@ -13,7 +26,7 @@
   detect updated image inputs on subsequent document compilation and reject
   exports using changed or missing font files.
 - Add a complete six-panel scene/revision review and repeated-export benchmarks.
-  Dense buffers, browser/GPU execution and finer layout invalidation remain open.
+  Browser/GPU execution and finer layout invalidation remain open.
 
 ## 4.0.0.dev2 — 2026-09-08
 

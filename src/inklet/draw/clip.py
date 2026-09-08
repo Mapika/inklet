@@ -8,7 +8,7 @@ from dataclasses import replace
 from typing import Iterable, Sequence
 
 from ..core import (
-    IDENTITY, Affine, Diagram, Envelope, PathPrim, Rect, RectPrim, Subpath, Vec2,
+    IDENTITY, Affine, Diagram, Envelope, MarkerBatchPrim, PathPrim, Rect, RectPrim, Subpath, Vec2,
 )
 from .coords import Point, to_points
 
@@ -178,6 +178,8 @@ def _clip_node(node: Diagram, to_clip: Affine, edges, box: Rect,
         return None
 
     prim = node.prim
+    if isinstance(prim, MarkerBatchPrim):
+        return _clip_batch(node, here, edges, box, strict)
     if prim is not None:
         if isinstance(prim, _EXACT):
             prim = _clip_prim(prim, here, home, edges)
@@ -193,6 +195,49 @@ def _clip_node(node: Diagram, to_clip: Affine, edges, box: Rect,
     if prim is node.prim and children == node.children:
         return node
     return replace(node, prim=prim, children=children, id="", _cache={})
+
+
+def _clip_batch(node, world, edges, box, strict):
+    """Keep compact interior runs; rewrite only boundary geometry in order."""
+    from ..core.batch import RECORD, scale_shape
+    from ..core import Style
+    batch = node.prim
+    unit = batch.shape.envelope().bbox()
+    chunks = []
+    pending = bytearray()
+
+    def flush():
+        if pending:
+            chunks.append(Diagram(prim=MarkerBatchPrim(batch.shape, bytes(pending), batch.palette),
+                                  kind=node.kind))
+            pending.clear()
+
+    records = batch.records() if unit is not None else ()
+    for index, (x, y, size, paint, source) in enumerate(records):
+        local = Rect(x+unit.x0*size, y+unit.y0*size,
+                     x+unit.x1*size, y+unit.y1*size)
+        reach = local.transform(world)
+        if not _touching(box, reach):
+            continue
+        inside = _within(reach, edges)
+        if inside or (not strict and not isinstance(batch.shape, _EXACT)):
+            pending.extend(batch.data[index*RECORD.size:(index+1)*RECORD.size])
+            continue
+        flush()
+        if isinstance(batch.shape, _EXACT):
+            placed = world @ Affine.translation(x, y)
+            shape = _clip_prim(scale_shape(batch.shape, size), placed, placed.inverse(), edges)
+            if shape is not None:
+                child = Diagram(prim=shape, transform=Affine.translation(x,y),
+                                style=Style(fill=batch.palette[paint]), kind=node.kind)
+                child.note('source_index', source)
+                chunks.append(child)
+    flush()
+    chunks.extend(child for child in (_clip_node(c, world, edges, box, strict)
+                                     for c in node.children) if child is not None)
+    if not chunks:
+        return None
+    return replace(node, prim=None, children=tuple(chunks), id='', _cache={})
 
 
 def _bbox_in(node: Diagram, world: Affine) -> Rect | None:

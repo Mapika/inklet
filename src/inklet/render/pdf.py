@@ -340,6 +340,20 @@ def _paint(c: _Content, style: Style, *, fill: str | None, stroke: str | None,
 def _draw_prim(c: _Content, prim: Prim, style: Style) -> None:
     fill = _DEFAULT_FILL if style.fill is None else style.fill
     from .brushes import PaintedPrim
+    from ..core import MarkerBatchPrim
+    if isinstance(prim, MarkerBatchPrim):
+        from dataclasses import replace
+        from functools import lru_cache
+        @lru_cache(maxsize=128)
+        def palette(fill):
+            return style if fill is None else replace(style, fill=fill)
+        for x, y, shape, fill_override, _ in prim.instances():
+            paint = palette(fill_override)
+            c.op('q')
+            c.matrix(Affine.translation(x, y))
+            _draw_prim(c, shape, paint)
+            c.op('Q')
+        return
     if isinstance(prim, PaintedPrim):
         _draw_painted(c,prim,style)
         return

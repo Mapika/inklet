@@ -2,7 +2,8 @@
 
 This is the first engine increment **after 4.0.0.dev2**. SVG, PDF and native
 PNG now consume one resolved scene. Compiled documents retain that scene across
-exports and reuse geometry and unchanged nodes across revisions.
+exports and reuse geometry and unchanged nodes across revisions. The next
+increment adds [packed vector markers](marker-batches.md) for dense scatter.
 
 ![A six-panel native figure with curves, a point cloud, bars, hatching, a processing diagram and a shaded cube](../gallery/render-scene-review.png)
 
@@ -132,8 +133,8 @@ phase. SVG and PDF byte counts are unchanged for all three workloads.
 The shared scene is the first part of the [4.0 engine plan](design/v4.md).
 The remaining stages are:
 
-1. Geometry buffers and batch operations for dense points, paths and meshes,
-   with source identity and explicit reduction tolerances.
+1. Extend the [packed vector markers](marker-batches.md) increment to paths
+   and meshes, indexed queries and partial buffer updates.
 2. A browser consumer of the same evaluated scene, followed by hybrid GPU
    layers with vector axes/text and documented export fallbacks.
 3. Depth-aware 3D rendering, camera changes and object selection, with explicit
@@ -144,5 +145,5 @@ The remaining stages are:
 Acceptance will use a 20-panel figure containing a million-point cloud, a
 detailed map, an annotated mesh, images and ordinary charts. Measure edit,
 resize and export behavior separately, including memory and visual agreement.
-GPU acceleration, interactive camera control and buffer batching are not
-implemented by this increment.
+GPU acceleration and interactive camera control remain open. Point batching
+is implemented by the subsequent [marker-buffer increment](marker-batches.md).

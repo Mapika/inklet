@@ -515,7 +515,7 @@ class Panel:
         """Markers at data points, with size and colour that may be data too.
 
         `marks()` places copies of one shape you built, which is right when
-        every point is the same. `scatter` builds the shape per point, so
+        every point is the same. `scatter` accepts per-point geometry, so
         `size=` and `color=` each take a value *or* a sequence and a bubble
         chart is one line:
 
@@ -536,6 +536,10 @@ class Panel:
 
         Given no `scale`, the values' own range becomes one, so the bar reads
         over the data rather than over 0..1.
+
+        Vector layers with at least 256 points use immutable packed marker
+        records. All points and paint order are retained; axes with breaks and
+        explicit placement anchors keep individually addressable nodes.
 
         `raster=True` embeds only this marker layer as an antialiased PNG
         at `dpi` (default 300). Axes and other layers remain vector. Requires

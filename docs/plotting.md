@@ -113,6 +113,10 @@ derived dependency.
 
 ## Dense data and polar plots
 
+The development engine automatically uses [packed vector markers](marker-batches.md)
+for scatter layers with at least 256 points. It retains every observation and
+keeps SVG/PDF output vector, with substantially lower construction overhead.
+
 `scatter(..., raster=True, dpi=300)` rasterizes just the marker layer.
 `matrix(..., raster=True)` provides a raster field; use `raster=False` for vector
 cells. These require the `images` extra. Axes and labels stay vector. Raster

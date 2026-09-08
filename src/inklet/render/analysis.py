@@ -1,7 +1,7 @@
 """Page-scoped compositing analysis; no persistent drawing or font cache."""
 from __future__ import annotations
 
-from ..core import Affine, Diagram, ImagePrim, PathPrim, PhantomPrim, Rect, Style, TextPrim
+from ..core import MarkerBatchPrim, Affine, Diagram, ImagePrim, PathPrim, PhantomPrim, Rect, Style, TextPrim
 from .bounds import clip_bounds, primitive_bounds
 from .brushes import PaintedPrim
 
@@ -52,7 +52,7 @@ def primitive_paint_count(prim, style):
         count = 0
     elif isinstance(prim, ImagePrim):
         count = 1
-    elif isinstance(prim, (TextPrim, PaintedPrim)):
+    elif isinstance(prim, (TextPrim, PaintedPrim, MarkerBatchPrim)):
         # Glyph runs, halos, hatch backgrounds and gradient outlines can
         # overlap inside one primitive. Conservatively isolate these.
         count = 2

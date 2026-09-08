@@ -138,6 +138,7 @@ nav:
   - Reusable vector hatching: hatching.md
   - Curves and painted windows: clipping.md
   - Shared compiled scenes: compiled-scenes.md
+  - Packed vector markers: marker-batches.md
   - Design and history:
     - Proposed 4.0 engine: design/v4.md
     - Browser backend decision: design/browser-backends.md

@@ -1,5 +1,6 @@
 """Core geometry and the diagram tree. No fonts, no rendering, no I/O."""
 
+from .batch import MarkerBatchPrim
 from .diagram import (
     AnchorRef, Diagram, DiagramError, Placement, RenderItem,
     flatten, group, note_through, resolve, world_point,
@@ -19,7 +20,7 @@ __all__ = [
     "flatten", "group", "note_through", "resolve", "world_point",
     "Envelope", "Trace",
     "Affine", "Rect", "Vec2", "ORIGIN", "IDENTITY", "NORTH", "SOUTH", "EAST", "WEST",
-    "Prim", "RectPrim", "EllipsePrim", "PathPrim", "TextPrim", "TextLine", "TextRun",
+    "MarkerBatchPrim", "Prim", "RectPrim", "EllipsePrim", "PathPrim", "TextPrim", "TextLine", "TextRun",
     "ImagePrim", "Subpath", "PhantomPrim", "FILL_RULES", "text_features",
     "Style", "StyleError", "EMPTY_STYLE", "FONT_STYLES",
     "mm", "pt", "to_pt", "dpi_of", "UnitError", "COLUMN_SINGLE", "COLUMN_DOUBLE",

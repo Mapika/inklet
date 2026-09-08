@@ -1,0 +1,144 @@
+{
+  "before": {
+    "runs": [
+      {
+        "count": 10000,
+        "python": "3.12.3",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+        "author_seconds": 0.6470419499964919,
+        "compile_seconds": 0.20653189401491545,
+        "nodes": 20003,
+        "geometry": 1,
+        "packed_bytes": 0,
+        "svg_seconds": 0.05517552900710143,
+        "svg_bytes": 1630518,
+        "pdf_seconds": 0.22599487099796534,
+        "pdf_bytes": 82692,
+        "peak_rss_mib": 113.76953125,
+        "source_sha256": "5c0963c2e236e583c004d61e3bcd68be4e055ab85effdad59f03b8d8ba97013f"
+      },
+      {
+        "count": 10000,
+        "python": "3.12.3",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+        "author_seconds": 0.6399165059847292,
+        "compile_seconds": 0.21413937001489103,
+        "nodes": 20003,
+        "geometry": 1,
+        "packed_bytes": 0,
+        "svg_seconds": 0.056447816983563825,
+        "svg_bytes": 1630518,
+        "pdf_seconds": 0.2338815050025005,
+        "pdf_bytes": 82692,
+        "peak_rss_mib": 113.76953125,
+        "source_sha256": "5c0963c2e236e583c004d61e3bcd68be4e055ab85effdad59f03b8d8ba97013f"
+      },
+      {
+        "count": 10000,
+        "python": "3.12.3",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+        "author_seconds": 0.6401103530079126,
+        "compile_seconds": 0.207820843992522,
+        "nodes": 20003,
+        "geometry": 1,
+        "packed_bytes": 0,
+        "svg_seconds": 0.052039951988263056,
+        "svg_bytes": 1630518,
+        "pdf_seconds": 0.23186184401856735,
+        "pdf_bytes": 82692,
+        "peak_rss_mib": 113.8984375,
+        "source_sha256": "5c0963c2e236e583c004d61e3bcd68be4e055ab85effdad59f03b8d8ba97013f"
+      }
+    ],
+    "median": {
+      "count": 10000,
+      "author_seconds": 0.6401103530079126,
+      "compile_seconds": 0.207820843992522,
+      "nodes": 20003,
+      "geometry": 1,
+      "packed_bytes": 0,
+      "svg_seconds": 0.05517552900710143,
+      "svg_bytes": 1630518,
+      "pdf_seconds": 0.23186184401856735,
+      "pdf_bytes": 82692,
+      "peak_rss_mib": 113.76953125
+    }
+  },
+  "after": {
+    "runs": [
+      {
+        "count": 10000,
+        "python": "3.12.3",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+        "author_seconds": 0.02009459401597269,
+        "compile_seconds": 0.00011069598258472979,
+        "nodes": 4,
+        "geometry": 1,
+        "packed_bytes": 360000,
+        "svg_seconds": 0.020944274991052225,
+        "svg_bytes": 1190567,
+        "pdf_seconds": 0.22038062300998718,
+        "pdf_bytes": 82719,
+        "peak_rss_mib": 44.0390625,
+        "source_sha256": "4fe7bbcd5e47b61c47944d7e4d81ea6d6447de79fc17b4d7fdb5f734f830689d"
+      },
+      {
+        "count": 10000,
+        "python": "3.12.3",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+        "author_seconds": 0.022148712014313787,
+        "compile_seconds": 0.00010760498116724193,
+        "nodes": 4,
+        "geometry": 1,
+        "packed_bytes": 360000,
+        "svg_seconds": 0.021487896010512486,
+        "svg_bytes": 1190567,
+        "pdf_seconds": 0.22564606901141815,
+        "pdf_bytes": 82719,
+        "peak_rss_mib": 44.04296875,
+        "source_sha256": "4fe7bbcd5e47b61c47944d7e4d81ea6d6447de79fc17b4d7fdb5f734f830689d"
+      },
+      {
+        "count": 10000,
+        "python": "3.12.3",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+        "author_seconds": 0.018846958002541214,
+        "compile_seconds": 0.00010716100223362446,
+        "nodes": 4,
+        "geometry": 1,
+        "packed_bytes": 360000,
+        "svg_seconds": 0.021754380024503917,
+        "svg_bytes": 1190567,
+        "pdf_seconds": 0.22654631300247274,
+        "pdf_bytes": 82719,
+        "peak_rss_mib": 43.9140625,
+        "source_sha256": "4fe7bbcd5e47b61c47944d7e4d81ea6d6447de79fc17b4d7fdb5f734f830689d"
+      }
+    ],
+    "median": {
+      "count": 10000,
+      "author_seconds": 0.02009459401597269,
+      "compile_seconds": 0.00010760498116724193,
+      "nodes": 4,
+      "geometry": 1,
+      "packed_bytes": 360000,
+      "svg_seconds": 0.021487896010512486,
+      "svg_bytes": 1190567,
+      "pdf_seconds": 0.22564606901141815,
+      "pdf_bytes": 82719,
+      "peak_rss_mib": 44.0390625
+    }
+  },
+  "million_compile_only": {
+    "count": 1000000,
+    "python": "3.12.3",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "author_seconds": 1.8864545079995878,
+    "compile_seconds": 0.00014352300786413252,
+    "nodes": 4,
+    "geometry": 1,
+    "packed_bytes": 36000000,
+    "peak_rss_mib": 247.48046875,
+    "source_sha256": "4fe7bbcd5e47b61c47944d7e4d81ea6d6447de79fc17b4d7fdb5f734f830689d"
+  }
+}

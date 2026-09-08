@@ -271,15 +271,25 @@ def _paints(items: Iterable[Item], *, fills_only: bool = False,
             continue
         if kinds is not None and item.node.kind not in kinds:
             continue
-        values = [item.style.fill]
-        if not fills_only:
-            values.append(item.style.stroke)
-        for value in values:
+        from ..core import MarkerBatchPrim
+        if isinstance(item.prim, MarkerBatchPrim):
+            from collections import Counter
+            counts = Counter(record[3] for record in item.prim.records())
+            values = [(item.style.fill if item.prim.palette[index] is None
+                       else item.prim.palette[index], count)
+                      for index, count in counts.items()]
+            if not fills_only:
+                values.append((item.style.stroke, len(item.prim)))
+        else:
+            values = [(item.style.fill, 1)]
+            if not fills_only:
+                values.append((item.style.stroke, 1))
+        for value, count in values:
             if not _opaque_fill(value):
                 continue
             name = _normal(str(value))
             if name is not None:
-                found[name] = found.get(name, 0) + 1
+                found[name] = found.get(name, 0) + count
     return found
 
 
