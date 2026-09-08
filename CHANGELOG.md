@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Link native Inklet drawings to experimental browser tables with measured
+  panel layouts, outlined vector assets, stable paint IDs, rectangular picking
+  targets and per-item selection behavior across SVG/canvas/hybrid display.
+- Add immutable axis-aligned box assemblies with explicit units, dimensions and
+  zero-thickness sections. Add a linked engineering report with geometry
+  revisions, preserved label offsets, supplied response curves, removed-ID
+  reconciliation and reproducible exports at two physical widths.
+
 - Add experimental entity-linked wide-table series with explicit numeric/date/UTC
   samples, missing-data gaps, sample-aware picking and facets. Add a complete
   real-map regional report with simulated monthly values, distributions, group

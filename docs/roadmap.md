@@ -5,6 +5,10 @@ baseline. The capabilities below are targets, not available APIs or dated
 release promises. Implementation decisions become commitments after the
 prototype and acceptance checks described here.
 
+No numbered 4.0 development release has been published. The package remains
+3.1.0; experimental increments are tracked under Unreleased until a preview
+release is prepared.
+
 Phase A has started: [the foundations report](v4-foundations.md) records the
 first fixtures, engine corrections, baseline timings and offline selection
 prototype. A bounded scatter backend comparison, linked maps, explicit data
@@ -159,7 +163,11 @@ series, distributions and group comparisons, with saved-state reconstruction,
 CSV replacement and exports at two physical widths. This completes the bounded
 Phase B analyst reference workflow. Multi-table relationships, the engineering
 and scientific workflows, recomputed grouped summaries and broader distribution
-types remain outstanding; the other Phase B and release gates are still open. [Shared plotting quality](plot-quality.md) also improves numeric
+types remain outstanding; the other Phase B and release gates are still open.
+The [linked engineering report](engineering-report.md) starts Phase C with
+native drawing/table correspondence, explicit box sections and measurements,
+geometry replacement, retained label offsets and two-width exports. This bounded
+box workflow does not close the mesh, camera, editing or constraint gates. [Shared plotting quality](plot-quality.md) also improves numeric
 ticks across static plots and browser frames.
 
 

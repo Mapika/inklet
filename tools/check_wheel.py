@@ -29,6 +29,13 @@ for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_pola
 from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption, FacetView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
 from inklet.experimental.browser import TimeAxis
+from inklet.experimental.browser import DrawingItem, DrawingView
+from inklet.experimental.engineering import BoxAssembly, BoxComponent
+assembly = BoxAssembly([BoxComponent('a',(2,4,6),(0,0,0))], 'mm')
+assert assembly.section('y',0) == (('a',(-1,-3,1,3)),)
+drawing_scene = BrowserFigure(keyed,[DrawingView('native',lambda t,w,h:[DrawingItem(('a',),i.box('A',width=10,height=8).translated(w/2,h/2))])])
+assert 'data:image/svg+xml;base64,' in drawing_scene.to_svg()
+assert drawing_scene.payload()['layers'][0]['drawing']['omitted_ids'] == ['b']
 from inklet.experimental.browser import ECDFView, IntervalView, SeriesView
 series_scene = BrowserFigure(keyed,[SeriesView('series',[(1,'x'),(2,'y')],(0,3),(0,3))])
 assert len(series_scene.payload()['layers'][0]['marks']) == 6

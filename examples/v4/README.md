@@ -2,7 +2,8 @@
 
 These are development fixtures and interaction experiments for the
 [roadmap](../../docs/roadmap.md). The complete regional report now covers the
-bounded analyst workflow; the engineering and scientific workflows remain open.
+bounded analyst workflow and a box-based engineering workflow are implemented;
+the broader engineering and scientific workflows remain open.
 The small fixtures under `fixtures/` are original simulated MIT material by Mark Marosi;
 see [the manifest](fixtures/manifest.json). No external downloads are needed.
 
@@ -66,12 +67,22 @@ a supplied linear load/displacement table. Independent expected measurements:
 80 × 40 mm footprint, 35 mm overall height, and a recorded sensor/support center
 distance. The response is illustrative, not a mechanics solution.
 
-Existing 3.1 foundations can draw the assembly, dimensions, response plots and a
-system diagram. This fixture has numerical validation; an integrated engineering
-recipe has not yet been implemented. Next add that static recipe, explicit
-object/table correspondence, a section view and preserved annotation decisions.
-Test component removal, changed dimensions and page resizing before counting
-this reference project as complete.
+`engineering_report.py` now connects a dimensioned XY plan, a Y = 0 section,
+an authored system diagram and supplied component response curves. It uses
+native Inklet drawings with explicit table IDs and rectangular picking targets.
+Geometry revisions resize components or remove the support, preserve label
+offsets, and reconcile saved selections. Responses remain supplied values.
+
+```sh
+python examples/v4/engineering_report.py --render --output out/engineering
+python examples/v4/engineering_report.py --state /path/to/view.json --render --output out/engineering-reopened
+python examples/v4/engineering_report.py --revision removed --rebase-state /path/to/view.json --missing drop --render --output out/engineering-removed
+```
+
+The output includes state, label offsets, geometry and revision reports plus
+210/170 mm SVG/PDF/PNG exports. See the [illustrated guide](../../docs/engineering-report.md).
+This bounded box workflow starts Phase C; arbitrary mesh sections, camera
+interaction and general editing/layout constraints remain open.
 
 ## Scientific measurement
 

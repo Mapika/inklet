@@ -48,6 +48,7 @@ class ScatterRenderer{
         this.items.push(item);this.layerItems[layerIndex].push(item);
         if(item.reference)continue; // Fixed population curves are not row selections.
         for(const id of item.ids){if(!this.byId.has(id))this.byId.set(id,[]);this.byId.get(id).push(item);}
+        if(item.pickable===false)continue;
         // Circle centers retain the original compact index. Extended marks use
         // their clipped bounds, so a long off-page segment cannot explode it.
         let box;
@@ -57,7 +58,7 @@ class ScatterRenderer{
         }
         else{
           const pad=item.kind==='line'?item.width/2:0,b=layer.clip;
-          box=item.kind==='polygon'?item.bounds:item.kind==='rect'?[g[0],g[1],g[0]+g[2],g[1]+g[3]]:
+          box=['polygon','image'].includes(item.kind)?item.bounds:item.kind==='rect'?[g[0],g[1],g[0]+g[2],g[1]+g[3]]:
             [Math.min(g[0],g[2])-pad,Math.min(g[1],g[3])-pad,Math.max(g[0],g[2])+pad,Math.max(g[1],g[3])+pad];
           box=[Math.max(box[0],b[0]),Math.max(box[1],b[1]),Math.min(box[2],b[0]+b[2]),Math.min(box[3],b[1]+b[3])];
         }
@@ -67,9 +68,15 @@ class ScatterRenderer{
         }
       }
     }
+    this.drawings=new Map();
+    const drawingReady=Promise.all([...new Set(this.items.filter(m=>m.kind==='image').map(m=>m.href))].map(href=>
+      new Promise((resolve,reject)=>{const drawing=new Image();this.drawings.set(href,drawing);
+        drawing.onload=()=>resolve();drawing.onerror=()=>reject(Error('Cannot rasterize a native drawing.'));drawing.src=href;})));
+    // Attach an error handler immediately, including when the frame loads later.
+    drawingReady.catch(()=>{});
     this.frameImage=new Image();
     this.ready=new Promise((resolve,reject)=>{this.rejectReady=reject;
-      this.frameImage.onload=()=>{try{this.render();resolve(this);}catch(error){reject(error);}};
+      this.frameImage.onload=()=>{drawingReady.then(()=>{try{if(this.disposed)return;this.render();resolve(this);}catch(error){reject(error);}},reject);};
       this.frameImage.onerror=()=>reject(Error('Cannot rasterize the measured frame.'));});
     // Explicit pixel dimensions avoid SVG intrinsic-size ambiguity in drawImage.
     const rasterFrame=scene.frame.replace(/<rect id="inklet-background"[^>]*\/>/,'').replace(/width="[^"]+mm"/,`width="${scene.width*5}"`).replace(/height="[^"]+mm"/,`height="${scene.height*5}"`);
@@ -80,6 +87,7 @@ class ScatterRenderer{
     if(this.disposed)return;this.disposed=true;this.resizeObserver.disconnect();
     this.frameImage.onload=null;this.frameImage.onerror=null;this.rejectReady(Error('Renderer disposed'));
     this.svg.remove();this.canvas.remove();this.canvas.width=this.canvas.height=this.base.width=this.base.height=0;
+    for(const drawing of this.drawings.values()){drawing.onload=null;drawing.onerror=null;}this.drawings.clear();
     this.index.clear();this.byId.clear();this.items=[];this.layerItems=[];
   }
   mapping(){const r=this.host.getBoundingClientRect(),v=this.viewport,s=Math.min(r.width/v[2],r.height/v[3]);return {width:r.width,height:r.height,scale:s,dx:(r.width-v[2]*s)/2-v[0]*s,dy:(r.height-v[3]*s)/2-v[1]*s};}
@@ -94,7 +102,7 @@ class ScatterRenderer{
     return p;}
   shown(id){return this.visible===null||this.visible.has(id);}
   markShown(item){return item.ids.every(id=>this.shown(id));}
-  selectedItems(){return [...new Set([...this.selected].flatMap(id=>this.byId.get(id)||[]))].sort((a,b)=>a.order-b.order);}
+  selectedItems(){return [...new Set([...this.selected].flatMap(id=>this.byId.get(id)||[]))].filter(item=>item.highlight!==false).sort((a,b)=>a.order-b.order);}
   setBackend(name){if(!['svg','canvas','hybrid'].includes(name))throw Error('Unsupported backend');this.backend=name;this.render();}
   setVisible(ids){if(ids!==null&&(!Array.isArray(ids)||new Set(ids).size!==ids.length||ids.some(id=>!this.rowSet.has(id))))throw Error('Unknown or duplicate visible ID');this.visible=ids===null?null:new Set(ids);this.render();}
   select(ids){if(!Array.isArray(ids)||new Set(ids).size!==ids.length||ids.some(id=>!this.rowSet.has(id)))throw Error('Unknown or duplicate selected ID');this.selected=new Set(ids);this.renderSelection();}
@@ -111,7 +119,8 @@ class ScatterRenderer{
         if(seen.has(item))continue;seen.add(item);
         if(!this.markShown(item)||!inside(x,y,item.layer.clip))continue;
         const g=item.geometry;let distance,allowed=tolerance,id=item.id,sample=item.sample;
-        if(item.kind==='polygon'){if(!polygonContains(x,y,g))continue;distance=0;}
+        if(item.kind==='image'){const b=item.bounds;distance=Math.hypot(Math.max(b[0]-x,0,x-b[2]),Math.max(b[1]-y,0,y-b[3]));}
+        else if(item.kind==='polygon'){if(!polygonContains(x,y,g))continue;distance=0;}
         else if(item.kind==='circle'){distance=Math.hypot(x-g[0],y-g[1]);allowed+=g[2];}
         else if(item.kind==='rect')distance=Math.hypot(Math.max(g[0]-x,0,x-g[0]-g[2]),Math.max(g[1]-y,0,y-g[1]-g[3]));
         else{
@@ -135,6 +144,12 @@ class ScatterRenderer{
     const groups=this.clips(target,prefix);
     for(const item of selectedOnly?this.selectedItems():this.items){if(!this.markShown(item))continue;
       const g=item.geometry,color=item.color??item.layer.color;let tag=item.kind,attrs;
+      if(tag==='image'){
+        const b=item.bounds;
+        groups[item.layerIndex].append(element(selectedOnly?'rect':'image',selectedOnly?
+          {x:b[0],y:b[1],width:b[2]-b[0],height:b[3]-b[1],fill:'none',stroke:'#bd5636','stroke-width':.4}:
+          {x:g[0],y:g[1],width:g[2],height:g[3],href:item.href}));continue;
+      }
       if(tag==='polygon'){
         groups[item.layerIndex].append(element('path',{d:polygonPath(g),'fill-rule':'evenodd',fill:selectedOnly?'none':color,
           stroke:selectedOnly?'#bd5636':'#ffffff','stroke-width':selectedOnly?.6:.2,'stroke-linejoin':'round'}));continue;
@@ -153,8 +168,14 @@ class ScatterRenderer{
     for(const [n,layer] of this.scene.layers.entries()){ctx.save();ctx.beginPath();ctx.rect(...layer.clip);ctx.clip();
       ctx.fillStyle=layer.color;ctx.lineCap='round';
       for(const item of this.layerItems[n]){
-        if(!this.markShown(item)||(selectedOnly&&!item.ids.some(id=>this.selected.has(id))))continue;
+        if(!this.markShown(item)||(selectedOnly&&(item.highlight===false||!item.ids.some(id=>this.selected.has(id)))))continue;
         const g=item.geometry;ctx.beginPath();ctx.fillStyle=item.color??layer.color;ctx.strokeStyle=selectedOnly?'#bd5636':(item.color??layer.color);
+        if(item.kind==='image'){
+          ctx.globalAlpha=1;
+          if(selectedOnly){const b=item.bounds;ctx.lineWidth=.4;ctx.strokeRect(b[0],b[1],b[2]-b[0],b[3]-b[1]);}
+          else{const drawing=this.drawings.get(item.href);if(drawing?.complete&&drawing.naturalWidth)ctx.drawImage(drawing,...g);}
+          continue;
+        }
         if(item.kind==='polygon'){
           for(const ring of g){ctx.moveTo(...ring[0]);for(const p of ring.slice(1))ctx.lineTo(...p);ctx.closePath();}
           ctx.globalAlpha=1;ctx.lineWidth=selectedOnly?.6:.2;ctx.lineJoin='round';ctx.strokeStyle=selectedOnly?'#bd5636':'#ffffff';
@@ -267,13 +288,13 @@ stage.onpointerdown=e=>{if(busy||e.button!==0)return;stage.focus({preventScroll:
 stage.onpointermove=e=>{if(busy)return;const p=runtime.point(e.clientX,e.clientY);if(!p)return;
   if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>3)moved=true;if(moved){const s=runtime.mapping().scale;action(()=>runtime.setViewport([drag.viewport[0]-dx/s,drag.viewport[1]-dy/s,drag.viewport[2],drag.viewport[3]]));}}
   else{const hit=runtime.pick(p.x,p.y,4/runtime.mapping().scale);
-    const fields=hit?(hit.kind==='polygon'?[hit.layer.value].filter(Boolean):[hit.layer.x,hit.layer.y]):[];
+    const fields=hit?.kind==='image'?[]:hit?(hit.kind==='polygon'?[hit.layer.value].filter(Boolean):[hit.layer.x,hit.layer.y]):[];
     const values=hit?.sample?[`${hit.layer.x}: ${displayValue(hit.sample.x)}`,`${hit.sample.column}: ${displayValue(hit.sample.y)}`]:fields.map((column,axis)=>{
       const derived=axis===1&&hit.layer.derived_y;
       const value=(derived||scene.columns[column])?.[runtime.rowIndex.get(hit.id)];
       return `${derived?'Cumulative fraction':column}: ${displayValue(value)}`;
     });
-    document.getElementById('hover').textContent=hit?[hit.id,...values].join(' · '):'Point at a mark to inspect its row ID.';
+    document.getElementById('hover').textContent=hit?[hit.id,...(hit.description?[hit.description]:[]),...values].join(' · '):'Point at a mark to inspect its row ID.';
   }
 };
 stage.onpointerup=e=>{if(busy||!drag)return;drag=null;if(!moved){const p=runtime.point(e.clientX,e.clientY),hit=p&&runtime.pick(p.x,p.y,4/runtime.mapping().scale);if(hit)toggle(hit.id,e.ctrlKey||e.metaKey||e.shiftKey);}stage.releasePointerCapture(e.pointerId);};
