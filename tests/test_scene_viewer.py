@@ -69,7 +69,7 @@ CHECKS=r'''
 inkletScene.ready.then(async r=>{
  const ok=(value,message)=>{if(!value)throw Error(message);};
  try{
-  const first=r.layers[0];
+  let first=r.layers[0];
   ok(first.actual==='webgl2','WebGL2 path not exercised');
   ok(r.svg.querySelectorAll('foreignObject').length===1,'missing browser surface');
   ok(r.svg.querySelectorAll('[data-source-index]').length===0,'expanded point DOM');
@@ -84,6 +84,9 @@ inkletScene.ready.then(async r=>{
   ok(svg.includes('9007199254740997'),'source identity lost integer precision');
   document.body.dataset.vectorExport=btoa(unescape(encodeURIComponent(svg)));
   ok(doc.querySelectorAll('clipPath').length>0&&doc.querySelectorAll('use').length>0,'export lost native art');
+  // Backend switches may choose different retained backing resolutions.
+  // Start both reference painters at the original viewport for an equal grid.
+  r.setBackend('webgl2');first=r.layers[0];
   const count=r.layers[0].batch.count,initial=new Uint8Array(first.canvas.width*first.canvas.height*4);
   first.gpu.gl.readPixels(0,0,first.canvas.width,first.canvas.height,first.gpu.gl.RGBA,first.gpu.gl.UNSIGNED_BYTE,initial);
   ok(initial.some(v=>v>0),'GPU drew no ink');
@@ -171,7 +174,7 @@ def test_composited_surface_stays_aligned_with_native_svg(tmp_path,backend,dpr,m
     images=[]
     for mode in (backend,'svg'):
         page=tmp_path/f'{mode}.html';picture=tmp_path/f'{mode}.png'
-        check="<script>inkletScene.ready.then(()=>document.body.dataset.stage=JSON.stringify(host.getBoundingClientRect().toJSON()));</script>"
+        check="<script>inkletScene.ready.then(r=>{r.zoom(1.15);r.setViewport(r.original);r.setViewport([r.original[0]+.2,r.original[1]+.3,...r.original.slice(2)]);document.body.dataset.stage=JSON.stringify(host.getBoundingClientRect().toJSON());});</script>"
         page.write_text(drawing(marker=marker).to_html(backend=mode).replace('</body>',check+'</body>'))
         result=subprocess.run([browser,'--headless','--no-sandbox','--enable-unsafe-swiftshader',
                                '--use-gl=angle','--use-angle=swiftshader','--dump-dom',
@@ -220,3 +223,52 @@ def test_self_intersecting_polygon_stays_native_without_internal_alpha_seams():
     batch=MarkerBatchPrim(shape,RECORD.pack(0,0,1,0,0))
     p=payload(i.compile_scene(Diagram(prim=batch,style=Style(stroke='none'))).to_html())
     assert not p['batches'] and 'shape' in p['native'][0]['reason']
+
+
+@pytest.mark.parametrize('backend',['webgl2','canvas'])
+@pytest.mark.parametrize('dpr',[1,2])
+def test_surface_reuse_growth_shrink_and_context_loss(tmp_path,backend,dpr):
+    browser=shutil.which('google-chrome') or shutil.which('chromium')
+    if not browser:pytest.skip('Chrome not installed')
+    checks=r"""<script>
+    inkletScene.ready.then(async r=>{
+      const ok=(v,m)=>{if(!v)throw Error(m);};
+      try{
+        const b=r.original,bytes=r.uploadBytes;
+        r.zoom(1.15);r.setViewport(b);
+        const warmed=r.report();
+        for(let k=0;k<8;k++){
+          const s=k%2?1:1.15;
+          r.setViewport([b[0]+k*.1,b[1],b[2]/s,b[3]/s]);
+        }
+        let report=r.report();
+        ok(report.surfacePaints===warmed.surfacePaints,'small view changes repainted');
+        ok(report.surfaceResizes===warmed.surfaceResizes,'small view changes reallocated');
+        ok(report.reusedSurfaces>warmed.reusedSurfaces,'reuse not reported');
+        r.setViewport([b[0],b[1],b[2]/8,b[3]/8]);
+        const large=r.layers[0].canvas.width*r.layers[0].canvas.height;
+        ok(r.report().surfacePaints>warmed.surfacePaints,'zoom growth did not repaint');
+        ok(r.layers[0].reduced,'extreme zoom did not report resolution limit');
+        for(const layer of r.layers)ok(layer.canvas.width<=4096&&layer.canvas.height<=4096&&layer.canvas.width*layer.canvas.height<=4000000,'surface exceeded budget');
+        r.setViewport(b);
+        ok(r.layers[0].canvas.width*r.layers[0].canvas.height<large,'zoom out did not release excess pixels');
+        ok(!r.layers[0].reduced,'fit did not restore full resolution');
+        ok(r.uploadBytes===bytes,'view changes reuploaded geometry');
+        const painted=r.report().surfacePaints;
+        r.render();ok(r.report().surfacePaints===painted,'unchanged render repainted');
+        if(r.layers[0].gpu){
+          r.layers[0].gpu.gl.getExtension('WEBGL_lose_context').loseContext();
+          r.render();await new Promise(resolve=>setTimeout(resolve,80));
+          ok(r.layers[0].actual==='canvas'&&r.layers[0].painted,'cached surface hid context loss');
+          ok(r.report().surfacePaints>painted,'fallback did not paint');
+        }
+        document.body.dataset.cacheTest='passed';
+      }catch(e){document.body.dataset.cacheTest=e.stack;}
+    });</script>"""
+    page=tmp_path/'cache.html';page.write_text(drawing(marker='star').to_html(backend=backend).replace('</body>',checks+'</body>'))
+    result=subprocess.run([browser,'--headless','--no-sandbox','--enable-unsafe-swiftshader',
+        '--use-gl=angle','--use-angle=swiftshader','--dump-dom','--virtual-time-budget=6000',
+        f'--force-device-scale-factor={dpr}',f'--user-data-dir={tmp_path}/profile',page.as_uri()],
+        capture_output=True,text=True,timeout=40)
+    assert result.returncode==0,result.stderr[-1500:]
+    assert 'data-cache-test="passed"' in result.stdout,re.search(r'<body[^>]*>',result.stdout)[0]

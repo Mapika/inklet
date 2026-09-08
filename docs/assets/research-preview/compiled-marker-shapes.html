@@ -87,11 +87,18 @@ function makeGPU(canvas,batch,allowSoftware=false){
   };
  }catch(error){if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();throw error;}
 }
+function surfaceSize(width,height,canvas,limit){
+ // Reuse sufficient backing resolution until a view needs less than one
+ // quarter of its pixels. Small zoom changes must not reallocate every layer.
+ if(canvas.width>=width&&canvas.height>=height&&width*height>canvas.width*canvas.height/4)return [canvas.width,canvas.height];
+ const w=Math.min(limit,Math.ceil(width/128)*128),h=Math.min(limit,Math.ceil(height/128)*128);
+ return w*h<=4000000?[w,h]:[width,height];
+}
 let viewerCounter=0;
 class CompiledSceneViewer{
  constructor(host,scene){
   if(scene.schema!=='inklet.compiled-viewer/1')throw Error('Unsupported compiled scene');
-  this.host=host;this.scene=scene;this.backend=scene.backend;this.layers=[];this.uploadBytes=0;this.drawCalls=0;this.disposed=false;this.frame=0;
+  this.host=host;this.scene=scene;this.backend=scene.backend;this.layers=[];this.uploadBytes=0;this.drawCalls=0;this.surfacePaints=0;this.surfaceResizes=0;this.reusedSurfaces=0;this.disposed=false;this.frame=0;
   const buffers=scene.buffers.map(data=>Uint8Array.from(atob(data),c=>c.charCodeAt(0)));
   this.batches=scene.batches.map(b=>{const bytes=buffers[b.buffer];if(!bytes||bytes.byteLength!==b.count*36)throw Error('Invalid marker buffer');return {...b,records:new DataView(bytes.buffer)};});
   this.svg=new DOMParser().parseFromString(scene.frame,'image/svg+xml').documentElement;
@@ -126,7 +133,7 @@ class CompiledSceneViewer{
  canvasLayer(layer,reason){
   if(layer.gpu){layer.canvas.removeEventListener('webglcontextlost',layer.lost);layer.gpu.dispose();layer.gpu=null;}
   layer.canvas?.remove();const canvas=surfaceCanvas();layer.foreign.append(canvas);layer.canvas=canvas;
-  layer.context=canvas.getContext('2d');if(!layer.context)throw Error('Canvas 2D unavailable');layer.reason=reason;layer.actual='canvas';
+  layer.context=canvas.getContext('2d');if(!layer.context)throw Error('Canvas 2D unavailable');layer.reason=reason;layer.actual='canvas';layer.painted=false;
  }
  setBackend(name){
   if(!['auto','webgl2','canvas','svg'].includes(name))throw Error('Unsupported backend');
@@ -156,26 +163,33 @@ class CompiledSceneViewer{
  schedule(){if(this.disposed||this.frame)return;this.frame=requestAnimationFrame(()=>{this.frame=0;if(!this.disposed)this.render();});}
  render(){
   if(this.disposed)return;
-  for(const layer of this.layers){
-   if(layer.actual==='svg')continue;
-   const m=layer.foreign.getScreenCTM(),b=layer.batch.box;if(!m)continue;
+  // Read all SVG transforms before changing canvas dimensions: writes must
+  // not force repeated layout while measuring subsequent layers.
+  const placements=this.layers.filter(layer=>layer.actual!=='svg').map(layer=>({layer,m:layer.foreign.getScreenCTM()}));
+  for(const {layer,m} of placements){
+   const b=layer.batch.box;if(!m)continue;
    const scale=Math.max(Math.hypot(m.a,m.b),Math.hypot(m.c,m.d))*64*(devicePixelRatio||1);
    const limit=layer.gpu?.limit||4096;
    const reduction=Math.min(1,limit/(b[2]*scale),limit/(b[3]*scale),Math.sqrt(4000000/(b[2]*b[3]*scale*scale)));
-   const width=Math.max(1,Math.round(b[2]*scale*reduction)),height=Math.max(1,Math.round(b[3]*scale*reduction));
+   const neededWidth=Math.max(1,Math.floor(b[2]*scale*reduction)),neededHeight=Math.max(1,Math.floor(b[3]*scale*reduction));
+   const [width,height]=surfaceSize(neededWidth,neededHeight,layer.canvas,limit);
    layer.reduced=reduction<.999999;
-   if(layer.canvas.width!==width||layer.canvas.height!==height){layer.canvas.width=width;layer.canvas.height=height;}
-   if(layer.gpu){try{layer.gpu.draw();this.drawCalls++;continue;}catch(error){this.canvasLayer(layer,error.message);layer.canvas.width=width;layer.canvas.height=height;}}
+   if(layer.gpu?.gl.isContextLost())this.canvasLayer(layer,'WebGL context lost');
+   const resized=layer.canvas.width!==width||layer.canvas.height!==height;
+   if(resized){if(layer.canvas.width!==width)layer.canvas.width=width;if(layer.canvas.height!==height)layer.canvas.height=height;this.surfaceResizes++;}
+   if(layer.painted&&!resized){this.reusedSurfaces++;continue;}
+   if(layer.gpu){try{layer.gpu.draw();layer.painted=true;this.surfacePaints++;this.drawCalls++;continue;}catch(error){this.canvasLayer(layer,error.message);layer.canvas.width=width;layer.canvas.height=height;}}
    const ctx=layer.context;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,width,height);ctx.setTransform(width/b[2],0,0,height/b[3],-b[0]*width/b[2],-b[1]*height/b[3]);
    const data=layer.batch.records;
    for(let k=0;k<layer.batch.count;k++){const o=k*36,c=layer.batch.palette[data.getUint32(o+24,true)];if(!c[3])continue;ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.globalAlpha=c[3];ctx.beginPath();const x=data.getFloat64(o,true),y=data.getFloat64(o+8,true),size=data.getFloat64(o+16,true),vertices=layer.batch.vertices;
     if(vertices.length){for(const [j,p] of vertices.entries())ctx[j?'lineTo':'moveTo'](x+p[0]*size,y+p[1]*size);ctx.closePath();}
     else ctx.arc(x,y,size*layer.batch.radius,0,Math.PI*2);
     ctx.fill(layer.batch.fill_rule);}
+   layer.painted=true;this.surfacePaints++;
   }
   this.host.dispatchEvent(new CustomEvent('inklet-render',{detail:this.report()}));
  }
- report(){return {backend:this.backend,layers:this.layers.map(l=>({backend:l.actual,count:l.batch.count,reason:l.reason,renderer:l.gpu?.renderer||null,reducedResolution:!!l.reduced})),native:this.scene.native,uploadBytes:this.uploadBytes,drawCalls:this.drawCalls};}
+ report(){return {backend:this.backend,layers:this.layers.map(l=>({backend:l.actual,count:l.batch.count,reason:l.reason,renderer:l.gpu?.renderer||null,reducedResolution:!!l.reduced,surfacePixels:l.canvas?l.canvas.width*l.canvas.height:0})),native:this.scene.native,uploadBytes:this.uploadBytes,drawCalls:this.drawCalls,surfacePaints:this.surfacePaints,surfaceResizes:this.surfaceResizes,reusedSurfaces:this.reusedSurfaces};}
  setViewport(v){
   if(!Array.isArray(v)||v.length!==4||v.some(n=>typeof n!=='number'||!Number.isFinite(n))||v[2]<=0||v[3]<=0)throw Error('Invalid viewport');
   const b=this.original;

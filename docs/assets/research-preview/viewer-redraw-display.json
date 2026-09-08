@@ -1,0 +1,12 @@
+{
+  "mean_rgb_error": [
+    0.8344789272030652,
+    0.7943256704980843,
+    0.8159818007662836
+  ],
+  "size": [
+    1392,
+    750
+  ],
+  "description": "Hardware WebGL screenshot after zoom to 1.15 and fit with retained resolution, against SVG mode; RGB units 0\u2013255."
+}

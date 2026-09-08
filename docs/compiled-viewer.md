@@ -76,10 +76,19 @@ The viewer reports the actual backend per layer, fallback reasons, optional
 browser-reported renderer identity, buffer uploads and WebGL draw submissions through
 `inkletScene.report()`. Browser privacy settings can hide renderer identity;
 context availability alone does not prove that a physical GPU is being used.
+`surfacePaints`, `surfaceResizes` and `reusedSurfaces` are cumulative counters
+for actual surface paints, dimension changes and reused layers. Each layer also
+reports its current `surfacePixels`. These are work and pixel counts, not GPU
+memory or execution-time measurements.
 
 At most eight WebGL contexts are allocated per viewer. Additional eligible
 layers use Canvas. Each backing surface is capped at four million pixels and
-4,096 pixels per dimension, or the lower WebGL limit. The status reports when
+4,096 pixels per dimension, or the lower WebGL limit. Surfaces grow in 128-pixel
+steps where the pixel budget permits. A sufficient backing buffer is retained
+until the requested area falls to one quarter of its allocated pixels; larger
+zoom-outs shrink it. Unchanged local geometry is painted only when its surface
+resolution changes. Pan and small zoom changes reuse the rendered layer while
+SVG applies the view transform. The status reports when
 zoom requires reduced display resolution. Context loss switches the affected
 layer to Canvas; choosing a renderer again can retry initialization.
 
@@ -154,7 +163,7 @@ pixel stage and device-pixel ratio 1. A composited hardware screenshot differs
 from SVG mode by at most 1.15 mean RGB units on the 0–255 scale; dense marker
 edges use different antialiasing. The downloadable SVG remains vector.
 
-Seven warm viewport changes, measured after the test suite completed:
+Before surface retention, seven warm viewport changes measured:
 
 | Backend | Median synchronous submission | Median time through two frame callbacks | New uploads |
 | --- | ---: | ---: | ---: |
@@ -162,11 +171,11 @@ Seven warm viewport changes, measured after the test suite completed:
 | Canvas | 8.5 ms | 37.3 ms | 0 bytes |
 
 The frame-callback measurement does not isolate GPU execution time.
-This workload is **slower with WebGL2 than Canvas** on this machine. Hardware
-availability is not a performance result. Five independent contexts, surface
-compositing and driver synchronization are candidates for profiling; the study
-does not isolate their individual costs. The next performance work should
-measure shared-context rendering before expanding the number of GPU layers.
+That implementation was **slower with WebGL2 than Canvas** on this machine.
+The follow-up profile found canvas dimension setters responsible for about
+310 ms across seven zoom changes. Error polling took about 21 ms and SVG
+transform reads about 7 ms. Instrumentation adds overhead; these totals identify
+where time was spent rather than providing independent GPU execution timings.
 
 [Hardware samples and renderer report](assets/research-preview/compiled-markers-hardware.json) ·
 [Hardware display comparison](assets/research-preview/compiled-markers-display.json)
@@ -177,6 +186,49 @@ The browser was launched with `--use-gl=angle --use-angle=gl
 not requirements for exported figures. WSL's OpenGL path is described in
 [Microsoft's GPU selection guide](https://github.com/microsoft/wslg/wiki/GPU-selection-in-WSLg)
 and the [Mesa D3D12 documentation](https://docs.mesa3d.org/drivers/d3d12.html).
+
+## Redraw reuse measurements
+
+The updated viewer reads layer transforms before writing surface dimensions,
+retains sufficient backing resolution and skips painting unchanged local
+geometry. Clipping, transforms and compositing continue to follow the SVG tree.
+GPU allocation and draw-error checks remain on actual paints, and context loss
+still switches cached layers to Canvas.
+
+Nine warm changes per workload on the same hardware and five-panel figure:
+
+| Backend and workload | Previous median submission | Updated median submission |
+| --- | ---: | ---: |
+| WebGL2, alternating 1× / 1.15× zoom | 47.8 ms | 0.5 ms |
+| WebGL2, pan | 4.3 ms | 0.3 ms |
+| WebGL2, unchanged viewport | 4.5 ms | 0.3 ms |
+| Canvas, alternating zoom | 7.6 ms | 0.4 ms |
+| Canvas, pan | 6.6 ms | 0.3 ms |
+| Canvas, unchanged viewport | 7.3 ms | 0.3 ms |
+
+These are **warm surface reuse** results, excluding startup and initial growth.
+There were no surface paints, resizes or geometry uploads during the updated
+measured loops. Time through two frame callbacks was about 33 ms; it is not
+an isolated GPU timer or a maximum-frame-rate measurement. Zooming beyond the
+retained resolution still allocates and paints, subject to the same size caps.
+This does not establish the performance of new data, meshes or shared contexts.
+
+The hardware screenshot after zooming and fitting has less than 0.84 mean RGB
+error against SVG mode on a 0–255 scale. Automated checks cover reuse, growth,
+shrinkage, pixel limits, context loss, and native alignment at DPR 1 and 2.
+
+[Before samples](assets/research-preview/viewer-redraw-before.json) ·
+[After samples](assets/research-preview/viewer-redraw-after.json) ·
+[Instrumented profile](assets/research-preview/viewer-redraw-profile.json) ·
+[Display comparison](assets/research-preview/viewer-redraw-display.json) ·
+[Benchmark script](../tools/benchmark_scene_redraw.js) ·
+[Profile script](../tools/profile_scene_redraw.js)
+
+Run the benchmark on a saved figure before and after changing the runtime:
+
+```bash
+agent-browser eval --stdin < tools/benchmark_scene_redraw.js
+```
 
 ## Next work
 

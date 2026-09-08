@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Retain compiled-viewer backing surfaces across pans and small zoom changes,
+  repaint only when resolution changes, and shrink after large zoom-outs.
+  Read all SVG transforms before changing canvas dimensions. Preserve the
+  existing pixel budgets, native compositing, vector export and error fallback.
+- Report surface paints, resizes, reuse and allocated pixel counts. Add hardware
+  before/after profiles and regressions for reuse, resolution growth, shrinking
+  and context loss. Warm small-zoom submission falls from 47.8 ms to 0.5 ms in
+  the measured five-panel RTX 5090 workload; startup and growth are excluded.
+
 - Accelerate filled square, triangle, diamond and star marker batches in the
   compiled-scene viewer. Preserve exact polygon geometry, per-point sizes and
   colours, winding rules, paint order, clipping and vector SVG download.
