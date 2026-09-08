@@ -1,0 +1,1693 @@
+{
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+  "dpr": 1,
+  "viewport": [
+    1440,
+    1000
+  ],
+  "stage": {
+    "x": 24,
+    "y": 127.5,
+    "width": 1392,
+    "height": 750,
+    "top": 127.5,
+    "right": 1416,
+    "bottom": 877.5,
+    "left": 24
+  },
+  "result": [
+    {
+      "backend": "webgl2",
+      "initialization_ms": 190.69999998807907,
+      "before": {
+        "backend": "webgl2",
+        "layers": [
+          {
+            "backend": "webgl2",
+            "count": 250000,
+            "reason": null,
+            "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+            "reducedResolution": false,
+            "surfacePixels": 573440,
+            "visible": true,
+            "displayBox": [
+              -41.10703148785827,
+              -31.10170775323091,
+              82.21193578743447,
+              62.210861307875135
+            ],
+            "candidateCount": 250000,
+            "selectionCapacityBytes": 1000000
+          }
+        ],
+        "native": [],
+        "uploadBytes": 16056320,
+        "drawCalls": 2,
+        "surfacePaints": 2,
+        "surfaceResizes": 2,
+        "reusedSurfaces": 2,
+        "markersSubmitted": 500000,
+        "selectionUploadBytes": 0,
+        "spatialIndexBytes": 0,
+        "spatialIndexes": 0
+      },
+      "samples": [
+        {
+          "repeat": 0,
+          "position": 0.3,
+          "submission_ms": 96.40000000596046,
+          "two_frames_ms": 108.2999999821186,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 3,
+            "surfacePaints": 3,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2,
+            "markersSubmitted": 516999,
+            "selectionUploadBytes": 67996,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.4,
+          "submission_ms": 4,
+          "two_frames_ms": 32.5,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 16997,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 4,
+            "surfacePaints": 4,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2,
+            "markersSubmitted": 533996,
+            "selectionUploadBytes": 135984,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.5,
+          "submission_ms": 1.4000000059604645,
+          "two_frames_ms": 33.70000001788139,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 5,
+            "surfacePaints": 5,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2,
+            "markersSubmitted": 551074,
+            "selectionUploadBytes": 204296,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.6,
+          "submission_ms": 7.5999999940395355,
+          "two_frames_ms": 33.099999994039536,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17041,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 6,
+            "surfacePaints": 6,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2,
+            "markersSubmitted": 568115,
+            "selectionUploadBytes": 272460,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.7,
+          "submission_ms": 1.300000011920929,
+          "two_frames_ms": 33.30000001192093,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17083,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 7,
+            "surfacePaints": 7,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2,
+            "markersSubmitted": 585198,
+            "selectionUploadBytes": 340792,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.5,
+          "submission_ms": 1.5999999940395355,
+          "two_frames_ms": 33.79999998211861,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 8,
+            "surfacePaints": 8,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2,
+            "markersSubmitted": 602276,
+            "selectionUploadBytes": 409104,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.3,
+          "submission_ms": 1.9000000059604645,
+          "two_frames_ms": 32.80000001192093,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 9,
+            "surfacePaints": 9,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2,
+            "markersSubmitted": 619275,
+            "selectionUploadBytes": 477100,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.3,
+          "submission_ms": 0.30000001192092896,
+          "two_frames_ms": 33.400000005960464,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 9,
+            "surfacePaints": 9,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3,
+            "markersSubmitted": 619275,
+            "selectionUploadBytes": 477100,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.4,
+          "submission_ms": 5,
+          "two_frames_ms": 34.19999998807907,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 16997,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 10,
+            "surfacePaints": 10,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3,
+            "markersSubmitted": 636272,
+            "selectionUploadBytes": 545088,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.5,
+          "submission_ms": 1.300000011920929,
+          "two_frames_ms": 32.80000001192093,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 11,
+            "surfacePaints": 11,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3,
+            "markersSubmitted": 653350,
+            "selectionUploadBytes": 613400,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.6,
+          "submission_ms": 1.199999988079071,
+          "two_frames_ms": 33.400000005960464,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17041,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 12,
+            "surfacePaints": 12,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3,
+            "markersSubmitted": 670391,
+            "selectionUploadBytes": 681564,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.7,
+          "submission_ms": 1.4000000059604645,
+          "two_frames_ms": 32.69999998807907,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17083,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 13,
+            "surfacePaints": 13,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3,
+            "markersSubmitted": 687474,
+            "selectionUploadBytes": 749896,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.5,
+          "submission_ms": 1.300000011920929,
+          "two_frames_ms": 34.400000005960464,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 14,
+            "surfacePaints": 14,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3,
+            "markersSubmitted": 704552,
+            "selectionUploadBytes": 818208,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.3,
+          "submission_ms": 2.5999999940395355,
+          "two_frames_ms": 32.400000005960464,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 15,
+            "surfacePaints": 15,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3,
+            "markersSubmitted": 721551,
+            "selectionUploadBytes": 886204,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.3,
+          "submission_ms": 0.29999998211860657,
+          "two_frames_ms": 33.19999998807907,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 15,
+            "surfacePaints": 15,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 721551,
+            "selectionUploadBytes": 886204,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.4,
+          "submission_ms": 1.300000011920929,
+          "two_frames_ms": 33.70000001788139,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 16997,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 16,
+            "surfacePaints": 16,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 738548,
+            "selectionUploadBytes": 954192,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.5,
+          "submission_ms": 1.0999999940395355,
+          "two_frames_ms": 33.79999998211861,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 17,
+            "surfacePaints": 17,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 755626,
+            "selectionUploadBytes": 1022504,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.6,
+          "submission_ms": 1.5,
+          "two_frames_ms": 33.20000001788139,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17041,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 18,
+            "surfacePaints": 18,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 772667,
+            "selectionUploadBytes": 1090668,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.7,
+          "submission_ms": 1.5999999940395355,
+          "two_frames_ms": 32.69999998807907,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17083,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 19,
+            "surfacePaints": 19,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 789750,
+            "selectionUploadBytes": 1159000,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.5,
+          "submission_ms": 3.0999999940395355,
+          "two_frames_ms": 33.30000001192093,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 20,
+            "surfacePaints": 20,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 806828,
+            "selectionUploadBytes": 1227312,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.3,
+          "submission_ms": 1.0999999940395355,
+          "two_frames_ms": 33.5,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 1000000
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 21,
+            "surfacePaints": 21,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 823827,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        }
+      ]
+    },
+    {
+      "backend": "canvas",
+      "initialization_ms": 394.69999998807907,
+      "before": {
+        "backend": "canvas",
+        "layers": [
+          {
+            "backend": "canvas",
+            "count": 250000,
+            "reason": null,
+            "renderer": null,
+            "reducedResolution": false,
+            "surfacePixels": 573440,
+            "visible": true,
+            "displayBox": [
+              -41.10703148785827,
+              -31.10170775323091,
+              82.21193578743447,
+              62.210861307875135
+            ],
+            "candidateCount": 250000,
+            "selectionCapacityBytes": 0
+          }
+        ],
+        "native": [],
+        "uploadBytes": 16056320,
+        "drawCalls": 22,
+        "surfacePaints": 23,
+        "surfaceResizes": 5,
+        "reusedSurfaces": 4,
+        "markersSubmitted": 1323827,
+        "selectionUploadBytes": 1295308,
+        "spatialIndexBytes": 0,
+        "spatialIndexes": 0
+      },
+      "samples": [
+        {
+          "repeat": 0,
+          "position": 0.3,
+          "submission_ms": 24.80000001192093,
+          "two_frames_ms": 199.69999998807907,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 24,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 1340826,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.4,
+          "submission_ms": 11.5,
+          "two_frames_ms": 67.30000001192093,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 16997,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 25,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 1357823,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.5,
+          "submission_ms": 12.900000005960464,
+          "two_frames_ms": 49.900000005960464,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 26,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 1374901,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.6,
+          "submission_ms": 12.599999994039536,
+          "two_frames_ms": 32.80000001192093,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17041,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 27,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 1391942,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.7,
+          "submission_ms": 14.599999994039536,
+          "two_frames_ms": 50.19999998807907,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17083,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 28,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 1409025,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.5,
+          "submission_ms": 11.400000005960464,
+          "two_frames_ms": 33.099999994039536,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 29,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 1426103,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.3,
+          "submission_ms": 15.300000011920929,
+          "two_frames_ms": 49.80000001192093,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 30,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4,
+            "markersSubmitted": 1443102,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.3,
+          "submission_ms": 0.5,
+          "two_frames_ms": 33.599999994039536,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 30,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5,
+            "markersSubmitted": 1443102,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.4,
+          "submission_ms": 10.600000023841858,
+          "two_frames_ms": 33.10000002384186,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 16997,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 31,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5,
+            "markersSubmitted": 1460099,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.5,
+          "submission_ms": 9.899999976158142,
+          "two_frames_ms": 33.39999997615814,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 32,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5,
+            "markersSubmitted": 1477177,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.6,
+          "submission_ms": 11.5,
+          "two_frames_ms": 33.80000001192093,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17041,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 33,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5,
+            "markersSubmitted": 1494218,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.7,
+          "submission_ms": 12.300000011920929,
+          "two_frames_ms": 33.20000001788139,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17083,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 34,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5,
+            "markersSubmitted": 1511301,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.5,
+          "submission_ms": 11.399999976158142,
+          "two_frames_ms": 49.29999998211861,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 35,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5,
+            "markersSubmitted": 1528379,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.3,
+          "submission_ms": 11.900000005960464,
+          "two_frames_ms": 49.900000005960464,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 36,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5,
+            "markersSubmitted": 1545378,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.3,
+          "submission_ms": 0.30000001192092896,
+          "two_frames_ms": 33.599999994039536,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 36,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6,
+            "markersSubmitted": 1545378,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.4,
+          "submission_ms": 9.900000005960464,
+          "two_frames_ms": 34.20000001788139,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 16997,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 37,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6,
+            "markersSubmitted": 1562375,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.5,
+          "submission_ms": 10.5,
+          "two_frames_ms": 32.900000005960464,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 38,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6,
+            "markersSubmitted": 1579453,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.6,
+          "submission_ms": 10.299999982118607,
+          "two_frames_ms": 32.79999998211861,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17041,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 39,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6,
+            "markersSubmitted": 1596494,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.7,
+          "submission_ms": 10.700000017881393,
+          "two_frames_ms": 50.5,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 17083,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 40,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6,
+            "markersSubmitted": 1613577,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.5,
+          "submission_ms": 10.400000005960464,
+          "two_frames_ms": 33.599999994039536,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ],
+                "candidateCount": 17078,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 41,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6,
+            "markersSubmitted": 1630655,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.3,
+          "submission_ms": 10.400000005960464,
+          "two_frames_ms": 32.30000001192093,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ],
+                "candidateCount": 16999,
+                "selectionCapacityBytes": 0
+              }
+            ],
+            "native": [],
+            "uploadBytes": 16056320,
+            "drawCalls": 22,
+            "surfacePaints": 42,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6,
+            "markersSubmitted": 1647654,
+            "selectionUploadBytes": 1295308,
+            "spatialIndexBytes": 1316412,
+            "spatialIndexes": 1
+          }
+        }
+      ]
+    }
+  ],
+  "workload": "250000 deterministic simulated markers; three passes through moving 8x windows. Fresh index per backend. RTX 5090 Laptop GPU via WSL/D3D12."
+}

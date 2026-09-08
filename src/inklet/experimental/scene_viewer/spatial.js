@@ -20,19 +20,33 @@ class MarkerIndex{
   for(let c=0;c<cells;c++)offsets[c+1]=offsets[c]+counts[c];
   const cursor=offsets.slice();for(let k=0;k<n;k++)indices[cursor[bins[k]]++]=k;
   this.bounds=bounds;this.offsets=offsets;this.indices=indices;
-  this.bytes=bounds.byteLength+offsets.byteLength+indices.byteLength;
+  // One bit per source row preserves paint order without a JS result array
+  // and comparison sort. Returned selections own their storage independently.
+  this.selected=new Uint32Array(Math.ceil(n/32));
+  this.bytes=bounds.byteLength+offsets.byteLength+indices.byteLength+this.selected.byteLength;
  }
  query(box){
-  const [x,y,w,h]=box,right=x+w,bottom=y+h,found=[],view=this.batch.records,unit=this.batch.bounds;
+  const [x,y,w,h]=box,right=x+w,bottom=y+h,view=this.batch.records,unit=this.batch.bounds,bits=this.selected;
+  bits.fill(0);let count=0;
   for(let c=0;c<this.offsets.length-1;c++){
    const j=c*4,b=this.bounds;
    if(b[j]>right||b[j+1]>bottom||b[j+2]<x||b[j+3]<y)continue;
+   const contained=b[j]>=x&&b[j+1]>=y&&b[j+2]<=right&&b[j+3]<=bottom;
    for(let p=this.offsets[c];p<this.offsets[c+1];p++){
-    const k=this.indices[p],o=k*36,px=view.getFloat64(o,true),py=view.getFloat64(o+8,true),size=view.getFloat64(o+16,true);
-    if(px+unit[0]*size<=right&&py+unit[1]*size<=bottom&&px+unit[2]*size>=x&&py+unit[3]*size>=y)found.push(k);
+    const k=this.indices[p];
+    if(!contained){
+     const o=k*36,px=view.getFloat64(o,true),py=view.getFloat64(o+8,true),size=view.getFloat64(o+16,true);
+     if(px+unit[0]*size>right||py+unit[1]*size>bottom||px+unit[2]*size<x||py+unit[3]*size<y)continue;
+    }
+    bits[k>>>5]|=1<<(k&31);count++;
    }
   }
-  // Spatial order must never replace source paint order.
-  return found.length===this.batch.count?null:Uint32Array.from(found).sort();
+  if(count===this.batch.count)return null;
+  const found=new Uint32Array(count);let cursor=0;
+  for(let w=0;w<bits.length;w++){
+   let word=bits[w];
+   while(word){const bit=31-Math.clz32(word&-word);found[cursor++]=w*32+bit;word=(word&(word-1))>>>0;}
+  }
+  return found;
  }
 }

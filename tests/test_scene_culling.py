@@ -58,6 +58,18 @@ def test_index_matches_brute_force_in_source_order_and_is_shared(tmp_path):
           ok(candidates===null,'degenerate grid axis lost markers');
           ok(flat.query([200,200,1,1]).length===0,'empty query retained markers');
         }
+        // Reused scratch storage must never mutate a selection already held
+        // by another placement or a pending GPU upload.
+        const held=index.query([-5,-5,10,10]),snapshot=[...held];
+        index.query([-100,-100,200,200]);index.query([200,200,1,1]);
+        ok(JSON.stringify([...held])===JSON.stringify(snapshot),'later query mutated an earlier selection');
+        // Bits at signed-word boundaries and a final partial word retain order.
+        const edgeCount=97,edgeData=new DataView(new ArrayBuffer(edgeCount*36));
+        for(let k=0;k<edgeCount;k++){edgeData.setFloat64(k*36,k,true);edgeData.setFloat64(k*36+16,.1,true);}
+        const edge=new MarkerIndex({...batch,count:edgeCount,records:edgeData});
+        const edgeRows=edge.query([30,-1,66,2]);
+        ok(JSON.stringify([...edgeRows])===JSON.stringify(Array.from({length:67},(_,k)=>k+30)),'bitmap word boundary lost or reordered rows');
+        ok(edge.bytes===edge.bounds.byteLength+edge.offsets.byteLength+edge.indices.byteLength+edge.selected.byteLength,'index byte count omitted scratch space');
         const touching=index.query([-1,-1,2,2]);ok(touching.includes(0),'large marker with outside center was lost');
         r.candidates(batch,[-1,-1,2,2],500,500);const bytes=r.report().spatialIndexBytes;
         r.candidates(r.batches[1],[-1,-1,2,2],500,500);

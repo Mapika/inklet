@@ -21,8 +21,12 @@ A packed grid assigns each marker center to one cell. Each cell stores the
 bounding box of its full marker footprints. Queries check those bounds and
 then individual footprints, including large markers whose centers lie outside
 the query. A one-backing-pixel margin retains antialiasing at the window edge.
-The selected row indices are sorted into their original paint order before
-rendering, preserving translucent overlaps.
+A reusable bitmap marks selected source rows. Reading its set bits in row order
+produces an exact-size `Uint32Array`, preserving translucent overlaps without a
+temporary JavaScript result array or comparison sort. Cells wholly contained in
+the query contribute all their rows without rereading individual footprints.
+Returned selections own their storage, so subsequent queries cannot mutate an
+array retained by another placement or GPU upload.
 
 The index is built lazily, shared by placements with the same source buffer and
 unit bounds, and retained across backend changes. Small batches and windows
@@ -73,7 +77,8 @@ compositing. These results describe this workload and machine.
 There is an explicit memory cost: GPU source records now use 32 bytes each plus
 texture row padding, compared with the previous 28-byte attributes. The GPU
 candidate buffer reserves another four bytes per record. For 250,000 markers,
-the shared CPU grid occupies 1,285,160 bytes; the GPU row-index capacity is
+the original shared CPU grid occupied 1,285,160 bytes; the query optimization
+adds 31,252 bytes of reusable bitmap storage (1,316,412 bytes total); the GPU row-index capacity is
 1,000,000 bytes. Typical windows upload roughly 68 KB of row indices. Original
 36-byte packed records and native 64-bit source IDs remain unchanged.
 
@@ -81,6 +86,51 @@ the shared CPU grid occupies 1,285,160 bytes; the GPU row-index capacity is
 [After samples](assets/research-preview/viewer-culling-after.json) ·
 [GPU timer before](assets/research-preview/viewer-culling-gpu-before.json) ·
 [GPU timer after](assets/research-preview/viewer-culling-gpu-after.json)
+
+## Query optimization
+
+The bitmap follow-up specifically reduces CPU query and ordering costs. A
+standalone Node study uses deterministic uniform point clouds with varying
+marker sizes, five warm-up queries and fifteen measured queries per case.
+These measurements call the index directly; they exclude rendering, index
+construction and GPU uploads.
+
+| Dataset / query region | Previous median | Bitmap median |
+| --- | ---: | ---: |
+| 250,000 points / 50 × 50 of a 200 × 200 domain | 0.845 ms | 0.251 ms |
+| 1,000,000 points / 50 × 50 | 5.253 ms | 0.629 ms |
+| 1,000,000 points / 150 × 150 | 51.099 ms | 3.504 ms |
+| 1,000,000 points / 1 × 1 | 0.023 ms | 0.042 ms |
+
+Larger candidate sets benefit most. Tiny queries become slightly slower because
+the bitmap is cleared and scanned. Retained bitmap storage is one bit per row,
+rounded to a whole 32-bit word: 125 KB for one million points. This replaces
+per-query temporary JavaScript result arrays; it does not remove the returned
+row-index array. No cache of past queries is retained.
+
+A separate Chrome comparison uses the same 250,000-point moving-window study
+as above. Median WebGL submission falls from **3.2 to 1.4 ms** in this run;
+Canvas submission changes from **11.7 to 11.05 ms**. These include query work
+and rendering submission and are distinct from the Node timings. GPU geometry,
+index-upload format and draw work are unchanged. Run-to-run variation means the
+small Canvas difference should not be treated as a reliable speedup.
+
+[Standalone before](assets/research-preview/marker-index-before.json) ·
+[Standalone after](assets/research-preview/marker-index-after.json) ·
+[Browser before](assets/research-preview/marker-index-browser-before.json) ·
+[Browser after](assets/research-preview/marker-index-browser-after.json) ·
+[Standalone benchmark](../tools/benchmark_marker_index.mjs)
+
+```bash
+node tools/benchmark_marker_index.mjs
+# Compare a saved earlier index:
+git show a6f1885:src/inklet/experimental/scene_viewer/spatial.js > out/previous-index.js
+node tools/benchmark_marker_index.mjs out/previous-index.js
+```
+
+Regression checks cover source-row bits at 31/32 and 63/64, partial final words,
+full and empty queries, and selections retained across subsequent queries.
+The existing brute-force and rendered-image comparisons remain unchanged.
 
 ## Inspect and reproduce
 

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Build ordered marker candidates with a reusable bitmap instead of temporary
+  JavaScript result arrays and comparison sorting. Accept fully contained grid
+  cells without rechecking each footprint, preserving source paint order and
+  independently owned result arrays.
+- Measure 250,000- and million-point index queries and browser submission.
+  The million-point zoom query falls from 5.253 to 0.629 ms in the standalone
+  study; tiny queries are slightly slower. Retained bitmap storage adds one bit
+  per row. Add word-boundary and query-result ownership regressions.
+
 - Cull individual packed markers with a shared spatial index of full marker
   footprints. Preserve source order, antialiasing margins and vector exports.
   Canvas paints candidates; WebGL2 fetches immutable records using compact
