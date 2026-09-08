@@ -170,9 +170,12 @@ geometry replacement, retained label offsets and two-width exports. This bounded
 box workflow does not close the mesh, camera, editing or constraint gates.
 The [calibrated image measurement report](scientific-report.md) now adds labeled
 pixel correspondence, source measurements, missing intensities, calibration
-revisions and reproducible scientific exports. Volume/mesh and field interaction,
-external microscopy adapters for this browser model, and general editing
-constraints remain open. [Shared plotting quality](plot-quality.md) also improves numeric
+revisions and reproducible scientific exports. The [linked mesh-field report](mesh-fields.md)
+adds supplied scalar/vector face fields, exact triangle picking in XY plans,
+calibrated arrows, geometry revisions and a fixed-camera native 3D reference.
+Contours, streamlines, depth-aware 3D selection, volume interaction, external
+microscopy adapters for this browser model and general editing constraints
+remain open. [Shared plotting quality](plot-quality.md) also improves numeric
 ticks across static plots and browser frames.
 
 

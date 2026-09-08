@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add immutable triangle meshes with supplied scalar/vector face fields, units,
+  source digests, geometric measurements and strict table correspondence.
+  Link equal-scale plan views, triangle picking and calibrated vector arrows
+  to plots, with fixed bins and explicit missing/zero-vector behavior.
+- Add a mesh-field report with a native vector 3D reference, geometry/value/removal
+  revisions, JSON replacement, saved states and exports at two physical widths.
+  Preserve scalar colors by disabling lighting modulation in the 3D data view.
+
 - Add calibrated label-image measurements with explicit region correspondence,
   missing-intensity semantics, immutable source snapshots and source digests.
   Link lossless reference images to pixel-accurate region selection and plots,
