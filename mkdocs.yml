@@ -97,6 +97,7 @@ nav:
   - Linked lines, bars and scatter: linked-plots.md
   - Linked category panels: linked-facets.md
   - pandas and Polars inputs: table-inputs.md
+  - Linked dates and time series: time-series.md
   - Linked region maps: linked-maps.md
   - Real world map: world-map.md
   - Replace figure data: data-revisions.md

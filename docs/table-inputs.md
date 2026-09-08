@@ -77,7 +77,8 @@ aggregation, interpolation or row removal takes place during import.
 | String categorical or enum values | Strings; category metadata and unused levels are not retained |
 | Positive or negative infinity | Error naming the column and zero-based row |
 | Integers outside `[-(2**53-1), 2**53-1]` | Error; represent identifiers or exact large values as strings explicitly |
-| Dates, timestamps, durations, decimals, complex numbers, nested cells | Error; convert explicitly or omit the column |
+| Dates and timestamps | Require explicit `time_columns`; see [linked time series](time-series.md) |
+| Durations, decimals, complex numbers, nested cells | Error; convert explicitly or omit the column |
 
 These rules account for [pandas missing-value representations](https://pandas.pydata.org/docs/user_guide/missing_data.html)
 and [Polars' distinction between null and NaN](https://docs.pola.rs/user-guide/expressions/missing-data/).
@@ -136,5 +137,5 @@ call `figure.replace_data(new_table, state=saved_state)`. See
 Saved state can move between adapters when their normalized inputs and measured
 scene match exactly. Revisions with changed contents require explicit rebasing.
 
-This increment adds scalar table import. Automatic date-aware browser axes,
-grouped summaries and statistical views remain upcoming work.
+[Linked time series](time-series.md) now add explicit calendar/UTC axes and
+opt-in temporal columns. Grouped summaries and statistical views remain upcoming.

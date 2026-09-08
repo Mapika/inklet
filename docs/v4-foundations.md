@@ -53,7 +53,8 @@ existing APIs and numeric types.
 
 The later [pandas and Polars input increment](table-inputs.md) adds optional
 scalar DataFrame adapters with explicit keys and missing-value normalization.
-Dates and nested cells still require author conversion.
+[Linked time series](time-series.md) adds explicit temporal column conversion;
+nested cells still require author conversion.
 
 `SelectionState` uses schema `inklet.selection/0.1` and includes the table name,
 content digest, selected IDs and optional visible IDs. Reordering or replacing

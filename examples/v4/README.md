@@ -22,8 +22,8 @@ The [regional map example](../../docs/linked-maps.md) now supplies geographic
 polygon rendering, arbitrary ID filters and direct picking.
 
 The later browser examples below provide category panels, direct picking,
-page zoom and compiled data revisions. Distribution views, date-aware browser
-axes and arbitrary browser data uploads remain outstanding. This original
+page zoom, compiled data revisions and calendar/UTC axes. Distribution views
+and arbitrary browser data uploads remain outstanding. This original
 finite-state HTML remains an experiment in selection/export fidelity.
 
 ```sh
@@ -222,3 +222,19 @@ python examples/v4/table_inputs.py --backend polars --revised --state /path/to/v
 ```
 
 Use `--revised` only for states saved with the corrected revision active.
+
+## Linked time series
+
+`time_series.py` connects simulated daily batch counts on a calendar-date axis
+with processing duration at offset-aware collection times. UTC conversion is
+explicit. An elapsed-time threshold leaves a gap at an absent day; a null value
+breaks both incident segments. A compiled revision restores both observations.
+
+```sh
+python examples/v4/time_series.py --output out/v4-time
+python examples/v4/time_series.py --backend pandas --output out/v4-time-pandas
+python examples/v4/time_series.py --backend polars --revised --state /path/to/view.json --output out/v4-time-restored
+```
+
+The default native path needs no DataFrame dependencies. Use `--revised` only
+for states saved while the Restored revision was active.

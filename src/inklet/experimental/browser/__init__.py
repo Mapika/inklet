@@ -6,6 +6,7 @@ clips marks to measured plot areas, and preserves explicit row identities.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from decimal import Decimal
 import hashlib
 import html
 import json
@@ -17,6 +18,8 @@ from xml.etree import ElementTree as ET
 from ...core import resolve
 from ..selection import KeyedTable, SelectionState
 from .regions import GeoRegions
+from .timeaxis import TimeAxis
+from ..temporal import time_milliseconds
 
 SCHEMA = 'inklet.browser-scatter/0.1'
 STATE_SCHEMA = 'inklet.browser-view/0.1'
@@ -35,12 +38,12 @@ def _box(value):
 
 @dataclass(frozen=True)
 class _CartesianView:
-    """Shared fixed linear axes for measured browser views."""
+    """Shared fixed numeric or explicit temporal axes for measured views."""
     name: str
     x: str
     y: str
-    x_domain: tuple[float, float]
-    y_domain: tuple[float, float]
+    x_domain: tuple[float, float] | TimeAxis
+    y_domain: tuple[float, float] | TimeAxis
     x_label: str = ''
     y_label: str = ''
 
@@ -52,6 +55,8 @@ class _CartesianView:
         if any(not isinstance(v,str) for v in (self.x_label,self.y_label)):
             raise ValueError('axis labels must be strings')
         for name in ('x_domain','y_domain'):
+            if isinstance(getattr(self,name),TimeAxis):
+                continue
             domain=tuple(getattr(self,name))
             if len(domain)!=2 or not all(_finite(v) for v in domain) or domain[0]==domain[1] or not math.isfinite(domain[1]-domain[0]):
                 raise ValueError('linear domains need two distinct finite endpoints')
@@ -81,11 +86,17 @@ class LineView(_CartesianView):
     """
     line_width_mm: float = .45
     color: str = '#34786b'
+    max_gap_seconds: float | None = field(default=None, kw_only=True)
 
     def __post_init__(self):
         super().__post_init__()
         if not _finite(self.line_width_mm) or not 0 < self.line_width_mm <= 10:
             raise ValueError('line width must be positive and at most 10 mm')
+        if self.max_gap_seconds is not None:
+            if not _finite(self.max_gap_seconds) or self.max_gap_seconds <= 0:
+                raise ValueError('max_gap_seconds must be finite and positive')
+            if not isinstance(self.x_domain,TimeAxis):
+                raise ValueError('max_gap_seconds requires a temporal x axis')
 
 
 @dataclass(frozen=True)
@@ -107,6 +118,8 @@ class BarView(_CartesianView):
         if not _finite(self.baseline): raise ValueError('baseline must be finite')
         if self.orientation not in ('vertical', 'horizontal'):
             raise ValueError('bar orientation must be vertical or horizontal')
+        if isinstance(self.y_domain if self.orientation=='vertical' else self.x_domain,TimeAxis):
+            raise ValueError('bars support a temporal position axis, not a temporal value axis')
 
 
 @dataclass(frozen=True)
@@ -281,6 +294,7 @@ class BrowserFigure:
         if type(columns) is not int or not 1<=columns<=4: raise ValueError('columns must be from 1 to 4')
         doc=i.document(width=width,columns=columns,gap=9,margin=6,
                        share_plot_margins=bool(facet_groups)).letters()
+        coordinates={}
         for index,view in enumerate(views):
             if isinstance(view,RegionView):
                 if set(view.regions.feature_ids)!=set(table.row_ids):
@@ -298,12 +312,28 @@ class BrowserFigure:
                 entries=view._legend(any(v is None for v in table.columns[view.value]) if view.value else False)
                 if entries: p.legend(entries=entries,side='bottom',title=view.value_label or view.value,markup=False)
             else:
-                for column in (view.x,view.y):
+                for axis,column in (('x',view.x),('y',view.y)):
                     if column not in table.columns: raise ValueError(f'unknown column: {column}')
-                    if any(v is not None and not _finite(v) for v in table.columns[column]):
-                        raise ValueError(f'coordinate column {column!r} must be numeric or null')
-                p=i.plot_spec(x=view.x_domain,y=view.y_domain,height=58)
-                p.axes(x=view.x_label or view.x,y=view.y_label or view.y)
+                    domain=getattr(view,axis+'_domain')
+                    if isinstance(domain,TimeAxis):
+                        values=[]
+                        for row,value in enumerate(table.columns[column]):
+                            try:
+                                milliseconds=time_milliseconds(value,domain.mode)
+                                values.append(None if milliseconds is None else (milliseconds-domain.milliseconds[0])/1000)
+                            except ValueError as error:
+                                raise ValueError(f'coordinate column {column!r}, row {row}: {error}') from error
+                        coordinates[view.name,axis]=values
+                    else:
+                        if any(v is not None and not _finite(v) for v in table.columns[column]):
+                            raise ValueError(f'coordinate column {column!r} must be numeric or null')
+                        coordinates[view.name,axis]=table.columns[column]
+                p=i.plot_spec(x=view.x_domain.scale() if isinstance(view.x_domain,TimeAxis) else view.x_domain,
+                              y=view.y_domain.scale() if isinstance(view.y_domain,TimeAxis) else view.y_domain,height=58)
+                labels={axis:(getattr(view,axis+'_label') or getattr(view,axis)) +
+                        (' / UTC' if isinstance(getattr(view,axis+'_domain'),TimeAxis) and
+                         getattr(view,axis+'_domain').mode=='utc' else '') for axis in ('x','y')}
+                p.axes(**labels)
                 if view.name in facet_metadata:
                     p.title(i.text(facet_metadata[view.name]['label'],markup=False))
             doc.add(view.name,p,row=index//columns,column=index%columns)
@@ -325,23 +355,29 @@ class BrowserFigure:
             bounds=[round(v,6) for v in bounds]
             if isinstance(view,RegionView):
                 layers.append(_region_layer(view,table,bounds));continue
+            xd=(0,(view.x_domain.milliseconds[1]-view.x_domain.milliseconds[0])/1000) if isinstance(view.x_domain,TimeAxis) else view.x_domain
+            yd=(0,(view.y_domain.milliseconds[1]-view.y_domain.milliseconds[0])/1000) if isinstance(view.y_domain,TimeAxis) else view.y_domain
             def project(x,y):
-                px=bounds[0]+(x-view.x_domain[0])/(view.x_domain[1]-view.x_domain[0])*bounds[2]
-                py=bounds[1]+(1-(y-view.y_domain[0])/(view.y_domain[1]-view.y_domain[0]))*bounds[3]
+                px=bounds[0]+(x-xd[0])/(xd[1]-xd[0])*bounds[2]
+                py=bounds[1]+(1-(y-yd[0])/(yd[1]-yd[0]))*bounds[3]
                 if not math.isfinite(px) or not math.isfinite(py): raise ValueError('projected coordinate overflow')
                 return [round(px,6),round(py,6)]
-            points=[]; missing=0; marks=[]; previous=None
+            points=[]; missing=0; marks=[]; previous=None; previous_x=None; gap_count=0
+            gap_ms=(Decimal(str(view.max_gap_seconds))*1000 if isinstance(view,LineView)
+                    and view.max_gap_seconds is not None else None)
             for n in facet_rows.get(view.name,range(len(table.row_ids))):
-                key,x,y=table.row_ids[n],table.columns[view.x][n],table.columns[view.y][n]
+                key,x,y=table.row_ids[n],coordinates[view.name,'x'][n],coordinates[view.name,'y'][n]
                 if x is None or y is None:
                     missing+=1; previous=None; continue
                 px,py=project(x,y)
                 points.append([key,px,py])
                 if isinstance(view,LineView):
+                    if previous is not None and gap_ms is not None and abs(round(x*1000)-round(previous_x*1000))>gap_ms:
+                        previous=None;gap_count+=1
                     if previous is not None:
                         marks.append(dict(kind='line',ids=[previous[0],key],
                                           geometry=[*previous[1:],px,py],width=view.line_width_mm))
-                    previous=[key,px,py]
+                    previous=[key,px,py];previous_x=x
                 elif isinstance(view,BarView):
                     if view.orientation=='vertical':
                         a,b=project(x-view.bar_width/2,view.baseline),project(x+view.bar_width/2,y)
@@ -351,6 +387,11 @@ class BrowserFigure:
                     if box[2] and box[3]: marks.append(dict(kind='rect',ids=[key],geometry=box))
             layer=dict(name=view.name,x=view.x,y=view.y,clip=bounds,points=points,
                        color=view.color,missing=missing)
+            time_axes={axis:getattr(view,axis+'_domain').metadata() for axis in ('x','y')
+                       if isinstance(getattr(view,axis+'_domain'),TimeAxis)}
+            if time_axes: layer['time_axes']=time_axes
+            if isinstance(view,LineView) and view.max_gap_seconds is not None:
+                layer['max_gap_seconds']=view.max_gap_seconds;layer['time_gaps']=gap_count
             if view.name in facet_metadata: layer['facet']=facet_metadata[view.name]
             if isinstance(view,ScatterView): layer['radius']=view.radius_mm
             else: layer['marks']=marks

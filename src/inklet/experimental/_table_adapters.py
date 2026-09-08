@@ -48,7 +48,33 @@ def _scalar(value, column, row, key):
     return value
 
 
-def pandas_columns(frame, *, key, columns):
+def _time_columns(time_columns, chosen, key):
+    if time_columns is None:
+        return {}
+    if not isinstance(time_columns, Mapping):
+        raise ValueError('time_columns must map selected non-key column names to date or utc')
+    result = dict(time_columns)
+    for column, mode in result.items():
+        if not isinstance(column, str) or column not in chosen:
+            raise ValueError(f'time column {column!r} must be a selected column')
+        if column == key:
+            raise ValueError('time_columns cannot convert the key column')
+        if not isinstance(mode, str) or mode not in ('date', 'utc'):
+            raise ValueError(f'time column {column!r}: mode must be date or utc')
+    return result
+
+
+def _time_scalar(value, mode, column, row):
+    from .temporal import time_value
+    if value is None or (type(value) is float and math.isnan(value)):
+        return None
+    try:
+        return time_value(value, mode)
+    except ValueError as error:
+        raise ValueError(f'column {column!r}, row {row}: {error}') from error
+
+
+def pandas_columns(frame, *, key, columns, time_columns=None):
     try:
         import pandas as pd
     except ImportError as error:
@@ -57,6 +83,7 @@ def pandas_columns(frame, *, key, columns):
         raise TypeError('from_pandas requires a pandas DataFrame')
     import numpy as np  # pandas already requires NumPy; never loaded by core use.
     chosen = _headers(frame.columns, columns, key)
+    temporal = _time_columns(time_columns, chosen, key)
     result = {}
     for column in chosen:
         values = []
@@ -70,12 +97,19 @@ def pandas_columns(frame, *, key, columns):
                     value = None
             elif isinstance(value, np.generic):
                 value = value.item()
-            values.append(_scalar(value, column, row, key))
+            if column in temporal:
+                # Timestamp.isoformat preserves nanoseconds so the shared
+                # parser can reject precision that a Python datetime would lose.
+                if isinstance(value, pd.Timestamp) and temporal[column] == 'utc':
+                    value = value.isoformat()
+                values.append(_time_scalar(value, temporal[column], column, row))
+            else:
+                values.append(_scalar(value, column, row, key))
         result[column] = values
     return result
 
 
-def polars_columns(frame, *, key, columns):
+def polars_columns(frame, *, key, columns, time_columns=None):
     try:
         import polars as pl
     except ImportError as error:
@@ -83,8 +117,21 @@ def polars_columns(frame, *, key, columns):
     if not isinstance(frame, pl.DataFrame):
         raise TypeError('from_polars requires an eager Polars DataFrame; collect lazy inputs explicitly')
     chosen = _headers(frame.columns, columns, key)
-    return {
-        column: [_scalar(value, column, row, key)
-                 for row, value in enumerate(frame.get_column(column).to_list())]
-        for column in chosen
-    }
+    temporal = _time_columns(time_columns, chosen, key)
+    result = {}
+    for column in chosen:
+        series = frame.get_column(column)
+        if column in temporal:
+            if isinstance(series.dtype, pl.Datetime) and series.dtype.time_unit == 'ns':
+                # to_list converts to Python datetime, truncating nanoseconds.
+                # Inspect the original integer representation first.
+                for row, value in enumerate(series.cast(pl.Int64).to_list()):
+                    if value is not None and value % 1_000_000:
+                        raise ValueError(f'column {column!r}, row {row}: '
+                                         'timestamps require millisecond precision')
+            result[column] = [_time_scalar(value, temporal[column], column, row)
+                              for row, value in enumerate(series.to_list())]
+        else:
+            result[column] = [_scalar(value, column, row, key)
+                              for row, value in enumerate(series.to_list())]
+    return result

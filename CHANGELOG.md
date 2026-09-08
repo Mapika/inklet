@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add experimental calendar-date and UTC axes to linked plots, with measured
+  calendar/millisecond ticks, explicit offset and precision rules, temporal bar
+  widths and optional elapsed-time line gaps. Add opt-in temporal DataFrame
+  columns, exact millisecond geometry and a simulated daily-batch revision
+  workflow with browser/Python export parity checks.
+
 - Add optional experimental pandas and Polars adapters for keyed tables, with
   explicit string IDs, column selection, immutable scalar snapshots and missing
   value normalization. Reject unsupported cells with column/row diagnostics.

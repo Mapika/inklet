@@ -65,6 +65,7 @@ jobs:
           .venv/bin/python examples/v4/browser_scatter.py --count 3000 --output out/v4-browser
           .venv/bin/python examples/v4/linked_dashboard.py --output out/v4-dashboard
           .venv/bin/python examples/v4/faceted_operations.py --output out/v4-facets
+          .venv/bin/python examples/v4/time_series.py --output out/v4-time
           .venv/bin/python examples/v4/regional_analysis.py --output out/v4-regions
           .venv/bin/python examples/v4/region_shapes.py --output out/v4-region-shapes
           .venv/bin/python examples/v4/world_population.py --output out/v4-world
@@ -127,13 +128,16 @@ jobs:
           uv pip install -e '.[dev]' 'pandas==2.2.0' 'polars==1.0.0' 'numpy==1.26.4'
       - name: Table contracts and cross-library figure reconstruction
         run: |
-          .venv/bin/python -m pytest -q tests/test_table_adapters.py tests/test_v4_selection.py
+          .venv/bin/python -m pytest -q tests/test_table_adapters.py tests/test_temporal_adapters.py tests/test_v4_selection.py
           .venv/bin/python examples/v4/table_inputs.py --backend pandas --output out/pandas
           .venv/bin/python examples/v4/table_inputs.py --backend polars --state out/pandas/view.json --output out/polars
           cmp out/pandas/figure.svg out/polars/figure.svg
           .venv/bin/python examples/v4/table_inputs.py --backend pandas --revised --output out/pandas-revised
           .venv/bin/python examples/v4/table_inputs.py --backend polars --revised --state out/pandas-revised/view.json --output out/polars-revised
           cmp out/pandas-revised/figure.svg out/polars-revised/figure.svg
+          .venv/bin/python examples/v4/time_series.py --backend pandas --output out/time-pandas
+          .venv/bin/python examples/v4/time_series.py --backend polars --state out/time-pandas/view.json --output out/time-polars
+          cmp out/time-pandas/figure.svg out/time-polars/figure.svg
 
   wheel:
     runs-on: ${{ matrix.os }}

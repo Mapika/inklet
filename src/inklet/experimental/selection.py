@@ -72,25 +72,32 @@ class KeyedTable:
         object.__setattr__(self, 'digest', hashlib.sha256(payload.encode()).hexdigest())
 
     @classmethod
-    def from_pandas(cls, name, frame, *, key='id', columns=None):
+    def from_pandas(cls, name, frame, *, key='id', columns=None, time_columns=None):
         """Snapshot a pandas DataFrame; ignore its index and require a string key.
 
         Select columns explicitly to omit unsupported cells. Missing scalars
-        become None; dates and nested values require author conversion first.
+        become None. Map selected non-key columns to 'date' or 'utc' with
+        time_columns for explicit ISO conversion; UTC timestamps must have
+        a timezone and millisecond precision. Other unsupported values require
+        author conversion first.
         Imports pandas only when called. Available in the 4.0 research preview.
         """
         from ._table_adapters import pandas_columns
-        return cls(name, pandas_columns(frame, key=key, columns=columns), key=key)
+        return cls(name, pandas_columns(frame, key=key, columns=columns,
+                                        time_columns=time_columns), key=key)
 
     @classmethod
-    def from_polars(cls, name, frame, *, key='id', columns=None):
+    def from_polars(cls, name, frame, *, key='id', columns=None, time_columns=None):
         """Snapshot an eager Polars DataFrame with an explicit string key.
 
         Null and NaN become None. Lazy frames must be collected by the author;
-        dates and nested values require conversion. Imports Polars when called.
+        map selected non-key time_columns to 'date' or 'utc' for ISO conversion.
+        UTC timestamps require a timezone and millisecond precision. Other
+        unsupported values require author conversion. Imports Polars when called.
         """
         from ._table_adapters import polars_columns
-        return cls(name, polars_columns(frame, key=key, columns=columns), key=key)
+        return cls(name, polars_columns(frame, key=key, columns=columns,
+                                        time_columns=time_columns), key=key)
 
     def subset(self, ids):
         """Return columns in source order, rejecting IDs absent from this table."""

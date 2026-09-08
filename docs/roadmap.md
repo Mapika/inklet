@@ -150,8 +150,9 @@ regional analysis figure. [Data revisions](data-revisions.md) now preserve valid
 selections through Python replacement and browser switching. [Category panels](linked-facets.md)
 add explicit facets with shared physical scales and empty-category retention.
 [pandas and Polars inputs](table-inputs.md) now add immutable scalar snapshots
-with explicit keys and equivalent cross-library exports. Date-aware browser
-axes, statistical views and the complete reference workflows remain outstanding.
+with explicit keys and equivalent cross-library exports. [Linked time series](time-series.md)
+add calendar/UTC axes, temporal table imports and explicit elapsed-time gaps.
+Statistical views and the complete reference workflows remain outstanding.
 
 
 Start phase A with a small, reviewable sequence:

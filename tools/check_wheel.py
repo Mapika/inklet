@@ -28,6 +28,11 @@ for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_pola
         raise AssertionError('Table adapter silently loaded an optional dependency')
 from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption, FacetView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
+from inklet.experimental.browser import TimeAxis
+timed = KeyedTable('dates', {'id':['a','b'], 'day':['2024-02-29','2024-03-01'], 'value':[1,2]})
+time_scene = BrowserFigure(timed, [LineView('time','day','value',TimeAxis(('2024-02-28','2024-03-02')),(0,3),max_gap_seconds=86400)])
+assert time_scene.payload()['layers'][0]['time_gaps'] == 0
+assert '<line' in time_scene.to_svg() and ' / UTC' not in time_scene.to_html()
 browser_scene = BrowserScatter(keyed, [ScatterView('scatter','x','y',(0,1),(0,3))])
 assert 'class ScatterRenderer' in browser_scene.to_html()
 assert '<circle' in browser_scene.to_svg()
