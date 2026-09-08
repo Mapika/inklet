@@ -110,11 +110,12 @@ def test_pdf_gives_the_fill_and_the_stroke_their_own_alphas():
     assert "/GS0 gs" in content(pdf)
 
 
-def test_pdf_multiplies_a_paint_opacity_into_the_group_opacity():
-    """SVG and PDF both define these as multiplying, so a band inside a
-    subtree faded to 50% is 10% and not 20%."""
+def test_pdf_preserves_paint_opacity_inside_a_faded_fill_and_stroke_group():
+    """Fade the composed band once, including its overlapping fill and stroke."""
     faded = Diagram(children=(band(),), style=Style(opacity=0.5))
-    assert "/ca 0.1 /CA 0.5" in to_pdf(faded, compress=False).decode("latin-1")
+    pdf = to_pdf(faded, compress=False).decode("latin-1")
+    assert '/S /Transparency' in pdf
+    assert '/ca 0.2 /CA 1' in pdf and '/ca 0.5 /CA 0.5' in pdf
 
 
 def test_a_plain_group_opacity_still_writes_one_alpha_pair():

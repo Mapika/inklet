@@ -16,7 +16,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-CASES = ('grid64','scatter30000','images64')
+CASES = ('grid64','scatter30000','images64','groups32')
 
 
 def workload(name):
@@ -49,6 +49,22 @@ def workload(name):
         for j in range(64):
             doc.add(f'image-{j}',i.Diagram(prim=ImagePrim('simulated',28,28,data=data.getvalue())),
                     row=j//8,column=j%8)
+        return doc
+    if name == 'groups32':
+        # Nested opacity must composite overlapping children as a group.
+        # Labels exercise painted glyph bounds as well as primitive traversal.
+        from inklet.core import Diagram, RectPrim
+        marks = []
+        for j in range(64):
+            x, y = (j % 8)*16, (j // 8)*10
+            marks.append(Diagram(prim=RectPrim(15,9)).styled(
+                fill='#d5e9f4',stroke='#0072b2',stroke_width=.4).translated(x,y))
+            marks.append(i.text(f'Value {j}',size=2.2,halo=.3).translated(x,y))
+        root = Diagram(children=tuple(marks))
+        for _ in range(32):
+            root = Diagram(children=(root,),style=i.Style(opacity=.99))
+        doc = i.document(width=140,margin=5)
+        doc.add('nested-groups',root)
         return doc
     raise ValueError(name)
 
@@ -83,6 +99,8 @@ def main():
     parser.add_argument('--source',type=Path,default=ROOT)
     parser.add_argument('--output',type=Path,default=ROOT/'out/engine-benchmark.json')
     parser.add_argument('--repeat',type=int,default=3)
+    parser.add_argument('--case',choices=CASES,action='append',
+                        help='Run only selected workloads; repeat to select several')
     parser.add_argument('--worker',choices=CASES,help=argparse.SUPPRESS)
     args=parser.parse_args()
     if args.repeat < 1:parser.error('--repeat must be positive')
@@ -91,7 +109,7 @@ def main():
         print(json.dumps(measure(args.worker)))
         return
     records=[]
-    for name in CASES:
+    for name in args.case or CASES:
         runs=[]
         for _ in range(args.repeat):
             result=subprocess.run([sys.executable,__file__,'--source',str(args.source.resolve()),'--worker',name],

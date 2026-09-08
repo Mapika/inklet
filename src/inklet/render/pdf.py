@@ -1,14 +1,10 @@
 """PDF output for `inklet`.
 
-Where SVG mirrors the tree so a designer can keep editing it, PDF is the
-*shipping* format: what a journal wants attached to the submission and what a
-printer imposes. Nothing downstream of it will be restyled, so this backend
-takes the opposite decisions all the way down. It walks `core.flatten()` rather
-than the tree, because a PDF content stream has no grouping worth the name; and
-it outlines every glyph, because embedding a font subset would trade a solved
-problem -- geometry that draws identically anywhere -- for a smaller file and a
-new class of failure. `inklet.render.outline` is the same machinery the SVG
-`text="outline"` mode uses, so the two backends draw the same figure.
+The backend traverses the drawing tree, preserving opacity and blending groups
+as PDF transparency forms. A page-scoped analysis reuses painted bounds and
+distinguishes single paints from overlapping operations within one primitive.
+Text is outlined by default or embedded as already-shaped glyphs on request;
+both modes share geometry and font measurement with SVG.
 
 The writer is deliberately dependency-free: a PDF is a handful of dictionaries,
 one content stream and a cross-reference table, and pulling in a rendering
@@ -43,6 +39,7 @@ from ..core.style import EMPTY_STYLE, Style
 from ..core.units import mm as to_mm
 from ..themes.color import parse_color
 from .glyphs import PlacedGlyph, placed_glyphs, to_path
+from .analysis import CompositingAnalysis
 from .pdftext import FontShelf, show_text, text_runs, to_unicode_cmap, widths_array
 
 __all__ = ["to_pdf", "save_pdf", "PDF_TEXT_MODES"]
@@ -183,11 +180,13 @@ class _Content:
 
     def __init__(self, precision: int, shared: _Resources, *,
                  text: str = "outline",
-                 paper: str = DEFAULT_PAPER) -> None:
+                 paper: str = DEFAULT_PAPER,
+                 analysis: CompositingAnalysis | None = None) -> None:
         self.precision = precision
         self.ops: list[str] = []
         self.shared = shared
         self.paper = paper
+        self.analysis = analysis if analysis is not None else CompositingAnalysis()
         # Carried on the stream rather than threaded through every emitter:
         # it is a setting of the whole document, and a transparency group's
         # stream has to inherit it unchanged.
@@ -197,7 +196,7 @@ class _Content:
         """A separate stream -- a transparency group's -- with the same
         settings and the same shared resources."""
         return _Content(self.precision, self.shared,
-                        text=self.text_mode, paper=self.paper)
+                        text=self.text_mode, paper=self.paper, analysis=self.analysis)
 
     def n(self, value: float) -> str:
         return _fmt(value, self.precision)
@@ -546,9 +545,16 @@ def _image_object(prim: ImagePrim) -> tuple[bytes, bytes, bytes | None]:
             raw = data if data is not None else Path(prim.source).read_bytes()
             return (_image_dict(width, height, space, "DCTDecode",
                                 _smooth(prim)), raw, None)
-        bands = image.getbands()
-        alpha = image.getchannel("A").tobytes() if "A" in bands else None
-        pixels = image.convert("RGB").tobytes()
+        # PNG transparency can live in tRNS metadata instead of an alpha band:
+        # a palette index/table, grayscale key or RGB colour key. Resolve it
+        # before discarding the palette or converting the colour channels.
+        if "A" in image.getbands() or "transparency" in image.info:
+            rgba = image.convert("RGBA")
+            alpha = rgba.getchannel("A").tobytes()
+            pixels = rgba.convert("RGB").tobytes()
+        else:
+            alpha = None
+            pixels = image.convert("RGB").tobytes()
 
     if alpha is not None and min(alpha) == 255:
         alpha = None            # fully opaque: an /SMask would cost bytes and do nothing
@@ -630,23 +636,9 @@ def _canvas(root: Diagram, width, height, margin: float) -> tuple[Rect, float, f
     return content, page_w, page_h
 
 
-def _drawables(node: Diagram) -> int:
-    """How many primitives the subtree actually inks. Stops at two, because
-    the only question asked of it is whether translucent children can overlap
-    each other."""
-    count = 0
-    for descendant in node.walk():
-        if descendant.prim is not None and not isinstance(descendant.prim, PhantomPrim):
-            count += 1
-            if count > 1:
-                return count
-    return count
-
-
-def _world_box(node: Diagram, world: Affine, style: Style) -> Rect:
+def _world_box(c: _Content, node: Diagram, world: Affine, style: Style) -> Rect:
     """The subtree's bounding box in page millimetres, for a form's `/BBox`."""
-    from .bounds import painted_bounds
-    return painted_bounds(node, world, style) or Rect(0., 0., 0., 0.)
+    return c.analysis.bounds(node, world, style) or Rect(0., 0., 0., 0.)
 
 
 def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
@@ -660,10 +652,9 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
     value and loses the product -- so the PDF backend walks the tree itself.
 
     A group that inks more than once becomes a PDF transparency group, which
-    is the same composite-then-paint rule. A group with a single drawable
-    under it cannot overlap itself, so its alpha is simply multiplied into
-    that one shape: the common case (a whole figure faded, one translucent
-    box) costs nothing and its bytes do not move.
+    is the same composite-then-paint rule. A single paint can take the group
+    alpha directly. Filled-and-stroked shapes, text runs/halos and painted
+    brushes may overlap internally, so counting primitives alone is insufficient.
     """
     world = parent @ node.transform
     style = node.style.over(inherited)
@@ -673,7 +664,7 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
         mode=node.notes['blend_mode']
         inner=c.child()
         _emit_contents(inner,node,world,style,1.)
-        name=c.shared.form(inner.render(),_world_box(node,world,style),isolated=True)
+        name=c.shared.form(inner.render(),_world_box(c,node,world,style),isolated=True)
         state=c.shared.blends.setdefault(mode,f'BM{len(c.shared.blends)}')
         c.op('q');c.op(f'/{state}','gs')
         if alpha*(1. if own is None else own) < 1:
@@ -682,10 +673,10 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
         return
 
     if own is not None and own < 1.0:
-        if _drawables(node) > 1:
+        if c.analysis.paint_count(node, style) > 1:
             inner = c.child()
             _emit_contents(inner, node, world, style, 1.0)
-            name = c.shared.form(inner.render(), _world_box(node, world, style))
+            name = c.shared.form(inner.render(), _world_box(c, node, world, style))
             c.op("q")
             c.op(f"/{c.alpha(alpha * own)}", "gs")
             c.op(f"/{name}", "Do")

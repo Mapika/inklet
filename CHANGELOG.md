@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Correct PDF compositing for individual filled-and-stroked shapes, text halos
+  and vector brushes: group opacity fades their combined paint once.
+- Preserve palette and color-key PNG transparency in PDF, including partial
+  palette alpha and file-backed images.
+- Reuse subtree painted bounds and paint-count analysis within each PDF page
+  export; nested transparency groups no longer remeasure the same glyphs for
+  every ancestor. Keep inherited style/transform contexts separate and discard
+  the caches after export.
+- Add an illustrated compositing review, independent SVG/Poppler comparisons
+  and a nested-group workload to the rendering benchmark and CI checks.
+
 ## 4.0.0.dev1 — 2026-09-08
 
 First installable 4.0 development preview. This collects the linked-document,

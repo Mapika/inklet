@@ -1,4 +1,6 @@
 """Conservative painted bounds, separate from measured layout envelopes."""
+from __future__ import annotations
+
 from ..core import ImagePrim, PathPrim, PhantomPrim, Rect, TextPrim
 from .brushes import PaintedPrim
 from .paint import MITER_LIMIT
@@ -11,8 +13,17 @@ def painted_bounds(node, world, style):
     may deliberately reserve less or more space than the ink; they cannot be
     used as clipping bounds for a PDF transparency group.
     """
+    box = primitive_bounds(node.prim, world, style)
+    for child in node.children:
+        other = painted_bounds(child, world @ child.transform, child.style.over(style))
+        if other is not None:
+            box = other if box is None else box.union(other)
+    return box
+
+
+def primitive_bounds(prim, world, style):
+    """Conservative ink bounds for one primitive, without tree traversal."""
     box = None
-    prim = node.prim
     if prim is not None and not isinstance(prim, PhantomPrim):
         shape = prim.shape if isinstance(prim, PaintedPrim) else prim
         if isinstance(shape, TextPrim):
@@ -37,8 +48,4 @@ def painted_bounds(node, world, style):
             local = shape.envelope().bbox() if shape is not None else None
         if local is not None:
             box = Rect(local.x0-pad,local.y0-pad,local.x1+pad,local.y1+pad).transform(world)
-    for child in node.children:
-        other = painted_bounds(child, world @ child.transform, child.style.over(style))
-        if other is not None:
-            box = other if box is None else box.union(other)
     return box

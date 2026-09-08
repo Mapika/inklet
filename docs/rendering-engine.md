@@ -1,5 +1,9 @@
 # Rendering and layout review
 
+For the unreleased work after 4.0.0.dev1, see the illustrated
+[transparency and compositing review](compositing.md), including PNG alpha,
+single-primitive opacity and nested PDF export measurements.
+
 Inklet 3.1 improves dense raster plots, repeated-image
 exports, fixed-component reuse and nested layout. It also fixes a PDF clipping
 defect: transparency groups now include the full painted stroke and text halo,

@@ -134,6 +134,7 @@ nav:
   - Release checks: release-checks.md
   - Logo and brand assets: brand.md
   - Engine measurements: rendering-engine.md
+  - Transparency and compositing: compositing.md
   - Design and history:
     - Proposed 4.0 engine: design/v4.md
     - Browser backend decision: design/browser-backends.md

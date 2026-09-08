@@ -1,0 +1,143 @@
+{
+  "schema": "inklet.engine-benchmark/1",
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "processor": "x86_64",
+  "repeat": 3,
+  "cases": [
+    {
+      "case": "groups32",
+      "version": "4.0.0.dev1",
+      "runs": [
+        {
+          "case": "groups32",
+          "version": "4.0.0.dev1",
+          "compile_seconds": 0.06527068800642155,
+          "cached_seconds": 6.242800736799836e-05,
+          "svg_seconds": 0.12472711701411754,
+          "pdf_seconds": 0.10404211102286354,
+          "reexport_seconds": 0.08820970400120132,
+          "svg_bytes": 153590,
+          "pdf_bytes": 37405,
+          "peak_rss_mib": 55.76953125,
+          "nodes": 290,
+          "builds": 0,
+          "diagnostics": 0
+        },
+        {
+          "case": "groups32",
+          "version": "4.0.0.dev1",
+          "compile_seconds": 0.061091107985703275,
+          "cached_seconds": 5.5566022638231516e-05,
+          "svg_seconds": 0.08788440498756245,
+          "pdf_seconds": 0.09792224399279803,
+          "reexport_seconds": 0.08557674899930134,
+          "svg_bytes": 153590,
+          "pdf_bytes": 37405,
+          "peak_rss_mib": 55.64453125,
+          "nodes": 290,
+          "builds": 0,
+          "diagnostics": 0
+        },
+        {
+          "case": "groups32",
+          "version": "4.0.0.dev1",
+          "compile_seconds": 0.06441720700240694,
+          "cached_seconds": 5.3369993111118674e-05,
+          "svg_seconds": 0.08275544800562784,
+          "pdf_seconds": 0.09738260897574946,
+          "reexport_seconds": 0.08870660100365058,
+          "svg_bytes": 153590,
+          "pdf_bytes": 37405,
+          "peak_rss_mib": 55.51953125,
+          "nodes": 290,
+          "builds": 0,
+          "diagnostics": 0
+        }
+      ],
+      "median": {
+        "compile_seconds": 0.06441720700240694,
+        "cached_seconds": 5.5566022638231516e-05,
+        "svg_seconds": 0.08788440498756245,
+        "pdf_seconds": 0.09792224399279803,
+        "reexport_seconds": 0.08820970400120132,
+        "svg_bytes": 153590,
+        "pdf_bytes": 37405,
+        "peak_rss_mib": 55.64453125,
+        "nodes": 290,
+        "builds": 0,
+        "diagnostics": 0
+      }
+    },
+    {
+      "case": "grid64",
+      "version": "4.0.0.dev1",
+      "runs": [
+        {
+          "case": "grid64",
+          "version": "4.0.0.dev1",
+          "compile_seconds": 0.7759187899937388,
+          "cached_seconds": 0.006797506008297205,
+          "svg_seconds": 0.20036523399176076,
+          "pdf_seconds": 0.05999199900543317,
+          "reexport_seconds": 0.09622452600160614,
+          "svg_bytes": 1386357,
+          "pdf_bytes": 28382,
+          "peak_rss_mib": 95.23046875,
+          "nodes": 4162,
+          "builds": 192,
+          "diagnostics": 0
+        },
+        {
+          "case": "grid64",
+          "version": "4.0.0.dev1",
+          "compile_seconds": 0.6649374160042498,
+          "cached_seconds": 0.006813079991843551,
+          "svg_seconds": 0.1796602999966126,
+          "pdf_seconds": 0.062298961012857035,
+          "reexport_seconds": 0.09376197998062707,
+          "svg_bytes": 1386357,
+          "pdf_bytes": 28382,
+          "peak_rss_mib": 95.2265625,
+          "nodes": 4162,
+          "builds": 192,
+          "diagnostics": 0
+        },
+        {
+          "case": "grid64",
+          "version": "4.0.0.dev1",
+          "compile_seconds": 0.671503654011758,
+          "cached_seconds": 0.006630608986597508,
+          "svg_seconds": 0.18320507000316866,
+          "pdf_seconds": 0.059247425000648946,
+          "reexport_seconds": 0.09372516899020411,
+          "svg_bytes": 1386357,
+          "pdf_bytes": 28382,
+          "peak_rss_mib": 95.109375,
+          "nodes": 4162,
+          "builds": 192,
+          "diagnostics": 0
+        }
+      ],
+      "median": {
+        "compile_seconds": 0.671503654011758,
+        "cached_seconds": 0.006797506008297205,
+        "svg_seconds": 0.18320507000316866,
+        "pdf_seconds": 0.05999199900543317,
+        "reexport_seconds": 0.09376197998062707,
+        "svg_bytes": 1386357,
+        "pdf_bytes": 28382,
+        "peak_rss_mib": 95.2265625,
+        "nodes": 4162,
+        "builds": 192,
+        "diagnostics": 0
+      }
+    }
+  ],
+  "source_sha256": "08f34c33c2ad8aa12ead9157d16ca7ef8a26ad512efe70e58e8f97671495d3f4",
+  "dependencies": {
+    "fonttools": "4.64.0",
+    "uharfbuzz": "0.56.1",
+    "Pillow": "12.3.0"
+  }
+}
