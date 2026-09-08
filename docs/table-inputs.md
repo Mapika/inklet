@@ -1,8 +1,10 @@
 # pandas and Polars inputs
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Create an immutable `KeyedTable` directly from a pandas or Polars DataFrame,
 then use it in linked plots, facets or joined maps. These adapters are available
-in the development checkout under `inklet.experimental.selection`;
+in the 4.0.0.dev1 preview under `inklet.experimental.selection`;
 they are **not in PyPI 3.1.0**.
 
 ![Four linked panels showing completed units and turnaround for two simulated workshop benches](assets/v4/table-inputs.png)

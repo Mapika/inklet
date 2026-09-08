@@ -45,10 +45,10 @@ Blender. Scene creation and rendering run Blender in a separate process.
 
 ## Known boundaries
 
-### Development-only table adapters
+### Development-preview table adapters
 
-The [pandas and Polars adapters](table-inputs.md) are experimental checkout
-features, not part of PyPI 3.1.0. Their `pandas` and `polars` extras are separate
+The [pandas and Polars adapters](table-inputs.md) are included in the experimental
+[4.0.0.dev1 preview](development-preview.md), not in stable 3.1.0. Their `pandas` and `polars` extras are separate
 from core dependencies. The adapter CI jobs use Linux/Python 3.12 with pandas
 2.2.0 / Polars 1.0.0 and the versions pinned in `requirements-tables.txt`.
 Both paths check scalar/identity contracts and saved-state SVG reconstruction.

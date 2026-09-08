@@ -1,6 +1,8 @@
 # 4.0 foundations: selection and engine checks
 
-This experiment is available in the development checkout under
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
+This experiment is available in the 4.0.0.dev1 preview under
 `inklet.experimental.selection`; it is not included in the published 3.1.0
 package. It starts phase A of the [4.0 roadmap](roadmap.md). APIs and saved-state
 schemas may change before stabilization.

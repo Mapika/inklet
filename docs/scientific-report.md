@@ -1,5 +1,7 @@
 # Calibrated image measurements
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Link a calibrated intensity image, a label map, regional intensity ranges and an
 area comparison. Select an irregular region, save and reopen its state, replace
 the image or labels, and recompile at two physical widths.

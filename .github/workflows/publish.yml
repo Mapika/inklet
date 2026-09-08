@@ -6,7 +6,7 @@ on:
       tag:
         description: Published GitHub release tag
         required: true
-        default: v3.1.0
+        default: v4.0.0.dev1
         type: string
       dry_run:
         description: Validate release files without uploading to PyPI
@@ -42,11 +42,20 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
-          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
-            echo 'Expected a stable release tag such as v3.1.0' >&2
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.dev[0-9]+)?$ ]] || {
+            echo 'Expected a stable or development tag such as v3.1.0 or v4.0.0.dev1' >&2
             exit 1
           }
-          gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft' | grep -qx false
+          gh release view "$RELEASE_TAG" --json isDraft,isPrerelease > "$RUNNER_TEMP/release.json"
+          python - <<'PYCODE'
+          import json, os
+          from pathlib import Path
+          release = json.loads((Path(os.environ['RUNNER_TEMP']) / 'release.json').read_text())
+          if release['isDraft']:
+              raise SystemExit('Publish the GitHub release before uploading its assets')
+          if release['isPrerelease'] != ('.dev' in os.environ['RELEASE_TAG']):
+              raise SystemExit('Development tags must be GitHub prereleases; stable tags must not')
+          PYCODE
           version="${RELEASE_TAG#v}"
           gh release download "$RELEASE_TAG" --dir dist \
             --pattern "inklet-${version}-py3-none-any.whl" \
@@ -59,6 +68,9 @@ jobs:
           python - <<'PY'
           import hashlib
           import os
+          import tarfile
+          import zipfile
+          from email.parser import BytesParser
           from pathlib import Path
 
           dist = Path('dist')
@@ -74,6 +86,20 @@ jobs:
               if hashlib.sha256((dist / name).read_bytes()).hexdigest() != digest:
                   raise SystemExit(f'Checksum mismatch: {name}')
               print(f'Verified {name}')
+          wheel = dist / f'inklet-{version}-py3-none-any.whl'
+          with zipfile.ZipFile(wheel) as archive:
+              metadata_files = [n for n in archive.namelist() if n.endswith('.dist-info/METADATA')]
+              if len(metadata_files) != 1:
+                  raise SystemExit('Expected exactly one wheel metadata file')
+              wheel_metadata = BytesParser().parsebytes(archive.read(metadata_files[0]))
+          with tarfile.open(dist / f'inklet-{version}.tar.gz') as archive:
+              metadata = archive.extractfile(f'inklet-{version}/PKG-INFO')
+              if metadata is None:
+                  raise SystemExit('Missing source archive metadata')
+              source_metadata = BytesParser().parsebytes(metadata.read())
+          for metadata in (wheel_metadata, source_metadata):
+              if metadata['Name'] != 'inklet' or metadata['Version'] != version:
+                  raise SystemExit('Distribution metadata does not match the requested release')
           (dist / 'SHA256SUMS').unlink()
           PY
           uvx --from twine==7.0.0 twine check --strict dist/*

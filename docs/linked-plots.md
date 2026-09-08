@@ -1,5 +1,7 @@
 # Linked lines, bars and scatter
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 The development preview now connects different plot types through the same row
 IDs. `BrowserFigure` combines measured scatter, line and bar views, while
 `BrowserScatter` keeps the earlier scatter-only entry point. These APIs live in

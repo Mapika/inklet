@@ -1,5 +1,7 @@
 # Offline browser rendering
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 For the newer mixed line, bar and scatter workflow, see
 [Linked plots](linked-plots.md). This page retains the original scatter study.
 

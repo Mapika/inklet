@@ -1,5 +1,7 @@
 # Complete regional report
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Build a six-panel offline report with a real map, monthly histories, an
 empirical distribution and three group comparisons. Select a country, filter
 a group, save and reopen the view, replace the input table, and export the

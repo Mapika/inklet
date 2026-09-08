@@ -1,5 +1,7 @@
 # Linked mesh fields
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Compare scalar values, planar vector arrows, a fixed-camera 3D surface and a
 linked scatter plot using one immutable triangle mesh with explicit face IDs.
 

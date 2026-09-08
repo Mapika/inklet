@@ -1,7 +1,9 @@
 # Linked category panels
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Split a line, bar or scatter view into ordered category panels while keeping
-selection linked by row ID. `FacetView` is available in the development checkout
+selection linked by row ID. `FacetView` is available in the 4.0.0.dev1 preview
 under `inklet.experimental.browser`; it is **not in PyPI 3.1.0**.
 
 ![Six linked panels of simulated monthly revenue and profit for North, South and West](assets/v4/faceted-operations.png)
@@ -82,7 +84,7 @@ on every plot and combines the tallest natural data region with shared top and
 bottom margins for automatic heights. Equal tracks and unspanned cells give
 equal data areas; unequal track weights, spans or larger cell minimum sizes can
 still produce different areas. Fixed artwork retains its authored size. This
-option is new in the development checkout and defaults to `False`.
+option is included in the development preview and defaults to `False`.
 
 The wrapped view supplies fixed domains, axis labels, color and mark settings.
 Line adjacency follows source order **within each category**, so interleaving

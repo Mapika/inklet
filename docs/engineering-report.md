@@ -1,5 +1,7 @@
 # Linked engineering report
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Connect native Inklet drawings to table rows: a component selection reaches a
 dimensioned plan, an authored section, a system diagram and supplied response
 curves. Save the selected state, replace geometry, retain label offsets and
@@ -7,7 +9,7 @@ export the report at two physical widths.
 
 These are development APIs under `inklet.experimental`, **not part of PyPI
 3.1.0**. This starts the mixed-content engineering work in Phase C of the
-[4.0 roadmap](roadmap.md). Numbered 4.0 development releases have not been issued.
+[4.0 roadmap](roadmap.md). The first numbered preview is 4.0.0.dev1.
 
 ![Linked plan, section, system diagram and supplied component response curves, with the sensor selected](assets/v4/engineering-report.png)
 

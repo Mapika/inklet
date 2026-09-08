@@ -1,8 +1,10 @@
 # Replace figure data
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Rebuild a linked figure with revised data while retaining valid selections.
 `BrowserFigure.replace_data()` compiles a new figure and returns its saved state
-and a report of changed rows. It is available in the development checkout under
+and a report of changed rows. It is available in the 4.0.0.dev1 preview under
 `inklet.experimental.browser`; the published 3.1.0 package does not include it.
 
 Precompiled revisions can also be embedded in one offline HTML file. Choose a

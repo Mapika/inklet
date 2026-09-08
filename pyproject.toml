@@ -1,12 +1,12 @@
 [project]
 name = "inklet"
-version = "3.1.0"
+version = "4.0.0.dev1"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
 authors = [{name = "Mark Marosi"}]
 keywords = ["scientific-visualization", "plotting", "diagrams", "svg", "pdf"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Education",
     "Programming Language :: Python :: 3",
@@ -26,7 +26,7 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/Mapika/inklet"
-Documentation = "https://inklet.readthedocs.io/en/stable/"
+Documentation = "https://inklet.readthedocs.io/en/latest/"
 Issues = "https://github.com/Mapika/inklet/issues"
 
 [project.scripts]

@@ -29,11 +29,25 @@ then cover axes, dense data, page layout and exports. Figure planning and micros
 ship under `inklet.experimental` as a [research preview](https://inklet.readthedocs.io/en/stable/research-preview/):
 their signatures and report schemas may change.
 
-The [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) proposes broader
-plotting, maps, interactive documents, technical/scientific visualization and
-visual editing, supported by [engine improvements](https://inklet.readthedocs.io/en/latest/design/v4/).
-These are development targets; animation and presentation authoring are reserved
-for the 5.0 direction.
+## 4.0 development preview
+
+**4.0.0.dev1** adds offline linked charts, maps, calibrated images, mesh fields,
+contours and streamlines, with saved selections and reproducible exports.
+It also includes date/UTC axes, facets, pandas/Polars adapters and shared
+plotting-quality improvements.
+
+```sh
+python -m pip install "inklet==4.0.0.dev1"
+```
+
+[Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
+[4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
+[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev1)
+
+This is an opt-in development release. Experimental APIs and saved-state schemas
+may change; 3.1.0 remains the stable release. General browser editing,
+depth-aware 3D selection and the remaining 4.0 release gates are still open.
+Animation and presentation authoring remain in the 5.0 direction.
 
 ## Install
 

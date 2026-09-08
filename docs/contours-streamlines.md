@@ -1,5 +1,7 @@
 # Contours and streamlines
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Draw scalar contours and vector streamlines from values supplied at the vertices
 of a rectilinear grid. Link them to cell summaries and a scatter plot, with
 explicit interpolation, masks and tracing diagnostics.

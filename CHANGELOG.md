@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 4.0.0.dev1 — 2026-09-08
+
+First installable 4.0 development preview. This collects the linked-document,
+data, map, engineering and scientific work since 3.1.0. APIs under
+`inklet.experimental` and saved-state schemas may change between previews.
+3.1.0 remains the stable release; the full 4.0 roadmap is not complete.
+
+Install explicitly with `python -m pip install "inklet==4.0.0.dev1"`.
+See the [preview guide](docs/development-preview.md) for examples and boundaries.
 
 - Add immutable rectilinear nodal fields with explicit triangle interpolation,
   linear contours, normalized-vector RK4 streamlines and cell-linked selections.

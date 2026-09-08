@@ -87,7 +87,8 @@ the canonical URL supplied by Read the Docs; links to source files use the
 commit checked out for that documentation build.
 
 After tagging a release, check the project's build dashboard and confirm that
-**stable** successfully builds the new tag. The old `v2.5.0` tag predates the
+**stable** successfully builds a new stable tag. For a development prerelease,
+keep **stable** on 3.1.0 and use **latest** or the explicitly activated preview tag. The old `v2.5.0` tag predates the
 hosting configuration and is intentionally unchanged.
 
 ## Publishing to PyPI
@@ -96,7 +97,10 @@ The separate [publishing workflow](../.github/workflows/publish.yml) uploads
 the wheel and source archive from an existing, published GitHub release.
 It verifies the release's `SHA256SUMS` and runs Twine's strict metadata checks.
 It does not rebuild the packages, so GitHub and PyPI receive identical files.
-The workflow accepts stable release tags such as `v3.1.0` and runs from `master`.
+The workflow accepts stable tags such as `v3.1.0` and developmental tags such as
+`v4.0.0.dev1`, and runs from `master`. Development tags must be marked as GitHub
+prereleases; stable tags must not. Both archives' package name/version metadata
+must match the tag.
 
 The project already has an active trusted publisher with these settings:
 
@@ -133,3 +137,12 @@ For subsequent versions, run release checks, create the tag and GitHub release,
 and attach the wheel, source archive and `SHA256SUMS` before dispatching the
 publishing workflow. PyPI does not permit replacing an uploaded distribution;
 package changes require a new version.
+
+
+For a development snapshot, mark the GitHub release as a prerelease and keep it
+out of GitHub's latest stable release slot (`gh release create --prerelease
+--latest=false`). Use an exact PEP 440 version, for example `4.0.0.dev1`, in both
+`pyproject.toml` and `inklet.__version__`. The same checksum, metadata and
+isolated-package checks apply; run the workflow first with `dry_run=true`, then
+publish the same attached files with `dry_run=false`. Users opt in with an exact
+pin such as `python -m pip install "inklet==4.0.0.dev1"`.

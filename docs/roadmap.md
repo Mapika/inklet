@@ -5,9 +5,10 @@ baseline. The capabilities below are targets, not available APIs or dated
 release promises. Implementation decisions become commitments after the
 prototype and acceptance checks described here.
 
-No numbered 4.0 development release has been published. The package remains
-3.1.0; experimental increments are tracked under Unreleased until a preview
-release is prepared.
+[4.0.0.dev1](development-preview.md) is the first installable development
+snapshot. It collects the implemented experimental workflows described below;
+3.1.0 remains the stable release. Publishing a preview does not close the
+remaining roadmap or stabilization gates.
 
 Phase A has started: [the foundations report](v4-foundations.md) records the
 first fixtures, engine corrections, baseline timings and offline selection

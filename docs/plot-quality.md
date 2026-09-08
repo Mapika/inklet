@@ -1,8 +1,10 @@
 # Shared plotting quality
 
-The development checkout improves numeric ticks in the common scale engine.
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
+The development preview improves numeric ticks in the common scale engine.
 These fixes apply to ordinary plots, color scales and measured browser axes.
-They are not yet in PyPI 3.1.0.
+They are included in 4.0.0.dev1 and are not part of 3.1.0.
 
 ![Four numeric-axis specimens with distinct large-baseline and tiny-value ticks](assets/guides/plot-quality-after.png)
 

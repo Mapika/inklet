@@ -93,6 +93,7 @@ nav:
   - Compatibility: compatibility.md
   - Migration: migration.md
 - Research preview:
+  - 4.0 development preview: development-preview.md
   - 4.0 foundations: v4-foundations.md
   - Browser rendering study: browser-rendering.md
   - Linked lines, bars and scatter: linked-plots.md

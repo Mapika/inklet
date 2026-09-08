@@ -1,7 +1,9 @@
 # Linked dates and time series
 
+Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+
 Use calendar dates or offset-aware timestamps in linked lines, bars, scatter
-and facets. `TimeAxis` is available in the development checkout under
+and facets. `TimeAxis` is available in the 4.0.0.dev1 preview under
 `inklet.experimental.browser`; it is **not in PyPI 3.1.0**.
 
 ![Daily batch counts on calendar dates linked to processing duration on a UTC time axis](assets/v4/time-series.png)
