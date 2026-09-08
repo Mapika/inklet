@@ -19,6 +19,7 @@ from ...core import resolve
 from ..selection import KeyedTable, SelectionState
 from .regions import GeoRegions
 from .timeaxis import TimeAxis
+from .series import SeriesView
 from ..temporal import time_milliseconds
 
 SCHEMA = 'inklet.browser-scatter/0.1'
@@ -193,13 +194,13 @@ class FacetView:
     pairs breaking the line. Unlisted/null categories remain in the table
     and are reported in the scene's facet_groups metadata.
     """
-    view: ScatterView | LineView | BarView | IntervalView | ECDFView
+    view: ScatterView | LineView | BarView | IntervalView | ECDFView | SeriesView
     column: str
     values: tuple[str,...]
     labels: tuple[str,...] = ()
 
     def __post_init__(self):
-        if type(self.view) not in (ScatterView,LineView,BarView,IntervalView,ECDFView):
+        if type(self.view) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,SeriesView):
             raise ValueError('facets require a Cartesian plot view')
         if not isinstance(self.column,str) or not self.column:
             raise ValueError('facet column must be a nonempty string')
@@ -348,7 +349,7 @@ class BrowserFigure:
     def __init__(self, table: KeyedTable, views, *, width=190, columns=None):
         import inklet as i
         definitions=tuple(views)
-        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,RegionView,FacetView) for v in definitions):
+        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,SeriesView,RegionView,FacetView) for v in definitions):
             raise ValueError('provide one to four supported plot or facet view definitions')
         if len({v.name for v in definitions})!=len(definitions): raise ValueError('view names must be unique')
         views,facet_metadata,facet_rows,facet_groups=_expand_facets(table,definitions)
@@ -407,7 +408,8 @@ class BrowserFigure:
                     for row,(lo,hi) in enumerate(zip(table.columns[view.lower],table.columns[view.upper])):
                         if lo is not None and hi is not None and lo > hi:
                             raise ValueError(f'interval row {row}: require lower <= upper')
-                for axis,column in (('x',view.x),('y',view.y)):
+                if isinstance(view,SeriesView): view.validate_table(table)
+                for axis,column in (() if isinstance(view,SeriesView) else (('x',view.x),('y',view.y))):
                     if isinstance(view,ECDFView) and axis=='y': continue
                     if column not in table.columns: raise ValueError(f'unknown column: {column}')
                     domain=getattr(view,axis+'_domain')
@@ -458,6 +460,10 @@ class BrowserFigure:
                 py=bounds[1]+(1-(y-yd[0])/(yd[1]-yd[0]))*bounds[3]
                 if not math.isfinite(px) or not math.isfinite(py): raise ValueError('projected coordinate overflow')
                 return [round(px,6),round(py,6)]
+            if isinstance(view,SeriesView):
+                layer=view.layer(table,bounds,project,facet_rows.get(view.name,range(len(table.row_ids))))
+                if view.name in facet_metadata: layer['facet']=facet_metadata[view.name]
+                layers.append(layer);continue
             points=[]; missing=0; marks=[]; previous=None; previous_x=None; gap_count=0
             gap_ms=(Decimal(str(view.max_gap_seconds))*1000 if isinstance(view,LineView)
                     and view.max_gap_seconds is not None else None)

@@ -110,7 +110,7 @@ class ScatterRenderer{
       for(const item of this.index.get(gx+','+gy)||[]){
         if(seen.has(item))continue;seen.add(item);
         if(!this.markShown(item)||!inside(x,y,item.layer.clip))continue;
-        const g=item.geometry;let distance,allowed=tolerance,id=item.id;
+        const g=item.geometry;let distance,allowed=tolerance,id=item.id,sample=item.sample;
         if(item.kind==='polygon'){if(!polygonContains(x,y,g))continue;distance=0;}
         else if(item.kind==='circle'){distance=Math.hypot(x-g[0],y-g[1]);allowed+=g[2];}
         else if(item.kind==='rect')distance=Math.hypot(Math.max(g[0]-x,0,x-g[0]-g[2]),Math.max(g[1]-y,0,y-g[1]-g[3]));
@@ -121,9 +121,9 @@ class ScatterRenderer{
           const dx=g[2]/scale-g[0]/scale,dy=g[3]/scale-g[1]/scale,length=dx*dx+dy*dy;
           const t=length?Math.max(0,Math.min(1,((x/scale-g[0]/scale)*dx+(y/scale-g[1]/scale)*dy)/length)):1;
           distance=Math.hypot(x-((1-t)*g[0]+t*g[2]),y-((1-t)*g[1]+t*g[3]));allowed+=item.width/2;
-          id=item.ids[t<.5-1e-12?0:1];
+          const endpoint=t<.5-1e-12?0:1;id=item.ids[endpoint];sample=item.samples?.[endpoint];
         }
-        if(distance<=allowed&&(distance<bestDistance-1e-10||(Math.abs(distance-bestDistance)<=1e-10&&(!best||item.order>best.order)))){best={...item,id};bestDistance=distance;}
+        if(distance<=allowed&&(distance<bestDistance-1e-10||(Math.abs(distance-bestDistance)<=1e-10&&(!best||item.order>best.order)))){best={...item,id,...(sample?{sample}:{})};bestDistance=distance;}
       }
     }return best;
   }
@@ -268,7 +268,7 @@ stage.onpointermove=e=>{if(busy)return;const p=runtime.point(e.clientX,e.clientY
   if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>3)moved=true;if(moved){const s=runtime.mapping().scale;action(()=>runtime.setViewport([drag.viewport[0]-dx/s,drag.viewport[1]-dy/s,drag.viewport[2],drag.viewport[3]]));}}
   else{const hit=runtime.pick(p.x,p.y,4/runtime.mapping().scale);
     const fields=hit?(hit.kind==='polygon'?[hit.layer.value].filter(Boolean):[hit.layer.x,hit.layer.y]):[];
-    const values=fields.map((column,axis)=>{
+    const values=hit?.sample?[`${hit.layer.x}: ${displayValue(hit.sample.x)}`,`${hit.sample.column}: ${displayValue(hit.sample.y)}`]:fields.map((column,axis)=>{
       const derived=axis===1&&hit.layer.derived_y;
       const value=(derived||scene.columns[column])?.[runtime.rowIndex.get(hit.id)];
       return `${derived?'Cumulative fraction':column}: ${displayValue(value)}`;

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add experimental entity-linked wide-table series with explicit numeric/date/UTC
+  samples, missing-data gaps, sample-aware picking and facets. Add a complete
+  real-map regional report with simulated monthly values, distributions, group
+  comparisons, CSV replacement, saved-state reconstruction and two-width exports.
+- Add optional Chrome/Chromium SVG-to-PDF conversion for browser scenes, with
+  physical page sizing and vector-content checks. Document this separately from
+  the native Diagram PDF backend.
+
 - Add experimental linked empirical distributions and supplied interval views,
   including facets, explicit methods/populations, fixed reference curves during
   filtering and reproducible revised exports. Keep reference curves unpickable

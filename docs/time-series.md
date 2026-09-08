@@ -151,3 +151,10 @@ a state saved from the original data. Native, pandas and Polars paths produce
 the same normalized table and measured figure. Revision switching preserves
 valid selections; strict state loading rejects a different data or scene
 revision. See [data replacement](data-revisions.md) for explicit rebasing.
+
+## Entity histories in wide tables
+
+When each row is an entity with several sample columns, use
+[`SeriesView`](regional-report.md#one-series-per-entity). Selecting a country
+then selects all of its monthly samples across the linked report. `LineView`
+continues to select individual source observations.

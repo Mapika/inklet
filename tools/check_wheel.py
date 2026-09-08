@@ -29,7 +29,10 @@ for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_pola
 from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption, FacetView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
 from inklet.experimental.browser import TimeAxis
-from inklet.experimental.browser import ECDFView, IntervalView
+from inklet.experimental.browser import ECDFView, IntervalView, SeriesView
+series_scene = BrowserFigure(keyed,[SeriesView('series',[(1,'x'),(2,'y')],(0,3),(0,3))])
+assert len(series_scene.payload()['layers'][0]['marks']) == 6
+assert 'samples' in series_scene.to_html() and '<line' in series_scene.to_svg()
 statistics_table = KeyedTable('statistics',dict(id=['a','b'],x=[1,2],y=[2,3],lo=[1,None],hi=[3,None]))
 statistics_scene = BrowserFigure(statistics_table,[ECDFView('cdf','y',(0,4)),
     IntervalView('interval','x','y',(0,3),(0,4),lower='lo',upper='hi',interval_label='Supplied illustrative range')])

@@ -126,3 +126,6 @@ that lose all their rows. The [data replacement guide](data-revisions.md)
 explains removed-ID handling and viewport policies. This example embeds both
 cohorts, requires no external requests and credits its simulated data in the
 page footer.
+
+[`SeriesView`](regional-report.md#one-series-per-entity) also supports facets,
+with each entity's complete sample sequence contained in its category panel.

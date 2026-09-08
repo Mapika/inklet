@@ -68,3 +68,39 @@ def pdf_png(source, target, *, dpi=150):
               str(Path(source).resolve()), str(stem)])
         shutil.copyfile(stem.with_suffix('.png'), target)
     return target
+
+
+def svg_pdf(source, target):
+    """Print a trusted Inklet SVG to a physical-page PDF using Chrome/Chromium.
+
+    This optional conversion is useful for experimental browser scenes. It is
+    separate from Inklet's native Diagram PDF backend and may include browser
+    metadata. SVG geometry and outlined labels remain vector content.
+    """
+    browser = next((p for name in ('google-chrome', 'chromium', 'chromium-browser')
+                    if (p := shutil.which(name))), None)
+    if browser is None:
+        raise DiagramError('SVG to PDF conversion requires Chrome or Chromium on PATH')
+    source, target = Path(source).resolve(), Path(target).resolve()
+    root = ET.parse(source).getroot()
+    try:
+        dimensions = [root.attrib[k] for k in ('width','height')]
+        if any(not value.endswith('mm') for value in dimensions): raise ValueError
+        width, height = (float(value[:-2]) for value in dimensions)
+        if not all(math.isfinite(v) and 0 < v <= 5080 for v in (width,height)): raise ValueError
+    except (KeyError, ValueError):
+        raise DiagramError('PDF conversion expects positive physical dimensions in mm, at most 5080 mm') from None
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='inklet-svg-pdf-') as scratch:
+        page = Path(scratch)/'page.html'; output = Path(scratch)/'page.pdf'
+        page.write_text(f'<!doctype html><meta charset="utf-8"><style>'
+                        f'@page{{size:{width}mm {height}mm;margin:0}}'
+                        'html,body{margin:0;padding:0}img{position:fixed;left:0;top:0;'
+                        f'width:{width}mm;height:{height}mm;display:block}}'
+                        '</style><img src="'+source.as_uri()+'">',encoding='utf-8')
+        _run([browser,'--headless','--disable-gpu','--no-sandbox','--allow-file-access-from-files',
+              '--no-pdf-header-footer','--virtual-time-budget=500',f'--user-data-dir={scratch}/profile',
+              f'--print-to-pdf={output}',page.as_uri()])
+        if not output.is_file(): raise DiagramError('browser did not produce the requested PDF')
+        shutil.copyfile(output,target)
+    return target

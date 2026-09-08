@@ -153,9 +153,13 @@ add explicit facets with shared physical scales and empty-category retention.
 with explicit keys and equivalent cross-library exports. [Linked time series](time-series.md)
 add calendar/UTC axes, temporal table imports and explicit elapsed-time gaps.
 [Linked statistical views](statistical-views.md) add fixed-reference ECDFs and
-supplied intervals with explicit populations and methods. The complete reference
-workflows, recomputed grouped summaries and broader distribution types remain
-outstanding. [Shared plotting quality](plot-quality.md) also improves numeric
+supplied intervals with explicit populations and methods. The
+[complete regional report](regional-report.md) now combines a real map, entity
+series, distributions and group comparisons, with saved-state reconstruction,
+CSV replacement and exports at two physical widths. This completes the bounded
+Phase B analyst reference workflow. Multi-table relationships, the engineering
+and scientific workflows, recomputed grouped summaries and broader distribution
+types remain outstanding; the other Phase B and release gates are still open. [Shared plotting quality](plot-quality.md) also improves numeric
 ticks across static plots and browser frames.
 
 

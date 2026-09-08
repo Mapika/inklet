@@ -1,11 +1,31 @@
 # 4.0 reference projects
 
-These are development fixtures and a first interaction experiment. They do not
-implement the complete workflows in the [roadmap](../../docs/roadmap.md).
+These are development fixtures and interaction experiments for the
+[roadmap](../../docs/roadmap.md). The complete regional report now covers the
+bounded analyst workflow; the engineering and scientific workflows remain open.
 The small fixtures under `fixtures/` are original simulated MIT material by Mark Marosi;
 see [the manifest](fixtures/manifest.json). No external downloads are needed.
 
-## Regional analysis
+## Complete regional report
+
+`regional_report.py` combines real Natural Earth country boundaries with 18
+simulated country rows, twelve monthly samples, an ECDF and three group panels.
+Country selection reaches all related marks. The offline revision corrects
+Hungary's December value and removes Estonia with explicit ID reconciliation.
+
+```sh
+python examples/v4/regional_report.py --render --output out/regional-report
+python examples/v4/regional_report.py --state /path/to/view.json --render --output out/regional-reopened
+python examples/v4/regional_report.py --revised --rebase-state /path/to/view.json --missing drop --render --output out/regional-revised
+```
+
+Outputs include offline HTML, exact-viewport SVG/state, full-page exports at
+210/160 mm, an editable CSV template, a revision report and provenance. Omit
+`--render` to skip optional PNG/PDF conversion. Use `--csv` to replace the input
+in Python. See the [illustrated workflow](../../docs/regional-report.md) for
+sample identity, filtering and export contracts.
+
+## Original regional fixture
 
 Inputs: `fixtures/regions.csv` and `fixtures/regions.geojson`. Four invented
 regions have stable IDs, illustrative revenue and cost in kEUR, and rectangular
