@@ -1,6 +1,21 @@
 # Changelog
 
-## Unreleased
+## 4.0.0.dev2 — 2026-09-08
+
+Second development preview. Install explicitly with
+`python -m pip install "inklet==4.0.0.dev2"`; 3.1.0 remains stable.
+
+- Preserve open cubic segments through geometric clipping, using parameter
+  subdivision and bounded adaptive measurement sampling in the clip frame.
+- Add `window()` for nested, transformed visual clipping of all SVG/PDF/PNG
+  paint, including glyphs, images, markers, filled curves and rounded corners.
+  Keep window layout, painted bounds and authored child geometry distinct;
+  expose inherited clip regions and visibility filtering through resolution.
+- Preserve windows through document compilation/copying and account for hidden
+  content in page-bound and path-crossing diagnostics.
+- Reduce allocation in dense-line clipping; add an eight-panel rendering
+  review, independent backend checks and reproducible clipping/line benchmarks.
+
 
 - Share exact hatch-line geometry between SVG and PDF, with reusable local
   coverage resources and independent shape clips. Preserve holes, transforms,

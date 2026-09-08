@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev1
+# Inklet 4.0.0.dev2
 
-The first 4.0 development release collects the linked plotting, mapping,
+The second 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev1"
+python -m pip install "inklet==4.0.0.dev2"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,15 +19,22 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev1"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev2"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev1"
+python -m pip install "inklet[volume,render]==4.0.0.dev2"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
 Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
+
+## Rendering improvements in dev2
+
+This release adds [curve-preserving clipping and painted windows](clipping.md),
+[shared vector hatching](hatching.md), and [PDF compositing corrections](compositing.md).
+It includes the complete eight-panel clipping recipe and local performance
+measurements. These rendering improvements also apply to ordinary static plots.
 
 ## What to try
 
@@ -54,7 +61,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev1 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev2 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --output out/regional

@@ -39,7 +39,7 @@ from .links import Link, link, route, route_all
 from .diagnostics import (Diagnostic, abutting, crossing, format_report,
                           lint)
 from .draw import (
-    annotate, annotation_side, arc, as_drawn, bracket, clip, curve, dimension,
+    annotate, annotation_side, arc, as_drawn, bracket, window, clip, curve, dimension,
     drawn, encoded, label_slot, label_specs, letters, marker, path, place,
     placed_anchor, plot_area, polygon, polyline, scalebar, sector,
 )
@@ -433,7 +433,7 @@ __all__ = [
     "text_on_path", "text_on_arc", "baseline", "baseline_arc", "Baseline",
     # drawing
     "path", "polyline", "polygon", "curve", "arc", "sector", "marker", "place",
-    "clip", "encoded", "drawn", "as_drawn", "placed_anchor", "plot_area",
+    "window", "clip", "encoded", "drawn", "as_drawn", "placed_anchor", "plot_area",
     # annotating
     "annotate", "annotation_side", "bracket", "dimension", "scalebar",
     "letters", "label_slot", "label_specs",
@@ -469,4 +469,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "4.0.0.dev1"
+__version__ = "4.0.0.dev2"

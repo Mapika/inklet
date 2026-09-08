@@ -1,6 +1,6 @@
 # Reusable vector hatching
 
-These engine changes are **unreleased, after 4.0.0.dev1**. They extend the
+These engine changes are included in **4.0.0.dev2**. They extend the
 [compositing improvements](compositing.md) to patterned fills in plots,
 technical sections and repeated shapes.
 

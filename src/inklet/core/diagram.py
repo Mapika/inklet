@@ -93,6 +93,8 @@ class Diagram:
     # name. Mutable and excluded from equality, like `anchors`: recording that
     # a stack was given 6mm does not make it a different stack.
     notes: dict[str, object] = field(default_factory=dict, compare=False, repr=False)
+    # Convex local painted boundary; independent of authored child geometry.
+    clip_region: tuple[Vec2, ...] = ()
     _cache: dict = field(default_factory=dict, compare=False, repr=False)
 
     def __post_init__(self):
@@ -120,6 +122,8 @@ class Diagram:
 
     @property
     def local_trace(self) -> Trace:
+        if self.clip_region:
+            return Trace.from_polygon(self.clip_region)
         if "trace" not in self._cache:
             own = self.prim.trace() if self.prim is not None else Trace.empty()
             self._cache["trace"] = Trace.union_all(
@@ -354,6 +358,7 @@ class Diagram:
             kind=self.kind,
             name=self.name,
             envelope_override=self.envelope_override,
+            clip_region=self.clip_region,
             attached_to=self.attached_to,
             # Renumbering does not change geometry. Retain immutable envelope
             # and trace values while keeping the cache dictionary independent.
@@ -461,6 +466,11 @@ class Placement:
     world: Affine
     style: Style
     depth: int
+    clip_regions: tuple[tuple[Vec2, ...], ...] = ()
+
+    def visible_at(self, point: Vec2) -> bool:
+        """Whether a world point is inside every painted window (not a hit test)."""
+        return _inside_clips(point, self.clip_regions)
 
     @property
     def envelope(self) -> Envelope:
@@ -523,13 +533,15 @@ def resolve(root: Diagram, base: Affine = IDENTITY,
     placements: dict[str, Placement] = {}
     seen: Counter[str] = Counter()
 
-    def visit(node: Diagram, parent: Affine, inherited: Style, depth: int) -> None:
+    def visit(node: Diagram, parent: Affine, inherited: Style, depth: int, clips=()) -> None:
         world = parent @ node.transform
         style = node.style.over(inherited)
         seen[node.id] += 1
-        placements[node.id] = Placement(node, world, style, depth)
+        if node.clip_region:
+            clips = clips + (tuple(world.apply(p) for p in node.clip_region),)
+        placements[node.id] = Placement(node, world, style, depth, clips)
         for child in node.children:
-            visit(child, world, style, depth + 1)
+            visit(child, world, style, depth + 1, clips)
 
     visit(root, base, base_style, 0)
 
@@ -552,6 +564,21 @@ class RenderItem:
     style: Style
     id: str
     name: str | None
+    clip_regions: tuple[tuple[Vec2, ...], ...] = ()
+
+    def visible_at(self, point: Vec2) -> bool:
+        """Whether a world point is inside every painted window (not a hit test)."""
+        return _inside_clips(point, self.clip_regions)
+
+
+def _inside_clips(point, regions):
+    for ring in regions:
+        values = [(b-a).cross(point-a) for a, b in zip(ring, ring[1:]+ring[:1])]
+        if not (all(v >= -1e-9 for v in values) or all(v <= 1e-9 for v in values)):
+            return False
+        if abs(sum(a.cross(b) for a,b in zip(ring,ring[1:]+ring[:1]))) <= 1e-18:
+            return False
+    return True
 
 
 def flatten(root: Diagram, base: Affine = IDENTITY,
@@ -559,13 +586,15 @@ def flatten(root: Diagram, base: Affine = IDENTITY,
     """Depth-first draw order: a node's own primitive paints before its children."""
     items: list[RenderItem] = []
 
-    def visit(node: Diagram, parent: Affine, inherited: Style) -> None:
+    def visit(node: Diagram, parent: Affine, inherited: Style, clips=()) -> None:
         world = parent @ node.transform
         style = node.style.over(inherited)
+        if node.clip_region:
+            clips = clips + (tuple(world.apply(p) for p in node.clip_region),)
         if node.prim is not None:
-            items.append(RenderItem(node.prim, world, style, node.id, node.name))
+            items.append(RenderItem(node.prim, world, style, node.id, node.name, clips))
         for child in node.children:
-            visit(child, world, style)
+            visit(child, world, style, clips)
 
     visit(root, base, base_style)
     return items

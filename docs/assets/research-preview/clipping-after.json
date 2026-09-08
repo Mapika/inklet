@@ -1,0 +1,119 @@
+{
+  "schema": "inklet.clipping-benchmark/1",
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "source_sha256": "b4ded74e40916e536713f7589469a20bb25677587c03e83942cf6aeb7ecf0bd5",
+  "cases": [
+    {
+      "case": "line",
+      "runs": [
+        {
+          "clip_seconds": 0.09736313400208019,
+          "svg_seconds": 0.010083654022309929,
+          "pdf_seconds": 0.01944988899049349,
+          "total_seconds": 0.1268966770148836,
+          "svg_bytes": 76870,
+          "pdf_bytes": 36176
+        },
+        {
+          "clip_seconds": 0.09901987100602128,
+          "svg_seconds": 0.010495024005649611,
+          "pdf_seconds": 0.0206202779954765,
+          "total_seconds": 0.1301351730071474,
+          "svg_bytes": 76870,
+          "pdf_bytes": 36176
+        },
+        {
+          "clip_seconds": 0.10801237399573438,
+          "svg_seconds": 0.01182610000250861,
+          "pdf_seconds": 0.022811452014138922,
+          "total_seconds": 0.1426499260123819,
+          "svg_bytes": 76870,
+          "pdf_bytes": 36176
+        }
+      ],
+      "median": {
+        "clip_seconds": 0.09901987100602128,
+        "svg_seconds": 0.010495024005649611,
+        "pdf_seconds": 0.0206202779954765,
+        "total_seconds": 0.1301351730071474,
+        "svg_bytes": 76870,
+        "pdf_bytes": 36176
+      }
+    },
+    {
+      "case": "band",
+      "runs": [
+        {
+          "clip_seconds": 0.6217630119936075,
+          "svg_seconds": 0.05115153800579719,
+          "pdf_seconds": 0.10317503899568692,
+          "total_seconds": 0.7760895889950916,
+          "svg_bytes": 316513,
+          "pdf_bytes": 145203
+        },
+        {
+          "clip_seconds": 0.626939455018146,
+          "svg_seconds": 0.06268787098815665,
+          "pdf_seconds": 0.09176701598335057,
+          "total_seconds": 0.7813943419896532,
+          "svg_bytes": 316513,
+          "pdf_bytes": 145203
+        },
+        {
+          "clip_seconds": 0.6646606319991406,
+          "svg_seconds": 0.05158257801667787,
+          "pdf_seconds": 0.09825415699742734,
+          "total_seconds": 0.8144973670132458,
+          "svg_bytes": 316513,
+          "pdf_bytes": 145203
+        }
+      ],
+      "median": {
+        "clip_seconds": 0.626939455018146,
+        "svg_seconds": 0.05158257801667787,
+        "pdf_seconds": 0.09825415699742734,
+        "total_seconds": 0.7813943419896532,
+        "svg_bytes": 316513,
+        "pdf_bytes": 145203
+      }
+    },
+    {
+      "case": "curves",
+      "runs": [
+        {
+          "clip_seconds": 0.02900044500711374,
+          "svg_seconds": 0.0009433439990971237,
+          "pdf_seconds": 0.0009197680046781898,
+          "total_seconds": 0.030863557010889053,
+          "svg_bytes": 5248,
+          "pdf_bytes": 3319
+        },
+        {
+          "clip_seconds": 0.030080602009547874,
+          "svg_seconds": 0.0012863579904660583,
+          "pdf_seconds": 0.0010805090132635087,
+          "total_seconds": 0.03244746901327744,
+          "svg_bytes": 5248,
+          "pdf_bytes": 3319
+        },
+        {
+          "clip_seconds": 0.029620053013786674,
+          "svg_seconds": 0.0009497819992247969,
+          "pdf_seconds": 0.0013156150234863162,
+          "total_seconds": 0.03188545003649779,
+          "svg_bytes": 5248,
+          "pdf_bytes": 3319
+        }
+      ],
+      "median": {
+        "clip_seconds": 0.029620053013786674,
+        "svg_seconds": 0.0009497819992247969,
+        "pdf_seconds": 0.0010805090132635087,
+        "total_seconds": 0.03188545003649779,
+        "svg_bytes": 5248,
+        "pdf_bytes": 3319
+      }
+    }
+  ]
+}

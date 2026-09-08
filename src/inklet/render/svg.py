@@ -919,6 +919,20 @@ def _emit_node(node: Diagram, inherited: Style, w: _Writer) -> None:
     if not transform.is_identity:
         attrs.append(("transform", _transform(transform, w)))
     attrs += style_attrs
+    if node.clip_region:
+        import hashlib
+        key = node.clip_region
+        name = 'inklet-window-'+hashlib.sha256(repr(key).encode()).hexdigest()[:20]
+        registry = getattr(w, 'window_defs', None)
+        if registry is None:
+            registry = w.window_defs = set()
+        if key not in registry:
+            registry.add(key)
+            w.open('defs', [])
+            w.open('clipPath', [('id', name), ('clipPathUnits', 'userSpaceOnUse')])
+            w.empty('polygon', [('points', ' '.join(w.nums((p.x,p.y)) for p in key))])
+            w.close('clipPath'); w.close('defs')
+        attrs.append(('clip-path', f'url(#{name})'))
     if node.kind == 'blend' and 'blend_mode' in node.notes:
         attrs.append(('style',f'mix-blend-mode:{node.notes["blend_mode"]};isolation:isolate'))
 

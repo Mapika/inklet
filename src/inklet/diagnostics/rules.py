@@ -202,6 +202,7 @@ class Item:
     #: For a generated carrier (see `_CARRIER_KINDS`), the authored node it
     #: was made from; None for everything else, which is nearly everything.
     block: Diagram | None = None
+    clip_regions: tuple[tuple[Vec2, ...], ...] = ()
 
     @property
     def label(self) -> str:
@@ -694,11 +695,25 @@ def build_context(
         bbox = _prim_bbox(node.prim, placement.world)
         if bbox is None:
             continue  # a degenerate prim: no lines, no points, nothing to check
+        if placement.clip_regions:
+            from ..draw.clip import _region, clip_polygon
+            points = list(bbox.corners)
+            for region in placement.clip_regions:
+                if abs(sum(a.cross(b) for a,b in zip(region,region[1:]+region[:1]))) <= 1e-18:
+                    points = []
+                    break
+                points = clip_polygon(points, _region(region)[0])
+                if not points:
+                    break
+            if not points:
+                continue
+            bbox = Rect.hull(points)
         items.append(Item(
             id=node_id, node=node, prim=node.prim, world=placement.world,
             style=placement.style, bbox=bbox,
             scale=placement.world.uniform_scale(), depth=placement.depth,
             block=_spoken_by(nodes, parent, node_id),
+            clip_regions=placement.clip_regions,
         ))
     items.sort(key=lambda i: i.id)
 
@@ -2465,7 +2480,33 @@ def _outline(item: Item) -> Trace:
     a shaft clipping the empty corner of an ellipse's bbox is a false positive
     and `Trace` is the thing that knows where the curve actually is.
     """
-    return item.prim.trace().transform(item.world)
+    outline = item.prim.trace().transform(item.world)
+    if not item.clip_regions or outline.hits is None:
+        return outline
+    from ..draw.clip import _region
+    planes = tuple((a,(b-a).perp()) for ring in item.clip_regions
+                   for a,b in _region(ring)[0])
+    def hits(origin, direction):
+        lo, hi = -math.inf, math.inf
+        for a,n in planes:
+            distance, slope = n.dot(origin-a), n.dot(direction)
+            if abs(slope) <= 1e-15:
+                if distance < 0:
+                    return ()
+            elif slope > 0:
+                lo = max(lo, -distance/slope)
+            else:
+                hi = min(hi, -distance/slope)
+        if lo >= hi:
+            return ()
+        original = outline.hits(origin,direction)
+        clipped = [t for t in original if lo <= t <= hi]
+        # A boundary of the window contributes only where the source is filled.
+        for t in (lo,hi):
+            if math.isfinite(t) and sum(v > t for v in original)%2:
+                clipped.append(t)
+        return tuple(sorted(set(clipped)))
+    return Trace(hits)
 
 
 def _inside(outline: Trace, point: Vec2) -> bool:
@@ -2520,7 +2561,14 @@ def _shaft_segments(ctx: LintContext, item: Item) -> tuple[tuple[Vec2, Vec2], ..
     cache = ctx._memo.setdefault("segments", {})
     known = cache.get(item.id)
     if known is None:
-        known = cache[item.id] = _flatten_shaft(item)
+        known = _flatten_shaft(item)
+        if item.clip_regions:
+            from ..draw.clip import _region, _segment
+            for ring in item.clip_regions:
+                edges, _ = _region(ring)
+                known = tuple(span for a,b in known
+                              if (span := _segment(a,b,edges)) is not None)
+        cache[item.id] = known
     return known
 
 

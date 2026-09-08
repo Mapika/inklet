@@ -22,7 +22,7 @@ from .annotate import (
     letters, scalebar,
 )
 from .clip import (
-    CLIP_KIND, area_within, clip, clip_polygon, clip_polyline, polygon_area,
+    CLIP_KIND, area_within, window, clip, clip_polygon, clip_polyline, polygon_area,
 )
 from .coords import (
     AREA_NOTE, ORIGIN_ANCHOR, Point, as_drawn, declare_area, placed_anchor,
@@ -42,7 +42,7 @@ __all__ = [
     "scalebar", "label_slot", "label_specs", "LabelSpec",
     "ANNOTATION_KIND", "BRACKET_KIND", "DIMENSION_KIND",
     "SCALEBAR_KIND", "ANNOTATE_SIDES", "LABEL_SPEC_NOTE", "LETTER_KIND",
-    "clip", "clip_polygon", "clip_polyline", "CLIP_KIND",
+    "window", "clip", "clip_polygon", "clip_polyline", "CLIP_KIND",
     "area_within", "polygon_area",
     "as_drawn", "to_point", "to_points", "catmull_rom", "arc_cubics",
     "plot_area", "declare_area", "AREA_NOTE",

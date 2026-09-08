@@ -457,6 +457,10 @@ One data glyph, centred on its own origin so `place()` lands it on the point it 
 
 Put children at explicit coordinates, in millimetres.
 
+#### `window(items: 'Diagram | Iterable[Diagram]', region: 'Rect | Sequence[Point]', *, kind: 'str' = 'window', **style) -> 'Diagram'`
+
+Crop painted content to a fixed convex window, in local millimetres.
+
 #### `clip(items: 'Diagram | Iterable[Diagram]', region: 'Rect | Sequence[Point]', *, kind: 'str' = 'clip', strict: 'bool' = False, **style) -> 'Diagram'`
 
 Cut `items` down to `region`, in the coordinate frame you pass it in.
@@ -1058,9 +1062,9 @@ Flatten the tree into world transforms, keyed by node id.
 
 ## Core types and units
 
-#### `class Diagram(prim: 'Prim | None' = None, children: "tuple['Diagram', ...]" = (), transform: 'Affine' = Affine(a=1.0, b=0.0, c=0.0, d=1.0, e=0.0, f=0.0), style: 'Style' = Style(fill=None, stroke=None, stroke_width=None, stroke_dash=None, stroke_linecap=None, stroke_linejoin=None, opacity=None, fill_opacity=None, stroke_opacity=None, corner_radius=None, font_family=None, font_size=None, font_weight=None, font_style=None, text_fill=None, line_height=None, halo=None, halo_color=None), kind: 'str' = 'g', name: 'str | None' = None, id: 'str' = '', envelope_override: 'Envelope | None' = None, attached_to: 'tuple[str, ...]' = (), anchors: 'dict[str, Vec2]' = <factory>, notes: 'dict[str, object]' = <factory>, _cache: 'dict' = <factory>) -> None`
+#### `class Diagram(prim: 'Prim | None' = None, children: "tuple['Diagram', ...]" = (), transform: 'Affine' = Affine(a=1.0, b=0.0, c=0.0, d=1.0, e=0.0, f=0.0), style: 'Style' = Style(fill=None, stroke=None, stroke_width=None, stroke_dash=None, stroke_linecap=None, stroke_linejoin=None, opacity=None, fill_opacity=None, stroke_opacity=None, corner_radius=None, font_family=None, font_size=None, font_weight=None, font_style=None, text_fill=None, line_height=None, halo=None, halo_color=None), kind: 'str' = 'g', name: 'str | None' = None, id: 'str' = '', envelope_override: 'Envelope | None' = None, attached_to: 'tuple[str, ...]' = (), anchors: 'dict[str, Vec2]' = <factory>, notes: 'dict[str, object]' = <factory>, clip_region: 'tuple[Vec2, ...]' = (), _cache: 'dict' = <factory>) -> None`
 
-Diagram(prim: 'Prim | None' = None, children: "tuple['Diagram', ...]" = (), transform: 'Affine' = Affine(a=1.0, b=0.0, c=0.0, d=1.0, e=0.0, f=0.0), style: 'Style' = Style(fill=None, stroke=None, stroke_width=None, stroke_dash=None, stroke_linecap=None, stroke_linejoin=None, opacity=None, fill_opacity=None, stroke_opacity=None, corner_radius=None, font_family=None, font_size=None, font_weight=None, font_style=None, text_fill=None, line_height=None, halo=None, halo_color=None), kind: 'str' = 'g', name: 'str | None' = None, id: 'str' = '', envelope_override: 'Envelope | None' = None, attached_to: 'tuple[str, ...]' = (), anchors: 'dict[str, Vec2]' = <factory>, notes: 'dict[str, object]' = <factory>, _cache: 'dict' = <factory>)
+Diagram(prim: 'Prim | None' = None, children: "tuple['Diagram', ...]" = (), transform: 'Affine' = Affine(a=1.0, b=0.0, c=0.0, d=1.0, e=0.0, f=0.0), style: 'Style' = Style(fill=None, stroke=None, stroke_width=None, stroke_dash=None, stroke_linecap=None, stroke_linejoin=None, opacity=None, fill_opacity=None, stroke_opacity=None, corner_radius=None, font_family=None, font_size=None, font_weight=None, font_style=None, text_fill=None, line_height=None, halo=None, halo_color=None), kind: 'str' = 'g', name: 'str | None' = None, id: 'str' = '', envelope_override: 'Envelope | None' = None, attached_to: 'tuple[str, ...]' = (), anchors: 'dict[str, Vec2]' = <factory>, notes: 'dict[str, object]' = <factory>, clip_region: 'tuple[Vec2, ...]' = (), _cache: 'dict' = <factory>)
 
 * `extent(direction: 'Vec2') -> 'float'` -- How far this reaches along a direction, in the parent's frame. This is what stacking asks, and why a rotated shape packs tighter than its bbox.
 * `anchor(name: 'str', at: 'tuple[float, float] | Vec2') -> "'Diagram'"` -- Register a named point. A tuple is read as fractions of the local bounding box, (0, 0) being its top-left corner -- the natural way to point at an ear in a photograph.

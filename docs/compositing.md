@@ -1,6 +1,6 @@
 # Transparency and compositing
 
-These engine changes are **unreleased, after 4.0.0.dev1**. They correct native
+These engine changes are included in **4.0.0.dev2**. They correct native
 PDF output and reduce repeated geometry work during export. The SVG output of
 the review recipe is unchanged.
 

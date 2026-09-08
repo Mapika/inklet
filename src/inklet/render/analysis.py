@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ..core import Affine, Diagram, ImagePrim, PathPrim, PhantomPrim, Rect, Style, TextPrim
-from .bounds import primitive_bounds
+from .bounds import clip_bounds, primitive_bounds
 from .brushes import PaintedPrim
 
 
@@ -28,6 +28,7 @@ class CompositingAnalysis:
             other = self.bounds(child, world @ child.transform, child.style.over(style))
             if other is not None:
                 box = other if box is None else box.union(other)
+        box = clip_bounds(box, node, world)
         self._bounds[key] = box
         return box
 

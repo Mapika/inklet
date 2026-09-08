@@ -711,6 +711,13 @@ def _emit_contents(c: _Content, node: Diagram, world: Affine, style: Style,
                    alpha: float) -> None:
     """The node's own primitive, then its children. A node's prim paints under
     them, exactly as `core.flatten` orders it."""
+    if node.clip_region:
+        c.op("q")
+        points = tuple(world.apply(p) for p in node.clip_region)
+        c.op(c.n(points[0].x), c.n(points[0].y), "m")
+        for p in points[1:]:
+            c.op(c.n(p.x), c.n(p.y), "l")
+        c.op("h"); c.op("W"); c.op("n")
     if node.prim is not None and not isinstance(node.prim, PhantomPrim):
         c.op("q")
         # `fill_opacity`/`stroke_opacity` multiply into the group alpha rather
@@ -726,6 +733,8 @@ def _emit_contents(c: _Content, node: Diagram, world: Affine, style: Style,
         c.op("Q")
     for child in node.children:
         _emit_node(c, child, world, style, alpha)
+    if node.clip_region:
+        c.op("Q")
 
 
 def _ratio(style: Style, name: str) -> float:

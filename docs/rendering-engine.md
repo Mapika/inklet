@@ -1,6 +1,6 @@
 # Rendering and layout review
 
-For the unreleased work after 4.0.0.dev1, see the illustrated
+For the engine changes included in 4.0.0.dev2, see the illustrated
 [transparency and compositing review](compositing.md), including PNG alpha,
 single-primitive opacity and nested PDF export measurements.
 The next [hatch engine increment](hatching.md) shares exact line geometry across
@@ -118,3 +118,7 @@ and PDF improvements. Consult the separate phase timings in the raw reports;
 the engine does not make every export path faster. Pixel output still depends
 on the selected renderer, fonts and DPI. The existing visual tests use pinned
 renderer versions and reviewed baselines.
+
+Curve-preserving geometric clipping and explicit painted windows now share
+resolved clip regions across SVG/PDF, with separate layout and painted bounds.
+See the [clipping review](clipping.md) for semantics, limits and measurements.

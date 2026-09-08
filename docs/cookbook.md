@@ -260,6 +260,10 @@ sparklines drawn in data coordinates it lines up their y = 0, the way
 
 ## Cutting a shape to a window
 
+For complete paint cropping, including images, glyphs and smooth filled curves,
+use [`inklet.window()`](clipping.md). The geometric operation below changes the
+remaining shape and its measured extent.
+
 `inklet.clip` cuts geometry rather than emitting an SVG `clipPath`, so the result
 measures right -- `bbox` shrinks, and a stack packs against the ink that is
 actually left. The region is a `inklet.Rect` or a ring of points, convex, and

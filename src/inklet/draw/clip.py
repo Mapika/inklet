@@ -1,31 +1,18 @@
-"""Clipping, done to the geometry rather than to the renderer.
-
-Nothing in inklet clipped before this, and it showed the moment two panels sat
-side by side: a fitted line whose confidence band ran past the end of its
-domain drew straight over its neighbour, and no linter could tell that from a
-deliberate annotation.
-
-The obvious implementation is an SVG `clipPath`. This is not that. Clipping the
-points means the result is still a `Diagram` made of ordinary primitives, so it
-measures correctly (a clipped curve's envelope is the *clipped* extent, which is
-what stacking should pack against), it lints correctly, it costs nothing at
-render time, and it works in whatever backend comes next. A `clipPath` would be
-invisible to every one of those.
-
-What it cannot do is clip a glyph or a photograph. Those are kept or dropped
-whole -- see `clip` for the rule and for how to change it.
-"""
+"""Geometric clipping and explicit painted windows in local millimetres."""
 
 from __future__ import annotations
+
+import math
+from dataclasses import replace
 
 from typing import Iterable, Sequence
 
 from ..core import (
-    IDENTITY, Affine, Diagram, PathPrim, Rect, RectPrim, Subpath, Vec2,
+    IDENTITY, Affine, Diagram, Envelope, PathPrim, Rect, RectPrim, Subpath, Vec2,
 )
 from .coords import Point, to_points
 
-__all__ = ["clip", "clip_polyline", "clip_polygon"]
+__all__ = ["window", "clip", "clip_polyline", "clip_polygon"]
 
 CLIP_KIND = "clip"
 
@@ -45,7 +32,7 @@ def clip(items: Diagram | Iterable[Diagram],
     wrong answer rather than an error, and a wrong answer here is a figure that
     lies.
 
-    Paths and rectangles are cut exactly. Text, images and ellipses -- which
+    Straight paths and square rectangles are cut geometrically. Text, images and ellipses -- which
     includes every `marker()` -- cannot be, so by default they are kept whole
     when they touch the region at all and dropped when they do not: a scatter
     point on the boundary stays a round dot half outside the axes, the way a
@@ -56,16 +43,35 @@ def clip(items: Diagram | Iterable[Diagram],
     handle you are holding stays the node in the tree and `fig.link` can still
     find it. Anything actually cut is necessarily a new node.
 
-    Cubic segments do not survive: a clipped curve keeps its flattened points
-    and drops its exact `curves`, because a bezier cut by a half-plane is not a
-    bezier. The flattening is sub-micrometre at figure sizes, but it is not the
-    same object, and a subsequent `smooth` will not put it back.
+    Open cubic curves retain exact subdivided controls. Their measurement
+    polylines have a 0.0001 mm tolerance in the clip frame. Filled curves still
+    use polygon geometry; use `window` to retain the original painted curves,
+    rounded corners, stroke caps and fill topology without rewriting them.
     """
     nodes = [items] if isinstance(items, Diagram) else list(items)
     edges, box = _region(region)
     kept = [n for n in (_clip_node(n, IDENTITY, edges, box, strict)
                         for n in nodes) if n is not None]
     node = Diagram(children=tuple(kept), kind=kind)
+    return node.styled(**style) if style else node
+
+
+def window(items: Diagram | Iterable[Diagram], region: Rect | Sequence[Point],
+           *, kind: str = "window", **style) -> Diagram:
+    """Crop painted content to a fixed convex window, in local millimetres.
+
+    SVG, PDF and PNG clip every paint, including images, glyphs, markers and
+    stroke widths. Children and their handles remain unchanged. Layout and the
+    window's connector trace reserve the complete window, even if empty.
+    Child anchors still refer to authored geometry. `resolve` and `flatten`
+    expose inherited world-space clip regions and `visible_at(point)` for
+    consumers that need to filter picking; they do not remove source records.
+    """
+    edges, box = _region(region)
+    nodes = (items,) if isinstance(items, Diagram) else tuple(items)
+    node = Diagram(children=nodes, kind=kind,
+                   clip_region=tuple(a for a, _ in edges),
+                   envelope_override=Envelope.from_rect(box))
     return node.styled(**style) if style else node
 
 
@@ -77,10 +83,14 @@ def _region(region: Rect | Sequence[Point]) -> tuple[tuple, Rect]:
     else:
         _refuse_flat_rect(region)
         points = to_points(region)
+    if any(not math.isfinite(v) for p in points for v in (p.x, p.y)):
+        raise ValueError("clip region coordinates must be finite")
     ring = _dedupe(points)
     if len(ring) < 3:
         raise ValueError(
             f"a clip region needs at least three distinct corners, got {len(ring)}")
+    if abs(_signed_area(ring)) <= EPS:
+        raise ValueError("clip region must have positive area")
     if not _is_convex(ring):
         raise ValueError(
             "clip regions must be convex; a concave one would be silently "
@@ -182,12 +192,26 @@ def _clip_node(node: Diagram, to_clip: Affine, edges, box: Rect,
         return None
     if prim is node.prim and children == node.children:
         return node
-    return Diagram(prim=prim, children=children, transform=node.transform,
-                   style=node.style, kind=node.kind, name=node.name)
+    return replace(node, prim=prim, children=children, id="", _cache={})
 
 
 def _bbox_in(node: Diagram, world: Affine) -> Rect | None:
-    box = node.local_envelope.bbox()
+    # A sampled envelope can miss a cubic excursion between samples. Cache a
+    # conservative control hull separately; normal layout remains unchanged.
+    key = "clip_control_bounds"
+    if key not in node._cache:
+        local = node.prim.envelope().bbox() if node.prim is not None else None
+        if isinstance(node.prim, PathPrim):
+            controls = [p for sub in node.prim.subpaths for c in sub.curves for p in c]
+            if controls:
+                hull = Rect.hull(controls)
+                local = hull if local is None else local.union(hull)
+        for child in node.children:
+            other = _bbox_in(child, child.transform)
+            if other is not None:
+                local = other if local is None else local.union(other)
+        node._cache[key] = local
+    box = node._cache[key]
     if box is None:
         return None
     return Rect.hull([world.apply(c) for c in box.corners])
@@ -225,6 +249,10 @@ def _clip_path(prim: PathPrim, world: Affine, home: Affine,
         if index in ring_set:
             if index == first:
                 out.extend(_clip_rings_of(prim, rings, world, home, edges))
+            continue
+        if sub.curves:
+            from .bezier_clip import clip_curves
+            out.extend(clip_curves(sub.curves, world, home, edges, closed=sub.closed))
             continue
         pts = [world.apply(p) for p in sub.points]
         for piece in clip_polyline(pts, edges, closed=sub.closed):
@@ -481,8 +509,31 @@ def clip_polyline(points: Sequence[Vec2], edges, *,
         chain.append(chain[0])
     pieces: list[list[Vec2]] = []
     current: list[Vec2] = []
+    # Resolve half-plane coefficients once, not four Vec2 allocations per
+    # edge of every segment in a dense trace.
+    planes = tuple((a.x, a.y, a.y-b.y, b.x-a.x) for a,b in edges)
     for a, b in zip(chain, chain[1:]):
-        span = _segment(a, b, edges)
+        lo, hi = 0., 1.
+        dx, dy = b.x-a.x, b.y-a.y
+        accepted = True
+        for x, y, nx, ny in planes:
+            denominator = nx*dx+ny*dy
+            distance = nx*(a.x-x)+ny*(a.y-y)
+            if abs(denominator) <= EPS:
+                if distance < -EPS:
+                    accepted = False
+                    break
+                continue
+            t = -distance/denominator
+            if denominator > 0:
+                lo = max(lo, t)
+            else:
+                hi = min(hi, t)
+            if lo > hi:
+                accepted = False
+                break
+        span = ((a if lo == 0 else Vec2(a.x+dx*lo,a.y+dy*lo)),
+                (b if hi == 1 else Vec2(a.x+dx*hi,a.y+dy*hi))) if accepted else None
         if span is None:
             if len(current) >= 2:
                 pieces.append(current)

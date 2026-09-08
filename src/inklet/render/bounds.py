@@ -18,6 +18,13 @@ def painted_bounds(node, world, style):
         other = painted_bounds(child, world @ child.transform, child.style.over(style))
         if other is not None:
             box = other if box is None else box.union(other)
+    return clip_bounds(box, node, world)
+
+
+def clip_bounds(box, node, world):
+    if box is not None and node.clip_region:
+        boundary = Rect.hull(world.apply(p) for p in node.clip_region)
+        return box.overlap(boundary)
     return box
 
 
