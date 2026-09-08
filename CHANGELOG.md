@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add immutable rectilinear nodal fields with explicit triangle interpolation,
+  linear contours, normalized-vector RK4 streamlines and cell-linked selections.
+  Preserve scalar/vector masks independently and report tracing termination.
+- Add a complete contour/streamline report with analytic fixtures, source
+  revisions, JSON replacement, saved states and two-width vector exports.
+  Keep corner summaries distinct from interpolated field values.
+
 - Add immutable triangle meshes with supplied scalar/vector face fields, units,
   source digests, geometric measurements and strict table correspondence.
   Link equal-scale plan views, triangle picking and calibrated vector arrows

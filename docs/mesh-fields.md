@@ -131,6 +131,8 @@ belongs to a newly triangulated or repaired face. Establish that mapping before
 calling `from_mesh`. A direction-only vector revision may leave the measurement
 table digest unchanged; the source and scene digests still change.
 
-This increment does not add contours, streamlines, per-vertex interpolation,
+The separate [contour and streamline workflow](contours-streamlines.md) now
+supports nodal rectilinear fields. This face-field API still does not interpolate
+per-vertex values on arbitrary imported meshes or provide
 general mesh topology validation, simulation file adapters or depth-aware 3D
 selection. Those remain separate roadmap work.
