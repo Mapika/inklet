@@ -58,7 +58,9 @@ jobs:
       - name: Build the preset comparison gallery
         run: .venv/bin/python tools/preset_gallery.py --output out/presets
       - name: Common CSV plotting example
-        run: .venv/bin/python examples/general_plots.py --output out/general-plots
+        run: |
+          .venv/bin/python examples/general_plots.py --output out/general-plots
+          .venv/bin/python examples/plot_quality_review.py --output out/plot-quality
       - name: Experimental selection and revision baseline
         run: |
           .venv/bin/python examples/v4/linked_selection.py --output out/v4-linked
@@ -66,6 +68,7 @@ jobs:
           .venv/bin/python examples/v4/linked_dashboard.py --output out/v4-dashboard
           .venv/bin/python examples/v4/faceted_operations.py --output out/v4-facets
           .venv/bin/python examples/v4/time_series.py --output out/v4-time
+          .venv/bin/python examples/v4/statistical_views.py --output out/v4-statistics
           .venv/bin/python examples/v4/regional_analysis.py --output out/v4-regions
           .venv/bin/python examples/v4/region_shapes.py --output out/v4-region-shapes
           .venv/bin/python examples/v4/world_population.py --output out/v4-world

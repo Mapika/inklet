@@ -123,6 +123,68 @@ class BarView(_CartesianView):
 
 
 @dataclass(frozen=True)
+class IntervalView(_CartesianView):
+    """Supplied absolute interval bounds and a center, linked by source row.
+
+    Declare the interval's meaning explicitly. Inklet does not estimate it.
+    Missing bounds retain the center marker and omit the interval.
+    """
+    lower: str = field(kw_only=True)
+    upper: str = field(kw_only=True)
+    interval_label: str = field(kw_only=True)
+    orientation: str = 'vertical'
+    cap_width_mm: float = 2
+    radius_mm: float = .6
+    line_width_mm: float = .3
+    color: str = '#34786b'
+
+    def __post_init__(self):
+        super().__post_init__()
+        if any(not isinstance(v,str) or not v.strip() for v in (self.lower,self.upper,self.interval_label)):
+            raise ValueError('interval bounds need column names and an explicit interval_label')
+        if self.orientation not in ('vertical','horizontal'):
+            raise ValueError('interval orientation must be vertical or horizontal')
+        if isinstance(self.y_domain if self.orientation=='vertical' else self.x_domain,TimeAxis):
+            raise ValueError('intervals require a numeric value axis')
+        for name in ('cap_width_mm','radius_mm','line_width_mm'):
+            if not _finite(getattr(self,name)) or not 0 < getattr(self,name) <= 10:
+                raise ValueError(f'{name} must be positive and at most 10 mm')
+
+
+@dataclass(frozen=True)
+class ECDFView:
+    """A fixed reference ECDF and individually selectable observation markers.
+
+    Ties use count(value <= x) / n; None is excluded from n. Filtering hides
+    observation markers only. Replacing the data rebuilds the reference curve.
+    """
+    name: str
+    value: str
+    x_domain: tuple[float,float]
+    x_label: str = ''
+    y_label: str = 'Cumulative fraction'
+    radius_mm: float = .55
+    line_width_mm: float = .3
+    color: str = '#34786b'
+    y_domain: tuple[float,float] = field(default=(0,1.05),init=False)
+
+    def __post_init__(self):
+        if isinstance(self.x_domain,TimeAxis):
+            raise ValueError('ECDF values must use a numeric domain')
+        checked=ScatterView(self.name,self.value,'ecdf_fraction',self.x_domain,self.y_domain,
+                            self.x_label,self.y_label,self.radius_mm,self.color)
+        object.__setattr__(self,'x_domain',checked.x_domain)
+        if not _finite(self.line_width_mm) or not 0 < self.line_width_mm <= 10:
+            raise ValueError('line width must be positive and at most 10 mm')
+
+    @property
+    def x(self): return self.value
+
+    @property
+    def y(self): return 'ecdf_fraction'
+
+
+@dataclass(frozen=True)
 class FacetView:
     """Repeat a Cartesian view over explicit, ordered string categories.
 
@@ -131,14 +193,14 @@ class FacetView:
     pairs breaking the line. Unlisted/null categories remain in the table
     and are reported in the scene's facet_groups metadata.
     """
-    view: ScatterView | LineView | BarView
+    view: ScatterView | LineView | BarView | IntervalView | ECDFView
     column: str
     values: tuple[str,...]
     labels: tuple[str,...] = ()
 
     def __post_init__(self):
-        if type(self.view) not in (ScatterView,LineView,BarView):
-            raise ValueError('facets require a scatter, line or bar view')
+        if type(self.view) not in (ScatterView,LineView,BarView,IntervalView,ECDFView):
+            raise ValueError('facets require a Cartesian plot view')
         if not isinstance(self.column,str) or not self.column:
             raise ValueError('facet column must be a nonempty string')
         if isinstance(self.values,(str,bytes)) or isinstance(self.labels,(str,bytes)):
@@ -268,7 +330,7 @@ def _svg_mark(mark, color, selected=False):
         tag='rect'; attrs=dict(zip(('x','y','width','height'),g))
     else:
         tag='line'; attrs=dict(zip(('x1','y1','x2','y2'),g))
-        attrs.update({'stroke-width':mark['width']+(.6 if selected else 0),
+        attrs.update({'stroke-width':mark.get('selected_width',mark['width']+.6) if selected else mark['width'],
                       'stroke-linecap':'round','stroke':'#bd5636' if selected else color})
     if kind!='line':
         attrs.update({'fill':'none','stroke':'#bd5636','stroke-width':.3} if selected
@@ -286,15 +348,15 @@ class BrowserFigure:
     def __init__(self, table: KeyedTable, views, *, width=190, columns=None):
         import inklet as i
         definitions=tuple(views)
-        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,RegionView,FacetView) for v in definitions):
-            raise ValueError('provide one to four scatter, line, bar, region or facet view definitions')
+        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,RegionView,FacetView) for v in definitions):
+            raise ValueError('provide one to four supported plot or facet view definitions')
         if len({v.name for v in definitions})!=len(definitions): raise ValueError('view names must be unique')
         views,facet_metadata,facet_rows,facet_groups=_expand_facets(table,definitions)
         columns=min(2,len(views)) if columns is None else columns
         if type(columns) is not int or not 1<=columns<=4: raise ValueError('columns must be from 1 to 4')
         doc=i.document(width=width,columns=columns,gap=9,margin=6,
                        share_plot_margins=bool(facet_groups)).letters()
-        coordinates={}
+        coordinates={};statistics={};ecdf_curves={}
         for index,view in enumerate(views):
             if isinstance(view,RegionView):
                 if set(view.regions.feature_ids)!=set(table.row_ids):
@@ -312,7 +374,41 @@ class BrowserFigure:
                 entries=view._legend(any(v is None for v in table.columns[view.value]) if view.value else False)
                 if entries: p.legend(entries=entries,side='bottom',title=view.value_label or view.value,markup=False)
             else:
+                indices=facet_rows.get(view.name,range(len(table.row_ids)))
+                if isinstance(view,ECDFView):
+                    if view.value not in table.columns: raise ValueError(f'unknown column: {view.value}')
+                    raw=table.columns[view.value]
+                    if any(v is not None and not _finite(v) for v in raw):
+                        raise ValueError('ECDF values must be numeric or null')
+                    ordered=sorted(raw[n] for n in indices if raw[n] is not None)
+                    ranks={value:(n+1)/len(ordered) for n,value in enumerate(ordered)}
+                    fractions=[None]*len(raw)
+                    for n in indices: fractions[n]=ranks.get(raw[n])
+                    coordinates[view.name,'y']=fractions
+                    statistics[view.name]=dict(kind='ecdf',method='count(value <= x) / n',
+                        population='fixed source rows in this panel',n=len(ordered),
+                        missing=sum(raw[n] is None for n in indices),filtering='markers only; reference population unchanged')
+                    curve=[]
+                    if ordered:
+                        previous_x=min(view.x_domain[0],view.x_domain[1],ordered[0]);previous_y=0
+                        for value,fraction in sorted(ranks.items()):
+                            curve.extend(((previous_x,previous_y,value,previous_y),(value,previous_y,value,fraction)))
+                            previous_x,previous_y=value,fraction
+                        curve.append((previous_x,previous_y,max(*view.x_domain,ordered[-1]),previous_y))
+                    ecdf_curves[view.name]=curve
+                if isinstance(view,IntervalView):
+                    for column in (view.lower,view.upper):
+                        if column not in table.columns: raise ValueError(f'unknown interval column: {column}')
+                        if any(v is not None and not _finite(v) for v in table.columns[column]):
+                            raise ValueError(f'interval column {column!r} must be numeric or null')
+                    statistics[view.name]=dict(kind='interval',label=view.interval_label,
+                        population='supplied source-row intervals',filtering='hide rows without recomputing intervals',
+                        missing_intervals=0)
+                    for row,(lo,hi) in enumerate(zip(table.columns[view.lower],table.columns[view.upper])):
+                        if lo is not None and hi is not None and lo > hi:
+                            raise ValueError(f'interval row {row}: require lower <= upper')
                 for axis,column in (('x',view.x),('y',view.y)):
+                    if isinstance(view,ECDFView) and axis=='y': continue
                     if column not in table.columns: raise ValueError(f'unknown column: {column}')
                     domain=getattr(view,axis+'_domain')
                     if isinstance(domain,TimeAxis):
@@ -365,13 +461,33 @@ class BrowserFigure:
             points=[]; missing=0; marks=[]; previous=None; previous_x=None; gap_count=0
             gap_ms=(Decimal(str(view.max_gap_seconds))*1000 if isinstance(view,LineView)
                     and view.max_gap_seconds is not None else None)
+            if isinstance(view,ECDFView):
+                marks=[dict(kind='line',ids=[],reference=True,geometry=[*project(a,b),*project(c,d)],
+                            width=view.line_width_mm,color='#9aa9a3') for a,b,c,d in ecdf_curves[view.name]]
             for n in facet_rows.get(view.name,range(len(table.row_ids))):
                 key,x,y=table.row_ids[n],coordinates[view.name,'x'][n],coordinates[view.name,'y'][n]
                 if x is None or y is None:
                     missing+=1; previous=None; continue
                 px,py=project(x,y)
                 points.append([key,px,py])
-                if isinstance(view,LineView):
+                if isinstance(view,ECDFView):
+                    marks.append(dict(kind='circle',ids=[key],geometry=[px,py,view.radius_mm]))
+                elif isinstance(view,IntervalView):
+                    lo,hi=table.columns[view.lower][n],table.columns[view.upper][n]
+                    center=y if view.orientation=='vertical' else x
+                    if lo is not None and hi is not None:
+                        if not lo <= center <= hi:
+                            raise ValueError(f'interval row {n}: require lower <= center <= upper')
+                        a,b=(project(x,lo),project(x,hi)) if view.orientation=='vertical' else (project(lo,y),project(hi,y))
+                        cap=view.cap_width_mm/2
+                        segments=[[*a,*b]]
+                        for cx,cy in (a,b):
+                            segments.append([cx-cap,cy,cx+cap,cy] if view.orientation=='vertical' else [cx,cy-cap,cx,cy+cap])
+                        marks.extend(dict(kind='line',ids=[key,key],geometry=[round(v,6) for v in segment],
+                                          width=view.line_width_mm,selected_width=view.line_width_mm+.2) for segment in segments)
+                    else: statistics[view.name]['missing_intervals']+=1
+                    marks.append(dict(kind='circle',ids=[key],geometry=[px,py,view.radius_mm]))
+                elif isinstance(view,LineView):
                     if previous is not None and gap_ms is not None and abs(round(x*1000)-round(previous_x*1000))>gap_ms:
                         previous=None;gap_count+=1
                     if previous is not None:
@@ -390,11 +506,14 @@ class BrowserFigure:
             time_axes={axis:getattr(view,axis+'_domain').metadata() for axis in ('x','y')
                        if isinstance(getattr(view,axis+'_domain'),TimeAxis)}
             if time_axes: layer['time_axes']=time_axes
+            if view.name in statistics: layer['statistics']=statistics[view.name]
+            if isinstance(view,ECDFView): layer['derived_y']=coordinates[view.name,'y']
             if isinstance(view,LineView) and view.max_gap_seconds is not None:
                 layer['max_gap_seconds']=view.max_gap_seconds;layer['time_gaps']=gap_count
             if view.name in facet_metadata: layer['facet']=facet_metadata[view.name]
             if isinstance(view,ScatterView): layer['radius']=view.radius_mm
             else: layer['marks']=marks
+            if isinstance(view,(ECDFView,IntervalView)): layer['radius']=view.radius_mm
             layers.append(layer)
         payload=dict(schema=self._schema,table=table.name,data_digest=table.digest,row_ids=table.row_ids,
                      columns=dict(table.columns),width=width_mm,height=height_mm,frame=frame,layers=layers)

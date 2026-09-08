@@ -2,6 +2,7 @@
 const NS='http://www.w3.org/2000/svg';
 function element(tag,attrs={}){const e=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));return e;}
 function inside(x,y,b){return x>=b[0]&&x<=b[0]+b[2]&&y>=b[1]&&y<=b[1]+b[3];}
+function displayValue(value){return value==null?'Missing':typeof value==='number'?(Number.isInteger(value)?String(value):Number(value.toPrecision(6)).toString()):String(value);}
 function polygonPath(rings){return rings.map(r=>'M '+r.map(p=>p.join(' ')).join(' L ')+' Z').join(' ');}
 function polygonContains(x,y,rings){
   let contained=false;
@@ -45,6 +46,7 @@ class ScatterRenderer{
       for(const mark of marks){
         const g=mark.geometry,item={...mark,id:mark.ids[0],x:g[0],y:g[1],layer,layerIndex,order:this.items.length};
         this.items.push(item);this.layerItems[layerIndex].push(item);
+        if(item.reference)continue; // Fixed population curves are not row selections.
         for(const id of item.ids){if(!this.byId.has(id))this.byId.set(id,[]);this.byId.get(id).push(item);}
         // Circle centers retain the original compact index. Extended marks use
         // their clipped bounds, so a long off-page segment cannot explode it.
@@ -81,7 +83,15 @@ class ScatterRenderer{
     this.index.clear();this.byId.clear();this.items=[];this.layerItems=[];
   }
   mapping(){const r=this.host.getBoundingClientRect(),v=this.viewport,s=Math.min(r.width/v[2],r.height/v[3]);return {width:r.width,height:r.height,scale:s,dx:(r.width-v[2]*s)/2-v[0]*s,dy:(r.height-v[3]*s)/2-v[1]*s};}
-  point(clientX,clientY){const m=this.svg.getScreenCTM();if(!m)return null;return new DOMPoint(clientX,clientY).matrixTransform(m.inverse());}
+  point(clientX,clientY){const m=this.svg.getScreenCTM();if(!m)return null;
+    const p=new DOMPoint(clientX,clientY).matrixTransform(m.inverse());
+    // Inverting the screen transform can move an exact boundary by a few
+    // floating-point bits. Snap only that roundoff, in physical millimetres.
+    for(const {clip:b} of this.scene.layers){
+      for(const x of [b[0],b[0]+b[2]])if(Math.abs(p.x-x)<=1e-9)p.x=x;
+      for(const y of [b[1],b[1]+b[3]])if(Math.abs(p.y-y)<=1e-9)p.y=y;
+    }
+    return p;}
   shown(id){return this.visible===null||this.visible.has(id);}
   markShown(item){return item.ids.every(id=>this.shown(id));}
   selectedItems(){return [...new Set([...this.selected].flatMap(id=>this.byId.get(id)||[]))].sort((a,b)=>a.order-b.order);}
@@ -131,8 +141,8 @@ class ScatterRenderer{
       }
       if(tag==='circle')attrs={cx:g[0],cy:g[1],r:g[2]+(selectedOnly?.3:0)};
       else if(tag==='rect')attrs={x:g[0],y:g[1],width:g[2],height:g[3]};
-      else attrs={x1:g[0],y1:g[1],x2:g[2],y2:g[3],'stroke-width':item.width+(selectedOnly?.6:0),'stroke-linecap':'round',stroke:selectedOnly?'#bd5636':item.layer.color};
-      if(tag!=='line')Object.assign(attrs,selectedOnly?{fill:'none',stroke:'#bd5636','stroke-width':.3}:{fill:item.layer.color,'fill-opacity':.65});
+      else attrs={x1:g[0],y1:g[1],x2:g[2],y2:g[3],'stroke-width':selectedOnly?(item.selected_width??item.width+.6):item.width,'stroke-linecap':'round',stroke:selectedOnly?'#bd5636':color};
+      if(tag!=='line')Object.assign(attrs,selectedOnly?{fill:'none',stroke:'#bd5636','stroke-width':.3}:{fill:color,'fill-opacity':.65});
       groups[item.layerIndex].append(element(tag,attrs));
     }
   }
@@ -144,7 +154,7 @@ class ScatterRenderer{
       ctx.fillStyle=layer.color;ctx.lineCap='round';
       for(const item of this.layerItems[n]){
         if(!this.markShown(item)||(selectedOnly&&!item.ids.some(id=>this.selected.has(id))))continue;
-        const g=item.geometry;ctx.beginPath();ctx.fillStyle=item.color??layer.color;ctx.strokeStyle=selectedOnly?'#bd5636':layer.color;
+        const g=item.geometry;ctx.beginPath();ctx.fillStyle=item.color??layer.color;ctx.strokeStyle=selectedOnly?'#bd5636':(item.color??layer.color);
         if(item.kind==='polygon'){
           for(const ring of g){ctx.moveTo(...ring[0]);for(const p of ring.slice(1))ctx.lineTo(...p);ctx.closePath();}
           ctx.globalAlpha=1;ctx.lineWidth=selectedOnly?.6:.2;ctx.lineJoin='round';ctx.strokeStyle=selectedOnly?'#bd5636':'#ffffff';
@@ -153,7 +163,7 @@ class ScatterRenderer{
         ctx.globalAlpha=selectedOnly||item.kind==='line'?1:.65;ctx.lineWidth=.3;
         if(item.kind==='circle')ctx.arc(g[0],g[1],g[2]+(selectedOnly?.3:0),0,2*Math.PI);
         else if(item.kind==='rect')ctx.rect(...g);
-        else{ctx.moveTo(g[0],g[1]);ctx.lineTo(g[2],g[3]);ctx.lineWidth=item.width+(selectedOnly?.6:0);}
+        else{ctx.moveTo(g[0],g[1]);ctx.lineTo(g[2],g[3]);ctx.lineWidth=selectedOnly?(item.selected_width??item.width+.6):item.width;}
         if(selectedOnly||item.kind==='line')ctx.stroke();else ctx.fill();
       }
       ctx.restore();
@@ -222,10 +232,14 @@ function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));con
   const unassigned=(scene.facet_groups??[]).filter(group=>group.unassigned_ids.length);
   document.getElementById('facet-status').hidden=!unassigned.length;
   document.getElementById('facet-rows').textContent=unassigned.length?JSON.stringify(unassigned,null,2):'';
+  const statistics=scene.layers.filter(layer=>layer.statistics).map(layer=>({panel:layer.facet?.label??layer.name,...layer.statistics}));
+  document.getElementById('statistics-status').hidden=!statistics.length;
+  document.getElementById('statistics-report').textContent=statistics.length?JSON.stringify(statistics,null,2):'';
   const start=page*20;if(start>=visible.length&&page)page=0;tableBody.replaceChildren();
   for(const id of visible.slice(page*20,page*20+20)){const n=runtime.rowIndex.get(id),tr=document.createElement('tr');
     const th=document.createElement('th');th.scope='row';th.textContent=id;tr.append(th);
-    for(const column of Object.keys(scene.columns).filter(c=>c!==(scene.key??'id'))){const td=document.createElement('td');const value=scene.columns[column][n];td.textContent=typeof value==='number'?(Number.isInteger(value)?String(value):Number(value.toPrecision(6)).toString()):(value??'Missing');tr.append(td);}
+    for(const column of Object.keys(scene.columns).filter(c=>c!==(scene.key??'id'))){const td=document.createElement('td');td.textContent=displayValue(scene.columns[column][n]);tr.append(td);}
+    for(const layer of scene.layers.filter(layer=>layer.derived_y)){const td=document.createElement('td');td.textContent=layer.derived_y[n]===null?'—':displayValue(layer.derived_y[n]);tr.append(td);}
     const td=document.createElement('td'),button=document.createElement('button');button.textContent=runtime.selected.has(id)?'Deselect':'Select';button.setAttribute('aria-label',button.textContent+' '+id);button.setAttribute('aria-pressed',runtime.selected.has(id));
     button.onclick=()=>{toggle(id,true);document.getElementById('id-filter').focus();};td.append(button);tr.append(td);tableBody.append(tr);
   }
@@ -234,7 +248,7 @@ function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));con
 }
 function toggle(id,multi){const selected=multi?new Set(runtime.selected):new Set();if(selected.has(id))selected.delete(id);else selected.add(id);runtime.select([...selected]);message();}
 function action(fn){if(busy)return;try{fn();error.textContent='';message();}catch(e){error.textContent=e.message;}}
-function updateHeaders(){const headers=document.getElementById('headers');headers.replaceChildren();for(const label of ['Row ID',...Object.keys(scene.columns).filter(c=>c!==(scene.key??'id')),'Selection']){const th=document.createElement('th');th.scope='col';th.textContent=label;headers.append(th);}}
+function updateHeaders(){const headers=document.getElementById('headers');headers.replaceChildren();for(const label of ['Row ID',...Object.keys(scene.columns).filter(c=>c!==(scene.key??'id')),...scene.layers.filter(layer=>layer.derived_y).map(layer=>(layer.facet?.label??layer.x)+' / cumulative fraction'),'Selection']){const th=document.createElement('th');th.scope='col';th.textContent=label;headers.append(th);}}
 updateHeaders();
 document.getElementById('backend').onchange=e=>action(()=>runtime.setBackend(e.target.value));
 let searchColumns=/*SEARCH_COLUMNS*/[];
@@ -254,7 +268,11 @@ stage.onpointermove=e=>{if(busy)return;const p=runtime.point(e.clientX,e.clientY
   if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>3)moved=true;if(moved){const s=runtime.mapping().scale;action(()=>runtime.setViewport([drag.viewport[0]-dx/s,drag.viewport[1]-dy/s,drag.viewport[2],drag.viewport[3]]));}}
   else{const hit=runtime.pick(p.x,p.y,4/runtime.mapping().scale);
     const fields=hit?(hit.kind==='polygon'?[hit.layer.value].filter(Boolean):[hit.layer.x,hit.layer.y]):[];
-    const values=fields.map(column=>{const value=scene.columns[column][runtime.rowIndex.get(hit.id)];return `${column}: ${value===null?'Missing':Number(value.toPrecision(6))}`;});
+    const values=fields.map((column,axis)=>{
+      const derived=axis===1&&hit.layer.derived_y;
+      const value=(derived||scene.columns[column])?.[runtime.rowIndex.get(hit.id)];
+      return `${derived?'Cumulative fraction':column}: ${displayValue(value)}`;
+    });
     document.getElementById('hover').textContent=hit?[hit.id,...values].join(' · '):'Point at a mark to inspect its row ID.';
   }
 };

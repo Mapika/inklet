@@ -29,6 +29,12 @@ for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_pola
 from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption, FacetView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
 from inklet.experimental.browser import TimeAxis
+from inklet.experimental.browser import ECDFView, IntervalView
+statistics_table = KeyedTable('statistics',dict(id=['a','b'],x=[1,2],y=[2,3],lo=[1,None],hi=[3,None]))
+statistics_scene = BrowserFigure(statistics_table,[ECDFView('cdf','y',(0,4)),
+    IntervalView('interval','x','y',(0,3),(0,4),lower='lo',upper='hi',interval_label='Supplied illustrative range')])
+assert statistics_scene.payload()['layers'][0]['statistics']['n'] == 2
+assert 'statistics-status' in statistics_scene.to_html() and '<circle' in statistics_scene.to_svg()
 timed = KeyedTable('dates', {'id':['a','b'], 'day':['2024-02-29','2024-03-01'], 'value':[1,2]})
 time_scene = BrowserFigure(timed, [LineView('time','day','value',TimeAxis(('2024-02-28','2024-03-02')),(0,3),max_gap_seconds=86400)])
 assert time_scene.payload()['layers'][0]['time_gaps'] == 0

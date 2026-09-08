@@ -152,7 +152,11 @@ add explicit facets with shared physical scales and empty-category retention.
 [pandas and Polars inputs](table-inputs.md) now add immutable scalar snapshots
 with explicit keys and equivalent cross-library exports. [Linked time series](time-series.md)
 add calendar/UTC axes, temporal table imports and explicit elapsed-time gaps.
-Statistical views and the complete reference workflows remain outstanding.
+[Linked statistical views](statistical-views.md) add fixed-reference ECDFs and
+supplied intervals with explicit populations and methods. The complete reference
+workflows, recomputed grouped summaries and broader distribution types remain
+outstanding. [Shared plotting quality](plot-quality.md) also improves numeric
+ticks across static plots and browser frames.
 
 
 Start phase A with a small, reviewable sequence:

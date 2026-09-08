@@ -91,10 +91,14 @@ pairs break a category's line. Filtering removes segments incident to hidden
 rows; it never reconnects surviving observations across a removed row. Inklet
 does not sort, aggregate or interpolate the table.
 
+The [statistical preview](statistical-views.md) also supports faceted ECDF and
+interval views. ECDF populations are calculated per category and remain fixed
+during filtering; supplied interval bounds are not recalculated.
+
 `BrowserFigure` accepts one to four view definitions, expanding to at most
 twelve panels. Plain views and facets can share a figure. The default layout
 uses at most two columns; set `columns=1` through `4` explicitly to control the
-grid. Facets wrap `ScatterView`, `LineView` or `BarView`; geographic region
+grid. Facets wrap `ScatterView`, `LineView`, `BarView`, `ECDFView` or `IntervalView`; geographic region
 facets, nested facets and automatic category discovery are outside this preview.
 
 ## Save, replace and reconstruct

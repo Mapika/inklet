@@ -55,7 +55,11 @@ def nice_step(span: float, count: int = 5) -> float:
     if count < 1:
         raise ScaleError(f"tick count must be at least 1, got {count}")
     raw = span / count
+    if raw == 0:
+        return span  # No smaller representable step exists.
     magnitude = 10.0 ** math.floor(math.log10(raw))
+    if magnitude == 0:
+        return raw  # A subnormal step can outlive its decimal power of ten.
     fraction = raw / magnitude
     for cut, step in ((1.5, 1.0), (3.0, 2.0), (7.0, 5.0)):
         if fraction < cut:
@@ -75,7 +79,7 @@ def nice_ticks(lo: float, hi: float, count: int = 5) -> tuple[float, ...]:
         raise ScaleError(f"cannot tick a non-finite domain ({lo}, {hi})")
     if hi < lo:
         lo, hi = hi, lo
-    if hi - lo <= abs(hi) * _EPS:
+    if hi == lo:
         return (lo,)
     step = nice_step(hi - lo, count)
     decimals = _decimals(step)
@@ -84,7 +88,11 @@ def nice_ticks(lo: float, hi: float, count: int = 5) -> tuple[float, ...]:
     # Multiplying an integer by the step keeps every tick on the same lattice;
     # accumulating `previous + step` drifts, and the drift shows up as a label
     # reading 0.30000000000000004.
-    return tuple(round(i * step, decimals) for i in range(int(first), int(last) + 1))
+    candidates = (round(i * step, decimals)
+                  for i in range(int(first), int(last) + 1))
+    # Near floating-point resolution, distinct lattice indices can round to
+    # the same position, or division can admit a position outside the domain.
+    return tuple(dict.fromkeys(value for value in candidates if lo <= value <= hi))
 
 
 def nice_bounds(lo: float, hi: float, count: int = 5) -> tuple[float, float]:
@@ -92,12 +100,12 @@ def nice_bounds(lo: float, hi: float, count: int = 5) -> tuple[float, float]:
     of an axis are themselves labelled."""
     if hi < lo:
         lo, hi = hi, lo
-    if hi - lo <= abs(hi) * _EPS:
+    if hi == lo:
         return (lo, hi)
     step = nice_step(hi - lo, count)
     decimals = _decimals(step)
-    return (round(math.floor(lo / step + _EPS) * step, decimals),
-            round(math.ceil(hi / step - _EPS) * step, decimals))
+    return (min(lo, round(math.floor(lo / step + _EPS) * step, decimals)),
+            max(hi, round(math.ceil(hi / step - _EPS) * step, decimals)))
 
 
 def format_number(value: float, step: float | None = None) -> str:
@@ -118,7 +126,7 @@ def format_number(value: float, step: float | None = None) -> str:
     if magnitude >= 1e5 or resolution < 1e-4:
         # Past five figures, or below the fourth decimal, a plain decimal is a
         # row of zeros nobody can count.
-        return "0" if magnitude == 0 else _exponent_form(value)
+        return "0" if magnitude == 0 else _exponent_form(value, step)
     text = f"{value:.{decimals}f}"
     if step is None:
         text = text.rstrip("0").rstrip(".")
@@ -127,10 +135,20 @@ def format_number(value: float, step: float | None = None) -> str:
     return text or "0"
 
 
-def _exponent_form(value: float) -> str:
+def _exponent_form(value: float, step: float | None = None) -> str:
     """`2.5e-6`. Plain ASCII on purpose: a superscript minus is a glyph the
     resolved font may not have, and a tick label is not the place to find out."""
-    mantissa, exponent = f"{value:.3e}".split("e")
+    precision = 3
+    if step is not None and math.isfinite(step) and step != 0:
+        exponent = int(f"{value:e}".split("e")[1])
+        # Distinct positions need distinct labels even when their shared
+        # magnitude is large relative to the tick spacing. Three mantissa
+        # decimals would label every tick from 1,000,000 to 1,000,005 as 1e6.
+        factor = 10.0 ** exponent
+        scaled_step = abs(step) / factor if factor else math.inf
+        if math.isfinite(scaled_step):
+            precision = max(precision, min(16, _decimals(scaled_step)))
+    mantissa, exponent = f"{value:.{precision}e}".split("e")
     mantissa = mantissa.rstrip("0").rstrip(".")
     return f"{mantissa}e{int(exponent)}"
 
@@ -330,10 +348,14 @@ def _linear_minors(domain: tuple[float, float], majors: Sequence,
 
 def _decimals(step: float) -> int:
     """How many decimal places `step` needs to be written exactly."""
-    for places in range(12):
+    # Start at the step's magnitude: a fixed twelve-place ceiling collapses
+    # femto-scale ticks to zero. Inspect only a bounded number of additional
+    # places to discard ordinary floating-point multiplication noise.
+    start = max(0, -math.floor(math.log10(abs(step))) - 1) if step else 0
+    for places in range(start, start + 12):
         if abs(round(step, places) - step) <= abs(step) * 1e-12:
             return places
-    return 12
+    return start + 12
 
 
 # -- the interface --------------------------------------------------------

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Add experimental linked empirical distributions and supplied interval views,
+  including facets, explicit methods/populations, fixed reference curves during
+  filtering and reproducible revised exports. Keep reference curves unpickable
+  and honor per-mark colors across all browser backends.
+- Fix timestamp hover formatting and expose ECDF fractions in tooltips and the
+  accessible table without changing source columns.
+- Improve shared numeric ticks: preserve scientific-label precision, very small
+  values and narrow representable ranges; reject duplicate or out-of-domain
+  positions. Add a four-panel before/after plotting-quality review.
+
 - Add experimental calendar-date and UTC axes to linked plots, with measured
   calendar/millisecond ticks, explicit offset and precision rules, temporal bar
   widths and optional elapsed-time line gaps. Add opt-in temporal DataFrame

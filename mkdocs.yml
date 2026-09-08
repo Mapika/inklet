@@ -49,6 +49,7 @@ nav:
   - Plotting overview: plotting.md
   - Choose a plot type: plot-types.md
   - Axes, scales and text: axes-and-scales.md
+  - Shared plotting quality: plot-quality.md
   - Dense data: dense-data.md
   - Live data and categories: data.md
   - Advanced plot controls: publication-plots.md
@@ -98,6 +99,7 @@ nav:
   - Linked category panels: linked-facets.md
   - pandas and Polars inputs: table-inputs.md
   - Linked dates and time series: time-series.md
+  - Linked distributions and intervals: statistical-views.md
   - Linked region maps: linked-maps.md
   - Real world map: world-map.md
   - Replace figure data: data-revisions.md

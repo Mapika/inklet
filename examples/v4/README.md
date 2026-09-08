@@ -22,8 +22,9 @@ The [regional map example](../../docs/linked-maps.md) now supplies geographic
 polygon rendering, arbitrary ID filters and direct picking.
 
 The later browser examples below provide category panels, direct picking,
-page zoom, compiled data revisions and calendar/UTC axes. Distribution views
-and arbitrary browser data uploads remain outstanding. This original
+page zoom, compiled data revisions, calendar/UTC axes, fixed-reference ECDFs
+and supplied intervals. Recomputed summaries and arbitrary browser data uploads
+remain outstanding. This original
 finite-state HTML remains an experiment in selection/export fidelity.
 
 ```sh
@@ -238,3 +239,18 @@ python examples/v4/time_series.py --backend polars --revised --state /path/to/vi
 
 The default native path needs no DataFrame dependencies. Use `--revised` only
 for states saved while the Restored revision was active.
+
+## Linked statistics
+
+`statistical_views.py` builds two faceted reference ECDFs and supplied interval
+panels from original simulated cycle-time data. Filtering hides observations
+without silently changing the reference population or supplied interval meaning.
+A named revision corrects one estimate and removes a batch, rebuilding both views.
+
+```sh
+python examples/v4/statistical_views.py --output out/v4-statistics
+python examples/v4/statistical_views.py --revised --state /path/to/view.json --output out/v4-statistics-restored
+```
+
+The source is MIT material by Mark Marosi. Ranges are illustrative, not confidence
+intervals. Methods and populations are disclosed in the browser and scene payload.
