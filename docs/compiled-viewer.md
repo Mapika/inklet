@@ -111,7 +111,7 @@ markers separately in source order. Display antialiasing differs between these
 backends. Device-pixel scaling follows the SVG screen transform.
 
 Original records remain 64-bit in the browser, and repeated placements share a
-serialized source buffer. Only GPU attributes use 32-bit floats. View changes
+serialized source buffer. GPU record textures use 32-bit floats. View changes
 redraw existing buffers without uploading geometry again. `dispose()` removes
 DOM surfaces, observers, callbacks and GPU resources owned by the viewer.
 
@@ -247,8 +247,9 @@ SVG tree continues to apply exact clipping and paint order.
 Layers outside the viewport skip painting. Their cached surfaces and immutable
 buffers remain available for returning to the view. Re-entering a layer or
 panning beyond its retained region repaints as needed without uploading marker
-geometry again. Points outside the window in an otherwise visible batch are
-still submitted to the renderer; per-point culling is separate work.
+geometry again. The subsequent [spatial marker culling](marker-culling.md) increment also limits
+individual marker submissions within visible batches. The measurements below
+record this visible-region stage before per-point culling was added.
 
 At 8× zoom into panel a, the five-panel workload previously allocated about
 20.0 million backing pixels and reported reduced resolution on all five layers.
@@ -287,6 +288,9 @@ agent-browser eval --stdin < tools/benchmark_scene_zoom.js
 ```
 
 ## Next work
+
+[Spatial marker culling](marker-culling.md) now supplies ordered candidates for
+Canvas and WebGL2, with separate CPU submission and GPU draw measurements.
 
 Other-browser measurements, accelerated outlines, indexed picking, partial
 buffer updates and migration of keyed-row interactions remain open. Packed maps and meshes are later consumers of the same scene;

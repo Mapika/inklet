@@ -1,0 +1,1429 @@
+{
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+  "dpr": 1,
+  "viewport": [
+    1440,
+    1000
+  ],
+  "stage": {
+    "x": 24,
+    "y": 127.5,
+    "width": 1392,
+    "height": 750,
+    "top": 127.5,
+    "right": 1416,
+    "bottom": 877.5,
+    "left": 24
+  },
+  "result": [
+    {
+      "backend": "webgl2",
+      "initialization_ms": 173.40000000596046,
+      "before": {
+        "backend": "webgl2",
+        "layers": [
+          {
+            "backend": "webgl2",
+            "count": 250000,
+            "reason": null,
+            "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+            "reducedResolution": false,
+            "surfacePixels": 573440,
+            "visible": true,
+            "displayBox": [
+              -41.10703148785827,
+              -31.10170775323091,
+              82.21193578743447,
+              62.210861307875135
+            ]
+          }
+        ],
+        "native": [],
+        "uploadBytes": 14000000,
+        "drawCalls": 2,
+        "surfacePaints": 2,
+        "surfaceResizes": 2,
+        "reusedSurfaces": 2
+      },
+      "samples": [
+        {
+          "repeat": 0,
+          "position": 0.3,
+          "submission_ms": 81.19999998807907,
+          "two_frames_ms": 92,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 3,
+            "surfacePaints": 3,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.4,
+          "submission_ms": 15.799999982118607,
+          "two_frames_ms": 29.399999976158142,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 4,
+            "surfacePaints": 4,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.5,
+          "submission_ms": 8.5,
+          "two_frames_ms": 32.80000001192093,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 5,
+            "surfacePaints": 5,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.6,
+          "submission_ms": 1.0999999940395355,
+          "two_frames_ms": 33.30000001192093,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 6,
+            "surfacePaints": 6,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.7,
+          "submission_ms": 1,
+          "two_frames_ms": 33.599999994039536,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 7,
+            "surfacePaints": 7,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.5,
+          "submission_ms": 1,
+          "two_frames_ms": 33.29999998211861,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 8,
+            "surfacePaints": 8,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.3,
+          "submission_ms": 0.9000000059604645,
+          "two_frames_ms": 33.20000001788139,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 9,
+            "surfacePaints": 9,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 2
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.3,
+          "submission_ms": 0.29999998211860657,
+          "two_frames_ms": 33.69999998807907,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 9,
+            "surfacePaints": 9,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.4,
+          "submission_ms": 0.800000011920929,
+          "two_frames_ms": 33.5,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 10,
+            "surfacePaints": 10,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.5,
+          "submission_ms": 0.9000000059604645,
+          "two_frames_ms": 32.80000001192093,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 11,
+            "surfacePaints": 11,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.6,
+          "submission_ms": 0.9000000059604645,
+          "two_frames_ms": 33.900000005960464,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 12,
+            "surfacePaints": 12,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.7,
+          "submission_ms": 0.7999999821186066,
+          "two_frames_ms": 33.29999998211861,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 13,
+            "surfacePaints": 13,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.5,
+          "submission_ms": 0.9000000059604645,
+          "two_frames_ms": 32.80000001192093,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 14,
+            "surfacePaints": 14,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.3,
+          "submission_ms": 0.7999999821186066,
+          "two_frames_ms": 34,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 15,
+            "surfacePaints": 15,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 3
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.3,
+          "submission_ms": 0.29999998211860657,
+          "two_frames_ms": 32.900000005960464,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 15,
+            "surfacePaints": 15,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.4,
+          "submission_ms": 1,
+          "two_frames_ms": 33.39999997615814,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 16,
+            "surfacePaints": 16,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.5,
+          "submission_ms": 0.800000011920929,
+          "two_frames_ms": 33.10000002384186,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 17,
+            "surfacePaints": 17,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.6,
+          "submission_ms": 0.7999999821186066,
+          "two_frames_ms": 33.69999998807907,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 18,
+            "surfacePaints": 18,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.7,
+          "submission_ms": 0.800000011920929,
+          "two_frames_ms": 32.900000005960464,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 19,
+            "surfacePaints": 19,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.5,
+          "submission_ms": 1,
+          "two_frames_ms": 33.400000005960464,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 20,
+            "surfacePaints": 20,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.3,
+          "submission_ms": 1.0999999940395355,
+          "two_frames_ms": 33.69999998807907,
+          "report": {
+            "backend": "webgl2",
+            "layers": [
+              {
+                "backend": "webgl2",
+                "count": 250000,
+                "reason": null,
+                "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 21,
+            "surfacePaints": 21,
+            "surfaceResizes": 3,
+            "reusedSurfaces": 4
+          }
+        }
+      ]
+    },
+    {
+      "backend": "canvas",
+      "initialization_ms": 471.40000000596046,
+      "before": {
+        "backend": "canvas",
+        "layers": [
+          {
+            "backend": "canvas",
+            "count": 250000,
+            "reason": null,
+            "renderer": null,
+            "reducedResolution": false,
+            "surfacePixels": 573440,
+            "visible": true,
+            "displayBox": [
+              -41.10703148785827,
+              -31.10170775323091,
+              82.21193578743447,
+              62.210861307875135
+            ]
+          }
+        ],
+        "native": [],
+        "uploadBytes": 14000000,
+        "drawCalls": 22,
+        "surfacePaints": 23,
+        "surfaceResizes": 5,
+        "reusedSurfaces": 4
+      },
+      "samples": [
+        {
+          "repeat": 0,
+          "position": 0.3,
+          "submission_ms": 94.7000000178814,
+          "two_frames_ms": 249.7000000178814,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 24,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.4,
+          "submission_ms": 89.69999998807907,
+          "two_frames_ms": 100.5,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 25,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.5,
+          "submission_ms": 107.09999999403954,
+          "two_frames_ms": 116.5,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 26,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.6,
+          "submission_ms": 107.39999997615814,
+          "two_frames_ms": 116.39999997615814,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 27,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.7,
+          "submission_ms": 87.80000001192093,
+          "two_frames_ms": 100.60000002384186,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 28,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.5,
+          "submission_ms": 88.5,
+          "two_frames_ms": 99.19999998807907,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 29,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 0,
+          "position": 0.3,
+          "submission_ms": 88.80000001192093,
+          "two_frames_ms": 100.5,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 30,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 4
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.3,
+          "submission_ms": 0.30000001192092896,
+          "two_frames_ms": 50,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 30,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.4,
+          "submission_ms": 87.5,
+          "two_frames_ms": 99.7000000178814,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 31,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.5,
+          "submission_ms": 86.5,
+          "two_frames_ms": 100.09999999403954,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 32,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.6,
+          "submission_ms": 88.40000000596046,
+          "two_frames_ms": 99.69999998807907,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 33,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.7,
+          "submission_ms": 88,
+          "two_frames_ms": 100.30000001192093,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 34,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.5,
+          "submission_ms": 87.59999999403954,
+          "two_frames_ms": 99.80000001192093,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 35,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5
+          }
+        },
+        {
+          "repeat": 1,
+          "position": 0.3,
+          "submission_ms": 88.2999999821186,
+          "two_frames_ms": 100.2999999821186,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 36,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 5
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.3,
+          "submission_ms": 0.4000000059604645,
+          "two_frames_ms": 33,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 36,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.4,
+          "submission_ms": 88.30000001192093,
+          "two_frames_ms": 100.5,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -26.87772616218118,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 37,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.5,
+          "submission_ms": 97.30000001192093,
+          "two_frames_ms": 116.40000000596046,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 38,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.6,
+          "submission_ms": 98.90000000596046,
+          "two_frames_ms": 116.5,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -6.877726162181181,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 39,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.7,
+          "submission_ms": 89.40000000596046,
+          "two_frames_ms": 100.09999999403954,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  3.1222738378188115,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 40,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.5,
+          "submission_ms": 91.40000000596046,
+          "two_frames_ms": 100,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -16.877726162181183,
+                  -2.444155693054199,
+                  24.437180687399472,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 41,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6
+          }
+        },
+        {
+          "repeat": 2,
+          "position": 0.3,
+          "submission_ms": 89.40000000596046,
+          "two_frames_ms": 99.90000000596046,
+          "report": {
+            "backend": "canvas",
+            "layers": [
+              {
+                "backend": "canvas",
+                "count": 250000,
+                "reason": null,
+                "renderer": null,
+                "reducedResolution": false,
+                "surfacePixels": 2359296,
+                "visible": true,
+                "displayBox": [
+                  -36.87772616218119,
+                  -2.444155693054199,
+                  24.437180687399476,
+                  13.150367736816406
+                ]
+              }
+            ],
+            "native": [],
+            "uploadBytes": 14000000,
+            "drawCalls": 22,
+            "surfacePaints": 42,
+            "surfaceResizes": 6,
+            "reusedSurfaces": 6
+          }
+        }
+      ]
+    }
+  ],
+  "workload": "250000 deterministic simulated markers; moving 8x windows on an RTX 5090 Laptop GPU via WSL/D3D12."
+}

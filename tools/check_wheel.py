@@ -21,6 +21,7 @@ packed = i.panel(40,30,x=(0,1),y=(0,1))
 packed.scatter([(k/300,.5) for k in range(300)],size=.3,color='blue')
 viewer = i.compile_scene(packed.build()).to_html()
 assert 'class CompiledSceneViewer' in viewer and 'drawArraysInstanced' in viewer
+assert 'class MarkerIndex' in viewer and 'texelFetch' in viewer
 assert 'inklet.compiled-viewer/1' in viewer and '/*SCENE*/' not in viewer
 from inklet.experimental.selection import KeyedTable
 assert find_spec("pandas") is None and find_spec("polars") is None

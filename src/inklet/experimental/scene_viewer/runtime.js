@@ -4,15 +4,21 @@ function surfaceCanvas(){const canvas=document.createElementNS(XHTML_NS,'canvas'
 function svgElement(tag,attrs={}){const e=document.createElementNS(SVG_NS,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));return e;}
 const VERTEX=`#version 300 es
 precision highp float;
-layout(location=0) in vec3 instance;
-layout(location=1) in vec4 color;
+layout(location=0) in uint selectedIndex;
+uniform highp sampler2D records;
+uniform int recordWidth;
+uniform bool useSelection;
 uniform vec2 extent;
 uniform vec2 origin;
 uniform vec2 pixels;
 uniform vec4 markerBounds;
 out vec2 radial;
 out vec4 paint;
+vec4 recordTexel(int offset){return texelFetch(records,ivec2(offset%recordWidth,offset/recordWidth),0);}
 void main(){
+ int index=useSelection?int(selectedIndex):gl_InstanceID;
+ vec4 first=recordTexel(index*2),second=recordTexel(index*2+1);
+ vec3 instance=first.xyz;vec4 color=vec4(first.w,second.xyz);
  vec2 corners[6]=vec2[6](vec2(-1,-1),vec2(1,-1),vec2(-1,1),vec2(-1,1),vec2(1,-1),vec2(1,1));
  vec2 corner=corners[gl_VertexID];
  vec2 offset=mix(markerBounds.xy,markerBounds.zw,(corner+1.0)*0.5)*instance.z+corner*extent/pixels;
@@ -54,7 +60,7 @@ void main(){
 function makeGPU(canvas,batch,allowSoftware=false){
  const gl=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false,preserveDrawingBuffer:true});
  if(!gl)throw Error('WebGL2 unavailable');
- let program,buffer;
+ let program,buffer,texture;
  try{
   const info=gl.getExtension('WEBGL_debug_renderer_info'),renderer=info?gl.getParameter(info.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);
   if(!allowSoftware&&/swiftshader|llvmpipe|softpipe|software rasterizer|microsoft basic render/i.test(renderer))throw Error('Software WebGL renderer detected');
@@ -62,16 +68,23 @@ function makeGPU(canvas,batch,allowSoftware=false){
   const vertex=shader(gl.VERTEX_SHADER,VERTEX);let fragment;
   try{fragment=shader(gl.FRAGMENT_SHADER,FRAGMENT);program=gl.createProgram();gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);}finally{gl.deleteShader(vertex);if(fragment)gl.deleteShader(fragment);}
   if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
-  const data=new Float32Array(batch.count*7),view=batch.records,b=batch.box;
+  const textureLimit=gl.getParameter(gl.MAX_TEXTURE_SIZE),textureWidth=Math.min(2048,textureLimit,batch.count*2),textureHeight=Math.ceil(batch.count*2/textureWidth);
+  if(textureHeight>textureLimit)throw Error('Marker records exceed WebGL texture limit');
+  const data=new Float32Array(textureWidth*textureHeight*4),view=batch.records,b=batch.box;
   for(let k=0;k<batch.count;k++){
-   const offset=k*36,j=k*7,c=batch.palette[view.getUint32(offset+24,true)];
+   const offset=k*36,j=k*8,c=batch.palette[view.getUint32(offset+24,true)];
    data[j]=view.getFloat64(offset,true)-b[0];data[j+1]=view.getFloat64(offset+8,true)-b[1];data[j+2]=view.getFloat64(offset+16,true);
    data[j+3]=c[0]/255;data[j+4]=c[1]/255;data[j+5]=c[2]/255;data[j+6]=c[3];
   }
   if(data.some(v=>!Number.isFinite(v)))throw Error('Geometry exceeds WebGL float range');
-  buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
-  gl.useProgram(program);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,28,0);gl.vertexAttribDivisor(0,1);
-  gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,4,gl.FLOAT,false,28,12);gl.vertexAttribDivisor(1,1);
+  texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,textureWidth,textureHeight,0,gl.RGBA,gl.FLOAT,data);
+  buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,batch.count*4,gl.DYNAMIC_DRAW);
+  gl.useProgram(program);gl.vertexAttribIPointer(0,1,gl.UNSIGNED_INT,4,0);gl.vertexAttribDivisor(0,1);gl.vertexAttribI4ui(0,0,0,0,0);
+  gl.uniform1i(gl.getUniformLocation(program,'records'),0);gl.uniform1i(gl.getUniformLocation(program,'recordWidth'),textureWidth);
+  const useSelection=gl.getUniformLocation(program,'useSelection');let lastSelection;
   gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
   const origin=gl.getUniformLocation(program,'origin'),extent=gl.getUniformLocation(program,'extent'),pixels=gl.getUniformLocation(program,'pixels'),radius=gl.getUniformLocation(program,'unitRadius');
   gl.uniform4fv(gl.getUniformLocation(program,'markerBounds'),batch.bounds);
@@ -79,11 +92,25 @@ function makeGPU(canvas,batch,allowSoftware=false){
   gl.uniform1i(gl.getUniformLocation(program,'evenodd'),batch.fill_rule==='evenodd');
   if(batch.vertices.length)gl.uniform2fv(gl.getUniformLocation(program,'vertices[0]'),batch.vertices.flat());
   if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL buffer allocation failed');
-  return {gl,renderer,bytes:data.byteLength,limit:Math.min(4096,gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)),
-   draw(window){if(gl.isContextLost())throw Error('WebGL context lost');gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform2f(origin,window[0]-b[0],window[1]-b[1]);gl.uniform2f(extent,window[2],window[3]);gl.uniform2f(pixels,canvas.width,canvas.height);gl.uniform1f(radius,batch.radius);gl.drawArraysInstanced(gl.TRIANGLES,0,6,batch.count);if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL draw failed');},
-   dispose(){gl.deleteBuffer(buffer);gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();}
+  return {gl,renderer,bytes:data.byteLength,selectionCapacityBytes:batch.count*4,selectionUploadBytes:0,limit:Math.min(4096,gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)),
+   draw(window,selection){
+    if(gl.isContextLost())throw Error('WebGL context lost');
+    gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);
+    if(selection!==lastSelection){
+     gl.uniform1i(useSelection,selection!==null);
+     if(selection===null)gl.disableVertexAttribArray(0);
+     else{gl.enableVertexAttribArray(0);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,selection);this.selectionUploadBytes+=selection.byteLength;}
+     lastSelection=selection;
+    }
+    gl.uniform2f(origin,window[0]-b[0],window[1]-b[1]);gl.uniform2f(extent,window[2],window[3]);gl.uniform2f(pixels,canvas.width,canvas.height);gl.uniform1f(radius,batch.radius);
+    const count=selection===null?batch.count:selection.length;
+    if(count)gl.drawArraysInstanced(gl.TRIANGLES,0,6,count);
+    if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL draw failed');
+    return count?1:0;
+   },
+   dispose(){gl.deleteBuffer(buffer);gl.deleteTexture(texture);gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();}
   };
- }catch(error){if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();throw error;}
+ }catch(error){if(buffer)gl.deleteBuffer(buffer);if(texture)gl.deleteTexture(texture);if(program)gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();throw error;}
 }
 function intersectBox(a,b){
  const x=Math.max(a[0],b[0]),y=Math.max(a[1],b[1]),right=Math.min(a[0]+a[2],b[0]+b[2]),bottom=Math.min(a[1]+a[3],b[1]+b[3]);
@@ -112,7 +139,7 @@ let viewerCounter=0;
 class CompiledSceneViewer{
  constructor(host,scene){
   if(scene.schema!=='inklet.compiled-viewer/1')throw Error('Unsupported compiled scene');
-  this.host=host;this.scene=scene;this.backend=scene.backend;this.layers=[];this.uploadBytes=0;this.drawCalls=0;this.surfacePaints=0;this.surfaceResizes=0;this.reusedSurfaces=0;this.disposed=false;this.frame=0;
+  this.host=host;this.scene=scene;this.backend=scene.backend;this.layers=[];this.uploadBytes=0;this.drawCalls=0;this.surfacePaints=0;this.surfaceResizes=0;this.reusedSurfaces=0;this.disposed=false;this.frame=0;this.spatialIndexes=new Map();this.selectionUploadBytes=0;this.markersSubmitted=0;
   const buffers=scene.buffers.map(data=>Uint8Array.from(atob(data),c=>c.charCodeAt(0)));
   this.batches=scene.batches.map(b=>{const bytes=buffers[b.buffer];if(!bytes||bytes.byteLength!==b.count*36)throw Error('Invalid marker buffer');return {...b,records:new DataView(bytes.buffer)};});
   this.svg=new DOMParser().parseFromString(scene.frame,'image/svg+xml').documentElement;
@@ -132,6 +159,15 @@ class CompiledSceneViewer{
   this.resize=()=>this.schedule();window.addEventListener('resize',this.resize);
   this.setBackend(this.backend);
   this.ready=Promise.resolve(this);
+ }
+ candidates(batch,box,width,height){
+  // Include one backing pixel for shader antialiasing beyond geometric bounds.
+  const dx=box[2]/width,dy=box[3]/height,q=[box[0]-dx,box[1]-dy,box[2]+2*dx,box[3]+2*dy],b=batch.box;
+  if(batch.count<256||(q[0]<=b[0]&&q[1]<=b[1]&&q[0]+q[2]>=b[0]+b[2]&&q[1]+q[3]>=b[1]+b[3]))return null;
+  const key=batch.buffer+':'+batch.bounds.join(',');
+  let index=this.spatialIndexes.get(key);
+  if(!index){index=new MarkerIndex(batch);this.spatialIndexes.set(key,index);}
+  return index.query(q);
  }
  vector(batch,target){
   const fragment=document.createDocumentFragment(),view=batch.records;
@@ -198,10 +234,12 @@ class CompiledSceneViewer{
    const resized=layer.canvas.width!==width||layer.canvas.height!==height;
    if(resized){if(layer.canvas.width!==width)layer.canvas.width=width;if(layer.canvas.height!==height)layer.canvas.height=height;this.surfaceResizes++;}
    if(layer.painted&&!resized&&!moved){this.reusedSurfaces++;continue;}
-   if(layer.gpu){try{layer.gpu.draw(b);layer.painted=true;this.surfacePaints++;this.drawCalls++;continue;}catch(error){this.canvasLayer(layer,error.message);layer.canvas.width=width;layer.canvas.height=height;}}
+   const candidates=this.candidates(layer.batch,b,width,height);layer.candidateCount=candidates===null?layer.batch.count:candidates.length;
+   this.markersSubmitted+=layer.candidateCount;
+   if(layer.gpu){try{const before=layer.gpu.selectionUploadBytes;this.drawCalls+=layer.gpu.draw(b,candidates);this.selectionUploadBytes+=layer.gpu.selectionUploadBytes-before;layer.painted=true;this.surfacePaints++;continue;}catch(error){this.canvasLayer(layer,error.message);layer.canvas.width=width;layer.canvas.height=height;}}
    const ctx=layer.context;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,width,height);ctx.setTransform(width/b[2],0,0,height/b[3],-b[0]*width/b[2],-b[1]*height/b[3]);
    const data=layer.batch.records;
-   for(let k=0;k<layer.batch.count;k++){const o=k*36,c=layer.batch.palette[data.getUint32(o+24,true)];if(!c[3])continue;ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.globalAlpha=c[3];ctx.beginPath();const x=data.getFloat64(o,true),y=data.getFloat64(o+8,true),size=data.getFloat64(o+16,true),vertices=layer.batch.vertices;
+   for(let j=0;j<layer.candidateCount;j++){const k=candidates===null?j:candidates[j],o=k*36,c=layer.batch.palette[data.getUint32(o+24,true)];if(!c[3])continue;ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.globalAlpha=c[3];ctx.beginPath();const x=data.getFloat64(o,true),y=data.getFloat64(o+8,true),size=data.getFloat64(o+16,true),vertices=layer.batch.vertices;
     if(vertices.length){for(const [j,p] of vertices.entries())ctx[j?'lineTo':'moveTo'](x+p[0]*size,y+p[1]*size);ctx.closePath();}
     else ctx.arc(x,y,size*layer.batch.radius,0,Math.PI*2);
     ctx.fill(layer.batch.fill_rule);}
@@ -209,7 +247,7 @@ class CompiledSceneViewer{
   }
   this.host.dispatchEvent(new CustomEvent('inklet-render',{detail:this.report()}));
  }
- report(){return {backend:this.backend,layers:this.layers.map(l=>({backend:l.actual,count:l.batch.count,reason:l.reason,renderer:l.gpu?.renderer||null,reducedResolution:!!l.reduced,surfacePixels:l.canvas?l.canvas.width*l.canvas.height:0,visible:l.actual==='svg'?null:!!l.visible,displayBox:l.actual==='svg'?null:[...l.window]})),native:this.scene.native,uploadBytes:this.uploadBytes,drawCalls:this.drawCalls,surfacePaints:this.surfacePaints,surfaceResizes:this.surfaceResizes,reusedSurfaces:this.reusedSurfaces};}
+ report(){return {backend:this.backend,layers:this.layers.map(l=>({backend:l.actual,count:l.batch.count,reason:l.reason,renderer:l.gpu?.renderer||null,reducedResolution:!!l.reduced,surfacePixels:l.canvas?l.canvas.width*l.canvas.height:0,visible:l.actual==='svg'?null:!!l.visible,displayBox:l.actual==='svg'?null:[...l.window],candidateCount:l.actual==='svg'?null:l.candidateCount??0,selectionCapacityBytes:l.gpu?.selectionCapacityBytes||0})),native:this.scene.native,uploadBytes:this.uploadBytes,drawCalls:this.drawCalls,surfacePaints:this.surfacePaints,surfaceResizes:this.surfaceResizes,reusedSurfaces:this.reusedSurfaces,markersSubmitted:this.markersSubmitted,selectionUploadBytes:this.selectionUploadBytes,spatialIndexBytes:[...this.spatialIndexes.values()].reduce((n,index)=>n+index.bytes,0),spatialIndexes:this.spatialIndexes.size};}
  setViewport(v){
   if(!Array.isArray(v)||v.length!==4||v.some(n=>typeof n!=='number'||!Number.isFinite(n))||v[2]<=0||v[3]<=0)throw Error('Invalid viewport');
   const b=this.original;
@@ -218,7 +256,7 @@ class CompiledSceneViewer{
  }
  zoom(factor){const [x,y,w,h]=this.viewport;this.setViewport([x+w*(1-1/factor)/2,y+h*(1-1/factor)/2,w/factor,h/factor]);}
  exportSVG(){const svg=new DOMParser().parseFromString(this.scene.frame,'image/svg+xml').documentElement;svg.setAttribute('viewBox',this.viewport.join(' '));for(const [index,batch] of this.batches.entries())this.vector(batch,svg.querySelector(`[data-inklet-batch="${index}"]`));return new XMLSerializer().serializeToString(svg);}
- dispose(){if(this.disposed)return;this.disposed=true;this.resizeObserver.disconnect();window.removeEventListener('resize',this.resize);cancelAnimationFrame(this.frame);for(const layer of this.layers){if(layer.gpu){layer.canvas.removeEventListener('webglcontextlost',layer.lost);layer.gpu.dispose();}if(layer.canvas)layer.canvas.width=layer.canvas.height=0;}this.layers=[];this.batches=[];this.svg.remove();}
+ dispose(){if(this.disposed)return;this.disposed=true;this.resizeObserver.disconnect();window.removeEventListener('resize',this.resize);cancelAnimationFrame(this.frame);for(const layer of this.layers){if(layer.gpu){layer.canvas.removeEventListener('webglcontextlost',layer.lost);layer.gpu.dispose();}if(layer.canvas)layer.canvas.width=layer.canvas.height=0;}this.layers=[];this.batches=[];this.spatialIndexes.clear();this.svg.remove();}
 }
 const host=document.getElementById('stage'),error=document.getElementById('error');
 function attempt(action){try{error.textContent='';action();}catch(e){error.textContent=e.message;}}

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Cull individual packed markers with a shared spatial index of full marker
+  footprints. Preserve source order, antialiasing margins and vector exports.
+  Canvas paints candidates; WebGL2 fetches immutable records using compact
+  row-index uploads. Report candidate counts, uploads and index storage.
+- Add a 250,000-point stress recipe, brute-force and visual fidelity checks,
+  and separate submission/GPU timer studies. Canvas window submission improves
+  from 88.5 to 10.8 ms in the recorded workload; GPU draw time falls from 0.325
+  to 0.042 ms while CPU submission rises from 0.9 to 2.2 ms. Document memory costs.
+
 - Size compiled-viewer surfaces around the visible region with a retained pan
   margin; skip painting offscreen layers and reuse their immutable buffers on
   return. Preserve native clipping, marker order and complete vector export.

@@ -113,7 +113,7 @@ def to_html(scene, *, title='Inklet figure', backend='auto', **options):
                               batches=batches, buffers=buffers, native=native, backend=backend),
                          allow_nan=False, separators=(',', ':')).replace('<', '\\u003c')
     directory = Path(__file__).parent
-    replacements = {'/*SCENE*/': payload, '/*RUNTIME*/': (directory/'runtime.js').read_text(),
+    replacements = {'/*SCENE*/': payload, '/*RUNTIME*/': '\n'.join((directory/name).read_text() for name in ('spatial.js', 'runtime.js')),
                     '<!--TITLE-->': html.escape(title)}
     return re.sub(r'/\*SCENE\*/|/\*RUNTIME\*/|<!--TITLE-->',
                   lambda m: replacements[m.group()], (directory/'page.html').read_text())

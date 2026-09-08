@@ -1,0 +1,78 @@
+{
+  "available": true,
+  "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+  "samples": [
+    {
+      "position": 0.5,
+      "count": 250000,
+      "gpu_draw_ms": 0.152992
+    },
+    {
+      "position": 0.6,
+      "count": 250000,
+      "gpu_draw_ms": 0.40256
+    },
+    {
+      "position": 0.7,
+      "count": 250000,
+      "gpu_draw_ms": 0.289344
+    },
+    {
+      "position": 0.3,
+      "count": 250000,
+      "gpu_draw_ms": 1.567552
+    },
+    {
+      "position": 0.4,
+      "count": 250000,
+      "gpu_draw_ms": 0.366208
+    },
+    {
+      "position": 0.5,
+      "count": 250000,
+      "gpu_draw_ms": 0.299904
+    },
+    {
+      "position": 0.6,
+      "count": 250000,
+      "gpu_draw_ms": 0.286688
+    },
+    {
+      "position": 0.7,
+      "count": 250000,
+      "gpu_draw_ms": 0.328256
+    },
+    {
+      "position": 0.3,
+      "count": 250000,
+      "gpu_draw_ms": 0.324512
+    }
+  ],
+  "report": {
+    "backend": "webgl2",
+    "layers": [
+      {
+        "backend": "webgl2",
+        "count": 250000,
+        "reason": null,
+        "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+        "reducedResolution": false,
+        "surfacePixels": 2359296,
+        "visible": true,
+        "displayBox": [
+          -36.87772616218119,
+          -2.444155693054199,
+          24.437180687399476,
+          13.150367736816406
+        ]
+      }
+    ],
+    "native": [],
+    "uploadBytes": 14000000,
+    "drawCalls": 13,
+    "surfacePaints": 13,
+    "surfaceResizes": 3,
+    "reusedSurfaces": 1
+  },
+  "workload": "250000 deterministic simulated markers; moving 8x windows on an RTX 5090 Laptop GPU via WSL/D3D12."
+}
