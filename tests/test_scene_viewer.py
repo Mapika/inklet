@@ -8,14 +8,19 @@ import subprocess
 
 import pytest
 import inklet as i
-from inklet.core import Diagram, EllipsePrim, MarkerBatchPrim, Rect, Style
+from inklet.core import Diagram, EllipsePrim, MarkerBatchPrim, Rect, RectPrim, PathPrim, Subpath, Style
 from inklet.core.batch import RECORD
 
 
-def drawing(*, stroke='none'):
+def drawing(*, stroke='none', marker='circle'):
     records=b''.join(RECORD.pack(x,y,size,k%3,2**53+k) for k,(x,y,size) in enumerate(
         [(-5,-2,3),(-3,-1,4),(-2,0,3),(3,2,2),(5,-1,3),(0,3,1)]))
-    batch=MarkerBatchPrim(EllipsePrim(.5,.5),records,('red','blue',None))
+    if marker in ('evenodd','nonzero'):
+        outer=i.marker('star',1).prim.subpaths[0].points
+        shape=PathPrim((Subpath(tuple(reversed(outer)),closed=True),),filled=True,fill_rule=marker)
+    else:
+        shape=i.marker(marker,1).prim
+    batch=MarkerBatchPrim(shape,records,('red','blue',None))
     dots=Diagram(prim=batch,style=Style(fill='green',stroke=stroke,stroke_width=.3,fill_opacity=.45))
     clipped=i.window(dots,Rect(-5,-4,6,4)).rotated(13).styled(opacity=.7)
     return i.compile_scene(Diagram(children=(clipped,i.text('Native text',size=2).translated(0,7))))
@@ -75,7 +80,7 @@ inkletScene.ready.then(async r=>{
   ok(rejected&&JSON.stringify(r.viewport)===before,'invalid viewport changed state');
   const svg=r.exportSVG(),doc=new DOMParser().parseFromString(svg,'image/svg+xml');
   ok(!svg.includes('foreignObject')&&!svg.includes('<canvas'),'export has raster surfaces');
-  ok(doc.querySelectorAll('circle').length===6,'export lost observations');
+  ok(doc.querySelectorAll('[data-source-index]').length===6,'export lost observations');
   ok(svg.includes('9007199254740997'),'source identity lost integer precision');
   document.body.dataset.vectorExport=btoa(unescape(encodeURIComponent(svg)));
   ok(doc.querySelectorAll('clipPath').length>0&&doc.querySelectorAll('use').length>0,'export lost native art');
@@ -93,7 +98,7 @@ inkletScene.ready.then(async r=>{
   await new Promise(resolve=>setTimeout(resolve,80));
   ok(r.layers[0].actual==='canvas'&&r.layers[0].reason.includes('lost'),'context loss did not fall back');
   ok(r.layers[0].batch.count===count,'fallback lost data');
-  r.setBackend('svg');ok(r.svg.querySelectorAll('circle').length===count,'SVG display lost data');
+  r.setBackend('svg');ok(r.svg.querySelectorAll('[data-source-index]').length===count,'SVG display lost data');
   r.setBackend('auto');ok(r.layers[0].actual==='canvas'&&r.layers[0].reason.includes('Software'),'auto did not avoid software WebGL');
   const secondHost=document.createElement('div');secondHost.style.width='400px';document.body.append(secondHost);
   const second=new CompiledSceneViewer(secondHost,{...r.scene,backend:'canvas'});await second.ready;
@@ -107,11 +112,12 @@ inkletScene.ready.then(async r=>{
 '''
 
 
+@pytest.mark.parametrize('marker',['circle','square','triangle','diamond','star','evenodd','nonzero'])
 @pytest.mark.parametrize('dpr',[1,2])
-def test_headless_webgl_canvas_switching_context_loss_and_export(tmp_path,dpr):
+def test_headless_webgl_canvas_switching_context_loss_and_export(tmp_path,dpr,marker):
     browser=shutil.which('google-chrome') or shutil.which('chromium')
     if not browser:pytest.skip('Chrome not installed')
-    page=tmp_path/'viewer.html';page.write_text(drawing().to_html(backend='webgl2').replace('</body>',CHECKS+'</body>'))
+    page=tmp_path/'viewer.html';page.write_text(drawing(marker=marker).to_html(backend='webgl2').replace('</body>',CHECKS+'</body>'))
     result=subprocess.run([browser,'--headless','--no-sandbox','--enable-unsafe-swiftshader',
                            '--use-gl=angle','--use-angle=swiftshader','--dump-dom',
                            '--virtual-time-budget=6000',f'--force-device-scale-factor={dpr}',
@@ -126,7 +132,7 @@ def test_headless_webgl_canvas_switching_context_loss_and_export(tmp_path,dpr):
     pytest.importorskip("resvg_py")
     from inklet.render.raster import png_bytes
     exported=base64.b64decode(re.search(r'data-vector-export="([^"]+)"',result.stdout)[1]).decode()
-    native=drawing().to_svg(text='outline',precision=6,background='white')
+    native=drawing(marker=marker).to_svg(text='outline',precision=6,background='white')
     a=Image.open(BytesIO(png_bytes(exported,600,400))).convert('RGB')
     b=Image.open(BytesIO(png_bytes(native,600,400))).convert('RGB')
     assert max(ImageStat.Stat(ImageChops.difference(a,b)).mean)<.01
@@ -151,9 +157,10 @@ def test_repeated_placements_share_the_serialized_source_buffer():
     assert p['batches'][0]['buffer']==p['batches'][1]['buffer']
 
 
+@pytest.mark.parametrize('marker',['circle','square','triangle','diamond','star','evenodd','nonzero'])
 @pytest.mark.parametrize('backend',['webgl2','canvas'])
 @pytest.mark.parametrize('dpr',[1,2])
-def test_composited_surface_stays_aligned_with_native_svg(tmp_path,backend,dpr):
+def test_composited_surface_stays_aligned_with_native_svg(tmp_path,backend,dpr,marker):
     """Catch HTML-surface layout rounding after SVG clipping and rotation."""
     import html
     Image=pytest.importorskip('PIL.Image')
@@ -165,7 +172,7 @@ def test_composited_surface_stays_aligned_with_native_svg(tmp_path,backend,dpr):
     for mode in (backend,'svg'):
         page=tmp_path/f'{mode}.html';picture=tmp_path/f'{mode}.png'
         check="<script>inkletScene.ready.then(()=>document.body.dataset.stage=JSON.stringify(host.getBoundingClientRect().toJSON()));</script>"
-        page.write_text(drawing().to_html(backend=mode).replace('</body>',check+'</body>'))
+        page.write_text(drawing(marker=marker).to_html(backend=mode).replace('</body>',check+'</body>'))
         result=subprocess.run([browser,'--headless','--no-sandbox','--enable-unsafe-swiftshader',
                                '--use-gl=angle','--use-angle=swiftshader','--dump-dom',
                                '--virtual-time-budget=1000','--window-size=1200,1000',
@@ -178,3 +185,38 @@ def test_composited_surface_stays_aligned_with_native_svg(tmp_path,backend,dpr):
         images.append(Image.open(picture).convert('RGB').crop(crop))
     difference=ImageChops.difference(*images)
     assert max(ImageStat.Stat(difference).mean)<.5
+
+
+@pytest.mark.parametrize('kind',['cross','plus'])
+def test_open_markers_keep_native_stroke_semantics(kind):
+    p=payload(drawing(marker=kind).to_html())
+    assert not p['batches'] and p['native'][0]['count']==6
+
+
+def test_polygon_metadata_retains_exact_shape_and_fill_rule():
+    from inklet.core import PathPrim, Subpath, Vec2
+    shape=PathPrim((Subpath(tuple(Vec2(*p) for p in [(0,0),(2,0),(2,2),(0,2),(0,0)]),closed=True),),filled=True,fill_rule='evenodd')
+    batch=MarkerBatchPrim(shape,RECORD.pack(0,0,1,0,0))
+    p=payload(i.compile_scene(Diagram(prim=batch,style=Style(stroke='none'))).to_html())
+    geometry=p['batches'][0]
+    assert geometry['fill_rule']=='evenodd'
+    assert len(geometry['vertices'])==4
+    assert geometry['bounds']==[0,0,2,2]
+
+
+@pytest.mark.parametrize('shape',[
+    RectPrim(2,2,.3),
+    i.marker('plus',1).prim,
+])
+def test_unsupported_geometry_stays_native(shape):
+    batch=MarkerBatchPrim(shape,RECORD.pack(0,0,1,0,0))
+    p=payload(i.compile_scene(Diagram(prim=batch)).to_html())
+    assert not p['batches'] and 'shape' in p['native'][0]['reason']
+
+
+def test_self_intersecting_polygon_stays_native_without_internal_alpha_seams():
+    outer=i.marker('star',1).prim.subpaths[0].points
+    shape=PathPrim((Subpath(tuple(outer[k] for k in (0,4,8,2,6)),closed=True),),filled=True)
+    batch=MarkerBatchPrim(shape,RECORD.pack(0,0,1,0,0))
+    p=payload(i.compile_scene(Diagram(prim=batch,style=Style(stroke='none'))).to_html())
+    assert not p['batches'] and 'shape' in p['native'][0]['reason']

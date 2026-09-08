@@ -137,7 +137,7 @@ The remaining stages are:
 1. Extend the [packed vector markers](marker-batches.md) increment to paths
    and meshes, indexed queries and partial buffer updates.
 2. Extend the [compiled browser viewer](compiled-viewer.md) beyond its WebGL2
-   circles, Canvas fallback and native vector artwork.
+   filled markers, Canvas fallback and native vector artwork.
 3. Depth-aware 3D rendering, camera changes and object selection, with explicit
    annotation occlusion rules and a separate boundary for Blender jobs.
 4. Finer dependency invalidation and measured layout constraints, so changing
@@ -146,6 +146,6 @@ The remaining stages are:
 Acceptance will use a 20-panel figure containing a million-point cloud, a
 detailed map, an annotated mesh, images and ordinary charts. Measure edit,
 resize and export behavior separately, including memory and visual agreement.
-Point batching and the initial WebGL2 circle path are implemented by the
+Point batching and the WebGL2 filled-marker path are implemented by the
 [marker-buffer](marker-batches.md) and [browser-viewer](compiled-viewer.md)
 increments. Interactive camera control and broader GPU primitives remain open.

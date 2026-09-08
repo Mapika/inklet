@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Accelerate filled square, triangle, diamond and star marker batches in the
+  compiled-scene viewer. Preserve exact polygon geometry, per-point sizes and
+  colours, winding rules, paint order, clipping and vector SVG download.
+- Add a five-panel interactive marker comparison and test complete composited
+  screenshots against SVG at two display resolutions, including concave
+  polygons. Self-intersections, open, outlined and curved markers stay native.
+- Validate the five-panel viewer on an RTX 5090 Laptop GPU through WSL/D3D12.
+  Publish timings and display comparisons; Canvas remains faster for this
+  measured workload, so hardware availability is not presented as a speedup.
+
 - Add `RenderScene.to_html()` for offline native-scene viewing, with instanced
   WebGL2 circle layers, Canvas fallback and native SVG artwork in paint order.
   Automatic selection avoids recognized software WebGL renderers. Report

@@ -1,0 +1,178 @@
+{
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+  "dpr": 1,
+  "viewport": [
+    1440,
+    1000
+  ],
+  "stage": {
+    "x": 24,
+    "y": 127.5,
+    "width": 1392,
+    "height": 750,
+    "top": 127.5,
+    "right": 1416,
+    "bottom": 877.5,
+    "left": 24
+  },
+  "marker_dom_nodes": 0,
+  "buffers_bytes": 450000,
+  "records": [
+    {
+      "backend": "webgl2",
+      "report": {
+        "backend": "webgl2",
+        "layers": [
+          {
+            "backend": "webgl2",
+            "count": 2500,
+            "reason": null,
+            "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+            "reducedResolution": false
+          },
+          {
+            "backend": "webgl2",
+            "count": 2500,
+            "reason": null,
+            "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+            "reducedResolution": false
+          },
+          {
+            "backend": "webgl2",
+            "count": 2500,
+            "reason": null,
+            "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+            "reducedResolution": false
+          },
+          {
+            "backend": "webgl2",
+            "count": 2500,
+            "reason": null,
+            "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+            "reducedResolution": false
+          },
+          {
+            "backend": "webgl2",
+            "count": 2500,
+            "reason": null,
+            "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+            "reducedResolution": false
+          }
+        ],
+        "native": [],
+        "uploadBytes": 1400000,
+        "drawCalls": 100
+      },
+      "samples": [
+        {
+          "submission_ms": 109.30000001192093,
+          "two_frames_ms": 120.40000000596046
+        },
+        {
+          "submission_ms": 42.79999998211861,
+          "two_frames_ms": 50.900000005960464
+        },
+        {
+          "submission_ms": 50.69999998807907,
+          "two_frames_ms": 66
+        },
+        {
+          "submission_ms": 43.79999998211861,
+          "two_frames_ms": 49.69999998807907
+        },
+        {
+          "submission_ms": 47.099999994039536,
+          "two_frames_ms": 52.5
+        },
+        {
+          "submission_ms": 48,
+          "two_frames_ms": 64.40000000596046
+        },
+        {
+          "submission_ms": 41.400000005960464,
+          "two_frames_ms": 50.400000005960464
+        }
+      ],
+      "uploads_during_view_changes": 0
+    },
+    {
+      "backend": "canvas",
+      "report": {
+        "backend": "canvas",
+        "layers": [
+          {
+            "backend": "canvas",
+            "count": 2500,
+            "reason": null,
+            "renderer": null,
+            "reducedResolution": false
+          },
+          {
+            "backend": "canvas",
+            "count": 2500,
+            "reason": null,
+            "renderer": null,
+            "reducedResolution": false
+          },
+          {
+            "backend": "canvas",
+            "count": 2500,
+            "reason": null,
+            "renderer": null,
+            "reducedResolution": false
+          },
+          {
+            "backend": "canvas",
+            "count": 2500,
+            "reason": null,
+            "renderer": null,
+            "reducedResolution": false
+          },
+          {
+            "backend": "canvas",
+            "count": 2500,
+            "reason": null,
+            "renderer": null,
+            "reducedResolution": false
+          }
+        ],
+        "native": [],
+        "uploadBytes": 1400000,
+        "drawCalls": 100
+      },
+      "samples": [
+        {
+          "submission_ms": 8.5,
+          "two_frames_ms": 55.5
+        },
+        {
+          "submission_ms": 9.299999982118607,
+          "two_frames_ms": 34
+        },
+        {
+          "submission_ms": 9.699999988079071,
+          "two_frames_ms": 37.29999998211861
+        },
+        {
+          "submission_ms": 7.5999999940395355,
+          "two_frames_ms": 31.099999994039536
+        },
+        {
+          "submission_ms": 7.100000023841858,
+          "two_frames_ms": 30.700000017881393
+        },
+        {
+          "submission_ms": 7.0999999940395355,
+          "two_frames_ms": 45.79999998211861
+        },
+        {
+          "submission_ms": 8.700000017881393,
+          "two_frames_ms": 43.400000005960464
+        }
+      ],
+      "uploads_during_view_changes": 0
+    }
+  ],
+  "workload": "Five clipped panels; 2500 markers each: circle, square, triangle, diamond, star.",
+  "environment": "Headed Chrome 150 on WSL; MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA, GALLIUM_DRIVER=d3d12; --use-gl=angle --use-angle=gl --ignore-gpu-blocklist. Measured after the test suite completed."
+}

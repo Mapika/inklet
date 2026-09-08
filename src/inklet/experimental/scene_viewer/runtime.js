@@ -8,14 +8,14 @@ layout(location=0) in vec3 instance;
 layout(location=1) in vec4 color;
 uniform vec2 extent;
 uniform vec2 pixels;
-uniform float unitRadius;
+uniform vec4 markerBounds;
 out vec2 radial;
 out vec4 paint;
 void main(){
  vec2 corners[6]=vec2[6](vec2(-1,-1),vec2(1,-1),vec2(-1,1),vec2(-1,1),vec2(1,-1),vec2(1,1));
- float radius=instance.z*unitRadius;
- vec2 offset=corners[gl_VertexID]*(vec2(radius)+extent/pixels);
- radial=offset/radius;
+ vec2 corner=corners[gl_VertexID];
+ vec2 offset=mix(markerBounds.xy,markerBounds.zw,(corner+1.0)*0.5)*instance.z+corner*extent/pixels;
+ radial=offset/instance.z;
  vec2 p=(instance.xy+offset)/extent;
  gl_Position=vec4(p.x*2.0-1.0,1.0-p.y*2.0,0,1);
  paint=color;
@@ -24,11 +24,30 @@ const FRAGMENT=`#version 300 es
 precision highp float;
 in vec2 radial;
 in vec4 paint;
+uniform float unitRadius;
+uniform int vertexCount;
+uniform vec2 vertices[16];
+uniform bool evenodd;
 out vec4 outputColor;
+float boundaryDistance(vec2 p){
+ if(vertexCount==0)return length(p)-unitRadius;
+ float distanceSquared=1e30;int winding=0;
+ for(int k=0;k<16;k++){
+  if(k>=vertexCount)break;
+  vec2 a=vertices[k],b=vertices[(k+1)%vertexCount],edge=b-a,q=p-a;
+  vec2 nearest=q-edge*clamp(dot(q,edge)/dot(edge,edge),0.0,1.0);
+  distanceSquared=min(distanceSquared,dot(nearest,nearest));
+  float side=edge.x*q.y-edge.y*q.x;
+  if(a.y<=p.y&&b.y>p.y&&side>0.0)winding++;
+  if(a.y>p.y&&b.y<=p.y&&side<0.0)winding--;
+ }
+ bool inside=evenodd?(abs(winding)%2==1):(winding!=0);
+ return sqrt(distanceSquared)*(inside?-1.0:1.0);
+}
 void main(){
- float d=length(radial);
+ float d=boundaryDistance(radial);
  float aa=max(fwidth(d)*0.5,0.00001);
- float alpha=paint.a*(1.0-smoothstep(1.0-aa,1.0+aa,d));
+ float alpha=paint.a*(1.0-smoothstep(-aa,aa,d));
  outputColor=vec4(paint.rgb*alpha,alpha);
 }`;
 function makeGPU(canvas,batch,allowSoftware=false){
@@ -54,6 +73,10 @@ function makeGPU(canvas,batch,allowSoftware=false){
   gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,4,gl.FLOAT,false,28,12);gl.vertexAttribDivisor(1,1);
   gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
   const extent=gl.getUniformLocation(program,'extent'),pixels=gl.getUniformLocation(program,'pixels'),radius=gl.getUniformLocation(program,'unitRadius');
+  gl.uniform4fv(gl.getUniformLocation(program,'markerBounds'),batch.bounds);
+  gl.uniform1i(gl.getUniformLocation(program,'vertexCount'),batch.vertices.length);
+  gl.uniform1i(gl.getUniformLocation(program,'evenodd'),batch.fill_rule==='evenodd');
+  if(batch.vertices.length)gl.uniform2fv(gl.getUniformLocation(program,'vertices[0]'),batch.vertices.flat());
   if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL buffer allocation failed');
   return {gl,renderer,bytes:data.byteLength,limit:Math.min(4096,gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)),
    draw(){if(gl.isContextLost())throw Error('WebGL context lost');gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform2f(extent,b[2],b[3]);gl.uniform2f(pixels,canvas.width,canvas.height);gl.uniform1f(radius,batch.radius);gl.drawArraysInstanced(gl.TRIANGLES,0,6,batch.count);if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL draw failed');},
@@ -90,10 +113,11 @@ class CompiledSceneViewer{
   const fragment=document.createDocumentFragment(),view=batch.records;
   for(let k=0;k<batch.count;k++){
    const o=k*36,index=view.getUint32(o+24,true),fill=batch.fills[index];
-   const attrs={cx:view.getFloat64(o,true),cy:view.getFloat64(o+8,true),r:view.getFloat64(o+16,true)*batch.radius,
-                'data-source-index':view.getBigUint64(o+28,true).toString()};
+   const x=view.getFloat64(o,true),y=view.getFloat64(o+8,true),size=view.getFloat64(o+16,true);
+   const attrs=batch.vertices.length?{points:batch.vertices.map(p=>`${x+p[0]*size},${y+p[1]*size}`).join(' '),'fill-rule':batch.fill_rule}:{cx:x,cy:y,r:size*batch.radius};
+   attrs['data-source-index']=view.getBigUint64(o+28,true).toString();
    if(fill!==null)attrs.fill=fill;
-   fragment.append(svgElement('circle',attrs));
+   fragment.append(svgElement(batch.vertices.length?'polygon':'circle',attrs));
   }target.append(fragment);
  }
  canvasLayer(layer,reason){
@@ -141,7 +165,10 @@ class CompiledSceneViewer{
    if(layer.gpu){try{layer.gpu.draw();this.drawCalls++;continue;}catch(error){this.canvasLayer(layer,error.message);layer.canvas.width=width;layer.canvas.height=height;}}
    const ctx=layer.context;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,width,height);ctx.setTransform(width/b[2],0,0,height/b[3],-b[0]*width/b[2],-b[1]*height/b[3]);
    const data=layer.batch.records;
-   for(let k=0;k<layer.batch.count;k++){const o=k*36,c=layer.batch.palette[data.getUint32(o+24,true)];if(!c[3])continue;ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.globalAlpha=c[3];ctx.beginPath();ctx.arc(data.getFloat64(o,true),data.getFloat64(o+8,true),data.getFloat64(o+16,true)*layer.batch.radius,0,Math.PI*2);ctx.fill();}
+   for(let k=0;k<layer.batch.count;k++){const o=k*36,c=layer.batch.palette[data.getUint32(o+24,true)];if(!c[3])continue;ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.globalAlpha=c[3];ctx.beginPath();const x=data.getFloat64(o,true),y=data.getFloat64(o+8,true),size=data.getFloat64(o+16,true),vertices=layer.batch.vertices;
+    if(vertices.length){for(const [j,p] of vertices.entries())ctx[j?'lineTo':'moveTo'](x+p[0]*size,y+p[1]*size);ctx.closePath();}
+    else ctx.arc(x,y,size*layer.batch.radius,0,Math.PI*2);
+    ctx.fill(layer.batch.fill_rule);}
   }
   this.host.dispatchEvent(new CustomEvent('inklet-render',{detail:this.report()}));
  }

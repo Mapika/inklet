@@ -97,6 +97,7 @@ jobs:
           .venv/bin/python examples/clipping_review.py --output out/clipping-review
           .venv/bin/python examples/render_scene_review.py --output out/render-scene-review
           .venv/bin/python examples/dense_scatter_review.py --output out/dense-scatter-review
+          .venv/bin/python examples/compiled_marker_shapes.py --output out/compiled-marker-shapes
           .venv/bin/python examples/compiled_scene_viewer.py --output out/compiled-scene-viewer
       - name: Diagram routing and label review
         run: |

@@ -1,0 +1,13 @@
+{
+  "mean_rgb_error": [
+    1.1441752873563218,
+    1.0715871647509578,
+    1.1171120689655172
+  ],
+  "size": [
+    1392,
+    750
+  ],
+  "renderer": "ANGLE (Microsoft Corporation, D3D12 (NVIDIA GeForce RTX 5090 Laptop GPU), OpenGL 4.6)",
+  "description": "Composited hardware WebGL2 screenshot against SVG mode of the same five-panel figure; RGB units 0\u2013255."
+}
