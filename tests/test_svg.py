@@ -692,12 +692,11 @@ def test_an_ordinary_photograph_is_left_to_the_viewer():
     assert el.get("image-rendering") is None
 
 
-def test_missing_image_falls_back_to_a_link(tmp_path):
+def test_missing_image_fails_before_export(tmp_path):
+    from inklet.core import DiagramError
     missing = str(tmp_path / "gone.png")
-    svg = to_svg(Diagram(prim=ImagePrim(missing, 10.0, 10.0)))
-    el = parse(svg)[0][0]
-    assert el.get(XLINK + "href") == missing
-    assert "image not embedded" in svg
+    with pytest.raises(DiagramError, match='cannot compile image resource'):
+        to_svg(Diagram(prim=ImagePrim(missing, 10.0, 10.0)))
 
 
 # -- numbers and determinism ---------------------------------------------

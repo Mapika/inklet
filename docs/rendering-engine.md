@@ -1,5 +1,9 @@
 # Rendering and layout review
 
+For the next engine architecture increment after dev2, see
+[shared compiled scenes](compiled-scenes.md), including revision reuse and
+complete-figure measurements.
+
 For the engine changes included in 4.0.0.dev2, see the illustrated
 [transparency and compositing review](compositing.md), including PNG alpha,
 single-primitive opacity and nested PDF export measurements.

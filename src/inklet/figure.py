@@ -175,10 +175,13 @@ class Figure:
 
     # -- authoring --------------------------------------------------------
 
+    _scene_override: object = field(default=None, init=False, repr=False)
+
     def add(self, *diagrams: Diagram) -> Diagram:
         """Stack content vertically. Returns the last item for chaining."""
         self._content.extend(diagrams)
         self._built = None
+        self._scene_override = None
         return diagrams[-1] if diagrams else None
 
     def link(self, source, target, *, label: str | Diagram | None = None,
@@ -216,6 +219,7 @@ class Figure:
         connector = make_link(source, target, label=label, **kwargs)
         self._links.append(connector)
         self._built = None
+        self._scene_override = None
         return connector
 
     # -- resolution -------------------------------------------------------
@@ -310,7 +314,9 @@ class Figure:
         subset of each face carried inside the file). `inklet.to_svg` says what
         each costs; `inklet.outline_text` is the tree transform behind the second.
         """
-        root, _ = self.build()
+        root = self._scene_override
+        if root is None:
+            root, _ = self.build()
         options = dict(
             margin=0.0,   # the page frame is already part of the tree
             background=self.background or self.theme.paper,
@@ -340,7 +346,9 @@ class Figure:
                 f"{', '.join(PDF_TEXT_MODES)}"
                 + ("; PDF has no font-name mode, so a searchable PDF is "
                    "text='embed'" if text == "names" else ""))
-        root, _ = self.build()
+        root = self._scene_override
+        if root is None:
+            root, _ = self.build()
         options = dict(
             margin=0.0,   # the page frame is already part of the tree
             background=self.background or self.theme.paper,
@@ -352,7 +360,9 @@ class Figure:
     def to_png(self, *, dpi=150, **kwargs) -> bytes:
         """Render PNG at physical DPI with optional resvg, without a browser."""
         from .render.raster import to_png
-        root, _ = self.build()
+        root = self._scene_override
+        if root is None:
+            root, _ = self.build()
         return to_png(root, dpi=dpi, **(dict(background=self.background or self.theme.paper) | kwargs))
 
     def export(self, directory: str | Path, *, name: str = "figure",

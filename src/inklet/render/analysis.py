@@ -36,19 +36,7 @@ class CompositingAnalysis:
         key = (id(node), style)
         if key in self._counts:
             return self._counts[key]
-        prim = node.prim
-        if prim is None or isinstance(prim, PhantomPrim):
-            count = 0
-        elif isinstance(prim, ImagePrim):
-            count = 1
-        elif isinstance(prim, (TextPrim, PaintedPrim)):
-            # Glyph runs, halos, hatch backgrounds and gradient outlines can
-            # overlap inside one primitive. Conservatively isolate these.
-            count = 2
-        else:
-            filling = style.fill != 'none' and not (isinstance(prim, PathPrim) and not prim.filled)
-            stroking = style.stroke not in (None, 'none')
-            count = int(filling) + int(stroking)
+        count = primitive_paint_count(node.prim, style)
         for child in node.children:
             if count >= 2:
                 break
@@ -56,3 +44,20 @@ class CompositingAnalysis:
         count = min(count, 2)
         self._counts[key] = count
         return count
+
+
+def primitive_paint_count(prim, style):
+    """Number of potentially overlapping primitive paints, capped at two."""
+    if prim is None or isinstance(prim, PhantomPrim):
+        count = 0
+    elif isinstance(prim, ImagePrim):
+        count = 1
+    elif isinstance(prim, (TextPrim, PaintedPrim)):
+        # Glyph runs, halos, hatch backgrounds and gradient outlines can
+        # overlap inside one primitive. Conservatively isolate these.
+        count = 2
+    else:
+        filling = style.fill != 'none' and not (isinstance(prim, PathPrim) and not prim.filled)
+        stroking = style.stroke not in (None, 'none')
+        count = int(filling) + int(stroking)
+    return count

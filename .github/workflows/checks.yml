@@ -95,6 +95,7 @@ jobs:
           .venv/bin/python examples/compositing_review.py --output out/compositing-review
           .venv/bin/python examples/hatch_review.py --output out/hatch-review
           .venv/bin/python examples/clipping_review.py --output out/clipping-review
+          .venv/bin/python examples/render_scene_review.py --output out/render-scene-review
       - name: Diagram routing and label review
         run: |
           .venv/bin/python tools/benchmark_diagrams.py --repeat 1 --output out/diagram-benchmark.json

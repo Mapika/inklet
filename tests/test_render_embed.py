@@ -149,15 +149,12 @@ def test_the_rule_pins_the_whole_weight_range():
 # -- when it cannot be done ------------------------------------------------
 
 
-def test_a_face_that_cannot_be_opened_keeps_its_real_family_name():
-    """Better a `<text>` naming a family the reader may have than one naming
-    a family that is nowhere in the file."""
+def test_a_face_that_cannot_be_opened_fails_before_export():
+    from inklet.core import DiagramError
     prim = shape("fallback", font="DejaVu Sans", size=4.0)
     broken = replace(prim, font_path="/nowhere/x.ttf")
-    document = to_svg(Diagram(prim=broken), text="embed")
-    element = ET.fromstring(document).find(f".//{SVG}text")
-    assert element.get("font-family") == prim.font_family
-    assert "@font-face" not in document
+    with pytest.raises(DiagramError, match='cannot compile font resource'):
+        to_svg(Diagram(prim=broken), text="embed")
 
 
 def _face_path() -> str:

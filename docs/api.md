@@ -18,6 +18,22 @@ took before layout still resolves inside the finished figure.
 
 Declared format support; no renderer is selected implicitly.
 
+#### `class RenderScene(root: 'SceneNode', bbox: 'Rect', stats: 'Mapping', changes: 'tuple[SceneChange, ...]', _nodes: 'Mapping', _resources: 'Mapping', _images: 'Mapping', _fonts: 'Mapping') -> None`
+
+A compiled native scene shared by SVG, PDF and PNG exports.
+
+* `walk()`
+* `validate_fonts()`
+* `sources_current()` -- Check external inputs when a document considers reusing a snapshot.
+* `to_svg(**options)`
+* `to_pdf(**options)`
+* `to_png(**options)`
+* `damage_bounds(previous: 'RenderScene')` -- Conservative old/new ink union for changed placements, in page mm.
+
+#### `compile_scene(root: 'Diagram | RenderScene', *, previous: 'RenderScene | None' = None) -> 'RenderScene'`
+
+Resolve a drawing for all native backends, reusing an optional revision.
+
 #### `blend(node, mode='multiply')`
 
 Blend an isolated group with the artwork behind it, natively in SVG/PDF.
@@ -1023,19 +1039,19 @@ One actionable finding. `where` is figure-space, in millimetres.
 
 Compact report. Returns a single string with no trailing newline.
 
-#### `to_svg(root: 'Diagram', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compact: 'bool | str' = 'auto', text: 'str' = 'names') -> 'str'`
+#### `to_svg(root: 'Diagram | RenderScene', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compact: 'bool | str' = 'auto', text: 'str' = 'names') -> 'str'`
 
 Render a diagram tree to a self-contained SVG document.
 
-#### `save_svg(root: 'Diagram', path: 'str', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compact: 'bool | str' = 'auto', text: 'str' = 'names') -> 'None'`
+#### `save_svg(root: 'Diagram | RenderScene', path: 'str', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compact: 'bool | str' = 'auto', text: 'str' = 'names') -> 'None'`
 
 Write `root` to `path` as SVG. `to_svg` is the same thing as a string.
 
-#### `to_pdf(root: 'Diagram | Sequence[Diagram]', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compress: 'bool' = True, text: 'str' = 'outline') -> 'bytes'`
+#### `to_pdf(root: 'Diagram | RenderScene | Sequence[Diagram | RenderScene]', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compress: 'bool' = True, text: 'str' = 'outline') -> 'bytes'`
 
 Render one diagram tree, or a sequence of them, to a PDF document.
 
-#### `save_pdf(root: 'Diagram | Sequence[Diagram]', path: 'str | Path', **kwargs) -> 'None'`
+#### `save_pdf(root: 'Diagram | RenderScene | Sequence[Diagram | RenderScene]', path: 'str | Path', **kwargs) -> 'None'`
 
 Write `root` to `path` as PDF. `to_pdf` is the same thing as bytes.
 

@@ -28,31 +28,40 @@ def clip_bounds(box, node, world):
     return box
 
 
-def primitive_bounds(prim, world, style):
-    """Conservative ink bounds for one primitive, without tree traversal."""
-    box = None
-    if prim is not None and not isinstance(prim, PhantomPrim):
-        shape = prim.shape if isinstance(prim, PaintedPrim) else prim
-        if isinstance(shape, TextPrim):
-            from .glyphs import placed_glyphs, to_path
-            shape = to_path(placed_glyphs(shape))
-            pad = max(0., style.halo or 0.)/2
-        elif isinstance(shape, ImagePrim):
-            pad = 0.
-        else:
-            pad = (1. if style.stroke_width is None else style.stroke_width)/2 if style.stroke not in (None, 'none') else 0.
-            if style.stroke_linejoin in (None, 'miter'):
-                pad *= MITER_LIMIT
-            elif style.stroke_linecap == 'square':
-                pad *= 2**.5
-        if isinstance(shape, PathPrim):
-            # A cubic lies inside its control polygon. The layout envelope
-            # can use flattened samples; clipping must include the curve.
-            points = [p for sub in shape.subpaths for p in sub.points]
-            points.extend(p for sub in shape.subpaths for curve in sub.curves for p in curve)
-            local = Rect.hull(points) if points else None
-        else:
-            local = shape.envelope().bbox() if shape is not None else None
-        if local is not None:
-            box = Rect(local.x0-pad,local.y0-pad,local.x1+pad,local.y1+pad).transform(world)
-    return box
+_UNSET = object()
+
+
+def geometry_bounds(prim):
+    """Conservative local geometry bounds, independent of paint and placement."""
+    if prim is None or isinstance(prim, PhantomPrim):
+        return None
+    shape = prim.shape if isinstance(prim, PaintedPrim) else prim
+    if isinstance(shape, TextPrim):
+        from .glyphs import placed_glyphs, to_path
+        shape = to_path(placed_glyphs(shape))
+    if isinstance(shape, PathPrim):
+        points = [p for sub in shape.subpaths for p in sub.points]
+        points.extend(p for sub in shape.subpaths for curve in sub.curves for p in curve)
+        return Rect.hull(points) if points else None
+    return shape.envelope().bbox()
+
+
+def primitive_bounds(prim, world, style, *, local_bounds=_UNSET):
+    """Conservative ink bounds, optionally reusing measured local geometry."""
+    if prim is None or isinstance(prim, PhantomPrim):
+        return None
+    shape = prim.shape if isinstance(prim, PaintedPrim) else prim
+    if isinstance(shape, TextPrim):
+        pad = max(0., style.halo or 0.)/2
+    elif isinstance(shape, ImagePrim):
+        pad = 0.
+    else:
+        pad = (1. if style.stroke_width is None else style.stroke_width)/2 if style.stroke not in (None, 'none') else 0.
+        if style.stroke_linejoin in (None, 'miter'):
+            pad *= MITER_LIMIT
+        elif style.stroke_linecap == 'square':
+            pad *= 2**.5
+    local = geometry_bounds(prim) if local_bounds is _UNSET else local_bounds
+    if local is None:
+        return None
+    return Rect(local.x0-pad,local.y0-pad,local.x1+pad,local.y1+pad).transform(world)

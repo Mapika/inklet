@@ -409,10 +409,11 @@ from .three.render_jobs import RenderQueue, RenderJob, RenderProgress, RenderCan
 from .render.raster import to_png, save_png, rasterize
 from .render.brushes import LinearGradient, RadialGradient, Hatch, paint
 from .render.composite import blend, mask
+from .render.scene import RenderScene, compile_scene
 from .render.resources import rendering_capabilities
 
 __all__ = [
-    "rendering_capabilities",
+    "rendering_capabilities", "RenderScene", "compile_scene",
     "blend", "mask",
     "LinearGradient", "RadialGradient", "Hatch", "paint",
     "SceneRender", "ScenePass", "ProjectedPoint", "BlendSceneSpec", "render_blend", "blend_scene", "blend_scene_spec",

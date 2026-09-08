@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- Compile a shared native render scene for SVG, PDF and PNG, resolving styles,
+  transforms, clipping and compositing once. Retain it across document exports.
+- Reuse unchanged scene nodes and geometry across revisions; share small shapes
+  and shaped labels by value, expose invalidation reasons and conservative
+  redraw coverage, and report render-compilation work separately from layout.
+- Reject missing image and font resources before native export; SVG no longer
+  silently emits broken image links or substitutes an unavailable font file.
+- Snapshot file-backed image bytes so completed figures survive source changes;
+  detect updated image inputs on subsequent document compilation and reject
+  exports using changed or missing font files.
+- Add a complete six-panel scene/revision review and repeated-export benchmarks.
+  Dense buffers, browser/GPU execution and finer layout invalidation remain open.
+
 ## 4.0.0.dev2 — 2026-09-08
 
 Second development preview. Install explicitly with

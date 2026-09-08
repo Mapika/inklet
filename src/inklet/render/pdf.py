@@ -1,7 +1,7 @@
 """PDF output for `inklet`.
 
-The backend traverses the drawing tree, preserving opacity and blending groups
-as PDF transparency forms. A page-scoped analysis reuses painted bounds and
+The backend traverses the compiled scene, preserving opacity and blending groups
+as PDF transparency forms. The shared compiled scene reuses painted bounds and
 distinguishes single paints from overlapping operations within one primitive.
 Text is outlined by default or embedded as already-shaped glyphs on request;
 both modes share geometry and font measurement with SVG.
@@ -22,6 +22,8 @@ The same tree renders byte-identically every time.
 """
 
 from __future__ import annotations
+from .scene import RenderScene, SceneNode, compile_scene, canvas as _canvas
+
 
 import hashlib
 import zlib
@@ -39,7 +41,6 @@ from ..core.style import EMPTY_STYLE, Style
 from ..core.units import mm as to_mm
 from ..themes.color import parse_color
 from .glyphs import PlacedGlyph, placed_glyphs, to_path
-from .analysis import CompositingAnalysis
 from .pdftext import FontShelf, show_text, text_runs, to_unicode_cmap, widths_array
 
 __all__ = ["to_pdf", "save_pdf", "PDF_TEXT_MODES"]
@@ -181,13 +182,11 @@ class _Content:
 
     def __init__(self, precision: int, shared: _Resources, *,
                  text: str = "outline",
-                 paper: str = DEFAULT_PAPER,
-                 analysis: CompositingAnalysis | None = None) -> None:
+                 paper: str = DEFAULT_PAPER) -> None:
         self.precision = precision
         self.ops: list[str] = []
         self.shared = shared
         self.paper = paper
-        self.analysis = analysis if analysis is not None else CompositingAnalysis()
         # Carried on the stream rather than threaded through every emitter:
         # it is a setting of the whole document, and a transparency group's
         # stream has to inherit it unchanged.
@@ -197,7 +196,7 @@ class _Content:
         """A separate stream -- a transparency group's -- with the same
         settings and the same shared resources."""
         return _Content(self.precision, self.shared,
-                        text=self.text_mode, paper=self.paper, analysis=self.analysis)
+                        text=self.text_mode, paper=self.paper)
 
     def n(self, value: float) -> str:
         return _fmt(value, self.precision)
@@ -639,30 +638,7 @@ class _Objects:
         return bytes(out)
 
 
-def _canvas(root: Diagram, width, height, margin: float) -> tuple[Rect, float, float]:
-    """Content box (bbox plus margin) and the page size, both in mm.
-
-    Deliberately the same rule as the SVG backend's: a figure has one page size
-    whichever file it is written to, or the two would disagree about where the
-    content sits.
-    """
-    try:
-        box = root.bbox
-    except DiagramError:
-        box = Rect(0.0, 0.0, 0.0, 0.0)
-    content = box.pad(margin)
-    page_w = content.width if width is None else to_mm(width)
-    page_h = content.height if height is None else to_mm(height)
-    return content, page_w, page_h
-
-
-def _world_box(c: _Content, node: Diagram, world: Affine, style: Style) -> Rect:
-    """The subtree's bounding box in page millimetres, for a form's `/BBox`."""
-    return c.analysis.bounds(node, world, style) or Rect(0., 0., 0., 0.)
-
-
-def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
-               alpha: float) -> None:
+def _emit_node(c: _Content, node: SceneNode, alpha: float) -> None:
     """Draw one node and its children, honouring opacity the way SVG does.
 
     SVG's `opacity` is a property of the *group*: the subtree is composited
@@ -676,15 +652,15 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
     alpha directly. Filled-and-stroked shapes, text runs/halos and painted
     brushes may overlap internally, so counting primitives alone is insufficient.
     """
-    world = parent @ node.transform
-    style = node.style.over(inherited)
-    own = node.style.opacity
+    world = node.world
+    style = node.style
+    own = node.local_style.opacity
 
-    if node.kind == 'blend' and 'blend_mode' in node.notes:
-        mode=node.notes['blend_mode']
+    if node.blend_mode is not None:
+        mode=node.blend_mode
         inner=c.child()
         _emit_contents(inner,node,world,style,1.)
-        name=c.shared.form(inner.render(),_world_box(c,node,world,style),isolated=True)
+        name=c.shared.form(inner.render(),(node.painted_bounds or Rect(0.,0.,0.,0.)),isolated=True)
         state=c.shared.blends.setdefault(mode,f'BM{len(c.shared.blends)}')
         c.op('q');c.op(f'/{state}','gs')
         if alpha*(1. if own is None else own) < 1:
@@ -693,10 +669,10 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
         return
 
     if own is not None and own < 1.0:
-        if c.analysis.paint_count(node, style) > 1:
+        if node.paint_count > 1:
             inner = c.child()
             _emit_contents(inner, node, world, style, 1.0)
-            name = c.shared.form(inner.render(), _world_box(c, node, world, style))
+            name = c.shared.form(inner.render(), (node.painted_bounds or Rect(0.,0.,0.,0.)))
             c.op("q")
             c.op(f"/{c.alpha(alpha * own)}", "gs")
             c.op(f"/{name}", "Do")
@@ -707,13 +683,13 @@ def _emit_node(c: _Content, node: Diagram, parent: Affine, inherited: Style,
     _emit_contents(c, node, world, style, alpha)
 
 
-def _emit_contents(c: _Content, node: Diagram, world: Affine, style: Style,
+def _emit_contents(c: _Content, node: SceneNode, world: Affine, style: Style,
                    alpha: float) -> None:
     """The node's own primitive, then its children. A node's prim paints under
     them, exactly as `core.flatten` orders it."""
     if node.clip_region:
         c.op("q")
-        points = tuple(world.apply(p) for p in node.clip_region)
+        points = node.world_clip
         c.op(c.n(points[0].x), c.n(points[0].y), "m")
         for p in points[1:]:
             c.op(c.n(p.x), c.n(p.y), "l")
@@ -732,7 +708,7 @@ def _emit_contents(c: _Content, node: Diagram, world: Affine, style: Style,
         _draw_prim(c, node.prim, style)
         c.op("Q")
     for child in node.children:
-        _emit_node(c, child, world, style, alpha)
+        _emit_node(c, child, alpha)
     if node.clip_region:
         c.op("Q")
 
@@ -743,7 +719,7 @@ def _ratio(style: Style, name: str) -> float:
     return 1.0 if value is None else float(value)
 
 
-def to_pdf(root: Diagram | Sequence[Diagram], *, width: float | str | None = None,
+def to_pdf(root: Diagram | RenderScene | Sequence[Diagram | RenderScene], *, width: float | str | None = None,
            height: float | str | None = None, margin: float = 0.0,
            background: str | None = None, precision: int = 3,
            title: str | None = None, compress: bool = True,
@@ -775,12 +751,14 @@ def to_pdf(root: Diagram | Sequence[Diagram], *, width: float | str | None = Non
             f"{', '.join(PDF_TEXT_MODES)}"
             + ("; PDF has no font-name mode, so a searchable PDF is "
                "text='embed'" if text == "names" else ""))
-    roots = [root] if isinstance(root, Diagram) else list(root)
+    roots = [root] if isinstance(root, (Diagram, RenderScene)) else list(root)
     if not roots:
         raise ValueError("a PDF needs at least one page")
     shared = _Resources()
     pages = []
-    for page_root in roots:
+    scenes = [compile_scene(page) for page in roots]
+    for page_root in scenes:
+        page_root.validate_fonts()
         content, page_w, page_h = _canvas(page_root, width, height, margin)
         c = _Content(precision, shared, text=text,
                      paper=background or DEFAULT_PAPER)
@@ -796,10 +774,13 @@ def to_pdf(root: Diagram | Sequence[Diagram], *, width: float | str | None = Non
             c.op(_rgb(background, precision), "rg")
             c.op(c.n(content.x0), c.n(content.y0), c.n(page_w), c.n(page_h),
                  "re", "f")
-        _emit_node(c, page_root, IDENTITY, EMPTY_STYLE, 1.0)
+        _emit_node(c, page_root.root, 1.0)
         pages.append((c, page_w, page_h))
 
-    return _assemble(pages, shared, title, compress)
+    result = _assemble(pages, shared, title, compress)
+    for scene in scenes:
+        scene.validate_fonts()
+    return result
 
 
 def _assemble(pages: list[tuple[_Content, float, float]], shared: _Resources,
@@ -932,7 +913,7 @@ def _dimensions(body: bytes) -> tuple[int, int]:
             int(fields[fields.index("/Height") + 1]))
 
 
-def save_pdf(root: Diagram | Sequence[Diagram], path: str | Path, **kwargs) -> None:
+def save_pdf(root: Diagram | RenderScene | Sequence[Diagram | RenderScene], path: str | Path, **kwargs) -> None:
     """Write `root` to `path` as PDF. `to_pdf` is the same thing as bytes.
 
     By default every glyph is a filled path, so the file needs no font

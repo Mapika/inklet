@@ -133,21 +133,22 @@ def test_cached_bounds_match_uncached_through_transform_and_style_changes():
 
 
 def test_nested_group_bounds_are_evaluated_once_per_placement(monkeypatch):
-    import inklet.render.analysis as module
+    import inklet.render.scene as module
     node = Diagram(children=(i.text('Bounds',size=3),Diagram(prim=RectPrim(20,8))))
     for _ in range(24):
         node = Diagram(children=(node,),style=Style(opacity=.98))
     calls = []
     original = module.primitive_bounds
-    def measured(*args):
+    def measured(*args, **kwargs):
         calls.append(args)
-        return original(*args)
+        return original(*args, **kwargs)
     monkeypatch.setattr(module,'primitive_bounds',measured)
-    first = i.to_pdf(node)
-    assert len(calls) == len(list(node.walk()))
+    scene = i.compile_scene(node)
+    first = i.to_pdf(scene)
+    assert len(calls) == 2  # groups reuse their children's resolved bounds
     calls.clear()
-    assert i.to_pdf(node) == first
-    assert len(calls) == len(list(node.walk()))
+    assert i.to_pdf(scene) == first
+    assert calls == []  # the compiled scene owns the analysis across exports
 
 
 def test_count_cache_distinguishes_inherited_fill_and_stroke():

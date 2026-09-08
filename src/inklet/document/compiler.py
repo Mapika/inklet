@@ -195,6 +195,11 @@ class CompiledFigure:
     stats: Mapping
 
     @property
+    def scene(self):
+        """Shared compiled rendering snapshot used by every native export."""
+        return self._figure._scene_override
+
+    @property
     def root(self):
         return self._figure.build()[0]
 
@@ -258,6 +263,7 @@ class Document(BuildSpec):
     _links: list = field(default_factory=list, repr=False)
     _letters: dict = field(default_factory=dict, repr=False)
     _cache: dict = field(default_factory=dict, repr=False)
+    _render_previous: object = field(default=None, init=False, repr=False)
     _last: object = field(default=None, repr=False)
 
     def __post_init__(self):
@@ -549,7 +555,8 @@ class Document(BuildSpec):
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram,Panel,PolarPanel)) else id(context.build(c.item)))
                          for c in self._cells)
         key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins))
-        if self._last is not None and self._last[0]==key: return self._last[1]
+        if self._last is not None and self._last[0]==key and self._last[1].scene.sources_current():
+            return self._last[1]
         dependency_seconds=time.perf_counter()-started
         content, boxes, handles, page_height, passes = self._layout(context, width, height)
         layout_seconds=time.perf_counter()-started
@@ -558,11 +565,15 @@ class Document(BuildSpec):
             program=resolve_paint(apply_theme(root,theme),stable_ids=True)
             placements=resolve(program.root)
             paint_finished=time.perf_counter()
+            from ..render.scene import compile_scene
+            scene = compile_scene(program.root, previous=self._render_previous)
+            scene_finished=time.perf_counter()
             diagnostics=tuple(lint(program.root,page=program.root.bbox,placements=placements,page_fill=theme.paper,
                                    **({} if self.publication is None else self.publication.checks)))
-        diagnostics_seconds=time.perf_counter()-paint_finished
+        diagnostics_seconds=time.perf_counter()-scene_finished
         figure=Figure(width=width,height=page_height,margin=0,theme=theme)
         figure._built=(program.root,placements)
+        figure._scene_override=scene
         from ..core.prims import TextPrim
         font_paths=set()
         for placement in placements.values():
@@ -592,12 +603,15 @@ class Document(BuildSpec):
                    paint_seconds=paint_finished-started-layout_seconds,diagnostics_seconds=diagnostics_seconds,
                    dependency_seconds=dependency_seconds,
                    fitting_seconds=layout_seconds-dependency_seconds,
-                   metadata_seconds=finished-paint_finished-diagnostics_seconds,
+                   metadata_seconds=finished-scene_finished-diagnostics_seconds,
+                   render_scene_seconds=scene_finished-paint_finished,
+                   render_scene=dict(scene.stats),
                    cache_hits=context.hits,
                    builds=context.misses,layout_passes=passes,node_count=program.node_count)
         result=CompiledFigure(figure,MappingProxyType(boxes),diagnostics,
                               MappingProxyType(metadata),MappingProxyType(stats))
         self._last=(key,result)
+        self._render_previous=scene
         return result
 
     def export(self,directory,**kwargs):

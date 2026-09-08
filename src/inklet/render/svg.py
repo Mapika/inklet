@@ -49,6 +49,8 @@ cutting into its neighbour's ink.
 """
 
 from __future__ import annotations
+from .scene import RenderScene, SceneNode, compile_scene, canvas as _canvas
+
 
 import base64
 import mimetypes
@@ -731,27 +733,22 @@ def _image(prim: ImagePrim, w: _Writer, kind: str | None = None) -> None:
     if resource not in w.image_payloads:
         w.image_payloads[resource] = _data_uri(prim)
     payload = w.image_payloads[resource]
-    if payload is None:
-        # A missing file is a broken link, not a crash: emit the path and say so.
-        w.line(_comment(f"image not embedded, file unreadable: {prim.source}"))
-        attrs.append(("xlink:href", prim.source))
-    else:
-        import hashlib
-        resource_key = (resource, _smooth(prim,kind))
-        key = w.image_keys.get(resource_key)
-        if key is None:
-            key=hashlib.sha256((payload+str(_smooth(prim,kind))).encode()).hexdigest()[:20]
-            w.image_keys[resource_key] = key
-        registry=getattr(w,'image_defs',None)
-        if registry is None: registry=w.image_defs={}
-        if key in registry:
-            width,height=registry[key]
-            w.empty('use',[('xlink:href','#inklet-image-'+key),
-                           ('transform',f'scale({w.n(prim.width/width)} {w.n(prim.height/height)})')])
-            return
-        registry[key]=(prim.width,prim.height)
-        attrs.append(('id','inklet-image-'+key))
-        attrs.append(("xlink:href", payload))
+    import hashlib
+    resource_key = (resource, _smooth(prim,kind))
+    key = w.image_keys.get(resource_key)
+    if key is None:
+        key=hashlib.sha256((payload+str(_smooth(prim,kind))).encode()).hexdigest()[:20]
+        w.image_keys[resource_key] = key
+    registry=getattr(w,'image_defs',None)
+    if registry is None: registry=w.image_defs={}
+    if key in registry:
+        width,height=registry[key]
+        w.empty('use',[('xlink:href','#inklet-image-'+key),
+                       ('transform',f'scale({w.n(prim.width/width)} {w.n(prim.height/height)})')])
+        return
+    registry[key]=(prim.width,prim.height)
+    attrs.append(('id','inklet-image-'+key))
+    attrs.append(("xlink:href", payload))
     w.empty("image", attrs)
 
 
@@ -778,7 +775,7 @@ def _smooth(prim: ImagePrim, kind: str | None) -> bool:
 _MAGIC = ((b"\x89PNG\r\n\x1a\n", "image/png"), (b"\xff\xd8\xff", "image/jpeg"))
 
 
-def _data_uri(prim: ImagePrim) -> str | None:
+def _data_uri(prim: ImagePrim) -> str:
     """Embed the raster so the SVG is one self-contained file. `xlink:href`
     rather than SVG 2's bare `href` because Illustrator and older renderers
     still want the namespaced form and every current viewer accepts it.
@@ -796,8 +793,8 @@ def _data_uri(prim: ImagePrim) -> str | None:
         try:
             with open(prim.source, "rb") as handle:
                 raw = handle.read()
-        except OSError:
-            return None
+        except OSError as exc:
+            raise DiagramError(f'cannot read image resource: {prim.source}') from exc
         mime = mimetypes.guess_type(prim.source)[0] or "application/octet-stream"
     return f"data:{mime};base64,{base64.b64encode(raw).decode('ascii')}"
 
@@ -808,7 +805,7 @@ def _shape(prim: Prim, style: Style, w: _Writer) -> Shape | None:
     None covers three different things and the caller treats them alike: a
     prim that draws nothing (`PhantomPrim`), one that draws a compound element
     with children (`TextPrim`), and one that has side effects worth keeping in
-    file order (`ImagePrim`'s broken-link comment).
+    file order (shared image resource declarations).
     """
     from .brushes import Hatch, PaintedPrim, svg_brush
     if isinstance(prim, PaintedPrim):
@@ -908,9 +905,9 @@ def _emit_hatch(prim, style: Style, w: _Writer) -> None:
 # -- tree -----------------------------------------------------------------
 
 
-def _emit_node(node: Diagram, inherited: Style, w: _Writer) -> None:
-    resolved = node.style.over(inherited)
-    style_attrs = _style_attrs(node.style, w)
+def _emit_node(node: SceneNode, w: _Writer) -> None:
+    resolved = node.style
+    style_attrs = _style_attrs(node.local_style, w)
     transform = node.transform
 
     attrs: Attrs = [("id", node.id)]
@@ -933,8 +930,8 @@ def _emit_node(node: Diagram, inherited: Style, w: _Writer) -> None:
             w.empty('polygon', [('points', ' '.join(w.nums((p.x,p.y)) for p in key))])
             w.close('clipPath'); w.close('defs')
         attrs.append(('clip-path', f'url(#{name})'))
-    if node.kind == 'blend' and 'blend_mode' in node.notes:
-        attrs.append(('style',f'mix-blend-mode:{node.notes["blend_mode"]};isolation:isolate'))
+    if node.blend_mode is not None:
+        attrs.append(('style',f'mix-blend-mode:{node.blend_mode};isolation:isolate'))
 
     if node.prim is not None and not node.children:
         shape = _shape(node.prim, resolved, w)
@@ -959,7 +956,7 @@ def _emit_node(node: Diagram, inherited: Style, w: _Writer) -> None:
         # A node's own prim paints under its children.
         _emit_prim(node.prim, resolved, w, node.kind)
     for child in node.children:
-        _emit_node(child, resolved, w)
+        _emit_node(child, w)
     w.close("g")
 
 
@@ -981,22 +978,10 @@ def _transform(t: Affine, w: _Writer) -> str:
     return f"matrix({w.nums((t.a, t.b, t.c, t.d, t.e, t.f))})"
 
 
-def _canvas(root: Diagram, width, height, margin: float) -> tuple[Rect, float, float]:
-    """Content box (bbox plus margin) and the page size, both in mm."""
-    try:
-        box = root.bbox
-    except DiagramError:
-        box = Rect(0.0, 0.0, 0.0, 0.0)  # An empty tree still gets a margin-sized page.
-    content = box.pad(margin)
-    page_w = content.width if width is None else to_mm(width)
-    page_h = content.height if height is None else to_mm(height)
-    return content, page_w, page_h
-
-
 # -- public API -----------------------------------------------------------
 
 
-def to_svg(root: Diagram, *, width: float | str | None = None,
+def to_svg(root: Diagram | RenderScene, *, width: float | str | None = None,
            height: float | str | None = None, margin: float = 0.0,
            background: str | None = None, precision: int = 3,
            title: str | None = None, compact: bool | str = "auto",
@@ -1039,6 +1024,8 @@ def to_svg(root: Diagram, *, width: float | str | None = None,
     device pixel from where the open one puts it. `render.pathdata` has the
     measurement.
     """
+    root = compile_scene(root)
+    root.validate_fonts()
     mode = resolve_text_mode(text)
     paper = background or DEFAULT_PAPER
     w = _Writer(precision, compact, text=mode, paper=paper)
@@ -1054,7 +1041,7 @@ def to_svg(root: Diagram, *, width: float | str | None = None,
         body.glyphs, body.faces = w.glyphs, w.faces
         body.depth = 1
         w.glyphs.reserve(root)
-        _emit_node(root, EMPTY_STYLE, body)
+        _emit_node(root.root, body)
 
     w.line('<?xml version="1.0" encoding="UTF-8"?>')
     w.line(_comment("generated by inklet; 1 user unit = 1 mm"))
@@ -1076,16 +1063,18 @@ def to_svg(root: Diagram, *, width: float | str | None = None,
             ("fill", background),
         ])
     if body is w:
-        _emit_node(root, EMPTY_STYLE, w)
+        _emit_node(root.root, w)
     else:
         w.glyphs.emit(w)
         w.faces.emit(w)
         w.lines += body.lines
     w.close("svg")
-    return w.render()
+    result = w.render()
+    root.validate_fonts()
+    return result
 
 
-def save_svg(root: Diagram, path: str, *, width: float | str | None = None,
+def save_svg(root: Diagram | RenderScene, path: str, *, width: float | str | None = None,
              height: float | str | None = None, margin: float = 0.0,
              background: str | None = None, precision: int = 3,
              title: str | None = None, compact: bool | str = "auto",
