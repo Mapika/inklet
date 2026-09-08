@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add optional experimental pandas and Polars adapters for keyed tables, with
+  explicit string IDs, column selection, immutable scalar snapshots and missing
+  value normalization. Reject unsupported cells with column/row diagnostics.
+  Add an illustrated workshop revision example with equivalent exports from
+  both libraries and optional-dependency compatibility checks.
+
 - Add experimental linked category panels for lines, bars and scatter, with
   explicit category order, empty panels, shared scales, within-category line
   adjacency and visible diagnostics for unassigned rows. Add a six-panel

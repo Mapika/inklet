@@ -18,6 +18,14 @@ assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
 from inklet.experimental.selection import KeyedTable
+assert find_spec("pandas") is None and find_spec("polars") is None
+for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_polars, 'polars')):
+    try:
+        adapter('missing-extra', None)
+    except ImportError as error:
+        assert 'inklet[' + extra + ']' in str(error)
+    else:
+        raise AssertionError('Table adapter silently loaded an optional dependency')
 from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption, FacetView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
 browser_scene = BrowserScatter(keyed, [ScatterView('scatter','x','y',(0,1),(0,3))])

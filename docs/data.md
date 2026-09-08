@@ -153,3 +153,10 @@ Reading creates a snapshot; editing the file does not mutate an existing table.
 Read it again to import changed bytes, or use `Dataset.update()` for explicit live
 edits. The [six-panel general plotting example](general-plots.md) uses this path
 for machine-learning, engineering and business tables.
+
+## DataFrames for linked figures
+
+The 4.0 research preview adds optional pandas and Polars adapters for immutable,
+keyed scalar tables. See [pandas and Polars inputs](table-inputs.md) for the
+illustrated import, revision and export workflow. These adapters feed experimental
+linked figures; the existing `Dataset` authoring API above retains its contract.

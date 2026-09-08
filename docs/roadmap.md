@@ -8,8 +8,8 @@ prototype and acceptance checks described here.
 Phase A has started: [the foundations report](v4-foundations.md) records the
 first fixtures, engine corrections, baseline timings and offline selection
 prototype. A bounded scatter backend comparison, linked maps, explicit data
-revisions and category panels are implemented; broader backend/performance
-coverage remains an upcoming gate.
+revisions, category panels and optional table adapters are implemented; broader
+backend/performance coverage remains an upcoming gate.
 
 ## Product direction
 
@@ -149,8 +149,9 @@ now add a bounded GeoJSON polygon join, holes, fixed color bins and a first
 regional analysis figure. [Data revisions](data-revisions.md) now preserve valid
 selections through Python replacement and browser switching. [Category panels](linked-facets.md)
 add explicit facets with shared physical scales and empty-category retention.
-Table adapters, date-aware browser axes, statistical views and the complete
-reference workflows remain outstanding.
+[pandas and Polars inputs](table-inputs.md) now add immutable scalar snapshots
+with explicit keys and equivalent cross-library exports. Date-aware browser
+axes, statistical views and the complete reference workflows remain outstanding.
 
 
 Start phase A with a small, reviewable sequence:

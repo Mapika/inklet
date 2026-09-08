@@ -96,6 +96,7 @@ nav:
   - Browser rendering study: browser-rendering.md
   - Linked lines, bars and scatter: linked-plots.md
   - Linked category panels: linked-facets.md
+  - pandas and Polars inputs: table-inputs.md
   - Linked region maps: linked-maps.md
   - Real world map: world-map.md
   - Replace figure data: data-revisions.md

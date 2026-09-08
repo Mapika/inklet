@@ -71,6 +71,27 @@ class KeyedTable:
         object.__setattr__(self, 'row_ids', copied[key])
         object.__setattr__(self, 'digest', hashlib.sha256(payload.encode()).hexdigest())
 
+    @classmethod
+    def from_pandas(cls, name, frame, *, key='id', columns=None):
+        """Snapshot a pandas DataFrame; ignore its index and require a string key.
+
+        Select columns explicitly to omit unsupported cells. Missing scalars
+        become None; dates and nested values require author conversion first.
+        Imports pandas only when called. Available in the 4.0 research preview.
+        """
+        from ._table_adapters import pandas_columns
+        return cls(name, pandas_columns(frame, key=key, columns=columns), key=key)
+
+    @classmethod
+    def from_polars(cls, name, frame, *, key='id', columns=None):
+        """Snapshot an eager Polars DataFrame with an explicit string key.
+
+        Null and NaN become None. Lazy frames must be collected by the author;
+        dates and nested values require conversion. Imports Polars when called.
+        """
+        from ._table_adapters import polars_columns
+        return cls(name, polars_columns(frame, key=key, columns=columns), key=key)
+
     def subset(self, ids):
         """Return columns in source order, rejecting IDs absent from this table."""
         requested = set(_ids(ids, 'subset'))

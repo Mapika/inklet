@@ -102,6 +102,39 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  tables:
+    name: Table adapters (${{ matrix.dependencies }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        dependencies: [minimum, current]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: '3.12'
+      - name: Install current locked adapters
+        if: matrix.dependencies == 'current'
+        run: |
+          uv venv
+          uv pip install -r requirements-tables.txt -e .
+      - name: Install minimum supported adapters
+        if: matrix.dependencies == 'minimum'
+        run: |
+          uv venv
+          uv pip install -e '.[dev]' 'pandas==2.2.0' 'polars==1.0.0' 'numpy==1.26.4'
+      - name: Table contracts and cross-library figure reconstruction
+        run: |
+          .venv/bin/python -m pytest -q tests/test_table_adapters.py tests/test_v4_selection.py
+          .venv/bin/python examples/v4/table_inputs.py --backend pandas --output out/pandas
+          .venv/bin/python examples/v4/table_inputs.py --backend polars --state out/pandas/view.json --output out/polars
+          cmp out/pandas/figure.svg out/polars/figure.svg
+          .venv/bin/python examples/v4/table_inputs.py --backend pandas --revised --output out/pandas-revised
+          .venv/bin/python examples/v4/table_inputs.py --backend polars --revised --state out/pandas-revised/view.json --output out/polars-revised
+          cmp out/pandas-revised/figure.svg out/polars-revised/figure.svg
+
   wheel:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10

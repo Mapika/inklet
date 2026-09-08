@@ -206,3 +206,19 @@ changing retained values. Its empty West panels keep their axes and labels.
 reconstruction. The script writes `index.html`, `figure.svg` and `view.json`.
 The [facet guide](../../docs/linked-facets.md) explains explicit category order,
 unassigned rows, empty panels, source-order line adjacency and filtering.
+
+## pandas and Polars tables
+
+`table_inputs.py` imports original simulated workshop observations through either
+optional DataFrame library and builds four linked panels. Both paths retain the
+same IDs, missing-value gap and scalar digest. The browser can apply a correction
+and row removal; saved state reconstructs the same SVG through either adapter.
+
+```sh
+python -m pip install -e '.[pandas,polars]'
+python examples/v4/table_inputs.py --backend pandas --output out/v4-tables
+python examples/v4/table_inputs.py --backend polars --output out/v4-polars
+python examples/v4/table_inputs.py --backend polars --revised --state /path/to/view.json --output out/v4-restored
+```
+
+Use `--revised` only for states saved with the corrected revision active.
