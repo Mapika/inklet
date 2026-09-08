@@ -167,7 +167,12 @@ types remain outstanding; the other Phase B and release gates are still open.
 The [linked engineering report](engineering-report.md) starts Phase C with
 native drawing/table correspondence, explicit box sections and measurements,
 geometry replacement, retained label offsets and two-width exports. This bounded
-box workflow does not close the mesh, camera, editing or constraint gates. [Shared plotting quality](plot-quality.md) also improves numeric
+box workflow does not close the mesh, camera, editing or constraint gates.
+The [calibrated image measurement report](scientific-report.md) now adds labeled
+pixel correspondence, source measurements, missing intensities, calibration
+revisions and reproducible scientific exports. Volume/mesh and field interaction,
+external microscopy adapters for this browser model, and general editing
+constraints remain open. [Shared plotting quality](plot-quality.md) also improves numeric
 ticks across static plots and browser frames.
 
 

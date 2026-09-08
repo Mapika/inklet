@@ -29,6 +29,12 @@ for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_pola
 from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption, FacetView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
 from inklet.experimental.browser import TimeAxis
+from inklet.experimental.measurement import LabelImage
+from inklet.experimental.browser import LabelImageView
+label_image=LabelImage([[1,3]],[[1,1]],[('region',1)],(.5,.5),'um')
+assert label_image.table().columns['area']==(.5,) and label_image.table().columns['mean']==(2.,)
+image_scene=BrowserFigure(label_image.table(),[LabelImageView('image',label_image,(0,4),.5)])
+assert 'data:image/png;base64,' in image_scene.to_svg() and 'image-status' in image_scene.to_html()
 from inklet.experimental.browser import DrawingItem, DrawingView
 from inklet.experimental.engineering import BoxAssembly, BoxComponent
 assembly = BoxAssembly([BoxComponent('a',(2,4,6),(0,0,0))], 'mm')

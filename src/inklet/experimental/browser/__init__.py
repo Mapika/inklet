@@ -21,6 +21,7 @@ from .regions import GeoRegions
 from .timeaxis import TimeAxis
 from .series import SeriesView
 from .drawings import DrawingItem, DrawingView
+from .images import LabelImageView
 from ..temporal import time_milliseconds
 
 SCHEMA = 'inklet.browser-scatter/0.1'
@@ -326,7 +327,10 @@ def _svg_mark(mark, color, selected=False):
             b=mark['bounds']
             return 'rect',dict(x=str(b[0]),y=str(b[1]),width=str(b[2]-b[0]),height=str(b[3]-b[1]),
                                fill='none',stroke='#bd5636',**{'stroke-width':'.4'})
-        return 'image',dict(zip(('x','y','width','height'),map(str,g)),href=mark['href'])
+        attrs=dict(zip(('x','y','width','height'),map(str,g)),href=mark['href'])
+        if mark.get('smooth') is False: attrs['image-rendering']='pixelated'
+        if mark.get('preserve_aspect') is False: attrs['preserveAspectRatio']='none'
+        return 'image',attrs
     if kind=='polygon':
         path=' '.join('M '+' L '.join(f'{x} {y}' for x,y in ring)+' Z' for ring in g)
         return 'path',{'d':path,'fill-rule':'evenodd','fill':'none' if selected else color,
@@ -342,7 +346,7 @@ def _svg_mark(mark, color, selected=False):
                       'stroke-linecap':'round','stroke':'#bd5636' if selected else color})
     if kind!='line':
         attrs.update({'fill':'none','stroke':'#bd5636','stroke-width':.3} if selected
-                     else {'fill':color,'fill-opacity':.65})
+                     else {'fill':color,'fill-opacity':mark.get('opacity',.65)})
     return tag,{key:str(value) for key,value in attrs.items()}
 
 
@@ -356,7 +360,7 @@ class BrowserFigure:
     def __init__(self, table: KeyedTable, views, *, width=190, columns=None):
         import inklet as i
         definitions=tuple(views)
-        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,SeriesView,RegionView,DrawingView,FacetView) for v in definitions):
+        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,SeriesView,RegionView,DrawingView,LabelImageView,FacetView) for v in definitions):
             raise ValueError('provide one to four supported plot or facet view definitions')
         if len({v.name for v in definitions})!=len(definitions): raise ValueError('view names must be unique')
         views,facet_metadata,facet_rows,facet_groups=_expand_facets(table,definitions)
@@ -366,7 +370,8 @@ class BrowserFigure:
                        share_plot_margins=bool(facet_groups)).letters()
         coordinates={};statistics={};ecdf_curves={}
         for index,view in enumerate(views):
-            if isinstance(view,DrawingView):
+            if isinstance(view,(DrawingView,LabelImageView)):
+                if isinstance(view,LabelImageView): view.validate_table(table)
                 p=i.plot_spec(x=(0,1),y=(0,1),height=58)
                 p.line([(0,0),(1,1)],stroke='none',stroke_width=0)
             elif isinstance(view,RegionView):
@@ -461,7 +466,7 @@ class BrowserFigure:
             if (t.a,t.b,t.c,t.d)!=(1.,0.,0.,1.): raise ValueError('unsupported transformed plot cell')
             bounds=[rect.x0+t.e,rect.y0+t.f,rect.width,rect.height]
             bounds=[round(v,6) for v in bounds]
-            if isinstance(view,DrawingView):
+            if isinstance(view,(DrawingView,LabelImageView)):
                 layers.append(view.layer(table,bounds));continue
             if isinstance(view,RegionView):
                 layers.append(_region_layer(view,table,bounds));continue

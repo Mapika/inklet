@@ -71,7 +71,17 @@ class ScatterRenderer{
     this.drawings=new Map();
     const drawingReady=Promise.all([...new Set(this.items.filter(m=>m.kind==='image').map(m=>m.href))].map(href=>
       new Promise((resolve,reject)=>{const drawing=new Image();this.drawings.set(href,drawing);
-        drawing.onload=()=>resolve();drawing.onerror=()=>reject(Error('Cannot rasterize a native drawing.'));drawing.src=href;})));
+        drawing.onload=()=>resolve();drawing.onerror=()=>reject(Error('Cannot rasterize a native drawing.'));
+        let source=href;
+        if(href.startsWith('data:image/svg+xml;base64,')){
+          // Give embedded vector labels sufficient pixels for canvas display.
+          // PNG source images retain their original grid and sampling mode.
+          const svg=new TextDecoder().decode(Uint8Array.from(atob(href.split(',')[1]),c=>c.charCodeAt(0)));
+          const raster=svg.replace(/<svg\b[^>]*>/,root=>root.replace(/\b(width|height)="([0-9.eE+-]+)mm"/g,(match,axis,value)=>
+            `${axis}="${Math.max(1,Math.ceil(Number(value)*8))}"`));
+          source='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(raster);
+        }
+        drawing.src=source;})));
     // Attach an error handler immediately, including when the frame loads later.
     drawingReady.catch(()=>{});
     this.frameImage=new Image();
@@ -148,7 +158,7 @@ class ScatterRenderer{
         const b=item.bounds;
         groups[item.layerIndex].append(element(selectedOnly?'rect':'image',selectedOnly?
           {x:b[0],y:b[1],width:b[2]-b[0],height:b[3]-b[1],fill:'none',stroke:'#bd5636','stroke-width':.4}:
-          {x:g[0],y:g[1],width:g[2],height:g[3],href:item.href}));continue;
+          {x:g[0],y:g[1],width:g[2],height:g[3],href:item.href,...(item.smooth===false?{'image-rendering':'pixelated'}:{}),...(item.preserve_aspect===false?{preserveAspectRatio:'none'}:{})}));continue;
       }
       if(tag==='polygon'){
         groups[item.layerIndex].append(element('path',{d:polygonPath(g),'fill-rule':'evenodd',fill:selectedOnly?'none':color,
@@ -157,7 +167,7 @@ class ScatterRenderer{
       if(tag==='circle')attrs={cx:g[0],cy:g[1],r:g[2]+(selectedOnly?.3:0)};
       else if(tag==='rect')attrs={x:g[0],y:g[1],width:g[2],height:g[3]};
       else attrs={x1:g[0],y1:g[1],x2:g[2],y2:g[3],'stroke-width':selectedOnly?(item.selected_width??item.width+.6):item.width,'stroke-linecap':'round',stroke:selectedOnly?'#bd5636':color};
-      if(tag!=='line')Object.assign(attrs,selectedOnly?{fill:'none',stroke:'#bd5636','stroke-width':.3}:{fill:color,'fill-opacity':.65});
+      if(tag!=='line')Object.assign(attrs,selectedOnly?{fill:'none',stroke:'#bd5636','stroke-width':.3}:{fill:color,'fill-opacity':item.opacity??.65});
       groups[item.layerIndex].append(element(tag,attrs));
     }
   }
@@ -173,7 +183,7 @@ class ScatterRenderer{
         if(item.kind==='image'){
           ctx.globalAlpha=1;
           if(selectedOnly){const b=item.bounds;ctx.lineWidth=.4;ctx.strokeRect(b[0],b[1],b[2]-b[0],b[3]-b[1]);}
-          else{const drawing=this.drawings.get(item.href);if(drawing?.complete&&drawing.naturalWidth)ctx.drawImage(drawing,...g);}
+          else{const drawing=this.drawings.get(item.href);if(drawing?.complete&&drawing.naturalWidth){ctx.imageSmoothingEnabled=item.smooth!==false;ctx.drawImage(drawing,...g);}}
           continue;
         }
         if(item.kind==='polygon'){
@@ -181,7 +191,7 @@ class ScatterRenderer{
           ctx.globalAlpha=1;ctx.lineWidth=selectedOnly?.6:.2;ctx.lineJoin='round';ctx.strokeStyle=selectedOnly?'#bd5636':'#ffffff';
           if(!selectedOnly)ctx.fill('evenodd');ctx.stroke();continue;
         }
-        ctx.globalAlpha=selectedOnly||item.kind==='line'?1:.65;ctx.lineWidth=.3;
+        ctx.globalAlpha=selectedOnly||item.kind==='line'?1:(item.opacity??.65);ctx.lineWidth=.3;
         if(item.kind==='circle')ctx.arc(g[0],g[1],g[2]+(selectedOnly?.3:0),0,2*Math.PI);
         else if(item.kind==='rect')ctx.rect(...g);
         else{ctx.moveTo(g[0],g[1]);ctx.lineTo(g[2],g[3]);ctx.lineWidth=selectedOnly?(item.selected_width??item.width+.6):item.width;}
@@ -253,6 +263,9 @@ function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));con
   const unassigned=(scene.facet_groups??[]).filter(group=>group.unassigned_ids.length);
   document.getElementById('facet-status').hidden=!unassigned.length;
   document.getElementById('facet-rows').textContent=unassigned.length?JSON.stringify(unassigned,null,2):'';
+  const images=scene.layers.filter(layer=>layer.image).map(layer=>{const {image_box,pixel_size_mm,...source}=layer.image;return {panel:layer.name,...source};});
+  document.getElementById('image-status').hidden=!images.length;
+  document.getElementById('image-report').textContent=images.length?JSON.stringify(images,null,2):'';
   const statistics=scene.layers.filter(layer=>layer.statistics).map(layer=>({panel:layer.facet?.label??layer.name,...layer.statistics}));
   document.getElementById('statistics-status').hidden=!statistics.length;
   document.getElementById('statistics-report').textContent=statistics.length?JSON.stringify(statistics,null,2):'';

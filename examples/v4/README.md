@@ -91,11 +91,23 @@ regions, 0.5 um pixel spacing and explicit region IDs. Each region occupies four
 pixels (1 um²); mean intensities are 2.5 and 6.5. The grid is deliberately small
 so expected values can be independently checked without a numerical package.
 
-Existing 3.1 microscopy and plotting APIs provide the foundation. This fixture
-has numerical validation; the linked scientific recipe remains to be built.
-Next add calibration-aware image/measurement panels, a field/mesh fixture,
-supplied uncertainty bounds and region selection. Test missing correspondences,
-changed calibration and preserved author edits.
+`scientific_report.py` now links a larger original simulated label image to
+regional means/ranges and area comparisons. `LabelImage` verifies the small
+fixture's exact measurements. The browser uses source-pixel picking, including
+holes and disconnected regions, while maintaining the image as reference
+context during filtering.
+
+```sh
+python examples/v4/scientific_report.py --render --output out/scientific
+python examples/v4/scientific_report.py --state /path/to/view.json --render --output out/scientific-reopened
+python examples/v4/scientific_report.py --revision calibrated --rebase-state /path/to/view.json --render --output out/scientific-calibrated
+```
+
+The output includes input/calibration, measurement and revision reports and
+210/170 mm exports. Calibration, intensity and label revisions have separate
+semantics. See the [illustrated guide](../../docs/scientific-report.md). The
+bounded label-image workflow is implemented; volume/mesh and field interaction,
+external microscopy import into the linked model, and general editing remain open.
 
 ## Checks and baseline
 

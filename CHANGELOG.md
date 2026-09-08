@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Add calibrated label-image measurements with explicit region correspondence,
+  missing-intensity semantics, immutable source snapshots and source digests.
+  Link lossless reference images to pixel-accurate region selection and plots,
+  including holes, disconnected regions and non-square pixel calibration.
+- Add a scientific report with calibration, intensity and label revisions,
+  saved-state reconstruction, JSON replacement, visible measurement methods and
+  two-width exports. Improve canvas resolution for embedded vector labels.
+  Preserve vector boundaries and labels over raster imagery;
+  bound browser pixel/outline work without implicit approximation.
+
 - Link native Inklet drawings to experimental browser tables with measured
   panel layouts, outlined vector assets, stable paint IDs, rectangular picking
   targets and per-item selection behavior across SVG/canvas/hybrid display.
