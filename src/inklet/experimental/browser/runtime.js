@@ -219,6 +219,9 @@ runtime.backend=/*DEFAULT_BACKEND*/'svg';document.getElementById('backend').valu
 const status=document.getElementById('status'),error=document.getElementById('error'),tableBody=document.getElementById('rows');let page=0;
 function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));const hidden=[...runtime.selected].filter(id=>!runtime.shown(id)).length;
   status.textContent=`${visible.length} rows visible · ${runtime.selected.size} selected${hidden?` (${hidden} hidden)`:''} · ${Math.round(scene.width/runtime.viewport[2]*100)}% page zoom`;
+  const unassigned=(scene.facet_groups??[]).filter(group=>group.unassigned_ids.length);
+  document.getElementById('facet-status').hidden=!unassigned.length;
+  document.getElementById('facet-rows').textContent=unassigned.length?JSON.stringify(unassigned,null,2):'';
   const start=page*20;if(start>=visible.length&&page)page=0;tableBody.replaceChildren();
   for(const id of visible.slice(page*20,page*20+20)){const n=runtime.rowIndex.get(id),tr=document.createElement('tr');
     const th=document.createElement('th');th.scope='row';th.textContent=id;tr.append(th);

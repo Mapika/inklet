@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add experimental linked category panels for lines, bars and scatter, with
+  explicit category order, empty panels, shared scales, within-category line
+  adjacency and visible diagnostics for unassigned rows. Add a six-panel
+  operations example with saved-state and data-revision workflows.
+- Add opt-in shared plot margins to documents and nested grids. Faceted browser
+  figures use them to preserve equal physical data scales despite differences
+  in panel letters and labels; ordinary document layouts retain their defaults.
+
 - Switch between named, Python-compiled data revisions in an offline browser
   document, with atomic preparation, explicit removed-ID policies, per-revision
   source credits and downloadable change reports. Dispose replaced renderers,

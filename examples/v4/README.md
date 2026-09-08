@@ -21,10 +21,10 @@ four named filters and one selected region at a time.
 The [regional map example](../../docs/linked-maps.md) now supplies geographic
 polygon rendering, arbitrary ID filters and direct picking.
 
-Remaining: date-series fixtures and plots, distribution
-and faceting views, generic browser picking/zoom, and arbitrary browser data
-updates. The current HTML is an experiment in state/export fidelity, not a new
-renderer or a general dashboard API.
+The later browser examples below provide category panels, direct picking,
+page zoom and compiled data revisions. Distribution views, date-aware browser
+axes and arbitrary browser data uploads remain outstanding. This original
+finite-state HTML remains an experiment in selection/export fidelity.
 
 ```sh
 python examples/v4/linked_selection.py --output out/v4-linked
@@ -185,3 +185,24 @@ adds the country again without restoring that discarded selection.
 To reopen a saved view, select its exact initial revision with `--year 2019` or
 omit `--year` for the original. The switchable recipe rejects supplied CSV files
 and years other than 2019; the Python API can embed other precompiled revisions.
+
+## Linked category panels
+
+`faceted_operations.py` builds six panels from 36 original simulated monthly
+rows: revenue lines and signed profit bars for North, South and West. These are
+invented business categories and values, released as MIT material by Mark Marosi.
+The source interleaves categories; lines connect observations within each category
+and preserve North's missing June revenue. Both measures share row selection.
+
+```sh
+python examples/v4/faceted_operations.py --output out/v4-facets
+python examples/v4/faceted_operations.py --state /path/to/view.json --output out/v4-restored
+python examples/v4/faceted_operations.py --without-west --state /path/to/revised-view.json --output out/v4-restored
+```
+
+The offline HTML embeds a second revision that removes West's rows without
+changing retained values. Its empty West panels keep their axes and labels.
+`--without-west` selects this revision on opening, allowing exact saved-state
+reconstruction. The script writes `index.html`, `figure.svg` and `view.json`.
+The [facet guide](../../docs/linked-facets.md) explains explicit category order,
+unassigned rows, empty panels, source-order line adjacency and filtering.

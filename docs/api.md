@@ -191,7 +191,7 @@ List built-in presets, optionally restricted to one family.
 
 List built-in physical formats accepted by preset().
 
-#### `subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None)`
+#### `subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False)`
 
 Create a nested grid. Children inherit the enclosing document theme.
 
@@ -229,7 +229,7 @@ A label-sized module. Port coordinates are fractions of its box.
 
 Create a measured module with fractional ports.
 
-#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
+#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool' = False, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
 
 A physical page containing named, live figure definitions.
 
@@ -262,9 +262,9 @@ A resolved snapshot; later authoring changes cannot alter its exports.
 
 A document cannot satisfy its declared physical layout constraints.
 
-#### `document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None)`
+#### `document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False)`
 
-Create a live scientific document with a constrained physical page layout.
+Create a live document; optionally share plot furniture across the grid.
 
 #### `class PlotSpec(width: 'float' = 40, height: 'float' = 30, options: 'dict' = <factory>, _steps: 'list' = <factory>) -> None`
 

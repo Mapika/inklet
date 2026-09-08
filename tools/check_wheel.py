@@ -18,7 +18,7 @@ assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
 from inklet.experimental.selection import KeyedTable
-from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption
+from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption, FacetView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
 browser_scene = BrowserScatter(keyed, [ScatterView('scatter','x','y',(0,1),(0,3))])
 assert 'class ScatterRenderer' in browser_scene.to_html()
@@ -33,6 +33,10 @@ assert '<rect' in revision.figure.to_svg(revision.state())
 assert 'class ScatterRenderer' in revision.figure.to_html(state=revision.state())
 switchable = mixed.to_html(revisions=[RevisionOption('Revised',revision.figure,'Synthetic wheel fixture.')])
 assert 'switchRevision' in switchable and '/*REVISION_CATALOG*/' not in switchable
+facet_table = KeyedTable('facets', {'id':['a','b'], 'x':[0,1], 'y':[1,2], 'group':['A','B']})
+faceted = BrowserFigure(facet_table, [FacetView(ScatterView('points','x','y',(0,1),(0,3)), 'group', ('A','B','Empty'))])
+assert len(faceted.payload()['layers']) == 3 and not faceted.payload()['layers'][2]['points']
+assert 'facet-status' in faceted.to_html() and '<circle' in faceted.to_svg()
 regions = GeoRegions((('a', ((((0,0),(1,0),(1,1),(0,1),(0,0)),),)),
                       ('b', ((((1,0),(2,0),(2,1),(1,1),(1,0)),),))))
 region_scene = BrowserFigure(keyed, [RegionView('map',regions,(0,0,2,1))])

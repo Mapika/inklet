@@ -12,6 +12,7 @@ details{margin:16px 0}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-w
 <p id="revision-current" role="status"></p><p id="revision-report" role="status"></p><details><summary>Last revision report</summary><pre id="revision-details"></pre><button id="save-revision-report" disabled>Download revision report</button></details>
 </details>
 <p id="status" role="status" aria-live="polite">Loading measured figure…</p>
+<details id="facet-status" hidden><summary>Rows outside facet categories</summary><pre id="facet-rows"></pre></details>
 <div id="stage" tabindex="0" role="img" aria-label="Linked plots. Click marks to select. Arrow keys pan; plus and minus zoom; zero fits the page. Use the table below for keyboard selection."></div><p id="hover">Point at a mark to inspect its row ID.</p>
 <div class="actions"><button id="save">Save view</button><button id="svg">Download vector SVG</button><label class="upload">Open saved view<input id="load" type="file" accept=".json,application/json"></label></div><p id="error" role="alert"></p>
 <div class="table-wrap"><table><caption>Source observations</caption><thead><tr id="headers"></tr></thead><tbody id="rows"></tbody></table></div><div class="paging"><button id="previous">Previous rows</button><span id="page"></span><button id="next">Next rows</button></div>

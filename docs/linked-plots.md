@@ -111,6 +111,8 @@ threshold.
 
 This preview still uses one immutable table, one mark type per panel, fixed
 linear axes and solid colors. It does not yet implement categorical axes,
-multiple line groups, curves, stacked bars, brushes, data updates or domain rescaling. The [linked map preview](linked-maps.md) now adds GeoJSON region geometry and
-a first regional analysis example. Explicit table adapters and updates remain
-the next work.
+overlaid line groups, curves, stacked bars, brushes or automatic domain rescaling.
+[Category panels](linked-facets.md) split line, bar and scatter views into explicit
+facets. [Data revisions](data-revisions.md) rebuild or switch compiled tables
+with preserved selections. The [linked map preview](linked-maps.md) adds GeoJSON
+region geometry. Table adapters and date-aware browser axes remain future work.

@@ -7,7 +7,9 @@ prototype and acceptance checks described here.
 
 Phase A has started: [the foundations report](v4-foundations.md) records the
 first fixtures, engine corrections, baseline timings and offline selection
-prototype. The full browser-backend comparison remains an upcoming gate.
+prototype. A bounded scatter backend comparison, linked maps, explicit data
+revisions and category panels are implemented; broader backend/performance
+coverage remains an upcoming gate.
 
 ## Product direction
 
@@ -144,7 +146,10 @@ explicit hybrid option for dense points. [Mixed linked plots](linked-plots.md)
 now extend that runtime to source-ordered lines and signed bars, including
 static reconstruction and directly restored HTML. [Linked region maps](linked-maps.md)
 now add a bounded GeoJSON polygon join, holes, fixed color bins and a first
-regional analysis figure. Table adapters, time series/facets and the complete
+regional analysis figure. [Data revisions](data-revisions.md) now preserve valid
+selections through Python replacement and browser switching. [Category panels](linked-facets.md)
+add explicit facets with shared physical scales and empty-category retention.
+Table adapters, date-aware browser axes, statistical views and the complete
 reference workflows remain outstanding.
 
 

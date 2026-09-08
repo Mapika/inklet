@@ -5,7 +5,7 @@ clips marks to measured plot areas, and preserves explicit row identities.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import hashlib
 import html
 import json
@@ -107,6 +107,62 @@ class BarView(_CartesianView):
         if not _finite(self.baseline): raise ValueError('baseline must be finite')
         if self.orientation not in ('vertical', 'horizontal'):
             raise ValueError('bar orientation must be vertical or horizontal')
+
+
+@dataclass(frozen=True)
+class FacetView:
+    """Repeat a Cartesian view over explicit, ordered string categories.
+
+    Domains and styling are shared. Empty categories retain their panels.
+    Lines follow source order within each category, with null coordinate
+    pairs breaking the line. Unlisted/null categories remain in the table
+    and are reported in the scene's facet_groups metadata.
+    """
+    view: ScatterView | LineView | BarView
+    column: str
+    values: tuple[str,...]
+    labels: tuple[str,...] = ()
+
+    def __post_init__(self):
+        if type(self.view) not in (ScatterView,LineView,BarView):
+            raise ValueError('facets require a scatter, line or bar view')
+        if not isinstance(self.column,str) or not self.column:
+            raise ValueError('facet column must be a nonempty string')
+        if isinstance(self.values,(str,bytes)) or isinstance(self.labels,(str,bytes)):
+            raise ValueError('facet values and labels must be sequences of strings')
+        values=tuple(self.values);labels=tuple(self.labels) or values
+        if not 1<=len(values)<=12 or any(not isinstance(v,str) or not v for v in values) or len(set(values))!=len(values):
+            raise ValueError('provide one to twelve unique nonempty string facet values')
+        if len(labels)!=len(values) or any(not isinstance(v,str) or not v for v in labels):
+            raise ValueError('provide one nonempty string label per facet value')
+        object.__setattr__(self,'values',values);object.__setattr__(self,'labels',labels)
+
+    @property
+    def name(self):
+        return self.view.name
+
+
+def _expand_facets(table, definitions):
+    views=[];metadata={};rows={};groups=[]
+    for definition in definitions:
+        if not isinstance(definition,FacetView):
+            views.append(definition);continue
+        if definition.column not in table.columns: raise ValueError(f'unknown facet column: {definition.column}')
+        categories=table.columns[definition.column]
+        if any(v is not None and not isinstance(v,str) for v in categories):
+            raise ValueError('facet columns must contain strings or null')
+        positions={value:[] for value in definition.values};unassigned=[]
+        for n,(key,value) in enumerate(zip(table.row_ids,categories)):
+            if value in positions: positions[value].append(n)
+            else: unassigned.append(key)
+        groups.append(dict(name=definition.name,column=definition.column,values=definition.values,unassigned_ids=unassigned))
+        for n,(value,label) in enumerate(zip(definition.values,definition.labels)):
+            view=replace(definition.view,name=f'{definition.name}__facet_{n}')
+            views.append(view);rows[view.name]=positions[value]
+            metadata[view.name]=dict(column=definition.column,value=value,label=label)
+    if len(views)>12: raise ValueError('a browser figure supports at most twelve expanded panels')
+    if len({v.name for v in views})!=len(views): raise ValueError('expanded view names must be unique')
+    return views,metadata,rows,groups
 
 
 @dataclass(frozen=True)
@@ -216,13 +272,15 @@ class BrowserFigure:
     _schema = 'inklet.browser-figure/0.1'
     def __init__(self, table: KeyedTable, views, *, width=190, columns=None):
         import inklet as i
-        views=tuple(views)
-        if not views or len(views)>4 or any(type(v) not in (ScatterView,LineView,BarView,RegionView) for v in views):
-            raise ValueError('provide one to four scatter, line, bar or region view definitions')
-        if len({v.name for v in views})!=len(views): raise ValueError('view names must be unique')
+        definitions=tuple(views)
+        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,RegionView,FacetView) for v in definitions):
+            raise ValueError('provide one to four scatter, line, bar, region or facet view definitions')
+        if len({v.name for v in definitions})!=len(definitions): raise ValueError('view names must be unique')
+        views,facet_metadata,facet_rows,facet_groups=_expand_facets(table,definitions)
         columns=min(2,len(views)) if columns is None else columns
         if type(columns) is not int or not 1<=columns<=4: raise ValueError('columns must be from 1 to 4')
-        doc=i.document(width=width,columns=columns,gap=9,margin=6).letters()
+        doc=i.document(width=width,columns=columns,gap=9,margin=6,
+                       share_plot_margins=bool(facet_groups)).letters()
         for index,view in enumerate(views):
             if isinstance(view,RegionView):
                 if set(view.regions.feature_ids)!=set(table.row_ids):
@@ -246,6 +304,8 @@ class BrowserFigure:
                         raise ValueError(f'coordinate column {column!r} must be numeric or null')
                 p=i.plot_spec(x=view.x_domain,y=view.y_domain,height=58)
                 p.axes(x=view.x_label or view.x,y=view.y_label or view.y)
+                if view.name in facet_metadata:
+                    p.title(i.text(facet_metadata[view.name]['label'],markup=False))
             doc.add(view.name,p,row=index//columns,column=index%columns)
         figure=doc.compile()
         if any(d.severity=='error' for d in figure.diagnostics): raise ValueError(figure.report())
@@ -271,7 +331,8 @@ class BrowserFigure:
                 if not math.isfinite(px) or not math.isfinite(py): raise ValueError('projected coordinate overflow')
                 return [round(px,6),round(py,6)]
             points=[]; missing=0; marks=[]; previous=None
-            for key,x,y in zip(table.row_ids,table.columns[view.x],table.columns[view.y]):
+            for n in facet_rows.get(view.name,range(len(table.row_ids))):
+                key,x,y=table.row_ids[n],table.columns[view.x][n],table.columns[view.y][n]
                 if x is None or y is None:
                     missing+=1; previous=None; continue
                 px,py=project(x,y)
@@ -290,17 +351,19 @@ class BrowserFigure:
                     if box[2] and box[3]: marks.append(dict(kind='rect',ids=[key],geometry=box))
             layer=dict(name=view.name,x=view.x,y=view.y,clip=bounds,points=points,
                        color=view.color,missing=missing)
+            if view.name in facet_metadata: layer['facet']=facet_metadata[view.name]
             if isinstance(view,ScatterView): layer['radius']=view.radius_mm
             else: layer['marks']=marks
             layers.append(layer)
         payload=dict(schema=self._schema,table=table.name,data_digest=table.digest,row_ids=table.row_ids,
                      columns=dict(table.columns),width=width_mm,height=height_mm,frame=frame,layers=layers)
         if table.key!='id': payload['key']=table.key
+        if facet_groups: payload['facet_groups']=facet_groups
         raw=json.dumps(payload,sort_keys=True,separators=(',',':'),allow_nan=False)
         payload['scene_digest']=hashlib.sha256(raw.encode()).hexdigest()
         self._json=json.dumps(payload,separators=(',',':'),allow_nan=False)
         self.table=table
-        self._views=views
+        self._views=definitions
         self._width=width
         self._columns=columns
 

@@ -252,6 +252,7 @@ class Document(BuildSpec):
     theme: object = 'nature'
     publication: object = None
     preset: object = None
+    share_plot_margins: bool = False
     _preset_overrides: dict = field(default_factory=dict, repr=False)
     _cells: list = field(default_factory=list, repr=False)
     _links: list = field(default_factory=list, repr=False)
@@ -260,6 +261,7 @@ class Document(BuildSpec):
     _last: object = field(default=None, repr=False)
 
     def __post_init__(self):
+        if type(self.share_plot_margins) is not bool: raise ValueError('share_plot_margins must be a boolean')
         self.width = length(self.width, 'document width')
         if self.height is not None: self.height = length(self.height, 'document height')
         self.margin = length(self.margin, 'margin', zero=True)
@@ -316,7 +318,7 @@ class Document(BuildSpec):
 
     def configure(self, **options):
         """Validate page changes together before applying them."""
-        names=('width','height','columns','margin','gap','row_gap','theme','publication')
+        names=('width','height','columns','margin','gap','row_gap','theme','publication','share_plot_margins')
         unknown=set(options).difference(names)
         if unknown: raise TypeError(f'unknown document options: {unknown!r}')
         candidate=Document(**{name:options.get(name,getattr(self,name)) for name in names}, preset=self.preset)
@@ -340,7 +342,7 @@ class Document(BuildSpec):
         overrides = (self._preset_overrides if keep_overrides else {}) | options
         overrides.setdefault('columns', self.columns)
         candidate = selected.document(**overrides)
-        for name in ('width','height','columns','margin','gap','row_gap','theme','publication','preset'):
+        for name in ('width','height','columns','margin','gap','row_gap','theme','publication','preset','share_plot_margins'):
             setattr(self, name, getattr(candidate, name))
         self._preset_overrides = candidate._preset_overrides
         self._last = None
@@ -377,7 +379,7 @@ class Document(BuildSpec):
                 self.gap, self.row_gap, fingerprint(self._letters, trail),
                 tuple((c.name, c.row, c.column, c.rowspan, c.colspan,
                        c.min_width, c.min_height, c.align, fingerprint(c.item, trail)) for c in self._cells),
-                fingerprint(self._links, trail))
+                fingerprint(self._links, trail), self.share_plot_margins)
 
     def render(self, context, width=None, height=None):
         self.__post_init__()
@@ -408,24 +410,36 @@ class Document(BuildSpec):
                        width-2*self.margin,self.gap,'width')
         x_prefix = tuple(accumulate(widths,initial=0.))
         # Auto-height preserves authored data-region heights plus measured furniture.
-        natural_heights = {}
+        natural_heights = {}; natural_plots = {}
         for c in self._cells:
             fixed = isinstance(c.item, Diagram) or (isinstance(c.item, ComponentSpec) and not c.item.responsive)
             if height is None or fixed:
                 cell_width = x_prefix[c.column+c.colspan]-x_prefix[c.column]+self.gap*(c.colspan-1)
                 natural = context.build(c.item, cell_width,
                                         c.item.height if isinstance(c.item, PlotSpec) else None)
-                natural_heights[c.name] = decorate(natural, c).height
+                decorated = decorate(natural, c)
+                natural_heights[c.name] = decorated.height
+                if self.share_plot_margins and isinstance(c.item,PlotSpec):
+                    area=plot_area(decorated)
+                    natural_plots[c.name]=(area.height,*_margins(decorated)[2:])
+        if self.share_plot_margins and height is None:
+            # The largest top and bottom labels may belong to different
+            # plots. Sum their separate maxima so neither consumes authored
+            # data height merely because its peer has different furniture.
+            tallest=sum(max((v[n] for v in natural_plots.values()),default=0.) for n in range(3))
+            for name in natural_plots: natural_heights[name]=tallest
         heights=_tracks(rows,(1.,)*rows,
                         [(c.row,c.rowspan,max(c.min_height, natural_heights.get(c.name,0)),c.name)
                          for c in self._cells],
                         None if height is None else height-2*self.margin,self.row_gap,'height')
-        y_prefix = tuple(accumulate(heights,initial=0.))
-        boxes={c.name:Rect(self.margin+x_prefix[c.column]+self.gap*c.column,
-                           self.margin+y_prefix[c.row]+self.row_gap*c.row,
-                           self.margin+x_prefix[c.column+c.colspan]+self.gap*(c.column+c.colspan-1),
-                           self.margin+y_prefix[c.row+c.rowspan]+self.row_gap*(c.row+c.rowspan-1))
-               for c in self._cells}
+        def cell_boxes(track_heights):
+            y_prefix = tuple(accumulate(track_heights,initial=0.))
+            return {c.name:Rect(self.margin+x_prefix[c.column]+self.gap*c.column,
+                               self.margin+y_prefix[c.row]+self.row_gap*c.row,
+                               self.margin+x_prefix[c.column+c.colspan]+self.gap*(c.column+c.colspan-1),
+                               self.margin+y_prefix[c.row+c.rowspan]+self.row_gap*(c.row+c.rowspan-1))
+                    for c in self._cells}
+        boxes=cell_boxes(heights)
         margins={c.name:(0.,0.,0.,0.) for c in self._cells}
         nodes={}
         # Tick selection depends on available width, so measure to a stable fit.
@@ -459,11 +473,27 @@ class Document(BuildSpec):
                 columns[c.column,c.colspan] = max(a,left),max(b,right)
                 a,b = row_groups.get((c.row,c.rowspan),(0.,0.))
                 row_groups[c.row,c.rowspan] = max(a,top),max(b,bottom)
+            shared=tuple(max((measured[c.name][n] for c in self._cells if isinstance(c.item,PlotSpec)),default=0.)
+                         for n in range(4)) if self.share_plot_margins else None
             for c in self._cells:
                 if not isinstance(c.item,PlotSpec): continue
-                m = (*columns[c.column,c.colspan], *row_groups[c.row,c.rowspan])
+                m = shared if shared is not None else (*columns[c.column,c.colspan], *row_groups[c.row,c.rowspan])
                 # Monotonic margins prevent tick-thinning oscillations.
                 measured[c.name]=tuple(max(a,b) for a,b in zip(m,margins[c.name]))
+            if self.share_plot_margins and height is None and natural_plots:
+                # Legends can wrap as shared side margins narrow a plot.
+                # Grow automatic tracks to fit the final furniture instead
+                # of taking that extra space from the authored data height.
+                required=(max(v[0] for v in natural_plots.values())+
+                          max(measured[name][2] for name in natural_plots)+
+                          max(measured[name][3] for name in natural_plots))
+                if any(natural_heights[name]<required-1e-6 for name in natural_plots):
+                    for name in natural_plots: natural_heights[name]=max(natural_heights[name],required)
+                    heights=_tracks(rows,(1.,)*rows,
+                                    [(c.row,c.rowspan,max(c.min_height,natural_heights.get(c.name,0)),c.name)
+                                     for c in self._cells],None,self.row_gap,'height')
+                    boxes=cell_boxes(heights);margins=measured
+                    continue
             if all(max(abs(a-b) for a,b in zip(measured[n],margins[n]))<.005 for n in margins): break
             margins=measured
         else:
@@ -518,7 +548,7 @@ class Document(BuildSpec):
         signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram,Panel,PolarPanel)) else id(context.build(c.item)))
                          for c in self._cells)
-        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset))
+        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins))
         if self._last is not None and self._last[0]==key: return self._last[1]
         dependency_seconds=time.perf_counter()-started
         content, boxes, handles, page_height, passes = self._layout(context, width, height)
@@ -577,12 +607,18 @@ class Document(BuildSpec):
         return self.compile().save(*paths,**kwargs)
 
 
-def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None):
-    """Create a live scientific document with a constrained physical page layout."""
-    return Document(width,height,columns,margin,gap,row_gap,theme,publication)
+def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False):
+    """Create a live document; optionally share plot furniture across the grid.
+
+    Shared margins reserve the largest labels/letters on every plot and use
+    the tallest data region plus shared furniture for automatic row heights. Equal tracks and
+    unspanned plot cells then have equal data areas. Fixed artwork is unchanged;
+    unequal track weights, spans or larger cell minima can still vary areas.
+    """
+    return Document(width,height,columns,margin,gap,row_gap,theme,publication,share_plot_margins=share_plot_margins)
 
 
-def subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None):
+def subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False):
     """Create a nested grid. Children inherit the enclosing document theme.
 
     Use the same add/replace/link/letters API as Document. Width and height are
@@ -591,4 +627,4 @@ def subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=Non
     once, when the complete document is compiled.
     """
     return Document(width=width, height=height, columns=columns, margin=margin,
-                    gap=gap, row_gap=row_gap)
+                    gap=gap, row_gap=row_gap,share_plot_margins=share_plot_margins)
