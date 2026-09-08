@@ -78,7 +78,10 @@ browser-reported renderer identity, buffer uploads and WebGL draw submissions th
 context availability alone does not prove that a physical GPU is being used.
 `surfacePaints`, `surfaceResizes` and `reusedSurfaces` are cumulative counters
 for actual surface paints, dimension changes and reused layers. Each layer also
-reports its current `surfacePixels`. These are work and pixel counts, not GPU
+reports its current `surfacePixels`, `visible` flag and `displayBox` in local
+marker coordinates. Visibility is a conservative intersection with the SVG
+viewport; native clip paths still decide the final visible ink. SVG-only layers
+report `null` for visibility and display boxes. These are work and pixel counts, not GPU
 memory or execution-time measurements.
 
 At most eight WebGL contexts are allocated per viewer. Additional eligible
@@ -86,8 +89,8 @@ layers use Canvas. Each backing surface is capped at four million pixels and
 4,096 pixels per dimension, or the lower WebGL limit. Surfaces grow in 128-pixel
 steps where the pixel budget permits. A sufficient backing buffer is retained
 until the requested area falls to one quarter of its allocated pixels; larger
-zoom-outs shrink it. Unchanged local geometry is painted only when its surface
-resolution changes. Pan and small zoom changes reuse the rendered layer while
+zoom-outs shrink it. Local geometry is repainted when its surface resolution or retained display
+region changes. Pan within the retained region and small zoom changes reuse the rendered layer while
 SVG applies the view transform. The status reports when
 zoom requires reduced display resolution. Context loss switches the affected
 layer to Canvas; choosing a renderer again can retry initialization.
@@ -228,6 +231,59 @@ Run the benchmark on a saved figure before and after changing the runtime:
 
 ```bash
 agent-browser eval --stdin < tools/benchmark_scene_redraw.js
+```
+
+## Deep zoom and visible regions
+
+![An 8× hardware-rendered view into the first panel, retaining sharp overlapping marker edges](../gallery/compiled-viewer-deep-zoom.png)
+
+Backing surfaces now cover the visible part of each marker layer, with a 20%
+margin on each side for panning. The viewer maps the SVG viewport through each
+layer's inverse transform, intersects it with the layer bounds and retains that
+region while it remains sufficient. Oversized retained regions shrink as the
+view narrows. Rotated regions use conservative rectangular bounds; the native
+SVG tree continues to apply exact clipping and paint order.
+
+Layers outside the viewport skip painting. Their cached surfaces and immutable
+buffers remain available for returning to the view. Re-entering a layer or
+panning beyond its retained region repaints as needed without uploading marker
+geometry again. Points outside the window in an otherwise visible batch are
+still submitted to the renderer; per-point culling is separate work.
+
+At 8× zoom into panel a, the five-panel workload previously allocated about
+20.0 million backing pixels and reported reduced resolution on all five layers.
+The updated viewer allocates about **3.05 million pixels**, including retained
+offscreen surfaces, and the visible region retains full resolution. The same
+four-million-pixel and per-dimension limits still apply to each surface. This
+reports pixel allocation, not total browser or GPU memory.
+
+Median synchronous submission times from three passes through the same zoom
+sequence on the RTX 5090 Laptop GPU, excluding initial viewer creation:
+
+| Backend and zoom-in step | Previous | Visible-region surfaces |
+| --- | ---: | ---: |
+| WebGL2, 3× | 61.3 ms | 21.4 ms |
+| WebGL2, 6× | 53.6 ms | 11.7 ms |
+| WebGL2, 8× | 49.0 ms | 13.8 ms |
+| Canvas, 3× | 7.3 ms | 2.1 ms |
+| Canvas, 6× | 7.7 ms | 2.0 ms |
+| Canvas, 8× | 7.2 ms | 2.1 ms |
+
+These measurements include allocation and painting at growing zoom levels.
+They describe this workload and machine; Canvas remains faster for these steps.
+The 8× hardware screenshot differs from SVG mode by less than 0.74 mean RGB
+units on the 0–255 scale. Automated screenshot comparisons cover normal and
+8× views of all filled marker shapes, rotated clipping and opacity at DPR 1
+and 2. Additional checks cover empty views, returning to offscreen layers,
+retained pan margins, oversized viewports and complete vector exports.
+
+[Before samples](assets/research-preview/viewer-window-before.json) ·
+[After samples](assets/research-preview/viewer-window-after.json) ·
+[Display comparison](assets/research-preview/viewer-window-display.json) ·
+[Measurement script](../tools/benchmark_scene_zoom.js)
+
+```bash
+agent-browser eval --stdin < tools/benchmark_scene_zoom.js
 ```
 
 ## Next work

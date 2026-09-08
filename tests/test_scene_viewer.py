@@ -161,9 +161,10 @@ def test_repeated_placements_share_the_serialized_source_buffer():
 
 
 @pytest.mark.parametrize('marker',['circle','square','triangle','diamond','star','evenodd','nonzero'])
+@pytest.mark.parametrize('zoom',[1,8])
 @pytest.mark.parametrize('backend',['webgl2','canvas'])
 @pytest.mark.parametrize('dpr',[1,2])
-def test_composited_surface_stays_aligned_with_native_svg(tmp_path,backend,dpr,marker):
+def test_composited_surface_stays_aligned_with_native_svg(tmp_path,backend,dpr,marker,zoom):
     """Catch HTML-surface layout rounding after SVG clipping and rotation."""
     import html
     Image=pytest.importorskip('PIL.Image')
@@ -174,8 +175,8 @@ def test_composited_surface_stays_aligned_with_native_svg(tmp_path,backend,dpr,m
     images=[]
     for mode in (backend,'svg'):
         page=tmp_path/f'{mode}.html';picture=tmp_path/f'{mode}.png'
-        check="<script>inkletScene.ready.then(r=>{r.zoom(1.15);r.setViewport(r.original);r.setViewport([r.original[0]+.2,r.original[1]+.3,...r.original.slice(2)]);document.body.dataset.stage=JSON.stringify(host.getBoundingClientRect().toJSON());});</script>"
-        page.write_text(drawing(marker=marker).to_html(backend=mode).replace('</body>',check+'</body>'))
+        check="<script>inkletScene.ready.then(r=>{r.zoom(1.15);r.setViewport(r.original);r.setViewport([r.original[0]+.2,r.original[1]+.3,r.original[2]/ZOOM,r.original[3]/ZOOM]);document.body.dataset.stage=JSON.stringify(host.getBoundingClientRect().toJSON());});</script>"
+        page.write_text(drawing(marker=marker).to_html(backend=mode).replace('</body>',check.replace('ZOOM',str(zoom))+'</body>'))
         result=subprocess.run([browser,'--headless','--no-sandbox','--enable-unsafe-swiftshader',
                                '--use-gl=angle','--use-angle=swiftshader','--dump-dom',
                                '--virtual-time-budget=1000','--window-size=1200,1000',
@@ -248,9 +249,12 @@ def test_surface_reuse_growth_shrink_and_context_loss(tmp_path,backend,dpr):
         r.setViewport([b[0],b[1],b[2]/8,b[3]/8]);
         const large=r.layers[0].canvas.width*r.layers[0].canvas.height;
         ok(r.report().surfacePaints>warmed.surfacePaints,'zoom growth did not repaint');
-        ok(r.layers[0].reduced,'extreme zoom did not report resolution limit');
+        ok(!r.layers[0].reduced,'cropped deep zoom unnecessarily lost resolution');
+        const oldWidth=r.host.style.width,oldHeight=r.host.style.height;
+        r.host.style.width='6000px';r.host.style.height='3000px';r.render();
+        ok(r.layers[0].reduced,'oversized visible viewport did not report resolution limit');
         for(const layer of r.layers)ok(layer.canvas.width<=4096&&layer.canvas.height<=4096&&layer.canvas.width*layer.canvas.height<=4000000,'surface exceeded budget');
-        r.setViewport(b);
+        r.host.style.width=oldWidth;r.host.style.height=oldHeight;r.setViewport(b);
         ok(r.layers[0].canvas.width*r.layers[0].canvas.height<large,'zoom out did not release excess pixels');
         ok(!r.layers[0].reduced,'fit did not restore full resolution');
         ok(r.uploadBytes===bytes,'view changes reuploaded geometry');
@@ -272,3 +276,50 @@ def test_surface_reuse_growth_shrink_and_context_loss(tmp_path,backend,dpr):
         capture_output=True,text=True,timeout=40)
     assert result.returncode==0,result.stderr[-1500:]
     assert 'data-cache-test="passed"' in result.stdout,re.search(r'<body[^>]*>',result.stdout)[0]
+
+
+@pytest.mark.parametrize('backend',['webgl2','canvas'])
+def test_offscreen_layers_reenter_without_uploads_and_export_retains_all_data(tmp_path,backend):
+    browser=shutil.which('google-chrome') or shutil.which('chromium')
+    if not browser:pytest.skip('Chrome not installed')
+    records=b''.join(RECORD.pack(x,y,3,k%2,2**53+k) for k,(x,y) in enumerate([(-2,-1),(1,0),(2,2)]))
+    prim=MarkerBatchPrim(i.marker('star',1).prim,records,('red','blue'))
+    layer=i.window(Diagram(prim=prim,style=Style(stroke='none',fill_opacity=.4)),Rect(-3,-3,3,3)).rotated(17)
+    scene=i.compile_scene(Diagram(children=(layer,layer.translated(100,0))))
+    checks=r"""<script>inkletScene.ready.then(r=>{
+      const ok=(v,m)=>{if(!v)throw Error(m);};
+      try{
+        const b=r.original,uploads=r.uploadBytes;
+        r.setViewport([-3,-3,6,6]);
+        ok(r.layers[0].visible&&!r.layers[1].visible,'offscreen layer not culled');
+        const paints=r.surfacePaints,draws=r.drawCalls;
+        r.setViewport([40,40,6,6]);
+        ok(r.layers.every(l=>!l.visible),'empty view reported visible markers');
+        ok(r.surfacePaints===paints&&r.drawCalls===draws,'empty view painted');
+        r.setViewport([97,-3,6,6]);
+        ok(!r.layers[0].visible&&r.layers[1].visible,'second layer did not reenter');
+        // Crop tightly, pan within the retained margin, then beyond that margin.
+        r.setViewport([99,-1,2,2]);
+        const window=r.layers[1].window,painted=r.surfacePaints;
+        r.setViewport([99.02,-.98,2,2]);
+        ok(r.surfacePaints===painted,'small pan invalidated padded window');
+        r.setViewport([101,-1,2,2]);
+        ok(r.surfacePaints>painted,'pan beyond retained window did not repaint');
+        ok(r.layers[1].window.some((v,k)=>v!==window[k]),'window did not move');
+        const svg=r.exportSVG(),doc=new DOMParser().parseFromString(svg,'image/svg+xml');
+        ok(doc.querySelectorAll('[data-source-index]').length===6,'viewport culling deleted exported data');
+        ok(!svg.includes('foreignObject'),'cropped export became raster');
+        ok(doc.documentElement.getAttribute('viewBox')===r.viewport.join(' '),'export lost viewport');
+        r.setViewport(b);
+        ok(r.layers.every(l=>l.visible&&l.painted),'fit did not restore both layers');
+        ok(r.uploadBytes===uploads,'crop or visibility reuploaded geometry');
+        document.body.dataset.windowTest='passed';
+      }catch(e){document.body.dataset.windowTest=e.stack;}
+    });</script>"""
+    page=tmp_path/'window.html';page.write_text(scene.to_html(backend=backend).replace('</body>',checks+'</body>'))
+    result=subprocess.run([browser,'--headless','--no-sandbox','--enable-unsafe-swiftshader',
+        '--use-gl=angle','--use-angle=swiftshader','--dump-dom','--virtual-time-budget=6000',
+        '--window-size=1200,1000',f'--user-data-dir={tmp_path}/profile',page.as_uri()],
+        capture_output=True,text=True,timeout=40)
+    assert result.returncode==0,result.stderr[-1500:]
+    assert 'data-window-test="passed"' in result.stdout,re.search(r'<body[^>]*>',result.stdout)[0]

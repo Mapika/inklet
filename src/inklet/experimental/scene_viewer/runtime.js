@@ -7,6 +7,7 @@ precision highp float;
 layout(location=0) in vec3 instance;
 layout(location=1) in vec4 color;
 uniform vec2 extent;
+uniform vec2 origin;
 uniform vec2 pixels;
 uniform vec4 markerBounds;
 out vec2 radial;
@@ -16,7 +17,7 @@ void main(){
  vec2 corner=corners[gl_VertexID];
  vec2 offset=mix(markerBounds.xy,markerBounds.zw,(corner+1.0)*0.5)*instance.z+corner*extent/pixels;
  radial=offset/instance.z;
- vec2 p=(instance.xy+offset)/extent;
+ vec2 p=(instance.xy-origin+offset)/extent;
  gl_Position=vec4(p.x*2.0-1.0,1.0-p.y*2.0,0,1);
  paint=color;
 }`;
@@ -72,17 +73,33 @@ function makeGPU(canvas,batch,allowSoftware=false){
   gl.useProgram(program);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,28,0);gl.vertexAttribDivisor(0,1);
   gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,4,gl.FLOAT,false,28,12);gl.vertexAttribDivisor(1,1);
   gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
-  const extent=gl.getUniformLocation(program,'extent'),pixels=gl.getUniformLocation(program,'pixels'),radius=gl.getUniformLocation(program,'unitRadius');
+  const origin=gl.getUniformLocation(program,'origin'),extent=gl.getUniformLocation(program,'extent'),pixels=gl.getUniformLocation(program,'pixels'),radius=gl.getUniformLocation(program,'unitRadius');
   gl.uniform4fv(gl.getUniformLocation(program,'markerBounds'),batch.bounds);
   gl.uniform1i(gl.getUniformLocation(program,'vertexCount'),batch.vertices.length);
   gl.uniform1i(gl.getUniformLocation(program,'evenodd'),batch.fill_rule==='evenodd');
   if(batch.vertices.length)gl.uniform2fv(gl.getUniformLocation(program,'vertices[0]'),batch.vertices.flat());
   if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL buffer allocation failed');
   return {gl,renderer,bytes:data.byteLength,limit:Math.min(4096,gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)),
-   draw(){if(gl.isContextLost())throw Error('WebGL context lost');gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform2f(extent,b[2],b[3]);gl.uniform2f(pixels,canvas.width,canvas.height);gl.uniform1f(radius,batch.radius);gl.drawArraysInstanced(gl.TRIANGLES,0,6,batch.count);if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL draw failed');},
+   draw(window){if(gl.isContextLost())throw Error('WebGL context lost');gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform2f(origin,window[0]-b[0],window[1]-b[1]);gl.uniform2f(extent,window[2],window[3]);gl.uniform2f(pixels,canvas.width,canvas.height);gl.uniform1f(radius,batch.radius);gl.drawArraysInstanced(gl.TRIANGLES,0,6,batch.count);if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL draw failed');},
    dispose(){gl.deleteBuffer(buffer);gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();}
   };
  }catch(error){if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();throw error;}
+}
+function intersectBox(a,b){
+ const x=Math.max(a[0],b[0]),y=Math.max(a[1],b[1]),right=Math.min(a[0]+a[2],b[0]+b[2]),bottom=Math.min(a[1]+a[3],b[1]+b[3]);
+ return right>x&&bottom>y?[x,y,right-x,bottom-y]:null;
+}
+function visibleBox(matrix,viewport,bounds){
+ const inverse=matrix.inverse();
+ const points=[[viewport.left,viewport.top],[viewport.right,viewport.top],[viewport.right,viewport.bottom],[viewport.left,viewport.bottom]];
+ const xs=points.map(([x,y])=>inverse.a*x+inverse.c*y+inverse.e),ys=points.map(([x,y])=>inverse.b*x+inverse.d*y+inverse.f);
+ if([...xs,...ys].some(n=>!Number.isFinite(n)))return null;
+ return intersectBox([Math.min(...xs),Math.min(...ys),Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys)],bounds);
+}
+function surfaceWindow(visible,current,bounds){
+ const [x,y,w,h]=visible;
+ if(current&&current[0]<=x&&current[1]<=y&&current[0]+current[2]>=x+w&&current[1]+current[3]>=y+h&&current[2]*current[3]<=w*h*4)return current;
+ return intersectBox([x-w*.2,y-h*.2,w*1.4,h*1.4],bounds);
 }
 function surfaceSize(width,height,canvas,limit){
  // Reuse sufficient backing resolution until a view needs less than one
@@ -139,13 +156,13 @@ class CompiledSceneViewer{
   this.layers=[];this.backend=name;let contexts=0;
   for(const [index,batch] of this.batches.entries()){
    const target=this.svg.querySelector(`[data-inklet-batch="${index}"]`);target.replaceChildren();
-   const layer={batch,target,actual:'svg',reason:null};this.layers.push(layer);
+   const layer={batch,target,window:batch.box,actual:'svg',reason:null};this.layers.push(layer);
    if(name==='svg'){this.vector(batch,target);continue;}
    const [x,y,width,height]=batch.box;
    // Keep the HTML surface origin integral. Chromium rounds fractional
    // foreignObject layout origins before SVG transforms are applied.
    // Enlarging its CSS coordinate frame also bounds layout quantization.
-   const carrier=svgElement('g',{transform:`translate(${x} ${y}) scale(0.015625)`});
+   const carrier=layer.carrier=svgElement('g',{transform:`translate(${x} ${y}) scale(0.015625)`});
    layer.foreign=svgElement('foreignObject',{x:0,y:0,width:width*64,height:height*64});carrier.append(layer.foreign);target.append(carrier);
    if(['auto','webgl2'].includes(name)&&contexts<8){
     layer.canvas=surfaceCanvas();layer.foreign.append(layer.canvas);
@@ -162,10 +179,16 @@ class CompiledSceneViewer{
   if(this.disposed)return;
   // Read all SVG transforms before changing canvas dimensions: writes must
   // not force repeated layout while measuring subsequent layers.
-  const placements=this.layers.filter(layer=>layer.actual!=='svg').map(layer=>({layer,m:layer.foreign.getScreenCTM()}));
+  const viewport=this.svg.getBoundingClientRect();
+  const placements=this.layers.filter(layer=>layer.actual!=='svg').map(layer=>({layer,m:layer.target.getScreenCTM()}));
   for(const {layer,m} of placements){
-   const b=layer.batch.box;if(!m)continue;
-   const scale=Math.max(Math.hypot(m.a,m.b),Math.hypot(m.c,m.d))*64*(devicePixelRatio||1);
+   if(!m)continue;
+   const visible=visibleBox(m,viewport,layer.batch.box);layer.visible=!!visible;
+   if(!visible){layer.reduced=false;continue;}
+   const b=surfaceWindow(visible,layer.window,layer.batch.box);
+   const moved=b.some((v,k)=>v!==layer.window[k]);
+   if(moved){layer.window=b;layer.carrier.setAttribute('transform',`translate(${b[0]} ${b[1]}) scale(0.015625)`);layer.foreign.setAttribute('width',b[2]*64);layer.foreign.setAttribute('height',b[3]*64);}
+   const scale=Math.max(Math.hypot(m.a,m.b),Math.hypot(m.c,m.d))*(devicePixelRatio||1);
    const limit=layer.gpu?.limit||4096;
    const reduction=Math.min(1,limit/(b[2]*scale),limit/(b[3]*scale),Math.sqrt(4000000/(b[2]*b[3]*scale*scale)));
    const neededWidth=Math.max(1,Math.floor(b[2]*scale*reduction)),neededHeight=Math.max(1,Math.floor(b[3]*scale*reduction));
@@ -174,8 +197,8 @@ class CompiledSceneViewer{
    if(layer.gpu?.gl.isContextLost())this.canvasLayer(layer,'WebGL context lost');
    const resized=layer.canvas.width!==width||layer.canvas.height!==height;
    if(resized){if(layer.canvas.width!==width)layer.canvas.width=width;if(layer.canvas.height!==height)layer.canvas.height=height;this.surfaceResizes++;}
-   if(layer.painted&&!resized){this.reusedSurfaces++;continue;}
-   if(layer.gpu){try{layer.gpu.draw();layer.painted=true;this.surfacePaints++;this.drawCalls++;continue;}catch(error){this.canvasLayer(layer,error.message);layer.canvas.width=width;layer.canvas.height=height;}}
+   if(layer.painted&&!resized&&!moved){this.reusedSurfaces++;continue;}
+   if(layer.gpu){try{layer.gpu.draw(b);layer.painted=true;this.surfacePaints++;this.drawCalls++;continue;}catch(error){this.canvasLayer(layer,error.message);layer.canvas.width=width;layer.canvas.height=height;}}
    const ctx=layer.context;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,width,height);ctx.setTransform(width/b[2],0,0,height/b[3],-b[0]*width/b[2],-b[1]*height/b[3]);
    const data=layer.batch.records;
    for(let k=0;k<layer.batch.count;k++){const o=k*36,c=layer.batch.palette[data.getUint32(o+24,true)];if(!c[3])continue;ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.globalAlpha=c[3];ctx.beginPath();const x=data.getFloat64(o,true),y=data.getFloat64(o+8,true),size=data.getFloat64(o+16,true),vertices=layer.batch.vertices;
@@ -186,7 +209,7 @@ class CompiledSceneViewer{
   }
   this.host.dispatchEvent(new CustomEvent('inklet-render',{detail:this.report()}));
  }
- report(){return {backend:this.backend,layers:this.layers.map(l=>({backend:l.actual,count:l.batch.count,reason:l.reason,renderer:l.gpu?.renderer||null,reducedResolution:!!l.reduced,surfacePixels:l.canvas?l.canvas.width*l.canvas.height:0})),native:this.scene.native,uploadBytes:this.uploadBytes,drawCalls:this.drawCalls,surfacePaints:this.surfacePaints,surfaceResizes:this.surfaceResizes,reusedSurfaces:this.reusedSurfaces};}
+ report(){return {backend:this.backend,layers:this.layers.map(l=>({backend:l.actual,count:l.batch.count,reason:l.reason,renderer:l.gpu?.renderer||null,reducedResolution:!!l.reduced,surfacePixels:l.canvas?l.canvas.width*l.canvas.height:0,visible:l.actual==='svg'?null:!!l.visible,displayBox:l.actual==='svg'?null:[...l.window]})),native:this.scene.native,uploadBytes:this.uploadBytes,drawCalls:this.drawCalls,surfacePaints:this.surfacePaints,surfaceResizes:this.surfaceResizes,reusedSurfaces:this.reusedSurfaces};}
  setViewport(v){
   if(!Array.isArray(v)||v.length!==4||v.some(n=>typeof n!=='number'||!Number.isFinite(n))||v[2]<=0||v[3]<=0)throw Error('Invalid viewport');
   const b=this.original;

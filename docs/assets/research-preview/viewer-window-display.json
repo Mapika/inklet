@@ -1,0 +1,12 @@
+{
+  "mean_rgb_error": [
+    0.7356446360153257,
+    0.5575526819923372,
+    0.5687116858237548
+  ],
+  "size": [
+    1392,
+    750
+  ],
+  "description": "8x zoom into the first panel: hardware WebGL screenshot versus native SVG display; RGB units 0\u2013255."
+}

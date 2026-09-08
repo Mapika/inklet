@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Size compiled-viewer surfaces around the visible region with a retained pan
+  margin; skip painting offscreen layers and reuse their immutable buffers on
+  return. Preserve native clipping, marker order and complete vector export.
+- Keep deep-zoom resolution within the existing per-surface pixel limits. In
+  the five-panel RTX 5090 study, 8× zoom uses about 3.05 million backing pixels
+  instead of 20 million, and median WebGL submission falls from 49.0 to 13.8 ms.
+  Add normal/deep-zoom fidelity, visibility and re-entry checks with raw studies.
+
 - Retain compiled-viewer backing surfaces across pans and small zoom changes,
   repaint only when resolution changes, and shrink after large zoom-outs.
   Read all SVG transforms before changing canvas dimensions. Preserve the
