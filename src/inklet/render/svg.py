@@ -810,8 +810,10 @@ def _shape(prim: Prim, style: Style, w: _Writer) -> Shape | None:
     with children (`TextPrim`), and one that has side effects worth keeping in
     file order (`ImagePrim`'s broken-link comment).
     """
-    from .brushes import PaintedPrim, svg_brush
+    from .brushes import Hatch, PaintedPrim, svg_brush
     if isinstance(prim, PaintedPrim):
+        if isinstance(prim.brush,Hatch):
+            return None
         key=svg_brush(prim.brush,w)
         shape=_shape(prim.shape,style,w)
         if shape is None: return None
@@ -828,6 +830,7 @@ def _shape(prim: Prim, style: Style, w: _Writer) -> Shape | None:
 
 def _emit_prim(prim: Prim, style: Style, w: _Writer,
                kind: str | None = None) -> None:
+    from .brushes import Hatch, PaintedPrim
     if isinstance(prim, PhantomPrim):
         return  # Envelope only. It has no ink and must leave no trace in the file.
     shape = _shape(prim, style, w)
@@ -842,8 +845,64 @@ def _emit_prim(prim: Prim, style: Style, w: _Writer,
             _text(prim, style, w)
     elif isinstance(prim, ImagePrim):
         _image(prim, w, kind)
+    elif isinstance(prim,PaintedPrim) and isinstance(prim.brush,Hatch):
+        _emit_hatch(prim,style,w)
     else:
         raise NotImplementedError(f'the SVG backend cannot draw a {type(prim).__name__}')
+
+
+def _emit_hatch(prim, style: Style, w: _Writer) -> None:
+    """A reusable clipped vector fill, independent of enclosing border style."""
+    import hashlib
+    from .bounds import primitive_bounds
+    from .hatching import hatch_bounds, hatch_segments
+
+    shape = _shape(prim.shape,style,w)
+    if shape is None:
+        return
+    box = primitive_bounds(prim.shape,Affine(),EMPTY_STYLE)
+    if box is None or box.width <= 0 or box.height <= 0:
+        return
+    box = hatch_bounds(box,prim.brush)
+    tag,attrs = shape
+    registry = getattr(w,'hatch_defs',None)
+    if registry is None:
+        registry = w.hatch_defs = {}
+    clips = getattr(w,'hatch_clips',None)
+    if clips is None:
+        clips = w.hatch_clips = {}
+    clip_key = (prim.shape,style.corner_radius)
+    clip = clips.get(clip_key)
+    if clip is None:
+        clip = clips[clip_key] = 'inklet-hatch-clip-'+hashlib.sha256(repr(clip_key).encode()).hexdigest()[:20]
+        w.open('defs',[])
+        w.open('clipPath',[('id',clip),('clipPathUnits','userSpaceOnUse')])
+        w.empty(tag,attrs+[('clip-rule',getattr(prim.shape,'fill_rule','nonzero'))])
+        w.close('clipPath');w.close('defs')
+    key = (box,prim.brush)
+    name = registry.get(key)
+    if name is None:
+        name = registry[key] = 'inklet-hatch-'+hashlib.sha256(repr(key).encode()).hexdigest()[:20]
+        commands = []
+        for a,b in hatch_segments(box,prim.brush):
+            commands.append(f'M{w.n(a.x)} {w.n(a.y)}L{w.n(b.x)} {w.n(b.y)}')
+        w.open('defs',[])
+        w.open('g',[('id',name),
+                    ('fill','none'),('stroke','none'),('fill-opacity','1'),
+                    ('stroke-opacity','1'),('stroke-dasharray','none'),
+                    ('stroke-linecap','butt'),('stroke-linejoin','miter')])
+        if prim.brush.background:
+            w.empty('rect',[('x',w.n(box.x0)),('y',w.n(box.y0)),('width',w.n(box.width)),
+                            ('height',w.n(box.height)),('fill',prim.brush.background)])
+        w.empty('path',[('d',''.join(commands)),('stroke',prim.brush.color),
+                        ('stroke-width',w.n(prim.brush.stroke))])
+        w.close('g');w.close('defs')
+    # Apply fill opacity once to the complete resource, after its opaque
+    # background and lines have composited; the shape's outline stays separate.
+    w.empty('use',[('xlink:href','#'+name),('clip-path',f'url(#{clip})'),
+                   ('opacity',w.n(1. if style.fill_opacity is None else style.fill_opacity))])
+    if style.stroke not in (None,'none'):
+        w.empty(tag,[(k,v) for k,v in attrs if k!='fill']+[('fill','none')])
 
 
 # -- tree -----------------------------------------------------------------

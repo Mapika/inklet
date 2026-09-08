@@ -93,6 +93,7 @@ jobs:
           .venv/bin/python tools/benchmark_engine.py --repeat 1 --output out/engine-benchmark.json
           .venv/bin/python examples/engine_review.py --output out/engine-review
           .venv/bin/python examples/compositing_review.py --output out/compositing-review
+          .venv/bin/python examples/hatch_review.py --output out/hatch-review
       - name: Diagram routing and label review
         run: |
           .venv/bin/python tools/benchmark_diagrams.py --repeat 1 --output out/diagram-benchmark.json

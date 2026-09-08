@@ -16,7 +16,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-CASES = ('grid64','scatter30000','images64','groups32')
+CASES = ('grid64','scatter30000','images64','groups32','hatches64','hatches64_unique')
 
 
 def workload(name):
@@ -65,6 +65,15 @@ def workload(name):
             root = Diagram(children=(root,),style=i.Style(opacity=.99))
         doc = i.document(width=140,margin=5)
         doc.add('nested-groups',root)
+        return doc
+    if name in ('hatches64','hatches64_unique'):
+        from inklet.core import Diagram, RectPrim
+        doc = i.document(width=440,columns=8,margin=5,gap=3)
+        brush = i.Hatch(color='#245b8a',background='#edf4f6',spacing=.08,stroke=.015)
+        for j in range(64):
+            shape = Diagram(prim=RectPrim(48+(j*.001 if name=='hatches64_unique' else 0),28)).styled(
+                stroke='#245b8a',stroke_width=.3)
+            doc.add(f'hatch-{j}',i.paint(shape,brush),row=j//8,column=j%8)
         return doc
     raise ValueError(name)
 

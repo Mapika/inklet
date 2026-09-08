@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Share exact hatch-line geometry between SVG and PDF, with reusable local
+  coverage resources and independent shape clips. Preserve holes, transforms,
+  border styles and fill opacity without periodic tile seams or inherited
+  border settings affecting the fill.
+- Reuse hatch coverage across nearby shape sizes, retain explicit work limits,
+  and add an illustrated review plus repeated/distinct-size export benchmarks.
+
 - Correct PDF compositing for individual filled-and-stroked shapes, text halos
   and vector brushes: group opacity fades their combined paint once.
 - Preserve palette and color-key PNG transparency in PDF, including partial

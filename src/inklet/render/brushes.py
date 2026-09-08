@@ -100,23 +100,12 @@ def svg_brush(brush,w):
     if key in registry: return key
     registry.add(key)
     w.open('defs',[])
-    if isinstance(brush,Hatch):
-        tag='pattern'
-        w.open(tag,[('id',key),('patternUnits','userSpaceOnUse'),('width',w.n(brush.spacing)),
-                    ('height',w.n(brush.spacing)),('patternTransform',f'rotate({w.n(brush.angle)})'),
-                    ('stroke','none'),('fill','none')])
-        if brush.background:
-            w.empty('rect',[('width',w.n(brush.spacing)),('height',w.n(brush.spacing)),('fill',brush.background)])
-        # Two boundary halves form one stroke without extending outside the tile.
-        w.empty('path',[('d',f'M0 0H{w.n(brush.spacing)}M0 {w.n(brush.spacing)}H{w.n(brush.spacing)}'),
-                        ('stroke',brush.color),('stroke-width',w.n(brush.stroke)),('fill','none')])
+    if isinstance(brush,LinearGradient):
+        tag='linearGradient'; attrs=list(zip(('x1','y1','x2','y2'),map(w.n,(*brush.start,*brush.end))))
     else:
-        if isinstance(brush,LinearGradient):
-            tag='linearGradient'; attrs=list(zip(('x1','y1','x2','y2'),map(w.n,(*brush.start,*brush.end))))
-        else:
-            tag='radialGradient'; attrs=list(zip(('cx','cy','r'),map(w.n,(*brush.center,brush.radius))))
-        w.open(tag,[('id',key),('color-interpolation','sRGB'),*attrs])
-        for offset,color in brush.stops: w.empty('stop',[('offset',w.n(offset)),('stop-color',color)])
+        tag='radialGradient'; attrs=list(zip(('cx','cy','r'),map(w.n,(*brush.center,brush.radius))))
+    w.open(tag,[('id',key),('color-interpolation','sRGB'),*attrs])
+    for offset,color in brush.stops: w.empty('stop',[('offset',w.n(offset)),('stop-color',color)])
     w.close(tag);w.close('defs')
     return key
 

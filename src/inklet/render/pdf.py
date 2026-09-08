@@ -127,6 +127,7 @@ class _Resources:
         self.images: dict[str, tuple[str, ImagePrim]] = {}   # key -> (name, prim)
         self.forms: list[tuple[str, bytes, Rect, bool]] = []  # name, stream, bbox, isolated
         self.shadings = {}
+        self.hatch_forms = {}
         self.blends = {}
         self.fonts = FontShelf()                  # only used by text="embed"
 
@@ -393,39 +394,58 @@ def _paint_geometry(c,shape,style):
 
 
 def _draw_painted(c,prim,style):
-    import math
     from .brushes import Hatch
     shape,brush=prim.shape,prim.brush
     box=shape.envelope().bbox()
     if box is None or box.width <= 0 or box.height <= 0: return
-    c.op('q')
-    _paint_geometry(c,shape,style)
-    c.op('W*' if getattr(shape,'fill_rule',None)=='evenodd' else 'W','n')
     if isinstance(brush,Hatch):
-        if brush.background:
-            c.op(c.n(box.x0),c.n(box.y0),c.n(box.width),c.n(box.height),'re')
-            _paint(c,style,fill=brush.background,stroke=None)
-        theta=math.radians(brush.angle)
-        direction=Vec2(math.cos(theta),math.sin(theta));normal=Vec2(-direction.y,direction.x)
-        along=[point.dot(direction) for point in box.corners]
-        across=[point.dot(normal) for point in box.corners]
-        first=math.floor(min(across)/brush.spacing);last=math.ceil(max(across)/brush.spacing)
-        if last-first > 100_000: raise DiagramError('Hatch would exceed 100,000 lines; increase spacing')
-        c.op(_rgb(brush.color,c.precision),'RG');c.op(c.n(brush.stroke),'w')
-        c.op('[]','0','d');c.op('0','J')
-        for index in range(first,last+1):
-            a=direction*min(along)+normal*(index*brush.spacing)
-            b=direction*max(along)+normal*(index*brush.spacing)
-            _move(c,a);_line(c,b)
-        c.op('S')
+        c.op('q')
+        _paint_geometry(c,shape,style)
+        c.op('W*' if getattr(shape,'fill_rule',None)=='evenodd' else 'W','n')
+        c.op(f'/{_hatch_form(c,prim,style)}','Do')
+        c.op('Q')
     else:
+        c.op('q')
+        _paint_geometry(c,shape,style)
+        c.op('W*' if getattr(shape,'fill_rule',None)=='evenodd' else 'W','n')
         key=c.shared.shadings.setdefault(brush,f'Sh{len(c.shared.shadings)}')
         c.matrix(Affine(box.width,0,0,box.height,box.x0,box.y0))
         c.op(f'/{key}','sh')
-    c.op('Q')
+        c.op('Q')
     if _paintable(style.stroke):
         _paint_geometry(c,shape,style)
         _paint(c,style,fill=None,stroke=style.stroke)
+
+
+def _hatch_form(c: _Content, prim, style: Style) -> str:
+    """Reuse a local vector fill and apply fill opacity to its completed paint.
+
+    Conservative coverage bounds and brush settings identify the resource;
+    the calling shape clips it exactly. An isolated form composites the background and hatch
+    lines before the caller's fill alpha is applied. Explicit paths retain
+    physical line placement without viewer-dependent tiling-pattern seams.
+    """
+    from .bounds import primitive_bounds
+    from .hatching import hatch_bounds, hatch_segments
+
+    shape, brush = prim.shape, prim.brush
+    box = hatch_bounds(primitive_bounds(shape, IDENTITY, EMPTY_STYLE),brush)
+    key = (box, brush, c.precision)
+    if key in c.shared.hatch_forms:
+        return c.shared.hatch_forms[key]
+    inner = c.child()
+    inner.op(f'/{inner.alpha(1)}','gs')
+    if brush.background:
+        inner.op(inner.n(box.x0),inner.n(box.y0),inner.n(box.width),inner.n(box.height),'re')
+        _paint(inner,style,fill=brush.background,stroke=None)
+    inner.op(_rgb(brush.color,c.precision),'RG');inner.op(inner.n(brush.stroke),'w')
+    inner.op('[]','0','d');inner.op('0','J')
+    for a,b in hatch_segments(box,brush):
+        _move(inner,a);_line(inner,b)
+    inner.op('S')
+    name = c.shared.form(inner.render(),box,isolated=True)
+    c.shared.hatch_forms[key] = name
+    return name
 
 
 def _draw_halo(c: _Content, glyphs: list[PlacedGlyph], style: Style) -> None:
