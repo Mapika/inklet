@@ -93,7 +93,7 @@ def test_legacy_layouts_load_but_scale_requires_new_schema():
     with pytest.raises(ValueError,match='schema 0.2'):root.with_layout_overrides(legacy)
     legacy['schema']=SCHEMA
     restored,_=root.with_layout_overrides(legacy);assert restored._parts[1].scale==1.2
-    assert restored.layout_overrides(root)['schema']=='inklet.composition-layout/0.3'
+    assert restored.layout_overrides(root)['schema']=='inklet.composition-layout/0.4'
 
 
 def test_scale_validation_is_atomic_and_noop_gesture_creates_no_history():

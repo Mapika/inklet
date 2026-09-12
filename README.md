@@ -31,16 +31,16 @@ their signatures and report schemas may change.
 
 ## 4.0 development preview
 
-**4.0.0.dev10** adds named label and callout editing to the local layout
-editor. Edit text and callout preferences, move and scale content, undo changes,
-and save choices that reproduce through the Python compiler.
+**4.0.0.dev11** connects layout, label and appearance editing in the local
+composition editor. Adjust supported plot, text and module styles alongside
+layout, undo changes together, and save choices that reproduce through Python.
 ```sh
-python -m pip install "inklet==4.0.0.dev10"
+python -m pip install "inklet==4.0.0.dev11"
 ```
 
 [Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
-[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev10)
+[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev11)
 
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,

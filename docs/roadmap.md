@@ -62,7 +62,10 @@ Dev9 adds mouse movement, proportional artwork scaling and keyboard nudges
 for named composition children, with preserved measured positions and saved
 choices. Dev10 adds saved named text and callout editing across modules, text
 components, keyed plot instructions and composition annotations, including typed
-identity reconciliation. Serialized project templates, asset manifests, shared selection
+identity reconciliation. Dev11 connects supported plot, text and module styles
+to that same layout/label history, saved state and reconciliation workflow,
+with data-driven marker fields protected from constant overrides.
+Serialized project templates, asset manifests, shared selection
 relationships, axis-label/camera editing and finer-grained manipulation remain open. Subsequent work
 should extend authoring and cross-content identity beyond this bounded inspector.
 

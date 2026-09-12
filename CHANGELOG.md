@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 4.0.0.dev11 — 2026-09-12
+
+Eleventh development preview: unified composition layout, labels and appearance.
+3.1.0 remains the stable release.
+
+- Add supported keyed line/marker styles, text/callout appearance and module box
+  styles to the local composition editor, using the same Python compiler.
+- Organize controls into Layout, Labels and Styles. Apply changes across sections
+  as one atomic edit with shared undo/redo, reset and saved-state reconstruction.
+- Save typed named appearance decisions in schema 0.4, accepting legacy 0.1–0.3
+  files. Explicit null style fields remove authored keywords for automatic styling.
+- Preserve data-driven marker sizes and colours; report incompatible style targets
+  after source revisions while retaining compatible label/layout edits on discard.
+- Cover combined browser edits, two-width SVG/PDF agreement, inherited styles,
+  text remeasurement, live data and alias reconciliation; update illustrated docs.
+
 ## 4.0.0.dev10 — 2026-09-12
 
 Tenth development preview: reproducible named label and callout editing.

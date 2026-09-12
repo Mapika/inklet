@@ -1,6 +1,6 @@
 # Local layout editor
 
-Available since **4.0.0.dev8**, with mouse gestures in **4.0.0.dev9** and named label editing in **4.0.0.dev10**, under `inklet.experimental.layout_editor`. Adjust
+Available since **4.0.0.dev8**, with mouse gestures in **4.0.0.dev9**, named label editing in **4.0.0.dev10**, and unified style controls in **4.0.0.dev11**, under `inklet.experimental.layout_editor`. Adjust
 named placements and dimensions in a browser while Python recompiles the
 actual composition. The preview and downloaded SVG/PDF come from the same
 compiled figure, including plots, nested diagrams and native 3D content.
@@ -79,7 +79,7 @@ top-fitting behavior; dependent content can reflow when the compiler rebuilds.
 
 ![Editing a named plot callout with text, side, clearance and leader controls](assets/guides/layout-editor-labels.png)
 
-Select a composition child, then edit its **Label** fields and choose **Apply
+Select a composition child, choose **Labels** in **Edit**, then change its fields and choose **Apply
 changes**. The editor supports text components created with `component(i.text,
 ...)`, string module captions, and plot `title`, `text` and `annotate`
 instructions with an explicit string `key`. For composition callouts, supply a
@@ -115,9 +115,60 @@ coordinates, styling and other source choices remain live. Shared definitions
 share label edits; use an independent recipe copy for independent captions.
 Undo/redo, reset, saved JSON and SVG/PDF exports include the label edits.
 
+## Edit appearance alongside layout
+
+![Named line and marker styles edited in the composition inspector](assets/guides/layout-editor-styles.png)
+
+Choose **Styles** in **Edit**. Layout, Labels and Styles retain their pending
+changes when switching sections; **Apply changes** compiles them together as
+one undo step. Selecting another content target discards unapplied fields.
+
+| Named content | Available appearance controls |
+| --- | --- |
+| Keyed plot `line` instructions | Stroke colour, physical line width, opacity |
+| Keyed plot `scatter` instructions | Constant colour and diameter, opacity |
+| Text components and string module captions | Fill colour and physical text size |
+| Module boxes | Fill, stroke colour and physical line width |
+| Keyed plot `text`/`annotate` and named composition callouts | Fill colour and physical text size |
+
+Colours accept the colour parser's hex, RGB and named CSS forms; `none` also
+works for fill and stroke. Opacity ranges from 0 to 1. Widths use millimetres;
+marker size is **diameter**, and text size must be positive. Blank style fields
+remove an explicit keyword and use the renderer's automatic/preset behaviour.
+That removal is saved as JSON `null`. **Reset target** instead restores the
+current source's layout, labels and styles together. Parent artwork scaling
+still scales the resulting text and strokes.
+
+```python
+editor.command('edit', {
+    'path': '/caption',
+    'placement': {'x': 18},
+    'labels': {'label': {'kind': 'module-label', 'text': 'Reviewed response'}},
+    'styles': {
+        'text': {'kind': 'module-text', 'size': 4, 'fill': '#203e53'},
+        'box': {'kind': 'module-box', 'fill': '#e9f0f4', 'stroke_width': 0.4},
+    },
+})
+```
+
+Larger text is remeasured, so connected modules and dependent layout update.
+Style edits retain live data, named instruction keys and unedited source choices.
+Data-driven marker colour/diameter controls are omitted, including ramped
+colours. If a source revision turns an edited constant into a data mapping,
+the saved style is reported as incompatible, such as `/chart#style:samples`.
+Explicit discard removes that style target's edits while preserving compatible
+labels and placements on the chart.
+
+Styles use the same named path, key and kind contracts as labels. New saved
+files use schema 0.4; 0.1, 0.2 and 0.3 files still load. This unifies authoring
+within the composition editor. The separate [linked-table style inspector](visual-editing.md)
+retains its own source-bound format; its files are not interchangeable. Plot
+titles, axes, bars, arbitrary factories, gradients and camera/material settings
+are outside this style-control subset.
+
 ## Edit and review
 
-Choose a named path in **Content**, enter the fields you want to change, then
+Choose a named path in **Content** and a section in **Edit**, enter the fields you want to change, then
 select **Apply changes**. Other fields retain their definitions.
 
 - Child placement fields are X, Y, anchor, width, height and uniform scale. Numbers use the
@@ -138,7 +189,7 @@ preview, saved choices and undo history remain available. The inspector does
 not automatically resolve overlap or add constraints: author the required
 measured relationships and minimum sizes in the Python recipe.
 
-**Undo** and **Redo** retain up to 100 successful layout edits. A new edit after
+**Undo** and **Redo** retain up to 100 successful authoring edits. A new edit after
 undo starts a new history branch. Shared nested definitions remain shared:
 editing or resetting one occurrence affects the same definition wherever it
 appears. Distinct placements of that shared content remain independently editable.
@@ -147,8 +198,8 @@ appears. Distinct placements of that shared content remain independently editabl
 
 **Save layout** downloads the versioned JSON described in
 [saved layout choices](layout-overrides.md). **Open layout choices** loads that
-same format. The file contains changed placements and dimensions, not the
-source content, styles, assets or undo history. Keep it alongside the recipe.
+same format. The file contains changed layout, label and supported style fields.
+Other source content, assets and undo history stay outside the file. Keep it alongside the recipe.
 
 **Download SVG** and **Download PDF** export the successful preview revision.
 If another editor tab changes the session first, stale commands and export

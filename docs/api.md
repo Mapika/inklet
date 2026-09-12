@@ -225,7 +225,7 @@ A figure assembled from named children and measured expressions.
 * `instantiate(**items)` -- Create an independent recipe, filling required slots and replacing defaults.
 * `configure(*, width=None, height=None, unit=None, fit_top=None)` -- Atomically update authored page dimensions or coordinate units.
 * `place(name, **placement)` -- Edit a child's placement without replacing its content or named links.
-* `layout_overrides(reference)` -- Capture changed layout and compatible named labels against a reference.
+* `layout_overrides(reference)` -- Capture changed layout, named labels and supported styles against a reference.
 * `with_layout_overrides(value, *, missing='error')` -- Return an independent edited recipe and a reconciliation report.
 * `port(name, target)` -- Expose a child's name:anchor as a reusable composition attachment point.
 * `constrain(value, *, minimum=0, message='composition needs more space')` -- Require an expression to meet a minimum; fail before drawing.

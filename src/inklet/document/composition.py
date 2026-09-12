@@ -193,10 +193,10 @@ class Composition(BuildSpec):
         raise KeyError(name)
 
     def layout_overrides(self, reference):
-        """Capture changed layout and compatible named labels against a reference.
+        """Capture changed layout, named labels and supported styles against a reference.
 
         Return JSON-compatible, versioned decisions keyed by named child paths.
-        Other content, styles, data, links and constraints remain in Python.
+        Other content, data, links and constraints remain in Python.
         """
         from .layout_overrides import capture
         return capture(self, reference)

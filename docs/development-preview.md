@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev10
+# Inklet 4.0.0.dev11
 
-The tenth 4.0 development release includes the linked plotting, mapping,
+The eleventh 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev10"
+python -m pip install "inklet==4.0.0.dev11"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev10"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev11"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev10"
+python -m pip install "inklet[volume,render]==4.0.0.dev11"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,7 +29,27 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Named labels and callouts in dev10
+## Unified composition authoring in dev11
+
+The [composition editor](layout-editor.md#edit-appearance-alongside-layout) now
+combines Layout, Labels and Styles sections. Pending changes across sections
+compile together as one undo step, with one saved file and matching SVG/PDF
+exports. Supported appearance controls cover keyed lines and markers, text and
+callouts, and module boxes. Text sizes remeasure dependent layout and ports.
+
+![Named plot styles in the composition editor](assets/guides/layout-editor-styles.png)
+
+Only constant marker colours and diameters are editable; data-driven fields
+remain attached to their sources. A source revision that changes an edited
+constant into a data mapping reports an incompatible style target. Explicit
+discard retains compatible layout and labels on the same object.
+
+Schema 0.4 adds typed named style decisions and explicit removal of style
+keywords. Schemas 0.1, 0.2 and 0.3 still load. The separate linked-table editor
+keeps its own format; arbitrary paint editing and general cross-content object
+relationships remain open.
+
+## Named labels and callouts retained from dev10
 
 The [local layout editor](layout-editor.md#edit-labels-and-callouts) now edits
 string module captions, text components, keyed plot titles/text/callouts and
@@ -44,7 +64,7 @@ definitions share text decisions, while unedited source fields remain live.
 
 ![Named callout controls and the compiled figure](assets/guides/layout-editor-labels.png)
 
-New files use layout schema 0.3; schemas 0.1 and 0.2 still load. Undo/redo,
+Dev10 introduced layout schema 0.3 for labels; schemas 0.1 and 0.2 still load. Undo/redo,
 reopening and matching SVG/PDF export include text edits. Axis labels, individual
 callout dragging, camera editing and general object relationships remain open.
 
@@ -200,7 +220,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev10 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev11 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

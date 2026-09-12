@@ -1,11 +1,11 @@
 [
   {
     "id": "layout-editor",
-    "title": "Composition and label editor",
+    "title": "Composition authoring editor",
     "category": "Layout",
-    "description": "Edit named labels and callouts, drag and scale content, undo and reopen saved choices in Python.",
+    "description": "Edit layout, labels and appearance together; undo and reopen saved choices through Python.",
     "requires": "4.0 preview",
-    "image": "assets/guides/layout-editor-labels.png",
+    "image": "assets/guides/layout-editor-styles.png",
     "version": "4.0 preview",
     "page": "layout-editor/",
     "featured": false

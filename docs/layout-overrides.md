@@ -1,6 +1,6 @@
 # Save and restore layout choices
 
-Available since **4.0.0.dev7**; uniform artwork scale is added in **dev9**, named text and callout decisions in **dev10**. Save placement and dimension edits separately from
+Available since **4.0.0.dev7**; uniform artwork scale is added in **dev9**, named text and callout decisions in **dev10**, and supported appearance fields in **dev11**. Save placement and dimension edits separately from
 a [composition recipe](composition-recipes.md), then restore those choices
 when its data, labels or content change. The saved JSON records only differences
 from a reference recipe. Unedited source decisions remain in control.
@@ -21,7 +21,7 @@ Python APIs below or the [local inspector](layout-editor.md) in dev8. This forma
 
 Keep a reference recipe, copy it, then edit placements. The reference and edited
 recipe must have the same named composition structure when capturing changes.
-Supported named label differences are captured too. Other content and styles are not serialized into the layout file.
+Supported named label differences are captured too. Supported named style differences are captured too; other content is not serialized into the layout file.
 
 ```python
 import json
@@ -63,13 +63,27 @@ matching label keys and kinds; they do not serialize added or removed content.
 A saved label entry includes its kind and only the fields that changed:
 
 ```json
-{"schema":"inklet.composition-layout/0.3","targets":{"/caption":{"labels":{"label":{"kind":"module-label","text":"Reviewed response"}}}}}
+{"schema":"inklet.composition-layout/0.4","targets":{"/caption":{"labels":{"label":{"kind":"module-label","text":"Reviewed response"}}}}}
 ```
 
-Readers accept legacy schemas 0.1 and 0.2. New captures use 0.3; older readers
+Readers accept legacy schemas 0.1, 0.2 and 0.3. New captures use 0.4; older readers
 must be upgraded before opening them. Label fields are rejected under older
 schema identifiers. Removed/incompatible labels appear as `path#key` in the
 orphan report. Explicit `missing='drop'` retains compatible edits on that path.
+
+## Named appearance decisions
+
+Schema 0.4 adds a `styles` group beside `placement`, `page` and `labels`.
+Each named style contains its `kind` and changed fields. The [appearance guide](layout-editor.md#edit-appearance-alongside-layout)
+lists supported controls, units, data-mapping exclusions and a combined edit.
+A `null` style value removes an explicit keyword; unedited source fields stay
+live. Capturing changes compares compatible named style keys and kinds, not
+arbitrary renderer nodes or paint objects.
+
+Source revisions that remove a style key, change its kind or replace a constant
+with a data mapping produce a `path#style:key` orphan. With explicit discard,
+compatible layout and label edits on the same path survive. The separate
+linked-table visual-override format is not converted by this loader.
 
 ## Restore on the current recipe
 
@@ -104,7 +118,7 @@ updated_figure = render(updated)
 updated_figure.save('updated.svg')
 ```
 
-The file stores layout and supported label decisions, not datasets, plot styles,
+The file stores layout, supported labels and styles, not datasets,
 links, ports, constraints, factories or camera parameters. Keep the Python
 recipe and its assets alongside it. The containing document can supply its own
 render dimensions; restoring authored page dimensions does not override that
@@ -142,13 +156,13 @@ of 32 operations. Malformed files, nonfinite numbers, invalid properties and
 contradictory edits to a shared nested definition are rejected, including when
 `missing='drop'` is used.
 
-New files use `inklet.composition-layout/0.3`, adding named label decisions to
-0.2's positive uniform artwork scale. The loader also accepts 0.1 files from
-dev7/dev8 (without scale) and 0.2 files from dev9 (without labels). Unknown
-schemas are rejected. Upgrade older readers before opening a 0.3 file.
-The JSON object contains `schema` and `targets`; each target has changed
-`placement`, `page` and/or `labels` fields. This development-preview format is
-not a general Python object serializer or an asset manifest.
+New files use `inklet.composition-layout/0.4`, adding named appearance decisions.
+The loader also accepts 0.1 files from dev7/dev8 (without scale), 0.2 files from
+dev9 (without labels) and 0.3 files from dev10 (without styles). Unknown schemas
+are rejected. Upgrade older readers before opening a 0.4 file. The JSON object
+contains `schema` and `targets`; each target has changed `placement`, `page`,
+`labels` and/or `styles` fields. This development-preview format is not a general
+Python object serializer or an asset manifest.
 
 ## Review revised content
 

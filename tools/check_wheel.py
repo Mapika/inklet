@@ -180,13 +180,16 @@ def make_document():
     with LayoutEditor(art) as editor:
         editor.command("edit", {"path":"/input", "placement":{"x":5}})
         editor.command("gesture", {"path":"/input", "dx":1, "dy":1, "factor":1.1, "corner":"se"})
-        assert editor.overrides()["schema"] == "inklet.composition-layout/0.3"
+        assert editor.overrides()["schema"] == "inklet.composition-layout/0.4"
         label_root = i.composition(80,40)
         label_root.add("caption",i.module("Original"),x=5,y=5)
         label_editor = LayoutEditor(label_root)
         label_editor.command("edit",{"path":"/caption","labels":{"label":{"kind":"module-label","text":"Edited"}}})
         label_copy,_ = label_root.with_layout_overrides(label_editor.overrides())
         assert label_copy["caption"].label == "Edited" and label_root["caption"].label == "Original"
+        label_editor.command("edit",{"path":"/caption","styles":{"box":{"kind":"module-box","fill":"#ddeeff"}}})
+        styled_copy,_ = label_root.with_layout_overrides(label_editor.overrides())
+        assert styled_copy["caption"].box_style["fill"] == "#ddeeff"
         assert editor.overrides()["targets"]
         assert "Layout editor" in editor._html()
         assert editor.figure.to_pdf().startswith(b"%PDF")
