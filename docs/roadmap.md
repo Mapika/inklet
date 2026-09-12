@@ -51,10 +51,12 @@ examples; none should determine the shared document architecture.
 The bounded point/route adapter is implemented; defer further geographic
 expansion. [Reusable plot recipes](plot-recipes.md) now begin the shared-engine
 work with copied/composed instructions, independent styling and improved
-automatic layout. General composition templates and browser layout editing
-remain open. The next development release should advance shared
-composition or editing capabilities and use domain examples to test those
-capabilities, rather than make another map report its central deliverable.
+automatic layout. [Reusable compositions](composition-recipes.md) add required
+content inputs, independent instances, placement edits and nested attachment
+points in dev6, exercised by plots, diagrams and native 3D at two widths.
+Serialized project templates, asset manifests and browser layout editing
+remain open. Subsequent work should advance shared identity and reproducible
+editing, using domain examples to test those capabilities.
 
 ## Who this should serve
 

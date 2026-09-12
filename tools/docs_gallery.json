@@ -1,5 +1,16 @@
 [
   {
+    "id": "composition-recipes",
+    "title": "Reusable mixed-content reports",
+    "category": "Layout",
+    "description": "One layout with named inputs, independent plot and 3D variants, nested ports and live data.",
+    "requires": "4.0 preview",
+    "image": "assets/guides/composition-recipes.png",
+    "version": "4.0 preview",
+    "page": "composition-recipes/",
+    "featured": false
+  },
+  {
     "id": "plot-composition",
     "title": "Reusable plots and composition",
     "category": "Plots",

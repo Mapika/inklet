@@ -134,3 +134,6 @@ The command saves 180 mm and 150 mm SVG/PDF/PNG figures, native HTML viewers,
 a revised-data SVG, build statistics and an external caption. Native HTML
 viewers support inspecting the compiled scene; these recipe edits happen in
 Python, not in the linked-report style inspector.
+
+To reuse a complete layout across plots, diagrams and 3D components, see
+[reusable compositions](composition-recipes.md) (dev6).

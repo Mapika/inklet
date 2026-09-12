@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev5
+# Inklet 4.0.0.dev6
 
-The fifth 4.0 development release includes the linked plotting, mapping,
+The sixth 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev5"
+python -m pip install "inklet==4.0.0.dev6"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev5"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev6"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev5"
+python -m pip install "inklet[volume,render]==4.0.0.dev6"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,7 +29,26 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Shared plotting and composition in dev5
+## Reusable compositions in dev6
+
+[Reusable compositions](composition-recipes.md) add required content slots,
+independent instances, nested attachment points and placement edits. Copies
+retain live data dependencies while isolating supported authoring definitions.
+Changing a nested module label or replacing content moves dependent ports
+and links when the document rebuilds.
+
+The complete example fills one layout with two independently styled plots,
+different native 3D geometry and a nested workflow. Both instances export at
+180 and 150 mm and respond to a shared data update while prior compiled
+snapshots remain unchanged. Input diagnostics, coordinate units, top alignment,
+cache invalidation and guide execution are covered by regression checks.
+
+![A reusable report combining a live plot, 3D and a nested workflow](assets/guides/composition-recipes.png)
+
+Serialized project templates, asset manifests and browser layout editing remain
+open roadmap items. This release develops the shared Python composition API.
+
+## Shared plotting and composition retained from dev5
 
 [Reusable plot recipes](plot-recipes.md) add copied/composed instructions and
 independent styling while retaining explicit live data dependencies. Per-axis
@@ -105,7 +124,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev5 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev6 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

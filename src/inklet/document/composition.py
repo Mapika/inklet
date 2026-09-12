@@ -13,6 +13,35 @@ from .compiler import LayoutError
 
 
 @dataclass(frozen=True)
+class _Slot(BuildSpec):
+    name: str
+
+    def signature(self, trail=()): return ('composition-slot', self.name)
+
+    def render(self, context, width=None, height=None):
+        raise LayoutError(f'unbound composition slot {self.name!r}; use instantiate()')
+
+
+def _copy_recipe(value, memo):
+    """Copy supported authoring definitions, keeping external dependencies live."""
+    from copy import copy
+    from .spec import PlotSpec
+    from .module import ModuleSpec
+    if isinstance(value, (Composition, PlotSpec, ComponentSpec, ModuleSpec)):
+        if id(value) not in memo:
+            result = copy(value)
+            memo[id(value)] = result
+            result.__dict__ = {k:_copy_recipe(v, memo) for k,v in vars(value).items()}
+        return memo[id(value)]
+    if isinstance(value, (_Part, LayoutValue)):
+        return type(value)(**{k:_copy_recipe(v, memo) for k,v in vars(value).items()})
+    if isinstance(value, dict): return {k:_copy_recipe(v, memo) for k,v in value.items()}
+    if isinstance(value, list): return [_copy_recipe(v, memo) for v in value]
+    if isinstance(value, tuple): return tuple(_copy_recipe(v, memo) for v in value)
+    return freeze(value)
+
+
+@dataclass(frozen=True)
 class LayoutValue:
     """A scalar layout expression evaluated after its dependencies are measured."""
     operation: str
@@ -58,6 +87,7 @@ class Composition(BuildSpec):
     _links: list = field(default_factory=list, repr=False)
     _annotations: list = field(default_factory=list, repr=False)
     bindings: dict = field(default_factory=dict)
+    _ports: dict = field(default_factory=dict, repr=False)
 
     def __post_init__(self):
         self.width = length(self.width, 'composition width')
@@ -100,6 +130,71 @@ class Composition(BuildSpec):
                 return item
         raise KeyError(name)
 
+    def slot(self, name, **placement):
+        """Declare a required content input with the same placement options as add()."""
+        self.add(name, _Slot(name), **placement)
+        return self
+
+    def copy(self):
+        """Copy nested compositions, plots, modules and component instructions.
+
+        Literal containers and arrays are independent. Data, scales, Series,
+        static Diagrams, factories and other external BuildSpecs remain shared.
+        """
+        return _copy_recipe(self, {})
+
+    def instantiate(self, **items):
+        """Create an independent recipe, filling required slots and replacing defaults.
+
+        Keys name direct children. Every direct slot is required; unknown keys
+        fail before copying. Supplied supported recipes are copied as well.
+        Instantiate nested templates separately before supplying them as inputs.
+        """
+        names = {p.name for p in self._parts}
+        unknown = items.keys() - names
+        missing = {p.name for p in self._parts if isinstance(p.item, _Slot)} - items.keys()
+        if unknown: raise LayoutError(f'unknown composition inputs: {", ".join(sorted(unknown))}')
+        if missing: raise LayoutError(f'missing composition inputs: {", ".join(sorted(missing))}')
+        memo = {}
+        result = _copy_recipe(self, memo)
+        for name, item in items.items(): result.replace(name, _copy_recipe(item, memo))
+        return result
+
+    def configure(self, *, width=None, height=None, unit=None, fit_top=None):
+        """Atomically update authored page dimensions or coordinate units."""
+        updates = {name:length(value, f'composition {name}') for name,value in
+                   (('width',width),('height',height),('unit',unit)) if value is not None}
+        if fit_top is not None: updates['fit_top'] = bool(fit_top)
+        self.__dict__.update(updates)
+        return self
+
+    def place(self, name, **placement):
+        """Edit a child's placement without replacing its content or named links.
+
+        Accepts x, y, anchor, width and height as in add(). Expressions and
+        resulting geometry are validated during compilation.
+        """
+        from dataclasses import replace
+        unknown = placement.keys() - {'x','y','anchor','width','height'}
+        if unknown: raise TypeError(f'unknown placement options: {", ".join(sorted(unknown))}')
+        for index,part in enumerate(self._parts):
+            if part.name == name:
+                self._parts[index] = replace(part, **freeze(placement))
+                return self
+        raise KeyError(name)
+
+    def port(self, name, target):
+        """Expose a child's name:anchor as a reusable composition attachment point."""
+        if not isinstance(name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*', name):
+            raise ValueError('port names start with a letter and contain letters, digits, underscores or hyphens')
+        if not isinstance(target,str) or not target or target.count(':') > 1:
+            raise ValueError('port targets must be name or name:anchor strings')
+        child,sep,anchor = target.partition(':')
+        if child not in {p.name for p in self._parts} or (sep and not anchor):
+            raise LayoutError(f'unknown composition port target {target!r}')
+        self._ports[name] = target
+        return self
+
     def constrain(self, value, *, minimum=0, message='composition needs more space'):
         """Require an expression to meet a minimum; fail before drawing."""
         self._constraints.append((value, minimum, message))
@@ -118,7 +213,7 @@ class Composition(BuildSpec):
     def signature(self, trail=()):
         return ('composition', self.width, self.height, self.unit, self.fit_top,
                 tuple(fingerprint(vars(p), trail) for p in self._parts),
-                fingerprint((self._constraints, self._links, self._annotations, self.bindings), trail))
+                fingerprint((self._constraints, self._links, self._annotations, self.bindings, self._ports), trail))
 
     def render(self, context, width=None, height=None):
         from ..figure import Figure
@@ -223,9 +318,17 @@ class Composition(BuildSpec):
                 content = annotate(endpoint(target), text, within=content, **evaluate(options))
             from ..layout.labels import place_labels
             content = place_labels(content)
-        if self.fit_top: content = content.translated(0, -min(0, content.bbox.y0))
-        return Diagram(children=(content,), kind='composition', envelope_override=
+        shift = -min(0, content.bbox.y0) if self.fit_top else 0
+        if shift: content = content.translated(0, shift)
+        result = Diagram(children=(content,), kind='composition', envelope_override=
                        Envelope.from_rect(Rect(0,0,page['width']*self.unit,page['height']*self.unit)))
+        from ..core import Vec2
+        for name,target in self._ports.items():
+            child,sep,anchor = target.partition(':')
+            wrapper = place(child)
+            point = wrapper.transform.apply(placed_anchor(build(child), anchor if sep else 'center'))
+            result.anchor(name, point + Vec2(0,shift))
+        return result
 
 
 def composition(width, height, *, unit=1, fit_top=False):

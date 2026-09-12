@@ -122,3 +122,6 @@ dimensions. Increase the cell/page size, wrap labels, or revise the arrangement.
 For measured x/y expressions and connections, continue with
 [diagrams](diagrams.md). See [troubleshooting](troubleshooting.md) for clipping,
 font sizes and common layout failures.
+
+For required content inputs, independent instances and nested attachment points,
+see [reusable compositions](composition-recipes.md) (4.0 preview).

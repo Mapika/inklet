@@ -212,7 +212,7 @@ List built-in physical formats accepted by preset().
 
 Create a nested grid. Children inherit the enclosing document theme.
 
-#### `class Composition(width: 'float', height: 'float', unit: 'float' = 1, fit_top: 'bool' = False, _parts: 'list' = <factory>, _constraints: 'list' = <factory>, _links: 'list' = <factory>, _annotations: 'list' = <factory>, bindings: 'dict' = <factory>) -> None`
+#### `class Composition(width: 'float', height: 'float', unit: 'float' = 1, fit_top: 'bool' = False, _parts: 'list' = <factory>, _constraints: 'list' = <factory>, _links: 'list' = <factory>, _annotations: 'list' = <factory>, bindings: 'dict' = <factory>, _ports: 'dict' = <factory>) -> None`
 
 A figure assembled from named children and measured expressions.
 
@@ -220,6 +220,12 @@ A figure assembled from named children and measured expressions.
 * `point(name, anchor='center')` -- Reference a placed child's compass point or registered port.
 * `add(name, item, *, x=0, y=0, anchor=None, width=None, height=None)`
 * `replace(name, item)` -- Replace a child while preserving its placement and dependent references.
+* `slot(name, **placement)` -- Declare a required content input with the same placement options as add().
+* `copy()` -- Copy nested compositions, plots, modules and component instructions.
+* `instantiate(**items)` -- Create an independent recipe, filling required slots and replacing defaults.
+* `configure(*, width=None, height=None, unit=None, fit_top=None)` -- Atomically update authored page dimensions or coordinate units.
+* `place(name, **placement)` -- Edit a child's placement without replacing its content or named links.
+* `port(name, target)` -- Expose a child's name:anchor as a reusable composition attachment point.
 * `constrain(value, *, minimum=0, message='composition needs more space')` -- Require an expression to meet a minimum; fail before drawing.
 * `link(source, target, **options)` -- Route a branch or return between named children (`name:port`).
 * `annotate(target, text, **options)` -- Place a measured callout after every child and connection exists.

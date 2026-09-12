@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 4.0.0.dev6 — 2026-09-12
+
+Sixth development preview: reusable mixed-content compositions.
+3.1.0 remains the stable release.
+
+- Add Composition.slot() and instantiate() for required named content inputs
+  and replaceable defaults, with clear missing/unknown-input diagnostics.
+- Add independent Composition.copy() across nested compositions, plots, modules
+  and component instructions while retaining explicit live data dependencies
+  and shared definitions within each copy.
+- Expose nested attachment points with Composition.port(); preserve physical
+  coordinates through placement, child replacement, coordinate units and top fitting.
+- Add placement edits with Composition.place() and atomic dimension updates
+  with configure(), retaining content and named relationships.
+- Add two reusable plot/diagram/native-3D reports at two widths, an illustrated
+  guide, live-data revision checks and installed-package coverage.
+
 ## 4.0.0.dev5 — 2026-09-12
 
 Fifth development preview: shared plotting, customization and composition.
