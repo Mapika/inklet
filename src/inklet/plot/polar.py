@@ -974,6 +974,9 @@ class PolarPanel:
         `closed` defaults to closing the curve on a whole-disc panel and
         leaving it open on a fan. A sample set that does not go all the way
         round a full panel wants `closed=False`.
+        Closure continues to the equivalent first angle in the direction
+        from the first to the last sample. Interior angles are used as given;
+        unwrap them explicitly when a sequence crosses the angular seam.
         """
         data = [(float(t), float(r)) for t, r in points]
         if len(data) < 2:
@@ -1306,7 +1309,16 @@ class PolarPanel:
     def _track(self, data: Sequence[tuple[float, float]], closed: bool,
                interpolate: bool) -> list[Vec2]:
         """The vertices of a polar path through `(theta, r)` samples."""
-        pairs = list(data) + ([data[0]] if closed and len(data) > 1 else [])
+        if len(data) < 2:
+            raise DiagramError("a polar track needs at least two points")
+        pairs = list(data)
+        if closed:
+            first, radius = data[0]
+            turns = (data[-1][0] - first) / self.theta.turn
+            # 330 -> 0 must finish at 360, not retrace the preceding 330
+            # degrees. Descending samples finish on the preceding turn.
+            end = first + (math.ceil(turns) if turns >= 0 else math.floor(turns)) * self.theta.turn
+            pairs.append((end, radius))
         if not interpolate:
             return [self.point(t, r) for t, r in pairs]
         out: list[Vec2] = [self.point(*pairs[0])]
@@ -1316,7 +1328,9 @@ class PolarPanel:
             for i in range(1, steps + 1):
                 f = i / steps
                 out.append(self.point(t0 + (t1 - t0) * f, r0 + (r1 - r0) * f))
-        return out[:-1] if closed else out
+        # Retain the endpoint: a band joins two individually closed tracks.
+        # Dropping it cuts a wedge out of the band at the angular seam.
+        return out
 
 
 # -- construction ---------------------------------------------------------

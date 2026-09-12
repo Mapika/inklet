@@ -284,6 +284,39 @@ def test_interpolation_can_be_turned_off() -> None:
     assert len(points) <= 13
 
 
+@pytest.mark.parametrize('unit,turn', [('deg',360), ('rad',2*math.pi), ('turn',1), ('grad',400)])
+@pytest.mark.parametrize('winding', ['cw','ccw'])
+@pytest.mark.parametrize('direction', [1,-1])
+def test_closed_curve_travels_once_around_the_pole(unit, turn, winding, direction):
+    angles = [direction*k*turn/12 for k in range(12)]
+    node = polar(20, r=(0,10), unit=unit, winding=winding).line(
+        [(a, 5 + math.cos(2*math.pi*a/turn)) for a in angles]).build()
+    points = _points(node, MARK_LINE_KIND)
+    increments = [math.atan2(a.x*b.y-a.y*b.x, a.x*b.x+a.y*b.y)
+                  for a,b in zip(points, points[1:])]
+    sign = direction*(1 if winding=='cw' else -1)
+    assert all(sign*delta >= -1e-12 for delta in increments)
+    assert sum(increments) == pytest.approx(sign*2*math.pi)
+
+
+@pytest.mark.parametrize('direction', [1,-1])
+@pytest.mark.parametrize('endpoint', [False,True])
+def test_closed_band_covers_the_annulus_without_a_seam_wedge(direction, endpoint):
+    angles = [direction*k*30 for k in range(13 if endpoint else 12)]
+    node = polar(20, r=(0,10)).band(angles, 2, 4).build()
+    points = _points(node, MARK_KIND)
+    area = abs(sum(a.x*b.y-b.x*a.y for a,b in zip(points, points[1:]+points[:1]))/2)
+    assert area == pytest.approx(math.pi*(8**2-4**2), rel=.001)
+
+
+def test_open_polar_curve_keeps_supplied_angular_direction():
+    node = polar(20, r=(0,10), winding='cw').line([(330,5),(0,5)], closed=False).build()
+    points = _points(node, MARK_LINE_KIND)
+    swept = sum(math.atan2(a.x*b.y-a.y*b.x,a.x*b.x+a.y*b.y)
+                for a,b in zip(points,points[1:]))
+    assert swept == pytest.approx(math.radians(-330))
+
+
 def test_a_rose_wedge_spans_its_own_bin() -> None:
     """Four bars over a whole turn are quadrants; `width` shrinks each one."""
     p = polar(20, r=(0, 4))

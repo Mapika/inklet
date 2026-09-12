@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fix closed polar curves retracing the angular range and shaded bands crossing
+  themselves. Complete the closing arc in sample order and retain both band
+  endpoints; refresh polar previews and cover angular units and winding directions.
+
 - Reorganize documentation around plotting, interactive documents and microscopy.
   Add a searchable visual plot gallery and six guides with 22 rendered, runnable
   examples; check plot-family coverage, gallery links and guide execution.

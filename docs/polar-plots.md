@@ -16,6 +16,11 @@ The band contains supplied absolute radial bounds; the curve and observations
 share the same angle/radius mapping. `closed=True` joins the final sample back
 to the first around the circle.
 
+Closed curves complete the turn in sample order. Use `closed=False` for partial
+curves, and unwrap interior angles when the data crosses the 0°/360° seam.
+Small white backgrounds behind radial tick labels keep them readable over the
+grid and data; `r_axis(..., plate=False)` removes those backgrounds.
+
 ```python
 import inklet as i
 import math
