@@ -31,17 +31,16 @@ their signatures and report schemas may change.
 
 ## 4.0 development preview
 
-**4.0.0.dev3** adds shared compiled rendering, packed dense markers, offline
-WebGL2/Canvas viewing, and a plot-style inspector with undo/redo and saved
-visual overrides. Linked charts, maps and scientific reports preserve selections,
-source revisions and reproducible vector exports.
+**4.0.0.dev4** fixes closed polar curves and shaded bands, and adds a visual
+plot gallery with 22 runnable examples. It retains shared compiled rendering,
+offline viewing, linked reports, and reproducible plot editing with undo/redo.
 ```sh
-python -m pip install "inklet==4.0.0.dev3"
+python -m pip install "inklet==4.0.0.dev4"
 ```
 
 [Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
-[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev3)
+[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev4)
 
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,

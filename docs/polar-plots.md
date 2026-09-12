@@ -16,6 +16,9 @@ The band contains supplied absolute radial bounds; the curve and observations
 share the same angle/radius mapping. `closed=True` joins the final sample back
 to the first around the circle.
 
+The closing-arc and band-seam corrections shown here require **4.0.0.dev4**
+or later; the APIs also exist in stable 3.1.0.
+
 Closed curves complete the turn in sample order. Use `closed=False` for partial
 curves, and unwrap interior angles when the data crosses the 0°/360° seam.
 Small white backgrounds behind radial tick labels keep them readable over the

@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev3
+# Inklet 4.0.0.dev4
 
-The third 4.0 development release includes the linked plotting, mapping,
+The fourth 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev3"
+python -m pip install "inklet==4.0.0.dev4"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev3"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev4"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev3"
+python -m pip install "inklet[volume,render]==4.0.0.dev4"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,7 +29,19 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Rendering and authoring in dev3
+## Plot corrections and visual guides in dev4
+
+Closed polar curves now complete the angular turn without retracing the samples,
+and closed bands retain their endpoints without a missing wedge. This fixes
+incorrect self-crossings in both static exports and their previews.
+
+The [visual plot gallery](plot-types.md) adds 22 rendered examples across six
+focused guides. Navigation now separates core plots, interactive documents,
+microscopy and development studies. Existing guide URLs remain valid.
+
+![Corrected closed polar curve and uncertainty band](assets/guides/plots-polar-curve.png)
+
+## Rendering and authoring retained from dev3
 
 This preview adds shared [native compiled scenes](compiled-scenes.md),
 [packed markers](marker-batches.md), [spatial culling](marker-culling.md), and
@@ -37,7 +49,7 @@ an offline [compiled viewer](compiled-viewer.md) with reported WebGL2/Canvas
 fallback. The [regional report](regional-report.md) connects that executor to
 keyed selection, filtering and saved-state revision controls.
 
-The new [plot-style inspector](visual-editing.md) supports named colours, marker
+The [plot-style inspector](visual-editing.md) supports named colours, marker
 sizes and line widths, undo/redo, and saved overrides for Python reconstruction.
 It preserves compatible edits across revisions and reports orphaned targets.
 This is a bounded start on authoring, not the full 4.0 editor.
@@ -74,7 +86,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev3 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev4 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

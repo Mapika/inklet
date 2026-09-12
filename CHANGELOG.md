@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 4.0.0.dev4 — 2026-09-12
+
+Fourth development preview: correct closed polar geometry and make the plot
+documentation visual and easier to navigate. 3.1.0 remains stable.
+
 - Fix closed polar curves retracing the angular range and shaded bands crossing
   themselves. Complete the closing arc in sample order and retain both band
   endpoints; refresh polar previews and cover angular units and winding directions.
