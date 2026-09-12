@@ -33,7 +33,7 @@
     {% block content %}
     {% if page.meta.layout == 'home' %}{% include 'home.html' %}
     {% elif page.meta.layout == 'gallery' %}
-      <div class="page-intro prose">{{ page.content }}</div>{% include 'gallery.html' %}
+      <div class="page-intro prose">{{ page.content }}</div>{% if page.meta.catalog == 'plots' %}{% include 'plot-gallery.html' %}{% else %}{% include 'gallery.html' %}{% endif %}
     {% else %}
       <div class="reading-layout"><article class="prose">
         <div class="eyebrow">{% if page.parent %}{{ page.parent.title }}{% else %}Documentation{% endif %}</div>

@@ -1,12 +1,5 @@
 [
   {
-    "page": "plot-types.md",
-    "block": 1,
-    "object": "doc",
-    "image": "plot-types-1.png",
-    "alt": "Categorical bars for illustrative control and treatment responses"
-  },
-  {
     "page": "axes-and-scales.md",
     "block": 1,
     "object": "doc",
@@ -453,5 +446,159 @@
     "object": "snug",
     "image": "cookbook-fit-graph.png",
     "alt": "A layered graph fitted to its available column width"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-line.png",
+    "alt": "Lines"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plots-step.png",
+    "alt": "Steps"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 3,
+    "object": "doc",
+    "image": "plots-scatter.png",
+    "alt": "Scatter"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 4,
+    "object": "doc",
+    "image": "plots-markers.png",
+    "alt": "Custom markers"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-bars.png",
+    "alt": "Categorical bars"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plots-grouped-bars.png",
+    "alt": "Grouped bars"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 3,
+    "object": "doc",
+    "image": "plots-stacked-bars.png",
+    "alt": "Stacked bars"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 4,
+    "object": "doc",
+    "image": "plots-horizontal-bars.png",
+    "alt": "Horizontal bars"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 5,
+    "object": "doc",
+    "image": "plots-fill.png",
+    "alt": "Filled areas"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 6,
+    "object": "doc",
+    "image": "plots-fill-between.png",
+    "alt": "Between curves"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 7,
+    "object": "doc",
+    "image": "plots-stackarea.png",
+    "alt": "Stacked areas"
+  },
+  {
+    "page": "distributions.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-hist.png",
+    "alt": "Histograms"
+  },
+  {
+    "page": "distributions.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plots-boxplot.png",
+    "alt": "Boxplots"
+  },
+  {
+    "page": "distributions.md",
+    "block": 3,
+    "object": "doc",
+    "image": "plots-violin.png",
+    "alt": "Violins"
+  },
+  {
+    "page": "distributions.md",
+    "block": 4,
+    "object": "doc",
+    "image": "plots-swarm.png",
+    "alt": "Swarms"
+  },
+  {
+    "page": "uncertainty.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-band.png",
+    "alt": "Bands"
+  },
+  {
+    "page": "uncertainty.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plots-errorbars.png",
+    "alt": "Error bars"
+  },
+  {
+    "page": "uncertainty.md",
+    "block": 3,
+    "object": "doc",
+    "image": "plots-line-errors.png",
+    "alt": "Line with errors"
+  },
+  {
+    "page": "uncertainty.md",
+    "block": 4,
+    "object": "doc",
+    "image": "plots-series.png",
+    "alt": "Reusable series"
+  },
+  {
+    "page": "matrices.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-matrix.png",
+    "alt": "Heatmaps"
+  },
+  {
+    "page": "polar-plots.md",
+    "block": 1,
+    "object": "fig",
+    "image": "plots-polar-curve.png",
+    "alt": "Polar curves"
+  },
+  {
+    "page": "polar-plots.md",
+    "block": 2,
+    "object": "fig",
+    "image": "plots-rose.png",
+    "alt": "Rose plots"
   }
 ]

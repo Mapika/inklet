@@ -95,7 +95,8 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert {'plot-types/','axes-and-scales/','dense-data/'}.issubset(locations)
     assert not any(row['location']=='dense-data/#dense-data' for row in search['docs'])
     for location,section in [('axes-and-scales/','Plots'),('api/','Reference'),
-                             ('calibrated-volumes/','Research preview')]:
+                             ('calibrated-volumes/','Microscopy (preview)'),
+                             ('visual-editing/','Interactive documents (preview)')]:
         rows=[row for row in search['docs'] if row['location'].split('#')[0]==location]
         assert rows and all(row['section']==section and row['page_title'] for row in rows)
     axis_page=site/'axes-and-scales/index.html'
@@ -114,7 +115,9 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
                    'layout', 'presets', 'export-review', 'diagrams', 'diagram-components',
                    'three-images', 'publication-plots', 'calibrated-volumes',
                    'oblique-sections', 'slabs-and-regions', 'channels-and-contours',
-                   'label-measurements', 'microscopy-tiff', 'concepts', 'cookbook')
+                   'label-measurements', 'microscopy-tiff', 'concepts', 'cookbook',
+                   'lines-and-points', 'bars-and-areas', 'distributions', 'uncertainty',
+                   'matrices', 'polar-plots', 'interactive-documents')
     for guide in guide_pages:
         images = [target for tag, target in parsed_pages[(site/guide/'index.html').resolve()].references
                   if tag == 'img' and '/brand/' not in target]
@@ -139,3 +142,36 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
         assert destination in parsed_pages
         if location.fragment:
             assert location.fragment in parsed_pages[destination].ids
+
+    plots = json.loads((ROOT/'tools/plot_catalog.json').read_text())
+    plot_page = site/'plot-types/index.html'
+    for entry in plots:
+        assert entry['category'] in parsed_pages[plot_page.resolve()].gallery_filters
+        assert entry['image'] in plot_page.read_text()
+        location = urlsplit(entry['page'])
+        assert location.fragment in parsed_pages[(site/location.path/'index.html').resolve()].ids
+
+
+def test_plot_catalog_covers_core_families_with_rendered_source():
+    import ast
+    import re
+
+    catalog = json.loads((ROOT/'tools/plot_catalog.json').read_text())
+    previews = json.loads((ROOT/'tools/docs_previews.json').read_text())
+    methods = {method for entry in catalog for method in entry['methods']}
+    expected = {f'Panel.{name}' for name in (
+        'line', 'step', 'scatter', 'marks', 'bars', 'fill', 'fill_between',
+        'stackarea', 'hist', 'boxplot', 'violin', 'swarm', 'band', 'errorbars',
+        'matrix', 'colorbar')}
+    expected.update(f'PolarPanel.{name}' for name in ('line', 'scatter', 'band', 'rose', 'mean_vector'))
+    expected.add('PlotSpec.series')
+    assert expected <= methods
+    for entry in catalog:
+        source = (ROOT/'docs'/entry['source']).read_text()
+        blocks = re.findall(r'^```python\n(.*?)^```', source, re.M | re.S)
+        tree = ast.parse(blocks[entry['block']-1])
+        calls = {node.func.attr for node in ast.walk(tree)
+                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)}
+        assert all(method.split('.')[-1] in calls for method in entry['methods'])
+        assert any(row['page'] == entry['source'] and row['block'] == entry['block']
+                   and entry['image'] == 'assets/guides/'+row['image'] for row in previews)

@@ -46,17 +46,42 @@ nav:
   - First figure: quickstart.md
   - How Inklet works: concepts.md
 - Plots:
-  - Plotting overview: plotting.md
-  - Choose a plot type: plot-types.md
+  - Visual plot gallery: plot-types.md
+  - Build and combine plots: plotting.md
+  - Plot guides:
+    - Lines and points: lines-and-points.md
+    - Bars and areas: bars-and-areas.md
+    - Distributions: distributions.md
+    - Uncertainty: uncertainty.md
+    - Matrices: matrices.md
+    - Polar plots: polar-plots.md
   - Axes, scales and text: axes-and-scales.md
-  - Shared plotting quality: plot-quality.md
-  - Dense data: dense-data.md
   - Live data and categories: data.md
-  - Advanced plot controls: publication-plots.md
+  - Dense data: dense-data.md
+  - Advanced plot layout: publication-plots.md
 - Whole figures:
   - Panel layout: layout.md
   - Presets and styling: presets.md
   - Review and export: export-review.md
+- Interactive documents (preview):
+  - Choose an interactive workflow: interactive-documents.md
+  - Install the 4.0 preview: development-preview.md
+  - Native figure viewer: compiled-viewer.md
+  - Linked plots: linked-plots.md
+  - Category panels: linked-facets.md
+  - pandas and Polars inputs: table-inputs.md
+  - Dates and time series: time-series.md
+  - Distributions and intervals: statistical-views.md
+  - Region maps: linked-maps.md
+  - Replace source data: data-revisions.md
+  - Edit plot appearance: visual-editing.md
+  - Complete reports:
+    - Regional report: regional-report.md
+    - World map: world-map.md
+    - Engineering report: engineering-report.md
+    - Image measurements: scientific-report.md
+    - Mesh fields: mesh-fields.md
+    - Contours and streamlines: contours-streamlines.md
 - Diagrams:
   - Measured connections: diagrams.md
   - Component library: diagram-components.md
@@ -69,11 +94,24 @@ nav:
   - Annotations and measurements: scene-annotations.md
   - Scene templates: scene-templates.md
   - Annotated scene example: complex-scene.md
+- Microscopy (preview):
+  - Calibrated volumes: calibrated-volumes.md
+  - Oblique sections: oblique-sections.md
+  - Slab projections and regions: slabs-and-regions.md
+  - Channels and contours: channels-and-contours.md
+  - Per-label intensities: label-measurements.md
+  - TIFF import: microscopy-tiff.md
+  - Biology examples:
+    - Coordinated panels: biology-panels.md
+    - Real microscopy and organelles: real-biology.md
+    - Shared oblique planes: oblique-biology.md
+    - Linked slab regions: slab-biology.md
+    - Fluorescence channels: fluorescence-biology.md
+    - Microscopy intensity plots: label-intensities.md
 - Examples:
   - Figure gallery: examples.md
   - Everyday plots from CSV: general-plots.md
-  - Plot rendering review: plotting-engine.md
-  - Example directory: example-library.md
+  - All example scripts: example-library.md
   - Direct drawing cookbook: cookbook.md
   - Twenty-panel figure: stress20.md
   - Showcase recipes:
@@ -92,56 +130,28 @@ nav:
   - Troubleshooting: troubleshooting.md
   - Compatibility: compatibility.md
   - Migration: migration.md
-- Research preview:
-  - 4.0 development preview: development-preview.md
-  - 4.0 foundations: v4-foundations.md
-  - Browser rendering study: browser-rendering.md
-  - Linked lines, bars and scatter: linked-plots.md
-  - Linked category panels: linked-facets.md
-  - pandas and Polars inputs: table-inputs.md
-  - Linked dates and time series: time-series.md
-  - Linked distributions and intervals: statistical-views.md
-  - Linked region maps: linked-maps.md
-  - Real world map: world-map.md
-  - Complete regional report: regional-report.md
-  - Reproducible plot editing: visual-editing.md
-  - Linked engineering report: engineering-report.md
-  - Calibrated image measurements: scientific-report.md
-  - Linked mesh fields: mesh-fields.md
-  - Contours and streamlines: contours-streamlines.md
-  - Replace figure data: data-revisions.md
-  - Overview and availability: research-preview.md
-  - Figure planning studies:
-    - Regions and crossings: research-study.md
-    - Physical label movement: research-revision.md
-  - Microscopy guides:
-    - Calibrated volumes: calibrated-volumes.md
-    - Oblique sections: oblique-sections.md
-    - Slab projections and regions: slabs-and-regions.md
-    - Channels and contours: channels-and-contours.md
-    - Per-label intensities: label-measurements.md
-    - TIFF import: microscopy-tiff.md
-  - Biology examples:
-    - Coordinated panels: biology-panels.md
-    - Real microscopy and organelles: real-biology.md
-    - Shared oblique planes: oblique-biology.md
-    - Linked slab regions: slab-biology.md
-    - Fluorescence channels: fluorescence-biology.md
-    - Microscopy intensity plots: label-intensities.md
-- Project:
+- Development:
   - Roadmap to 4.0: roadmap.md
   - Contributing: https://github.com/Mapika/inklet/blob/master/CONTRIBUTING.md
   - Changelog: https://github.com/Mapika/inklet/blob/master/CHANGELOG.md
   - Release checks: release-checks.md
   - Logo and brand assets: brand.md
-  - Engine measurements: rendering-engine.md
-  - Transparency and compositing: compositing.md
-  - Reusable vector hatching: hatching.md
-  - Curves and painted windows: clipping.md
-  - Shared compiled scenes: compiled-scenes.md
-  - Packed vector markers: marker-batches.md
-  - Compiled-scene browser viewer: compiled-viewer.md
-  - Spatial marker culling: marker-culling.md
+  - Engine studies:
+    - Engine measurements: rendering-engine.md
+    - Plot rendering review: plotting-engine.md
+    - Shared plotting quality: plot-quality.md
+    - Transparency and compositing: compositing.md
+    - Vector hatching: hatching.md
+    - Curves and painted windows: clipping.md
+    - Compiled scenes: compiled-scenes.md
+    - Packed markers: marker-batches.md
+    - Spatial marker culling: marker-culling.md
+    - Browser rendering: browser-rendering.md
+    - 4.0 foundations: v4-foundations.md
+  - Research studies:
+    - Overview and availability: research-preview.md
+    - Regions and crossings: research-study.md
+    - Physical label movement: research-revision.md
   - Design and history:
     - Proposed 4.0 engine: design/v4.md
     - Browser backend decision: design/browser-backends.md

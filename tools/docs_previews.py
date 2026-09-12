@@ -8,6 +8,7 @@ checkout. Generated PNGs are committed so hosted docs need no render dependency.
 from __future__ import annotations
 
 import json
+import argparse
 import os
 from pathlib import Path
 import re
@@ -22,6 +23,14 @@ def main():
     from inklet.plot import Panel
 
     entries = json.loads((ROOT/'tools/docs_previews.json').read_text())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--page', action='append', help='Render only this manifest page; repeat for multiple pages')
+    args = parser.parse_args()
+    if args.page:
+        unknown = set(args.page)-{entry['page'] for entry in entries}
+        if unknown:
+            parser.error('unknown preview pages: '+', '.join(sorted(unknown)))
+        entries = [entry for entry in entries if entry['page'] in args.page]
     pages = dict.fromkeys(entry['page'] for entry in entries)
     previous = Path.cwd()
     original_theme = i.current_theme()

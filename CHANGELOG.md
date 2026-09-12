@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Reorganize documentation around plotting, interactive documents and microscopy.
+  Add a searchable visual plot gallery and six guides with 22 rendered, runnable
+  examples; check plot-family coverage, gallery links and guide execution.
+
 ## 4.0.0.dev3 — 2026-09-12
 
 Third development preview: shared scene execution, dense marker rendering,

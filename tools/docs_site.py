@@ -107,6 +107,7 @@ def on_page_markdown(markdown, page, config, files):
 
 def on_page_context(context, page, config, nav):
     context['docs_gallery'] = json.loads((ROOT/'tools/docs_gallery.json').read_text())
+    context['docs_plots'] = json.loads((ROOT/'tools/plot_catalog.json').read_text())
     version = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
     context['docs_version'] = version.replace('.0.dev', ' dev ')
     headings = list(page.toc)

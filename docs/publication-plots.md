@@ -1,6 +1,7 @@
-# Publication plot controls
+# Advanced plot layout
 
-These additions support composite figures such as the [twenty-panel stress test](stress20.md).
+Control grouped categories, external insets and dense scatter in composite
+figures such as the [twenty-panel stress test](stress20.md).
 
 For manuscript figures, keep panel letters, axes, units, scale bars, legends and
 necessary annotations in the artwork. Put the figure title, panel descriptions,

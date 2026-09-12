@@ -37,19 +37,9 @@ Logarithmic domains and values must be positive.
 
 ## Select a mark
 
-| Data or task | Methods | Notes |
-|---|---|---|
-| Ordered observations | `line`, `step` | `step(where='post')` holds a value until the next x |
-| Individual observations | `scatter` | Per-point sizes and colours; markers include `circle`, `square`, `plus` |
-| Uncertainty | `band`, `errorbars`, `series` | Bands use absolute bounds; error bars use error magnitudes |
-| Categories | `bars` | `bar_colors` is per category; `colors` is per series |
-| Distributions | `hist`, `boxplot`, `violin` | Histograms can use density normalization |
-| Composition over x | `stackarea`, `fill_between` | Stacked areas require nonnegative series-major values |
-| Gridded values | `matrix` | Colour ramp and scale can feed `colorbar()` |
-| Reference regions | `hline`, `vline`, `hspan`, `vspan` | Declare background spans before the marks they should sit behind |
-| Explanation | `annotate`, `bracket`, `inset` | Placement uses the measured plot and its furniture |
-
-For signatures and less common marks, see [the API reference](api.md).
+The [visual plot gallery](plot-types.md) shows every core mark family with
+rendered examples and input conventions. Choose a plot there, then use this
+guide to combine marks, legends, annotations and insets in one live document.
 
 ## Uncertainty and legends
 

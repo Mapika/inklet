@@ -1,0 +1,314 @@
+[
+  {
+    "title": "Lines",
+    "description": "A continuous response connects the supplied observations in order.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#lines",
+    "image": "assets/guides/plots-line.png",
+    "methods": [
+      "Panel.line"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 1
+  },
+  {
+    "title": "Steps",
+    "description": "A step holds a value until the next observation.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#steps",
+    "image": "assets/guides/plots-step.png",
+    "methods": [
+      "Panel.step"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 2
+  },
+  {
+    "title": "Scatter",
+    "description": "Scatter shows individual observations without connecting them.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#scatter",
+    "image": "assets/guides/plots-scatter.png",
+    "methods": [
+      "Panel.scatter"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 3
+  },
+  {
+    "title": "Custom markers",
+    "description": "A reusable drawing can mark each observation.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#custom-markers",
+    "image": "assets/guides/plots-markers.png",
+    "methods": [
+      "Panel.marks"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 4
+  },
+  {
+    "title": "Categorical bars",
+    "description": "Compare values across named categories.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#categorical-bars",
+    "image": "assets/guides/plots-bars.png",
+    "methods": [
+      "Panel.bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 1
+  },
+  {
+    "title": "Grouped bars",
+    "description": "Grouped bars compare several series within each category.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#grouped-bars",
+    "image": "assets/guides/plots-grouped-bars.png",
+    "methods": [
+      "Panel.bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 2
+  },
+  {
+    "title": "Stacked bars",
+    "description": "Stacked bars show each contribution and the total at each category.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#stacked-bars",
+    "image": "assets/guides/plots-stacked-bars.png",
+    "methods": [
+      "Panel.bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 3
+  },
+  {
+    "title": "Horizontal bars",
+    "description": "Horizontal bars give category labels more room.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#horizontal-bars",
+    "image": "assets/guides/plots-horizontal-bars.png",
+    "methods": [
+      "Panel.bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 4
+  },
+  {
+    "title": "Filled areas",
+    "description": "Fill the region between a curve and a stated baseline.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#filled-areas",
+    "image": "assets/guides/plots-fill.png",
+    "methods": [
+      "Panel.fill"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 5
+  },
+  {
+    "title": "Between curves",
+    "description": "Fill a region between two supplied curves.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#between-curves",
+    "image": "assets/guides/plots-fill-between.png",
+    "methods": [
+      "Panel.fill_between"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 6
+  },
+  {
+    "title": "Stacked areas",
+    "description": "Stacked areas accumulate nonnegative series over x.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#stacked-areas",
+    "image": "assets/guides/plots-stackarea.png",
+    "methods": [
+      "Panel.stackarea"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 7
+  },
+  {
+    "title": "Histograms",
+    "description": "Histograms count observations within explicit bins.",
+    "category": "Distributions",
+    "page": "distributions/#histograms",
+    "image": "assets/guides/plots-hist.png",
+    "methods": [
+      "Panel.hist"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 1
+  },
+  {
+    "title": "Boxplots",
+    "description": "Boxplots show the median, quartiles and Tukey whiskers.",
+    "category": "Distributions",
+    "page": "distributions/#boxplots",
+    "image": "assets/guides/plots-boxplot.png",
+    "methods": [
+      "Panel.boxplot"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 2
+  },
+  {
+    "title": "Violins",
+    "description": "Violins show a kernel-smoothed sample distribution.",
+    "category": "Distributions",
+    "page": "distributions/#violins",
+    "image": "assets/guides/plots-violin.png",
+    "methods": [
+      "Panel.violin"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 3
+  },
+  {
+    "title": "Swarms",
+    "description": "Swarms show every observation, including repeated values.",
+    "category": "Distributions",
+    "page": "distributions/#swarms",
+    "image": "assets/guides/plots-swarm.png",
+    "methods": [
+      "Panel.swarm"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 4
+  },
+  {
+    "title": "Bands",
+    "description": "A band joins supplied lower and upper bounds over x.",
+    "category": "Uncertainty",
+    "page": "uncertainty/#bands",
+    "image": "assets/guides/plots-band.png",
+    "methods": [
+      "Panel.band"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "uncertainty.md",
+    "block": 1
+  },
+  {
+    "title": "Error bars",
+    "description": "Error bars show distances from each estimate.",
+    "category": "Uncertainty",
+    "page": "uncertainty/#error-bars",
+    "image": "assets/guides/plots-errorbars.png",
+    "methods": [
+      "Panel.errorbars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "uncertainty.md",
+    "block": 2
+  },
+  {
+    "title": "Line with errors",
+    "description": "A line can carry its own supplied uncertainty.",
+    "category": "Uncertainty",
+    "page": "uncertainty/#line-with-errors",
+    "image": "assets/guides/plots-line-errors.png",
+    "methods": [
+      "Panel.line"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "uncertainty.md",
+    "block": 3
+  },
+  {
+    "title": "Reusable series",
+    "description": "A Series keeps the name, values, colour and absolute bounds together.",
+    "category": "Uncertainty",
+    "page": "uncertainty/#reusable-series",
+    "image": "assets/guides/plots-series.png",
+    "methods": [
+      "PlotSpec.series"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "uncertainty.md",
+    "block": 4
+  },
+  {
+    "title": "Heatmaps",
+    "description": "A colour key describes the same mapping as the matrix.",
+    "category": "Matrices",
+    "page": "matrices/#heatmaps",
+    "image": "assets/guides/plots-matrix.png",
+    "methods": [
+      "Panel.matrix",
+      "Panel.colorbar"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 1
+  },
+  {
+    "title": "Polar curves",
+    "description": "Show a response as a function of angle.",
+    "category": "Polar",
+    "page": "polar-plots/#polar-curves",
+    "image": "assets/guides/plots-polar-curve.png",
+    "methods": [
+      "PolarPanel.line",
+      "PolarPanel.scatter",
+      "PolarPanel.band"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "polar-plots.md",
+    "block": 1
+  },
+  {
+    "title": "Rose plots",
+    "description": "A rose draws radial bars at supplied angles.",
+    "category": "Polar",
+    "page": "polar-plots/#rose-plots",
+    "image": "assets/guides/plots-rose.png",
+    "methods": [
+      "PolarPanel.rose",
+      "PolarPanel.mean_vector"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "polar-plots.md",
+    "block": 2
+  }
+]
