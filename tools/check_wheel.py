@@ -180,7 +180,7 @@ def make_document():
     with LayoutEditor(art) as editor:
         editor.command("edit", {"path":"/input", "placement":{"x":5}})
         editor.command("gesture", {"path":"/input", "dx":1, "dy":1, "factor":1.1, "corner":"se"})
-        assert editor.overrides()["schema"] == "inklet.composition-layout/0.4"
+        assert editor.overrides()["schema"] == "inklet.composition-layout/0.5"
         label_root = i.composition(80,40)
         label_root.add("caption",i.module("Original"),x=5,y=5)
         label_editor = LayoutEditor(label_root)
@@ -190,6 +190,12 @@ def make_document():
         label_editor.command("edit",{"path":"/caption","styles":{"box":{"kind":"module-box","fill":"#ddeeff"}}})
         styled_copy,_ = label_root.with_layout_overrides(label_editor.overrides())
         assert styled_copy["caption"].box_style["fill"] == "#ddeeff"
+        camera_root = i.composition(60,40)
+        camera_root.add("model",i.component(i.solid,"cube",width=20),x=10,y=10)
+        camera_editor = LayoutEditor(camera_root)
+        camera_editor.command("edit",{"path":"/model","cameras":{"view":{"kind":"native-orbit","azimuth":12}}})
+        camera_copy,_ = camera_root.with_layout_overrides(camera_editor.overrides())
+        assert camera_copy["model"].kwargs["view"].azimuth == 12
         assert editor.overrides()["targets"]
         assert "Layout editor" in editor._html()
         assert "function sizeCanvas" in editor._html() and "--accent:" in editor._html()

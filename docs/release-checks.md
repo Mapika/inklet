@@ -98,7 +98,8 @@ the wheel and source archive from an existing, published GitHub release.
 It verifies the release's `SHA256SUMS` and runs Twine's strict metadata checks.
 It does not rebuild the packages, so GitHub and PyPI receive identical files.
 The workflow accepts stable tags such as `v3.1.0` and developmental tags such as
-`v4.0.0.dev1`, and runs from `master`. Development tags must be marked as GitHub
+`v4.0.0.dev1`, and release candidates such as `v4.0.0rc1`, and runs from
+`master`. Development and RC tags must be marked as GitHub
 prereleases; stable tags must not. Both archives' package name/version metadata
 must match the tag.
 
@@ -139,9 +140,9 @@ publishing workflow. PyPI does not permit replacing an uploaded distribution;
 package changes require a new version.
 
 
-For a development snapshot, mark the GitHub release as a prerelease and keep it
+For a development snapshot or release candidate, mark the GitHub release as a prerelease and keep it
 out of GitHub's latest stable release slot (`gh release create --prerelease
---latest=false`). Use an exact PEP 440 version, for example `4.0.0.dev1`, in both
+--latest=false`). Use an exact PEP 440 version, for example `4.0.0.dev1` or `4.0.0rc1`, in both
 `pyproject.toml` and `inklet.__version__`. The same checksum, metadata and
 isolated-package checks apply; run the workflow first with `dry_run=true`, then
 publish the same attached files with `dry_run=false`. Users opt in with an exact

@@ -16,6 +16,7 @@ def test_workspace_navigation_drafts_zoom_pan_and_keyboard(tmp_path):
     root=i.composition(130,80)
     root.add('caption',i.module('Measured result'),x=10,y=10)
     root.add('chart',i.plot_spec(x=(0,1),y=(0,2)).line([(0,0),(1,1)],key='response').axes(),x=20,y=35,anchor='area-nw',width=70,height=30)
+    root.add('model',i.component(i.solid,'cube',width=20,style='shaded'),x=100,y=10)
     editor=LayoutEditor(root);page=editor._html()
     checks='''<script>
     (async()=>{const sleep=()=>new Promise(r=>setTimeout(r,30));async function ready(rev){for(let n=0;n<250;n++){if(state&&state.revision===rev&&!busy&&previewReady)return;await sleep();}throw Error('timeout '+rev+': '+byId('status').textContent);}
@@ -35,6 +36,8 @@ def test_workspace_navigation_drafts_zoom_pan_and_keyboard(tmp_path):
     viewport.dispatchEvent(new PointerEvent('pointerdown',{pointerId:9,button:0,clientX:200,clientY:200,bubbles:true}));viewport.dispatchEvent(new PointerEvent('pointermove',{pointerId:9,clientX:150,clientY:200,bubbles:true}));viewport.dispatchEvent(new PointerEvent('pointerup',{pointerId:9,bubbles:true}));if(viewport.scrollLeft<=left||pan!==null||state.svg!==changed)throw Error('pan');
     byId('select-tool').click();byId('fit').click();if(zoom!==1||state.revision!==1)throw Error('fit');
     document.dispatchEvent(new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true}));await ready(2);if(state.svg!==original)throw Error('shortcut undo');
+    selectTarget('/model');document.querySelector('[data-tab="cameras"]').click();const angle=document.querySelector('[data-group="cameras"][data-key="azimuth"]');angle.value=12;angle.dispatchEvent(new Event('input'));const perspective=document.querySelector('[data-group="cameras"][data-key="perspective"]');perspective.click();byId('apply').click();await ready(3);if(state.targets['/model'].cameras.view.azimuth!==12||!state.targets['/model'].cameras.view.perspective||state.svg===original)throw Error('camera apply');
+    await request('undo');await ready(4);if(state.svg!==original)throw Error('camera undo');
     byId('help-button').click();if(!byId('help').open)throw Error('help');byId('close-help').click();
     document.body.dataset.workspaceTest=JSON.stringify({ok:true});
     }catch(error){document.body.dataset.workspaceTest=JSON.stringify({error:error.message});}})();</script>'''

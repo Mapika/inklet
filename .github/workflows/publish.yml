@@ -6,7 +6,7 @@ on:
       tag:
         description: Published GitHub release tag
         required: true
-        default: v4.0.0.dev12
+        default: v4.0.0.dev13
         type: string
       dry_run:
         description: Validate release files without uploading to PyPI
@@ -42,8 +42,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
-          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.dev[0-9]+)?$ ]] || {
-            echo 'Expected a stable or development tag such as v3.1.0 or v4.0.0.dev12' >&2
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.dev[0-9]+|rc[0-9]+)?$ ]] || {
+            echo 'Expected a stable, development or RC tag such as v4.0.0, v4.0.0.dev13 or v4.0.0rc1' >&2
             exit 1
           }
           gh release view "$RELEASE_TAG" --json isDraft,isPrerelease > "$RUNNER_TEMP/release.json"
@@ -53,8 +53,8 @@ jobs:
           release = json.loads((Path(os.environ['RUNNER_TEMP']) / 'release.json').read_text())
           if release['isDraft']:
               raise SystemExit('Publish the GitHub release before uploading its assets')
-          if release['isPrerelease'] != ('.dev' in os.environ['RELEASE_TAG']):
-              raise SystemExit('Development tags must be GitHub prereleases; stable tags must not')
+          if release['isPrerelease'] != any(marker in os.environ['RELEASE_TAG'] for marker in ('.dev', 'rc')):
+              raise SystemExit('Development and RC tags must be GitHub prereleases; stable tags must not')
           PYCODE
           version="${RELEASE_TAG#v}"
           gh release download "$RELEASE_TAG" --dir dist \

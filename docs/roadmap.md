@@ -67,6 +67,8 @@ to that same layout/label history, saved state and reconciliation workflow,
 with data-driven marker fields protected from constant overrides. Dev12 adds
 the studio workspace: object navigation, focused controls, zoom/pan, shortcuts
 and protection for pending edits.
+The next increment adds native orbit/look-at camera choices to the same editor,
+saved schema and source reconciliation; general camera manipulation remains open.
 Serialized project templates, asset manifests, shared selection
 relationships, axis-label/camera editing and finer-grained manipulation remain open. Subsequent work
 should extend authoring and cross-content identity beyond this bounded inspector.

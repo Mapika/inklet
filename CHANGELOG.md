@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 4.0.0.dev13 — 2026-09-13
+
+Thirteenth development preview: native camera choices in the composition editor.
+The original 4.0 scope remains open; this is not a release candidate.
+
+- Add a Camera inspector for builtin native model/solid components, with orbit
+  angles, roll and projection mode. Preserve explicit look-at eye/target vectors.
+- Include camera edits in atomic layout transactions, undo/redo, shared instance
+  reconciliation, saved choices and matching SVG/PDF reconstruction.
+- Introduce composition schema 0.5, retaining readers for 0.1–0.4. Report changed
+  camera kinds and unsupported replacement renderers as orphaned camera choices.
+- Illustrate the camera workflow and document physical fitting limitations.
+- Accept RC tags in the publishing gate, with tested prerelease/draft checks;
+  update the compatibility matrix without claiming broader browser coverage.
+
 ## 4.0.0.dev12 — 2026-09-13
 
 Twelfth development preview: a redesigned local figure workspace.

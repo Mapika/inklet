@@ -1,4 +1,4 @@
-"""Local browser editing of composition layouts, labels and styles through Python."""
+"""Local browser editing of composition layouts, labels, styles and cameras through Python."""
 from __future__ import annotations
 
 import copy
@@ -17,7 +17,7 @@ from ...document.layout_overrides import SCHEMA, _targets, _placement, _expressi
 
 
 class LayoutEditor:
-    """Edit a live Composition layout, labels and styles with matching Python exports.
+    """Edit a live Composition layout, labels, styles and cameras with matching Python exports.
 
     Use as a context manager and open url while the context stays alive. The
     source recipe is retained but never edited. Refresh explicitly after source
@@ -145,14 +145,14 @@ class LayoutEditor:
         targets=_targets(self._recipe)
         if path not in targets:return [path]
         parent,part,item=targets[path]
-        if group in ('page','labels','styles'):return [name for name,(_,_,child) in targets.items() if child is item]
+        if (group=='page' or group in _EDITORS):return [name for name,(_,_,child) in targets.items() if child is item]
         return [name for name,(owner,other,_) in targets.items()
                 if owner is parent and other is not None and part is not None and other.name==part.name]
 
     def command(self, action, value=None, *, revision=None, missing='error'):
         """Compile a command atomically; a stale revision or failed build changes nothing.
 
-        Actions: gesture (figure-space move/uniform scale), edit (placement/page/labels/styles), reset, load
+        Actions: gesture (figure-space move/uniform scale), edit (placement/page/labels/styles/cameras), reset, load
         (override JSON), undo, redo and refresh (current source; clears history).
         Refresh may explicitly drop removed targets with missing='drop'.
         """
@@ -166,8 +166,8 @@ class LayoutEditor:
             candidate=copy.deepcopy(self._value)
             if action=='edit':
                 if (not isinstance(value,dict) or 'path' not in value or
-                        not set(value)<={'path','placement','page','labels','styles'} or len(value)<2):
-                    raise ValueError('edit needs a path and placement/page/labels/styles fields')
+                        not set(value)<={'path','placement','page',*_EDITORS} or len(value)<2):
+                    raise ValueError('edit needs a path and placement/page/labels/styles/cameras fields')
                 path=value['path']
                 if not isinstance(path,str):raise ValueError('edit path must be a string')
                 for group,fields in value.items():
@@ -181,7 +181,7 @@ class LayoutEditor:
                         else: destination.update(fields)
             elif action=='reset':
                 if not isinstance(value,str) or value not in _targets(self._recipe):raise ValueError('unknown reset target')
-                for group in ('placement','page','labels','styles'):
+                for group in ('placement','page',*_EDITORS):
                     for alias in self._aliases(value,group):
                         entry=candidate['targets'].get(alias,{})
                         entry.pop(group,None)

@@ -22,7 +22,7 @@ sharing a finished document without a Python process.
 ## A workspace for your figure
 
 The desktop workspace has a searchable object navigator, a central canvas and
-an inspector with **Layout**, **Labels** and **Styles** tabs. Select an object
+an inspector with **Layout**, **Labels**, **Styles** and **Camera** tabs. Select an object
 from the navigator or directly on the figure. Nested objects retain their
 hierarchy, and the inspector shows the exact source path. On smaller screens,
 a **Content** selector replaces the navigator; on phones the inspector sits
@@ -191,7 +191,7 @@ Explicit discard removes that style target's edits while preserving compatible
 labels and placements on the chart.
 
 Styles use the same named path, key and kind contracts as labels. New saved
-files use schema 0.4; 0.1, 0.2 and 0.3 files still load. This unifies authoring
+files use schema 0.5; 0.1 through 0.4 files still load. This unifies authoring
 within the composition editor. The separate [linked-table style inspector](visual-editing.md)
 retains its own source-bound format; its files are not interchangeable. Plot
 titles, axes, bars, arbitrary factories, gradients and camera/material settings
@@ -286,7 +286,51 @@ starts and closes the server automatically; keep that context alive during
 browser use.
 
 The inspector edits named composition layout and artwork scale. Label content,
-individual plot marks, camera controls, and file watching are not part of this interface.
+individual plot marks, camera dragging, and file watching are not part of this interface.
 The separate [linked-plot appearance editor](visual-editing.md) retains its
 existing scope. Broader authoring and identity work remains on the
 [4.0 roadmap](roadmap.md).
+
+
+## Edit a native 3D camera
+
+Select a named `i.component(i.model, ...)` or `i.component(i.solid, ...)` and open
+**Camera**. Native orbit cameras expose azimuth, elevation and roll in degrees,
+and perspective. Apply recompiles the figure through Python;
+undo, saved choices and SVG/PDF exports include the same camera decision.
+Canvas zoom and pan remain view-only controls.
+
+![Native camera controls and the recompiled composition](assets/guides/layout-editor-camera.png)
+
+```python
+import inklet as i
+from inklet.experimental.layout_editor import LayoutEditor
+
+study = i.composition(100, 70)
+study.add('model', i.component(i.solid, 'cube', width=35, style='shaded'),
+          x=15, y=15)
+editor = LayoutEditor(study)
+editor.command('edit', {'path': '/model', 'cameras': {'view': {
+    'kind': 'native-orbit', 'azimuth': 15, 'elevation': 20,
+    'perspective': True,
+}}})
+choices = editor.overrides()
+reopened = LayoutEditor(study)
+reopened.command('load', choices)
+assert reopened.figure.to_svg() == editor.figure.to_svg()
+editor.figure.save('camera-study.svg', 'camera-study.pdf')
+```
+
+Only edited fields are saved. Replacing the source mesh keeps the camera edits;
+unedited source camera fields remain live. Explicit `Camera.look_at` views
+retain eye, target and up vectors and expose roll and perspective.
+Changing between orbit and look-at cameras reports incompatible saved camera
+choices. Review before explicitly discarding them on refresh.
+
+This inspector supports the builtin native model renderer. It does not edit
+Blender scene cameras, standalone linked-HTML cameras, arbitrary prebuilt
+Diagrams, or eye/target vectors. Camera dragging and depth-aware selection remain
+open work. Elevation is limited to −90 through 90 degrees.
+The native renderer fits models to their physical width/height, which cancels
+the focal scale of a field-of-view change at a fixed eye position. The inspector
+therefore preserves the source field of view without exposing an ineffective control.

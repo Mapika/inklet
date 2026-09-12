@@ -66,7 +66,7 @@ A saved label entry includes its kind and only the fields that changed:
 {"schema":"inklet.composition-layout/0.4","targets":{"/caption":{"labels":{"label":{"kind":"module-label","text":"Reviewed response"}}}}}
 ```
 
-Readers accept legacy schemas 0.1, 0.2 and 0.3. New captures use 0.4; older readers
+Readers accept legacy schemas 0.1, 0.2, 0.3 and 0.4. New captures use 0.5; older readers
 must be upgraded before opening them. Label fields are rejected under older
 schema identifiers. Removed/incompatible labels appear as `path#key` in the
 orphan report. Explicit `missing='drop'` retains compatible edits on that path.
@@ -156,12 +156,13 @@ of 32 operations. Malformed files, nonfinite numbers, invalid properties and
 contradictory edits to a shared nested definition are rejected, including when
 `missing='drop'` is used.
 
-New files use `inklet.composition-layout/0.4`, adding named appearance decisions.
+New files use `inklet.composition-layout/0.5`, adding named camera decisions.
 The loader also accepts 0.1 files from dev7/dev8 (without scale), 0.2 files from
-dev9 (without labels) and 0.3 files from dev10 (without styles). Unknown schemas
-are rejected. Upgrade older readers before opening a 0.4 file. The JSON object
+dev9 (without labels), 0.3 files from dev10 (without styles) and 0.4 files from
+dev11/dev12 (without cameras). Unknown schemas
+are rejected. Upgrade older readers before opening a 0.5 file. The JSON object
 contains `schema` and `targets`; each target has changed `placement`, `page`,
-`labels` and/or `styles` fields. This development-preview format is not a general
+`labels`, `styles` and/or `cameras` fields. This development-preview format is not a general
 Python object serializer or an asset manifest.
 
 ## Review revised content
@@ -176,3 +177,14 @@ in `out/composition-recipes/`. PNG generation requires the render extras.
 
 In dev8, the [local layout editor](layout-editor.md) provides browser controls,
 undo/redo and Python-compiled previews using this saved format.
+
+
+## Saved camera choices
+
+Schema 0.5 adds `cameras` alongside layout, labels and styles. The `view` key has
+kind `native-orbit` or `native-look-at`, and only changed fields are recorded.
+[Camera editing](layout-editor.md#edit-a-native-3d-camera) documents the supported
+native components and controls. Orbit/look-at changes and unsupported replacement
+renderers report an orphan such as `/model#camera:view`. Explicitly dropping that
+orphan preserves compatible placement, label and style choices on the object.
+Schemas 0.1–0.4 remain readable but cannot contain camera edits.

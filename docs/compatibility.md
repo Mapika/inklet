@@ -1,6 +1,7 @@
 # Compatibility
 
-Inklet **3.1** supports the environments and rendering paths below.
+Stable Inklet **3.1** and the **4.0 development line** use the environments
+and rendering paths below. Preview-only capabilities are identified separately.
 The matrix distinguishes installed-package checks from full integration tests.
 
 ## Test coverage
@@ -48,11 +49,24 @@ Blender. Scene creation and rendering run Blender in a separate process.
 ### Development-preview table adapters
 
 The [pandas and Polars adapters](table-inputs.md) are included in the experimental
-[4.0.0.dev9 preview](development-preview.md), not in stable 3.1.0. Their `pandas` and `polars` extras are separate
+[4.0 development preview](development-preview.md), not in stable 3.1.0. Their `pandas` and `polars` extras are separate
 from core dependencies. The adapter CI jobs use Linux/Python 3.12 with pandas
 2.2.0 / Polars 1.0.0 and the versions pinned in `requirements-tables.txt`.
 Both paths check scalar/identity contracts and saved-state SVG reconstruction.
 The core wheel checks that neither integration is required or imported.
+
+### Browser workflows and local editor
+
+The 4.0 preview includes standalone linked HTML and a Python-backed composition
+editor. Automated browser integration uses Chromium on Linux. Firefox, Safari,
+mobile browsers and browser interaction on Windows/macOS are not covered by
+that integration matrix. Windows/macOS wheel checks verify installed editor
+assets and representative static exports; they are not browser certification.
+
+The composition editor requires a running local Python session and binds to
+loopback. Its saved choices are JSON overrides for an existing Python recipe,
+not a standalone project. Linked HTML has a separate saved-selection format.
+See [the editor](layout-editor.md) and [saved layouts](layout-overrides.md).
 
 ### Rendering
 

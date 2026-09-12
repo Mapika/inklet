@@ -1,4 +1,4 @@
-"""Portable layout, text and appearance decisions for named composition recipes."""
+"""Portable layout, text, appearance and camera decisions for named composition recipes."""
 from __future__ import annotations
 
 import math
@@ -6,10 +6,11 @@ import re
 
 from .compiler import LayoutError
 from .spec import length
-from . import label_overrides as labels, style_overrides as styles
-_EDITORS = {"labels":labels, "styles":styles}
+from . import label_overrides as labels, style_overrides as styles, camera_overrides as cameras
+_EDITORS = {"labels":labels, "styles":styles, "cameras":cameras}
 
-SCHEMA = 'inklet.composition-layout/0.4'
+SCHEMA = 'inklet.composition-layout/0.5'
+STYLE_SCHEMA = 'inklet.composition-layout/0.4'
 LABEL_SCHEMA = 'inklet.composition-layout/0.3'
 SCALE_SCHEMA = 'inklet.composition-layout/0.2'
 LEGACY_SCHEMA = 'inklet.composition-layout/0.1'
@@ -95,7 +96,7 @@ def _page(values):
 
 
 def capture(recipe, reference):
-    """Record changed layout and compatible named labels/styles; keep unedited fields live."""
+    """Record changed layout and compatible named labels/styles/cameras; keep unedited fields live."""
     from .composition import Composition
     if not isinstance(reference,Composition): raise TypeError('reference must be a Composition')
     current, before = _targets(recipe), _targets(reference)
@@ -141,7 +142,7 @@ def apply(recipe, value, *, missing='error'):
     """Validate all edits, reconcile stable names, then edit an independent copy."""
     from .composition import Composition
     if missing not in ('error','drop'): raise ValueError('missing policy must be error or drop')
-    if (not isinstance(value,dict) or set(value)!={'schema','targets'} or value['schema'] not in (SCHEMA,LABEL_SCHEMA,SCALE_SCHEMA,LEGACY_SCHEMA)
+    if (not isinstance(value,dict) or set(value)!={'schema','targets'} or value['schema'] not in (SCHEMA,STYLE_SCHEMA,LABEL_SCHEMA,SCALE_SCHEMA,LEGACY_SCHEMA)
             or not isinstance(value['targets'],dict)):
         raise ValueError('invalid composition layout overrides')
     targets = _targets(recipe)
@@ -149,7 +150,7 @@ def apply(recipe, value, *, missing='error'):
     for path,entry in value['targets'].items():
         if not isinstance(path,str) or not re.fullmatch(r'/(?:'+_NAME+r'(?:/'+_NAME+r')*)?',path):
             raise ValueError('layout targets require absolute named composition paths')
-        if not isinstance(entry,dict) or not entry or not set(entry)<={'placement','page','labels','styles'}:
+        if not isinstance(entry,dict) or not entry or not set(entry)<={'placement','page','labels','styles','cameras'}:
             raise ValueError(f'invalid layout target properties: {path}')
         options = {}
         if 'placement' in entry:
@@ -158,11 +159,14 @@ def apply(recipe, value, *, missing='error'):
                 raise ValueError('scale requires composition layout schema 0.2')
         if 'page' in entry: options['page'] = _page(entry['page'])
         if 'labels' in entry:
-            if value['schema'] not in (SCHEMA,LABEL_SCHEMA): raise ValueError('labels require composition layout schema 0.3')
+            if value['schema'] not in (SCHEMA,STYLE_SCHEMA,LABEL_SCHEMA): raise ValueError('labels require composition layout schema 0.3')
             options['labels'] = labels.validate(entry['labels'])
         if 'styles' in entry:
-            if value['schema']!=SCHEMA: raise ValueError('styles require composition layout schema 0.4')
+            if value['schema'] not in (SCHEMA,STYLE_SCHEMA): raise ValueError('styles require composition layout schema 0.4')
             options['styles'] = styles.validate(entry['styles'])
+        if 'cameras' in entry:
+            if value['schema']!=SCHEMA: raise ValueError('cameras require composition layout schema 0.5')
+            options['cameras'] = cameras.validate(entry['cameras'])
         target = targets.get(path)
         invalid = target is None
         if target is not None:
@@ -179,8 +183,8 @@ def apply(recipe, value, *, missing='error'):
                 compatible = {}
                 for key,fields in options[group].items():
                     if (key not in available or fields['kind']!=available[key][0]['kind']
-                            or (group=='styles' and not (set(fields)-{'kind'})<=set(available[key][0]))):
-                        orphaned.append(path+('#style:' if group=='styles' else '#')+key)
+                            or (group in ('styles','cameras') and not (set(fields)-{'kind'})<=set(available[key][0]))):
+                        orphaned.append(path+({'styles':'#style:', 'cameras':'#camera:'}.get(group, '#'))+key)
                     else: compatible[key] = fields
                 if compatible: options[group] = compatible
                 else: options.pop(group)
@@ -193,7 +197,7 @@ def apply(recipe, value, *, missing='error'):
     for path,options in prepared.items():
         parent,part,item = targets[path]
         for group,fields in options.items():
-            owner = (id(item),None) if group in ('page','labels','styles') else (id(parent),part.name)
+            owner = (id(item),None) if (group=='page' or group in _EDITORS) else (id(parent),part.name)
             if group in _EDITORS:
                 fields = {(label,key):val for label,edits in fields.items() for key,val in edits.items()}
             for key,val in fields.items():
