@@ -108,7 +108,8 @@ def test_filtering_reuses_records_and_intersects_spatial_candidates(tmp_path, ba
 
 @pytest.mark.parametrize('backend', ['svg', 'canvas', 'webgl2'])
 @pytest.mark.parametrize('dpr', [1, 2])
-def test_complete_regional_display_matches_classic_svg(tmp_path, backend, dpr):
+@pytest.mark.parametrize('edited', [False, True])
+def test_complete_regional_display_matches_classic_svg(tmp_path, backend, dpr, edited):
     from test_regional_report import recipe
     from inklet.experimental.selection import SelectionState
     Image = pytest.importorskip('PIL.Image')
@@ -121,8 +122,10 @@ def test_complete_regional_display_matches_classic_svg(tmp_path, backend, dpr):
     state = f.state(SelectionState.for_table(f.table, selected=['HUN', 'EST'],
         visible=['HUN', 'AUT', 'DEU', 'CZE', 'POL', 'SVK']))
     images = []
+    overrides=f.overrides({'comparison':dict(color='#a03050',radius_mm=1.3),
+                          'history':dict(color='#2060a0',line_width_mm=.7)}) if edited else None
     for renderer, mode in [('classic', 'svg'), ('compiled', backend)]:
-        page = f.to_html(renderer=renderer, backend=mode, state=state)
+        page = f.to_html(renderer=renderer, backend=mode, state=state, overrides=overrides)
         page = page.replace('</style>', '</style><style>#stage{position:fixed;left:0;top:0;'
                             'width:1112px;height:1342px;z-index:10}</style>', 1)
         # Crop just the drawing; differing backend controls must not influence

@@ -1,5 +1,7 @@
 # Spatial marker culling
 
+Available in **4.0.0.dev3**.
+
 The [compiled-scene viewer](compiled-viewer.md) now queries individual marker
 footprints before repainting a visible region. This reduces Canvas work and GPU
 vertex processing when a zoomed view contains a small part of a dense layer.

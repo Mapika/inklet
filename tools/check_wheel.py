@@ -34,9 +34,14 @@ for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_pola
         raise AssertionError('Table adapter silently loaded an optional dependency')
 from inklet.experimental.browser import BrowserScatter, ScatterView, BrowserFigure, LineView, BarView, GeoRegions, RegionView, RevisionOption, FacetView
 keyed = KeyedTable('wheel', {'id':['a','b'], 'x':[0,1], 'y':[1,2]})
-linked_compiled = BrowserFigure(keyed, [ScatterView('points', 'x', 'y', (0,1), (0,3))]).to_html(renderer='compiled', backend='auto')
+linked_figure = BrowserFigure(keyed, [ScatterView('points', 'x', 'y', (0,1), (0,3))])
+visual_overrides = linked_figure.overrides({'points': {'radius_mm': 1.2}})
+assert 'r="1.2"' in linked_figure.to_svg(overrides=visual_overrides)
+linked_compiled = linked_figure.to_html(renderer='compiled', backend='auto', overrides=visual_overrides)
 assert 'class CompiledFigureRenderer' in linked_compiled and 'class CompiledSceneViewer' in linked_compiled
 assert 'setMarkerVisibility' in linked_compiled and '/*RENDERER_ADAPTER*/' not in linked_compiled
+assert 'inklet.visual-overrides/0.1' in linked_compiled and 'id="edit-undo"' in linked_compiled
+assert '/*EDITOR_RUNTIME*/' not in linked_compiled
 from inklet.experimental.browser import TimeAxis
 from inklet.experimental.measurement import LabelImage
 from inklet.experimental.browser import LabelImageView

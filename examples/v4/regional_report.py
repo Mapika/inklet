@@ -114,6 +114,8 @@ def main():
     parser.add_argument('--renderer',choices=('classic','compiled'),default='classic',
                         help='Use the shared compiled viewer for linked marks')
     parser.add_argument('--backend',choices=('svg','canvas','hybrid','auto','webgl2'),default=None)
+    parser.add_argument('--editor',action='store_true',help='Enable the offline plot-style inspector')
+    parser.add_argument('--overrides',type=Path,help='Saved visual overrides, separate from the selection/view state')
     args=parser.parse_args()
     if args.renderer=='compiled' and args.backend=='hybrid': parser.error('compiled rendering does not use hybrid')
     if args.renderer=='classic' and args.backend in ('auto','webgl2'): parser.error('auto/webgl2 require --renderer compiled')
@@ -134,6 +136,12 @@ def main():
             SelectionState.for_table(table,selected=selected,visible=visible))
         report=original.replace_data(table,views=make_views(table),missing=args.missing).report()
     figure.validate_state(state)
+    overrides=None
+    if args.editor or args.overrides:
+        from inklet.experimental.browser.overrides import rebase_overrides
+        overrides,override_report=rebase_overrides(json.loads(args.overrides.read_text()) if args.overrides else figure.overrides(),
+                                                   figure,missing=args.missing)
+        report['visual_overrides']=override_report
     args.output.mkdir(parents=True,exist_ok=True)
     label='Replacement CSV' if args.csv else ('Revised · 17 countries' if args.revised else 'Original · 18 countries')
     credit=(f'User-supplied measurements from {args.csv.name}; SHA-256 {hashlib.sha256(args.csv.read_bytes()).hexdigest()}. '
@@ -144,8 +152,11 @@ def main():
         make_scene(revised=not args.revised),CREDIT,search_columns=('country','group'))]
     (args.output/'index.html').write_text(figure.to_html(title=title,
         renderer=args.renderer,backend=args.backend or ('auto' if args.renderer=='compiled' else 'svg'),
+        editor=args.editor,overrides=overrides,
         state=state,attribution=credit,search_columns=('country','group'),revision_label=label,revisions=options),encoding='utf-8')
     (args.output/'view.json').write_text(json.dumps(state,indent=2)+'\n',encoding='utf-8')
+    if overrides is not None:
+        (args.output/'overrides.json').write_text(json.dumps(overrides,indent=2)+'\n',encoding='utf-8')
     (args.output/'revision.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     write_table(table,args.output/'data.csv')
     (args.output/'provenance.json').write_text(json.dumps(dict(credit=credit, data_digest=table.digest,
@@ -153,7 +164,7 @@ def main():
         exports=dict(widths_mm=[210,160],viewport='reset for physical-width exports; exact saved viewport in figure.svg')),indent=2)+'\n',encoding='utf-8')
     for width in (210,160):
         resized=figure.replace_data(table,state=state,width=width,columns=2,viewport='reset')
-        svg=args.output/f'figure-{width}mm.svg';svg.write_text(resized.figure.to_svg(resized.state()),encoding='utf-8')
+        svg=args.output/f'figure-{width}mm.svg';svg.write_text(resized.figure.to_svg(resized.state(),overrides=overrides),encoding='utf-8')
         (args.output/f'view-{width}mm.json').write_text(json.dumps(resized.state(),indent=2)+'\n',encoding='utf-8')
         if args.render:
             from inklet.render.preview import svg_png
@@ -161,7 +172,7 @@ def main():
             svg_png(svg,svg.with_suffix('.png'),dpi=150)
             svg_pdf(svg,svg.with_suffix('.pdf'))
     # Exact browser viewport reconstruction, independent of full-page resized exports.
-    (args.output/'figure.svg').write_text(figure.to_svg(state),encoding='utf-8')
+    (args.output/'figure.svg').write_text(figure.to_svg(state,overrides=overrides),encoding='utf-8')
     print(args.output/'index.html')
 
 

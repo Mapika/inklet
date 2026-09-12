@@ -256,6 +256,8 @@ window.ScatterRenderer=ScatterRenderer;
 window.FigureRenderer=ScatterRenderer;
 let DocumentRenderer=ScatterRenderer;
 /*RENDERER_ADAPTER*/
+let VisualEditor=null;
+/*EDITOR_RUNTIME*/
 let scene=JSON.parse(document.getElementById('scene').textContent);
 let runtime=new DocumentRenderer(document.getElementById('stage'),scene);window.inklet=runtime;
 runtime.backend=/*DEFAULT_BACKEND*/'svg';document.getElementById('backend').value=runtime.backend;
@@ -332,7 +334,24 @@ function revisionStatus(){document.getElementById('revision-current').textConten
 function showReport(){
   document.getElementById('revision-report').textContent=`${lastReport.added_ids.length} added, ${lastReport.removed_ids.length} removed, ${lastReport.changed_ids.length} changed. Dropped selected IDs: ${lastReport.removed_selected.join(', ')||'none'}. Dropped visible IDs: ${lastReport.removed_visible.join(', ')||'none'}. Viewport: ${lastReport.viewport_policy}.`;
   document.getElementById('revision-details').textContent=JSON.stringify(lastReport,null,2);
+  if(lastReport.visual_overrides)document.getElementById('revision-report').textContent+=' Dropped visual overrides: '+(lastReport.visual_overrides.orphaned_targets.join(', ')||'none')+'.';
   document.getElementById('save-revision-report').disabled=false;
+}
+async function replaceRenderer(preparedScene,nextState){
+  let candidate=null;const staging=document.createElement('div');
+  staging.className='revision-staging';staging.setAttribute('aria-hidden','true');staging.inert=true;
+  const rect=stage.getBoundingClientRect(),minHeight=parseFloat(getComputedStyle(stage).minHeight)||0;
+  Object.assign(staging.style,{position:'fixed',left:'-100000px',top:'0',width:rect.width+'px',height:Math.max(minHeight,rect.width*preparedScene.height/preparedScene.width)+'px',visibility:'hidden'});
+  document.body.append(staging);
+  try{
+    candidate=new DocumentRenderer(staging,preparedScene);candidate.backend=runtime.backend;
+    await candidate.ready;candidate.loadState(nextState);
+    const previous=runtime;
+    stage.style.aspectRatio=preparedScene.width+'/'+preparedScene.height;
+    candidate.resizeObserver.disconnect();stage.replaceChildren(...staging.childNodes);candidate.host=stage;
+    runtime=candidate;window.inklet=runtime;previous.dispose();candidate.resizeObserver.observe(stage);
+  }catch(e){if(candidate&&candidate!==runtime)candidate.dispose();throw e;}
+  finally{staging.remove();}
 }
 async function switchRevision(index,{missing='error',viewport='reset'}={}){
   if(busy)throw Error('Wait for the current operation to finish');
@@ -351,34 +370,28 @@ async function switchRevision(index,{missing='error',viewport='reset'}={}){
       visible_ids:s.visible_ids===null?null:s.visible_ids.filter(id=>ids.has(id))},
     viewport:viewport==='preserve'?oldState.viewport:[0,0,target.scene.width,target.scene.height]};
   const report={...revisionCatalog.reports[revisionIndex][index],removed_selected:removedSelected,removed_visible:removedVisible,missing_policy:missing,viewport_policy:viewport};
-  setBusy(true);let candidate=null;const staging=document.createElement('div');
-  staging.className='revision-staging';staging.setAttribute('aria-hidden','true');staging.inert=true;
-  const rect=stage.getBoundingClientRect(),minHeight=parseFloat(getComputedStyle(stage).minHeight)||0;
-  Object.assign(staging.style,{position:'fixed',left:'-100000px',top:'0',width:rect.width+'px',height:Math.max(minHeight,rect.width*target.scene.height/target.scene.width)+'px',visibility:'hidden'});
-  document.body.append(staging);
+  const transfer=visualEditor?visualEditor.reconcile(target.scene,missing):null;
+  if(transfer)report.visual_overrides=transfer.report;
+  setBusy(true);
   try{
-    candidate=new DocumentRenderer(staging,target.scene);candidate.backend=runtime.backend;
-    await candidate.ready;candidate.loadState(nextState);
-    // Prepare all geometry and state offscreen before replacing the active scene.
-    const previous=runtime;
-    stage.style.aspectRatio=target.scene.width+'/'+target.scene.height;
-    candidate.resizeObserver.disconnect();stage.replaceChildren(...staging.childNodes);candidate.host=stage;
-    runtime=candidate;scene=target.scene;searchColumns=target.search_columns;window.inklet=runtime;
-    revisionIndex=index;lastReport=report;previous.dispose();candidate.resizeObserver.observe(stage);
+    await replaceRenderer(transfer?visualEditor.decorate(target.scene,transfer.value):target.scene,nextState);
+    scene=target.scene;searchColumns=target.search_columns;
+    revisionIndex=index;lastReport=report;
+    if(transfer)visualEditor.switched(transfer.value);
     document.getElementById('attribution').textContent=target.attribution;
     document.getElementById('filter-label').textContent=searchColumns.length?'Search rows':'Row ID contains';
     document.getElementById('id-filter').value='';document.getElementById('hover').textContent='Point at a mark to inspect its row ID.';
     page=0;revisionTarget.value=index;updateHeaders();revisionStatus();showReport();message();error.textContent='';
     return JSON.parse(JSON.stringify(report));
-  }catch(e){if(candidate&&candidate!==runtime)candidate.dispose();throw e;}
-  finally{staging.remove();setBusy(false);}
+  }finally{setBusy(false);}
 }
 document.getElementById('apply-revision').onclick=async()=>{try{await switchRevision(Number(revisionTarget.value),{missing:document.getElementById('revision-missing').value,viewport:document.getElementById('revision-viewport').value});}catch(e){error.textContent=e.message;}};
 document.getElementById('save-revision-report').onclick=()=>{if(lastReport)download(JSON.stringify(lastReport,null,2)+'\n','revision.json','application/json');};
-const documentReady=runtime.ready.then(()=>{const initial=/*INITIAL_STATE*/null;if(initial)runtime.loadState(initial);revisionStatus();message();setBusy(false);});
+const visualEditor=VisualEditor?new VisualEditor(/*INITIAL_OVERRIDES*/null):null;
+const documentReady=runtime.ready.then(async()=>{const initial=/*INITIAL_STATE*/null;if(initial)runtime.loadState(initial);if(visualEditor)await visualEditor.initialize();revisionStatus();message();setBusy(false);});
 documentReady.catch(e=>{error.textContent=e.message;setBusy(false);
   status.textContent='Figure could not be loaded. Reload this page to try again.';
   for(const control of document.querySelectorAll('#app button,#app input,#app select'))control.disabled=true;
   stage.inert=true;
 });
-window.inkletDocument={ready:documentReady,switchRevision,get revisionIndex(){return revisionIndex;},report:()=>lastReport===null?null:JSON.parse(JSON.stringify(lastReport))};
+window.inkletDocument={ready:documentReady,switchRevision,editor:visualEditor,get revisionIndex(){return revisionIndex;},report:()=>lastReport===null?null:JSON.parse(JSON.stringify(lastReport))};

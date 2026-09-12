@@ -1,6 +1,6 @@
 # Packed vector markers
 
-This unreleased engine increment, after **4.0.0.dev2**, stores dense vector
+Available in **4.0.0.dev3**. This engine increment stores dense vector
 scatter layers as immutable marker records. It reduces Python object overhead
 without removing observations or rasterizing the layer.
 

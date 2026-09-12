@@ -104,6 +104,7 @@ nav:
   - Linked region maps: linked-maps.md
   - Real world map: world-map.md
   - Complete regional report: regional-report.md
+  - Reproducible plot editing: visual-editing.md
   - Linked engineering report: engineering-report.md
   - Calibrated image measurements: scientific-report.md
   - Linked mesh fields: mesh-fields.md

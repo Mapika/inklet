@@ -1,0 +1,13 @@
+<details id="visual-editor"><summary>Plot appearance</summary>
+<p class="note">Edit named plot styles. Facet styles apply to every category. Save overrides alongside your view to reproduce these choices in Python.</p>
+<div class="controls">
+<label>Plot<select id="edit-target"></select></label>
+<label>Colour<input id="edit-color" type="color"></label>
+<label>Marker radius / mm<input id="edit-radius" type="number" min="0.001" max="10" step="0.1"></label>
+<label>Line width / mm<input id="edit-width" type="number" min="0.001" max="10" step="0.1"></label>
+<button id="edit-apply">Apply style</button><button id="edit-reset">Reset plot style</button>
+</div>
+<div class="actions"><button id="edit-undo">Undo</button><button id="edit-redo">Redo</button>
+<button id="edit-save">Save overrides</button><label class="upload">Open overrides<input id="edit-load" type="file" accept=".json,application/json"></label></div>
+<p id="edit-status" class="note" role="status"></p>
+</details>

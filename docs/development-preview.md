@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev2
+# Inklet 4.0.0.dev3
 
-The second 4.0 development release includes the linked plotting, mapping,
+The third 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev2"
+python -m pip install "inklet==4.0.0.dev3"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev2"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev3"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev2"
+python -m pip install "inklet[volume,render]==4.0.0.dev3"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,9 +29,22 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Rendering improvements in dev2
+## Rendering and authoring in dev3
 
-This release adds [curve-preserving clipping and painted windows](clipping.md),
+This preview adds shared [native compiled scenes](compiled-scenes.md),
+[packed markers](marker-batches.md), [spatial culling](marker-culling.md), and
+an offline [compiled viewer](compiled-viewer.md) with reported WebGL2/Canvas
+fallback. The [regional report](regional-report.md) connects that executor to
+keyed selection, filtering and saved-state revision controls.
+
+The new [plot-style inspector](visual-editing.md) supports named colours, marker
+sizes and line widths, undo/redo, and saved overrides for Python reconstruction.
+It preserves compatible edits across revisions and reports orphaned targets.
+This is a bounded start on authoring, not the full 4.0 editor.
+
+## Rendering improvements retained from dev2
+
+The previous preview added [curve-preserving clipping and painted windows](clipping.md),
 [shared vector hatching](hatching.md), and [PDF compositing corrections](compositing.md).
 It includes the complete eight-panel clipping recipe and local performance
 measurements. These rendering improvements also apply to ordinary static plots.
@@ -61,10 +74,10 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev2 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev3 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
-python examples/v4/regional_report.py --output out/regional
+python examples/v4/regional_report.py --renderer compiled --editor --output out/regional
 python examples/v4/engineering_report.py --output out/engineering
 python examples/v4/scientific_report.py --output out/scientific
 python examples/v4/mesh_fields.py --output out/mesh-fields
@@ -86,7 +99,7 @@ saved-state schemas may change between previews. Keep the source data, recipe
 and exact package version alongside exported states; states are bound to their
 source and compiled scene. Input revisions require explicit reconciliation.
 
-The preview does not complete general browser editing, undo/redo, depth-aware
+The preview does not complete general browser editing, layout constraints, depth-aware
 3D selection, interactive camera control, arbitrary geometry constraints or
 large-data backend coverage. Mesh picking is currently in plan views; native
 3D reference panels have fixed cameras. Field tracing covers steady 2D nodal

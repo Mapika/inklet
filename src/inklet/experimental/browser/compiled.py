@@ -17,7 +17,7 @@ def compiled_marks(payload):
     ns = '{http://www.w3.org/2000/svg}'
     root = ET.Element(ns+'svg', viewBox=f"0 0 {payload['width']} {payload['height']}")
     defs = ET.SubElement(root, ns+'defs')
-    batches, buffers, native_marks = [], [], []
+    batches, buffers, native_marks, native_layers = [], [], [], []
     source_rows = {key: n for n, key in enumerate(payload['row_ids'])}
     for n, layer in enumerate(payload['layers']):
         clip_id = f'linked-compiled-clip-{n}'
@@ -31,6 +31,7 @@ def compiled_marks(payload):
                     tag, attrs = _svg_mark(mark, layer['color'])
                     attrs['data-inklet-linked'] = str(len(native_marks))
                     native_marks.append(mark['ids'])
+                    native_layers.append(layer.get('name'))
                     ET.SubElement(group, ns+tag, attrs)
                 continue
             palette, fills, records, identities = [], [], [], []
@@ -56,6 +57,8 @@ def compiled_marks(payload):
                                 radius=1, vertices=[], fill_rule='nonzero', bounds=[-1, -1, 1, 1],
                                 box=[bounds[0]-1, bounds[1]-1, bounds[2]-bounds[0]+2, bounds[3]-bounds[1]+2],
                                 row_ids=identities))
+            batches[-1]['layer'] = layer.get('name')
     ET.register_namespace('', 'http://www.w3.org/2000/svg')
     return dict(schema='inklet.compiled-viewer/1', frame=ET.tostring(root, encoding='unicode'),
-                batches=batches, buffers=buffers, native=[], native_marks=native_marks, backend='svg')
+                batches=batches, buffers=buffers, native=[], native_marks=native_marks,
+                native_layers=native_layers, backend='svg')

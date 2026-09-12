@@ -560,6 +560,20 @@ class BrowserFigure:
         """Return an independent copy of the portable scene data."""
         return json.loads(self._json)
 
+    def overrides(self, edits=None):
+        """Create validated, versioned visual edits keyed by named plot definitions."""
+        from .overrides import SCHEMA, targets, reconcile
+        descriptors = targets(self)
+        if edits is not None and not isinstance(edits, dict):
+            raise ValueError('visual edits must be a mapping')
+        values = {}
+        for name, changes in (edits or {}).items():
+            if name not in descriptors or not isinstance(changes, dict) or 'kind' in changes:
+                raise ValueError(f'unsupported visual target: {name}')
+            values[name] = dict(kind=descriptors[name]['kind'], **changes)
+        return reconcile(dict(schema=SCHEMA, table=self.table.name, targets=values),
+                         self.table.name, descriptors)[0]
+
     def replace_data(self, table: KeyedTable, *, state=None, views=None,
                      width=None, columns=None, missing='error', viewport='reset'):
         """Compile revised data and explicitly transfer an old view state.
@@ -636,10 +650,14 @@ class BrowserFigure:
             raise ValueError('viewport is outside the preview limits')
         return selection,viewport
 
-    def to_svg(self, state=None):
+    def to_svg(self, state=None, *, overrides=None):
         """Export the selected page viewport with clipped vector marks."""
         selection,viewport=self.validate_state(state if state is not None else self.state())
-        p=self.payload();root=ET.fromstring(p['frame']);ns='{http://www.w3.org/2000/svg}'
+        p=self.payload()
+        if overrides is not None:
+            from .overrides import apply_overrides, targets
+            p=apply_overrides(p, overrides, targets(self))
+        root=ET.fromstring(p['frame']);ns='{http://www.w3.org/2000/svg}'
         root.set('viewBox',' '.join(map(str,viewport)))
         root.set('width',f'{viewport[2]}mm');root.set('height',f'{viewport[3]}mm')
         # Mark layer first, measured frame/text afterwards. Background remains first.
@@ -669,13 +687,18 @@ class BrowserFigure:
 
     def to_html(self, *, title='Linked plot views', backend='svg', state=None,
                 attribution='Built with Inklet.', search_columns=(),
-                revision_label='Original', revisions=(), renderer='classic'):
+                revision_label='Original', revisions=(), renderer='classic', editor=False, overrides=None):
         """Export offline interaction, optionally using shared compiled execution.
 
         ``renderer='compiled'`` supports svg/canvas/auto/webgl2 while retaining
         the same state schema. The default classic renderer supports hybrid.
         """
         if not isinstance(attribution,str): raise ValueError('attribution must be a string')
+        if type(editor) is not bool: raise ValueError('editor must be a boolean')
+        if overrides is not None: editor=True
+        if editor:
+            from .overrides import rebase_overrides
+            overrides=rebase_overrides(self.overrides() if overrides is None else overrides, self)[0]
         if isinstance(search_columns,str): raise ValueError('search columns must be a sequence of column names')
         search_columns=tuple(search_columns)
         if any(c not in self.table.columns for c in search_columns): raise ValueError('unknown search column')
@@ -692,6 +715,9 @@ class BrowserFigure:
             raise ValueError('revisions must retain the table name and key column')
         def scene_payload(figure):
             payload = figure.payload()
+            if editor:
+                from .overrides import targets
+                payload['editor'] = dict(targets=targets(figure))
             if renderer == 'compiled':
                 from .compiled import compiled_marks
                 payload['compiled'] = compiled_marks(payload)
@@ -703,6 +729,11 @@ class BrowserFigure:
                      reports=[[a.figure._revision_report(b.figure) for b in options] for a in options] if revisions else [])
         template=Path(__file__).with_name('page.html').read_text(encoding='utf-8')
         script=Path(__file__).with_name('runtime.js').read_text(encoding='utf-8')
+        if editor:
+            script = script.replace('/*EDITOR_RUNTIME*/', Path(__file__).with_name('editor.js').read_text(encoding='utf-8'))
+            template = template.replace('<!--EDITOR-->', Path(__file__).with_name('editor.html').read_text(encoding='utf-8'))
+            template = template.replace('Removed state IDs<select', 'Removed IDs or visual targets<select')
+            template = template.replace('Drop removed IDs</option>', 'Drop removed IDs and overrides</option>')
         if renderer == 'compiled':
             directory = Path(__file__).parent.parent/'scene_viewer'
             shared = '\n'.join((directory/name).read_text(encoding='utf-8') for name in ('spatial.js', 'runtime.js'))
@@ -712,7 +743,8 @@ class BrowserFigure:
                 '<option value="auto">Automatic</option><option value="webgl2">WebGL2</option>')
             template = template.replace('<p id="status"', '<p id="renderer-status" class="note" role="status"></p><p id="status"')
         script_values={"/*DEFAULT_BACKEND*/'svg'":backend,'/*SEARCH_COLUMNS*/[]':search_columns,
-                       '/*INITIAL_STATE*/null':state,'/*REVISION_CATALOG*/null':catalog}
+                       '/*INITIAL_STATE*/null':state,'/*REVISION_CATALOG*/null':catalog,
+                       '/*INITIAL_OVERRIDES*/null':overrides}
         script=re.sub('|'.join(re.escape(k) for k in script_values),
                       lambda m:json.dumps(script_values[m.group()],allow_nan=False).replace('<','\\u003c'),script)
         p=self.payload()

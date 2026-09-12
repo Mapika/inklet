@@ -1,6 +1,6 @@
 # Compiled-scene browser viewer
 
-This unreleased increment adds `RenderScene.to_html()`: an offline viewer for
+Available in **4.0.0.dev3**. `RenderScene.to_html()` is an offline viewer for
 ordinary native figures, using the same compiled geometry, text, transforms,
 clipping and paint order as SVG/PDF export.
 

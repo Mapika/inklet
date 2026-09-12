@@ -31,19 +31,17 @@ their signatures and report schemas may change.
 
 ## 4.0 development preview
 
-**4.0.0.dev2** adds curve-preserving clipping, painted windows, improved PDF
-compositing and hatching, alongside offline linked charts, maps, calibrated images, mesh fields,
-contours and streamlines, with saved selections and reproducible exports.
-It also includes date/UTC axes, facets, pandas/Polars adapters and shared
-plotting-quality improvements.
-
+**4.0.0.dev3** adds shared compiled rendering, packed dense markers, offline
+WebGL2/Canvas viewing, and a plot-style inspector with undo/redo and saved
+visual overrides. Linked charts, maps and scientific reports preserve selections,
+source revisions and reproducible vector exports.
 ```sh
-python -m pip install "inklet==4.0.0.dev2"
+python -m pip install "inklet==4.0.0.dev3"
 ```
 
 [Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
-[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev2)
+[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev3)
 
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,

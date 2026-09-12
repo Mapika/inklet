@@ -144,7 +144,7 @@ remain open.
 
 ## Shared compiled renderer
 
-Available from the source checkout after **4.0.0.dev2**:
+Available in **4.0.0.dev3**:
 
 ```bash
 python examples/v4/regional_report.py --renderer compiled --render --output out/compiled-regional
@@ -180,3 +180,6 @@ export geometry and dense indexed filtering. This is an integration increment:
 the page still embeds linked interaction geometry alongside packed buffers,
 picking uses the existing CPU index, and revisions embed complete alternatives.
 It does not establish a dense-report memory or hardware-speed improvement.
+
+Add `--editor` for [reproducible plot-style editing](visual-editing.md), with
+undo/redo and saved overrides that the same recipe can reconstruct.

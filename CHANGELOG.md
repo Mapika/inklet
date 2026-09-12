@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 4.0.0.dev3 — 2026-09-12
+
+Third development preview: shared scene execution, dense marker rendering,
+linked compiled reports and the first reproducible plot-style editor. Install
+explicitly with `python -m pip install "inklet==4.0.0.dev3"`; 3.1.0 remains stable.
+
+- Add an offline inspector for named plot colours, marker radii and line widths,
+  with bounded undo/redo and separate versioned overrides. Preserve compatible
+  choices across source revisions and page widths; reject or explicitly report
+  orphaned targets. Reproduce edited views through Python SVG/PDF/PNG exports.
+- Prepare style commands atomically, preserve selection and view state, and
+  prevent file/command/revision races. Add edited full-report visual comparisons,
+  failure cases, browser/Python agreement and installed-wheel checks.
+
 - Add opt-in compiled execution to linked browser figures, preserving keyed
   selection, filtering, saved states, revision policies and vector exports.
   Pack contiguous circle runs without reordering paint, retain native SVG for
