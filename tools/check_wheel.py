@@ -12,6 +12,7 @@ SCRIPT = '''from importlib.metadata import version
 from importlib.util import find_spec
 from pathlib import Path
 import sys
+import json
 import inklet as i
 assert i.__version__ == version("inklet")
 assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
@@ -171,6 +172,10 @@ def make_document():
     art.port("exit", "output:out")
     art = art.instantiate(input=i.module("Input")).copy().configure(width=110)
     art.place("input", x=3)
+    edited_art = art.copy().place("input", x=4)
+    layout_state = json.loads(json.dumps(edited_art.layout_overrides(art)))
+    art, layout_report = art.with_layout_overrides(layout_state)
+    assert not layout_report["orphaned_targets"]
     doc = i.publication("single-column", width=110).document()
     doc.add("architecture", art, min_height=30)
     doc.add("panels", panels)

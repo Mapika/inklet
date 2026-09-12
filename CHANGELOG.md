@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 4.0.0.dev7 — 2026-09-12
+
+Seventh development preview: reproducible composition layout choices.
+3.1.0 remains the stable release.
+
+- Add Composition.layout_overrides(reference) to capture only changed child
+  placements and composition page fields in versioned JSON with named paths.
+- Add with_layout_overrides() to restore onto an independent recipe, retaining
+  live inputs, new content and unedited source decisions.
+- Preserve measured page/child/anchor expressions through saving and reopening;
+  diagnose removed targets and references with explicit error/drop policies.
+- Reject malformed values and contradictory edits to shared nested definitions
+  before applying changes. Keep geometry validation in the document compiler.
+- Extend the plot/diagram/native-3D example with saved layouts, two-width
+  roundtrips, revised content, reconciliation reports and an illustrated guide.
+
 ## 4.0.0.dev6 — 2026-09-12
 
 Sixth development preview: reusable mixed-content compositions.

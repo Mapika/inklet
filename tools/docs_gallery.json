@@ -1,5 +1,16 @@
 [
   {
+    "id": "layout-overrides",
+    "title": "Save and restore report layouts",
+    "category": "Layout",
+    "description": "Named layout decisions survive new measurements, labels and geometry, with explicit revision reports.",
+    "requires": "4.0 preview",
+    "image": "assets/guides/layout-revised.png",
+    "version": "4.0 preview",
+    "page": "layout-overrides/",
+    "featured": false
+  },
+  {
     "id": "composition-recipes",
     "title": "Reusable mixed-content reports",
     "category": "Layout",

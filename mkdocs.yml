@@ -63,6 +63,7 @@ nav:
 - Whole figures:
   - Panel layout: layout.md
   - Reusable compositions: composition-recipes.md
+  - Save layout choices: layout-overrides.md
   - Presets and styling: presets.md
   - Review and export: export-review.md
 - Interactive documents (preview):

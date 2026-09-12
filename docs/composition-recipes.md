@@ -134,3 +134,6 @@ produce the SVG/PDF/PNG comparisons, standalone HTML viewers, revised-data
 exports and build statistics in `out/composition-recipes/`. PNG requires the
 render extras. This is a Python recipe API; serialized project templates,
 asset manifests and browser layout overrides remain separate upcoming work.
+
+In dev7, [save and restore layout choices](layout-overrides.md) separately from
+the recipe, preserving measured expressions and reporting removed targets.

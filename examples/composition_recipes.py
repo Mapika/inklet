@@ -45,10 +45,49 @@ def make_reports():
     return (first,second),data
 
 
+def saved_layout_example(output, render=False):
+    reports,data=make_reports();base=reports[0]
+    edited=base.copy().place('chart',height=35,width=base.page_width*.5-20)
+    edited.place('object',x=base.page_width*.76).place('workflow',y=80)
+    edited['workflow'].place('model',x=edited['workflow'].page_width*.48)
+    state=edited.layout_overrides(base)
+    path=output/'layout-overrides.json'
+    path.write_text(json.dumps(state,indent=2,allow_nan=False)+'\n')
+    reopened,report=base.with_layout_overrides(json.loads(path.read_text()))
+    assert not report['orphaned_targets']
+    for width in (180,150):
+        def compile_report(recipe):
+            doc=i.preset('scientific.general').document(width=width,height=110,margin=0)
+            doc.add('report',recipe)
+            return doc.compile()
+        figure=compile_report(reopened)
+        assert figure.to_svg()==compile_report(edited).to_svg()
+        stem=output/f'layout-restored-{width}mm'
+        paths=[stem.with_suffix('.svg')]
+        if render:paths.extend([stem.with_suffix('.pdf'),stem.with_suffix('.png')])
+        figure.save(*paths)
+        stem.with_suffix('.html').write_text(figure.scene.to_html(title='Restored report layout'),encoding='utf-8')
+    revised=base.copy()
+    revised.replace('object',i.component(i.solid,'sphere',width=28,style='toon'))
+    revised['workflow']['model'].configure('Revised model')
+    data.update(y=[1.4,2.5,3.2,3.6,4.4])
+    applied,report=revised.with_layout_overrides(state)
+    figure=compile_report(applied)
+    paths=[output/'layout-revised.svg']
+    if render:paths.extend([output/'layout-revised.pdf',output/'layout-revised.png'])
+    figure.save(*paths)
+    # Replacing the nested workflow removes its editable child path.
+    revised.replace('workflow',i.module('Workflow replaced'))
+    _,report=revised.with_layout_overrides(state,missing='drop')
+    assert report['orphaned_targets']==['/workflow/model']
+    (output/'layout-reconciliation.json').write_text(json.dumps(report,indent=2)+'\n')
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,default=Path('out/composition-recipes'))
     parser.add_argument('--render',action='store_true')
+    parser.add_argument('--saved-layout',action='store_true',help='Also save, reopen and reconcile layout edits')
     args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=True)
     reports,data=make_reports()
     compiled=[]
@@ -72,6 +111,7 @@ def main():
     (args.output/'build-stats.json').write_text(json.dumps(stats,indent=2)+'\n')
     (args.output/'caption.txt').write_text('Original illustrative data and generated geometry; no experimental claims. '
         'Two independent instances share live measurements while preserving their own styles and content.\n')
+    if args.saved_layout:saved_layout_example(args.output,args.render)
     print(args.output)
 
 

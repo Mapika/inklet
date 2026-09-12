@@ -183,6 +183,25 @@ class Composition(BuildSpec):
                 return self
         raise KeyError(name)
 
+    def layout_overrides(self, reference):
+        """Capture changed placements and page fields against a matching reference.
+
+        Return JSON-compatible, versioned decisions keyed by named child paths.
+        Content, styles, data, links and constraints remain in the Python recipe.
+        """
+        from .layout_overrides import capture
+        return capture(self, reference)
+
+    def with_layout_overrides(self, value, *, missing='error'):
+        """Return an independent edited recipe and a reconciliation report.
+
+        Removed targets or measured references raise by default. missing='drop'
+        explicitly drops incompatible target entries and reports their paths.
+        Geometry, anchor availability and layout cycles are checked at compile.
+        """
+        from .layout_overrides import apply
+        return apply(self, value, missing=missing)
+
     def port(self, name, target):
         """Expose a child's name:anchor as a reusable composition attachment point."""
         if not isinstance(name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*', name):

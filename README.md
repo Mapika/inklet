@@ -31,16 +31,16 @@ their signatures and report schemas may change.
 
 ## 4.0 development preview
 
-**4.0.0.dev6** adds reusable compositions with required content inputs, independent
-instances, nested attachment points and placement controls. Combine live plots,
-diagrams and native 3D while preserving individual styles and physical typography.
+**4.0.0.dev7** adds saved layout choices for reusable compositions. Restore
+named placements and measured dimensions after data, label or content changes,
+with explicit reports for removed targets and independently editable recipes.
 ```sh
-python -m pip install "inklet==4.0.0.dev6"
+python -m pip install "inklet==4.0.0.dev7"
 ```
 
 [Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
-[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev6)
+[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev7)
 
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,

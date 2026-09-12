@@ -54,9 +54,11 @@ work with copied/composed instructions, independent styling and improved
 automatic layout. [Reusable compositions](composition-recipes.md) add required
 content inputs, independent instances, placement edits and nested attachment
 points in dev6, exercised by plots, diagrams and native 3D at two widths.
-Serialized project templates, asset manifests and browser layout editing
-remain open. Subsequent work should advance shared identity and reproducible
-editing, using domain examples to test those capabilities.
+Dev7 adds [saved layout overrides](layout-overrides.md) keyed by named paths,
+with measured expressions, independent restoration and explicit orphan reports.
+Serialized project templates, asset manifests, shared selection relationships
+and browser layout editing remain open. Subsequent work should connect these
+Python authoring contracts to direct editing and cross-content identity.
 
 ## Who this should serve
 
