@@ -17,6 +17,8 @@ historical population estimates, mostly dated 2019. Country selection links the
 world and Europe views. Search by country name or continent; the source year
 is retained for every row. See the [real-map guide](world-map.md) for details.
 
+For points, multi-part routes and mixed maps, see [GeoJSON features](geographic-features.md).
+
 ## Small regression example
 
 The four-region figure below is a deliberately simple test fixture. It remains

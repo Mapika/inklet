@@ -53,6 +53,7 @@ class ScatterRenderer{
         // their clipped bounds, so a long off-page segment cannot explode it.
         let box;
         if(item.kind==='circle'){
+          this.pickRadius=Math.max(this.pickRadius,g[2]);
           const key=Math.floor(g[0]/this.cellSize)+','+Math.floor(g[1]/this.cellSize);
           if(!this.index.has(key))this.index.set(key,[]);this.index.get(key).push(item);continue;
         }
@@ -142,6 +143,9 @@ class ScatterRenderer{
           distance=Math.hypot(x-((1-t)*g[0]+t*g[2]),y-((1-t)*g[1]+t*g[3]));allowed+=item.width/2;
           const endpoint=t<.5-1e-12?0:1;id=item.ids[endpoint];sample=item.samples?.[endpoint];
         }
+        // An explicit paint-order layer picks the topmost hit. Other layers
+        // retain nearest-mark picking, with paint order breaking ties.
+        if(item.layer.picking==='paint'&&distance<=allowed)distance=0;
         if(distance<=allowed&&(distance<bestDistance-1e-10||(Math.abs(distance-bestDistance)<=1e-10&&(!best||item.order>best.order)))){best={...item,id,...(sample?{sample}:{})};bestDistance=distance;}
       }
     }return best;
@@ -267,6 +271,9 @@ function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));con
   const unassigned=(scene.facet_groups??[]).filter(group=>group.unassigned_ids.length);
   document.getElementById('facet-status').hidden=!unassigned.length;
   document.getElementById('facet-rows').textContent=unassigned.length?JSON.stringify(unassigned,null,2):'';
+  const geography=scene.layers.filter(layer=>layer.geography).map(layer=>({panel:layer.name,projection:layer.projection,...layer.geography}));
+  document.getElementById('geography-status').hidden=!geography.length;
+  document.getElementById('geography-report').textContent=geography.length?JSON.stringify(geography,null,2):'';
   const images=scene.layers.filter(layer=>layer.image).map(layer=>{const {image_box,pixel_size_mm,...source}=layer.image;return {panel:layer.name,...source};});
   document.getElementById('image-status').hidden=!images.length;
   document.getElementById('image-report').textContent=images.length?JSON.stringify(images,null,2):'';

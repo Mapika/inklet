@@ -32,6 +32,27 @@ to the **5.0 direction**. Interactive controls and camera manipulation belong
 to 4.0; sequencing them over time does not. Existing presentation styling
 presets remain supported.
 
+## Next implementation priorities
+
+The next increments should strengthen the general framework, rather than expand
+one domain. Geography, microscopy and engineering are adapters and acceptance
+examples; none should determine the shared document architecture.
+
+1. **Reusable compositions:** explicit inputs, named content slots and attachment
+   points for plots, diagrams, images and 3D, with source/asset manifests.
+2. **Shared object identity:** stable named objects and explicit relationships
+   beyond table rows, so selections and authored decisions survive replacement.
+3. **Reproducible authoring:** extend saved overrides to labels and panel layout,
+   then camera settings, with clear limits, undo/redo and revision reconciliation.
+4. **Cross-content acceptance:** exercise the same composition and editing
+   contracts in a plot, a diagram and an image/3D view; verify resizing, reopening
+   and static/browser export agreement.
+
+Finish and verify the current bounded point/route adapter, then defer further
+geographic expansion. The next development release should advance shared
+composition or editing capabilities and use domain examples to test those
+capabilities, rather than make another map report its central deliverable.
+
 ## Who this should serve
 
 | User | Complete 4.0 workflow | What establishes success |
@@ -165,6 +186,10 @@ CSV replacement and exports at two physical widths. This completes the bounded
 Phase B analyst reference workflow. Multi-table relationships, the engineering
 and scientific workflows, recomputed grouped summaries and broader distribution
 types remain outstanding; the other Phase B and release gates are still open.
+The [mixed geographic feature workflow](geographic-features.md) extends the map
+subset to GeoJSON points, lines and multi-geometries, with whole-feature picking,
+explicit provenance and geometry revisions. Projection remains flat longitude/latitude;
+reprojection and geometric measurements are not implemented.
 An opt-in [compiled-renderer bridge](regional-report.md#shared-compiled-renderer)
 now runs that report through shared packed-marker execution while retaining
 linked selection, filtering, saved states and revision policies. A first

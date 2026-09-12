@@ -18,6 +18,7 @@ from xml.etree import ElementTree as ET
 from ...core import resolve
 from ..selection import KeyedTable, SelectionState
 from .regions import GeoRegions
+from .geography import GeoFeatures, MapView, _map_projection, _validate_map_style, _map_legend
 from .timeaxis import TimeAxis
 from .series import SeriesView
 from .drawings import DrawingItem, DrawingView
@@ -263,43 +264,15 @@ class RegionView:
     missing_color: str = '#d4d9d6'
 
     def __post_init__(self):
-        if not isinstance(self.name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*',self.name):
-            raise ValueError('view name needs a stable document cell identifier')
         if not isinstance(self.regions,GeoRegions): raise ValueError('regions must be GeoRegions')
-        extent=tuple(self.extent)
-        if (len(extent)!=4 or not all(_finite(v) for v in extent) or
-                not -180<=extent[0]<extent[2]<=180 or not -90<=extent[1]<extent[3]<=90):
-            raise ValueError('extent needs increasing west/south/east/north degree bounds')
-        breaks=tuple(self.breaks); colors=tuple(self.colors)
-        if not all(_finite(v) for v in breaks) or any(a>=b for a,b in zip(breaks,breaks[1:])):
-            raise ValueError('breaks must be finite and strictly increasing')
-        if len(colors)!=len(breaks)+1 or any(not isinstance(c,str) or not re.fullmatch('#[0-9a-fA-F]{6}',c) for c in (*colors,self.missing_color)):
-            raise ValueError('provide one hex color per bin and a hex missing color')
-        if self.value is not None and (not isinstance(self.value,str) or not self.value):
-            raise ValueError('value must be a column name or None')
-        if self.value is None and breaks: raise ValueError('breaks require a value column')
-        if not isinstance(self.value_label,str): raise ValueError('value label must be a string')
-        object.__setattr__(self,'extent',extent);object.__setattr__(self,'breaks',breaks);object.__setattr__(self,'colors',colors)
+        _validate_map_style(self)
 
     def _legend(self, missing=False):
-        if self.value is None: return []
-        if not self.breaks: labels=['All values']
-        else:
-            labels=[f'< {self.breaks[0]:g}']
-            labels += [f'{a:g}–< {b:g}' for a,b in zip(self.breaks,self.breaks[1:])]
-            labels += [f'≥ {self.breaks[-1]:g}']
-        entries=list(zip(labels,self.colors))
-        if missing: entries.append(('Missing',self.missing_color))
-        return entries
+        return _map_legend(self, missing)
 
 
 def _region_layer(view,table,bounds):
-    west,south,east,north=view.extent
-    scale=min(bounds[2]/(east-west),bounds[3]/(north-south))
-    if not math.isfinite(scale): raise ValueError('region extent is too small to project')
-    w,h=(east-west)*scale,(north-south)*scale
-    clip=[round(bounds[0]+(bounds[2]-w)/2,6),round(bounds[1]+(bounds[3]-h)/2,6),round(w,6),round(h,6)]
-    def project(p): return [round(clip[0]+(p[0]-west)*scale,6),round(clip[1]+(north-p[1])*scale,6)]
+    clip,project=_map_projection(view.extent,bounds)
     features=dict(view.regions.features);marks=[]
     for n,key in enumerate(table.row_ids):
         value=table.columns[view.value][n] if view.value is not None else 0
@@ -353,7 +326,7 @@ def _svg_mark(mark, color, selected=False):
 
 
 class BrowserFigure:
-    """Measured linked circles, line segments, bars and geographic regions.
+    """Measured linked plots, geographic features and technical/scientific views.
 
     The scene snapshots a keyed table. Null coordinate pairs omit marks and
     break lines. Page zoom never recomputes domains, ticks or layout.
@@ -362,7 +335,7 @@ class BrowserFigure:
     def __init__(self, table: KeyedTable, views, *, width=190, columns=None):
         import inklet as i
         definitions=tuple(views)
-        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,SeriesView,RegionView,DrawingView,LabelImageView,MeshFieldView,GridFieldView,FacetView) for v in definitions):
+        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,SeriesView,RegionView,MapView,DrawingView,LabelImageView,MeshFieldView,GridFieldView,FacetView) for v in definitions):
             raise ValueError('provide one to four supported plot or facet view definitions')
         if len({v.name for v in definitions})!=len(definitions): raise ValueError('view names must be unique')
         views,facet_metadata,facet_rows,facet_groups=_expand_facets(table,definitions)
@@ -372,10 +345,13 @@ class BrowserFigure:
                        share_plot_margins=bool(facet_groups) or any(isinstance(v,(MeshFieldView,GridFieldView)) for v in views)).letters()
         coordinates={};statistics={};ecdf_curves={}
         for index,view in enumerate(views):
-            if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView)):
-                if isinstance(view,(LabelImageView,MeshFieldView,GridFieldView)): view.validate_table(table)
+            if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView,MapView)):
+                if isinstance(view,(LabelImageView,MeshFieldView,GridFieldView,MapView)): view.validate_table(table)
                 p=i.plot_spec(x=(0,1),y=(0,1),height=58)
                 p.line([(0,0),(1,1)],stroke='none',stroke_width=0)
+                if isinstance(view,MapView):
+                    entries=view._legend(any(v is None for v in table.columns[view.value]) if view.value else False)
+                    if entries: p.legend(entries=entries,side='bottom',title=view.value_label or view.value,markup=False)
                 if isinstance(view,(MeshFieldView,GridFieldView)):
                     entries=view.legend()
                     label=('Corner mean' if view.cells else 'Contour level' if view.contours else '') if isinstance(view,GridFieldView) else 'Scalar'
@@ -472,7 +448,7 @@ class BrowserFigure:
             if (t.a,t.b,t.c,t.d)!=(1.,0.,0.,1.): raise ValueError('unsupported transformed plot cell')
             bounds=[rect.x0+t.e,rect.y0+t.f,rect.width,rect.height]
             bounds=[round(v,6) for v in bounds]
-            if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView)):
+            if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView,MapView)):
                 layers.append(view.layer(table,bounds));continue
             if isinstance(view,RegionView):
                 layers.append(_region_layer(view,table,bounds));continue
@@ -584,7 +560,7 @@ class BrowserFigure:
         unless missing='drop'. New rows enter only an all-rows filter.
 
         View definitions and layout are reused unless supplied. Map geometry
-        must still join exactly: supply revised RegionViews if IDs change.
+        must still join exactly: supply revised RegionViews or MapViews if IDs change.
         Viewport resets to the new page by default; 'preserve' explicitly keeps
         the old physical page rectangle, subject to the new figure's limits.
         """

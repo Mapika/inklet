@@ -13,6 +13,7 @@ visual editing. Install the [preview version](development-preview.md) explicitly
 | Inspect, pan and zoom a native figure | [Compiled-scene viewer](compiled-viewer.md) | Native vector export and the compiled snapshot |
 | Select and filter observations across plots | [Linked plots](linked-plots.md) | Stable row IDs and a saved selection/view state |
 | Build category panels or time series | [Facets](linked-facets.md), [dates and time series](time-series.md) | Category order, missing-value gaps and shared selection |
+| Map points and routes alongside regions | [Mixed GeoJSON features](geographic-features.md) | Whole-feature identity, fixed bins and explicit source attribution |
 | Join a regional map to values | [Linked maps](linked-maps.md) | Explicit geometry keys, bins and source attribution |
 | Display distributions or supplied intervals | [Linked statistics](statistical-views.md) | Stated methods, reference populations and interval meaning |
 | Edit plot appearance in the browser | [Visual editing](visual-editing.md) | Versioned overrides, undo/redo and Python reconstruction |

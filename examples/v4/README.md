@@ -297,3 +297,14 @@ python examples/v4/statistical_views.py --revised --state /path/to/view.json --o
 
 The source is MIT material by Mark Marosi. Ranges are illustrative, not confidence
 intervals. Methods and populations are disclosed in the browser and scene payload.
+
+
+### Mixed geographic features (development checkout)
+
+`transport_map.py --render` builds an original, invented transport fixture with
+point/multipoint, line/multiline and polygon/multipolygon features linked to
+supplied activity values. All coordinates and values in `fixtures/transport.geojson`
+and the recipe are original illustrative material under the repository's MIT
+license. They do not represent real locations or measured traffic. The report
+includes rerouted/removed geometry alternatives, explicit state reconciliation,
+source attribution and SVG/PDF/PNG exports at two widths.

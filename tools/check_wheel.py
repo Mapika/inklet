@@ -17,6 +17,12 @@ assert i.__version__ == version("inklet")
 assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
+from inklet.experimental.browser import GeoFeatures, MapView, BrowserFigure
+from inklet.experimental.selection import KeyedTable
+geography = GeoFeatures((('route','LineString',((0,0),(1,1))),('stop','Point',(1,1))), attribution='Original smoke fixture')
+geographic = BrowserFigure(KeyedTable('assets',dict(id=['route','stop'])),[MapView('map',geography,(-1,-1,2,2))])
+assert [mark['kind'] for mark in geographic.payload()['layers'][0]['marks']] == ['line','circle']
+assert 'Original smoke fixture' in geographic.to_html(renderer='compiled') and '<line' in geographic.to_svg()
 packed = i.panel(40,30,x=(0,1),y=(0,1))
 packed.scatter([(k/300,.5) for k in range(300)],size=.3,color='blue')
 viewer = i.compile_scene(packed.build()).to_html()

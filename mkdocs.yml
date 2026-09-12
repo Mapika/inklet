@@ -73,6 +73,7 @@ nav:
   - Dates and time series: time-series.md
   - Distributions and intervals: statistical-views.md
   - Region maps: linked-maps.md
+  - Points, routes and regions: geographic-features.md
   - Replace source data: data-revisions.md
   - Edit plot appearance: visual-editing.md
   - Complete reports:

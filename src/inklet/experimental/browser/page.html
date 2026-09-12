@@ -5,7 +5,7 @@
 details{margin:16px 0}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}#revision-report{overflow-wrap:anywhere}.revision-staging{overflow:hidden}
 </style>
 <main id="app" inert aria-busy="true"><span class="tag">Inklet · Experimental browser renderer</span><h1><!--TITLE--></h1>
-<p>Pick a mark to select its row across views. Line segments select the nearer endpoint row. Shift-click adds or removes a selection. Filter row IDs, drag to pan, or use page-zoom controls. The data table provides keyboard-accessible selection.</p>
+<p>Pick a mark to select its row across views. Plot line segments select the nearer endpoint row; map routes select their feature row. Shift-click adds or removes a selection. Filter row IDs, drag to pan, or use page-zoom controls. The data table provides keyboard-accessible selection.</p>
 <div class="controls"><label>Renderer<select id="backend"><option value="svg">SVG</option><option value="canvas">Canvas</option><option value="hybrid">Hybrid</option></select></label><label><span id="filter-label"><!--FILTER_LABEL--></span><input id="id-filter" type="search" placeholder="Filter rows"></label><button id="clear">Clear selection</button><button id="zoom-in">Zoom in</button><button id="zoom-out">Zoom out</button><button id="reset-view">Fit page</button></div>
 <!--EDITOR-->
 <details id="revision-controls" hidden><summary>Data revision</summary>
@@ -14,6 +14,7 @@ details{margin:16px 0}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-w
 </details>
 <p id="status" role="status" aria-live="polite">Loading measured figure…</p>
 <details id="facet-status" hidden><summary>Rows outside facet categories</summary><pre id="facet-rows"></pre></details>
+<details id="geography-status" hidden><summary>Map sources and projection</summary><p>Flat longitude/latitude maps: route segments are not geodesics. Do not read physical distances or areas from the map.</p><pre id="geography-report"></pre></details>
 <details id="image-status" hidden><summary>Image calibration and measurements</summary><pre id="image-report"></pre></details>
 <details id="statistics-status" hidden><summary>Statistical methods and populations</summary><p>Reference distributions retain their source population when filtering. Intervals are supplied values; filtering does not recalculate them.</p><pre id="statistics-report"></pre></details>
 <div id="stage" tabindex="0" role="img" aria-label="Linked plots. Click marks to select. Arrow keys pan; plus and minus zoom; zero fits the page. Use the table below for keyboard selection."></div><p id="hover">Point at a mark to inspect its row ID.</p>

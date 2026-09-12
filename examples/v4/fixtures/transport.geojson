@@ -1,0 +1,11 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type":"Feature","id":"district","properties":{},"geometry":{"type":"Polygon","coordinates":[[[0,0],[8,0],[8,5],[0,5],[0,0]],[[3,2],[5,2],[5,3],[3,3],[3,2]]]}},
+    {"type":"Feature","id":"islands","properties":{},"geometry":{"type":"MultiPolygon","coordinates":[[[[9,0],[10,0],[10,1],[9,1],[9,0]]],[[[9,2],[10,2],[10,3],[9,3],[9,2]]]]}},
+    {"type":"Feature","id":"main-route","properties":{},"geometry":{"type":"LineString","coordinates":[[1,1],[4,1],[7,1]]}},
+    {"type":"Feature","id":"branches","properties":{},"geometry":{"type":"MultiLineString","coordinates":[[[1,4],[3,4]],[[5,4],[7,4]]]}},
+    {"type":"Feature","id":"terminal","properties":{},"geometry":{"type":"Point","coordinates":[4,1]}},
+    {"type":"Feature","id":"stops","properties":{},"geometry":{"type":"MultiPoint","coordinates":[[1,1],[7,1]]}}
+  ]
+}

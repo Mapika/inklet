@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add experimental GeoFeatures and MapView for linked GeoJSON points, routes and
+  regions, with multi-part identity, topmost map picking, exact keyed joins,
+  source attribution and geometry revisions. Include a four-panel transport
+  recipe, two-width exports and an illustrated offline guide.
+
 ## 4.0.0.dev4 — 2026-09-12
 
 Fourth development preview: correct closed polar geometry and make the plot
