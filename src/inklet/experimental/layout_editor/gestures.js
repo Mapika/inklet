@@ -23,11 +23,11 @@ function pointerPoint(event){const point=overlay.createSVGPoint();point.x=event.
 function cancelGesture(){if(!gesture)return;const id=gesture.pointerId;gesture=null;if(overlay.hasPointerCapture(id))overlay.releasePointerCapture(id);lock(false);drawOverlay();status('Drag cancelled.');}
 overlay.addEventListener('pointerdown',event=>{
   if(busy||gesture||!previewReady||event.button!==0||event.isPrimary===false)return;
-  const hit=event.target.closest('[data-path]');if(!hit)return;
+  const hit=event.target.closest('[data-path]');if(!hit){selectTarget('/');return;}
   let path=hit.dataset.path,corner=hit.dataset.corner;
   if(event.altKey){const parent=path.slice(0,path.lastIndexOf('/'));if(state.geometry[parent]){path=parent;corner=null;}}
   const box=state.geometry[path]?.box;if(!box||box[2]<=0||box[3]<=0)return;
-  event.preventDefault();byId('target').value=path;fields();overlay.focus();
+  event.preventDefault();if(!selectTarget(path))return;overlay.focus({preventScroll:true});
   const point=pointerPoint(event);gesture={path,corner,box:[...box],start:point,client:[event.clientX,event.clientY],pointerId:event.pointerId,dx:0,dy:0,factor:1,moved:false};
   overlay.setPointerCapture(event.pointerId);lock(true);status(corner?'Scale artwork; release to apply. Escape cancels.':'Move content; release to apply. Escape cancels.');
 });
@@ -56,7 +56,7 @@ overlay.addEventListener('pointercancel',cancelGesture);
 overlay.addEventListener('lostpointercapture',()=>{if(gesture)cancelGesture();});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&gesture){event.preventDefault();cancelGesture();}});
 overlay.addEventListener('keydown',event=>{
-  if(busy||gesture||!previewReady)return;const path=byId('target').value;if(!state.geometry[path])return;
+  if(busy||gesture||!previewReady||dirty.size)return;const path=byId('target').value;if(!state.geometry[path])return;
   const step=event.shiftKey?10:1,keys={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]};
   if(keys[event.key]){event.preventDefault();request('gesture',{path,dx:keys[event.key][0],dy:keys[event.key][1]});}
 });

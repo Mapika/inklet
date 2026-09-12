@@ -192,6 +192,7 @@ def make_document():
         assert styled_copy["caption"].box_style["fill"] == "#ddeeff"
         assert editor.overrides()["targets"]
         assert "Layout editor" in editor._html()
+        assert "function sizeCanvas" in editor._html() and "--accent:" in editor._html()
         assert editor.figure.to_pdf().startswith(b"%PDF")
     doc = i.publication("single-column", width=110).document()
     doc.add("architecture", art, min_height=30)

@@ -120,10 +120,10 @@ def test_browser_pointer_gestures_cancel_and_reopen_match_python(tmp_path):
     function boxOf(selector){return document.querySelector(selector).getBoundingClientRect();}
     try{await ready(0);const original=state.svg;const target='/group/input';const old=state.geometry[target].box;
     let box=boxOf('.hit[data-path="'+target+'"]'),x=box.x+box.width/2,y=box.y+box.height/2;
-    const scale=overlay.getScreenCTM().a;
+    let scale=overlay.getScreenCTM().a;
     pointer(document.querySelector('.hit[data-path="'+target+'"]'),'pointerdown',x,y);pointer(overlay,'pointermove',x+6*scale,y+4*scale);pointer(overlay,'pointerup',x+6*scale,y+4*scale);await ready(1);
     if(Math.abs(state.geometry[target].box[0]-old[0]-6)>1e-6)throw Error('move coordinates');
-    box=boxOf('.handle[data-corner="se"]');x=box.x+box.width/2;y=box.y+box.height/2;const before=state.geometry[target].box;
+    scale=overlay.getScreenCTM().a;box=boxOf('.handle[data-corner="se"]');x=box.x+box.width/2;y=box.y+box.height/2;const before=state.geometry[target].box;
     pointer(document.querySelector('.handle[data-corner="se"]'),'pointerdown',x,y);pointer(overlay,'pointermove',x+before[2]*scale*.2,y+before[3]*scale*.2);pointer(overlay,'pointerup',x+before[2]*scale*.2,y+before[3]*scale*.2);await ready(2);
     if(Math.abs(state.geometry[target].box[2]/before[2]-1.2)>1e-6)throw Error('scale geometry');
     const saved=await(await fetch(byId('save').href)).json(),svg=state.svg;

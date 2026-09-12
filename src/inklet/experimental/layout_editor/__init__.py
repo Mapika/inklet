@@ -208,6 +208,8 @@ class LayoutEditor:
 
     def _html(self):
         return (Path(__file__).with_name('page.html').read_text().replace('__TOKEN__',self._token)
+                .replace('/*WORKSPACE_CSS*/',Path(__file__).with_name('workspace.css').read_text())
+                .replace('<!--WORKSPACE-->',Path(__file__).with_name('workspace.js').read_text())
                 .replace('<!--GESTURES-->',Path(__file__).with_name('gestures.js').read_text()))
 
     def start(self, *, port=0):

@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev11
+# Inklet 4.0.0.dev12
 
-The eleventh 4.0 development release includes the linked plotting, mapping,
+The twelfth 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev11"
+python -m pip install "inklet==4.0.0.dev12"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev11"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev12"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev11"
+python -m pip install "inklet[volume,render]==4.0.0.dev12"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,7 +29,25 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Unified composition authoring in dev11
+## Studio workspace in dev12
+
+The [composition editor](layout-editor.md) now has a searchable object navigator,
+a central figure canvas and a focused inspector. Layout, Labels and Styles use
+compact tabs, colour swatches and visible pending-change feedback. Apply/discard
+controls stay accessible; save/export and undo/redo move to the header.
+
+![Inklet studio workspace](assets/guides/editor-studio.png)
+
+Zoom, Fit and pan explore the canvas without changing the authored figure.
+Object gestures retain their figure coordinates at different zoom levels.
+Keyboard shortcuts cover apply, save and undo/redo; the help dialog lists the
+full set. Pending edits are protected during selection, source refresh and
+file actions. The layout adapts to tablet and phone screens.
+
+This is a UI change: existing schema 0.4 files and the Python compiler remain
+the source of saved choices and SVG/PDF exports.
+
+## Unified composition authoring retained from dev11
 
 The [composition editor](layout-editor.md#edit-appearance-alongside-layout) now
 combines Layout, Labels and Styles sections. Pending changes across sections
@@ -220,7 +238,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev11 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev12 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

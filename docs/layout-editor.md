@@ -1,11 +1,11 @@
 # Local layout editor
 
-Available since **4.0.0.dev8**, with mouse gestures in **4.0.0.dev9**, named label editing in **4.0.0.dev10**, and unified style controls in **4.0.0.dev11**, under `inklet.experimental.layout_editor`. Adjust
-named placements and dimensions in a browser while Python recompiles the
-actual composition. The preview and downloaded SVG/PDF come from the same
-compiled figure, including plots, nested diagrams and native 3D content.
+Available since **4.0.0.dev8**, with the redesigned studio workspace in
+**4.0.0.dev12**, under `inklet.experimental.layout_editor`. Arrange named
+content, edit labels and appearance, and review the actual Python-compiled
+figure. Downloaded SVG/PDF files use that same successful preview.
 
-![Mouse selection and proportional scaling handles on a native 3D object](assets/guides/layout-editor-gestures.png)
+![Inklet studio with object navigation, a large figure canvas and focused style controls](assets/guides/editor-studio.png)
 
 The [complete example](../examples/layout_editor.py) opens the reusable report
 from [composition recipes](composition-recipes.md). From the checkout, run:
@@ -18,6 +18,37 @@ Open the local URL printed in the terminal. Keep that Python process running;
 press Ctrl+C to stop it. This is a local editor, not a standalone HTML editing
 file. Ordinary [figure viewers](compiled-viewer.md) remain available for
 sharing a finished document without a Python process.
+
+## A workspace for your figure
+
+The desktop workspace has a searchable object navigator, a central canvas and
+an inspector with **Layout**, **Labels** and **Styles** tabs. Select an object
+from the navigator or directly on the figure. Nested objects retain their
+hierarchy, and the inspector shows the exact source path. On smaller screens,
+a **Content** selector replaces the navigator; on phones the inspector sits
+below the canvas.
+
+Use **+**, **−** and **Fit** to explore the figure. The zoom percentage is
+relative to the fitted view, not a physical-size preview. Ctrl/Cmd + wheel also
+zooms. Use the pan tool, middle-button dragging, or hold Space and drag to move
+the viewport. View changes never resize the authored figure or enter its undo
+history. Object movements and corner scaling still use figure coordinates at
+any zoom level.
+
+Changed fields are highlighted and counted. Switch inspector tabs to combine
+edits, then **Apply changes** as one undo step. **Discard** clears unapplied
+fields. Selecting another object, refreshing, undoing, opening a file, saving
+or exporting asks you to apply or discard pending changes first; browser
+navigation also warns about pending edits. Applied changes still need **Save
+choices** to download a portable file.
+
+Colour swatches open the native picker, while the adjacent field accepts exact
+colour values. Automatic/transparent values use a muted swatch. Undo/redo and
+file actions stay in the header; **Export** offers SVG and PDF. The footer shows
+compile feedback and the current revision. The **Shortcuts** dialog documents
+all controls, including Ctrl/Cmd + Enter to apply, Ctrl/Cmd + Z to undo,
+Ctrl/Cmd + Shift + Z to redo and Ctrl/Cmd + S to save applied choices. Text inputs
+retain native text undo.
 
 ## Start with your composition
 
@@ -79,7 +110,7 @@ top-fitting behavior; dependent content can reflow when the compiler rebuilds.
 
 ![Editing a named plot callout with text, side, clearance and leader controls](assets/guides/layout-editor-labels.png)
 
-Select a composition child, choose **Labels** in **Edit**, then change its fields and choose **Apply
+Select a composition child, choose the **Labels** tab, then change its fields and choose **Apply
 changes**. The editor supports text components created with `component(i.text,
 ...)`, string module captions, and plot `title`, `text` and `annotate`
 instructions with an explicit string `key`. For composition callouts, supply a
@@ -119,9 +150,9 @@ Undo/redo, reset, saved JSON and SVG/PDF exports include the label edits.
 
 ![Named line and marker styles edited in the composition inspector](assets/guides/layout-editor-styles.png)
 
-Choose **Styles** in **Edit**. Layout, Labels and Styles retain their pending
+Choose the **Styles** tab. Layout, Labels and Styles retain their pending
 changes when switching sections; **Apply changes** compiles them together as
-one undo step. Selecting another content target discards unapplied fields.
+one undo step. Apply or discard pending fields before selecting another content target.
 
 | Named content | Available appearance controls |
 | --- | --- |
@@ -168,7 +199,7 @@ are outside this style-control subset.
 
 ## Edit and review
 
-Choose a named path in **Content** and a section in **Edit**, enter the fields you want to change, then
+Choose a named path in **Content** and an inspector tab, enter the fields you want to change, then
 select **Apply changes**. Other fields retain their definitions.
 
 - Child placement fields are X, Y, anchor, width, height and uniform scale. Numbers use the
@@ -196,12 +227,12 @@ appears. Distinct placements of that shared content remain independently editabl
 
 ## Save, reopen and export
 
-**Save layout** downloads the versioned JSON described in
-[saved layout choices](layout-overrides.md). **Open layout choices** loads that
+**Save choices** downloads the versioned JSON described in
+[saved layout choices](layout-overrides.md). **Open** loads that
 same format. The file contains changed layout, label and supported style fields.
 Other source content, assets and undo history stay outside the file. Keep it alongside the recipe.
 
-**Download SVG** and **Download PDF** export the successful preview revision.
+**Export → SVG** and **Export → PDF** export the successful preview revision.
 If another editor tab changes the session first, stale commands and export
 links are rejected. Use **Reload editor** to obtain the current shared state.
 

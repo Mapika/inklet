@@ -1,11 +1,11 @@
 [
   {
     "id": "layout-editor",
-    "title": "Composition authoring editor",
+    "title": "Inklet studio workspace",
     "category": "Layout",
-    "description": "Edit layout, labels and appearance together; undo and reopen saved choices through Python.",
+    "description": "Explore the canvas, find named objects, and edit layout, labels and appearance in a focused workspace.",
     "requires": "4.0 preview",
-    "image": "assets/guides/layout-editor-styles.png",
+    "image": "assets/guides/editor-studio.png",
     "version": "4.0 preview",
     "page": "layout-editor/",
     "featured": false

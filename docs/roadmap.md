@@ -64,7 +64,9 @@ choices. Dev10 adds saved named text and callout editing across modules, text
 components, keyed plot instructions and composition annotations, including typed
 identity reconciliation. Dev11 connects supported plot, text and module styles
 to that same layout/label history, saved state and reconciliation workflow,
-with data-driven marker fields protected from constant overrides.
+with data-driven marker fields protected from constant overrides. Dev12 adds
+the studio workspace: object navigation, focused controls, zoom/pan, shortcuts
+and protection for pending edits.
 Serialized project templates, asset manifests, shared selection
 relationships, axis-label/camera editing and finer-grained manipulation remain open. Subsequent work
 should extend authoring and cross-content identity beyond this bounded inspector.

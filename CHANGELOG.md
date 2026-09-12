@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 4.0.0.dev12 — 2026-09-13
+
+Twelfth development preview: a redesigned local figure workspace.
+3.1.0 remains the stable release.
+
+- Add searchable object navigation, a large canvas, focused inspector tabs,
+  fixed apply/discard controls, header exports and revision feedback.
+- Add fitted zoom, wheel zoom, pan tools and Space/middle-button dragging without
+  changing authored geometry. Preserve object gesture coordinates across zooms.
+- Add native colour pickers, exact-value fields, keyboard shortcuts and a help
+  dialog; retain native text undo and adapt the workspace to smaller screens.
+- Protect unapplied fields during selection and file/source actions; highlight
+  pending changes and offer explicit discard. Keep schema 0.4 and Python exports.
+- Review real pointer capture and mobile overflow, extend browser regressions,
+  and update the illustrated editor guide.
+
 ## 4.0.0.dev11 — 2026-09-12
 
 Eleventh development preview: unified composition layout, labels and appearance.
