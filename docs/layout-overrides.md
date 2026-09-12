@@ -13,8 +13,8 @@ the edited SVG at both 180 and 150 mm. The [complete example](../examples/compos
 uses live illustrative data and generated geometry.
 
 [Open the restored figure viewer](assets/guides/layout-restored.html).
-The viewer supports zoom, pan and vector export; layout editing is currently
-through Python. This format is separate from the experimental linked-table
+The viewer supports zoom, pan and vector export. Edit layouts through the
+Python APIs below or the [local inspector](layout-editor.md) in dev8. This format is separate from the experimental linked-table
 [plot-style overrides](visual-editing.md).
 
 ## Capture changes against a reference
@@ -137,3 +137,6 @@ a revised module label. Run
 `python examples/composition_recipes.py --render --saved-layout` to generate
 the comparison files, `layout-overrides.json` and `layout-reconciliation.json`
 in `out/composition-recipes/`. PNG generation requires the render extras.
+
+In dev8, the [local layout editor](layout-editor.md) provides browser controls,
+undo/redo and Python-compiled previews using this saved format.

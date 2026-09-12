@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev7
+# Inklet 4.0.0.dev8
 
-The seventh 4.0 development release includes the linked plotting, mapping,
+The eighth 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev7"
+python -m pip install "inklet==4.0.0.dev8"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev7"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev8"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev7"
+python -m pip install "inklet[volume,render]==4.0.0.dev8"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,7 +29,27 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Saved layout choices in dev7
+## Local layout inspector in dev8
+
+The [local layout editor](layout-editor.md) turns saved composition choices into
+a browser workflow. Edit named placements and dimensions, preview the actual
+Python-compiled figure, undo/redo changes, reopen layout JSON and download
+matching SVG/PDF exports. The source recipe remains unchanged.
+
+Failed edits retain the last successful preview and history. Explicit source
+refresh reapplies choices after data/content changes, reports removed targets
+and clears history. Revision checks prevent stale tabs from overwriting newer
+edits or silently exporting a different preview. Shared nested definitions
+remain consistent across repeated edits and resets.
+
+![The local browser layout inspector](assets/guides/layout-editor.png)
+
+This inspector requires its local Python session. It covers composition layout;
+drag handles, label content, plot styling and cameras remain separate work.
+The existing standalone viewers and linked-plot appearance editor retain their
+current scope.
+
+## Saved layout choices retained from dev7
 
 [Layout overrides](layout-overrides.md) capture changed placements and page
 settings separately from the Python recipe. Versioned JSON uses named paths,
@@ -44,8 +64,8 @@ after measurements, geometry and labels change.
 
 ![Saved layout applied to revised content](assets/guides/layout-revised.png)
 
-These are Python authoring APIs. Browser layout editing, label/camera overrides,
-shared selection relationships and asset manifests remain open roadmap work.
+The saved format covers layout decisions. Label/camera overrides, broader
+selection relationships and asset manifests remain open roadmap work.
 
 ## Reusable compositions retained from dev6
 
@@ -63,8 +83,8 @@ cache invalidation and guide execution are covered by regression checks.
 
 ![A reusable report combining a live plot, 3D and a nested workflow](assets/guides/composition-recipes.png)
 
-Serialized project templates, asset manifests and browser layout editing remain
-open roadmap items. This release develops the shared Python composition API.
+Serialized project templates and asset manifests remain open roadmap items.
+The local inspector above builds on this shared Python composition API.
 
 ## Shared plotting and composition retained from dev5
 
@@ -142,7 +162,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev7 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev8 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

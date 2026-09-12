@@ -15,7 +15,7 @@ illustrative data and generated geometry.
 
 [Open the standalone figure viewer](assets/guides/composition-recipes.html).
 The viewer supports exploration; these placement and content edits are made
-in Python. Browser layout editing remains on the [roadmap](roadmap.md).
+in Python or through the [local layout inspector](layout-editor.md) in dev8.
 
 ## Declare inputs and defaults
 
@@ -132,8 +132,9 @@ needs. The complete example rejects widths below 140 mm.
 Run `python examples/composition_recipes.py --render` from the checkout to
 produce the SVG/PDF/PNG comparisons, standalone HTML viewers, revised-data
 exports and build statistics in `out/composition-recipes/`. PNG requires the
-render extras. This is a Python recipe API; serialized project templates,
-asset manifests and browser layout overrides remain separate upcoming work.
+render extras. This is a Python recipe API; serialized project templates
+and asset manifests remain separate upcoming work. Saved layout choices and
+the [local inspector](layout-editor.md) build on these recipes.
 
 In dev7, [save and restore layout choices](layout-overrides.md) separately from
 the recipe, preserving measured expressions and reporting removed targets.

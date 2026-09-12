@@ -56,9 +56,11 @@ content inputs, independent instances, placement edits and nested attachment
 points in dev6, exercised by plots, diagrams and native 3D at two widths.
 Dev7 adds [saved layout overrides](layout-overrides.md) keyed by named paths,
 with measured expressions, independent restoration and explicit orphan reports.
-Serialized project templates, asset manifests, shared selection relationships
-and browser layout editing remain open. Subsequent work should connect these
-Python authoring contracts to direct editing and cross-content identity.
+Dev8 adds a [local layout inspector](layout-editor.md) backed by Python
+compilation, with saved choices, undo/redo and explicit source refresh.
+Serialized project templates, asset manifests, shared selection relationships,
+label/camera editing and direct manipulation remain open. Subsequent work
+should extend authoring and cross-content identity beyond this bounded inspector.
 
 ## Who this should serve
 

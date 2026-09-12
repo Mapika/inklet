@@ -176,6 +176,12 @@ def make_document():
     layout_state = json.loads(json.dumps(edited_art.layout_overrides(art)))
     art, layout_report = art.with_layout_overrides(layout_state)
     assert not layout_report["orphaned_targets"]
+    from inklet.experimental.layout_editor import LayoutEditor
+    with LayoutEditor(art) as editor:
+        editor.command("edit", {"path":"/input", "placement":{"x":5}})
+        assert editor.overrides()["targets"]
+        assert "Layout editor" in editor._html()
+        assert editor.figure.to_pdf().startswith(b"%PDF")
     doc = i.publication("single-column", width=110).document()
     doc.add("architecture", art, min_height=30)
     doc.add("panels", panels)

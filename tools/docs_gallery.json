@@ -1,5 +1,16 @@
 [
   {
+    "id": "layout-editor",
+    "title": "Local composition inspector",
+    "category": "Layout",
+    "description": "Edit named layouts in a browser with Python-compiled previews, undo/redo and saved choices.",
+    "requires": "4.0 preview",
+    "image": "assets/guides/layout-editor.png",
+    "version": "4.0 preview",
+    "page": "layout-editor/",
+    "featured": false
+  },
+  {
     "id": "layout-overrides",
     "title": "Save and restore report layouts",
     "category": "Layout",

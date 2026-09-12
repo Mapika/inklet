@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 4.0.0.dev8 — 2026-09-12
+
+Eighth development preview: local browser layout editing with Python compilation.
+3.1.0 remains the stable release.
+
+- Add experimental LayoutEditor with a loopback browser inspector for named
+  composition placements and dimensions, using the real Python compiler for
+  previews and matching SVG/PDF exports.
+- Add atomic edit/load/reset commands, bounded undo/redo, saved dev7 layout JSON,
+  and explicit source refresh with removed-target reconciliation.
+- Preserve the last successful preview/history after errors, reject stale
+  revisions and exports, and keep shared nested definitions consistent.
+- Add a runnable mixed-content editor, an illustrated guide, browser/HTTP tests,
+  concurrent-client checks and core-only installed-package coverage.
+
 ## 4.0.0.dev7 — 2026-09-12
 
 Seventh development preview: reproducible composition layout choices.
