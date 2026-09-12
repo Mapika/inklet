@@ -254,8 +254,10 @@ class ScatterRenderer{
 }
 window.ScatterRenderer=ScatterRenderer;
 window.FigureRenderer=ScatterRenderer;
+let DocumentRenderer=ScatterRenderer;
+/*RENDERER_ADAPTER*/
 let scene=JSON.parse(document.getElementById('scene').textContent);
-let runtime=new ScatterRenderer(document.getElementById('stage'),scene);window.inklet=runtime;
+let runtime=new DocumentRenderer(document.getElementById('stage'),scene);window.inklet=runtime;
 runtime.backend=/*DEFAULT_BACKEND*/'svg';document.getElementById('backend').value=runtime.backend;
 const status=document.getElementById('status'),error=document.getElementById('error'),tableBody=document.getElementById('rows');let page=0;
 function message(){const visible=scene.row_ids.filter(id=>runtime.shown(id));const hidden=[...runtime.selected].filter(id=>!runtime.shown(id)).length;
@@ -355,7 +357,7 @@ async function switchRevision(index,{missing='error',viewport='reset'}={}){
   Object.assign(staging.style,{position:'fixed',left:'-100000px',top:'0',width:rect.width+'px',height:Math.max(minHeight,rect.width*target.scene.height/target.scene.width)+'px',visibility:'hidden'});
   document.body.append(staging);
   try{
-    candidate=new ScatterRenderer(staging,target.scene);candidate.backend=runtime.backend;
+    candidate=new DocumentRenderer(staging,target.scene);candidate.backend=runtime.backend;
     await candidate.ready;candidate.loadState(nextState);
     // Prepare all geometry and state offscreen before replacing the active scene.
     const previous=runtime;

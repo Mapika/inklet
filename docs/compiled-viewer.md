@@ -50,10 +50,13 @@ runtime, marker buffers, outlined text and image resources; no server, CDN or
 JavaScript package installation is required. Native SVG, PDF and PNG export
 continue to use that same snapshot.
 
-This viewer handles native compiled figures. The existing
-[linked-plot viewer](linked-plots.md) supplies keyed-row filtering, selection
-and data revision controls. Those interactions have not yet been migrated to
-this compiled-scene viewer.
+This viewer handles native compiled figures. The
+[linked-plot viewer](linked-plots.md) can now use its shared executor with
+`BrowserFigure.to_html(renderer='compiled', backend='auto')`. This opt-in bridge
+retains keyed-row filtering, selection, saved views and atomic data revisions.
+The [regional report](regional-report.md#shared-compiled-renderer) exercises the
+complete workflow. Arbitrary native `RenderScene` objects still need explicit
+semantic mappings before they can participate in those linked interactions.
 
 ## Rendering modes and fallback
 
@@ -293,5 +296,7 @@ agent-browser eval --stdin < tools/benchmark_scene_zoom.js
 Canvas and WebGL2, with separate CPU submission and GPU draw measurements.
 
 Other-browser measurements, accelerated outlines, indexed picking, partial
-buffer updates and migration of keyed-row interactions remain open. Packed maps and meshes are later consumers of the same scene;
+buffer updates and semantic mappings for arbitrary native scenes remain open.
+The linked-figure bridge reuses the existing picking index and state schema;
+it does not replace them with GPU picking. Packed maps and meshes are later consumers of the same scene;
 this increment does not claim their GPU performance.

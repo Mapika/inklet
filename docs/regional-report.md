@@ -141,3 +141,42 @@ The regional reference workflow now has executable save/reopen, replacement and
 resize coverage. Broader joins, recomputed filtered summaries, the engineering
 and scientific reference projects, and the other [4.0 release gates](roadmap.md)
 remain open.
+
+## Shared compiled renderer
+
+Available from the source checkout after **4.0.0.dev2**:
+
+```bash
+python examples/v4/regional_report.py --renderer compiled --render --output out/compiled-regional
+```
+
+The same illustrated report above now runs through the shared
+[compiled-scene executor](compiled-viewer.md). Select Hungary, filter the
+Central group, save the view, switch revisions, and reopen the saved view against
+its matching revision. The state JSON and Python reconstruction commands are
+unchanged. `--backend canvas`, `--backend svg`, or `--backend webgl2` explicitly
+choose execution; the compiled recipe defaults to `auto`, with reported Canvas
+fallback when hardware WebGL is unavailable or recognized as software.
+
+In Python, pass `renderer='compiled', backend='auto'` to `BrowserFigure.to_html()`.
+The default renderer remains `classic`, with its existing SVG/Canvas/hybrid modes.
+The compiled renderer supports SVG, Canvas, automatic and WebGL2 execution.
+
+Contiguous circle runs use immutable packed records and preserve their row IDs,
+source paint order, per-mark opacity and physical clipping. Filtering changes
+candidate indices without replacing those records. Maps, lines and other marks
+retain native SVG geometry; measured axes and selection outlines stay vector.
+SVG download and Python SVG/PDF/PNG reconstruction retain the established
+linked-figure export path. Renderer changes do not change the saved-state digest.
+
+Revision switching prepares the replacement before removing the old renderer,
+then releases its surfaces, GPU resources and observers. Missing selected or
+filtered IDs still reject by default; explicit `drop` produces the same report
+as Python. Keyboard selection through the source table remains available.
+
+Checks compare the filtered six-panel report against classic SVG at display
+ratios 1 and 2, and exercise restoration, rejected revisions, explicit removals,
+export geometry and dense indexed filtering. This is an integration increment:
+the page still embeds linked interaction geometry alongside packed buffers,
+picking uses the existing CPU index, and revisions embed complete alternatives.
+It does not establish a dense-report memory or hardware-speed improvement.

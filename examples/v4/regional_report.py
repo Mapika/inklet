@@ -111,7 +111,12 @@ def main():
     parser.add_argument('--rebase-state',type=Path,help='Original 210 mm state to apply to replacement data')
     parser.add_argument('--missing',choices=('error','drop'),default='error')
     parser.add_argument('--render',action='store_true',help='Also export PDF and 150 dpi PNG (render extra)')
+    parser.add_argument('--renderer',choices=('classic','compiled'),default='classic',
+                        help='Use the shared compiled viewer for linked marks')
+    parser.add_argument('--backend',choices=('svg','canvas','hybrid','auto','webgl2'),default=None)
     args=parser.parse_args()
+    if args.renderer=='compiled' and args.backend=='hybrid': parser.error('compiled rendering does not use hybrid')
+    if args.renderer=='classic' and args.backend in ('auto','webgl2'): parser.error('auto/webgl2 require --renderer compiled')
     if args.csv and args.revised: parser.error('choose --csv or --revised')
     if args.state and args.rebase_state: parser.error('choose --state or --rebase-state')
     if args.group and (args.state or args.rebase_state): parser.error('choose a group or saved state')
@@ -138,6 +143,7 @@ def main():
     options=[] if args.csv else [RevisionOption('Original · 18 countries' if args.revised else 'Revised · 17 countries',
         make_scene(revised=not args.revised),CREDIT,search_columns=('country','group'))]
     (args.output/'index.html').write_text(figure.to_html(title=title,
+        renderer=args.renderer,backend=args.backend or ('auto' if args.renderer=='compiled' else 'svg'),
         state=state,attribution=credit,search_columns=('country','group'),revision_label=label,revisions=options),encoding='utf-8')
     (args.output/'view.json').write_text(json.dumps(state,indent=2)+'\n',encoding='utf-8')
     (args.output/'revision.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')

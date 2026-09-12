@@ -165,6 +165,10 @@ CSV replacement and exports at two physical widths. This completes the bounded
 Phase B analyst reference workflow. Multi-table relationships, the engineering
 and scientific workflows, recomputed grouped summaries and broader distribution
 types remain outstanding; the other Phase B and release gates are still open.
+An opt-in [compiled-renderer bridge](regional-report.md#shared-compiled-renderer)
+now runs that report through shared packed-marker execution while retaining
+linked selection, filtering, saved states and revision policies. General native
+scene identity mappings, visual editing and the other release gates remain open.
 The [linked engineering report](engineering-report.md) starts Phase C with
 native drawing/table correspondence, explicit box sections and measurements,
 geometry replacement, retained label offsets and two-width exports. This bounded

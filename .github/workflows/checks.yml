@@ -70,6 +70,7 @@ jobs:
           .venv/bin/python examples/v4/time_series.py --output out/v4-time
           .venv/bin/python examples/v4/statistical_views.py --output out/v4-statistics
           .venv/bin/python examples/v4/regional_report.py --render --output out/v4-regional-report
+          .venv/bin/python examples/v4/regional_report.py --renderer compiled --render --output out/v4-compiled-regional
           .venv/bin/python examples/v4/engineering_report.py --render --output out/v4-engineering
           .venv/bin/python examples/v4/scientific_report.py --render --output out/v4-scientific
           .venv/bin/python examples/v4/mesh_fields.py --render --output out/v4-mesh-fields

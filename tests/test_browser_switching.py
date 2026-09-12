@@ -204,9 +204,10 @@ def mark_geometry(svg):
     return tuple(map(float, root.attrib['viewBox'].split())), marks
 
 
-@pytest.mark.parametrize('backend', ['svg', 'canvas', 'hybrid'])
+@pytest.mark.parametrize('renderer,backend', [('classic', 'svg'), ('classic', 'canvas'), ('classic', 'hybrid'),
+    ('compiled', 'svg'), ('compiled', 'canvas'), ('compiled', 'auto'), ('compiled', 'webgl2')])
 @pytest.mark.parametrize('dpr', [1, 2])
-def test_browser_revision_switching_is_atomic_and_matches_python(tmp_path, backend, dpr):
+def test_browser_revision_switching_is_atomic_and_matches_python(tmp_path, backend, dpr, renderer):
     browser = next((path for name in ('google-chrome', 'chromium', 'chromium-browser')
                     if (path := shutil.which(name))), None)
     if browser is None:
@@ -221,7 +222,7 @@ def test_browser_revision_switching_is_atomic_and_matches_python(tmp_path, backe
     for token, value in {'INITIAL_STATE': state, 'EXPECTED_REPORT': expected.report(),
                          'EXPECTED_STATE': expected.state(), 'BACKEND': backend}.items():
         checks = checks.replace(token, json.dumps(value).replace('<', '\\u003c'))
-    page = original.to_html(backend=backend, state=state, attribution='Original source',
+    page = original.to_html(renderer=renderer, backend=backend, state=state, attribution='Original source',
         revision_label='Original', search_columns=('label',), revisions=revision_options(revised, alternate))
     path = tmp_path/'index.html'
     path.write_text(page.replace('</html>', '<script>'+checks+'</script></html>'), encoding='utf-8')

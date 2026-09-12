@@ -669,13 +669,20 @@ class BrowserFigure:
 
     def to_html(self, *, title='Linked plot views', backend='svg', state=None,
                 attribution='Built with Inklet.', search_columns=(),
-                revision_label='Original', revisions=()):
+                revision_label='Original', revisions=(), renderer='classic'):
+        """Export offline interaction, optionally using shared compiled execution.
+
+        ``renderer='compiled'`` supports svg/canvas/auto/webgl2 while retaining
+        the same state schema. The default classic renderer supports hybrid.
+        """
         if not isinstance(attribution,str): raise ValueError('attribution must be a string')
         if isinstance(search_columns,str): raise ValueError('search columns must be a sequence of column names')
         search_columns=tuple(search_columns)
         if any(c not in self.table.columns for c in search_columns): raise ValueError('unknown search column')
         if state is not None: self.validate_state(state)
-        if backend not in ('svg','canvas','hybrid'): raise ValueError('unknown browser backend')
+        if renderer not in ('classic', 'compiled'): raise ValueError('unknown browser renderer')
+        backends = ('svg','canvas','hybrid') if renderer == 'classic' else ('svg','canvas','auto','webgl2')
+        if backend not in backends: raise ValueError('unknown browser backend')
         revisions=tuple(revisions)
         if len(revisions)>7 or any(not isinstance(r,RevisionOption) for r in revisions):
             raise ValueError('provide up to seven RevisionOption alternatives')
@@ -683,12 +690,27 @@ class BrowserFigure:
         if len({r.label for r in options})!=len(options): raise ValueError('revision labels must be unique')
         if any(r.figure.table.name!=self.table.name or r.figure.table.key!=self.table.key for r in options):
             raise ValueError('revisions must retain the table name and key column')
+        def scene_payload(figure):
+            payload = figure.payload()
+            if renderer == 'compiled':
+                from .compiled import compiled_marks
+                payload['compiled'] = compiled_marks(payload)
+            return payload
+
         catalog=dict(labels=[r.label for r in options],
-                     alternatives=[dict(scene=r.figure.payload(),attribution=r.attribution,
+                     alternatives=[dict(scene=scene_payload(r.figure),attribution=r.attribution,
                                         search_columns=r.search_columns) for r in revisions],
                      reports=[[a.figure._revision_report(b.figure) for b in options] for a in options] if revisions else [])
         template=Path(__file__).with_name('page.html').read_text(encoding='utf-8')
         script=Path(__file__).with_name('runtime.js').read_text(encoding='utf-8')
+        if renderer == 'compiled':
+            directory = Path(__file__).parent.parent/'scene_viewer'
+            shared = '\n'.join((directory/name).read_text(encoding='utf-8') for name in ('spatial.js', 'runtime.js'))
+            adapter = Path(__file__).with_name('compiled.js').read_text(encoding='utf-8')
+            script = shared + '\n' + script.replace('/*RENDERER_ADAPTER*/', adapter)
+            template = template.replace('<option value="hybrid">Hybrid</option>',
+                '<option value="auto">Automatic</option><option value="webgl2">WebGL2</option>')
+            template = template.replace('<p id="status"', '<p id="renderer-status" class="note" role="status"></p><p id="status"')
         script_values={"/*DEFAULT_BACKEND*/'svg'":backend,'/*SEARCH_COLUMNS*/[]':search_columns,
                        '/*INITIAL_STATE*/null':state,'/*REVISION_CATALOG*/null':catalog}
         script=re.sub('|'.join(re.escape(k) for k in script_values),
@@ -698,7 +720,7 @@ class BrowserFigure:
         replacements={'<!--TITLE-->':html.escape(title),
                       '<!--ATTRIBUTION-->':html.escape(attribution),
                       '<!--FILTER_LABEL-->':'Search rows' if search_columns else 'Row ID contains',
-                      '/*PAYLOAD*/':self._json.replace('<','\\u003c'), '/*RUNTIME*/':script}
+                      '/*PAYLOAD*/':json.dumps(scene_payload(self), allow_nan=False).replace('<','\\u003c'), '/*RUNTIME*/':script}
         # Substitute once: authored strings may themselves contain template tokens.
         return re.sub(r'<!--TITLE-->|<!--ATTRIBUTION-->|<!--FILTER_LABEL-->|/\*PAYLOAD\*/|/\*RUNTIME\*/',
                       lambda match: replacements[match.group()],template)

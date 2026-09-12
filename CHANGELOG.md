@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Add opt-in compiled execution to linked browser figures, preserving keyed
+  selection, filtering, saved states, revision policies and vector exports.
+  Pack contiguous circle runs without reordering paint, retain native SVG for
+  other marks, and intersect visibility masks with spatial candidates.
+- Share the compiled viewer runtime with the linked report instead of duplicating
+  GPU execution. Retain immutable records during filtering and release surfaces
+  on revision replacement. Add a runnable regional report mode, complete-figure
+  display comparisons and state/revision/export regressions across backends.
+
 - Build ordered marker candidates with a reusable bitmap instead of temporary
   JavaScript result arrays and comparison sorting. Accept fully contained grid
   cells without rechecking each footprint, preserving source paint order and

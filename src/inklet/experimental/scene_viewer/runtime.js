@@ -161,6 +161,23 @@ class CompiledSceneViewer{
   this.ready=Promise.resolve(this);
  }
  candidates(batch,box,width,height){
+  const candidates=this.spatialCandidates(batch,box,width,height);
+  if(!batch.visibleMask)return candidates;
+  if(candidates!==null)return candidates.filter(k=>batch.visibleMask[k]);
+  return batch.visibleIndices;
+ }
+ setMarkerVisibility(masks){
+  if(!Array.isArray(masks)||masks.length!==this.batches.length||masks.some((mask,k)=>mask!==null&&
+    (!(mask instanceof Uint8Array)||mask.length!==this.batches[k].count||mask.some(v=>v>1))))throw Error('Invalid marker visibility');
+  for(const [k,mask] of masks.entries()){
+   const batch=this.batches[k];batch.visibleMask=mask===null?null:mask.slice();
+   batch.visibleIndices=mask===null?null:Uint32Array.from(mask.keys()).filter(j=>mask[j]);
+   const layer=this.layers[k];layer.painted=false;
+   if(layer.actual==='svg'){layer.target.replaceChildren();this.vector(batch,layer.target);}
+  }
+  this.render();
+ }
+ spatialCandidates(batch,box,width,height){
   // Include one backing pixel for shader antialiasing beyond geometric bounds.
   const dx=box[2]/width,dy=box[3]/height,q=[box[0]-dx,box[1]-dy,box[2]+2*dx,box[3]+2*dy],b=batch.box;
   if(batch.count<256||(q[0]<=b[0]&&q[1]<=b[1]&&q[0]+q[2]>=b[0]+b[2]&&q[1]+q[3]>=b[1]+b[3]))return null;
@@ -172,11 +189,13 @@ class CompiledSceneViewer{
  vector(batch,target){
   const fragment=document.createDocumentFragment(),view=batch.records;
   for(let k=0;k<batch.count;k++){
+   if(batch.visibleMask&&!batch.visibleMask[k])continue;
    const o=k*36,index=view.getUint32(o+24,true),fill=batch.fills[index];
    const x=view.getFloat64(o,true),y=view.getFloat64(o+8,true),size=view.getFloat64(o+16,true);
    const attrs=batch.vertices.length?{points:batch.vertices.map(p=>`${x+p[0]*size},${y+p[1]*size}`).join(' '),'fill-rule':batch.fill_rule}:{cx:x,cy:y,r:size*batch.radius};
    attrs['data-source-index']=view.getBigUint64(o+28,true).toString();
    if(fill!==null)attrs.fill=fill;
+   attrs['fill-opacity']=batch.palette[index][3];
    fragment.append(svgElement(batch.vertices.length?'polygon':'circle',attrs));
   }target.append(fragment);
  }
@@ -258,17 +277,3 @@ class CompiledSceneViewer{
  exportSVG(){const svg=new DOMParser().parseFromString(this.scene.frame,'image/svg+xml').documentElement;svg.setAttribute('viewBox',this.viewport.join(' '));for(const [index,batch] of this.batches.entries())this.vector(batch,svg.querySelector(`[data-inklet-batch="${index}"]`));return new XMLSerializer().serializeToString(svg);}
  dispose(){if(this.disposed)return;this.disposed=true;this.resizeObserver.disconnect();window.removeEventListener('resize',this.resize);cancelAnimationFrame(this.frame);for(const layer of this.layers){if(layer.gpu){layer.canvas.removeEventListener('webglcontextlost',layer.lost);layer.gpu.dispose();}if(layer.canvas)layer.canvas.width=layer.canvas.height=0;}this.layers=[];this.batches=[];this.spatialIndexes.clear();this.svg.remove();}
 }
-const host=document.getElementById('stage'),error=document.getElementById('error');
-function attempt(action){try{error.textContent='';action();}catch(e){error.textContent=e.message;}}
-host.addEventListener('inklet-render',event=>{const r=event.detail,counts={};for(const l of r.layers)counts[l.backend]=(counts[l.backend]||0)+1;document.getElementById('status').textContent=(Object.entries(counts).map(([k,v])=>`${v} ${k} layers`).join(' · ')||'Native SVG artwork')+` · ${r.native.length} native SVG marker layers`+(r.layers.some(l=>l.reason)?' · '+[...new Set(r.layers.map(l=>l.reason).filter(Boolean))].join('; '):'')+(r.layers.some(l=>l.reducedResolution)?' · display resolution limited':'');});
-const scene=JSON.parse(document.getElementById('scene').textContent);window.inkletScene=new CompiledSceneViewer(host,scene);
-document.getElementById('backend').value=scene.backend;
-document.getElementById('backend').onchange=e=>attempt(()=>inkletScene.setBackend(e.target.value));
-document.getElementById('zoom-in').onclick=()=>attempt(()=>inkletScene.zoom(1.25));
-document.getElementById('zoom-out').onclick=()=>attempt(()=>inkletScene.zoom(.8));
-document.getElementById('fit').onclick=()=>attempt(()=>inkletScene.setViewport(inkletScene.original));
-document.getElementById('download').onclick=()=>attempt(()=>{const url=URL.createObjectURL(new Blob([inkletScene.exportSVG()],{type:'image/svg+xml'})),a=document.createElement('a');a.href=url;a.download='inklet-figure.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
-let drag=null;
-host.addEventListener('pointerdown',e=>{if(e.button!==0)return;host.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,viewport:[...inkletScene.viewport],inverse:inkletScene.svg.getScreenCTM().inverse()};});
-host.addEventListener('pointermove',e=>{if(!drag)return;const m=drag.inverse,dx=e.clientX-drag.x,dy=e.clientY-drag.y,v=drag.viewport;attempt(()=>inkletScene.setViewport([v[0]-m.a*dx-m.c*dy,v[1]-m.b*dx-m.d*dy,v[2],v[3]]));});
-for(const name of ['pointerup','pointercancel','lostpointercapture'])host.addEventListener(name,()=>{drag=null;});
