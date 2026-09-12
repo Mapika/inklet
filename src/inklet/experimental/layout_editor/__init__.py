@@ -207,10 +207,10 @@ class LayoutEditor:
             return self.snapshot()
 
     def _html(self):
-        return (Path(__file__).with_name('page.html').read_text().replace('__TOKEN__',self._token)
-                .replace('/*WORKSPACE_CSS*/',Path(__file__).with_name('workspace.css').read_text())
-                .replace('<!--WORKSPACE-->',Path(__file__).with_name('workspace.js').read_text())
-                .replace('<!--GESTURES-->',Path(__file__).with_name('gestures.js').read_text()))
+        return (Path(__file__).with_name('page.html').read_text(encoding='utf-8').replace('__TOKEN__',self._token)
+                .replace('/*WORKSPACE_CSS*/',Path(__file__).with_name('workspace.css').read_text(encoding='utf-8'))
+                .replace('<!--WORKSPACE-->',Path(__file__).with_name('workspace.js').read_text(encoding='utf-8'))
+                .replace('<!--GESTURES-->',Path(__file__).with_name('gestures.js').read_text(encoding='utf-8')))
 
     def start(self, *, port=0):
         """Start a loopback-only editor server; port=0 chooses a free local port."""
