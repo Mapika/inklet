@@ -93,7 +93,7 @@ def test_legacy_layouts_load_but_scale_requires_new_schema():
     with pytest.raises(ValueError,match='schema 0.2'):root.with_layout_overrides(legacy)
     legacy['schema']=SCHEMA
     restored,_=root.with_layout_overrides(legacy);assert restored._parts[1].scale==1.2
-    assert restored.layout_overrides(root)['schema']=='inklet.composition-layout/0.2'
+    assert restored.layout_overrides(root)['schema']=='inklet.composition-layout/0.3'
 
 
 def test_scale_validation_is_atomic_and_noop_gesture_creates_no_history():
@@ -112,7 +112,7 @@ def test_browser_pointer_gestures_cancel_and_reopen_match_python(tmp_path):
     if not chrome:pytest.skip('Chrome/Chromium not installed')
     root=source();editor=LayoutEditor(root);page=editor._html()
     checks='''<script>
-    (async()=>{const sleep=()=>new Promise(r=>setTimeout(r,30));async function ready(rev){for(let n=0;n<250;n++){if(state&&state.revision===rev&&!busy&&previewReady)return;await sleep();}throw Error('timeout '+rev);}
+    (async()=>{const sleep=()=>new Promise(r=>setTimeout(r,30));async function ready(rev){for(let n=0;n<250;n++){if(state&&state.revision===rev&&!busy&&previewReady)return;await sleep();}throw Error('timeout '+rev+': '+byId('status').textContent);}
     // Synthetic pointer events do not activate native pointer capture. Exercise
     // the same handlers with a capture shim; real capture is reviewed in browser QA.
     let captured=false;overlay.setPointerCapture=()=>captured=true;overlay.hasPointerCapture=()=>captured;overlay.releasePointerCapture=()=>captured=false;

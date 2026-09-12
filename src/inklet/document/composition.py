@@ -193,10 +193,10 @@ class Composition(BuildSpec):
         raise KeyError(name)
 
     def layout_overrides(self, reference):
-        """Capture changed placements and page fields against a matching reference.
+        """Capture changed layout and compatible named labels against a reference.
 
         Return JSON-compatible, versioned decisions keyed by named child paths.
-        Content, styles, data, links and constraints remain in the Python recipe.
+        Other content, styles, data, links and constraints remain in Python.
         """
         from .layout_overrides import capture
         return capture(self, reference)
@@ -234,7 +234,12 @@ class Composition(BuildSpec):
         return self
 
     def annotate(self, target, text, **options):
-        """Place a measured callout after every child and connection exists."""
+        """Place a measured callout; a unique name enables saved label editing."""
+        name = options.get('name')
+        if name is not None:
+            if not isinstance(name,str) or not name: raise ValueError('annotation name must be a nonempty string')
+            if any(opts.get('name')==name for _,_,opts in self._annotations):
+                raise LayoutError(f'duplicate annotation name {name!r}')
         self._annotations.append((target, text, freeze(options)))
         return self
 

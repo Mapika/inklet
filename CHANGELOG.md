@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 4.0.0.dev10 — 2026-09-12
+
+Tenth development preview: reproducible named label and callout editing.
+3.1.0 remains the stable release.
+
+- Edit string module captions, text components, keyed plot titles/text/callouts
+  and named composition annotations in the local layout editor.
+- Expose callout text, preferred side, physical clearance and leader visibility;
+  remeasure content and dependent connections through the Python compiler.
+- Save typed label identities and changed fields in layout schema 0.3, accepting
+  legacy 0.1/0.2 files, undo/redo, independent copies and shared definitions.
+- Report removed or incompatible labels individually; explicit discard preserves
+  compatible edits on the same object. Leave unedited source decisions live.
+- Add browser controls, source revision and two-width SVG/PDF roundtrip checks,
+  installed-package coverage and an illustrated guide and example.
+
 ## 4.0.0.dev9 — 2026-09-12
 
 Ninth development preview: mouse movement and proportional artwork scaling.

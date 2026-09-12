@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev9
+# Inklet 4.0.0.dev10
 
-The ninth 4.0 development release includes the linked plotting, mapping,
+The tenth 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev9"
+python -m pip install "inklet==4.0.0.dev10"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev9"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev10"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev9"
+python -m pip install "inklet[volume,render]==4.0.0.dev10"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,7 +29,26 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Mouse movement and scaling in dev9
+## Named labels and callouts in dev10
+
+The [local layout editor](layout-editor.md#edit-labels-and-callouts) now edits
+string module captions, text components, keyed plot titles/text/callouts and
+named composition annotations. Callouts expose preferred side, physical
+clearance and leader visibility. Text changes remeasure content and update
+dependent layout and connections through Python.
+
+Saved choices contain explicit label keys and kinds. Reordering instructions
+preserves identity; removing a key or changing its kind reports an incompatible
+label. Explicit discard retains compatible edits on the same object. Shared
+definitions share text decisions, while unedited source fields remain live.
+
+![Named callout controls and the compiled figure](assets/guides/layout-editor-labels.png)
+
+New files use layout schema 0.3; schemas 0.1 and 0.2 still load. Undo/redo,
+reopening and matching SVG/PDF export include text edits. Axis labels, individual
+callout dragging, camera editing and general object relationships remain open.
+
+## Mouse movement and scaling retained from dev9
 
 The [layout editor](layout-editor.md) now supports direct mouse movement and
 proportional corner scaling of named objects and groups. Alt-click selects a
@@ -44,7 +63,7 @@ retain their separate typography-preserving layout behavior.
 
 ![Mouse selection and proportional scaling in the local editor](assets/guides/layout-editor-gestures.png)
 
-New layout files use schema 0.2 for explicit artwork scale. Dev7/dev8 schema 0.1
+Dev9 introduced schema 0.2 for explicit artwork scale. Dev7/dev8 schema 0.1
 files still load. Named composition objects are editable; individual plot marks,
 axis labels, connector segments and camera parameters remain outside this scope.
 
@@ -63,8 +82,8 @@ remain consistent across repeated edits and resets.
 
 ![The local browser layout inspector](assets/guides/layout-editor.png)
 
-This inspector requires its local Python session. It covers composition layout;
-label content, individual plot marks and cameras remain separate work.
+This inspector requires its local Python session. Named label editing is added
+in dev10; individual plot marks and cameras remain separate work.
 The existing standalone viewers and linked-plot appearance editor retain their
 current scope.
 
@@ -181,7 +200,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev9 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev10 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

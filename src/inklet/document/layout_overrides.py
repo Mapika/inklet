@@ -1,4 +1,4 @@
-"""Portable placement decisions for named compositions, separate from content."""
+"""Portable layout and text decisions for named composition recipes."""
 from __future__ import annotations
 
 import math
@@ -6,8 +6,10 @@ import re
 
 from .compiler import LayoutError
 from .spec import length
+from . import label_overrides as labels
 
-SCHEMA = 'inklet.composition-layout/0.2'
+SCHEMA = 'inklet.composition-layout/0.3'
+SCALE_SCHEMA = 'inklet.composition-layout/0.2'
 LEGACY_SCHEMA = 'inklet.composition-layout/0.1'
 _PLACEMENT = {'x', 'y', 'anchor', 'width', 'height', 'scale'}
 _PAGE = {'width', 'height', 'unit', 'fit_top'}
@@ -91,7 +93,7 @@ def _page(values):
 
 
 def capture(recipe, reference):
-    """Record only changed layout fields; leave unedited source decisions live."""
+    """Record changed layout and compatible named labels; keep unedited fields live."""
     from .composition import Composition
     if not isinstance(reference,Composition): raise TypeError('reference must be a Composition')
     current, before = _targets(recipe), _targets(reference)
@@ -113,6 +115,13 @@ def capture(recipe, reference):
             old = _page({k:getattr(old_item,k) for k in sorted(_PAGE)})
             changed = {k:v for k,v in now.items() if v!=old[k]}
             if changed: entry['page'] = changed
+        current_labels, old_labels = labels.targets(item), labels.targets(old_item)
+        changed_labels = {}
+        for key,(fields,_) in current_labels.items():
+            if key not in old_labels or fields['kind']!=old_labels[key][0]['kind']: continue
+            changed = {k:v for k,v in fields.items() if k!='kind' and v!=old_labels[key][0].get(k, object())}
+            if changed: changed_labels[key] = {'kind':fields['kind'], **changed}
+        if changed_labels: entry['labels'] = changed_labels
         if entry: edits[path] = entry
     return {'schema':SCHEMA,'targets':edits}
 
@@ -129,7 +138,7 @@ def apply(recipe, value, *, missing='error'):
     """Validate all edits, reconcile stable names, then edit an independent copy."""
     from .composition import Composition
     if missing not in ('error','drop'): raise ValueError('missing policy must be error or drop')
-    if (not isinstance(value,dict) or set(value)!={'schema','targets'} or value['schema'] not in (SCHEMA,LEGACY_SCHEMA)
+    if (not isinstance(value,dict) or set(value)!={'schema','targets'} or value['schema'] not in (SCHEMA,SCALE_SCHEMA,LEGACY_SCHEMA)
             or not isinstance(value['targets'],dict)):
         raise ValueError('invalid composition layout overrides')
     targets = _targets(recipe)
@@ -137,7 +146,7 @@ def apply(recipe, value, *, missing='error'):
     for path,entry in value['targets'].items():
         if not isinstance(path,str) or not re.fullmatch(r'/(?:'+_NAME+r'(?:/'+_NAME+r')*)?',path):
             raise ValueError('layout targets require absolute named composition paths')
-        if not isinstance(entry,dict) or not entry or not set(entry)<={'placement','page'}:
+        if not isinstance(entry,dict) or not entry or not set(entry)<={'placement','page','labels'}:
             raise ValueError(f'invalid layout target properties: {path}')
         options = {}
         if 'placement' in entry:
@@ -145,6 +154,9 @@ def apply(recipe, value, *, missing='error'):
             if value['schema']==LEGACY_SCHEMA and 'scale' in options['placement']:
                 raise ValueError('scale requires composition layout schema 0.2')
         if 'page' in entry: options['page'] = _page(entry['page'])
+        if 'labels' in entry:
+            if value['schema']!=SCHEMA: raise ValueError('labels require composition layout schema 0.3')
+            options['labels'] = labels.validate(entry['labels'])
         target = targets.get(path)
         invalid = target is None
         if target is not None:
@@ -154,7 +166,17 @@ def apply(recipe, value, *, missing='error'):
                 names = {p.name for p in parent._parts}
                 invalid |= any(ref not in names for val in options['placement'].values() for ref in _references(val))
         if invalid: orphaned.append(path)
-        else: prepared[path] = options
+        else:
+            if 'labels' in options:
+                available = labels.targets(item)
+                compatible = {}
+                for key,fields in options['labels'].items():
+                    if key not in available or fields['kind']!=available[key][0]['kind']:
+                        orphaned.append(path+'#'+key)
+                    else: compatible[key] = fields
+                if compatible: options['labels'] = compatible
+                else: options.pop('labels')
+            if options: prepared[path] = options
     orphaned.sort()
     if orphaned and missing=='error': raise LayoutError('orphaned layout targets: '+', '.join(orphaned))
     # One nested definition may occur at several named paths. Contradictory
@@ -163,7 +185,9 @@ def apply(recipe, value, *, missing='error'):
     for path,options in prepared.items():
         parent,part,item = targets[path]
         for group,fields in options.items():
-            owner = (id(item),None) if group=='page' else (id(parent),part.name)
+            owner = (id(item),None) if group in ('page','labels') else (id(parent),part.name)
+            if group=='labels':
+                fields = {(label,key):val for label,edits in fields.items() for key,val in edits.items()}
             for key,val in fields.items():
                 identity = (*owner,group,key)
                 if identity in assigned and assigned[identity]!=val:
@@ -173,6 +197,7 @@ def apply(recipe, value, *, missing='error'):
     copied = _targets(result)
     for path,options in prepared.items():
         parent,part,item = copied[path]
+        if 'labels' in options: labels.apply(item,options['labels'])
         if 'page' in options: item.configure(**options['page'])
         if 'placement' in options: parent.place(part.name,**options['placement'])
     return result, {'orphaned_targets':orphaned,'missing_policy':missing}

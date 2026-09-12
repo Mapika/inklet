@@ -1,11 +1,11 @@
 [
   {
     "id": "layout-editor",
-    "title": "Mouse-driven composition editor",
+    "title": "Composition and label editor",
     "category": "Layout",
-    "description": "Drag named content, scale artwork with corner handles, undo and reopen the same layout in Python.",
+    "description": "Edit named labels and callouts, drag and scale content, undo and reopen saved choices in Python.",
     "requires": "4.0 preview",
-    "image": "assets/guides/layout-editor-gestures.png",
+    "image": "assets/guides/layout-editor-labels.png",
     "version": "4.0 preview",
     "page": "layout-editor/",
     "featured": false

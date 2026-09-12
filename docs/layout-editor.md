@@ -1,6 +1,6 @@
 # Local layout editor
 
-Available since **4.0.0.dev8**, with mouse gestures in **4.0.0.dev9**, under `inklet.experimental.layout_editor`. Adjust
+Available since **4.0.0.dev8**, with mouse gestures in **4.0.0.dev9** and named label editing in **4.0.0.dev10**, under `inklet.experimental.layout_editor`. Adjust
 named placements and dimensions in a browser while Python recompiles the
 actual composition. The preview and downloaded SVG/PDF come from the same
 compiled figure, including plots, nested diagrams and native 3D content.
@@ -75,10 +75,50 @@ marks, ticks, axis labels and connector segments remain part of their owning
 plot or diagram. Scaling and movement do not remove authored constraints or
 top-fitting behavior; dependent content can reflow when the compiler rebuilds.
 
+## Edit labels and callouts
+
+![Editing a named plot callout with text, side, clearance and leader controls](assets/guides/layout-editor-labels.png)
+
+Select a composition child, then edit its **Label** fields and choose **Apply
+changes**. The editor supports text components created with `component(i.text,
+...)`, string module captions, and plot `title`, `text` and `annotate`
+instructions with an explicit string `key`. For composition callouts, supply a
+unique `name` and select the composition that owns the callout.
+
+```python
+recipe['chart'].annotate(1, 2, 'Reference observation', key='observation', side='s', clear=4)
+recipe.annotate('caption', 'Measured response', name='response-note', side='e', clear=3)
+editor.command('refresh')
+editor.command('edit', {
+    'path': '/chart',
+    'labels': {'observation': {'kind': 'plot-annotate', 'text': 'Reviewed observation', 'side': 'sw'}},
+})
+```
+
+Callouts expose their preferred compass side, clearance in physical millimetres,
+and leader visibility. Automatic placement can choose another side to avoid
+conflicts. Plot clearance can be left blank to use its automatic value. This
+increment edits callout content and placement preferences; it does not add free
+mouse dragging of individual callouts or axis-label editing.
+
+A label's identity is its composition path, explicit key and kind. For example,
+`/chart` plus `observation` identifies a plot annotation even when its instruction
+moves in the recipe. Replacing that key with a different instruction kind is an
+incompatible target. A removed or incompatible label is reported as
+`/chart#observation`; explicit discard drops that label's edits while retaining
+compatible placement and label edits on the same chart. Renaming a path or key
+changes its identity. Reusing the same key and kind declares the same label.
+
+Text changes are measured by the Python compiler: longer module captions can
+move dependent modules and reroute their connections. Unedited labels, data
+coordinates, styling and other source choices remain live. Shared definitions
+share label edits; use an independent recipe copy for independent captions.
+Undo/redo, reset, saved JSON and SVG/PDF exports include the label edits.
+
 ## Edit and review
 
 Choose a named path in **Content**, enter the fields you want to change, then
-select **Apply layout**. Other fields retain their definitions.
+select **Apply changes**. Other fields retain their definitions.
 
 - Child placement fields are X, Y, anchor, width, height and uniform scale. Numbers use the
   containing composition's coordinate unit. For plots, width and height describe

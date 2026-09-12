@@ -1,4 +1,4 @@
-"""Local browser editing of composition layouts through the Python compiler."""
+"""Local browser editing of composition layouts and labels through Python."""
 from __future__ import annotations
 
 import copy
@@ -12,11 +12,12 @@ from urllib.parse import urlsplit, parse_qs
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ...document import Composition, document
+from ...document import label_overrides as labels
 from ...document.layout_overrides import SCHEMA, _targets, _placement, _expression
 
 
 class LayoutEditor:
-    """Edit a live Composition locally; exports use the same Python compilation.
+    """Edit a live Composition layout and named labels with matching Python exports.
 
     Use as a context manager and open url while the context stays alive. The
     source recipe is retained but never edited. Refresh explicitly after source
@@ -131,6 +132,8 @@ class LayoutEditor:
                     entry['placement']=_placement({k:getattr(part,k) for k in ('x','y','anchor','width','height','scale')},encode=True)
                 if isinstance(item,Composition):
                     entry['page']={k:getattr(item,k) for k in ('width','height','unit','fit_top')}
+                label_fields={key:fields for key,(fields,_) in labels.targets(item).items()}
+                if label_fields: entry['labels']=label_fields
                 targets[path]=entry
             return dict(revision=self._revision,targets=targets,overrides=self.overrides(),
                         undo=bool(self._undo),redo=bool(self._redo),report=copy.deepcopy(self._report),
@@ -141,14 +144,14 @@ class LayoutEditor:
         targets=_targets(self._recipe)
         if path not in targets:return [path]
         parent,part,item=targets[path]
-        if group=='page':return [name for name,(_,_,child) in targets.items() if child is item]
+        if group in ('page','labels'):return [name for name,(_,_,child) in targets.items() if child is item]
         return [name for name,(owner,other,_) in targets.items()
                 if owner is parent and other is not None and part is not None and other.name==part.name]
 
     def command(self, action, value=None, *, revision=None, missing='error'):
         """Compile a command atomically; a stale revision or failed build changes nothing.
 
-        Actions: gesture (figure-space move/uniform scale), edit (placement/page), reset, load
+        Actions: gesture (figure-space move/uniform scale), edit (placement/page/labels), reset, load
         (override JSON), undo, redo and refresh (current source; clears history).
         Refresh may explicitly drop removed targets with missing='drop'.
         """
@@ -162,20 +165,22 @@ class LayoutEditor:
             candidate=copy.deepcopy(self._value)
             if action=='edit':
                 if (not isinstance(value,dict) or 'path' not in value or
-                        not set(value)<={'path','placement','page'} or len(value)<2):
-                    raise ValueError('edit needs a path and placement/page fields')
+                        not set(value)<={'path','placement','page','labels'} or len(value)<2):
+                    raise ValueError('edit needs a path and placement/page/labels fields')
                 path=value['path']
                 if not isinstance(path,str):raise ValueError('edit path must be a string')
-                entry=candidate['targets'].setdefault(path,{})
                 for group,fields in value.items():
                     if group=='path':continue
                     if not isinstance(fields,dict) or not fields:raise ValueError('edit fields must be nonempty objects')
-                    entry.setdefault(group,{}).update(fields)
                     for alias in self._aliases(path,group):
-                        candidate['targets'].setdefault(alias,{}).setdefault(group,{}).update(fields)
+                        destination=candidate['targets'].setdefault(alias,{}).setdefault(group,{})
+                        if group=='labels':
+                            for key,changes in labels.validate(fields).items():
+                                destination.setdefault(key,{}).update(changes)
+                        else: destination.update(fields)
             elif action=='reset':
                 if not isinstance(value,str) or value not in _targets(self._recipe):raise ValueError('unknown reset target')
-                for group in ('placement','page'):
+                for group in ('placement','page','labels'):
                     for alias in self._aliases(value,group):
                         entry=candidate['targets'].get(alias,{})
                         entry.pop(group,None)
