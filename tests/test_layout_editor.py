@@ -118,7 +118,7 @@ def test_browser_controls_apply_undo_reload_and_export(tmp_path):
     base,_=source();editor=LayoutEditor(base)
     page=editor._html()
     checks='''<script>
-    (async()=>{const sleep=()=>new Promise(r=>setTimeout(r,30));async function ready(rev){for(let n=0;n<200;n++){if(state&&state.revision===rev&&!busy)return;await sleep();}throw Error('timeout '+rev);}
+    (async()=>{const sleep=()=>new Promise(r=>setTimeout(r,30));async function ready(rev){for(let n=0;n<200;n++){if(state&&state.revision===rev&&!busy&&previewReady)return;await sleep();}throw Error('timeout '+rev);}
     try{await ready(0);byId('target').value='/plot';byId('target').dispatchEvent(new Event('change'));
     const height=document.querySelector('input[data-group="placement"][data-key="height"]');height.value=35;height.dispatchEvent(new Event('input'));byId('apply').click();await ready(1);
     if(state.targets['/plot'].placement.height!==35)throw Error('edit failed');

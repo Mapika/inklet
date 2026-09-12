@@ -31,16 +31,16 @@ their signatures and report schemas may change.
 
 ## 4.0 development preview
 
-**4.0.0.dev8** adds a local browser layout inspector backed by the Python
-compiler. Edit named placements and dimensions, undo/redo changes, save layout
-choices, and export the same compiled preview to SVG or PDF.
+**4.0.0.dev9** adds mouse movement and proportional artwork scaling to the
+local layout editor. Drag named objects and groups, use corner handles, undo
+gestures, and save choices that reproduce through the Python compiler.
 ```sh
-python -m pip install "inklet==4.0.0.dev8"
+python -m pip install "inklet==4.0.0.dev9"
 ```
 
 [Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
-[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev8)
+[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev9)
 
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,

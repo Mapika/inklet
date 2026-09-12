@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev8
+# Inklet 4.0.0.dev9
 
-The eighth 4.0 development release includes the linked plotting, mapping,
+The ninth 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev8"
+python -m pip install "inklet==4.0.0.dev9"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev8"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev9"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev8"
+python -m pip install "inklet[volume,render]==4.0.0.dev9"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,7 +29,26 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Local layout inspector in dev8
+## Mouse movement and scaling in dev9
+
+The [layout editor](layout-editor.md) now supports direct mouse movement and
+proportional corner scaling of named objects and groups. Alt-click selects a
+containing group, arrow keys nudge, and Escape cancels. A drag shows an outline;
+release compiles the actual figure and updates dependent links.
+
+Moves preserve measured positions by adding offsets. Scaling keeps the opposite
+corner fixed, including inside scaled groups with different coordinate units.
+Each completed edit participates in undo/redo and saved-layout reconstruction.
+Uniform artwork scaling includes text and strokes; plot width/height controls
+retain their separate typography-preserving layout behavior.
+
+![Mouse selection and proportional scaling in the local editor](assets/guides/layout-editor-gestures.png)
+
+New layout files use schema 0.2 for explicit artwork scale. Dev7/dev8 schema 0.1
+files still load. Named composition objects are editable; individual plot marks,
+axis labels, connector segments and camera parameters remain outside this scope.
+
+## Local layout inspector retained from dev8
 
 The [local layout editor](layout-editor.md) turns saved composition choices into
 a browser workflow. Edit named placements and dimensions, preview the actual
@@ -45,7 +64,7 @@ remain consistent across repeated edits and resets.
 ![The local browser layout inspector](assets/guides/layout-editor.png)
 
 This inspector requires its local Python session. It covers composition layout;
-drag handles, label content, plot styling and cameras remain separate work.
+label content, individual plot marks and cameras remain separate work.
 The existing standalone viewers and linked-plot appearance editor retain their
 current scope.
 
@@ -162,7 +181,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev8 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev9 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

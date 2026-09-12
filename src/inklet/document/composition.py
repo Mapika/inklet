@@ -12,6 +12,12 @@ from .spec import BuildSpec, ComponentSpec, fingerprint, freeze, length
 from .compiler import LayoutError
 
 
+def _scale(value):
+    if type(value) not in (int,float) or not math.isfinite(value) or value<=0:
+        raise ValueError('component scale must be a finite positive number')
+    return float(value)
+
+
 @dataclass(frozen=True)
 class _Slot(BuildSpec):
     name: str
@@ -66,6 +72,7 @@ class _Part:
     anchor: str | None = None
     width: object = None
     height: object = None
+    scale: float = 1
 
 
 @dataclass(eq=False)
@@ -76,7 +83,8 @@ class Composition(BuildSpec):
     and height describe data regions. Other children retain their authored size
     unless explicit dimensions are provided. `anchor=None` preserves the local
     coordinate frame; `nw`, `center`, registered ports and `area-nw` align a
-    measured point to (x, y). Layout never scales text or strokes.
+    measured point to (x, y). Dimension fitting never scales text or strokes. Explicit scale uniformly
+    scales the complete child artwork, including typography and strokes.
     """
     width: float
     height: float
@@ -109,11 +117,11 @@ class Composition(BuildSpec):
         """Reference a placed child's compass point or registered port."""
         return tuple(LayoutValue('point', (name, anchor, axis)) for axis in ('x', 'y'))
 
-    def add(self, name, item, *, x=0, y=0, anchor=None, width=None, height=None):
+    def add(self, name, item, *, x=0, y=0, anchor=None, width=None, height=None, scale=1):
         if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*', name):
             raise ValueError('component names start with a letter and contain letters, digits, underscores or hyphens')
         if any(part.name == name for part in self._parts): raise LayoutError(f'duplicate component {name!r}')
-        self._parts.append(_Part(name, item, x, y, anchor, width, height))
+        self._parts.append(_Part(name, item, x, y, anchor, width, height, _scale(scale)))
         return item
 
     def __getitem__(self, name):
@@ -171,12 +179,13 @@ class Composition(BuildSpec):
     def place(self, name, **placement):
         """Edit a child's placement without replacing its content or named links.
 
-        Accepts x, y, anchor, width and height as in add(). Expressions and
+        Accepts x, y, anchor, width, height and uniform scale as in add(). Expressions and
         resulting geometry are validated during compilation.
         """
         from dataclasses import replace
-        unknown = placement.keys() - {'x','y','anchor','width','height'}
+        unknown = placement.keys() - {'x','y','anchor','width','height','scale'}
         if unknown: raise TypeError(f'unknown placement options: {", ".join(sorted(unknown))}')
+        if 'scale' in placement: placement['scale'] = _scale(placement['scale'])
         for index,part in enumerate(self._parts):
             if part.name == name:
                 self._parts[index] = replace(part, **freeze(placement))
@@ -282,7 +291,15 @@ class Composition(BuildSpec):
                         item = ComponentSpec(item.factory, evaluate(item.args), evaluate(item.kwargs), item.responsive)
                     w = None if part.width is None else length(evaluate(part.width), 'child width')*self.unit
                     h = None if part.height is None else length(evaluate(part.height), 'child height')*self.unit
-                    return context.build(item, w, h).copy()
+                    node = context.build(item, w, h).copy()
+                    factor = _scale(part.scale)
+                    if factor != 1:
+                        scaled = node.scaled(factor)
+                        # Keep registered ports directly available to measured
+                        # placement; their coordinates precede the new scale.
+                        for key in node.anchors: scaled.anchors[key] = placed_anchor(node,key)
+                        node = scaled
+                    return node
                 built[name] = guarded('measure', name, perform)
             return built[name]
 

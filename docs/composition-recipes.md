@@ -86,7 +86,9 @@ assert before.to_svg() == old_svg
 assert doc.compile() is after
 ```
 
-`place()` changes only placement fields: `x`, `y`, `anchor`, `width`, `height`.
+`place()` changes placement fields: `x`, `y`, `anchor`, `width`, `height` and
+`scale`. Explicit `scale` (dev9) uniformly scales complete artwork, including
+text and strokes; it is separate from fitting a plot to a new width/height.
 Set `anchor`, `width` or `height` to `None` to restore their unspecified behavior.
 `replace()` replaces content and keeps its placement and named relationships.
 Dimension updates through `configure()` validate before mutation; expressions,

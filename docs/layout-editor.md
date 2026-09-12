@@ -1,11 +1,11 @@
 # Local layout editor
 
-Available in **4.0.0.dev8**, under `inklet.experimental.layout_editor`. Adjust
+Available since **4.0.0.dev8**, with mouse gestures in **4.0.0.dev9**, under `inklet.experimental.layout_editor`. Adjust
 named placements and dimensions in a browser while Python recompiles the
 actual composition. The preview and downloaded SVG/PDF come from the same
 compiled figure, including plots, nested diagrams and native 3D content.
 
-![The local layout inspector editing a mixed-content report](assets/guides/layout-editor.png)
+![Mouse selection and proportional scaling handles on a native 3D object](assets/guides/layout-editor-gestures.png)
 
 The [complete example](../examples/layout_editor.py) opens the reusable report
 from [composition recipes](composition-recipes.md). From the checkout, run:
@@ -45,12 +45,42 @@ width and height, including its coordinate unit. Optional `width=` and
 `height=` arguments fix the containing document's dimensions in millimetres;
 those dimensions remain authoritative when the authored page size changes.
 
+## Move and scale with the mouse
+
+Click a named object in the preview and drag it to move. Corner handles scale
+its complete artwork proportionally, keeping the opposite corner fixed. This
+works for plots, modules, text, images, native 3D components and nested
+compositions. A dashed outline follows the pointer; release to compile the
+result and update dependent links. Escape or a cancelled pointer gesture leaves
+the figure unchanged. A simple click selects without making an edit.
+
+Use Alt-click to select a containing group, or choose its path in **Content**.
+Drag a selected group's outline to move the group. With the canvas focused,
+arrow keys move the selected object by 1 mm in figure space; Shift changes that
+to 10 mm. Mouse and pointer gestures use the same coordinates even inside
+scaled groups or compositions with different coordinate units.
+
+Each completed edit is one undo step. Movements add offsets to measured
+positions instead of discarding their relationships. Repeated offsets are
+combined, so a long editing session does not grow ever-deeper expressions.
+Saved layout files retain movement and scaling for Python reconstruction.
+
+**Scaling artwork also scales its text and strokes.** To resize a plot's data
+region while retaining physical typography, use the width/height controls
+below. The **Uniform scale** field gives an exact artwork scale factor; Reset
+target restores the original factor and placement.
+
+The selectable units are named composition children and groups. Individual
+marks, ticks, axis labels and connector segments remain part of their owning
+plot or diagram. Scaling and movement do not remove authored constraints or
+top-fitting behavior; dependent content can reflow when the compiler rebuilds.
+
 ## Edit and review
 
 Choose a named path in **Content**, enter the fields you want to change, then
 select **Apply layout**. Other fields retain their definitions.
 
-- Child placement fields are X, Y, anchor, width and height. Numbers use the
+- Child placement fields are X, Y, anchor, width, height and uniform scale. Numbers use the
   containing composition's coordinate unit. For plots, width and height describe
   the data region; changing them does not scale text or strokes.
 - A field marked **Measured** still follows its layout expression. Entering a
@@ -91,6 +121,7 @@ import json
 from pathlib import Path
 
 editor.command('edit', {'path': '/chart', 'placement': {'height': 35}})
+editor.command('gesture', {'path': '/chart', 'dx': 2, 'dy': 1})
 Path('layout-overrides.json').write_text(json.dumps(editor.overrides(), indent=2))
 editor.figure.save('edited.svg', 'edited.pdf')
 restored, report = recipe.with_layout_overrides(editor.overrides())
@@ -100,8 +131,10 @@ assert report['orphaned_targets'] == []
 `editor.figure` is the last successful compiled snapshot and supports the normal
 [export APIs](export-review.md), including PNG when render dependencies are
 installed. `overrides()` and `snapshot()` return independently owned data.
-Programmatic `command()` accepts `edit`, `reset`, `load`, `undo`, `redo` and
-`refresh`; an optional `revision=` rejects stale callers.
+Programmatic `command()` accepts `gesture`, `edit`, `reset`, `load`, `undo`,
+`redo` and `refresh`; an optional `revision=` rejects stale callers. A gesture
+uses figure-space `dx`/`dy` in millimetres. Optional `factor` and `corner`
+(`nw`, `ne`, `sw`, `se`) scale from the opposite corner.
 
 ## Refresh changed source content
 
@@ -130,8 +163,8 @@ remain accessible in Python. The `with LayoutEditor(recipe) as editor:` form
 starts and closes the server automatically; keep that context alive during
 browser use.
 
-This first inspector edits composition layout. Drag handles, label content,
-plot styling, camera controls, and file watching are not part of this interface.
+The inspector edits named composition layout and artwork scale. Label content,
+individual plot marks, camera controls, and file watching are not part of this interface.
 The separate [linked-plot appearance editor](visual-editing.md) retains its
 existing scope. Broader authoring and identity work remains on the
 [4.0 roadmap](roadmap.md).

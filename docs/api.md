@@ -218,7 +218,7 @@ A figure assembled from named children and measured expressions.
 
 * `measure(name, dimension='width')` -- Reference a child's measured width or height, in composition units.
 * `point(name, anchor='center')` -- Reference a placed child's compass point or registered port.
-* `add(name, item, *, x=0, y=0, anchor=None, width=None, height=None)`
+* `add(name, item, *, x=0, y=0, anchor=None, width=None, height=None, scale=1)`
 * `replace(name, item)` -- Replace a child while preserving its placement and dependent references.
 * `slot(name, **placement)` -- Declare a required content input with the same placement options as add().
 * `copy()` -- Copy nested compositions, plots, modules and component instructions.

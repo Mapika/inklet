@@ -58,8 +58,10 @@ Dev7 adds [saved layout overrides](layout-overrides.md) keyed by named paths,
 with measured expressions, independent restoration and explicit orphan reports.
 Dev8 adds a [local layout inspector](layout-editor.md) backed by Python
 compilation, with saved choices, undo/redo and explicit source refresh.
-Serialized project templates, asset manifests, shared selection relationships,
-label/camera editing and direct manipulation remain open. Subsequent work
+Dev9 adds mouse movement, proportional artwork scaling and keyboard nudges
+for named composition children, with preserved measured positions and saved
+choices. Serialized project templates, asset manifests, shared selection
+relationships, label/camera editing and finer-grained manipulation remain open. Subsequent work
 should extend authoring and cross-content identity beyond this bounded inspector.
 
 ## Who this should serve

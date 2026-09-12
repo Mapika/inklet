@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import copy
 import json
+import math
+import xml.etree.ElementTree as ET
 from pathlib import Path
 import secrets
 import threading
@@ -10,7 +12,7 @@ from urllib.parse import urlsplit, parse_qs
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ...document import Composition, document
-from ...document.layout_overrides import SCHEMA, _targets, _placement
+from ...document.layout_overrides import SCHEMA, _targets, _placement, _expression
 
 
 class LayoutEditor:
@@ -57,6 +59,68 @@ class LayoutEditor:
         """Return independently owned JSON-compatible saved layout choices."""
         with self._lock:return copy.deepcopy(self._value)
 
+    def _geometry(self):
+        from ...core import Vec2
+        from ...draw.coords import placed_anchor, plot_area
+        root,resolved=self._figure.build()
+        targets=_targets(self._recipe)
+        geometry={}
+        def visit(node,path=''):
+            if node.kind=='composition-part' and node.name:
+                path=path+'/'+node.name
+                if path in targets:
+                    parent,part,_=targets[path]
+                    placement=resolved[node.id];box=placement.bbox
+                    child=node.children[0]
+                    if part.anchor=='area-nw':
+                        area=plot_area(child);point=Vec2(area.x0,area.y0)
+                    elif part.anchor is None:point=Vec2(0,0)
+                    else:point=placed_anchor(child,part.anchor)
+                    anchor=placement.world.apply(point)
+                    inverse=placement.world.inverse()
+                    if box is not None:
+                        geometry[path]=dict(box=[box.x0,box.y0,box.width,box.height],
+                            anchor=[anchor.x,anchor.y],
+                            inverse=[inverse.a/parent.unit,inverse.b/parent.unit,
+                                     inverse.c/parent.unit,inverse.d/parent.unit])
+            for child in node.children:visit(child,path)
+        visit(root)
+        return geometry
+
+    def _gesture(self,value):
+        from ...document.composition import LayoutValue, _scale
+        if (not isinstance(value,dict) or not {'path','dx','dy'}<=set(value) or
+                not set(value)<={'path','dx','dy','factor','corner'}):
+            raise ValueError('gesture needs path and finite figure-space dx/dy')
+        for key in ('dx','dy'):
+            if type(value[key]) not in (int,float) or not math.isfinite(value[key]):
+                raise ValueError('gesture displacement must be finite')
+        path=value['path'];geometry=self._geometry()
+        if not isinstance(path,str) or path not in geometry:raise ValueError('unknown gesture target')
+        _,part,_=_targets(self._recipe)[path]
+        box=geometry[path]['box'];anchor=geometry[path]['anchor']
+        dx,dy=value['dx'],value['dy'];fields={}
+        if 'factor' in value:
+            factor=_scale(value['factor'])
+            corner=value.get('corner','se')
+            if corner not in ('nw','ne','sw','se'):raise ValueError('invalid scale corner')
+            # The opposite corner remains fixed even for custom placement ports.
+            px=box[0]+(box[2] if 'w' in corner else 0)
+            py=box[1]+(box[3] if 'n' in corner else 0)
+            dx+=(1-factor)*(px-anchor[0]);dy+=(1-factor)*(py-anchor[1])
+            fields['scale']=part.scale*factor
+        elif 'corner' in value:raise ValueError('scale corner requires a factor')
+        a,b,c,d=geometry[path]['inverse'];ux,uy=a*dx+c*dy,b*dx+d*dy
+        def offset(current,delta):
+            if type(current) in (int,float):return current+delta
+            # Fold repeated mouse offsets instead of growing expression depth.
+            if isinstance(current,LayoutValue) and current.operation=='+' and type(current.args[1]) in (int,float):
+                return LayoutValue('+',(current.args[0],current.args[1]+delta))
+            return LayoutValue('+',(current,delta))
+        for key,delta in (('x',ux),('y',uy)):
+            if abs(delta)>1e-10:fields[key]=_expression(offset(getattr(part,key),delta),encode=True)
+        return dict(path=path,placement=fields) if fields else None
+
     def snapshot(self):
         """Return current controls, revision and preview without rebuilding."""
         with self._lock:
@@ -64,13 +128,14 @@ class LayoutEditor:
             for path,(_,part,item) in _targets(self._recipe).items():
                 entry={}
                 if part is not None:
-                    entry['placement']=_placement({k:getattr(part,k) for k in ('x','y','anchor','width','height')},encode=True)
+                    entry['placement']=_placement({k:getattr(part,k) for k in ('x','y','anchor','width','height','scale')},encode=True)
                 if isinstance(item,Composition):
                     entry['page']={k:getattr(item,k) for k in ('width','height','unit','fit_top')}
                 targets[path]=entry
             return dict(revision=self._revision,targets=targets,overrides=self.overrides(),
                         undo=bool(self._undo),redo=bool(self._redo),report=copy.deepcopy(self._report),
-                        svg=self._figure.to_svg())
+                        svg=self._figure.to_svg(),geometry=self._geometry(),
+                        viewbox=[float(x) for x in ET.fromstring(self._figure.to_svg()).attrib['viewBox'].split()])
 
     def _aliases(self, path, group):
         targets=_targets(self._recipe)
@@ -83,13 +148,17 @@ class LayoutEditor:
     def command(self, action, value=None, *, revision=None, missing='error'):
         """Compile a command atomically; a stale revision or failed build changes nothing.
 
-        Actions: edit (path with placement/page fields), reset (one path), load
+        Actions: gesture (figure-space move/uniform scale), edit (placement/page), reset, load
         (override JSON), undo, redo and refresh (current source; clears history).
         Refresh may explicitly drop removed targets with missing='drop'.
         """
         with self._lock:
             if revision is not None and (type(revision) is not int or revision!=self._revision):
                 raise ValueError('stale editor revision; reload the current editor state')
+            if action=='gesture':
+                value=self._gesture(value)
+                if value is None:return self.snapshot()
+                action='edit'
             candidate=copy.deepcopy(self._value)
             if action=='edit':
                 if (not isinstance(value,dict) or 'path' not in value or
@@ -132,7 +201,8 @@ class LayoutEditor:
             return self.snapshot()
 
     def _html(self):
-        return Path(__file__).with_name('page.html').read_text().replace('__TOKEN__',self._token)
+        return (Path(__file__).with_name('page.html').read_text().replace('__TOKEN__',self._token)
+                .replace('<!--GESTURES-->',Path(__file__).with_name('gestures.js').read_text()))
 
     def start(self, *, port=0):
         """Start a loopback-only editor server; port=0 chooses a free local port."""

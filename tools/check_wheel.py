@@ -179,6 +179,8 @@ def make_document():
     from inklet.experimental.layout_editor import LayoutEditor
     with LayoutEditor(art) as editor:
         editor.command("edit", {"path":"/input", "placement":{"x":5}})
+        editor.command("gesture", {"path":"/input", "dx":1, "dy":1, "factor":1.1, "corner":"se"})
+        assert editor.overrides()["schema"] == "inklet.composition-layout/0.2"
         assert editor.overrides()["targets"]
         assert "Layout editor" in editor._html()
         assert editor.figure.to_pdf().startswith(b"%PDF")

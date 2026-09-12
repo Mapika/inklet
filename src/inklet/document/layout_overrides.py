@@ -7,8 +7,9 @@ import re
 from .compiler import LayoutError
 from .spec import length
 
-SCHEMA = 'inklet.composition-layout/0.1'
-_PLACEMENT = {'x', 'y', 'anchor', 'width', 'height'}
+SCHEMA = 'inklet.composition-layout/0.2'
+LEGACY_SCHEMA = 'inklet.composition-layout/0.1'
+_PLACEMENT = {'x', 'y', 'anchor', 'width', 'height', 'scale'}
 _PAGE = {'width', 'height', 'unit', 'fit_top'}
 _NAME = r'[A-Za-z][A-Za-z0-9_-]*'
 
@@ -58,7 +59,10 @@ def _placement(values, *, encode=False):
     if not isinstance(values,dict) or not values or not set(values)<=_PLACEMENT:
         raise ValueError('invalid placement override properties')
     for key,value in values.items():
-        if key=='anchor':
+        if key=='scale':
+            from .composition import _scale
+            result[key] = _scale(value)
+        elif key=='anchor':
             if value is not None and (not isinstance(value,str) or not value):
                 raise ValueError('placement anchors must be nonempty strings or null')
             result[key] = value
@@ -125,7 +129,7 @@ def apply(recipe, value, *, missing='error'):
     """Validate all edits, reconcile stable names, then edit an independent copy."""
     from .composition import Composition
     if missing not in ('error','drop'): raise ValueError('missing policy must be error or drop')
-    if (not isinstance(value,dict) or set(value)!={'schema','targets'} or value['schema']!=SCHEMA
+    if (not isinstance(value,dict) or set(value)!={'schema','targets'} or value['schema'] not in (SCHEMA,LEGACY_SCHEMA)
             or not isinstance(value['targets'],dict)):
         raise ValueError('invalid composition layout overrides')
     targets = _targets(recipe)
@@ -136,7 +140,10 @@ def apply(recipe, value, *, missing='error'):
         if not isinstance(entry,dict) or not entry or not set(entry)<={'placement','page'}:
             raise ValueError(f'invalid layout target properties: {path}')
         options = {}
-        if 'placement' in entry: options['placement'] = _placement(entry['placement'])
+        if 'placement' in entry:
+            options['placement'] = _placement(entry['placement'])
+            if value['schema']==LEGACY_SCHEMA and 'scale' in options['placement']:
+                raise ValueError('scale requires composition layout schema 0.2')
         if 'page' in entry: options['page'] = _page(entry['page'])
         target = targets.get(path)
         invalid = target is None

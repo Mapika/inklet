@@ -1,6 +1,6 @@
 # Save and restore layout choices
 
-Available in **4.0.0.dev7**. Save placement and dimension edits separately from
+Available since **4.0.0.dev7**; uniform artwork scale is added in **dev9**. Save placement and dimension edits separately from
 a [composition recipe](composition-recipes.md), then restore those choices
 when its data, labels or content change. The saved JSON records only differences
 from a reference recipe. Unedited source decisions remain in control.
@@ -41,7 +41,7 @@ Path('layout.json').write_text(json.dumps(state, indent=2, allow_nan=False))
 ```
 
 `layout_overrides(reference)` captures changed `x`, `y`, `anchor`, `width` and
-`height` fields on children, plus `width`, `height`, `unit` and `fit_top` on
+`height` and uniform `scale` fields on children, plus `width`, `height`, `unit` and `fit_top` on
 compositions. It visits nested compositions through their named children.
 Measured expressions remain expressions, so page resizing and dependent
 content measurements still work after reopening.
@@ -123,8 +123,10 @@ of 32 operations. Malformed files, nonfinite numbers, invalid properties and
 contradictory edits to a shared nested definition are rejected, including when
 `missing='drop'` is used.
 
-The schema identifier is `inklet.composition-layout/0.1`. Unknown schemas are
-rejected. The file is a JSON object with `schema` and `targets`; each target has
+New files use `inklet.composition-layout/0.2`, which adds a positive uniform
+artwork scale. The loader also accepts `inklet.composition-layout/0.1` files
+from dev7/dev8; those cannot contain scale fields. Unknown schemas are rejected.
+Upgrade older readers before opening a new 0.2 file. The file is a JSON object with `schema` and `targets`; each target has
 changed `placement` and/or `page` fields. It is a development-preview format,
 not a general Python object serializer or an asset manifest.
 

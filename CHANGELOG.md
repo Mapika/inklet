@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 4.0.0.dev9 — 2026-09-12
+
+Ninth development preview: mouse movement and proportional artwork scaling.
+3.1.0 remains the stable release.
+
+- Add click/drag selection and movement, corner scale handles, containing-group
+  selection, keyboard nudges and cancellable pointer gestures to LayoutEditor.
+- Map gestures through nested physical coordinate units and scales. Preserve
+  measured positions with folded offsets and keep the opposite scale corner fixed.
+- Add explicit Composition child scale, preserving registered ports and scaling
+  complete artwork. Width/height fitting retains its separate layout semantics.
+- Save scale in composition-layout schema 0.2; continue loading schema 0.1 files.
+- Cover geometry, ports, all four corners, undo/reopen, nested transforms,
+  invalid gestures and browser/Python export agreement; update the editor guide.
+
 ## 4.0.0.dev8 — 2026-09-12
 
 Eighth development preview: local browser layout editing with Python compilation.
