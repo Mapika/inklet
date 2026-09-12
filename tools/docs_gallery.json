@@ -1,5 +1,16 @@
 [
   {
+    "id": "plot-composition",
+    "title": "Reusable plots and composition",
+    "category": "Plots",
+    "description": "Live plot layers, independent styles and a responsive diagram at two widths.",
+    "requires": "4.0 preview",
+    "image": "assets/guides/plot-composition.png",
+    "version": "4.0 preview",
+    "page": "plot-recipes/",
+    "featured": false
+  },
+  {
     "id": "general-plots",
     "title": "Everyday plots from CSV",
     "category": "Plots",

@@ -1023,11 +1023,20 @@ class Panel:
             return Vec2(0.0, self.y.map(at))
         return Vec2(self.x.map(at), 0.0)
 
-    def axes(self, x: str | None = None, y: str | None = None,
+    def axes(self, x: str | None = None, y: str | None = None, *,
+             x_options: dict | None = None, y_options: dict | None = None,
              **kwargs) -> "Panel":
-        """The usual pair: an x axis below and a y axis to the left, labelled."""
-        self.axis("bottom", label=x, **kwargs)
-        return self.axis("left", label=y, **kwargs)
+        """Bottom and left axes with shared and per-axis options.
+
+        Common keyword options apply to both axes. x_options and y_options
+        override them independently, including ticks, format, rotate, font_size
+        and label. Their coordinate mappings and the data remain unchanged.
+        """
+        for options in (x_options, y_options):
+            if options is not None and not isinstance(options, dict):
+                raise TypeError('axis options must be dictionaries')
+        self.axis("bottom", **({'label':x} | kwargs | (x_options or {})))
+        return self.axis("left", **({'label':y} | kwargs | (y_options or {})))
 
     def twin_y(self, scale=None, *, side: str = "right",
                label: str | Diagram | None = None, color: str | None = None,

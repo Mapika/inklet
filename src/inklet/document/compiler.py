@@ -425,7 +425,7 @@ class Document(BuildSpec):
                                         c.item.height if isinstance(c.item, PlotSpec) else None)
                 decorated = decorate(natural, c)
                 natural_heights[c.name] = decorated.height
-                if self.share_plot_margins and isinstance(c.item,PlotSpec):
+                if isinstance(c.item,PlotSpec):
                     area=plot_area(decorated)
                     natural_plots[c.name]=(area.height,*_margins(decorated)[2:])
         if self.share_plot_margins and height is None:
@@ -486,15 +486,18 @@ class Document(BuildSpec):
                 m = shared if shared is not None else (*columns[c.column,c.colspan], *row_groups[c.row,c.rowspan])
                 # Monotonic margins prevent tick-thinning oscillations.
                 measured[c.name]=tuple(max(a,b) for a,b in zip(m,margins[c.name]))
-            if self.share_plot_margins and height is None and natural_plots:
-                # Legends can wrap as shared side margins narrow a plot.
-                # Grow automatic tracks to fit the final furniture instead
-                # of taking that extra space from the authored data height.
-                required=(max(v[0] for v in natural_plots.values())+
-                          max(measured[name][2] for name in natural_plots)+
-                          max(measured[name][3] for name in natural_plots))
-                if any(natural_heights[name]<required-1e-6 for name in natural_plots):
-                    for name in natural_plots: natural_heights[name]=max(natural_heights[name],required)
+            if height is None and natural_plots:
+                # Wrapping furniture must grow automatic tracks, regardless
+                # of whether margins are shared across the whole document.
+                if self.share_plot_margins:
+                    required = {name:(max(v[0] for v in natural_plots.values())+
+                                max(measured[n][2] for n in natural_plots)+
+                                max(measured[n][3] for n in natural_plots)) for name in natural_plots}
+                else:
+                    required = {name:values[0]+measured[name][2]+measured[name][3]
+                                for name,values in natural_plots.items()}
+                if any(natural_heights[name]<value-1e-6 for name,value in required.items()):
+                    for name,value in required.items(): natural_heights[name]=max(natural_heights[name],value)
                     heights=_tracks(rows,(1.,)*rows,
                                     [(c.row,c.rowspan,max(c.min_height,natural_heights.get(c.name,0)),c.name)
                                      for c in self._cells],None,self.row_gap,'height')

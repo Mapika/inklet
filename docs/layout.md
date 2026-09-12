@@ -80,6 +80,9 @@ by `letters()` are measured and have space reserved. Local names such as
 their containing cells. Margin sharing applies inside each grid, not across
 arbitrary nested grids.
 
+The [reusable plot composition example](plot-recipes.md) combines independent
+plot variants with a responsive diagram at two physical widths.
+
 ## Responsive components
 
 A deferred factory can accept its available width and height:

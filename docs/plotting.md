@@ -89,6 +89,9 @@ See [publication plot controls](publication-plots.md) for external insets.
 handle with an independent y scale. Add marks through that handle and compile
 the parent. Colour the secondary axis to identify the corresponding series.
 
+For reusable layers, independently styled copies and per-axis options, see
+[reusable plot recipes](plot-recipes.md).
+
 ## Instruction order and edits
 
 The compiler resolves marks first, then axes, keys, group labels/insets,

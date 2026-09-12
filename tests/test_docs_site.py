@@ -117,7 +117,7 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
                    'oblique-sections', 'slabs-and-regions', 'channels-and-contours',
                    'label-measurements', 'microscopy-tiff', 'concepts', 'cookbook',
                    'lines-and-points', 'bars-and-areas', 'distributions', 'uncertainty',
-                   'matrices', 'polar-plots', 'interactive-documents', 'geographic-features')
+                   'matrices', 'polar-plots', 'interactive-documents', 'geographic-features', 'plot-recipes')
     for guide in guide_pages:
         images = [target for tag, target in parsed_pages[(site/guide/'index.html').resolve()].references
                   if tag == 'img' and '/brand/' not in target]

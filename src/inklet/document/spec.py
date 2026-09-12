@@ -147,6 +147,50 @@ class PlotSpec(BuildSpec):
         self._steps.append((key, name, freeze(args), freeze(kwargs)))
         return self
 
+    def copy(self):
+        """Copy instructions and nested plots, retaining explicit live dependencies.
+
+        Literal containers/arrays and nested PlotSpecs are independent. DataRef,
+        SharedScale, Series and other supplied live objects remain shared.
+        """
+        return _copy_plot_value(self, {})
+
+    def extend(self, other, *, prefix=None):
+        """Append an independent copy of another plot's recorded instructions.
+
+        This plot's dimensions and coordinate options remain authoritative.
+        Use prefix to namespace the other recipe's named instruction keys.
+        Key collisions fail before changing this recipe; live data stay shared.
+        """
+        if not isinstance(other, PlotSpec): raise TypeError('extend needs a PlotSpec')
+        if prefix is not None and (not isinstance(prefix,str) or not prefix):
+            raise ValueError('prefix must be a nonempty string')
+        steps = other.copy()._steps
+        added = []
+        keys = [step[0] for step in self._steps if step[0] is not None]
+        for key,method,args,kwargs in steps:
+            if key is not None:
+                if prefix is not None:
+                    if not isinstance(key,str): raise TypeError('prefixed instruction keys must be strings')
+                    key = prefix + key
+                if key in keys: raise DiagramError(f'duplicate plot instruction key {key!r}')
+                keys.append(key)
+            added.append((key,method,args,kwargs))
+        self._steps.extend(added)
+        return self
+
+    def style(self, key, **options):
+        """Merge keyword options into a named instruction without replacing data.
+
+        Applies to marks and furniture (axes, legends, titles and insets).
+        Use replace() to replace positional data or remove existing keywords.
+        """
+        for index,(found,method,args,kwargs) in enumerate(self._steps):
+            if key is not None and found == key:
+                self._steps[index] = (found,method,args,kwargs | freeze(options))
+                return self
+        raise KeyError(key)
+
     def replace(self, key, *args, **kwargs):
         """Replace arguments of an instruction recorded with `key=...`."""
         for i, (found, method, _, _) in enumerate(self._steps):
@@ -163,11 +207,11 @@ class PlotSpec(BuildSpec):
         raise KeyError(key)
 
     def configure(self, *, width=None, height=None, **options):
-        if width is not None:
-            self.width = length(width, 'plot width')
-        if height is not None:
-            self.height = length(height, 'plot height')
-        self.options.update(freeze(options))
+        """Validate physical dimensions together before applying configuration."""
+        new_width = self.width if width is None else length(width, 'plot width')
+        new_height = self.height if height is None else length(height, 'plot height')
+        new_options = self.options | freeze(options)
+        self.width, self.height, self.options = new_width, new_height, new_options
         return self
 
     def annotate(self, x, y, text, *, avoid_marks=True, key=None, **options):
@@ -222,10 +266,13 @@ class PlotSpec(BuildSpec):
                         (step[1] == 'axis' and (step[2][0] if step[2] else step[3].get('side', 'bottom')) in sides)]
                 if not axes: continue
                 options = materialize(axes[-1][3], context)
+                if axes[-1][1] == 'axes':
+                    options = options | (options.get(dimension+'_options') or {})
                 # An explicit tick list or crossing defines its own geometry.
                 if options.get('ticks') is not None or options.get('at') is not None: continue
                 panel.grid(x=dimension == 'x', y=dimension == 'y',
-                           count=options.get('count', defaults.tick_count))
+                           count=options.get('count', defaults.tick_count),
+                           **{dimension+'_options':{k:options[k] for k in ('format','si','rotate','font_size','tick_font_size','font_family','font_weight','font_style','tnum','thin') if k in options}})
         for _, method, args, kwargs in sorted(self._steps, key=lambda s: _PHASE.get(s[1], 0)):
             if method in ('twin_x', 'twin_y'):
                 twin = getattr(panel, method)(**materialize(kwargs, context))
@@ -256,6 +303,20 @@ class PlotSpec(BuildSpec):
                 args[0].draw(panel, **kwargs)
             else:
                 getattr(panel, method)(*args, **kwargs)
+
+
+def _copy_plot_value(value, memo):
+    if isinstance(value, PlotSpec):
+        if id(value) not in memo:
+            result = PlotSpec(value.width, value.height)
+            memo[id(value)] = result
+            result.options = _copy_plot_value(value.options, memo)
+            result._steps = _copy_plot_value(value._steps, memo)
+        return memo[id(value)]
+    if isinstance(value, dict): return {key:_copy_plot_value(item,memo) for key,item in value.items()}
+    if isinstance(value, list): return [_copy_plot_value(item,memo) for item in value]
+    if isinstance(value, tuple): return tuple(_copy_plot_value(item,memo) for item in value)
+    return freeze(value)
 
 
 def plot_spec(width=40, height=30, **options):

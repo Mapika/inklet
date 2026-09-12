@@ -23,6 +23,15 @@ geography = GeoFeatures((('route','LineString',((0,0),(1,1))),('stop','Point',(1
 geographic = BrowserFigure(KeyedTable('assets',dict(id=['route','stop'])),[MapView('map',geography,(-1,-1,2,2))])
 assert [mark['kind'] for mark in geographic.payload()['layers'][0]['marks']] == ['line','circle']
 assert 'Original smoke fixture' in geographic.to_html(renderer='compiled') and '<line' in geographic.to_svg()
+response = i.Series('Response',[0,1],[1,2],'#34786b',[.8,1.8],[1.2,2.2])
+layer = i.plot_spec().series(response,key='response')
+recipe = i.plot_spec(x=(0,1),y=(0,3)).extend(layer).axes(x_options={'count':3},y_options={'count':4})
+variant = recipe.copy().style('response',color='#aa5b36',name='Variant')
+comparison = i.document(width=120,columns=2)
+comparison.add('original',recipe,row=0,column=0)
+comparison.add('variant',variant,row=0,column=1)
+assert '#aa5b36' in comparison.compile().to_svg()
+assert response.name == 'Response'
 packed = i.panel(40,30,x=(0,1),y=(0,1))
 packed.scatter([(k/300,.5) for k in range(300)],size=.3,color='blue')
 viewer = i.compile_scene(packed.build()).to_html()

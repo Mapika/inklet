@@ -48,6 +48,7 @@ nav:
 - Plots:
   - Visual plot gallery: plot-types.md
   - Build and combine plots: plotting.md
+  - Reusable recipes and styling: plot-recipes.md
   - Plot guides:
     - Lines and points: lines-and-points.md
     - Bars and areas: bars-and-areas.md

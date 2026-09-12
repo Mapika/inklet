@@ -188,18 +188,27 @@ class Series:
                      for v in (self.name, self.x, self.y, self.color, self.lower, self.upper))
 
     def draw(self, panel, *, kind='line', uncertainty=True, **style):
+        if kind not in ('line','scatter'): raise ValueError('series kind must be line or scatter')
         x, y = values(self.x), values(self.y)
         if len(x) != len(y) or not x:
             raise DiagramError('series needs non-empty, equal-length x and y values')
+        name = style.pop('name',self.name)
+        color = style.pop('color',self.color)
+        if kind == 'line':
+            style.setdefault('stroke',color)
+            band_color = style['stroke']
+        else:
+            style['color'] = color
+            band_color = color if color is None or isinstance(color,str) else self.color
         if uncertainty and self.lower is not None:
             lo, hi = values(self.lower), values(self.upper)
             if len(lo) != len(x) or len(hi) != len(x) or any(a > b for a,b in zip(lo,hi)):
                 raise DiagramError('series uncertainty bounds must match the data and satisfy lower <= upper')
-            panel.band(x, lo, hi, color=self.color, name=self.name)
+            panel.band(x, lo, hi, color=band_color, name=name)
         if kind == 'line':
-            panel.line(tuple(zip(x,y)), name=self.name, stroke=self.color, **style)
+            panel.line(tuple(zip(x,y)), name=name, **style)
         else:
-            panel.scatter(tuple(zip(x,y)), name=self.name, color=self.color, **style)
+            panel.scatter(tuple(zip(x,y)), name=name, **style)
 
 
 def dataset(columns, *, units=None, source=None, name='data'):

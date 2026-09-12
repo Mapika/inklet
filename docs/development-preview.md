@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev4
+# Inklet 4.0.0.dev5
 
-The fourth 4.0 development release includes the linked plotting, mapping,
+The fifth 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev4"
+python -m pip install "inklet==4.0.0.dev5"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,9 +19,9 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev4"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev5"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev4"
+python -m pip install "inklet[volume,render]==4.0.0.dev5"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
@@ -29,7 +29,26 @@ Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
 
-## Plot corrections and visual guides in dev4
+## Shared plotting and composition in dev5
+
+[Reusable plot recipes](plot-recipes.md) add copied/composed instructions and
+independent styling while retaining explicit live data dependencies. Per-axis
+options make counts, formatting and typography independently configurable;
+preset grids use matching label measurements. Local Series colour/name overrides
+now work without rebuilding the data definition.
+
+Automatic documents preserve authored data-region heights when legends wrap,
+including layouts without globally shared margins. The complete example mixes
+four plot panels and a responsive diagram, with two-width exports and a data
+revision. Existing visual baselines and performance budgets remain checked.
+
+![Reusable plots and a responsive module composition](assets/guides/plot-composition.png)
+
+This snapshot also includes the bounded [mixed GeoJSON adapter](geographic-features.md)
+completed after dev4. Further domain-specific expansion is deferred in favour
+of shared composition and editing work.
+
+## Plot corrections and visual guides retained from dev4
 
 Closed polar curves now complete the angular turn without retracing the samples,
 and closed bands retain their endpoints without a missing wedge. This fixes
@@ -86,7 +105,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev4 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev5 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

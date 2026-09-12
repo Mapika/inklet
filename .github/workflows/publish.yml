@@ -6,7 +6,7 @@ on:
       tag:
         description: Published GitHub release tag
         required: true
-        default: v4.0.0.dev4
+        default: v4.0.0.dev5
         type: string
       dry_run:
         description: Validate release files without uploading to PyPI
@@ -43,7 +43,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.dev[0-9]+)?$ ]] || {
-            echo 'Expected a stable or development tag such as v3.1.0 or v4.0.0.dev4' >&2
+            echo 'Expected a stable or development tag such as v3.1.0 or v4.0.0.dev5' >&2
             exit 1
           }
           gh release view "$RELEASE_TAG" --json isDraft,isPrerelease > "$RUNNER_TEMP/release.json"

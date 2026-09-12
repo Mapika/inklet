@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 4.0.0.dev5 — 2026-09-12
+
+Fifth development preview: shared plotting, customization and composition.
+3.1.0 remains the stable release.
+
+- Add reusable PlotSpec.copy(), extend() and style() for independent recipe
+  variants, combined mark layers and preserved live data dependencies.
+- Add per-axis options to Panel.axes() and PlotSpec.axes(); preset grids use
+  matching label measurements. Support local Series colour/name overrides.
+- Preserve authored data heights when automatic document legends wrap, without
+  requiring globally shared margins. Apply plot dimension updates atomically.
+- Add a five-panel plot/diagram composition at two widths, an illustrated guide,
+  and regression checks for reuse, data edits, layout and customization.
+
 - Add experimental GeoFeatures and MapView for linked GeoJSON points, routes and
   regions, with multi-part identity, topmost map picking, exact keyed joins,
   source attribution and geometry revisions. Include a four-panel transport

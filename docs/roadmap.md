@@ -48,8 +48,11 @@ examples; none should determine the shared document architecture.
    contracts in a plot, a diagram and an image/3D view; verify resizing, reopening
    and static/browser export agreement.
 
-Finish and verify the current bounded point/route adapter, then defer further
-geographic expansion. The next development release should advance shared
+The bounded point/route adapter is implemented; defer further geographic
+expansion. [Reusable plot recipes](plot-recipes.md) now begin the shared-engine
+work with copied/composed instructions, independent styling and improved
+automatic layout. General composition templates and browser layout editing
+remain open. The next development release should advance shared
 composition or editing capabilities and use domain examples to test those
 capabilities, rather than make another map report its central deliverable.
 

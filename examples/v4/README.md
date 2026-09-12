@@ -299,7 +299,7 @@ The source is MIT material by Mark Marosi. Ranges are illustrative, not confiden
 intervals. Methods and populations are disclosed in the browser and scene payload.
 
 
-### Mixed geographic features (development checkout)
+### Mixed geographic features (4.0.0.dev5)
 
 `transport_map.py --render` builds an original, invented transport fixture with
 point/multipoint, line/multiline and polygon/multipolygon features linked to

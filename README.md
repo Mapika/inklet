@@ -31,16 +31,16 @@ their signatures and report schemas may change.
 
 ## 4.0 development preview
 
-**4.0.0.dev4** fixes closed polar curves and shaded bands, and adds a visual
-plot gallery with 22 runnable examples. It retains shared compiled rendering,
-offline viewing, linked reports, and reproducible plot editing with undo/redo.
+**4.0.0.dev5** adds reusable plot recipes, independent styling, per-axis controls
+and improved automatic layout. Compose live plot layers, make visual variants,
+and resize mixed-content figures while preserving physical typography.
 ```sh
-python -m pip install "inklet==4.0.0.dev4"
+python -m pip install "inklet==4.0.0.dev5"
 ```
 
 [Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
-[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev4)
+[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev5)
 
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,

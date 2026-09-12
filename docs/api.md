@@ -287,9 +287,12 @@ Create a live document; optionally share plot furniture across the grid.
 
 A live plot recipe. Construct with `plot_spec()`.
 
+* `copy()` -- Copy instructions and nested plots, retaining explicit live dependencies.
+* `extend(other, *, prefix=None)` -- Append an independent copy of another plot's recorded instructions.
+* `style(key, **options)` -- Merge keyword options into a named instruction without replacing data.
 * `replace(key, *args, **kwargs)` -- Replace arguments of an instruction recorded with `key=...`.
 * `remove(key)`
-* `configure(*, width=None, height=None, **options)`
+* `configure(*, width=None, height=None, **options)` -- Validate physical dimensions together before applying configuration.
 * `annotate(x, y, text, *, avoid_marks=True, key=None, **options)` -- Place a callout after marks, insets and brackets have been measured.
 * `group_labels(categories, *, key=None, **kwargs)`
 * `series(series, *, kind='line', uncertainty=True, key=None, **style)` -- Draw a shared Series definition, including its name and uncertainty.
@@ -608,7 +611,7 @@ A drawing region plus the scales that map data into it.
 * `outline(**style) -> "'Panel'"` -- A rectangle around the area, drawn over the data.
 * `grid(*, x: 'bool' = True, y: 'bool' = True, count: 'int' = 5, x_options: 'dict | None' = None, y_options: 'dict | None' = None, **style) -> "'Panel'"` -- Rules at the tick positions, under the data.
 * `axis(side: 'str' = 'bottom', *, at=None, **kwargs) -> "'Panel'"` -- Hang an axis off one edge, built from this panel's own scale.
-* `axes(x: 'str | None' = None, y: 'str | None' = None, **kwargs) -> "'Panel'"` -- The usual pair: an x axis below and a y axis to the left, labelled.
+* `axes(x: 'str | None' = None, y: 'str | None' = None, *, x_options: 'dict | None' = None, y_options: 'dict | None' = None, **kwargs) -> "'Panel'"` -- Bottom and left axes with shared and per-axis options.
 * `twin_y(scale=None, *, side: 'str' = 'right', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second y scale over the same area, and a handle that draws in it.
 * `twin_x(scale=None, *, side: 'str' = 'top', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second x scale over the same area -- wavelength above frequency, or a second time base. `twin_y` explains the shape of it.
 * `title(content: 'str | Diagram', *, align: 'str' = 'center', pad: 'float | str | None' = None) -> "'Panel'"` -- A heading over the panel, clear of whatever is already in it.
