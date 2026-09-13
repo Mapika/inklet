@@ -48,6 +48,7 @@
     const cards = [...document.querySelectorAll('.gallery-grid .gallery-card')];
     const filters = [...toolbar.querySelectorAll('[data-filter]')];
     const query = document.querySelector('#gallery-query');
+    const reset = toolbar.querySelector('.gallery-reset');
     const params = new URLSearchParams(location.search);
     let category = filters.some(b => b.dataset.filter === params.get('type')) ? params.get('type') : 'all';
     query.value = params.get('q') || '';
@@ -59,14 +60,16 @@
         if (!card.hidden) count++;
       });
       filters.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === category)));
-      document.querySelector('.gallery-count').textContent = `${count} ${count === 1 ? 'example' : 'examples'} · select a figure for source and instructions`;
+      document.querySelector('.gallery-count').textContent = `${count} ${count === 1 ? 'example' : 'examples'}`;
       document.querySelector('.gallery-empty').hidden = count > 0;
+      if (reset) reset.hidden = category === 'all' && !query.value;
       const url = new URL(location.href);
       category === 'all' ? url.searchParams.delete('type') : url.searchParams.set('type', category);
       query.value ? url.searchParams.set('q', query.value) : url.searchParams.delete('q');
       history.replaceState(null, '', url);
     }
     filters.forEach(button => button.addEventListener('click', () => { category = button.dataset.filter; filter(); }));
+    if (reset) reset.addEventListener('click', () => { category = 'all'; query.value = ''; filter(); query.focus(); });
     query.addEventListener('input', filter); filter();
   }
 

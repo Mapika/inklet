@@ -1,5 +1,27 @@
 [
   {
+    "id": "olfactory-circuits",
+    "title": "Fly-brain circuits",
+    "category": "Scientific",
+    "description": "Registered anatomy, neuron paths, connectivity and measured distributions.",
+    "requires": "Released data and native meshes",
+    "image": "assets/scientific/olfactory.png",
+    "version": "4.0 preview",
+    "page": "scientific-gallery/#olfactory-circuits-across-anatomical-scales",
+    "featured": false
+  },
+  {
+    "id": "community-connectivity",
+    "title": "Anatomy and connectivity",
+    "category": "Scientific",
+    "description": "Brain regions, a 311 × 311 matrix and a directed community network.",
+    "requires": "Released data and native meshes",
+    "image": "assets/scientific/communities.png",
+    "version": "4.0 preview",
+    "page": "scientific-gallery/#community-structure-from-anatomy-to-connectivity",
+    "featured": false
+  },
+  {
     "id": "layout-editor",
     "title": "Inklet studio workspace",
     "category": "Layout",
