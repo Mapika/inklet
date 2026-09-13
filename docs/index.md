@@ -4,11 +4,6 @@ title: Overview
 ---
 ## Find the right guide
 
-Inklet is useful when the **whole figure** matters: plots, explanatory drawings,
-images and 3D views that must share a page, physical typography and export
-settings. A Python recipe records the data and visual decisions; measured
-layout handles the space their finished labels and artwork require.
-
 | You want to… | Start here |
 |---|---|
 | Make and export your first figure | [First figure tutorial](quickstart.md) |
@@ -26,33 +21,14 @@ layout handles the space their finished labels and artwork require.
 | Package source assets and saved figure choices | [Reusable figure projects (dev16 on master)](project-workflows.md) |
 | Work with microscopy data | [Calibrated volumes (preview)](calibrated-volumes.md) |
 
-## Follow a complete workflow
-
-- **Publication figure:** follow the [first figure](quickstart.md), arrange
-  [reusable compositions](composition-recipes.md), then [review and export](export-review.md).
-- **Scientific plate:** explore the [original scientific gallery](scientific-gallery.md),
-  learn [measured labels and shared anatomical views](scientific-authoring.md),
-  then assemble [complex plates](complex-figures.md).
-- **Interactive report:** choose the [viewer or editor](interactive-documents.md)
-  that fits your task, then run a [complete regional report](regional-report.md).
-- **Revisable study:** connect plots, drawings and image measurements through a
-  [figure project](project-workflows.md), with verified inputs and explicit
-  identities across its views.
-
 ## Reference and development
 
-Tutorials show a complete route to an output. The task guides above explain
-individual choices; the [Python API](api.md) supplies exact signatures. Use the
-[command-line reference](cli.md) for script workflows and
-[troubleshooting](troubleshooting.md) for diagnostics.
-[Migration](migration.md) covers existing projects.
+[Python API](api.md) · [CLI](cli.md) · [Troubleshooting](troubleshooting.md) ·
+[Migration](migration.md)
 
-Use [installation](installation.md) to choose stable Inklet or the 4.0 preview.
-Guides identify experimental interfaces; features available only on master are
-marked separately from published preview packages. Check
-[compatibility](compatibility.md) before relying on saved-state formats.
+The default install is stable **3.1.0**. See the
+[4.0 preview guide](development-preview.md) for published preview features and
+unreleased work on master.
 
-Development evidence has its own home: [acceptance workflows](acceptance.md),
-[release checks](release-checks.md) and the [4.0 roadmap](roadmap.md). Superseded
-release pages remain accessible through [development history](history.md);
-use the current task guides for supported behavior.
+[Compatibility](compatibility.md) · [Acceptance checks](acceptance.md) ·
+[4.0 roadmap](roadmap.md) · [Historical guides](history.md)

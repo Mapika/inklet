@@ -1559,3 +1559,37 @@ select:focus-visible {
   outline:3px solid #bf7134;
   outline-offset:3px;
 }
+
+/* Homepage: put tutorial choices before the gallery, including on small screens. */
+.home-start {
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+  grid-template-areas:"copy figure" "workflows workflows";
+  gap:24px 36px;
+}
+.home-start .hero-copy { grid-area:copy; align-self:center; }
+.home-start .hero-copy h1 { font-size:clamp(30px,3vw,46px); margin:16px 0; }
+.home-start .hero-copy>p { line-height:1.6; }
+.home-start .hero-actions { margin:18px 0; }
+.home-start .hero-figure { grid-area:figure; transform:none; align-self:center; }
+.home-start .hero-figure img { height:280px; }
+.home-workflows { grid-area:workflows; scroll-margin-top:90px; }
+.home-workflows h2 { font-size:22px; margin:0 0 12px; }
+.workflow-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.workflow-grid>a { padding:15px; border:1px solid var(--line); border-radius:6px; text-decoration:none; background:var(--surface); }
+.workflow-grid>a:hover { border-color:var(--accent); }
+.workflow-grid>a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.workflow-grid h3 { font-size:15px; margin:0 0 8px; color:var(--ink); display:flex; justify-content:space-between; gap:8px; }
+.workflow-grid p { font-size:12px; color:var(--muted); margin:0; }
+.workflow-version { display:block; font-size:11px; margin-top:5px; }
+@media(max-width:1100px) {
+  .workflow-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:760px) {
+  .home-start { grid-template-columns:minmax(0,1fr); grid-template-areas:"copy" "workflows" "figure"; gap:24px; }
+  .home-start .hero-copy h1 { font-size:34px; }
+  .home-start .hero-figure img { height:260px; }
+  .workflow-grid { gap:8px; }
+  .workflow-grid>a { padding:12px; }
+  .workflow-grid h3 { font-size:14px; }
+}

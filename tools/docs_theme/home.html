@@ -1,17 +1,23 @@
-<section class="home-hero">
-  <div class="hero-copy"><div class="eyebrow"><span class="status-dot"></span> A Python library for scientific figures</div>
-    <h1>Build complete<br>figures in Python.</h1>
-    <p>Compose plots, measured diagrams and 3D scenes with shared typography. Export them together as SVG, PDF or PNG.</p>
-    <div class="hero-actions"><a class="button primary" href="{{ 'quickstart/'|url }}">Build your first figure <span>→</span></a><a class="button" href="{{ 'examples/'|url }}">Explore the gallery</a></div>
+<div class="home-start">
+  <section class="hero-copy">
+    <div class="eyebrow">Python library · Scientific figures</div>
+    <h1>Scientific figures<br>in Python.</h1>
+    <p>Combine plots, diagrams and 3D on a page sized in millimetres. Export SVG, PDF or PNG.</p>
+    <div class="hero-actions"><a class="button primary" href="{{ 'quickstart/'|url }}">First figure tutorial →</a><a class="button" href="#follow-a-complete-workflow">More tutorials ↓</a></div>
     <div class="install-command"><code>pip install inklet</code><button type="button" data-copy="pip install inklet" aria-label="Copy installation command">Copy</button></div>
-    <p class="install-note">Python 3.11+ · MIT licensed · Blender optional</p>
-  </div>
-  <a class="hero-figure" href="{{ 'stress20/'|url }}"><div class="figure-topline"><span>MADE WITH INKLET</span><span>20 panels / one page</span></div><img src="{{ 'gallery/stress20.png'|url }}" alt="Twenty-panel Inklet figure combining 3D surfaces, architecture, networks and scientific plots" fetchpriority="high"><div class="figure-caption"><span>Plots, diagrams and native 3D</span><span>See the figure ↗</span></div></a>
-</section>
-<div class="capability-strip"><span>Physical page dimensions</span><span>Editable vector exports</span><span>Live data &amp; shared scales</span><span>Reusable style presets</span></div>
-<section class="home-section"><div class="section-heading"><div><div class="eyebrow">Start with a figure</div><h2>See what you can make.</h2></div><a href="{{ 'examples/'|url }}">Browse all examples →</a></div>
-<div class="featured-grid">{% for entry in docs_gallery if entry.featured %}{% include 'card.html' %}{% endfor %}</div></section>
-<section class="home-section"><div class="section-heading"><div><div class="eyebrow">From first plot to final page</div><h2>A practical place to start.</h2></div></div>
-<div class="learning-grid"><a href="{{ 'quickstart/'|url }}"><span class="step-number">01</span><h3>Make a first figure</h3><p>Define data, draw a plot, and save your first SVG and PDF.</p><span>Follow the tutorial →</span></a><a href="{{ 'layout/'|url }}"><span class="step-number">02</span><h3>Build the whole page</h3><p>Arrange panels, share scales, and add labels at a physical size.</p><span>Learn page layout →</span></a><a href="{{ 'export-review/'|url }}"><span class="step-number">03</span><h3>Review and export</h3><p>Check diagnostics and inspect the finished figure before sharing it.</p><span>Explore exports →</span></a></div></section>
-<section class="development-note"><div><span class="eyebrow">Inklet 4.0 development preview</span><h2>Keep figures editable and revisions reproducible.</h2><p>The published preview adds linked selections, saved plot styles and a local composition editor. Master adds verified figure projects with reusable assets (unreleased dev16). The installation above uses the stable release.</p></div><a class="button" href="{{ 'interactive-documents/'|url }}">Explore interactive documents →</a></section>
+    <p class="install-note">Python 3.11+ · <a href="{{ 'installation/'|url }}">Installation options</a></p>
+  </section>
+  <section class="home-workflows" id="follow-a-complete-workflow" aria-labelledby="workflow-title">
+    <h2 id="workflow-title">Tutorials</h2>
+    <div class="workflow-grid">
+      <a href="{{ 'quickstart/'|url }}"><h3>Publication figure <span>→</span></h3><p>Plot data, add panels and export.</p></a>
+      <a href="{{ 'scientific-authoring/'|url }}"><h3>Scientific plate <span>→</span></h3><p>Combine anatomy, plots and annotations. <span class="workflow-version">4.0 preview</span></p></a>
+      <a href="{{ 'regional-report/'|url }}"><h3>Interactive report <span>→</span></h3><p>Link selections across views. <span class="workflow-version">4.0 preview</span></p></a>
+      <a href="{{ 'project-workflows/'|url }}"><h3>Reusable project <span>→</span></h3><p>Save inputs and edits; revise data. <span class="workflow-version">Master / dev16</span></p></a>
+    </div>
+  </section>
+  <a class="hero-figure" href="{{ 'stress20/'|url }}"><img src="{{ 'gallery/stress20.png'|url }}" alt="Twenty-panel figure with scientific plots, diagrams and native 3D" fetchpriority="high"><div class="figure-caption"><span>20 panels, generated with Inklet</span><span>View example ↗</span></div></a>
+</div>
+<section class="home-section"><div class="section-heading"><h2>Examples</h2><a href="{{ 'examples/'|url }}">All examples →</a></div>
+<div class="featured-grid">{% for entry in docs_gallery if entry.id in ['general-plots', 'label-intensities', 'complex-scene'] %}{% include 'card.html' %}{% endfor %}</div></section>
 <section class="home-reference"><div class="prose">{{ page.content }}</div></section>
