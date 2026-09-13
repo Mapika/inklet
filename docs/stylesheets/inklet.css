@@ -1563,7 +1563,7 @@ select:focus-visible {
 /* Homepage: put tutorial choices before the gallery, including on small screens. */
 .home-start {
   display:grid;
-  grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+  grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);
   grid-template-areas:"copy figure" "workflows workflows";
   gap:24px 36px;
 }
@@ -1572,7 +1572,7 @@ select:focus-visible {
 .home-start .hero-copy>p { line-height:1.6; }
 .home-start .hero-actions { margin:18px 0; }
 .home-start .hero-figure { grid-area:figure; transform:none; align-self:center; }
-.home-start .hero-figure img { height:280px; }
+.home-start .hero-figure img { height:auto; aspect-ratio:60/29; padding:12px; }
 .home-workflows { grid-area:workflows; scroll-margin-top:90px; }
 .home-workflows h2 { font-size:22px; margin:0 0 12px; }
 .workflow-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
@@ -1588,7 +1588,7 @@ select:focus-visible {
 @media(max-width:760px) {
   .home-start { grid-template-columns:minmax(0,1fr); grid-template-areas:"copy" "workflows" "figure"; gap:24px; }
   .home-start .hero-copy h1 { font-size:34px; }
-  .home-start .hero-figure img { height:260px; }
+  .home-start .hero-figure img { padding:6px; }
   .workflow-grid { gap:8px; }
   .workflow-grid>a { padding:12px; }
   .workflow-grid h3 { font-size:14px; }
