@@ -484,7 +484,7 @@ __all__ = [
     "theme", "Theme", "THEMES", "use_theme", "current_theme", "contrast_ratio",
     "mix", "lighten", "darken", "readable",
     # inspection and output
-    "lint", "abutting", "crossing", "Diagnostic", "format_report",
+    "FigureReview", "review_figure", "lint", "abutting", "crossing", "Diagnostic", "format_report",
     "to_svg", "save_svg",
     "to_pdf", "save_pdf", "outline_text",
     "shape", "measure", "apply_theme", "resolve",
@@ -493,4 +493,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "4.0.0.dev14"
+__version__ = "4.0.0.dev15"

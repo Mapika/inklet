@@ -722,14 +722,21 @@ def test_hiding_nothing_draws_more_than_hiding_the_back(tmp_path):
 def test_smooth_shading_suppresses_crease_lines(tmp_path):
     """The documented lever for scanned surfaces: with smooth normals the
     crease threshold stops mattering and only contours survive."""
+    # This tests a shading invariant, not dense-mesh throughput. An 80-face
+    # curved mesh retains many hard edges at 10 degrees and renders in seconds;
+    # the 18,000-face brain can exceed the backend's 300-second bake limit.
+    from inklet.three.solids import sphere
+    mesh = sphere(subdivisions=1)
+    source = tmp_path / "curved.obj"
+    source.write_text("\n".join(
+        [f"v {v.x} {v.y} {v.z}" for v in mesh.vertices] +
+        ["f " + " ".join(str(index+1) for index in face) for face in mesh.faces]))
     cache = tmp_path / "cache"
-    faceted = line_art(MESHES / "brain-lh.obj", width=60.0, camera="left",
-                       cache_dir=cache, options=LineArtOptions(crease=30.0))
-    a = line_art(MESHES / "brain-lh.obj", width=60.0, camera="left",
-                 cache_dir=cache,
-                 options=LineArtOptions(crease=30.0, shade_smooth=True))
-    b = line_art(MESHES / "brain-lh.obj", width=60.0, camera="left",
-                 cache_dir=cache,
+    faceted = line_art(source, width=60.0, camera="left",
+                       cache_dir=cache, options=LineArtOptions(crease=10.0))
+    a = line_art(source, width=60.0, camera="left", cache_dir=cache,
+                 options=LineArtOptions(crease=10.0, shade_smooth=True))
+    b = line_art(source, width=60.0, camera="left", cache_dir=cache,
                  options=LineArtOptions(crease=90.0, shade_smooth=True))
     assert len(a.polylines) == len(b.polylines)
     assert len(a.polylines) < len(faceted.polylines) / 2

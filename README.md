@@ -31,16 +31,17 @@ their signatures and report schemas may change.
 
 ## 4.0 development preview
 
-**4.0.0.dev14** adds scientific figure layouts, coordinated annotations,
+**4.0.0.dev15** adds seamless fields, precise scientific layout and source-aware review,
 anatomical cutaways and compact vector matrices.
 ```sh
-python -m pip install "inklet==4.0.0.dev14"
+python -m pip install "inklet==4.0.0.dev15"
 ```
 
 [Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
-[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev14)
+[Release notes](https://github.com/Mapika/inklet/blob/master/CHANGELOG.md)
 
+This snapshot is prepared locally; the pinned install command applies after publication.
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,
 depth-aware 3D selection and the remaining 4.0 release gates are still open.

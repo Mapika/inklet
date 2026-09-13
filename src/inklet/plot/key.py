@@ -144,13 +144,14 @@ def _bands(bar: Ramp, steps: int, span: float, depth: float,
 
 def _outline(span: float, depth: float, vertical: bool) -> Diagram:
     width, height = (depth, span) if vertical else (span, depth)
-    return Diagram(prim=RectPrim(width, height), kind=SPINE_KIND)
+    return Diagram(prim=RectPrim(width, height), kind=SPINE_KIND).styled(fill="none")
 
 
 def legend(entries: Sequence[tuple[str, object]], *, columns: int | str = 1,
            max_width: float | str | None = None, font_size: float | str | None = None,
            swatch: float | str | None = None, gap: float | str | None = None,
-           row_gap: float | str | None = None, title: str | None = None,
+           row_gap: float | str | None = None, col_gap: float | str | None = None,
+           order: str = "row", title: str | None = None,
            markup: bool = True, kind: str = LEGEND_KIND, **style) -> Diagram:
     """Swatches and their names.
 
@@ -161,6 +162,9 @@ def legend(entries: Sequence[tuple[str, object]], *, columns: int | str = 1,
     `columns='auto', max_width=...` chooses the largest measured column count
     that fits, preserving row-major entry order and text size. A single entry
     or title wider than the limit raises an error instead of clipping text.
+
+    ``order="column"`` fills down each column; the default fills across rows.
+    ``col_gap`` and ``row_gap`` set independent physical spacing.
 
     Names read inklet's inline markup, because a key is the one place a figure
     must be able to write `ChR2 (//n// = 12)` or `//Notch1//^{+/-}`, and no
@@ -174,6 +178,8 @@ def legend(entries: Sequence[tuple[str, object]], *, columns: int | str = 1,
     is a *matched* pair, and a matched `//...//` in a series name is an
     italic request far more often than it is a filename.
     """
+    if order not in ("row", "column"):
+        raise ValueError("legend order must be row or column")
     if not entries:
         raise ValueError("a legend needs at least one entry")
     if columns != 'auto' and (type(columns) is not int or columns < 1):
@@ -193,6 +199,9 @@ def legend(entries: Sequence[tuple[str, object]], *, columns: int | str = 1,
     # word it names, and a full space between them reads as two columns.
     inner = theme.gap("xs") if gap is None else mm(gap)
     between = theme.gap("xs") if row_gap is None else mm(row_gap)
+    across = inner*2 if col_gap is None else mm(col_gap)
+    if any(not math.isfinite(v) or v < 0 for v in (inner,between,across)):
+        raise ValueError('legend gaps must be finite and nonnegative')
 
     # A series name is written in the figure's own source -- it is the caption
     # for one curve -- so it is prose and reads markup, like the title above it
@@ -202,25 +211,33 @@ def legend(entries: Sequence[tuple[str, object]], *, columns: int | str = 1,
     # the name that really did come out of a column header.
     rows = [
         hstack([_swatch(value, size), text_node(str(name), label_size,
-                                                LEGEND_LABEL_KIND, markup=markup)],
+                                                LEGEND_LABEL_KIND, markup=markup, **_font_style(style))],
                gap=inner, align="center")
         for name, value in entries
     ]
+    def arranged(count):
+        if order=='row':return rows
+        height=math.ceil(len(rows)/count)
+        return [rows[r+c*height] if r+c*height<len(rows) else Diagram()
+                for r in range(height) for c in range(count)]
+
     if columns == 'auto':
         # Row-major order stays stable. Use measured column maxima, including
         # complete swatches, rather than a character-count approximation.
         columns = 1
         for candidate in range(len(rows), 0, -1):
-            width = sum(max(row.width for row in rows[col::candidate])
-                        for col in range(candidate)) + inner*2*(candidate-1)
+            trial=arranged(candidate)
+            width = sum(max(row.width for row in trial[col::candidate])
+                        for col in range(candidate)) + across*(candidate-1)
             if width <= limit:
                 columns = candidate
                 break
+    rows=arranged(columns)
     body = (vstack(rows, gap=between, align="left") if columns == 1
-            else grid_layout(rows, cols=columns, col_gap=inner * 2,
+            else grid_layout(rows, cols=columns, col_gap=across,
                              row_gap=between, align="left"))
     if title is not None:
-        body = vstack([text_node(title, label_size, LEGEND_LABEL_KIND),
+        body = vstack([text_node(title, label_size, LEGEND_LABEL_KIND, markup=markup, **_font_style(style)),
                        body], gap=between, align="left")
     if limit is not None and body.width > limit + 1e-9:
         raise ValueError(f'legend needs {body.width:.2f} mm but max_width is {limit:.2f} mm; '

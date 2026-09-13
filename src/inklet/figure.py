@@ -78,18 +78,27 @@ def apply_theme(root: Diagram, theme: Theme) -> Diagram:
     on them and a restyled tree must still be the same tree.
     """
 
+    # Cache only for this build: themes and inherited contexts can change
+    # between calls, while thousands of marks commonly share them within one.
+    defaults, text_colors = {}, {}
+
     def visit(node: Diagram, authored: Style, behind: str) -> Diagram:
         role = _ROLE_OF_KIND.get(node.kind)
         if role is None:
             style = node.style
         else:
-            style = node.style.over(_without(theme.style_for(role), authored))
+            key = (role, authored)
+            if key not in defaults:
+                defaults[key] = _without(theme.style_for(role), authored)
+            style = node.style.over(defaults[key])
         if (isinstance(node.prim, TextPrim)
                 and node.style.text_fill is None and authored.text_fill is None):
             # The theme's ink is picked against `paper`, but this glyph may be
             # sitting on a filled box. Nobody authored a colour here, so the
             # theme is free to choose one that can actually be read.
-            style = replace(style, text_fill=theme.text_on(behind))
+            if behind not in text_colors:
+                text_colors[behind] = theme.text_on(behind)
+            style = replace(style, text_fill=text_colors[behind])
         inherited = node.style.over(authored)
         fill = inherited.fill
         under = behind if fill in (None, "none") else fill

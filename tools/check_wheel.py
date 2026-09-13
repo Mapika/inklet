@@ -24,6 +24,15 @@ geography = GeoFeatures((('route','LineString',((0,0),(1,1))),('stop','Point',(1
 geographic = BrowserFigure(KeyedTable('assets',dict(id=['route','stop'])),[MapView('map',geography,(-1,-1,2,2))])
 assert [mark['kind'] for mark in geographic.payload()['layers'][0]['marks']] == ['line','circle']
 assert 'Original smoke fixture' in geographic.to_html(renderer='compiled') and '<line' in geographic.to_svg()
+# Dev15 scientific authoring must work with core dependencies only.
+field = i.panel(30,20).matrix([[0,1],[.2,.7]],ramp=i.ramp(['black','white']),vector='seamless')
+field.guide((0,0),(1,1),label='guide',label_style={'size':2})
+field.colorbar(corner='sw',length=5,thickness=1,ticks=[],pad=1)
+assert i.plot_area(field.placed(3,4)) == i.Rect(3,4,33,24)
+assert '<image' not in i.to_svg(field.build())
+smoothed=i.panel(20,10).matrix([[0,1]],ramp=i.ramp(['black','white']),raster=True,interpolation='linear')
+assert '<image' in i.to_svg(smoothed.build())
+assert i.legend([('A','red'),('B','blue')],columns=2,order='column',col_gap=3).width>3
 response = i.Series('Response',[0,1],[1,2],'#34786b',[.8,1.8],[1.2,2.2])
 layer = i.plot_spec().series(response,key='response')
 recipe = i.plot_spec(x=(0,1),y=(0,3)).extend(layer).axes(x_options={'count':3},y_options={'count':4})

@@ -1,0 +1,97 @@
+{
+  "papers": [
+    {
+      "id": "immune",
+      "title": "SARS-CoV-2 evolution on a dynamic immune landscape",
+      "authors": "Raharinirina et al.",
+      "journal": "Nature",
+      "doi": "10.1038/s41586-024-08477-8",
+      "figure": 4,
+      "url": "https://www.nature.com/articles/s41586-024-08477-8",
+      "license": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+      "id": "sample",
+      "title": "Self-driving laboratories to autonomously navigate the protein fitness landscape",
+      "authors": "Rapp, Bremer and Romero",
+      "journal": "Nature Chemical Engineering",
+      "doi": "10.1038/s44286-023-00002-4",
+      "figure": 4,
+      "url": "https://www.nature.com/articles/s44286-023-00002-4",
+      "license": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+      "id": "quantum",
+      "title": "Magnetosensitivity of tightly bound radical pairs in cryptochrome is enabled by the quantum Zeno effect",
+      "authors": "Denton et al.",
+      "journal": "Nature Communications",
+      "doi": "10.1038/s41467-024-55124-x",
+      "figure": 5,
+      "url": "https://www.nature.com/articles/s41467-024-55124-x",
+      "license": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  ],
+  "files": [
+    {
+      "filename": "immune-41586_2024_8477_MOESM5_ESM.xlsx",
+      "url": "https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-024-08477-8/MediaObjects/41586_2024_8477_MOESM5_ESM.xlsx",
+      "role": "released numerical data",
+      "sha256": "0ca160c90f220f6bc8ddc6b133716def1c6e3e751d2856fefa1314cbd53fe294"
+    },
+    {
+      "filename": "immune-original.png",
+      "url": "https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41586-024-08477-8/MediaObjects/41586_2024_8477_Fig4_HTML.png",
+      "role": "reference for comparison only",
+      "sha256": "09b61642405da89d2f94d780812b88fbdc036d56d8ab7c7f4d1a0589d7817148"
+    },
+    {
+      "filename": "sample-44286_2023_2_MOESM12_ESM.xlsx",
+      "url": "https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs44286-023-00002-4/MediaObjects/44286_2023_2_MOESM12_ESM.xlsx",
+      "role": "released numerical data",
+      "sha256": "d8ee3923e3eeb25a2cb7d3b07f2695cc90d8f1fc68cbb7f909a399b582a0343b"
+    },
+    {
+      "filename": "sample-original.png",
+      "url": "https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs44286-023-00002-4/MediaObjects/44286_2023_2_Fig4_HTML.png",
+      "role": "reference for comparison only",
+      "sha256": "a2157fefcc5c680aaba661420506bf17cb7805983e0e79a14c57832f91287e23"
+    },
+    {
+      "filename": "quantum-41467_2024_55124_MOESM6_ESM.zip",
+      "url": "https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41467-024-55124-x/MediaObjects/41467_2024_55124_MOESM6_ESM.zip",
+      "role": "released numerical data",
+      "sha256": "d0a75d1c3029cb70acf0b55cde3a9a23307ec51c072695b9ac6225280d2aafcf"
+    },
+    {
+      "filename": "quantum-original.png",
+      "url": "https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41467-024-55124-x/MediaObjects/41467_2024_55124_Fig5_HTML.png",
+      "role": "reference for comparison only",
+      "sha256": "4ac680ddabc508cb5c9f38206e40d5d3db116df60a5930335059e03f9e61e07f"
+    },
+    {
+      "filename": "sample-all_data_variants_unified.pkl",
+      "url": "https://raw.githubusercontent.com/RomeroLab/SAMPLE_code/99bf9203c304fcd6f5f41ba0eed7ad2feca65199/all_data_variants_unified.pkl",
+      "role": "author data",
+      "sha256": "7c713f4602fa4d069e0c38527dd40c0466c7af0fe7a00bfdc1b6299c304e8b64"
+    },
+    {
+      "filename": "sample-Experiment_Summary.csv",
+      "url": "https://raw.githubusercontent.com/RomeroLab/SAMPLE_code/99bf9203c304fcd6f5f41ba0eed7ad2feca65199/Experiment_Summary.csv",
+      "role": "author data",
+      "sha256": "4a83ed2feb70b055928019432a3ecefa2e57b603c1b9dfe66a1bd2487f88abdc"
+    },
+    {
+      "filename": "sample-make_Fig3_panels.py",
+      "url": "https://raw.githubusercontent.com/RomeroLab/SAMPLE_code/99bf9203c304fcd6f5f41ba0eed7ad2feca65199/make_Fig3_panels.py",
+      "role": "method reference; not executed",
+      "sha256": "04ea338a0beefce081546bb1b6f88170f12dd8070337aafdeca85778ece95f4c"
+    },
+    {
+      "filename": "sample-Assess_Fit.py",
+      "url": "https://raw.githubusercontent.com/RomeroLab/SAMPLE_code/99bf9203c304fcd6f5f41ba0eed7ad2feca65199/Assess_Fit.py",
+      "role": "method reference; not executed",
+      "sha256": "d246648811aa13453f6451407d38c0a4a7b8660d7021b15fdbbc119e30f418e1"
+    }
+  ],
+  "author_repository_commit": "99bf9203c304fcd6f5f41ba0eed7ad2feca65199"
+}

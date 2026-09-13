@@ -95,6 +95,7 @@ nav:
 - 3D and images:
   - Meshes and images: three-images.md
   - Scientific illustrations: scientific-authoring.md
+  - Complex scientific plates: complex-figures.md
   - Blender scenes: blender-scenes.md
   - GPU rendering and jobs: render-jobs.md
   - Vector paths in scenes: scene-paths.md

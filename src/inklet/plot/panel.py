@@ -102,7 +102,7 @@ def _pitch(centres: Sequence[float]) -> float:
 
 
 def _cell_spans(centres: Sequence[float],
-                overlap: float) -> list[tuple[float, float]]:
+                overlap: float, singleton: float | None = None) -> list[tuple[float, float]]:
     """Each cell's centre and its size, in millimetres.
 
     Evenly spaced samples take the pitch, which is the whole of the old
@@ -116,7 +116,7 @@ def _cell_spans(centres: Sequence[float],
     the first and last samples inside the cells that stand for them.
     """
     if len(centres) < 2:
-        size = _pitch(centres) * (1.0 + overlap)
+        size = (_pitch(centres) if singleton is None else singleton) * (1.0 + overlap)
         return [(c, size) for c in centres]
     gaps = [b - a for a, b in zip(centres, centres[1:])]
     reach = max(abs(g) for g in gaps)
@@ -173,21 +173,34 @@ def _cell_grid(rows: Sequence[Sequence[float]], ramp, unit,
     return draw_place(cells, **style)
 
 
-def _batched_cell_grid(rows,ramp,unit,xs,ys,style,missing=None):
+def _batched_cell_grid(rows,ramp,unit,xs,ys,style,missing=None,*,seamless=False):
     """Disjoint cell rectangles batched by exact fill, with no color quantization."""
     from ..core import PathPrim,Subpath
     hole=_missing_colour(any(is_missing(value) for row in rows for value in row),missing)
-    buckets={}
+    buckets={};back={}
+    if seamless:
+        from ..themes.color import parse_color
+        xmin=min(c-w/2 for c,w in xs);xmax=max(c+w/2 for c,w in xs)
+        ymin=min(c-h/2 for c,h in ys);ymax=max(c+h/2 for c,h in ys)
     for row,(cy,tall) in zip(rows,ys):
         for value,(cx,wide) in zip(row,xs):
             fill=hole if is_missing(value) else ramp(value if unit is None else unit.map(value))
             box=Rect(cx-wide/2,cy-tall/2,cx+wide/2,cy+tall/2)
             buckets.setdefault(fill,[]).append(Subpath(box.corners,closed=True))
+            if seamless:
+                # Opaque underpaint fills only the subpixel cracks of the exact
+                # foreground. Never change sample boundaries or the outer box.
+                parse_color(fill)
+                bleed=Rect(max(xmin,box.x0-wide/2),max(ymin,box.y0-tall/2),
+                           min(xmax,box.x1+wide/2),min(ymax,box.y1+tall/2))
+                back.setdefault(fill,[]).append(Subpath(bleed.corners,closed=True))
     nodes=[]
-    for color,paths in buckets.items():
-        for k in range(0,len(paths),512):
-            nodes.append(Diagram(prim=PathPrim(tuple(paths[k:k+512]),filled=True),kind=MARK_KIND).styled(fill=color,stroke='none'))
-    result=Diagram(children=tuple(nodes),kind='vector-matrix',notes={'matrix_batch':{'cells':sum(map(len,rows)),'colors':len(buckets),'batches':len(nodes),'individual_cells':False}})
+    for layer in ([back,buckets] if seamless else [buckets]):
+        for color,paths in layer.items():
+            for k in range(0,len(paths),512):
+                nodes.append(Diagram(prim=PathPrim(tuple(paths[k:k+512]),filled=True),
+                    kind='matrix-underpaint' if layer is back else MARK_KIND).styled(fill=color,stroke='none'))
+    result=Diagram(children=tuple(nodes),kind='vector-matrix',notes={'matrix_batch':{'cells':sum(map(len,rows)),'colors':len(buckets),'batches':len(nodes),'individual_cells':False,'seamless':seamless}})
     return as_drawn(result.styled(**style) if style else result)
 
 
@@ -339,6 +352,7 @@ class Panel:
                x: Sequence | None = None, y: Sequence | None = None,
                overlap: float | None = None, missing: str | None = None,
                vector: str = "cells",
+               interpolation: str = "nearest", samples: int = 4,
                raster: bool | str = "auto", **style) -> "Panel":
         """A 2D array of values, one coloured cell each.
 
@@ -389,18 +403,38 @@ class Panel:
         colorbar validation without per-cell nodes. It requires zero overlap;
         antialiased viewers can show joins. Colors are not quantized.
 
+        ``vector="seamless"`` adds opaque underpaint behind the same exact
+        foreground cells. This suppresses background-colored antialiasing joins
+        without enlarging the data cells or quantizing colors. Both layers are
+        editable compound paths (at most 512 cells per path). Opaque colors and
+        zero overlap are required; the field remains piecewise constant, not
+        interpolated. Apply whole-field transparency to a containing group.
+
+        ``interpolation="linear", raster=True`` explicitly requests bilinear
+        interpolation of scalar values before color mapping, at ``samples``
+        pixels per input cell (2–16, default 4). Displayed sample spacing must
+        be uniform. Missing values remain missing across the filter footprint.
+        This smooth image gives up per-cell vector editing; source values are
+        never altered. Nearest-cell rendering remains the default.
+
         The raster path needs evenly spaced samples, since a pixel cannot be
         wider than its neighbour, and it gives up two things: the cells stop
         being individually selectable in an editor, and `KEY_MISMATCH` can no
         longer compare their colours against a colorbar, because there are no
         mark fills left to sample. The declared domain still crosses over.
         """
-        if vector not in ('cells','batched'):raise ValueError('matrix vector must be cells or batched')
-        if vector=='batched':
+        if interpolation not in ('nearest','linear'):
+            raise ValueError('matrix interpolation must be nearest or linear')
+        if interpolation=='linear' and (raster is not True or vector!='cells'):
+            raise ValueError('linear interpolation requires raster=True and vector="cells"')
+        if vector not in ('cells','batched','seamless'):raise ValueError('matrix vector must be cells, batched or seamless')
+        if vector in ('batched','seamless'):
             if raster is True:raise ValueError('batched vector matrices cannot also request raster=True')
             raster=False
             if overlap not in (None,0):raise ValueError('batched matrices need overlap=0 to preserve cell boundaries')
-        overlap=(0. if vector=='batched' else _CELL_OVERLAP) if overlap is None else overlap
+        overlap=(0. if vector in ('batched','seamless') else _CELL_OVERLAP) if overlap is None else overlap
+        if vector=='seamless' and any(style.get(k,1)!=1 for k in ('opacity','fill_opacity')):
+            raise ValueError('seamless matrices require opaque paint; apply opacity to a containing group')
         clip = _clip_flag(style)
         rows = [list(row) for row in values]
         if not rows or not rows[0]:
@@ -417,22 +451,32 @@ class Panel:
         unit = None if scale is None else scale.with_range(0.0, 1.0)
         self._ramp = ramp
 
+        single_x=abs(self.x.map(x[1])-self.x.map(x[0])) if x is not None and len(x)==2 and len(centres_x)==1 else self.width
+        single_y=abs(self.y.map(y[1])-self.y.map(y[0])) if y is not None and len(y)==2 and len(centres_y)==1 else self.height
+        source_shape=(len(rows),len(rows[0]))
+        if interpolation=='linear':
+            from .raster import interpolate_matrix
+            rows,centres_x,centres_y=interpolate_matrix(rows,centres_x,centres_y,samples,single_x=single_x,single_y=single_y)
+
         if _rasterises(raster, len(rows) * len(rows[0]), centres_x, centres_y):
             group = raster_matrix(rows, ramp, unit, centres_x, centres_y,
-                                  missing)
+                                  missing,single_x=single_x,single_y=single_y)
             if style:
                 group = group.styled(**style)
         else:
-            grid_builder=_batched_cell_grid if vector=="batched" else _cell_grid
+            grid_builder=_batched_cell_grid if vector in ("batched","seamless") else _cell_grid
             group = grid_builder(rows, ramp, unit,
-                               _cell_spans(centres_x, overlap),
-                               _cell_spans(centres_y, overlap), style,
-                               missing)
+                               _cell_spans(centres_x, overlap,single_x),
+                               _cell_spans(centres_y, overlap,single_y), style,
+                               missing, **({"seamless":True} if vector=="seamless" else {}))
         # What the cells' colours mean, for the rule that compares a matrix
         # against the colorbar beside it. On the group for anything reading the
         # tree directly, and remembered so `build` can put it on the panel,
         # which is the node the diagnostic pairs with a key.
         _declare_domain(group, scale)
+        group.note('matrix_sampling', {'source_shape':source_shape,
+                   'interpolation':interpolation, 'vector':vector,
+                   'samples':samples if interpolation=='linear' else 1})
         self._scale_domain = scale
         return self.draw(group, clip=clip)
 
@@ -1221,7 +1265,8 @@ class Panel:
                columns: int | str | None = None, max_width: float | str | None = None,
                swatch: float | str | None = None,
                pad: float | str | None = None, plate: bool | None = None,
-               title: str | None = None, markup: bool = True,
+               title: str | None = None, markup: bool = True, order: str = "row",
+               col_gap: float | str | None = None, row_gap: float | str | None = None,
                **style) -> "Panel":
         """A key built from the series this panel actually drew.
 
@@ -1270,7 +1315,7 @@ class Panel:
         if columns == 'auto' and max_width is None:
             max_width = self.width if side is not None else self.width - 2*(theme.gap('s') if pad is None else mm(pad))
         node = make_legend(rows, columns=columns, max_width=max_width, swatch=swatch, title=title,
-                           markup=markup, **style)
+                           markup=markup, order=order, col_gap=col_gap, row_gap=row_gap, **style)
         gap = theme.gap("s") if pad is None else mm(pad)
         if side is not None:
             self._over.append(self._beside(node, side, gap))
@@ -1299,9 +1344,9 @@ class Panel:
                 else mm(swatch))
         return [(entry.name, swatch_for(entry, size)) for entry in self.keys]
 
-    def colorbar(self, *, side: str = "right", source=None,
+    def colorbar(self, *, side: str = "right", source=None, corner: str | None = None,
                  scale: Scale | None = None, length: float | str | None = None,
-                 pad: float | str | None = None, **kwargs) -> "Panel":
+                 pad: float | str | None = None, plate: bool = False, title: str | None = None, **kwargs) -> "Panel":
         """The ramp this panel's matrix was coloured through, as a key beside it.
 
         Built from the panel's own `ramp=` and `scale=`, not from a second pair
@@ -1315,6 +1360,8 @@ class Panel:
         `side` is which edge of the panel it stands against, and the numbers
         face outward from there. It defaults to as long as the edge it runs
         along, which is what makes a bar and a panel look like one object.
+        ``corner=`` places the complete measured key inside the data rectangle;
+        supply a short ``length`` and optionally ``plate=True`` for an inset key.
         """
         bar = self._ramp if source is None else source
         if bar is None:
@@ -1330,7 +1377,20 @@ class Panel:
             bar, scale=self._scale_domain if scale is None else scale,
             side=side, length=span, **kwargs))
         gap = theme.gap("s") if pad is None else mm(pad)
-        self._over.append(self._beside(node, side, gap))
+        if title is not None:
+            from ..layout import vstack
+            node=vstack([text_node(title,mm(kwargs.get('tick_font_size') or theme.font_size_small),'label',
+                **{k:kwargs[k] for k in ('font_family','font_weight','font_style') if k in kwargs}),node],gap=theme.gap('xs'))
+        if plate:
+            node = _plated(node, theme, theme.gap('xs'))
+        if corner is not None and (node.width>self.width-2*gap or node.height>self.height-2*gap):
+            raise ValueError('inset colorbar does not fit; shorten length or reduce padding')
+        if corner=='auto':
+            from ..layout.clear_space import place_in_clear_space
+            placed=place_in_clear_space(node,within=self.area,avoid=(*self._content,*self._over),pad=gap)
+        else:
+            placed=self._beside(node,side,gap) if corner is None else _into_corner(node,self.area,corner,gap)
+        self._over.append(placed)
         return self._touched()
 
     def _beside(self, node: Diagram, side: str, gap: float) -> Diagram:
@@ -1420,6 +1480,48 @@ class Panel:
             front, clip=False)
 
     # -- output -----------------------------------------------------------
+
+    def placed(self, x, y) -> Diagram:
+        """Build with the data rectangle's top-left at page ``(x, y)`` in mm.
+
+        Axis labels and legends remain outside that rectangle; their different
+        sizes never shift its position. No scaling or mutation is performed.
+        """
+        node = self.build()
+        area = plot_area(node)
+        return node.translated(mm(x)-area.x0, mm(y)-area.y0)
+
+    def guide(self, a, b, *, label=None, at=.5, offset=1., label_style=None,
+              **style) -> "Panel":
+        """A straight data guide with a label following its displayed direction.
+
+        ``at`` is the fraction along the displayed segment; ``offset`` is the
+        signed perpendicular clearance in mm. Log scales and panel aspect ratio
+        are included in the angle. ``label_style`` accepts text() options.
+        """
+        import math
+        import inklet as i
+        if not math.isfinite(at) or not 0 <= at <= 1:
+            raise ValueError('guide at must be between zero and one')
+        clear = mm(offset)
+        if not math.isfinite(clear):
+            raise ValueError('guide offset must be finite')
+        start, end = self.point(*a), self.point(*b)
+        dx, dy = end.x-start.x, end.y-start.y
+        length = math.hypot(dx,dy)
+        if not length:
+            raise ValueError('guide needs distinct displayed endpoints')
+        self.line([a,b], **style)
+        if label is not None:
+            node = label if isinstance(label,Diagram) else i.text(str(label), **(label_style or {}))
+            angle = math.atan2(dy,dx)
+            if angle > math.pi/2: angle -= math.pi
+            if angle < -math.pi/2: angle += math.pi
+            node = node.rotated(math.degrees(angle))
+            box = node.bbox
+            self._over.append(node.translated(start.x+at*dx+dy/length*clear-box.center.x,
+                                               start.y+at*dy-dx/length*clear-box.center.y))
+        return self._touched()
 
     def build(self) -> Diagram:
         """The panel as a diagram, centred like everything else, with its
@@ -1847,8 +1949,12 @@ def _plated(node: Diagram, theme, pad: float) -> Diagram:
     """
     from ..layout import frame as make_frame
 
-    return make_frame(node, pad=pad, kind="legend-plate").styled(
-        fill=theme.paper, stroke="none")
+    from dataclasses import replace
+    framed=make_frame(node,pad=pad,kind="legend-plate")
+    # Paint the backdrop only. Inheriting white fill/no stroke into the key
+    # makes unstyled text white and turns a colorbar outline into a white tile.
+    return replace(framed,children=(framed.children[0].styled(fill=theme.paper,stroke='none'),
+                                   *framed.children[1:]))
 
 
 def _into_corner(node: Diagram, box: Rect, corner: str, pad: float) -> Diagram:

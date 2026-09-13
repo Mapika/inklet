@@ -56,6 +56,47 @@ LEVELS = 256
 _EVEN = 1e-9
 
 
+def interpolate_matrix(rows, xs, ys, samples, *, single_x=None, single_y=None):
+    """Bilinear scalar interpolation, with constant extension beyond centers.
+
+    Missing samples contaminate the interpolation footprint rather than being
+    replaced with zero. Color mapping happens afterwards, including nonlinear
+    color scales. No array dependency is needed.
+    """
+    import math
+    if type(samples) is not int or not 2 <= samples <= 16:
+        raise ValueError('linear matrix samples must be an integer from 2 to 16')
+    px = single_x if len(xs)==1 and single_x is not None else uniform_pitch(xs)
+    py = single_y if len(ys)==1 and single_y is not None else uniform_pitch(ys)
+    if px is None or py is None:
+        raise ValueError('linear matrix interpolation requires evenly spaced displayed samples')
+
+    def coordinates(count):
+        result=[]
+        for n in range(count*samples):
+            value=max(0.,min(count-1.,(n+.5)/samples-.5))
+            low=math.floor(value)
+            result.append((low,min(low+1,count-1),value-low))
+        return result
+
+    out=[]
+    columns=coordinates(len(xs))
+    for a,b,ty in coordinates(len(ys)):
+        row=[]
+        for c,d,tx in columns:
+            terms=[(rows[a][c],(1-ty)*(1-tx)),(rows[a][d],(1-ty)*tx),
+                   (rows[b][c],ty*(1-tx)),(rows[b][d],ty*tx)]
+            row.append(None if any(w and is_missing(v) for v,w in terms)
+                       else sum(v*w for v,w in terms if w))
+        out.append(row)
+
+    def centres(original,pitch):
+        step=pitch if len(original)<2 or original[1]>original[0] else -pitch
+        return [original[0]-step/2+step*(n+.5)/samples
+                for n in range(len(original)*samples)]
+    return out,centres(xs,px),centres(ys,py)
+
+
 def uniform_pitch(centres: Sequence[float]) -> float | None:
     """The common spacing of a set of cell centres, or None if they vary.
 
@@ -74,7 +115,7 @@ def uniform_pitch(centres: Sequence[float]) -> float | None:
 
 def raster_matrix(rows: Sequence[Sequence[float]], ramp, unit,
                   xs: Sequence[float], ys: Sequence[float],
-                  missing: str | None = None) -> Diagram:
+                  missing: str | None = None, *, single_x=None, single_y=None) -> Diagram:
     """One `ImagePrim` covering the whole grid, one pixel per cell.
 
     `xs` and `ys` are the cell centres in panel millimetres and `unit` is the
@@ -83,7 +124,8 @@ def raster_matrix(rows: Sequence[Sequence[float]], ramp, unit,
     no measurement, and its pixel is a 257th colour: `encode_png` drops to
     truecolour past a palette, so a hole costs bytes but never a ramp step.
     """
-    pitch_x, pitch_y = uniform_pitch(xs), uniform_pitch(ys)
+    pitch_x = single_x if len(xs)==1 and single_x is not None else uniform_pitch(xs)
+    pitch_y = single_y if len(ys)==1 and single_y is not None else uniform_pitch(ys)
     if pitch_x is None or pitch_y is None:
         raise DiagramError(
             "matrix(raster=True) needs evenly spaced cells: a pixel cannot be "

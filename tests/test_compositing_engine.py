@@ -6,7 +6,6 @@ import zlib
 import pytest
 import inklet as i
 from inklet.core import Affine, Diagram, ImagePrim, RectPrim, Style
-from inklet.render.analysis import CompositingAnalysis
 from inklet.render.bounds import painted_bounds
 from inklet.render.pdf import _image_object
 
@@ -125,11 +124,12 @@ def test_single_complex_primitive_composites_once(kind,text,tmp_path):
 def test_cached_bounds_match_uncached_through_transform_and_style_changes():
     node = Diagram(children=(i.text('Italic',size=4,font_style='italic',halo=.7),
         Diagram(prim=RectPrim(8,6)).translated(12,0)))
-    analysis = CompositingAnalysis()
     for transform in (Affine(),Affine.rotation(31) @ Affine.scaling(2,.5),Affine.translation(-10,8)):
         for style in (Style(),Style(stroke='red',stroke_width=2),Style(halo=3)):
-            assert analysis.bounds(node,transform,style) == painted_bounds(node,transform,style)
-            assert analysis.bounds(node,transform,style) == painted_bounds(node,transform,style)
+            scene = i.compile_scene(Diagram(children=(node,),transform=transform,style=style))
+            bounds = scene.root.painted_bounds
+            assert bounds == painted_bounds(node,transform,style)
+            assert scene.root.painted_bounds is bounds
 
 
 def test_nested_group_bounds_are_evaluated_once_per_placement(monkeypatch):
@@ -153,7 +153,6 @@ def test_nested_group_bounds_are_evaluated_once_per_placement(monkeypatch):
 
 def test_count_cache_distinguishes_inherited_fill_and_stroke():
     node = Diagram(prim=RectPrim(10,6))
-    analysis = CompositingAnalysis()
-    assert analysis.paint_count(node,Style(fill='none',stroke='red')) == 1
-    assert analysis.paint_count(node,Style(fill='blue',stroke='red')) == 2
-    assert analysis.paint_count(node,Style(fill='none',stroke='none')) == 0
+    assert i.compile_scene(Diagram(children=(node,),style=Style(fill='none',stroke='red'))).root.paint_count == 1
+    assert i.compile_scene(Diagram(children=(node,),style=Style(fill='blue',stroke='red'))).root.paint_count == 2
+    assert i.compile_scene(Diagram(children=(node,),style=Style(fill='none',stroke='none'))).root.paint_count == 0

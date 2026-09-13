@@ -1,6 +1,28 @@
 # Changelog
 
-## Unreleased
+## 4.0.0.dev15 — 2026-09-13
+
+Fifteenth development preview: published-figure reproduction and core speed.
+Prepared locally; publication is a separate release action.
+
+- Add seamless exact-color vector matrices with opaque underpaint and explicit
+  scalar interpolation for smooth raster fields; fix singleton matrix extents.
+- Add `Panel.placed()` for exact data-area placement and `Panel.guide()` for
+  labels attached to displayed data guides, including logarithmic scales.
+- Keep legend/colorbar backdrop styling separate from foreground text and outlines.
+- Add independent legend column/row gaps and column-major ordering, plus
+  measured inset colorbars with titles, plates and optional clear-space search.
+- Add source-hash verification, panel bounds and registered panel-crop reference
+  reviews to `FigureReview`; migrate three released-data paper recreations.
+- Bound the optional Blender smoothing regression with an 80-face curved fixture;
+  retain crease-suppression assertions without a full-brain bake timeout.
+
+- Speed core rectangle envelopes, transformed bounds and identity composition;
+  reuse theme calculations within each build without adding persistent caches.
+- Remove the superseded internal compositing cache; retain context, clipping
+  and paint-count tests against the compiled scene used by actual exporters.
+- Add reproducible core timing/output checks and document measured speed and
+  memory changes, including workloads with little overall improvement.
 
 ## 4.0.0.dev14 — 2026-09-13
 

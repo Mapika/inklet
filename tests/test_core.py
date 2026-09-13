@@ -375,3 +375,21 @@ def test_dash_string_survives_to_svg():
     fig.link(a, b, stroke_dash="1.2,0.8")
     assert fig.lint() == []
     assert 'stroke-dasharray="1.2,0.8"' in fig.to_svg()
+
+
+def test_rectangle_support_and_bounds_match_corner_geometry_across_affine_maps():
+    import random
+    rng = random.Random(2026)
+    maps = [Affine.translation(12, -9), Affine.scaling(0, -2), Affine(a=0,b=0,c=0,d=0)]
+    maps += [Affine(*(rng.uniform(-4, 4) for _ in range(6))) for _ in range(80)]
+    for transform in maps:
+        # Include reversed corners and degenerate rectangles as well as shear.
+        box = Rect(*(rng.uniform(-20, 20) for _ in range(4)))
+        vertices = tuple(transform.apply(p) for p in box.corners)
+        actual, expected = box.transform(transform), Rect.hull(vertices)
+        assert (actual.x0, actual.y0, actual.x1, actual.y1) == pytest.approx(
+            (expected.x0, expected.y0, expected.x1, expected.y1), abs=1e-10)
+        envelope = Envelope.from_rect(box).transform(transform)
+        for direction in [EAST, WEST, NORTH, SOUTH, Vec2(.3, -1.7)]:
+            assert envelope.extent(direction) == pytest.approx(
+                max(p.dot(direction) for p in vertices)/direction.dot(direction), abs=1e-10)

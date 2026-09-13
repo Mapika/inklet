@@ -612,7 +612,7 @@ A drawing region plus the scales that map data into it.
 * `draw(*items: 'Diagram', clip: 'bool | None' = None) -> "'Panel'"` -- Add content already expressed in panel coordinates.
 * `place(items, *, clip: 'bool | None' = None) -> "'Panel'"` -- `draw.place()` in data coordinates: `((x, y), diagram)` pairs, or bare diagrams that already know where they go.
 * `marks(item: 'Diagram', points: 'Iterable[Sequence]', *, name: 'str | None' = None, **style) -> "'Panel'"` -- A copy of `item` centred on every data point.
-* `matrix(values: 'Sequence[Sequence[float]]', *, ramp, scale: 'Scale | None' = None, x: 'Sequence | None' = None, y: 'Sequence | None' = None, overlap: 'float | None' = None, missing: 'str | None' = None, vector: 'str' = 'cells', raster: 'bool | str' = 'auto', **style) -> "'Panel'"` -- A 2D array of values, one coloured cell each.
+* `matrix(values: 'Sequence[Sequence[float]]', *, ramp, scale: 'Scale | None' = None, x: 'Sequence | None' = None, y: 'Sequence | None' = None, overlap: 'float | None' = None, missing: 'str | None' = None, vector: 'str' = 'cells', interpolation: 'str' = 'nearest', samples: 'int' = 4, raster: 'bool | str' = 'auto', **style) -> "'Panel'"` -- A 2D array of values, one coloured cell each.
 * `line(points: 'Iterable[Sequence]', *, smooth: 'float' = 0.0, closed: 'bool' = False, name: 'str | None' = None, err=None, err_style: 'str' = 'band', simplify: 'float | str | None' = None, **style) -> "'Panel'"` -- A path through data points: straight by default, curved with `smooth`.
 * `band(x: 'Sequence', lo, hi, *, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'Panel'"` -- The shaded envelope between two edges over shared x.
 * `scatter(points: 'Iterable[Sequence]', *, size=None, color=None, ramp=None, scale: 'Scale | None' = None, marker: 'str' = 'circle', name: 'str | None' = None, raster: 'bool' = False, dpi: 'float' = 300, **style) -> "'Panel'"` -- Markers at data points, with size and colour that may be data too.
@@ -640,11 +640,13 @@ A drawing region plus the scales that map data into it.
 * `twin_y(scale=None, *, side: 'str' = 'right', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second y scale over the same area, and a handle that draws in it.
 * `twin_x(scale=None, *, side: 'str' = 'top', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second x scale over the same area -- wavelength above frequency, or a second time base. `twin_y` explains the shape of it.
 * `title(content: 'str | Diagram', *, align: 'str' = 'center', pad: 'float | str | None' = None) -> "'Panel'"` -- A heading over the panel, clear of whatever is already in it.
-* `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int | str | None' = None, max_width: 'float | str | None' = None, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, **style) -> "'Panel'"` -- A key built from the series this panel actually drew.
-* `colorbar(*, side: 'str' = 'right', source=None, scale: 'Scale | None' = None, length: 'float | str | None' = None, pad: 'float | str | None' = None, **kwargs) -> "'Panel'"` -- The ramp this panel's matrix was coloured through, as a key beside it.
+* `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int | str | None' = None, max_width: 'float | str | None' = None, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, order: 'str' = 'row', col_gap: 'float | str | None' = None, row_gap: 'float | str | None' = None, **style) -> "'Panel'"` -- A key built from the series this panel actually drew.
+* `colorbar(*, side: 'str' = 'right', source=None, corner: 'str | None' = None, scale: 'Scale | None' = None, length: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool' = False, title: 'str | None' = None, **kwargs) -> "'Panel'"` -- The ramp this panel's matrix was coloured through, as a key beside it.
 * `text(x, y, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, front: 'bool' = True, **style) -> "'Panel'"` -- Words at one **data** point.
 * `arrow(a: 'Sequence', b: 'Sequence', *, head: 'str' = 'triangle', label: 'str | Diagram | None' = None, front: 'bool' = True, **style) -> "'Panel'"` -- An arrow from one **data** point to another.
 * `annotate(x, y, text: 'str | Diagram', *, side: 'str' = 'n', clear: 'float | str | None' = None, leader: 'bool' = True, inside: 'bool' = True, dot: 'bool' = False, front: 'bool' = True, **kwargs) -> "'Panel'"` -- A callout on one **data** point: a label clear of it, with a leader.
+* `placed(x, y) -> 'Diagram'` -- Build with the data rectangle's top-left at page ``(x, y)`` in mm.
+* `guide(a, b, *, label=None, at=0.5, offset=1.0, label_style=None, **style) -> "'Panel'"` -- A straight data guide with a label following its displayed direction.
 * `build() -> 'Diagram'` -- The panel as a diagram, centred like everything else, with its `origin` anchor on the centre of the plot area.
 * `inset(sub, **kwargs) -> "'Panel'"` -- Put a smaller panel in a corner of this one. See `plot.inset`.
 * `bracket(x0, x1, y=None, **kwargs) -> "'Panel'"` -- A grouping or significance bracket across a data span.
@@ -668,7 +670,7 @@ One axis of a plot.
 
 A continuous ramp with an axis against it.
 
-#### `legend(entries: 'Sequence[tuple[str, object]]', *, columns: 'int | str' = 1, max_width: 'float | str | None' = None, font_size: 'float | str | None' = None, swatch: 'float | str | None' = None, gap: 'float | str | None' = None, row_gap: 'float | str | None' = None, title: 'str | None' = None, markup: 'bool' = True, kind: 'str' = 'legend', **style) -> 'Diagram'`
+#### `legend(entries: 'Sequence[tuple[str, object]]', *, columns: 'int | str' = 1, max_width: 'float | str | None' = None, font_size: 'float | str | None' = None, swatch: 'float | str | None' = None, gap: 'float | str | None' = None, row_gap: 'float | str | None' = None, col_gap: 'float | str | None' = None, order: 'str' = 'row', title: 'str | None' = None, markup: 'bool' = True, kind: 'str' = 'legend', **style) -> 'Diagram'`
 
 Swatches and their names.
 
@@ -1083,6 +1085,18 @@ The nearest colour to `color`, along its own lightness, that can be read on `on`
 
 ## Inspection and output
 
+#### `class FigureReview(diagram: 'Diagram', findings: 'tuple[Diagnostic, ...]', highlighted: 'int', source: 'Diagram | None' = None) -> None`
+
+All findings plus a numbered overlay, without altering the source figure.
+
+* `as_dict()` -- JSON-ready findings with stable node references and page coordinates.
+* `save(prefix)` -- Write a numbered SVG overlay and matching JSON finding list.
+* `save_bundle(directory, *, reference=None, sources=(), panels=None, reference_regions=None, dpi=180, caption='Figure comparison')` -- Export original art, diagnostics, source hashes and an HTML comparison.
+
+#### `review_figure(art, *, max_highlights=100, **checks)`
+
+Run figure checks and return an inspectable numbered diagnostic overlay.
+
 #### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3, max_font_pt: 'float | None' = None, max_height_mm: 'float | None' = None) -> 'list[Diagnostic]'`
 
 Check a figure and return its diagnostics, deterministically ordered.
@@ -1199,7 +1213,7 @@ Rect(x0: 'float', y0: 'float', x1: 'float', y1: 'float')
 * `pad(top: 'float', right: 'float | None' = None, bottom: 'float | None' = None, left: 'float | None' = None) -> 'Rect'` -- CSS shorthand order.
 * `overlap(other: 'Rect') -> 'Rect | None'`
 * `contains(p: 'Vec2') -> 'bool'`
-* `transform(t: 'Affine') -> 'Rect'` -- Bounds of the transformed corners, which is only tight for axis-aligned maps.
+* `transform(t: 'Affine') -> 'Rect'` -- Exact axis-aligned bounds of this rectangle after an affine map.
 
 #### `class Affine(a: 'float' = 1.0, b: 'float' = 0.0, c: 'float' = 0.0, d: 'float' = 1.0, e: 'float' = 0.0, f: 'float' = 0.0) -> None`
 

@@ -88,6 +88,10 @@ class Affine:
 
     def __matmul__(self, other: Affine) -> Affine:
         """self @ other applies `other` first, then `self`."""
+        if other.is_identity:
+            return self
+        if self.is_identity:
+            return other
         return Affine(
             a=self.a * other.a + self.c * other.b,
             b=self.b * other.a + self.d * other.b,
@@ -197,5 +201,12 @@ class Rect:
         return self.x0 <= p.x <= self.x1 and self.y0 <= p.y <= self.y1
 
     def transform(self, t: Affine) -> Rect:
-        """Bounds of the transformed corners, which is only tight for axis-aligned maps."""
-        return Rect.hull(t.apply(c) for c in self.corners)
+        """Exact axis-aligned bounds of this rectangle after an affine map."""
+        ax0, ax1 = t.a * self.x0, t.a * self.x1
+        cy0, cy1 = t.c * self.y0, t.c * self.y1
+        bx0, bx1 = t.b * self.x0, t.b * self.x1
+        dy0, dy1 = t.d * self.y0, t.d * self.y1
+        return Rect(min(ax0, ax1) + min(cy0, cy1) + t.e,
+                    min(bx0, bx1) + min(dy0, dy1) + t.f,
+                    max(ax0, ax1) + max(cy0, cy1) + t.e,
+                    max(bx0, bx1) + max(dy0, dy1) + t.f)

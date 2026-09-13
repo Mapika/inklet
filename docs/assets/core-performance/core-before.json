@@ -1,0 +1,281 @@
+{
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "runs": [
+    {
+      "rectangles": {
+        "theme_seconds": 0.12068313697818667,
+        "compile_seconds": 0.34516373299993575,
+        "bounds_seconds": 0.05076481495052576,
+        "resolve_seconds": 0.12363401497714221,
+        "revision_seconds": 0.07589871098753065,
+        "svg_seconds": 0.06646758399438113,
+        "total_seconds": 0.7826119948877022,
+        "nodes": 20000,
+        "bounds": [
+          -1.0,
+          -1.5,
+          298.0,
+          397.5
+        ],
+        "svg_sha256": "fdee7fe41094150b333076ce05c52ea2e2bbc19b59fcba2c940269e008fd8c22"
+      },
+      "labels": {
+        "theme_seconds": 0.03256471699569374,
+        "compile_seconds": 0.03899852104950696,
+        "bounds_seconds": 0.020104705938138068,
+        "resolve_seconds": 0.008982746978290379,
+        "revision_seconds": 0.015873498981818557,
+        "svg_seconds": 0.2327183069428429,
+        "total_seconds": 0.3492424968862906,
+        "nodes": 4000,
+        "bounds": [
+          -7.023000000000001,
+          -0.744,
+          304.047,
+          76.796
+        ],
+        "svg_sha256": "6776b4b9f2b990783439f66dccf014f4ba56b1079f9934ffe18ef911bca7a86d"
+      }
+    },
+    {
+      "rectangles": {
+        "theme_seconds": 0.12076760595664382,
+        "compile_seconds": 0.34615018602926284,
+        "bounds_seconds": 0.046981030027382076,
+        "resolve_seconds": 0.12105963297653943,
+        "revision_seconds": 0.07750349794514477,
+        "svg_seconds": 0.06788521399721503,
+        "total_seconds": 0.780347166932188,
+        "nodes": 20000,
+        "bounds": [
+          -1.0,
+          -1.5,
+          298.0,
+          397.5
+        ],
+        "svg_sha256": "fdee7fe41094150b333076ce05c52ea2e2bbc19b59fcba2c940269e008fd8c22"
+      },
+      "labels": {
+        "theme_seconds": 0.03496715007349849,
+        "compile_seconds": 0.037990730023011565,
+        "bounds_seconds": 0.017798638087697327,
+        "resolve_seconds": 0.009676520014181733,
+        "revision_seconds": 0.016014091088436544,
+        "svg_seconds": 0.24068269692361355,
+        "total_seconds": 0.3571298262104392,
+        "nodes": 4000,
+        "bounds": [
+          -7.023000000000001,
+          -0.744,
+          304.047,
+          76.796
+        ],
+        "svg_sha256": "6776b4b9f2b990783439f66dccf014f4ba56b1079f9934ffe18ef911bca7a86d"
+      }
+    },
+    {
+      "rectangles": {
+        "theme_seconds": 0.12250736600253731,
+        "compile_seconds": 0.34489425201900303,
+        "bounds_seconds": 0.04808412597049028,
+        "resolve_seconds": 0.11936722591053694,
+        "revision_seconds": 0.07587899302598089,
+        "svg_seconds": 0.073065166012384,
+        "total_seconds": 0.7837971289409325,
+        "nodes": 20000,
+        "bounds": [
+          -1.0,
+          -1.5,
+          298.0,
+          397.5
+        ],
+        "svg_sha256": "fdee7fe41094150b333076ce05c52ea2e2bbc19b59fcba2c940269e008fd8c22"
+      },
+      "labels": {
+        "theme_seconds": 0.03261617198586464,
+        "compile_seconds": 0.039035734022036195,
+        "bounds_seconds": 0.017427237005904317,
+        "resolve_seconds": 0.009126228978857398,
+        "revision_seconds": 0.016666215960867703,
+        "svg_seconds": 0.23625875706784427,
+        "total_seconds": 0.3511303450213745,
+        "nodes": 4000,
+        "bounds": [
+          -7.023000000000001,
+          -0.744,
+          304.047,
+          76.796
+        ],
+        "svg_sha256": "6776b4b9f2b990783439f66dccf014f4ba56b1079f9934ffe18ef911bca7a86d"
+      }
+    },
+    {
+      "rectangles": {
+        "theme_seconds": 0.12130156403873116,
+        "compile_seconds": 0.3452187719522044,
+        "bounds_seconds": 0.04639502696227282,
+        "resolve_seconds": 0.11530451697763056,
+        "revision_seconds": 0.07664457999635488,
+        "svg_seconds": 0.0706931040622294,
+        "total_seconds": 0.7755575639894232,
+        "nodes": 20000,
+        "bounds": [
+          -1.0,
+          -1.5,
+          298.0,
+          397.5
+        ],
+        "svg_sha256": "fdee7fe41094150b333076ce05c52ea2e2bbc19b59fcba2c940269e008fd8c22"
+      },
+      "labels": {
+        "theme_seconds": 0.03605609491933137,
+        "compile_seconds": 0.03592834190931171,
+        "bounds_seconds": 0.017340550082735717,
+        "resolve_seconds": 0.009138148976489902,
+        "revision_seconds": 0.015422096010297537,
+        "svg_seconds": 0.23543767095543444,
+        "total_seconds": 0.3493229028536007,
+        "nodes": 4000,
+        "bounds": [
+          -7.023000000000001,
+          -0.744,
+          304.047,
+          76.796
+        ],
+        "svg_sha256": "6776b4b9f2b990783439f66dccf014f4ba56b1079f9934ffe18ef911bca7a86d"
+      }
+    },
+    {
+      "rectangles": {
+        "theme_seconds": 0.12144076800905168,
+        "compile_seconds": 0.35081103502307087,
+        "bounds_seconds": 0.047578640980646014,
+        "resolve_seconds": 0.11570139997638762,
+        "revision_seconds": 0.07749569707084447,
+        "svg_seconds": 0.07072476495523006,
+        "total_seconds": 0.7837523060152307,
+        "nodes": 20000,
+        "bounds": [
+          -1.0,
+          -1.5,
+          298.0,
+          397.5
+        ],
+        "svg_sha256": "fdee7fe41094150b333076ce05c52ea2e2bbc19b59fcba2c940269e008fd8c22"
+      },
+      "labels": {
+        "theme_seconds": 0.03494875400792807,
+        "compile_seconds": 0.039164475980214775,
+        "bounds_seconds": 0.01815467793494463,
+        "resolve_seconds": 0.012962301960214972,
+        "revision_seconds": 0.015899250051006675,
+        "svg_seconds": 0.2395875279325992,
+        "total_seconds": 0.3607169878669083,
+        "nodes": 4000,
+        "bounds": [
+          -7.023000000000001,
+          -0.744,
+          304.047,
+          76.796
+        ],
+        "svg_sha256": "6776b4b9f2b990783439f66dccf014f4ba56b1079f9934ffe18ef911bca7a86d"
+      }
+    },
+    {
+      "rectangles": {
+        "theme_seconds": 0.11864519503433257,
+        "compile_seconds": 0.3465022159507498,
+        "bounds_seconds": 0.0504662370076403,
+        "resolve_seconds": 0.1195171499857679,
+        "revision_seconds": 0.07782784895971417,
+        "svg_seconds": 0.06829446100164205,
+        "total_seconds": 0.7812531079398468,
+        "nodes": 20000,
+        "bounds": [
+          -1.0,
+          -1.5,
+          298.0,
+          397.5
+        ],
+        "svg_sha256": "fdee7fe41094150b333076ce05c52ea2e2bbc19b59fcba2c940269e008fd8c22"
+      },
+      "labels": {
+        "theme_seconds": 0.034963023965246975,
+        "compile_seconds": 0.038912549964152277,
+        "bounds_seconds": 0.01785775600001216,
+        "resolve_seconds": 0.009597972966730595,
+        "revision_seconds": 0.017097284900955856,
+        "svg_seconds": 0.25113132898695767,
+        "total_seconds": 0.36955991678405553,
+        "nodes": 4000,
+        "bounds": [
+          -7.023000000000001,
+          -0.744,
+          304.047,
+          76.796
+        ],
+        "svg_sha256": "6776b4b9f2b990783439f66dccf014f4ba56b1079f9934ffe18ef911bca7a86d"
+      }
+    },
+    {
+      "rectangles": {
+        "theme_seconds": 0.13063288596458733,
+        "compile_seconds": 0.3613754460820928,
+        "bounds_seconds": 0.04739007609896362,
+        "resolve_seconds": 0.11717122094705701,
+        "revision_seconds": 0.07710148999467492,
+        "svg_seconds": 0.07010635291226208,
+        "total_seconds": 0.8037774719996378,
+        "nodes": 20000,
+        "bounds": [
+          -1.0,
+          -1.5,
+          298.0,
+          397.5
+        ],
+        "svg_sha256": "fdee7fe41094150b333076ce05c52ea2e2bbc19b59fcba2c940269e008fd8c22"
+      },
+      "labels": {
+        "theme_seconds": 0.03503063309472054,
+        "compile_seconds": 0.03739809792023152,
+        "bounds_seconds": 0.016916463035158813,
+        "resolve_seconds": 0.008795264991931617,
+        "revision_seconds": 0.017949068918824196,
+        "svg_seconds": 0.22938255802728236,
+        "total_seconds": 0.34547208598814905,
+        "nodes": 4000,
+        "bounds": [
+          -7.023000000000001,
+          -0.744,
+          304.047,
+          76.796
+        ],
+        "svg_sha256": "6776b4b9f2b990783439f66dccf014f4ba56b1079f9934ffe18ef911bca7a86d"
+      }
+    }
+  ],
+  "median": {
+    "rectangles": {
+      "theme_seconds": 0.12130156403873116,
+      "compile_seconds": 0.34615018602926284,
+      "bounds_seconds": 0.047578640980646014,
+      "resolve_seconds": 0.11936722591053694,
+      "revision_seconds": 0.07710148999467492,
+      "svg_seconds": 0.07010635291226208,
+      "total_seconds": 0.7826119948877022
+    },
+    "labels": {
+      "theme_seconds": 0.034963023965246975,
+      "compile_seconds": 0.038912549964152277,
+      "bounds_seconds": 0.017798638087697327,
+      "resolve_seconds": 0.009138148976489902,
+      "revision_seconds": 0.016014091088436544,
+      "svg_seconds": 0.23625875706784427,
+      "total_seconds": 0.3511303450213745
+    }
+  },
+  "schema": "inklet.core-benchmark/1",
+  "repeat": 7,
+  "source_sha256": "026ff8ab89aeaac21e51cf98677946528d3a072ba7904929240f93a68d1db73e"
+}

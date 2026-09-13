@@ -127,10 +127,9 @@ def test_nested_convex_windows_and_opacity_do_not_leak_into_siblings(tmp_path):
 
 def test_window_painted_bounds_agree_with_cached_analysis():
     from inklet.render.bounds import painted_bounds
-    from inklet.render.analysis import CompositingAnalysis
     node=i.window(Diagram(prim=RectPrim(100,100),style=Style(fill='blue')),Rect(-4,-3,4,3))
     assert painted_bounds(node,Affine(),Style())==Rect(-4,-3,4,3)
-    assert CompositingAnalysis().bounds(node,Affine(),Style())==Rect(-4,-3,4,3)
+    assert i.compile_scene(node).root.painted_bounds==Rect(-4,-3,4,3)
 
 @pytest.mark.parametrize('rule',['evenodd','nonzero'])
 @pytest.mark.parametrize('same_winding',[True,False])

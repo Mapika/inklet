@@ -127,3 +127,49 @@ renderer versions and reviewed baselines.
 Curve-preserving geometric clipping and explicit painted windows now share
 resolved clip regions across SVG/PDF, with separate layout and painted bounds.
 See the [clipping review](clipping.md) for semantics, limits and measurements.
+
+## Core optimization measurements (unreleased)
+
+The current core avoids corner/hull construction for rectangle envelopes and
+transformed bounds, skips allocation when composing identity transforms, and
+reuses theme defaults and contrast choices within a build. These changes apply
+to existing drawing APIs. The redundant internal `CompositingAnalysis` cache was
+removed; production exporters already obtain cached bounds and paint counts from
+compiled `SceneNode` objects. Its behavioral tests now exercise those snapshots.
+
+Measurements below use Python 3.12.3 on Linux/WSL2. Core workloads use seven fresh
+processes; complete figures use five. Baseline and revised runs were sequential,
+with ordinary garbage collection enabled. Timings exclude imports and recipe
+setup. These are measured workloads, not universal speedup guarantees.
+
+| Workload | Before | After | Result |
+| --- | ---: | ---: | --- |
+| 10,000 rectangles: theme, compile, bounds, resolve, revision, SVG | 783 ms | 524 ms | 33% less time |
+| 2,000 labels: same operations | 351 ms | 265 ms | 24% less time |
+| Complete 64-panel figure: compile | 742 ms | 630 ms | 15% less time |
+| Complete 64-panel figure: compile and all measured exports | 995 ms | 941 ms | 5% less time |
+| Complete 64-panel figure: peak process RSS | 99.6 MiB | 93.7 MiB | 6% less memory |
+| Nested transparency: compile and all measured exports | 303 ms | 305 ms | Essentially unchanged |
+
+Core fixtures retain identical SVG hashes and bounds. Phase timings can move in
+opposite directions when garbage collection shifts between phases; compare the
+whole workflow as well as the raw timings. For example, initial SVG export of
+the 64-panel figure took longer even though the overall cycle improved.
+
+The four changed production files contain nine fewer physical lines in total.
+The reduction comes from removing a duplicate cache, while retaining explanatory
+comments and adding explicit fast paths. Tests and the benchmark harness add code.
+
+Run [the core benchmark](../tools/benchmark_core.py) against two source checkouts:
+
+```sh
+python tools/benchmark_core.py --source /path/to/baseline --repeat 7 --output before.json
+python tools/benchmark_core.py --source /path/to/revised --repeat 7 --output after.json
+```
+
+It records source digests, per-run timings, exact bounds and SVG hashes. Use
+`tools/benchmark_engine.py --case grid64 --case groups32` for complete figures.
+Raw reports: [core before](assets/core-performance/core-before.json),
+[core after](assets/core-performance/core-after.json),
+[figures before](assets/core-performance/engine-before.json),
+[figures after](assets/core-performance/engine-after.json).

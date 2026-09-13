@@ -85,7 +85,14 @@ class Envelope:
 
     @staticmethod
     def from_rect(rect: Rect) -> Envelope:
-        return Envelope.from_points(rect.corners)
+        # A linear query reaches its maximum at one of the four corners.
+        # Choose that corner directly, avoiding point allocation and hulling.
+        def support(v: Vec2) -> float:
+            x = max(rect.x0 * v.x, rect.x1 * v.x)
+            y = max(rect.y0 * v.y, rect.y1 * v.y)
+            return (x + y) / v.dot(v)
+
+        return Envelope(support)
 
     @staticmethod
     def from_ellipse(center: Vec2, rx: float, ry: float) -> Envelope:
@@ -157,6 +164,11 @@ class Envelope:
         # answers the second ancestor for free, and returns the identical
         # float the first one got.
         inner = self.extent
+        if t.a == t.d == 1 and t.b == t.c == 0:
+            def translated(v: Vec2) -> float:
+                vv = v.dot(v)
+                return (inner(v) * vv + (t.e * v.x + t.f * v.y)) / vv
+            return Envelope(translated)
 
         def support(v: Vec2) -> float:
             u = t.transpose_linear(v)
@@ -164,8 +176,8 @@ class Envelope:
             if uu == 0.0:
                 # Degenerate linear part collapsed this direction; only the
                 # translation survives.
-                return Vec2(t.e, t.f).dot(v) / v.dot(v)
-            return (inner(u) * uu + Vec2(t.e, t.f).dot(v)) / v.dot(v)
+                return (t.e * v.x + t.f * v.y) / v.dot(v)
+            return (inner(u) * uu + (t.e * v.x + t.f * v.y)) / v.dot(v)
 
         return Envelope(support)
 
