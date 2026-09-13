@@ -162,6 +162,63 @@ def test_every_contour_of_a_path_is_laid_in():
     assert pdf_of(node).count(" m\n") == 2
 
 
+def test_rectangle_paths_round_endpoints_before_computing_signed_dimensions():
+    from inklet.render.pdf import _Content, _Resources, _subpath
+    c = _Content(3, _Resources())
+    _subpath(c, Subpath((Vec2(1.0004, 3.0006), Vec2(2.0006, 3.0006),
+                        Vec2(2.0006, 1.0004), Vec2(1.0004, 1.0004)), closed=True))
+    assert c.render() == b"1 3.001 1.001 -2.001 re\n"
+
+
+@pytest.mark.parametrize('points,closed', [
+    ([(0, 0), (2, 0), (2, 2), (0, 2)], False),
+    ([(0, 0), (0, 2), (2, 2), (2, 0)], True),
+    ([(0, 0), (2, 0), (2, 2), (.001, 2)], True),
+])
+def test_other_contours_keep_their_start_direction_and_closure(points, closed):
+    from inklet.render.pdf import _Content, _Resources, _subpath
+    c = _Content(3, _Resources())
+    _subpath(c, Subpath(tuple(Vec2(*p) for p in points), closed=closed))
+    stream = c.render()
+    assert b' re\n' not in stream and stream.count(b' l\n') == 3
+    assert stream.endswith(b'h\n') == closed
+
+
+@pytest.mark.skipif(shutil.which('pdftoppm') is None, reason='poppler not installed')
+@pytest.mark.parametrize('fill_rule', ['nonzero', 'evenodd'])
+def test_compact_rectangles_match_general_paths_with_holes_and_dashes(tmp_path, monkeypatch, fill_rule):
+    from inklet.render import pdf as backend
+    Image = pytest.importorskip('PIL.Image')
+    outer = Subpath(Rect(0, 0, 14, 12).corners, closed=True)
+    # Negative width preserves the hole's reverse winding.
+    inner = Subpath((Vec2(10, 3), Vec2(3, 3), Vec2(3, 9), Vec2(10, 9)), closed=True)
+    art = Diagram(prim=PathPrim((outer, inner), filled=True, fill_rule=fill_rule)).styled(
+        fill='#246890', stroke='#b52040', stroke_width=.3, stroke_dash=(1, .7), opacity=.7).rotated(17)
+    compact = to_pdf(art)
+    original = backend._subpath
+
+    def general(c, sub):
+        if sub.curves or not sub.points:
+            return original(c, sub)
+        backend._move(c, sub.points[0])
+        for point in sub.points[1:]:
+            backend._line(c, point)
+        if sub.closed:
+            c.op('h')
+        return True
+
+    monkeypatch.setattr(backend, '_subpath', general)
+    images = []
+    for name, data in [('compact', compact), ('general', to_pdf(art))]:
+        path = tmp_path / f'{name}.pdf'
+        path.write_bytes(data)
+        subprocess.run(['pdftoppm', '-r', '200', '-png', '-singlefile', str(path),
+                        str(tmp_path / name)], check=True, capture_output=True)
+        with Image.open(tmp_path / f'{name}.png') as image:
+            images.append((image.size, image.tobytes()))
+    assert images[0] == images[1]
+
+
 def test_a_phantom_leaves_no_ink():
     node = Diagram(prim=PhantomPrim(Rect(0, 0, 10, 10)))
     assert pdf_of(node).count("q\n") == 0

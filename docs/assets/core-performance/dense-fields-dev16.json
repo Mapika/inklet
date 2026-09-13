@@ -1,0 +1,65 @@
+{
+  "before-median": {
+    "author_seconds": 0.8644609509501606,
+    "compile_seconds": 0.0059116900665685534,
+    "pdf_seconds": 0.56575743900612,
+    "total_seconds": 1.4361300800228491,
+    "pdf_bytes": 1156171,
+    "peak_rss_mib": 113.16015625,
+    "svg_sha256": "17af25759b4835d4c260fee932a4d2ba39373290a3522652d45c58c652f29e4e",
+    "runs": 3
+  },
+  "after-median": {
+    "author_seconds": 0.8743289969861507,
+    "compile_seconds": 0.0057178400456905365,
+    "pdf_seconds": 0.3356955120107159,
+    "total_seconds": 1.2172023199964315,
+    "pdf_bytes": 351730,
+    "peak_rss_mib": 84.4140625,
+    "svg_sha256": "17af25759b4835d4c260fee932a4d2ba39373290a3522652d45c58c652f29e4e",
+    "runs": 3
+  },
+  "before-memory": {
+    "version": "4.0.0.dev15",
+    "size": 200,
+    "vector": "seamless",
+    "python": "3.12.3",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "author_seconds": 0.8673585180658847,
+    "compile_seconds": 0.006738165044225752,
+    "pdf_seconds": 1.7271751699736342,
+    "total_seconds": 2.6012718530837446,
+    "pdf_bytes": 1156171,
+    "peak_rss_mib": 201.06640625,
+    "pdf_peak_allocated_mib": 31.66362762451172,
+    "timings_include_tracing": true,
+    "svg_sha256": "17af25759b4835d4c260fee932a4d2ba39373290a3522652d45c58c652f29e4e"
+  },
+  "after-memory": {
+    "version": "4.0.0.dev16",
+    "size": 200,
+    "vector": "seamless",
+    "python": "3.12.3",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "author_seconds": 0.8741634489269927,
+    "compile_seconds": 0.006153317983262241,
+    "pdf_seconds": 1.0817657690495253,
+    "total_seconds": 1.9620825359597802,
+    "pdf_bytes": 351730,
+    "peak_rss_mib": 200.9765625,
+    "pdf_peak_allocated_mib": 7.640028953552246,
+    "timings_include_tracing": true,
+    "svg_sha256": "17af25759b4835d4c260fee932a4d2ba39373290a3522652d45c58c652f29e4e"
+  },
+  "quantum-comparison": {
+    "before_pdf_bytes": 5417028,
+    "after_pdf_bytes": 1814399,
+    "pixels_changed": 0,
+    "total_pixels": 1981473,
+    "max_channel_difference": 0,
+    "svg_identical": false,
+    "svg_equal_after_id_normalization": true
+  },
+  "baseline_commit": "3fd18bdb357e649984542ba2a31c0cb52f94882d",
+  "method": "Timing and RSS: median of three sequential fresh child processes per revision. Traced PDF allocations: separate runs, excluded from timing comparison."
+}

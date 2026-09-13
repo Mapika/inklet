@@ -173,3 +173,42 @@ Raw reports: [core before](assets/core-performance/core-before.json),
 [core after](assets/core-performance/core-after.json),
 [figures before](assets/core-performance/engine-before.json),
 [figures after](assets/core-performance/engine-after.json).
+
+## Dense-field PDF export in dev16 (unreleased)
+
+Closed rectangular contours now use PDF's rectangle operator when it preserves
+the existing contour order. This keeps exact colors, rounded endpoints, signed
+winding and dash origins. Other contours retain the general path emitter. The
+PDF writer also buffers text instead of retaining one string per operator.
+
+A 200 × 200 seamless vector field produced these measurements on Python 3.12.3,
+Linux/WSL2. Timings and process RSS are medians of three sequential fresh child
+processes per revision; PDF allocations were measured separately with tracemalloc.
+
+| Measurement | dev15 | dev16 |
+| --- | ---: | ---: |
+| PDF size | 1.16 MB | 0.35 MB |
+| PDF export | 566 ms | 336 ms |
+| Author, compile and PDF export | 1.44 s | 1.22 s |
+| Peak process RSS | 113.2 MiB | 84.4 MiB |
+| Peak Python allocation during PDF export | 31.7 MiB | 7.6 MiB |
+
+The six-map scientific reproduction PDF decreased from 5.42 MB to 1.81 MB.
+Poppler renders at 220 dpi matched pixel for pixel. All 26 existing visual
+comparisons passed; tests also cover holes, reverse winding, dashed borders,
+transforms and precision rounding. The benchmark's SVG hash is unchanged.
+These measurements describe these workloads; they are not universal guarantees.
+
+Run the benchmark in a fresh process for each sample:
+
+```sh
+python tools/benchmark_fields.py --source /path/to/dev15 --output before.json
+python tools/benchmark_fields.py --source /path/to/dev16 --output after.json
+python tools/benchmark_fields.py --trace-pdf --output memory.json
+```
+
+`--trace-pdf` adds allocation-tracing overhead, so use its memory results rather
+than its timings for comparisons. `--size` and `--vector` select the grid size
+and batched/seamless rendering.
+[Recorded measurements](assets/core-performance/dense-fields-dev16.json) include
+the environment and comparison details.

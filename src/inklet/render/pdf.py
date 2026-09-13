@@ -27,7 +27,7 @@ from .scene import RenderScene, SceneNode, compile_scene, canvas as _canvas
 
 import hashlib
 import zlib
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Sequence
 
@@ -184,7 +184,9 @@ class _Content:
                  text: str = "outline",
                  paper: str = DEFAULT_PAPER) -> None:
         self.precision = precision
-        self.ops: list[str] = []
+        # Dense fields emit hundreds of thousands of operators. A text buffer
+        # avoids keeping a separate Python string alive for every operator.
+        self.ops = StringIO()
         self.shared = shared
         self.paper = paper
         # Carried on the stream rather than threaded through every emitter:
@@ -202,7 +204,7 @@ class _Content:
         return _fmt(value, self.precision)
 
     def op(self, *parts: str) -> None:
-        self.ops.append(" ".join(parts))
+        self.ops.write(" ".join(parts) + "\n")
 
     def matrix(self, t: Affine, precision: int | None = None) -> None:
         """`precision` overrides the drawing precision, which the page's own
@@ -220,7 +222,7 @@ class _Content:
         return self.shared.image(prim)
 
     def render(self) -> bytes:
-        return ("\n".join(self.ops) + "\n").encode("latin-1")
+        return (self.ops.getvalue() or "\n").encode("latin-1")
 
 
 # -- path geometry --------------------------------------------------------
@@ -265,6 +267,16 @@ def _subpath(c: _Content, sub: Subpath) -> bool:
         return True
     if not sub.points:
         return False
+    if sub.closed and len(sub.points) == 4:
+        p0, p1, p2, p3 = sub.points
+        if p0.y == p1.y and p1.x == p2.x and p2.y == p3.y and p3.x == p0.x:
+            # PDF's rectangle operator follows the same horizontal-first
+            # contour, including its starting point and signed winding.
+            # Round endpoints first, as the ordinary m/l path does: rounding
+            # a width independently can move the far edge by one precision unit.
+            x, y, right, bottom = c.n(p0.x), c.n(p0.y), c.n(p1.x), c.n(p2.y)
+            c.op(x, y, c.n(float(right)-float(x)), c.n(float(bottom)-float(y)), "re")
+            return True
     first, *rest = sub.points
     _move(c, first)
     for point in rest:
@@ -517,7 +529,8 @@ def _draw_text_live(c: _Content, glyphs: list[PlacedGlyph], style: Style,
             # `fill="none"` on live text: invisible and still selectable,
             # which is what the SVG spelling of it does too.
             c.op("3", "Tr")
-        c.ops += show_text(group, c.n)
+        for operation in show_text(group, c.n):
+            c.op(operation)
         c.op("Q")
 
 

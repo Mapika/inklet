@@ -33,9 +33,9 @@ their existing requirements. See [installation](installation.md).
 
 [Complex figures](complex-figures.md) documents seamless vector fields, explicit
 scalar interpolation, exact panel placement, guide labels, inset colorbars,
-legend ordering and source-aware visual review bundles. This snapshot is
-prepared locally; the version-pinned installation commands apply after it is
-published. A local wheel can be installed directly in the meantime.
+legend ordering and source-aware visual review bundles. Dev14 and dev15 are
+published on GitHub and PyPI; the commands above install dev15. Development on
+master targets dev16, with dense-field export performance as its first focus.
 
 ## Scientific figure authoring in dev14
 

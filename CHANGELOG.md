@@ -1,9 +1,16 @@
 # Changelog
 
+## 4.0.0.dev16 — Unreleased
+
+- Encode horizontal-first closed rectangular contours with compact PDF rectangle
+  operators, preserving rounded endpoints, signed winding and dash origins.
+- Buffer PDF content without retaining one Python string per drawing operator.
+- Add a reproducible dense-field benchmark for export time, size and memory.
+
 ## 4.0.0.dev15 — 2026-09-13
 
 Fifteenth development preview: published-figure reproduction and core speed.
-Prepared locally; publication is a separate release action.
+Published on GitHub and PyPI, together with the separately tagged dev14 snapshot.
 
 - Add seamless exact-color vector matrices with opaque underpaint and explicit
   scalar interpolation for smooth raster fields; fix singleton matrix extents.

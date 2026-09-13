@@ -41,7 +41,8 @@ python -m pip install "inklet==4.0.0.dev15"
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
 [Release notes](https://github.com/Mapika/inklet/blob/master/CHANGELOG.md)
 
-This snapshot is prepared locally; the pinned install command applies after publication.
+Dev14 and dev15 are published on GitHub and PyPI. Development on master now targets
+**4.0.0.dev16**, starting with dense-field export performance.
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,
 depth-aware 3D selection and the remaining 4.0 release gates are still open.
