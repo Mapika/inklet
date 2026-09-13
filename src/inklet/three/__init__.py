@@ -77,6 +77,7 @@ from .backend import (
     register_backend, render,
 )
 from .camera import PRESETS, Camera, Projected, View, preset_names
+from .anatomy import AnatomyView, anatomy_view
 from .depth import DepthField, ScenePaint, depth_field
 from .edges import (
     BOUNDARY, CREASE, DEFAULT_CREASE_DEGREES, SILHOUETTE, SMOOTH_CEILING,
@@ -87,6 +88,7 @@ from .hlr import Occluders, VisibleRun, visible_runs
 from .linalg import Mat4, Vec3
 from .drill import DEFAULT_HOLE_SEGMENTS, drill, subtract
 from .mesh import Mesh, MeshError, merge
+from .overlays import paths3d, points3d
 from .occlude import vertex_occlusion
 from .order import painter_sort
 from .parse import NATIVE_FORMATS, load, sniff, supported_formats
@@ -103,11 +105,12 @@ from .solids import (
 
 __all__ = [
     # authoring
+    "AnatomyView", "anatomy_view",
     "model", "solid", "scene", "axes", "anchor3d", "view_of",
     "outline_of", "parts_of", "scene_paint", "ScenePaint",
     "MODEL_KIND", "SILHOUETTE_KIND", "DEFAULT_WIDTH", "PICKS",
     # geometry
-    "Mesh", "MeshError", "merge", "Vec3", "Mat4",
+    "Mesh", "MeshError", "paths3d", "points3d", "merge", "Vec3", "Mat4",
     "drill", "subtract", "DEFAULT_HOLE_SEGMENTS",
     "placement", "as_axis", "AXES",
     "load", "sniff", "supported_formats", "NATIVE_FORMATS",

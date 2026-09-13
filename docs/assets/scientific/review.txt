@@ -1,0 +1,18 @@
+# Independent visual and numerical review
+
+All 32 panels were reviewed at page and enlarged subplot scale. No major overlap,
+clipped numerical range, missing essential key or new misleading encoding was
+found. The final polish enlarges community-network arrows and names the repeated
+anatomical view “Same samples, dorsal view”.
+
+Numerical corrections verified: valid SWC-child branch counts; 17 zero-branch
+arbors retained on a symlog axis; target allocations on a 0–1 color scale;
+annotation-record terminology; pair-count density key; non-self neighbor degree;
+all 53 ORN types and top-24 community provenance.
+
+The pages are exploratory documentation examples. Source sampling, registration,
+X-ray overlays and upstream license terms are documented in the gallery guide.
+
+Targeted library checks: 871 distinct tests passed across the authoring, graph,
+plot, text, 3D and paint suites. The strict MkDocs build and the executable mosaic
+guide example passed. Dataset verification is in verification.json.

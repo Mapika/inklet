@@ -9,7 +9,7 @@ import math
 from .core import Diagram, DiagramError, Vec2, mm
 from .draw.coords import active_theme
 
-__all__ = ['feature_matrix', 'sequence', 'database']
+__all__ = ['feature_matrix', 'sequence', 'database', 'value_table']
 
 
 def _positive(value, name):
@@ -141,3 +141,46 @@ def database(content, *, width=None, height=None, pad=None, **style):
     lid=inklet.circle(width=w,height=2*cap,pad=0,**paint)
     node=inklet.drawn([body,((0,top),lid),((0,cap/2),text)],kind='database')
     return _ports(node)
+
+
+def value_table(rows, *, headers=None, font_size=3, header_size=None, font=None, pad=(1,.7),
+                min_cell_width=0, min_cell_height=0, fill='white',
+                header_fill='#eeeeee', color='#222222', stroke='#cccccc',
+                stroke_width=.15, formatter=str):
+    """A compact numeric/text table with measured, glyph-centered cells.
+
+    Column widths grow to their widest value/header. Typography never stretches.
+    Missing values (`None`) display an em dash. Supply a formatter to control
+    numeric precision. Named anchors `cell-r-c` and `header-c` locate centers;
+    notes record cell rectangles for overlays and validation.
+    """
+    import inklet as i
+    from .core import Envelope, Rect, RectPrim
+    rows=[list(row) for row in rows]
+    if not rows or not rows[0] or any(len(row)!=len(rows[0]) for row in rows):raise ValueError('value_table needs a nonempty rectangular array')
+    n=len(rows[0]);headers=None if headers is None else list(headers)
+    if headers is not None and len(headers)!=n:raise ValueError('value_table needs one header per column')
+    font_size=_positive(font_size,'font_size');header_size=font_size if header_size is None else _positive(header_size,'header_size')
+    px,py=(mm(v) for v in pad)
+    if not all(math.isfinite(v) and v>=0 for v in (px,py)):raise ValueError('cell padding must be finite and nonnegative')
+    min_cell_width=_nonnegative(min_cell_width,'min_cell_width');min_cell_height=_nonnegative(min_cell_height,'min_cell_height')
+    weight=_nonnegative(stroke_width,'stroke_width')
+    content=([headers] if headers is not None else [])+rows
+    texts=[[i.text('—' if value is None else str(value) if headers is not None and r==0 else str(formatter(value)),
+                   size=header_size if headers is not None and r==0 else font_size,
+                   font=font,bounds='ink',align='center',markup=False,text_fill=color) for value in row] for r,row in enumerate(content)]
+    widths=[max(min_cell_width,max(row[c].width for row in texts)+2*px) for c in range(n)]
+    heights=[max(min_cell_height,max(node.height for node in row)+2*py) for row in texts]
+    totalw,totalh=sum(widths),sum(heights);parts=[];records={};anchors={};y=-totalh/2
+    for r,(row,h) in enumerate(zip(texts,heights)):
+        x=-totalw/2
+        for c,(text,w) in enumerate(zip(row,widths)):
+            center=Vec2(x+w/2,y+h/2)
+            key=f'header-{c}' if headers is not None and r==0 else f'cell-{r-(headers is not None)}-{c}'
+            plate=Diagram(prim=RectPrim(w,h)).styled(fill=header_fill if headers is not None and r==0 else fill,stroke=stroke,stroke_width=weight).translated(center.x,center.y)
+            parts.extend([plate,text.translated(center.x,center.y)])
+            records[key]=(x,y,x+w,y+h);anchors[key]=center;x+=w
+        y+=h
+    result=Diagram(children=tuple(parts),kind='value-table',envelope_override=Envelope.from_rect(Rect.from_size(totalw,totalh)),notes={'value_table':records})
+    for key,point in anchors.items():result.anchor(key,point)
+    return result

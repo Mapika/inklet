@@ -201,6 +201,16 @@ class View:
     scale: float = 1.0
     offset: Vec2 = Vec2(0.0, 0.0)
 
+    def paths(self, lines, **style):
+        """Draw 3D paths in this camera; see :func:`inklet.three.paths3d`."""
+        from .overlays import paths3d
+        return paths3d(self, lines, **style)
+
+    def markers(self, points, **style):
+        """Draw a point cloud in this camera; see :func:`inklet.three.points3d`."""
+        from .overlays import points3d
+        return points3d(self, points, **style)
+
     def to_eye(self, point: Vec3) -> Vec3:
         """Which way the camera is, from a point on the surface.
 

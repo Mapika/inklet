@@ -15,6 +15,8 @@ returning a `Diagram` that stacks, frames, rotates and gets traced like a box.
     inklet.place([((3, 4), inklet.marker("circle", 1.5))])
 """
 
+from .arrow import arrow
+from .tag import tag
 from .annotate import (
     ANNOTATION_KIND, BRACKET_KIND, DIMENSION_KIND, LABEL_SPEC_NOTE,
     LETTER_KIND, SCALEBAR_KIND, ANNOTATE_SIDES, LabelSpec,
@@ -36,7 +38,7 @@ from .place import drawn, place
 from .shapes import MARKER_KINDS, arc, arc_cubics, marker, sector
 
 __all__ = [
-    "path", "polyline", "polygon", "curve", "arc", "sector", "marker", "place",
+    "arrow", "tag", "path", "polyline", "polygon", "curve", "arc", "sector", "marker", "place",
     "drawn", "placed_anchor",
     "annotate", "annotation_side", "bracket", "dimension", "letters",
     "scalebar", "label_slot", "label_specs", "LabelSpec",

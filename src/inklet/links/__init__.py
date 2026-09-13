@@ -4,6 +4,7 @@
 `route_all()` does a figure's worth in one pass. Depends on `inklet.core` alone.
 """
 
+from .connect import connect
 from .link import (
     CLEARANCE, CONNECTOR_KIND, DEFAULT_ARROW_SIZE, DEFAULT_LOOP,
     DEFAULT_SHOULDER, FLAG_COINCIDENT, FLAG_NO_CLEAR_ROUTE, FLAG_OVERLAP,
@@ -16,7 +17,7 @@ from .link import (
 )
 
 __all__ = [
-    "Link", "LinkError", "Obstacle", "link", "route", "route_all",
+    "Link", "LinkError", "Obstacle", "connect", "link", "route", "route_all",
     "link_ends", "link_flags", "link_name", "is_degenerate",
     "LINK_KIND", "CONNECTOR_KIND", "HEAD_KIND", "LABEL_KIND", "FLAG_SEP",
     "KINDS", "ROUTES", "HEADS", "LABEL_SIDES", "LOOP_SIDES",

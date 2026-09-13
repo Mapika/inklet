@@ -8,6 +8,7 @@ rather than guesses. Pixels only exist in the raster backend.
 from __future__ import annotations
 
 import re
+from numbers import Real
 
 MM_PER_PT = 25.4 / 72.0
 MM_PER_IN = 25.4
@@ -31,8 +32,10 @@ class UnitError(ValueError):
 
 def mm(value: float | int | str) -> float:
     """Coerce a length to millimetres. Bare numbers are already mm."""
-    if isinstance(value, (int, float)):
+    if isinstance(value, Real):
         return float(value)
+    if not isinstance(value, str):
+        raise UnitError(f"expected a real number or unit string, got {value!r}")
     match = _LENGTH.match(value)
     if match is None:
         raise UnitError(f"cannot parse length {value!r}")

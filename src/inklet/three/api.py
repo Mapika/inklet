@@ -270,7 +270,7 @@ def page_scale(mesh: Mesh, *,
 def model(source: str | Path | Mesh, *,
           width: float | str | None = None,
           height: float | str | None = None,
-          view: Camera | str | tuple[float, float] | None = None,
+          view: Camera | View | str | tuple[float, float] | None = None,
           style: str = "lineart",
           shading: str | None = None,
           sort: str = "auto",
@@ -304,6 +304,10 @@ def model(source: str | Path | Mesh, *,
           options: Sequence[tuple[str, Any]] = (),
           name: str | None = None) -> Diagram:
     """Draw a mesh -- from a file or already in hand -- as vector line art.
+
+    Pass a fitted ``View`` to share a camera and physical scale across meshes,
+    ``View.paths`` and ``View.markers``. Omit width/height in that case; no
+    independent fit or recentering occurs. Fitted views use the builtin backend.
 
     `view` is a preset name (`"isometric"`, `"three-quarter"`, `"front"`, ...),
     an `(azimuth, elevation)` pair in degrees, or a `Camera`. `style` is one of
@@ -479,8 +483,15 @@ def model(source: str | Path | Mesh, *,
         **({"shade": shade} if shade is not None else {}),
         options=tuple(sorted(options)),
     )
-    size = _size(width, height)
-    result = render(Request(placed, as_camera(view), size[0], size[1], look),
+    if isinstance(view, View):
+        if width is not None or height is not None:
+            raise MeshError("A fitted View already sets the scale; omit width and height")
+        size = (None, None)
+        camera = view
+    else:
+        size = _size(width, height)
+        camera = as_camera(view)
+    result = render(Request(placed, camera, size[0], size[1], look),
                     backend=backend)
     node = _assemble(result, name or mesh.name or "model")
     _MESHES[node.id] = placed

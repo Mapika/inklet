@@ -2,6 +2,48 @@
 
 ## Unreleased
 
+## 4.0.0.dev14 — 2026-09-13
+
+Fourteenth development preview: complex scientific figure authoring.
+3.1.0 remains stable; the 4.0 roadmap remains open.
+
+- Coordinate registered page annotations with pinned placements, leaders and
+  explicit failure when the bounded search cannot find clear space.
+- Add `PanelSpec` minimum dimensions, automatic tracks and drawing-area aspect
+  ratios; preserve fonts while rebuilding panels around axes and captions.
+- Add shared anatomy lighting, registered mesh/path/marker sections and opt-in
+  opaque surface sorting with path/marker occlusion. Cut surfaces remain open.
+- Add opt-in graph stroke/arrow floors and exact-color batched vector matrices.
+- Export numbered visual review SVGs and JSON using existing lint diagnostics.
+
+
+- Add named spanning `panel_mosaic` layouts, shared-camera `anatomy_view`
+  close-ups, measured `value_table` cells, automatic clear-space legends, and
+  `Graph.build()` for routed networks inside static components.
+- Add two original scientific gallery plates from released fly-connectome data,
+  with editable vector exports, reproducible recipes and source attribution.
+
+- Add opt-in `text(bounds="ink")` to center visible glyphs while keeping text
+  editable. Correct circle/cell text and grouped legend placement in the
+  dimorphism C, D and H examples.
+
+- Add immediate `connect` for already-placed shapes, measured bounded
+  `label_column` placement with leaders, and `Panel.region` for shared
+  data-to-rectangle transforms. Apply these to independently audited figure
+  corrections, with checks for statistics, labels, zooms and visible arrow tips.
+
+- Add `tag` labels sized from shaped text, with separate horizontal/vertical
+  padding, editable text and contrast-aware foreground colors.
+- Add authored `arrow` paths with exact cubic shafts, tangent-aligned heads,
+  shaft trimming, transformed-path support and automatic short-arrow heads.
+- Let builtin `model` rendering share a fitted `View` with batched 3D paths
+  and markers, preserving registration across independently drawn layers.
+- Add immutable `Mesh.from_arrays` and optional display-only `Mesh.simplified`;
+  the `three` extra includes fast-simplification, loaded only on demand.
+- Accept NumPy real scalar lengths in core units without importing NumPy;
+  report unsupported unit inputs explicitly.
+- Apply these APIs to the connectome figure examples and document the workflow.
+
 ## 4.0.0.dev13 — 2026-09-13
 
 Thirteenth development preview: native camera choices in the composition editor.

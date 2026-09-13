@@ -230,6 +230,20 @@ if __name__ == "__main__":
         raise AssertionError("PNG unexpectedly works without its optional renderer")
     with i.RenderQueue(max_workers=1): pass
     assert i.RenderProgress('queued','Waiting').fraction is None
+    # Dev14 scientific authoring must work with core dependencies alone.
+    from inklet.three.solids import cube
+    anatomy = i.anatomy_view(cube(),width=25,height=25).surface('tissue',cube())
+    section = anatomy.lighting().cut((1,0,0)).build(depth='occluded')
+    assert '<image' not in i.to_svg(section)
+    matrix = i.panel(20,20,x=(0,2),y=(0,2)).matrix([[0,1],[1,0]],
+        ramp=i.ramp(['white','blue']),vector='batched').build()
+    scientific = i.panel_mosaic(['A B'],{'A':section,
+        'B':i.PanelSpec(lambda w,h:matrix,aspect=1)},width=70,height=40)
+    annotated = i.place_annotations(scientific,{'key':i.FigureAnnotation(i.tag('key'),
+        at=(60,35))},avoid=[])
+    assert annotated.notes['annotations']['placements']['key']['locked']
+    i.review_figure(annotated,rules=['TINY_TEXT']).save('scientific-review')
+    assert Path('scientific-review.json').exists()
     print("Installed wheel API passed", i.__version__)
 '''
 

@@ -1,6 +1,6 @@
-# Inklet 4.0.0.dev13
+# Inklet 4.0.0.dev14
 
-The thirteenth 4.0 development release includes the linked plotting, mapping,
+The fourteenth 4.0 development release includes the linked plotting, mapping,
 engineering and scientific workflows developed since 3.1.0. It is an installable
 snapshot for trying real examples and reporting problems. **3.1.0 remains the
 stable release.** The [4.0 roadmap](roadmap.md) still has open work.
@@ -8,7 +8,7 @@ stable release.** The [4.0 roadmap](roadmap.md) still has open work.
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install "inklet==4.0.0.dev13"
+python -m pip install "inklet==4.0.0.dev14"
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
@@ -19,15 +19,27 @@ stable releases; see its [installation documentation](https://pip.pypa.io/en/sta
 Optional extras can be installed with the same pin:
 
 ```sh
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev13"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev14"
 # Add calibrated volumes and TIFF workflows when needed:
-python -m pip install "inklet[volume,render]==4.0.0.dev13"
+python -m pip install "inklet[volume,render]==4.0.0.dev14"
 ```
 
 The core preview needs no browser server, NumPy, pandas, Polars or Blender.
 Opening the generated HTML requires a browser. PNG/PDF exports from browser
 figures use separate Chrome/Chromium and Pillow; native Diagram exports retain
 their existing requirements. See [installation](installation.md).
+
+## Scientific figure authoring in dev14
+
+[Scientific authoring](scientific-authoring.md) now includes coordinated page
+annotations, panel minimums and aspect ratios, registered anatomical cutaways,
+opaque visibility, shared lighting, network readability floors, batched vector
+matrices and numbered SVG/JSON review reports.
+
+The [original scientific gallery](scientific-gallery.md) provides two dense,
+reproducible fly-connectome plates with editable vector downloads and source
+attribution. These APIs support static scientific pages; they do not complete
+the general constraint editor or the remaining 4.0 roadmap.
 
 ## Native camera editing in dev13
 
@@ -253,7 +265,7 @@ The wheel contains the library. To obtain recipes and fixtures, use the matching
 release checkout or source archive:
 
 ```sh
-git clone --branch v4.0.0.dev13 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0.dev14 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[render]'
 python examples/v4/regional_report.py --renderer compiled --editor --output out/regional

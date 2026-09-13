@@ -287,7 +287,7 @@ class Request:
     """What a backend is asked to draw."""
 
     mesh: Mesh
-    camera: Camera
+    camera: Camera | View
     width: float | None = None
     height: float | None = None
     look: Look = field(default_factory=Look)
@@ -365,6 +365,11 @@ def _resolve(name: str) -> tuple[str, BackendFn]:
 def render(request: Request, backend: str = "builtin") -> Rendering:
     """Draw a mesh with the named backend. `"auto"` picks the best installed."""
     name, handler = _resolve(backend)
+    if isinstance(request.camera, View):
+        if name != "builtin":
+            raise MeshError("A fitted View is supported only by the builtin backend")
+        if request.width is not None or request.height is not None:
+            raise MeshError("A fitted View already sets the scale; omit width and height")
     result = handler(request)
     if not isinstance(result, Rendering):
         raise MeshError(
@@ -390,7 +395,8 @@ def _builtin(request: Request) -> Rendering:
     if mesh.is_empty:
         raise MeshError("there is nothing to render: the mesh has no faces")
 
-    view = request.camera.frame(mesh, request.width, request.height)
+    view = (request.camera if isinstance(request.camera, View) else
+            request.camera.frame(mesh, request.width, request.height))
     points, depths = view.project_all(mesh.vertices)
     facing = facing_faces(mesh, view)
     features = feature_edges(mesh, view, facing=facing,

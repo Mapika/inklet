@@ -47,6 +47,7 @@ nav:
   - How Inklet works: concepts.md
 - Plots:
   - Visual plot gallery: plot-types.md
+  - Scientific figure gallery: scientific-gallery.md
   - Build and combine plots: plotting.md
   - Reusable recipes and styling: plot-recipes.md
   - Plot guides:
@@ -93,6 +94,7 @@ nav:
   - Architecture example: diagram-engine.md
 - 3D and images:
   - Meshes and images: three-images.md
+  - Scientific illustrations: scientific-authoring.md
   - Blender scenes: blender-scenes.md
   - GPU rendering and jobs: render-jobs.md
   - Vector paths in scenes: scene-paths.md

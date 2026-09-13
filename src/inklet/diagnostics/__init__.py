@@ -33,6 +33,7 @@ from .abut import abutting, is_abutting_kind
 from .cross import crossing, declared_crossings
 from .color import contrast_ratio, parse_color, relative_luminance
 from .report import format_report
+from .review import FigureReview, review_figure
 from .rules import (
     DEFAULT_MAX_STROKE_WIDTHS, DEFAULT_MIN_CLEARANCE_MM,
     DEFAULT_MIN_OVERLAP_FRACTION, DEFAULT_PAGE_FILL, RULE_FAILED, RULES,
@@ -40,6 +41,7 @@ from .rules import (
 )
 
 __all__ = [
+    "FigureReview", "review_figure",
     "abutting", "is_abutting_kind",
     "crossing", "declared_crossings",
     "Diagnostic", "Item", "LintContext", "Rule", "RULES", "SEVERITIES",

@@ -173,6 +173,24 @@ def _cell_grid(rows: Sequence[Sequence[float]], ramp, unit,
     return draw_place(cells, **style)
 
 
+def _batched_cell_grid(rows,ramp,unit,xs,ys,style,missing=None):
+    """Disjoint cell rectangles batched by exact fill, with no color quantization."""
+    from ..core import PathPrim,Subpath
+    hole=_missing_colour(any(is_missing(value) for row in rows for value in row),missing)
+    buckets={}
+    for row,(cy,tall) in zip(rows,ys):
+        for value,(cx,wide) in zip(row,xs):
+            fill=hole if is_missing(value) else ramp(value if unit is None else unit.map(value))
+            box=Rect(cx-wide/2,cy-tall/2,cx+wide/2,cy+tall/2)
+            buckets.setdefault(fill,[]).append(Subpath(box.corners,closed=True))
+    nodes=[]
+    for color,paths in buckets.items():
+        for k in range(0,len(paths),512):
+            nodes.append(Diagram(prim=PathPrim(tuple(paths[k:k+512]),filled=True),kind=MARK_KIND).styled(fill=color,stroke='none'))
+    result=Diagram(children=tuple(nodes),kind='vector-matrix',notes={'matrix_batch':{'cells':sum(map(len,rows)),'colors':len(buckets),'batches':len(nodes),'individual_cells':False}})
+    return as_drawn(result.styled(**style) if style else result)
+
+
 @dataclass
 class Panel:
     """A drawing region plus the scales that map data into it.
@@ -235,6 +253,20 @@ class Panel:
         nothing about scales -- `inklet.polygon(p.map(corners))`.
         """
         return tuple(self.point(*p) for p in points)
+
+    def region(self, x0, y0, x1, y1) -> Rect:
+        """Map two data corners to a normalized rectangle in panel coordinates.
+
+        Use the same transform for marks, selection outlines, and zoom source
+        boxes. Reversed/log scales work without manual pixel arithmetic.
+        Bounds are not clipped to the plot area. Matrix slices use their cell
+        *edges* (e.g. 70 and 120), not the centers of the first/last cells.
+        """
+        import math
+        a, b = self.point(x0, y0), self.point(x1, y1)
+        if not all(math.isfinite(v) for v in (a.x, a.y, b.x, b.y)):
+            raise ValueError('region corners must map to finite coordinates')
+        return Rect(min(a.x,b.x), min(a.y,b.y), max(a.x,b.x), max(a.y,b.y))
 
     # -- content ----------------------------------------------------------
 
@@ -305,7 +337,8 @@ class Panel:
     def matrix(self, values: Sequence[Sequence[float]], *, ramp,
                scale: Scale | None = None,
                x: Sequence | None = None, y: Sequence | None = None,
-               overlap: float = _CELL_OVERLAP, missing: str | None = None,
+               overlap: float | None = None, missing: str | None = None,
+               vector: str = "cells",
                raster: bool | str = "auto", **style) -> "Panel":
         """A 2D array of values, one coloured cell each.
 
@@ -351,12 +384,23 @@ class Panel:
         the same 60 x 60 matrix is then about a kilobyte rather than a
         megabyte. `raster=True` and `raster=False` force the choice.
 
+        ``vector="batched"`` forces vector output and groups exact same-color
+        cells into bounded compound paths, retaining uneven cell geometry and
+        colorbar validation without per-cell nodes. It requires zero overlap;
+        antialiased viewers can show joins. Colors are not quantized.
+
         The raster path needs evenly spaced samples, since a pixel cannot be
         wider than its neighbour, and it gives up two things: the cells stop
         being individually selectable in an editor, and `KEY_MISMATCH` can no
         longer compare their colours against a colorbar, because there are no
         mark fills left to sample. The declared domain still crosses over.
         """
+        if vector not in ('cells','batched'):raise ValueError('matrix vector must be cells or batched')
+        if vector=='batched':
+            if raster is True:raise ValueError('batched vector matrices cannot also request raster=True')
+            raster=False
+            if overlap not in (None,0):raise ValueError('batched matrices need overlap=0 to preserve cell boundaries')
+        overlap=(0. if vector=='batched' else _CELL_OVERLAP) if overlap is None else overlap
         clip = _clip_flag(style)
         rows = [list(row) for row in values]
         if not rows or not rows[0]:
@@ -379,7 +423,8 @@ class Panel:
             if style:
                 group = group.styled(**style)
         else:
-            group = _cell_grid(rows, ramp, unit,
+            grid_builder=_batched_cell_grid if vector=="batched" else _cell_grid
+            group = grid_builder(rows, ramp, unit,
                                _cell_spans(centres_x, overlap),
                                _cell_spans(centres_y, overlap), style,
                                missing)
@@ -1192,7 +1237,9 @@ class Panel:
             p.scatter(points, color=C, name="wild type")
             p.legend(corner="ne")
 
-        `corner` puts it inside the plot area on a knocked-out plate; `side`
+        `corner="auto"` searches clear plot space against existing marks and
+        raises if no sampled position fits; it never shrinks the key.
+        Fixed `corner` puts it inside the plot area on a knocked-out plate; `side`
         ("right", "left", "top", "bottom") puts it outside, clear of whatever
         furniture is already there, and then no plate is needed. `entries=`
         overrides the record entirely, taking `(name, colour)` or
@@ -1232,7 +1279,13 @@ class Panel:
             plate = True
         if plate:
             node = _plated(node, theme, theme.gap("xs"))
-        self._over.append(_into_corner(node, self.area, corner or "ne", gap))
+        if corner == 'auto':
+            from ..layout.clear_space import place_in_clear_space
+            node = place_in_clear_space(node, within=self.area,
+                                        avoid=(*self._content,*self._over), pad=gap)
+        else:
+            node = _into_corner(node, self.area, corner or "ne", gap)
+        self._over.append(node)
         return self._touched()
 
     def _legend_rows(self, swatch: float | str | None) -> list[tuple[str, object]]:

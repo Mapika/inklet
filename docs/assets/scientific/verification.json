@@ -1,0 +1,15 @@
+{
+  "source_skeleton_metrics": "254 verified against raw SWCs",
+  "zero_branch_arbors_preserved": 17,
+  "ORN_types": 53,
+  "communities": 311,
+  "member_types": 8231,
+  "reciprocal_pairs": 23497,
+  "local_annotation_records": 756,
+  "unique_coordinate_type_tuples": 742,
+  "allocation_normalization": "within 18 shown targets; range [0,1]",
+  "layout": "15 + 17 named panels fit without scaling type",
+  "embedded_images": 0,
+  "render": "SVG/PDF editable text; PNG preview",
+  "limitations": "No hypothesis tests; deterministic anatomy samples; X-ray paths; upstream license terms apply."
+}

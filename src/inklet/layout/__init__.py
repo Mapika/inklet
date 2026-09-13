@@ -2,7 +2,11 @@
 in the right place -- no coordinates typed by hand anywhere.
 """
 
+from .annotations import FigureAnnotation, place_annotations
 from .fit import fit
+from .mosaic import PanelSpec, panel_mosaic
+from .clear_space import place_in_clear_space
+from .label_column import label_column
 from .flow import (
     BOX_PAD, align_to, beside, box, flow, frame, grid, hstack, overlay, pad,
     spacer,
@@ -17,7 +21,8 @@ from .labels import (
 )
 
 __all__ = [
-    "hstack", "vstack", "stack", "grid", "flow", "overlay",
+    "FigureAnnotation", "place_annotations",
+    "PanelSpec", "panel_mosaic", "place_in_clear_space", "label_column", "hstack", "vstack", "stack", "grid", "flow", "overlay",
     "pad", "frame", "box", "align_to", "spacer", "beside", "fit",
     "BOX_PAD",
     "graph", "Graph", "GraphEdge", "GraphError", "LAYOUTS", "DIRECTIONS",

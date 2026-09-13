@@ -29,22 +29,23 @@ from .core import (
 )
 from .figure import Figure, apply_theme, figure
 from .layout import (
+    FigureAnnotation, place_annotations, PanelSpec,
     Graph, GraphEdge, GraphError, LabelChoice, LabelWeights,
     Sankey, SankeyError, SankeyFlow, SankeyNode,
     align_to, beside, box as _box_container, fit, flow, frame, graph, grid,
-    hstack, label_plan, overlay, pad, place_labels, sankey, spacer, stack,
+    hstack, label_column, label_plan, overlay, pad, panel_mosaic, place_in_clear_space, place_labels, sankey, spacer, stack,
     vstack,
 )
-from .links import Link, link, route, route_all
-from .diagnostics import (Diagnostic, abutting, crossing, format_report,
+from .links import Link, connect, link, route, route_all
+from .diagnostics import (FigureReview, review_figure, Diagnostic, abutting, crossing, format_report,
                           lint)
 from .draw import (
-    annotate, annotation_side, arc, as_drawn, bracket, window, clip, curve, dimension,
+    arrow, tag, annotate, annotation_side, arc, as_drawn, bracket, window, clip, curve, dimension,
     drawn, encoded, label_slot, label_specs, letters, marker, path, place,
     placed_anchor, plot_area, polygon, polyline, scalebar, sector,
 )
 from .plot.categories import CategorySet, categories
-from .components import database, feature_matrix, sequence
+from .components import database, feature_matrix, sequence, value_table
 from .render import outline_text, save_pdf, save_svg, to_pdf, to_svg
 from .plot import (
     Panel, Ramp, Scale, axis, band, grouped_band, broken, colorbar, column, dates, facets,
@@ -54,6 +55,7 @@ from .plot import (
     PolarPanel, circular_histogram, circular_mean, polar, theta_ticks,
 )
 from .three import (
+    AnatomyView, anatomy_view,
     Mat4, Mesh, Vec3, anchor3d, axes, cartoon, model, outline_of, scene, solid,
 )
 from .typeset import (Baseline, baseline, baseline_arc, escape_markup, measure,
@@ -99,7 +101,7 @@ def text(content: str, *, size: float | str | None = None, font: str | None = No
          weight: str | None = None, align: str = "center",
          width: float | str | None = None, line_height: float | None = None,
          features: dict[str, bool | int] | None = None, markup: bool = True,
-         angle: float = 0.0, kind: str = "text", **style) -> Diagram:
+         angle: float = 0.0, kind: str = "text", bounds: str = "font", **style) -> Diagram:
     """Shaped text as a diagram. Its envelope is the real inked extent, which is
     what lets a box around it actually fit.
 
@@ -120,6 +122,14 @@ def text(content: str, *, size: float | str | None = None, font: str | None = No
     `"bold italic"`); `features` are OpenType tags, e.g. `{"tnum": True}` for
     the tabular figures an axis wants.
 
+    `bounds="font"` (default) retains the font's ascent/descent and advances,
+    useful for common baselines. `bounds="ink"` measures the visible glyphs
+    and centers those on the origin, for isolated letters/numbers inside nodes.
+    Text remains editable; glyph outlines are used only for measurement. Blank
+    text falls back to font bounds. Ink bounds ignore leading/trailing spaces,
+    retain wrapping/line spacing, and include an explicitly requested halo.
+    They do not replace the font-metric trace used for text link endpoints.
+
     `angle` turns the block. **Degrees, and positive is clockwise on the page**
     -- y grows downward in inklet, so the rotation carrying +x toward +y is the
     one a reader sees turn clockwise, and `angle=-90` is the bottom-to-top
@@ -130,6 +140,10 @@ def text(content: str, *, size: float | str | None = None, font: str | None = No
     its upright box and `inklet.lint` measures clearance to the letters where
     they actually are.
     """
+    # Font metrics preserve common baselines in ordinary text. Visible ink is
+    # useful for isolated letters/numbers centered inside diagram nodes.
+    if bounds not in ("font", "ink"):
+        raise ValueError("text bounds must be 'font' or 'ink'")
     _check_string("text", content)
     th = current_theme()
     asked = weight if weight is not None else style.get("font_weight") or "regular"
@@ -171,6 +185,15 @@ def text(content: str, *, size: float | str | None = None, font: str | None = No
             style["font_style"] = "italic"
     node = Diagram(prim=prim, kind=kind,
                    envelope_override=_halo_envelope(prim, style.get("halo")))
+    if bounds == "ink":
+        from .typeset.outline import text_to_paths
+        ink = Envelope.union_all(path.envelope() for path, _ in text_to_paths(prim))
+        if not ink.is_empty:
+            center = ink.bbox().center
+            if style.get("halo"):
+                ink = ink.pad(mm(style["halo"]) / 2)
+            node = _replace(node, envelope_override=ink).translated(-center.x, -center.y)
+        node.notes['text_bounds'] = 'ink'
     node = node.styled(**style) if style else node
     return node if not angle else node.rotated(angle)
 
@@ -433,14 +456,14 @@ __all__ = [
     "strip_markup",
     "text_on_path", "text_on_arc", "baseline", "baseline_arc", "Baseline",
     # drawing
-    "path", "polyline", "polygon", "curve", "arc", "sector", "marker", "place",
+    "arrow", "tag", "path", "polyline", "polygon", "curve", "arc", "sector", "marker", "place",
     "window", "clip", "encoded", "drawn", "as_drawn", "placed_anchor", "plot_area",
     # annotating
     "annotate", "annotation_side", "bracket", "dimension", "scalebar",
     "letters", "label_slot", "label_specs",
-    "place_labels", "label_plan", "LabelChoice", "LabelWeights",
+    "label_column", "place_labels", "label_plan", "LabelChoice", "LabelWeights",
     # scientific diagram components
-    "database", "feature_matrix", "sequence",
+    "database", "feature_matrix", "sequence", "value_table",
     # plotting
     "panel", "Panel", "row", "column", "axis", "colorbar", "legend",
     "linear", "log", "symlog", "band", "grouped_band", "broken", "dates", "Scale",
@@ -448,14 +471,14 @@ __all__ = [
     "inset", "ribbon", "facets", "histogram",
     "polar", "PolarPanel", "theta_ticks",
     "circular_mean", "circular_histogram",
-    "model", "solid", "scene", "axes", "cartoon",
+    "AnatomyView", "anatomy_view", "model", "solid", "scene", "axes", "cartoon",
     "Mesh", "Vec3", "Mat4", "anchor3d", "outline_of",
-    "hstack", "vstack", "stack", "grid", "flow", "overlay", "pad", "frame",
+    "panel_mosaic", "place_in_clear_space", "hstack", "vstack", "stack", "grid", "flow", "overlay", "pad", "frame",
     "spacer",
     "beside", "align_to", "fit",
     "graph", "Graph", "GraphEdge", "GraphError",
     "sankey", "Sankey", "SankeyError", "SankeyFlow", "SankeyNode",
-    "link", "Link", "route", "route_all",
+    "connect", "link", "Link", "route", "route_all",
     "figure", "Figure",
     # theming
     "theme", "Theme", "THEMES", "use_theme", "current_theme", "contrast_ratio",
@@ -470,4 +493,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "4.0.0.dev13"
+__version__ = "4.0.0.dev14"

@@ -394,7 +394,7 @@ Derive live values, such as filtered rows or stacked series, from inputs.
 
 ## Authoring
 
-#### `text(content: 'str', *, size: 'float | str | None' = None, font: 'str | None' = None, weight: 'str | None' = None, align: 'str' = 'center', width: 'float | str | None' = None, line_height: 'float | None' = None, features: 'dict[str, bool | int] | None' = None, markup: 'bool' = True, angle: 'float' = 0.0, kind: 'str' = 'text', **style) -> 'Diagram'`
+#### `text(content: 'str', *, size: 'float | str | None' = None, font: 'str | None' = None, weight: 'str | None' = None, align: 'str' = 'center', width: 'float | str | None' = None, line_height: 'float | None' = None, features: 'dict[str, bool | int] | None' = None, markup: 'bool' = True, angle: 'float' = 0.0, kind: 'str' = 'text', bounds: 'str' = 'font', **style) -> 'Diagram'`
 
 Shaped text as a diagram. Its envelope is the real inked extent, which is what lets a box around it actually fit.
 
@@ -452,6 +452,14 @@ A curve to set type along, resampled as one arclength axis.
 
 
 ## Drawing
+
+#### `arrow(points, *, smooth: 'float' = 0.5, head: 'str' = 'triangle', head_length: 'float | str' = 2.0, head_width: 'float | str | None' = None, both: 'bool' = False, color: 'str | None' = None, stroke_width: 'float | str' = 0.35, **style) -> 'Diagram'`
+
+Draw an arrow through waypoints, or along an existing single open path.
+
+#### `tag(content: 'str | Diagram', *, size=None, font=None, weight=None, color: 'str | None' = None, fill: 'str | None' = None, pad=(0.9, 0.35), radius=0.3, stroke='none', stroke_width=0.15, markup: 'bool' = True) -> 'Diagram'`
+
+A label plate sized from shaped text, with no font stretching.
 
 #### `path(points: 'Iterable[Point]' = (), *, closed: 'bool' = False, curves: 'Sequence[Sequence[Point]] | None' = None, holes: 'Sequence[Iterable[Point]]' = (), filled: 'bool | None' = None, fill_rule: 'str' = 'nonzero', kind: 'str' = 'path', **style) -> 'Diagram'`
 
@@ -548,6 +556,10 @@ The rectangle `annotate` would put this label in, without building it.
 
 Every `annotate` request recorded anywhere in `node`, in call order.
 
+#### `label_column(labels, targets, *, x, bounds, side='right', gap=1, leader_color='#777777', leader_width=0.2) -> 'Diagram'`
+
+Place measured label Diagrams beside points without vertical overlap.
+
 #### `place_labels(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float]' = (1.0, 2.4), weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None) -> 'Diagram'`
 
 Re-place every `annotate` label in `art`, deciding all of them at once.
@@ -579,6 +591,10 @@ A matrix with text/diagram headers and named row/column connection points.
 
 A row of text or diagram symbols with `item-0`, ... and input/output ports.
 
+#### `value_table(rows, *, headers=None, font_size=3, header_size=None, font=None, pad=(1, 0.7), min_cell_width=0, min_cell_height=0, fill='white', header_fill='#eeeeee', color='#222222', stroke='#cccccc', stroke_width=0.15, formatter=<class 'str'>)`
+
+A compact numeric/text table with measured, glyph-centered cells.
+
 
 ## Plotting
 
@@ -592,10 +608,11 @@ A drawing region plus the scales that map data into it.
 
 * `point(x, y) -> 'Vec2'` -- One data point in panel coordinates, in millimetres.
 * `map(points: 'Iterable[Sequence]') -> 'tuple[Vec2, ...]'` -- `point()` over a sequence: data pairs in, millimetres out.
+* `region(x0, y0, x1, y1) -> 'Rect'` -- Map two data corners to a normalized rectangle in panel coordinates.
 * `draw(*items: 'Diagram', clip: 'bool | None' = None) -> "'Panel'"` -- Add content already expressed in panel coordinates.
 * `place(items, *, clip: 'bool | None' = None) -> "'Panel'"` -- `draw.place()` in data coordinates: `((x, y), diagram)` pairs, or bare diagrams that already know where they go.
 * `marks(item: 'Diagram', points: 'Iterable[Sequence]', *, name: 'str | None' = None, **style) -> "'Panel'"` -- A copy of `item` centred on every data point.
-* `matrix(values: 'Sequence[Sequence[float]]', *, ramp, scale: 'Scale | None' = None, x: 'Sequence | None' = None, y: 'Sequence | None' = None, overlap: 'float' = 0.06, missing: 'str | None' = None, raster: 'bool | str' = 'auto', **style) -> "'Panel'"` -- A 2D array of values, one coloured cell each.
+* `matrix(values: 'Sequence[Sequence[float]]', *, ramp, scale: 'Scale | None' = None, x: 'Sequence | None' = None, y: 'Sequence | None' = None, overlap: 'float | None' = None, missing: 'str | None' = None, vector: 'str' = 'cells', raster: 'bool | str' = 'auto', **style) -> "'Panel'"` -- A 2D array of values, one coloured cell each.
 * `line(points: 'Iterable[Sequence]', *, smooth: 'float' = 0.0, closed: 'bool' = False, name: 'str | None' = None, err=None, err_style: 'str' = 'band', simplify: 'float | str | None' = None, **style) -> "'Panel'"` -- A path through data points: straight by default, curved with `smooth`.
 * `band(x: 'Sequence', lo, hi, *, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'Panel'"` -- The shaded envelope between two edges over shared x.
 * `scatter(points: 'Iterable[Sequence]', *, size=None, color=None, ramp=None, scale: 'Scale | None' = None, marker: 'str' = 'circle', name: 'str | None' = None, raster: 'bool' = False, dpi: 'float' = 300, **style) -> "'Panel'"` -- Markers at data points, with size and colour that may be data too.
@@ -783,7 +800,26 @@ The mean direction of a set of angles, and how concentrated they are.
 
 Bin angles into equal sectors: `(centres, heights)` for `rose()`.
 
-#### `model(source: 'str | Path | Mesh', *, width: 'float | str | None' = None, height: 'float | str | None' = None, view: 'Camera | str | tuple[float, float] | None' = None, style: 'str' = 'lineart', shading: 'str | None' = None, sort: 'str' = 'auto', opacity: 'float' = 1.0, occlusion: 'float' = 0.0, backend: 'str' = 'builtin', crease: 'float' = 30.0, ridges: 'bool | Mapping[str, bool]' = True, hidden: 'bool' = True, cull: 'bool | None' = None, smooth: 'bool | float | None' = None, up_axis: 'str' = 'z', at: 'Sequence[float] | Vec3 | None' = None, spin: 'Any' = None, scale: 'float | Sequence[float] | None' = None, transform: 'Mat4 | None' = None, repair: 'bool' = False, ink: 'str | None' = None, color: 'str | None' = None, colors: 'Mapping[str, str] | None' = None, stroke_width: 'float | str | None' = None, stroke_widths: 'Mapping[str, float | str] | None' = None, creases: 'Mapping[str, float] | None' = None, light: 'Vec3 | None' = None, levels: 'int | None' = None, depth_cue: 'float | None' = None, lift: 'float | None' = None, shade: 'float | None' = None, anchors: 'Mapping[str, Sequence[float]] | None' = None, groups: 'bool' = True, options: 'Sequence[tuple[str, Any]]' = (), name: 'str | None' = None) -> 'Diagram'`
+#### `class AnatomyView(view: 'View', width: 'float', height: 'float', _layers: 'list' = <factory>) -> None`
+
+A fixed viewport with named surfaces, paths and markers in one camera.
+
+* `surface(name, mesh, **style)`
+* `paths(name, lines, **style)`
+* `markers(name, points, **style)`
+* `style(name, **changes)` -- Restyle one named layer without refitting its geometry or siblings.
+* `zoom(focus, *, width, height, pad=1, layers=None)` -- Reframe selected layers in the same camera orientation and projection.
+* `window(detail)` -- The detail's full viewport, expressed in this overview's coordinates.
+* `lighting(direction=(-0.4, -0.6, -1), *, levels=16, smooth=80)` -- Set one smooth-lighting treatment across all current surfaces.
+* `cut(normal, offset=0)` -- Section all layers in source coordinates without changing the camera.
+* `build(*, depth='layers')` -- Render all layers into a clipped, fixed-size native vector viewport.
+* `inset(focus, *, width, height, corner='ne', side=None, gap=2, layers=None, **style)` -- Overview plus a registered inset or external detail, with locator lines.
+
+#### `anatomy_view(reference, *, width, height, camera='front', pad=1)`
+
+Fit one camera to a reference mesh and author layers without projections.
+
+#### `model(source: 'str | Path | Mesh', *, width: 'float | str | None' = None, height: 'float | str | None' = None, view: 'Camera | View | str | tuple[float, float] | None' = None, style: 'str' = 'lineart', shading: 'str | None' = None, sort: 'str' = 'auto', opacity: 'float' = 1.0, occlusion: 'float' = 0.0, backend: 'str' = 'builtin', crease: 'float' = 30.0, ridges: 'bool | Mapping[str, bool]' = True, hidden: 'bool' = True, cull: 'bool | None' = None, smooth: 'bool | float | None' = None, up_axis: 'str' = 'z', at: 'Sequence[float] | Vec3 | None' = None, spin: 'Any' = None, scale: 'float | Sequence[float] | None' = None, transform: 'Mat4 | None' = None, repair: 'bool' = False, ink: 'str | None' = None, color: 'str | None' = None, colors: 'Mapping[str, str] | None' = None, stroke_width: 'float | str | None' = None, stroke_widths: 'Mapping[str, float | str] | None' = None, creases: 'Mapping[str, float] | None' = None, light: 'Vec3 | None' = None, levels: 'int | None' = None, depth_cue: 'float | None' = None, lift: 'float | None' = None, shade: 'float | None' = None, anchors: 'Mapping[str, Sequence[float]] | None' = None, groups: 'bool' = True, options: 'Sequence[tuple[str, Any]]' = (), name: 'str | None' = None) -> 'Diagram'`
 
 Draw a mesh -- from a file or already in hand -- as vector line art.
 
@@ -807,6 +843,9 @@ The whole chain: one ribbon per continuous segment, merged.
 
 Mesh(vertices: 'tuple[Vec3, ...]', faces: 'tuple[tuple[int, int, int], ...]', groups: 'tuple[str, ...]' = (), name: 'str' = '', _derived: 'dict' = <factory>)
 
+* `from_arrays(vertices, faces, *, groups=(), name='')` -- Build from iterable XYZ coordinates and triangle indices.
+* `clipped(normal, offset=0)` -- Keep the half-space normal·point >= offset, with an open cut boundary.
+* `simplified(target_faces: 'int')` -- Return a quadric-error display approximation with fewer triangles.
 * `rough_vertices(degrees: 'float') -> 'frozenset[int]'` -- Vertices with a fold, a border or a branch somewhere around them.
 * `group_center(name: 'str') -> 'Vec3'` -- Centroid of the vertices belonging to a named group, area-weighted by nothing: a plain average of the distinct vertices the group touches. Area weighting would drag the point toward whichever end of a part happened to be finely tessellated.
 * `transformed(matrix: 'Mat4') -> 'Mesh'` -- Move the mesh. A mirroring transform reverses every winding, because the alternative is a solid whose normals all point inward and whose silhouette comes out inside-out.
@@ -849,6 +888,14 @@ Add an anchor at a 3D point, after the fact. Returns the node.
 #### `outline_of(part: 'Diagram | Mesh', view: 'View | None' = None, *, crease: 'float' = 30.0, ridges: 'bool' = True, smooth: 'bool | float | None' = None)`
 
 A part's projected outline: `((points, closed), ...)` in its own frame.
+
+#### `panel_mosaic(layout, panels, *, width, height, gap=4, margin=4, row_weights=None, column_weights=None, titles=None, letters=True, label_size=4, label_gap=2)`
+
+Build a page from a rectangular matrix of panel names ('.' is empty).
+
+#### `place_in_clear_space(item, *, within, avoid=(), pad=1, clearance=0.5, steps=9)`
+
+Place a Diagram inside a Rect, clear of supplied drawing geometry.
 
 #### `hstack(items: 'Iterable[Diagram]', gap: 'Length' = 0.0, align: 'str' = 'center') -> 'Diagram'`
 
@@ -907,6 +954,7 @@ Lay out a graph from its edges, and hand back the diagram and the arrows.
 What `inklet.graph()` returns: a laid-out diagram plus its edges.
 
 * `add_to(figure, **overrides) -> 'list[Link]'` -- Put the graph on a figure and route every edge. The usual spelling.
+* `build(*, min_arrow_size=None, min_stroke_width=None) -> 'Diagram'` -- Build a self-contained static diagram, including all routed edges.
 
 #### `class GraphEdge(source: 'Diagram', target: 'Diagram', label: 'Diagram | None' = None, route: 'str' = 'straight', span: 'int' = 0, options: 'Mapping[str, object]' = <factory>) -> None`
 
@@ -940,6 +988,10 @@ One ribbon, resolved: its two nodes, its value, and the band drawn.
 #### `class SankeyNode(key: 'object', label: 'str', rank: 'int', order: 'int', value: 'float', box: 'Rect', diagram: 'Diagram') -> None`
 
 One bar: what it is, where the layout put it, and how much goes through.
+
+#### `connect(source: 'Diagram', target: 'Diagram', *, within: 'Diagram | None' = None, **kwargs) -> 'Diagram'`
+
+Connect two placed shapes, clipping the ends to their actual boundaries.
 
 #### `link(source, target, **kwargs) -> 'Link'`
 

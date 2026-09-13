@@ -39,6 +39,8 @@ def geometry_bounds(prim):
     if isinstance(shape, TextPrim):
         from .glyphs import placed_glyphs, to_path
         shape = to_path(placed_glyphs(shape))
+        if shape is None:
+            return None
     if isinstance(shape, PathPrim):
         points = [p for sub in shape.subpaths for p in sub.points]
         points.extend(p for sub in shape.subpaths for curve in sub.curves for p in curve)

@@ -136,6 +136,34 @@ class Graph:
             out.append(figure.link(edge.source, edge.target, **kwargs))
         return out
 
+    def build(self, *, min_arrow_size=None, min_stroke_width=None) -> Diagram:
+        """Build a self-contained static diagram, including all routed edges.
+
+        Use this for mosaics and nested components once node layout is final.
+        Rebuild after moving nodes; use ``add_to`` for later Figure routing.
+        Optional physical arrow/stroke floors help dense networks remain legible.
+        Floors change quantitative width encodings: their values and affected
+        edge count are recorded in notes, and should be stated in the key.
+        """
+        from ..core import resolve
+        from ..links import route_all
+        from ..figure import apply_theme
+        from ..draw.coords import active_theme
+        import math
+        from ..core import mm
+        thresholds={key:mm(value) for key,value in [('arrow_size',min_arrow_size),('stroke_width',min_stroke_width)] if value is not None}
+        if any(not math.isfinite(v) or v<=0 for v in thresholds.values()):raise ValueError('graph readability minimums must be positive finite lengths')
+        theme=active_theme();links=[];clamped=0
+        for edge in self.edges:
+            options=edge.link_kwargs();changed=False
+            for key,value in thresholds.items():
+                default=theme.stroke if key=='stroke_width' else theme.arrow_size
+                old=mm(default if options.get(key) is None else options[key])
+                if old<value:options[key]=value;changed=True
+            clamped+=changed;links.append(make_link(edge.source,edge.target,**options))
+        connectors = route_all(links, resolve(self.diagram))
+        return apply_theme(Diagram(children=(connectors, self.diagram), kind="graph", notes={"graph_readability":{"minimums":thresholds,"clamped_edges":clamped,"edges":len(self.edges)}}), active_theme())
+
     @property
     def links(self) -> tuple[Link, ...]:
         """The edges as `Link` specs, for `inklet.route_all` without a figure.

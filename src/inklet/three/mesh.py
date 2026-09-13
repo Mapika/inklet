@@ -21,6 +21,9 @@ repair=True)` exists to make it true when trimesh is available.
 from __future__ import annotations
 
 import math
+import threading
+
+_SIMPLIFY_LOCK = threading.Lock()
 from dataclasses import dataclass, field, replace
 from typing import Iterable, Sequence
 
@@ -78,6 +81,62 @@ class Mesh:
     groups: tuple[str, ...] = ()
     name: str = ""
     _derived: dict = field(default_factory=dict, compare=False, repr=False)
+
+    @classmethod
+    def from_arrays(cls, vertices, faces, *, groups=(), name=""):
+        """Build from iterable XYZ coordinates and triangle indices.
+
+        NumPy arrays work without making NumPy a core dependency. Coordinates
+        are copied into immutable vectors; input mutation cannot change a mesh.
+        Floating-point face indices are rejected instead of silently rounded.
+        """
+        import operator
+        from .overlays import _xyz
+        xyz = tuple(_xyz(v) for v in vertices)
+        try:
+            triangles = tuple(tuple(operator.index(v) for v in face) for face in faces)
+        except TypeError:
+            raise MeshError("Mesh face indices must be integers") from None
+        return cls(xyz, triangles, tuple(groups), name)
+
+    def clipped(self, normal, offset=0):
+        """Keep the half-space normal·point >= offset, with an open cut boundary.
+
+        Source geometry and face groups are preserved; no artificial cap is
+        inferred. Apply the same plane to overlays with AnatomyView.cut().
+        """
+        from .section import clip_mesh
+        return clip_mesh(self, normal, offset)
+
+    def simplified(self, target_faces: int):
+        """Return a quadric-error display approximation with fewer triangles.
+
+        Requires the optional ``inklet[three]`` extra only when reduction is
+        needed. The source mesh is immutable. This is not a scientific data
+        reduction: use the original geometry for measurements and registration.
+        The requested count is a target, not a guaranteed hard limit. Simplify
+        separately named parts independently to preserve their boundaries.
+        """
+        if isinstance(target_faces, bool) or not isinstance(target_faces, int) or target_faces < 1:
+            raise MeshError("target_faces must be a positive integer")
+        if len(self.faces) <= target_faces:
+            return self
+        if len(set(self.groups)) > 1:
+            raise MeshError("Simplify grouped meshes part by part to preserve group boundaries")
+        try:
+            import numpy as np
+            import fast_simplification
+        except ImportError:
+            raise MeshError("Mesh.simplified requires: pip install 'inklet[three]'") from None
+        vertices = np.array([(v.x, v.y, v.z) for v in self.vertices], dtype=np.float64)
+        faces = np.array(self.faces, dtype=np.int32)
+        # The simplifier's extension owns process-wide working arrays.
+        with _SIMPLIFY_LOCK:
+            v, f = fast_simplification.simplify(vertices, faces, target_count=target_faces)
+        if not len(f):
+            raise MeshError("Simplification removed every face; choose a larger target")
+        groups = (self.groups[0],) * len(f) if self.groups else ()
+        return Mesh.from_arrays(v, f, groups=groups, name=self.name)
 
     def __post_init__(self) -> None:
         count = len(self.vertices)

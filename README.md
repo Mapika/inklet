@@ -31,15 +31,15 @@ their signatures and report schemas may change.
 
 ## 4.0 development preview
 
-**4.0.0.dev13** adds native 3D camera editing to the studio workspace, with
-shared undo/redo, saved choices and source revision reconciliation.
+**4.0.0.dev14** adds scientific figure layouts, coordinated annotations,
+anatomical cutaways and compact vector matrices.
 ```sh
-python -m pip install "inklet==4.0.0.dev13"
+python -m pip install "inklet==4.0.0.dev14"
 ```
 
 [Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
-[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev13)
+[Release notes](https://github.com/Mapika/inklet/releases/tag/v4.0.0.dev14)
 
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,
