@@ -20,14 +20,14 @@ This [twenty-panel stress test](https://inklet.readthedocs.io/en/stable/stress20
 5,580 mesh triangles and 7,200 vector events. Its data are simulated. Only the
 dense scatter and scalar field are rasterized; the other artwork remains vector.
 
-Inklet 3.1 adds [everyday plots from CSV](https://inklet.readthedocs.io/en/stable/general-plots/),
-[faster rendering and nested layouts](https://inklet.readthedocs.io/en/stable/rendering-engine/),
-[measured diagram improvements](https://inklet.readthedocs.io/en/stable/diagram-engine/)
-and [dense vector lines with axis font controls](https://inklet.readthedocs.io/en/stable/plotting-engine/).
-The illustrated docs start with [choosing a plot type](https://inklet.readthedocs.io/en/stable/plot-types/),
-then cover axes, dense data, page layout and exports. Figure planning and microscopy
-ship under `inklet.experimental` as a [research preview](https://inklet.readthedocs.io/en/stable/research-preview/):
-their signatures and report schemas may change.
+Start with [plots from CSV](https://inklet.readthedocs.io/en/stable/general-plots/),
+then combine them with measured diagrams, images and 3D in one figure. Shared
+scales keep panels comparable; physical dimensions keep type and strokes
+consistent when you change the page size. The
+[plot guide](https://inklet.readthedocs.io/en/stable/plot-types/) helps choose a
+representation, while [layout](https://inklet.readthedocs.io/en/stable/layout/)
+and [export review](https://inklet.readthedocs.io/en/stable/export-review/)
+cover the finished page.
 
 ## 4.0 development preview
 
@@ -42,7 +42,10 @@ python -m pip install "inklet==4.0.0.dev15"
 [Release notes](https://github.com/Mapika/inklet/blob/master/CHANGELOG.md)
 
 Dev14 and dev15 are published on GitHub and PyPI. Development on master now targets
-**4.0.0.dev16**, starting with dense-field export performance.
+**4.0.0.dev16**, with dense-field export improvements and
+[reusable figure projects](https://inklet.readthedocs.io/en/latest/project-workflows/)
+that verify assets, restore saved edits and map selections across plots, images
+and drawings. These project APIs require a master checkout; they are not in dev15.
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,
 depth-aware 3D selection and the remaining 4.0 release gates are still open.
@@ -185,7 +188,6 @@ remains optional for ordinary plots and native vector 3D.
 ## Documentation and development
 
 Read the [documentation on Read the Docs](https://inklet.readthedocs.io/en/stable/).
-Inklet 2.6 adds [scientific, educational and marketing presets](https://inklet.readthedocs.io/en/stable/presets/).
 The [latest documentation](https://inklet.readthedocs.io/en/latest/) follows the
 development branch. The source Markdown is also readable on GitHub, and
 contributors can serve the site from a checkout:
@@ -195,12 +197,12 @@ python -m pip install -e '.[docs]'
 python -m mkdocs serve
 ```
 
-See [contributing](https://github.com/Mapika/inklet/blob/v2.6.0/CONTRIBUTING.md) for tests, documentation checks and visual
+See [contributing](https://github.com/Mapika/inklet/blob/master/CONTRIBUTING.md) for tests, documentation checks and visual
 regressions. Existing users can consult [migration](https://inklet.readthedocs.io/en/stable/migration/),
-[the v2.5 changes](https://inklet.readthedocs.io/en/stable/v2.5/) and [the changelog](https://github.com/Mapika/inklet/blob/v2.6.0/CHANGELOG.md).
+[historical guides](https://inklet.readthedocs.io/en/latest/history/) and [the changelog](https://github.com/Mapika/inklet/blob/master/CHANGELOG.md).
 
 ## License
 
-Inklet code is available under the [MIT license](https://github.com/Mapika/inklet/blob/v2.6.0/LICENSE). Included third-party
+Inklet code is available under the [MIT license](https://github.com/Mapika/inklet/blob/master/LICENSE). Included third-party
 meshes and structural data retain their own terms; see
-[third-party notices](https://github.com/Mapika/inklet/blob/v2.6.0/THIRD_PARTY_NOTICES.md).
+[third-party notices](https://github.com/Mapika/inklet/blob/master/THIRD_PARTY_NOTICES.md).

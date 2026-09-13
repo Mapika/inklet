@@ -1,8 +1,14 @@
 # Your first scientific figure
 
-This tutorial uses only the core installation until the optional review step.
-All data are simulated. The Python blocks on this page run in order and are
-checked by the documentation tests.
+Start with a response curve, export it at journal-column width, then revise the
+measurements and reuse the plot in a two-panel figure. Adding a panel changes
+the available space while typography and strokes keep their authored sizes.
+
+Use Python 3.11 or later and the [core installation](installation.md). These
+document APIs also work in the published **4.0.0.dev15 preview**. Only the optional
+review step needs preview renderers. Copy the Python blocks into one file or run
+them in order in a notebook; the documentation tests execute them that way.
+All data are simulated.
 
 ![The completed tutorial: a response curve and grouped outcomes in two labelled panels](assets/examples/quickstart.png)
 
@@ -46,6 +52,8 @@ assert doc.compile() is first
 The single-column preset is 89 mm wide with 8-point main type. It measures the
 axes and legend before fitting the data region. SVG and PDF use the same
 resolved geometry and embedded fonts. Open either file to inspect the result.
+Lines, ticks and labels remain vector content. `first.report()` is the place to
+inspect layout diagnostics before submitting the figure.
 
 ## Revise the figure
 
@@ -63,6 +71,8 @@ assert second.metadata['datasets'][0]['revision'] == 1
 The earlier snapshot stays unchanged. `key='axes'` lets you replace the axis
 instruction; calling `axes()` again would add another instruction. The dataset
 revision and new content hash are recorded in the compiled metadata.
+Compare `response.svg` with `response-revised.svg`: the curve and x-axis label
+change, while the page width and plot recipe stay the same.
 
 ## Add another panel
 
@@ -108,5 +118,15 @@ already follows this pattern. Then run:
 inklet watch first_figure.py --output out/review
 ```
 
-Continue with [live data](data.md), [plotting](plotting.md) or the
-[complete v2.5 example](../examples/v25_document.py).
+## Choose the next step
+
+| What you want to make next | Tutorial |
+|---|---|
+| Multiple styled plots driven by the same measurements | [Reusable plots](plot-recipes.md) |
+| A repeatable layout mixing plots and diagrams | [Reusable compositions](composition-recipes.md) |
+| A dense, annotated scientific plate | [Complex scientific figures](complex-figures.md) |
+| A saved project with verified files and linked object IDs | [Figure projects](project-workflows.md), experimental in master/dev16 |
+
+The files from this tutorial are `response.svg`/`.pdf`,
+`response-revised.svg`/`.pdf` and `two-panels.svg`/`.pdf`. Keep the Python recipe
+and input data alongside the exports so the next revision remains reproducible.

@@ -68,6 +68,8 @@ nav:
   - Save layout choices: layout-overrides.md
   - Local layout editor: layout-editor.md
   - Presets and styling: presets.md
+  - Scientific illustrations: scientific-authoring.md
+  - Complex scientific plates: complex-figures.md
   - Review and export: export-review.md
 - Interactive documents (preview):
   - Choose an interactive workflow: interactive-documents.md
@@ -95,8 +97,6 @@ nav:
   - Architecture example: diagram-engine.md
 - 3D and images:
   - Meshes and images: three-images.md
-  - Scientific illustrations: scientific-authoring.md
-  - Complex scientific plates: complex-figures.md
   - Blender scenes: blender-scenes.md
   - GPU rendering and jobs: render-jobs.md
   - Vector paths in scenes: scene-paths.md

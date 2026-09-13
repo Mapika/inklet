@@ -1,10 +1,16 @@
 # Reusable figure projects
 
-Available on **master for dev16**, under `inklet.experimental.project`. A project
-combines a Python composition, verified input files, explicit entity mappings
-and the editor's current choices. It reuses the existing editor and linked-view
-state contracts. Project schemas remain experimental until the RC compatibility
-policy is settled.
+Keep a figure's measurements, layout decisions and object correspondence
+together as the analysis changes. This tutorial builds a small diagram from a
+file, moves one object, saves and reopens the project, connects its objects to
+plotted measurements, then replaces the measurements without losing the edit.
+
+Available on **master for unreleased dev16**, under `inklet.experimental.project`;
+install from the [current checkout](development-preview.md).
+The published dev15 package does not include these project APIs. Run the Python
+blocks below in order in a fresh working directory. The example uses simulated
+data and the core installation. Project schemas remain experimental until the
+RC compatibility policy is settled.
 
 ![An original simulated project combining supplied values, diagram objects, source pixels and native models](assets/guides/project-workflow.png)
 
@@ -12,6 +18,11 @@ policy is settled.
 [Acceptance workflow](acceptance.md)
 
 ## Capture sources and author choices
+
+Three small objects describe different responsibilities: `AssetManifest`
+records the actual input files, `EntityMap` records which local objects refer
+to the same entity, and `FigureProject` carries the composition and editor
+choices through save and reopen. The Python recipe stays under your control.
 
 Choose files explicitly and record their provenance. A manifest stores relative
 paths, byte counts, SHA-256 hashes, source, license, role and optional units.
@@ -54,6 +65,10 @@ assert reopened.selected == ('a',)
 assert reopened.editor.figure.to_svg() == study.editor.figure.to_svg()
 ```
 
+Open `saved-study/.inklet/figure.svg` or `figure.pdf`. You should see two labelled
+modules, “A: 2” and “B: 4”; the first has moved from x=10 to x=14 mm. Reopening
+reconstructs the figure from the copied input file and restores that placement.
+
 The bundle contains the declared files plus `.inklet/project.json`, `figure.svg`
 and `figure.pdf` inside `.inklet/`. Existing destinations are refused. Files are
 verified before and after copying; failed staging is cleaned up. Extra files in
@@ -68,6 +83,11 @@ intentionally accepting and reviewing that reconstruction difference; asset
 verification still runs. Hashes establish consistency, not trust in a recipe.
 
 ## Connect different local IDs
+
+The measurement key `sample-7` and diagram path `/left` both identify entity
+`a`. Selecting the measurement therefore returns `/left` as a related target.
+The following table deliberately reverses the measurement order to show that
+correspondence follows the declared IDs.
 
 Entity IDs represent authored correspondence. Local IDs may be row keys, named
 composition paths, image-region IDs or mesh-face IDs. Display text and row order
@@ -96,6 +116,11 @@ Path('linked-study.html').write_text(scene.to_html(state=state))
 reopened.select_state(scene, state)
 ```
 
+Open `linked-study.html` to inspect the scatter plot with entity `a` selected.
+This standalone HTML file uses the selection supplied at export time. Changes
+made inside that page do not update the Python `reopened` object automatically;
+`select_state()` imports a validated state explicitly.
+
 Joined columns are named `source__column`. Missing source entities yield nulls;
 multiple source rows for one entity are rejected as an ambiguous join. Aggregate
 those values explicitly before joining. Source reordering does not change the
@@ -118,6 +143,34 @@ rejects removed entities, reassigned local IDs and orphaned editor choices.
 `missing='drop'` permits reconciliation and returns the removed entities, changed
 bindings, removed selection and the existing layout reconciliation report. Old
 project snapshots remain unchanged.
+
+Here is a revision using a new input directory. Keep the same entity IDs because
+these are new measurements of the same two objects. The captured hash changes
+with the bytes, while the saved placement and selection are preserved.
+
+```python
+revised_inputs = Path('revised-inputs')
+revised_inputs.mkdir(exist_ok=True)
+(revised_inputs / 'measurements.json').write_text(json.dumps([3, 5]))
+revised_assets = AssetManifest.capture(revised_inputs, [{
+    'id': 'measurements', 'path': 'measurements.json',
+    'source': 'Original simulated example, revised measurements', 'license': 'MIT',
+    'role': 'measurements', 'unit': 'arbitrary',
+}])
+old_svg = reopened.editor.figure.to_svg()
+revised, report = reopened.revise(recipe(revised_inputs), assets=revised_assets)
+assert revised.selected == ('a',)
+assert revised.editor.overrides() == reopened.editor.overrides()
+assert revised.editor.figure.to_svg() != old_svg
+assert reopened.editor.figure.to_svg() == old_svg
+assert report['removed_entities'] == []
+revised_bundle = revised.save('revised-study', asset_root=revised_inputs)
+assert FigureProject.open(revised_bundle, recipe).editor.figure.to_svg() == revised.editor.figure.to_svg()
+```
+
+Compare the two bundles' `figure.svg` files: the labels become “A: 3” and “B: 5”,
+and the first module stays at x=14 mm. Reusing the old manifest for the new bytes
+would fail verification, so the revision captures its own declared inputs.
 
 Project selection is canonical entity selection. The bundle does not save browser
 viewport/filter state or editor undo history; save a linked view's own state when

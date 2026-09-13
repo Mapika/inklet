@@ -19,6 +19,32 @@ direct drawing API when you need explicit, fixed geometry.
 
 The [engine review recipe](rendering-engine.md) compiles plots, images and fixed diagrams into one document.
 
+## Choose an authoring workflow
+
+Start with a live `Document` and `PlotSpec` when data, page dimensions or shared
+styling will change. Wrap factories in `component()` so Inklet can measure
+those drawings under the final theme. A `Composition` adds named objects and
+relationships: keep a label beside a plot, attach a connector to a module, or
+reuse the same arrangement with new inputs.
+
+Use direct `Panel`, `Figure` and `Diagram` construction for precise authored
+geometry or a self-contained drawing. They also fit inside live documents, but
+a prebuilt drawing retains its authored size and measured text. Enlarging the
+finished artwork scales its strokes and type; rebuilding a plot at a different
+size preserves their physical sizes.
+
+| Decision | Guide |
+| --- | --- |
+| Record live data and deferred plot marks | [First figure](quickstart.md), [live data](data.md) |
+| Allocate page cells and nested panels | [Panel layout](layout.md) |
+| Name reusable content and express measured relationships | [Reusable compositions](composition-recipes.md) |
+| Place drawing primitives at explicit coordinates | [Direct drawing cookbook](cookbook.md) |
+| Save reviewed layout choices or package a study | [Saved layout choices](layout-overrides.md), [figure projects](project-workflows.md) |
+
+These approaches share drawing geometry and exports. Choose the one that makes
+future edits explicit, and combine them where a figure needs both live plots
+and fixed illustrations.
+
 ## Compilation
 
 `doc.compile()` evaluates explicit dependencies, measures labels and plot
@@ -94,3 +120,21 @@ built content before placement.
 
 Read the [cookbook](cookbook.md) for direct drawing recipes or the
 [compilation contract](design/v2.md) for implementation details.
+
+## Identity and saved decisions
+
+Give revisable content stable names: dataset columns identify values,
+composition paths identify placed objects, and explicit plot instruction keys
+identify editable marks and labels. Keep those names attached to the same
+meaning when replacing inputs. A displayed caption or a row's current position
+is not a durable identity.
+
+The experimental [figure project](project-workflows.md) connects local row,
+drawing and image/mesh IDs through explicit entity mappings. Its asset manifest
+records the files and provenance needed to reconstruct a study. Saved choices
+supplement your Python recipe; they do not serialize arbitrary Python code.
+
+Use [interactive documents](interactive-documents.md) to distinguish offline
+view state, linked plot style overrides and the local composition editor's
+layout choices. Those saved files serve different workflows and are not
+interchangeable.

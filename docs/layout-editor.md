@@ -287,8 +287,9 @@ remain accessible in Python. The `with LayoutEditor(recipe) as editor:` form
 starts and closes the server automatically; keep that context alive during
 browser use.
 
-The inspector edits named composition layout and artwork scale. Label content,
-individual plot marks, camera dragging, and file watching are not part of this interface.
+The inspector edits named composition layout, artwork scale, label content and
+styles, and supported native camera settings. Individual plot marks, camera
+dragging and file watching are not part of this interface.
 The separate [linked-plot appearance editor](visual-editing.md) retains its
 existing scope. Broader authoring and identity work remains on the
 [4.0 roadmap](roadmap.md).

@@ -1,6 +1,7 @@
 # Reproducible plot editing
 
-Available in **4.0.0.dev3**, under `inklet.experimental`.
+Available in the [published 4.0 preview](development-preview.md), under
+`inklet.experimental`. This guide covers the offline linked-plot inspector.
 
 The offline inspector edits named plot styles: colour, marker radius and line
 width where supported. Apply a change, undo or redo it, and save a small
@@ -90,9 +91,12 @@ revisions exclude one another while preparation is in progress.
 
 ## Current limits and checks
 
-This is the first bounded authoring increment. Label movement, text editing,
-panel dimensions, layout locks, camera controls and reusable composition editing
-remain open. Undo history is local to the open page and is not serialized.
+This offline inspector changes supported plot appearances. For named label text,
+panel dimensions, layout locks and native camera controls, use the Python-backed
+[composition editor](layout-editor.md). Its layout overrides are a separate
+format; they are not interchangeable with plot-style overrides.
+[Figure projects](project-workflows.md) add verified asset bundles on master
+(unreleased dev16). Undo history is local to the open page and is not serialized.
 Style commands prepare a complete replacement renderer and rebuild picking
 geometry; they do not promise incremental layout or low-latency dense editing.
 

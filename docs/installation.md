@@ -3,7 +3,7 @@
 Inklet requires Python 3.11 or later and an installed TrueType/OpenType font.
 The core Python dependencies are HarfBuzz bindings and fontTools.
 
-This page covers stable **Inklet 3.1** and the opt-in **4.0.0.dev9 preview**. See the
+This page covers stable **Inklet 3.1** and the opt-in **4.0.0.dev15 preview**. See the
 [compatibility matrix](compatibility.md) for tested platforms and Blender versions.
 
 ## From PyPI
@@ -24,9 +24,9 @@ Activate the environment or prefix commands with `.venv/bin/` on Linux/macOS.
 ## 4.0 development preview
 
 ```sh
-python -m pip install "inklet==4.0.0.dev9"
+python -m pip install "inklet==4.0.0.dev15"
 # Optional rendering and DataFrame adapters:
-python -m pip install "inklet[render,pandas,polars]==4.0.0.dev9"
+python -m pip install "inklet[render,pandas,polars]==4.0.0.dev15"
 ```
 
 Use a separate virtual environment when trying the preview. Experimental APIs
@@ -79,7 +79,7 @@ Check the installed package with
 
 | Install from the checkout | Adds |
 |---|---|
-| `python -m pip install -e '.[render]'` | Browser-free PNG, masks and raster layers (v3) |
+| `python -m pip install -e '.[render]'` | Browser-free PNG, masks and raster layers |
 | `python -m pip install -e '.[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
 | `python -m pip install -e '.[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
 | `python -m pip install -e '.[volume]'` | Experimental calibrated microscopy, TIFF import and label measurements |
@@ -87,7 +87,7 @@ Check the installed package with
 | `python -m pip install -e '.[docs]'` | MkDocs for the searchable documentation site |
 
 Extras can be combined: `python -m pip install -e '.[dev,render,images,three,docs]'`.
-The `render` extra supplies resvg for v3 PNG output; `images` alone does not.
+The `render` extra supplies resvg for PNG output; `images` alone does not.
 
 ## Fonts
 
@@ -107,7 +107,7 @@ Low-level text uses `size=i.pt(8)` for 8-point type. See
 
 ## Visual review
 
-V3 uses resvg for PNG output and review previews. Install with
+Inklet uses resvg for PNG output and review previews. Install with
 `python -m pip install 'inklet[render]'`. SVG and PDF saving need no
 browser; figures containing raster images also need Pillow (included in `render`).
 

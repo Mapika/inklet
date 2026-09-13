@@ -1,12 +1,13 @@
 # Reusable plots and composition
 
-Available in **4.0.0.dev5**. See the
-[development-preview installation guide](development-preview.md).
+Make a paired comparison without maintaining two copies of the plotting code.
+This tutorial combines line and point recipes, gives one copy a different
+visual treatment, then updates both from shared measurements.
 
-Build a set of marks once, combine it with other marks, and make independently
-styled variants. The recipes share explicit live data while keeping their
-recorded instructions separate. Compose the results with diagrams and other
-content in a measured document.
+Available in the published **4.0.0.dev15 preview**; see the
+[installation guide](development-preview.md). Run the Python blocks in order
+after [your first figure](quickstart.md). The core installation is sufficient
+for the SVG/PDF outputs.
 
 ![Reusable response plots, category bars, distribution overlays and a responsive diagram](assets/guides/plot-composition.png)
 
@@ -65,9 +66,15 @@ first.save('comparison.svg', 'comparison.pdf')
 
 measurements.update(y=[2, 3.5, 2.5])
 revised = page.compile()
+revised.save('comparison-revised.svg', 'comparison-revised.pdf')
 assert revised.to_svg() != first_svg
 assert first.to_svg() == first_svg
 ```
+
+Open `comparison.svg`: both panels have the same data, but the right panel uses
+diamond markers and a thicker orange line. In `comparison-revised.svg`, both
+curves reflect the updated values. Visual edits belong to a recipe instance;
+measurement edits belong to the shared dataset.
 
 `style(key, **options)` merges keyword options into an existing instruction,
 keeping its positional data. It works for marks and furniture such as axes,
@@ -82,7 +89,7 @@ explicit live objects remain shared. Supplied diagram objects and component
 factories are also retained as dependencies; this is not a deep copy of every
 object in a project.
 
-A `Series` can now receive a local `color`, `name`, or line `stroke` override
+A `Series` can receive a local `color`, `name`, or line `stroke` override
 without changing the shared Series definition. Its supplied uncertainty band
 uses the overridden series colour. A per-point scatter colour array keeps the
 Series colour for its uncertainty band.
@@ -93,6 +100,7 @@ Series colour for its uncertainty band.
 variant.style('axes',
               x_options={'ticks': [0, 1, 2], 'tick_font_size': i.pt(8)},
               y_options={'count': 3, 'format': lambda value: f'{value:g} mV'})
+page.compile().save('comparison-formatted.svg')
 ```
 
 `Panel.axes()` and `PlotSpec.axes()` accept `x_options` and `y_options`.
@@ -108,10 +116,10 @@ when drawing a matching custom grid explicitly.
 
 ## Preserve plot size as furniture changes
 
-An automatically sized document now grows its row when a legend wraps into
-more lines. It preserves the authored **data-region height**, even when
-`share_plot_margins=False`. Previously the additional legend space could be
-taken from the plot itself.
+An automatically sized document grows its row when a legend wraps into more
+lines. It preserves the authored **data-region height**, even when
+`share_plot_margins=False`. In this example that height is 32 mm; axes and a
+bottom legend need additional space around it.
 
 A fixed page height remains a constraint, so plots use the available room or
 report an impossible layout. Text is not shrunk to force a fit. Margin sharing
@@ -136,4 +144,4 @@ viewers support inspecting the compiled scene; these recipe edits happen in
 Python, not in the linked-report style inspector.
 
 To reuse a complete layout across plots, diagrams and 3D components, see
-[reusable compositions](composition-recipes.md) (dev6).
+[reusable compositions](composition-recipes.md).

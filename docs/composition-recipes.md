@@ -1,10 +1,17 @@
 # Reusable compositions
 
-Available in **4.0.0.dev6**. A composition can define a layout once and accept
-named content inputs: plots, diagrams, images or native 3D components. Each
-instance keeps its own author choices while explicit data dependencies stay
-live. Start with [plot recipes](plot-recipes.md) for combining marks inside a
-single plot, or [panel layout](layout.md) for document rows and columns.
+Use a composition when the same figure structure needs different content: a
+response plot above a caption, a method diagram beside results, or a report
+repeated for several experiments. Define named slots and measured placement
+once, then instantiate the layout with plots, diagrams, images or native 3D
+components. Each instance keeps its own author choices and shares explicit
+live data dependencies.
+
+This tutorial creates two report instances, revises their shared data and
+exports one at a second width. It uses the published **4.0.0.dev15 preview**
+and the core installation. Run the Python blocks in order. Start with
+[plot recipes](plot-recipes.md) for marks inside one plot, or
+[panel layout](layout.md) for document rows and columns.
 
 ![A reusable report with a live plot, native 3D and a nested workflow](assets/guides/composition-recipes.png)
 
@@ -15,7 +22,7 @@ illustrative data and generated geometry.
 
 [Open the standalone figure viewer](assets/guides/composition-recipes.html).
 The viewer supports exploration; these placement and content edits are made
-in Python or through the [local layout inspector](layout-editor.md) in dev8.
+in Python or through the [local layout inspector](layout-editor.md).
 
 ## Declare inputs and defaults
 
@@ -87,7 +94,7 @@ assert doc.compile() is after
 ```
 
 `place()` changes placement fields: `x`, `y`, `anchor`, `width`, `height` and
-`scale`. Explicit `scale` (dev9) uniformly scales complete artwork, including
+`scale`. Explicit `scale` uniformly scales complete artwork, including
 text and strokes; it is separate from fitting a plot to a new width/height.
 Set `anchor`, `width` or `height` to `None` to restore their unspecified behavior.
 `replace()` replaces content and keeps its placement and named relationships.
@@ -95,6 +102,26 @@ Dimension updates through `configure()` validate before mutation; expressions,
 minimum-space constraints and referenced anchors are checked at compilation.
 The containing document may supply a different render size, so use page
 expressions for responsive placement rather than scaling a finished drawing.
+
+## Export a second instance at another width
+
+The template positions its plot using `page_width - 26`: 13 mm of room on each
+side. Render the second instance at 140 mm and its data region becomes 114 mm
+wide. The 30 mm data-region height, label sizes and stroke widths stay fixed.
+
+```python
+wide = i.document(width=140, height=70, margin=0)
+wide.add('report', second)
+wide_figure = wide.compile()
+wide_figure.save('composition-wide.svg', 'composition-wide.pdf')
+assert wide_figure.root.width == 140
+assert doc.compile().root.width == 120
+```
+
+Compare this export with `composition.svg`: the wider plot uses the independently
+styled line and revised measurements, and its caption reads “Independent label.”
+Changing the available page width recomputes layout expressions. For a template
+with longer labels, add minimum-width constraints that reflect those labels.
 
 ## Expose attachment points through nested compositions
 
@@ -134,10 +161,11 @@ needs. The complete example rejects widths below 140 mm.
 Run `python examples/composition_recipes.py --render` from the checkout to
 produce the SVG/PDF/PNG comparisons, standalone HTML viewers, revised-data
 exports and build statistics in `out/composition-recipes/`. PNG requires the
-render extras. This is a Python recipe API. [Figure projects](project-workflows.md) add verified
-asset manifests and portable editor choices in dev16. Full Python object
-serialization is outside that bundle contract. Saved layout choices and
-the [local inspector](layout-editor.md) build on these recipes.
+render extras. The [local inspector](layout-editor.md) offers visual editing of
+the named content in these Python recipes.
 
-In dev7, [save and restore layout choices](layout-overrides.md) separately from
-the recipe, preserving measured expressions and reporting removed targets.
+[Save and restore layout choices](layout-overrides.md) separately from the
+recipe to preserve measured expressions and report removed targets. Use
+[figure projects](project-workflows.md) when you also need to carry input files
+and provenance through save, reopen and revision. Those project APIs are
+experimental in master/dev16 and require the Python recipe when reopening.
