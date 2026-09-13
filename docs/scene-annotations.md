@@ -1,11 +1,13 @@
 # Scene annotations and measurements
 
-Available in **3.0**. Add labels, arrows, length dimensions and angle
+Add labels, arrows, length dimensions and angle
 measurements to a rendered scene. Geometry uses world coordinates; text,
 leader clearance, offsets and stroke widths use page units. All four helpers
 return vector overlay layers without copying the scene image.
 
 ![Labels, dimensions, a depth-tested arrow and a measured angle over a sensor housing](../gallery/v3-scene-annotations.png)
+
+For a complete biological example, follow [the synapse tutorial](scientific-scenes.md).
 
 ## Label a world point
 

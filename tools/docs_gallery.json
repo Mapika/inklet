@@ -1,5 +1,16 @@
 [
   {
+    "id": "scientific-blender",
+    "title": "A labelled synapse",
+    "category": "Scientific",
+    "description": "Blender cutaway geometry with vector labels and two illustrative plots.",
+    "requires": "Blender + render extra",
+    "image": "assets/scenes/synapse.png",
+    "version": "4.0 preview",
+    "page": "scientific-scenes/",
+    "featured": false
+  },
+  {
     "id": "olfactory-circuits",
     "title": "Fly-brain circuits",
     "category": "Scientific",
