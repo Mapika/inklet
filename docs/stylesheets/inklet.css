@@ -4,11 +4,19 @@
   --ink:#172f32;
   --muted:#586b6d;
   --accent:#176857;
+  --focus:#a85c20;
   --line:#dce4df;
   --soft:#edf2ed;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-6:24px;
+  --space-8:32px;
+  --space-12:48px;
+  --radius:8px;
   --header:72px;
   --sidebar:228px;
-  font-family:Inter,"Segoe UI",Arial,sans-serif;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
   color:var(--ink);
   background:var(--paper);
   font-synthesis:none
@@ -20,7 +28,7 @@
 
 body {
   margin:0;
-  font-size:15px;
+  font-size:16px;
   line-height:1.65
 }
 
@@ -47,7 +55,7 @@ button,a,input,summary {
 }
 
 button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible {
-  outline:3px solid #bf7134;
+  outline:3px solid var(--focus);
   outline-offset:4px
 }
 
@@ -62,7 +70,7 @@ button {
 
 h1,h2,h3,h4 {
   line-height:1.2;
-  letter-spacing:-.035em;
+  letter-spacing:-.02em;
   font-weight:600
 }
 
@@ -225,7 +233,7 @@ kbd {
   overflow:auto;
   padding:28px 18px 36px 24px;
   border-right:1px solid var(--line);
-  font-size:12px;
+  font-size:13px;
   scrollbar-width:thin
 }
 
@@ -251,13 +259,13 @@ kbd {
 }
 
 .nav-group {
-  margin:18px 0
+  margin:var(--space-6) 0
 }
 
 .nav-group summary {
   font-weight:600;
-  font-size:11px;
-  letter-spacing:.035em;
+  font-size:12px;
+  letter-spacing:0;
   color:var(--ink);
   padding:3px 10px;
   cursor:pointer;
@@ -313,19 +321,19 @@ main {
 }
 
 .prose>h1:first-of-type+p {
-  font-size:17px;
+  font-size:16px;
   color:var(--muted);
-  line-height:1.75
+  line-height:1.65
 }
 
 .prose h2 {
-  margin:2.1em 0 .75em;
-  padding-top:.5em;
-  border-top:1px solid var(--line)
+  margin:var(--space-12) 0 var(--space-4);
+  padding-top:0;
+  border:0
 }
 
 .prose h3 {
-  margin:1.7em 0 .65em
+  margin:var(--space-8) 0 var(--space-3)
 }
 
 .prose h4 {
@@ -369,8 +377,8 @@ main {
 }
 
 .eyebrow {
-  font:10px ui-monospace,SFMono-Regular,Consolas,monospace;
-  letter-spacing:.11em;
+  font:600 11px system-ui,sans-serif;
+  letter-spacing:.06em;
   text-transform:uppercase;
   color:var(--accent);
   margin-bottom:16px;
@@ -392,7 +400,7 @@ main {
   align-self:start;
   max-height:calc(100vh - 130px);
   overflow:auto;
-  font-size:11px;
+  font-size:12px;
   border-left:1px solid var(--line);
   padding-left:20px
 }
@@ -563,7 +571,7 @@ td,th {
 
 .hero-copy h1 {
   font-size:clamp(34px,3.6vw,59px);
-  letter-spacing:-.055em;
+  letter-spacing:-.035em;
   line-height:1.09;
   margin:22px 0
 }
@@ -701,7 +709,7 @@ td,th {
 }
 
 .home-section {
-  margin-top:48px
+  margin-top:var(--space-12)
 }
 
 .section-heading {
@@ -709,7 +717,7 @@ td,th {
   align-items:end;
   justify-content:space-between;
   gap:20px;
-  margin-bottom:22px
+  margin-bottom:var(--space-6)
 }
 
 .section-heading .eyebrow {
@@ -717,7 +725,7 @@ td,th {
 }
 
 .section-heading h2 {
-  font-size:30px;
+  font-size:26px;
   margin:0
 }
 
@@ -730,13 +738,13 @@ td,th {
 .featured-grid {
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:20px
+  gap:var(--space-6)
 }
 
 .gallery-card {
   min-width:0;
   border:1px solid var(--line);
-  border-radius:7px;
+  border-radius:var(--radius);
   background:var(--surface);
   overflow:hidden;
   transition:box-shadow .16s,border-color .16s
@@ -763,14 +771,14 @@ td,th {
 }
 
 .card-copy {
-  padding:20px
+  padding:var(--space-6)
 }
 
 .card-meta {
   display:flex;
   justify-content:space-between;
   gap:8px;
-  font:9px ui-monospace,monospace;
+  font:500 11px system-ui,sans-serif;
   letter-spacing:.03em;
   text-transform:uppercase;
   color:var(--muted)
@@ -782,7 +790,7 @@ td,th {
 
 .card-copy h2 {
   font-size:20px;
-  margin:12px 0 10px
+  margin:var(--space-3) 0 var(--space-3)
 }
 
 .card-copy h2 a {
@@ -791,11 +799,10 @@ td,th {
 }
 
 .card-copy p {
-  font-size:12px;
-  line-height:1.75;
+  font-size:14px;
+  line-height:1.6;
   color:var(--muted);
-  min-height:42px;
-  margin-bottom:20px
+  margin-bottom:var(--space-6)
 }
 
 .card-bottom {
@@ -804,7 +811,7 @@ td,th {
   gap:10px;
   border-top:1px solid var(--line);
   padding-top:13px;
-  font-size:10px
+  font-size:12px
 }
 
 .card-bottom>span {
@@ -896,11 +903,11 @@ td,th {
 }
 
 .page-intro h1 {
-  font-size:46px
+  font-size:clamp(32px,3.5vw,44px)
 }
 
 .page-intro p {
-  font-size:17px;
+  font-size:16px;
   color:var(--muted)
 }
 
@@ -945,7 +952,7 @@ td,th {
 }
 
 .gallery-count {
-  font-size:11px;
+  font-size:12px;
   color:var(--muted);
   margin:20px 0
 }
@@ -1556,7 +1563,7 @@ td,th {
   font-size:12px;
 }
 select:focus-visible {
-  outline:3px solid #bf7134;
+  outline:3px solid var(--focus);
   outline-offset:3px;
 }
 
@@ -1576,12 +1583,12 @@ select:focus-visible {
 .home-workflows { grid-area:workflows; scroll-margin-top:90px; }
 .home-workflows h2 { font-size:22px; margin:0 0 12px; }
 .workflow-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
-.workflow-grid>a { padding:15px; border:1px solid var(--line); border-radius:6px; text-decoration:none; background:var(--surface); }
+.workflow-grid>a { padding:var(--space-4); border:1px solid var(--line); border-radius:6px; text-decoration:none; background:var(--surface); }
 .workflow-grid>a:hover { border-color:var(--accent); }
-.workflow-grid>a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.workflow-grid>a:focus-visible { outline:2px solid var(--focus); outline-offset:3px; }
 .workflow-grid h3 { font-size:15px; margin:0 0 8px; color:var(--ink); display:flex; justify-content:space-between; gap:8px; }
-.workflow-grid p { font-size:12px; color:var(--muted); margin:0; }
-.workflow-version { display:block; font-size:11px; margin-top:5px; }
+.workflow-grid p { font-size:13px; color:var(--muted); margin:0; }
+.workflow-version { display:block; font-size:12px; margin-top:5px; }
 @media(max-width:1100px) {
   .workflow-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
@@ -1600,7 +1607,7 @@ select:focus-visible {
 .mobile-toc nav { display:grid; gap:4px; padding:0 14px 12px; }
 .mobile-toc a { display:block; padding:6px 0; font-size:13px; }
 .card-link { display:flex; flex-direction:column; height:100%; color:inherit; text-decoration:none; }
-.card-link:focus-visible { outline:2px solid var(--accent); outline-offset:-3px; border-radius:7px; }
+.card-link:focus-visible { outline:2px solid var(--focus); outline-offset:-3px; border-radius:7px; }
 .card-link .card-copy { display:flex; flex-direction:column; flex:1; }
 .card-link h2 { color:var(--ink); }
 .card-link .card-bottom { margin-top:auto; }
@@ -1608,3 +1615,15 @@ select:focus-visible {
 .gallery-reset { border:1px solid var(--line); border-radius:5px; padding:9px 12px; color:var(--ink); background:var(--surface); cursor:pointer; font:inherit; font-size:12px; }
 @media(max-width:1200px) { .mobile-toc { display:block; } }
 @media print { .mobile-toc { display:none; } }
+
+/* Text stays readable while figures and tables can use the full content width. */
+.prose>p:not(:has(img)),.prose>ul,.prose>ol { max-width:68ch; }
+.home-start,.home-section,.home-reference { max-width:1560px; margin-inline:auto; }
+:is(.button,.search-trigger,.menu-toggle,.gallery-filters button,.gallery-reset) { min-height:40px; }
+@media(max-width:760px) {
+  .eyebrow { font-size:11px; }
+  .card-meta { font-size:11px; }
+  .workflow-grid p { font-size:12px; }
+  .workflow-version { font-size:11px; }
+  .section-heading h2 { font-size:26px; }
+}
