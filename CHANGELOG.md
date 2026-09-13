@@ -2,6 +2,17 @@
 
 ## 4.0.0.dev16 — Unreleased
 
+- Add experimental figure projects with portable SHA-256 asset manifests,
+  explicit cross-content entity maps, source-native linked-view adapters,
+  saved editor choices and verified reconstruction through trusted factories.
+- Add complete project acceptance for edit/undo/reopen/revision/removal/resize
+  and exports; expose the shared acceptance marker for all three reference reports.
+- Consolidate browser/export test helpers and rename six version/round-based
+  regression modules by behavior, retaining their assertions and fixtures.
+- Replace the preview's duplicate tutorials with links to current capability
+  guides; update the RC checklist, archive superseded studies at their existing
+  URLs and exclude historical pages from normal search.
+
 - Encode horizontal-first closed rectangular contours with compact PDF rectangle
   operators, preserving rounded endpoints, signed winding and dash origins.
 - Buffer PDF content without retaining one Python string per drawing operator.

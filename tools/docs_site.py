@@ -36,6 +36,7 @@ def repository_ref():
 
 def on_config(config):
     # A deployed page must not reuse a previous theme's cached CSS or JS.
+    config['extra']['archive_pages'] = []
     assets = [*config['extra_css'], *config['extra_javascript']]
     digest = hashlib.sha256()
     for asset in assets:
@@ -96,6 +97,13 @@ def rewrite_links(markdown, source_path, repo_url, ref='master'):
 
 
 def on_page_markdown(markdown, page, config, files):
+    if page.meta.get('archived'):
+        config['extra']['archive_pages'].append(page.url)
+        current = page.meta.get('current')
+        if not current:
+            raise ValueError(f'{page.file.src_uri}: archived pages need a current guide')
+        markdown = ('!!! note "Historical material"\n\n'
+                    f'    This page preserves an earlier release or study. See the [current guide]({current}) for supported behavior.\n\n' + markdown)
     def recipe(match):
         source = (ROOT/'examples/showcase/figures.py').read_text()
         function = next(node for node in ast.parse(source).body
@@ -137,6 +145,8 @@ def on_post_build(config):
     entries = []
     for entry in data['docs']:
         page,_,fragment = entry['location'].partition('#')
+        if page in config['extra'].get('archive_pages', []):
+            continue
         # The page entry already contains its introduction. Indexing the H1
         # again creates two near-identical results above the useful sections.
         if fragment and unquote(fragment) == config['extra']['search_page_heads'].get(page):

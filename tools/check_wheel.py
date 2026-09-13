@@ -253,6 +253,21 @@ if __name__ == "__main__":
     assert annotated.notes['annotations']['placements']['key']['locked']
     i.review_figure(annotated,rules=['TINY_TEXT']).save('scientific-review')
     assert Path('scientific-review.json').exists()
+    # Project bundling and cross-content IDs remain usable with core only.
+    from inklet.experimental.project import AssetManifest, EntityMap, FigureProject
+    Path('project-data.json').write_text('[2, 4]')
+    inventory=AssetManifest.capture(Path.cwd(),[dict(id='data',path='project-data.json',source='Simulated wheel fixture',license='MIT')])
+    def project_recipe(root):
+        values=json.loads((root/'project-data.json').read_text())
+        result=i.composition(80,40)
+        result.add('label',i.module(str(values[0])),x=10,y=10)
+        return result
+    identities=EntityMap(['sample'],{'composition':{'/label':'sample'},'rows':{'row-7':'sample'}})
+    project=FigureProject('Wheel project',project_recipe(Path.cwd()),assets=inventory,identities=identities)
+    project.select('rows',['row-7'])
+    bundle=project.save('project-bundle',asset_root=Path.cwd())
+    reopened=FigureProject.open(bundle,project_recipe)
+    assert reopened.selected==('sample',) and reopened.editor.figure.to_svg()==project.editor.figure.to_svg()
     print("Installed wheel API passed", i.__version__)
 '''
 

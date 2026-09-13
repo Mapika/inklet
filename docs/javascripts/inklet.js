@@ -93,10 +93,16 @@
     try {
       const index = await loadIndex();
       if (current !== sequence) return;
+      const seenPages = new Set();
       const matches = index.filter(doc => (!section.value || doc.section === section.value) && terms.every(term => doc.titleLower.includes(term) || doc.textLower.includes(term)))
         .map(doc => ({doc, score: terms.reduce((sum, term) => sum + (doc.titleLower.includes(term) ? 10 : 0), 0)}))
-        .sort((a, b) => b.score - a.score).slice(0, 12);
-      status.textContent = matches.length ? `Showing ${matches.length} matching sections` : 'No results. Try a shorter term or a different spelling.';
+        .sort((a, b) => b.score - a.score)
+        .filter(({doc}) => {
+          const page = doc.location.split('#')[0];
+          if (seenPages.has(page)) return false;
+          seenPages.add(page); return true;
+        }).slice(0, 12);
+      status.textContent = matches.length ? `Showing ${matches.length} matching pages` : 'No results. Try a shorter term or a different spelling.';
       matches.forEach(({doc}) => {
         const url = new URL(doc.location, root);
         if (url.origin !== location.origin || !url.pathname.startsWith(root.pathname)) return;

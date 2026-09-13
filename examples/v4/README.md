@@ -111,7 +111,7 @@ external microscopy import into the linked model, and general editing remain ope
 
 ## Checks and baseline
 
-`tests/test_v4_selection.py` verifies fixture measurements, selection semantics,
+`tests/test_selection_contracts.py` verifies fixture measurements, selection semantics,
 array snapshots and cached/clean plot agreement. Run `tools/benchmark_v4.py` for
 fresh-process cold/cached/data-edit/label-edit/resize/export measurements.
 The [phase A report](../../docs/v4-foundations.md) explains baseline limitations

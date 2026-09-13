@@ -1,3 +1,8 @@
+---
+archived: true
+current: plot-quality.md
+---
+
 # Plot rendering review
 
 Inklet 3.1 adds optional vector-line reduction with a

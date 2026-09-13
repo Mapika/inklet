@@ -1,3 +1,8 @@
+---
+archived: true
+current: compiled-viewer.md
+---
+
 # Offline browser rendering
 
 For ordinary native figures, the new [compiled-scene viewer](compiled-viewer.md)

@@ -48,7 +48,7 @@ def test_a_legend_name_keeps_its_asterisks() -> None:
     """Still true after round 4 turned legend names into prose, and for a
     better reason than the old one: `Notch1**` has no closing pair, and an
     unpartnered delimiter is ordinary text in this grammar. See
-    `tests/test_round4_plot.py` for the paired case, which is now italic."""
+    `tests/test_plot_annotation_regressions.py` for the paired case, which is now italic."""
     p = panel(40, 30, x=(0, 10), y=(0, 10))
     p.line([(0, 0), (10, 10)], name="Notch1**")
     p.legend()

@@ -1,3 +1,8 @@
+---
+archived: true
+current: research-preview.md
+---
+
 # Controlling label movement during revision
 
 The third research preview adds physical movement costs and hard movement limits

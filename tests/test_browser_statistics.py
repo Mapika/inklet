@@ -8,6 +8,7 @@ import subprocess
 from xml.etree import ElementTree as ET
 
 import pytest
+from browser_support import svg_geometry
 
 from inklet.experimental.browser import (
     BrowserFigure, ECDFView, FacetView, IntervalView, RevisionOption, TimeAxis,
@@ -224,18 +225,6 @@ def test_facet_denominators_are_per_category_and_empty_panels_survive():
     assert figure.payload()['facet_groups'][0]['unassigned_ids']==['g']
 
 
-def svg_geometry(svg):
-    root=ET.fromstring(svg); result=[]
-    for group in (root[1],root[-1]):
-        for element in group.iter():
-            tag=element.tag.rsplit('}',1)[-1]
-            if tag not in ('line','circle') or ('fill' not in element.attrib and 'stroke' not in element.attrib):continue
-            attrs={}
-            for key,value in element.attrib.items():
-                try:attrs[key]=float(value)
-                except ValueError:attrs[key]=value
-            result.append((tag,attrs))
-    return root.attrib['viewBox'].split(),result
 
 
 def test_filtering_preserves_reference_population_and_replacement_recomputes_it():

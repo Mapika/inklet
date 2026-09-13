@@ -8,6 +8,7 @@ from dataclasses import FrozenInstanceError
 from pathlib import Path
 
 import pytest
+from browser_support import browser_result
 
 from inklet.experimental.browser import BrowserFigure, FacetView, SeriesView, TimeAxis
 from inklet.experimental.selection import KeyedTable, SelectionState
@@ -112,21 +113,10 @@ CHECKS=r'''
 '''
 
 
-def browser_result(tmp_path,figure,checks,**html_options):
-    browser=next((p for name in ('google-chrome','chromium','chromium-browser') if (p:=shutil.which(name))),None)
-    if browser is None:pytest.skip('Chrome/Chromium not installed')
-    page=tmp_path/'index.html';page.write_text(figure.to_html(**html_options).replace('</html>','<script>'+checks+'</script></html>'))
-    result=subprocess.run([browser,'--headless','--no-sandbox','--disable-gpu','--dump-dom',
-        '--virtual-time-budget=5000',f'--user-data-dir={tmp_path}/profile',page.as_uri()],
-        capture_output=True,text=True,timeout=30)
-    assert result.returncode==0,result.stderr[-2000:]
-    match=re.search(r'<pre id="test-result">(.*?)</pre>',result.stdout,re.S);assert match,result.stdout[-2000:]
-    report=json.loads(html.unescape(match[1]));assert 'error' not in report,report
-    return report
 
 
 def test_browser_sample_hover_pick_and_export(tmp_path):
-    from test_browser_statistics import svg_geometry
+    from browser_support import svg_geometry
     figure=BrowserFigure(table(),[view()])
     exports=browser_result(tmp_path,figure,CHECKS)
     assert len(exports)==6

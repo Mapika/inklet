@@ -1,3 +1,8 @@
+---
+archived: true
+current: ../compiled-viewer.md
+---
+
 # Browser backend decision: scatter preview
 
 The later [mixed-plot increment](../linked-plots.md) adds line and rectangle

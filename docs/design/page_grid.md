@@ -1,3 +1,8 @@
+---
+archived: true
+current: ../layout.md
+---
+
 # The page-grid combinator: measured, and declined
 
 > Historical design study from before v2. For the implemented document grid,

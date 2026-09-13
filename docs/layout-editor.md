@@ -230,7 +230,9 @@ appears. Distinct placements of that shared content remain independently editabl
 **Save choices** downloads the versioned JSON described in
 [saved layout choices](layout-overrides.md). **Open** loads that
 same format. The file contains changed layout, label and supported style fields.
-Other source content, assets and undo history stay outside the file. Keep it alongside the recipe.
+Other source content, assets and undo history stay outside the override file.
+Use a [figure project](project-workflows.md) to bundle verified source assets,
+identity mappings and the current editor choices together.
 
 **Export → SVG** and **Export → PDF** export the successful preview revision.
 If another editor tab changes the session first, stale commands and export

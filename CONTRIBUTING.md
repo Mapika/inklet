@@ -29,7 +29,7 @@ features. CI installs fonts, Chrome and Poppler as described in
 Run the tests relevant to the modified behavior first:
 
 ```sh
-.venv/bin/python -m pytest -q tests/test_document.py tests/test_document_v25.py
+.venv/bin/python -m pytest -q tests/test_document.py tests/test_nested_documents.py
 ```
 
 For a release or a broad rendering change:

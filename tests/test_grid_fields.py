@@ -153,7 +153,7 @@ CHECKS=r'''
 
 
 def test_browser_cell_oracle_and_export_parity(tmp_path):
-    from test_browser_series import browser_result
+    from browser_support import browser_result
     from inklet.render.preview import svg_png
     from PIL import Image,ImageChops
     original=recipe.make_scene();masked=recipe.make_scene('masked')

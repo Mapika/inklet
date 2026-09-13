@@ -67,6 +67,7 @@ def test_drawings_resolve_text_paint_and_stable_ids_without_shrinking_type():
                 assert 'transform="scale(' not in base64.b64decode(mark['href'].split(',')[1]).decode()
 
 
+@pytest.mark.acceptance
 def test_revision_preserves_labels_selection_responses_and_old_scene():
     labels=recipe.read_labels();labels['sensor']=(5,-9)
     original=recipe.make_scene(labels=labels);before=original.payload()
@@ -128,9 +129,10 @@ CHECKS=r'''
 '''
 
 
+@pytest.mark.acceptance
 def test_browser_linked_native_drawings_revisions_and_pixels(tmp_path):
-    from test_browser_series import browser_result
-    from test_browser_statistics import svg_geometry
+    from browser_support import browser_result
+    from browser_support import svg_geometry
     original=recipe.make_scene();removed=recipe.make_scene('removed')
     report=browser_result(tmp_path,original,CHECKS,revisions=[
         RevisionOption('Resized',recipe.make_scene('resized'),recipe.CREDIT),
@@ -138,14 +140,10 @@ def test_browser_linked_native_drawings_revisions_and_pixels(tmp_path):
     assert len(report['exports'])==6
     for export in report['exports']:
         assert svg_geometry(original.to_svg(export['state']))==svg_geometry(export['svg'])
-    Image=pytest.importorskip('PIL.Image')
-    from PIL import ImageChops
-    from inklet.render.preview import svg_png,svg_pdf,pdf_png
+    from browser_support import assert_svg_pixels
     chosen=report['revised']
-    for name,svg in [('python',removed.to_svg(chosen['state'])),('browser',chosen['svg'])]:
-        path=tmp_path/(name+'.svg');path.write_text(svg);svg_png(path,path.with_suffix('.png'),dpi=150)
-    a,b=(Image.open(tmp_path/(name+'.png')).convert('RGB') for name in ('python','browser'))
-    assert a.size==b.size and ImageChops.difference(a,b).getbbox() is None
+    assert_svg_pixels(tmp_path,removed.to_svg(chosen['state']),chosen['svg'])
+    from inklet.render.preview import svg_pdf
     # Vector embedding must survive PDF conversion without rasterizing labels.
     import shutil,subprocess
     if shutil.which('pdfimages'):
@@ -154,6 +152,7 @@ def test_browser_linked_native_drawings_revisions_and_pixels(tmp_path):
         assert len(images)==2
 
 
+@pytest.mark.acceptance
 def test_report_cli_reopens_and_reports_orphaned_labels(tmp_path):
     import subprocess,sys
     labels=recipe.read_labels();labels['sensor']=[5,-9]

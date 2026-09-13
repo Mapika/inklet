@@ -44,8 +44,10 @@ jobs:
           uv venv
           uv pip install -r requirements-ci.txt -e .
           .venv/bin/inklet doctor
-      - name: Unit and integration tests
-        run: .venv/bin/python -m pytest -q --junitxml=out/tests.xml
+      - name: Contracts and regressions
+        run: .venv/bin/python -m pytest -q -m "not acceptance" --junitxml=out/tests.xml
+      - name: End-to-end acceptance
+        run: .venv/bin/python -m pytest -q -m acceptance --junitxml=out/acceptance.xml
       - name: Generated API documentation
         run: .venv/bin/python tools/gen_api.py --check
       - name: Build documentation with strict link validation

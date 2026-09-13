@@ -1,3 +1,8 @@
+---
+archived: true
+current: research-preview.md
+---
+
 # Research preview: regions and crossings
 
 The second preview adds sampled-region requirements, optional leader-crossing

@@ -1,12 +1,4 @@
-"""What round 3's showcase pass promised, held to it.
-
-Three of these are contract tests for behaviour nothing else pins down: that a
-stack remembers the gap it was given, that a restyle carries whatever a builder
-stamped on a node, and that eight series get eight colours in every theme even
-where the published palette is only seven long. The fourth is the standing
-measurement `test_themes` keeps for contrast, extended to the case where
-neither end of a theme's own range is readable on the fill.
-"""
+"""Theme contrast, palette extension and retained layout metadata contracts."""
 
 from __future__ import annotations
 

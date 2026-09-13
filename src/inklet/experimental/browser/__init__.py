@@ -25,6 +25,7 @@ from .drawings import DrawingItem, DrawingView
 from .images import LabelImageView
 from .fields import MeshFieldView
 from .grid import GridFieldView
+from .mapped import MappedView
 from ..temporal import time_milliseconds
 
 SCHEMA = 'inklet.browser-scatter/0.1'
@@ -335,20 +336,24 @@ class BrowserFigure:
     def __init__(self, table: KeyedTable, views, *, width=190, columns=None):
         import inklet as i
         definitions=tuple(views)
-        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,SeriesView,RegionView,MapView,DrawingView,LabelImageView,MeshFieldView,GridFieldView,FacetView) for v in definitions):
+        if not definitions or len(definitions)>4 or any(type(v) not in (ScatterView,LineView,BarView,IntervalView,ECDFView,SeriesView,RegionView,MapView,DrawingView,LabelImageView,MeshFieldView,GridFieldView,MappedView,FacetView) for v in definitions):
             raise ValueError('provide one to four supported plot or facet view definitions')
         if len({v.name for v in definitions})!=len(definitions): raise ValueError('view names must be unique')
         views,facet_metadata,facet_rows,facet_groups=_expand_facets(table,definitions)
         columns=min(2,len(views)) if columns is None else columns
         if type(columns) is not int or not 1<=columns<=4: raise ValueError('columns must be from 1 to 4')
         doc=i.document(width=width,columns=columns,gap=9,margin=6,
-                       share_plot_margins=bool(facet_groups) or any(isinstance(v,(MeshFieldView,GridFieldView)) for v in views)).letters()
+                       share_plot_margins=bool(facet_groups) or any(isinstance(v,(MeshFieldView,GridFieldView)) or
+                           isinstance(v,MappedView) and isinstance(v.view,(MeshFieldView,GridFieldView)) for v in views)).letters()
         coordinates={};statistics={};ecdf_curves={}
         for index,view in enumerate(views):
-            if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView,MapView)):
-                if isinstance(view,(LabelImageView,MeshFieldView,GridFieldView,MapView)): view.validate_table(table)
+            if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView,MapView,MappedView)):
+                if isinstance(view,(LabelImageView,MeshFieldView,GridFieldView,MapView,MappedView)): view.validate_table(table)
                 p=i.plot_spec(x=(0,1),y=(0,1),height=58)
                 p.line([(0,0),(1,1)],stroke='none',stroke_width=0)
+                if isinstance(view,MappedView):
+                    entries,title=view.legend()
+                    if entries:p.legend(entries=entries,side="bottom",title=title,markup=False)
                 if isinstance(view,MapView):
                     entries=view._legend(any(v is None for v in table.columns[view.value]) if view.value else False)
                     if entries: p.legend(entries=entries,side='bottom',title=view.value_label or view.value,markup=False)
@@ -448,7 +453,7 @@ class BrowserFigure:
             if (t.a,t.b,t.c,t.d)!=(1.,0.,0.,1.): raise ValueError('unsupported transformed plot cell')
             bounds=[rect.x0+t.e,rect.y0+t.f,rect.width,rect.height]
             bounds=[round(v,6) for v in bounds]
-            if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView,MapView)):
+            if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView,MapView,MappedView)):
                 layers.append(view.layer(table,bounds));continue
             if isinstance(view,RegionView):
                 layers.append(_region_layer(view,table,bounds));continue

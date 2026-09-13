@@ -97,6 +97,7 @@ def test_source_png_is_lossless_and_row_reordering_preserves_measurements():
     assert BrowserFigure(reordered,[LabelImageView('image',image,(0,8),.5)]).table.row_ids==('region-2','region-1')
 
 
+@pytest.mark.acceptance
 def test_input_replacement_rebuilds_statistics_and_preserves_old_snapshot():
     original=recipe.make_scene();before=original.payload()
     state=original.state(SelectionState.for_table(original.table,selected=['region-3','region-8']))
@@ -150,23 +151,19 @@ CHECKS=r'''
 '''
 
 
+@pytest.mark.acceptance
 def test_browser_exact_pixel_membership_and_calibrated_export(tmp_path):
-    from test_browser_series import browser_result
-    from test_browser_statistics import svg_geometry
+    from browser_support import browser_result
+    from browser_support import svg_geometry
     original=recipe.make_scene();calibrated=recipe.make_scene('calibrated')
     prefix='const sourceLabels='+json.dumps(recipe.make_image().labels)+';const originalArea='+str(original.table.columns['area'][2])+';'
     result=browser_result(tmp_path,original,prefix+CHECKS,revisions=[RevisionOption('Calibrated',calibrated,recipe.CREDIT)])
     assert result['queries']==40*64*2*3
     for export in result['exports']:
         assert svg_geometry(original.to_svg(export['state']))==svg_geometry(export['svg'])
-    Image=pytest.importorskip('PIL.Image')
-    from PIL import ImageChops
-    from inklet.render.preview import svg_png
+    from browser_support import assert_svg_pixels
     export=result['calibrated']
-    for name,svg in [('python',calibrated.to_svg(export['state'])),('browser',export['svg'])]:
-        path=tmp_path/(name+'.svg');path.write_text(svg);svg_png(path,path.with_suffix('.png'),dpi=150)
-    a,b=(Image.open(tmp_path/(name+'.png')).convert('RGB') for name in ('python','browser'))
-    assert a.size==b.size and ImageChops.difference(a,b).getbbox() is None
+    assert_svg_pixels(tmp_path,calibrated.to_svg(export['state']),export['svg'])
 
 
 def test_image_view_rejects_excessive_pixels_and_outline_work():
@@ -178,6 +175,7 @@ def test_image_view_rejects_excessive_pixels_and_outline_work():
         BrowserFigure(fragmented.table(),[LabelImageView('image',fragmented,(0,1),10)])
 
 
+@pytest.mark.acceptance
 def test_cli_reopen_rebase_replacement_and_provenance(tmp_path):
     import subprocess,sys
     original=recipe.make_scene();state=original.state(SelectionState.for_table(original.table,selected=['region-3','region-8']))

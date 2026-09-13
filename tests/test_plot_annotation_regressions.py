@@ -1,11 +1,4 @@
-"""Round 4: the plot, draw and markup fixes the mouse figure asked for.
-
-Each test here is one line of `figures/mouse_brain.py` that had to be written
-the long way round, plus the `fill_rule` item the draw API left unreachable.
-The five mouse items were filed as reproductions rather than as guesses, so
-these are written the same way: build the thing the figure wanted to build and
-measure what it used to get wrong.
-"""
+"""Plot labels, markup and annotation regressions from complete scientific figures."""
 
 from __future__ import annotations
 

@@ -90,7 +90,10 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert (site/'gallery/stress20.png').read_bytes() == (ROOT/'gallery/stress20.png').read_bytes()
     search = json.loads((site/'search/search_index.json').read_text())
     locations = {item['location'].split('#')[0] for item in search['docs']}
-    assert {'data/','plotting/','api/','cli/','quickstart/'}.issubset(locations)
+    assert {'data/','plotting/','api/','cli/','quickstart/','project-workflows/','acceptance/'}.issubset(locations)
+    assert not {'v2/','v2.5/','v3/','v4-foundations/','browser-rendering/'} & locations
+    assert 'Historical material' in (site/'v4-foundations/index.html').read_text()
+    assert (site/'v4-foundations/index.html').is_file()
     assert {'recipes/interference/', 'recipes/architecture/', 'brand/'}.issubset(locations)
     assert {'plot-types/','axes-and-scales/','dense-data/'}.issubset(locations)
     assert not any(row['location']=='dense-data/#dense-data' for row in search['docs'])

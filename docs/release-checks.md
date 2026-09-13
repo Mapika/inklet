@@ -3,7 +3,9 @@
 The [GitHub workflow](../.github/workflows/checks.yml) runs on master pushes,
 pull requests and manual dispatch. It does not publish packages.
 
-- Unit and integration tests use the pinned dependencies in
+- Contract/regression tests and end-to-end acceptance run in separate steps,
+  without collecting the same test in both runs. The acceptance marker and
+  workflow ownership are documented in [acceptance](acceptance.md). Tests use the pinned dependencies in
   [`requirements-ci.txt`](../requirements-ci.txt).
 - API documentation must match the generated reference. Guide examples are
   executed by the tests, and MkDocs builds with strict navigation/link checks

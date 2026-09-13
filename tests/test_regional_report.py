@@ -32,6 +32,7 @@ def test_real_geometry_country_series_and_derived_comparisons():
         assert table.columns['change'][n]==round(table.columns['month_12'][n]-table.columns['month_01'][n],1)
 
 
+@pytest.mark.acceptance
 def test_selection_reopen_replace_remove_and_two_physical_widths(tmp_path):
     original=recipe.make_scene();table=original.table
     visible=[key for key,group in zip(table.row_ids,table.columns['group']) if group=='Central']
@@ -52,6 +53,7 @@ def test_selection_reopen_replace_remove_and_two_physical_widths(tmp_path):
     assert original.payload()['layers'][2]['statistics']['n']==18
 
 
+@pytest.mark.acceptance
 def test_csv_roundtrip_derivation_and_cli_restore(tmp_path):
     table=recipe.make_table();path=tmp_path/'data.csv';recipe.write_table(table,path)
     assert recipe.read_table(path).digest==table.digest
@@ -153,9 +155,10 @@ REGIONAL_CHECKS = r"""
 """
 
 
+@pytest.mark.acceptance
 def test_complete_browser_workflow_and_reconstructed_pixels(tmp_path):
-    from test_browser_series import browser_result
-    from test_browser_statistics import svg_geometry
+    from browser_support import browser_result
+    from browser_support import svg_geometry
     from inklet.experimental.browser import RevisionOption
     original=recipe.make_scene();revised=recipe.make_scene(revised=True)
     result=browser_result(tmp_path,original,REGIONAL_CHECKS,search_columns=('country','group'),
@@ -163,10 +166,5 @@ def test_complete_browser_workflow_and_reconstructed_pixels(tmp_path):
     for name,figure in [('before',original),('after',revised)]:
         exported=result[name]
         assert svg_geometry(figure.to_svg(exported['state']))==svg_geometry(exported['svg'])
-    Image=pytest.importorskip('PIL.Image')
-    from PIL import ImageChops
-    from inklet.render.preview import svg_png
-    for name,svg in [('python',revised.to_svg(result['after']['state'])),('browser',result['after']['svg'])]:
-        source=tmp_path/(name+'.svg');source.write_text(svg);svg_png(source,tmp_path/(name+'.png'),dpi=150)
-    a,b=(Image.open(tmp_path/(name+'.png')).convert('RGB') for name in ('python','browser'))
-    assert a.size==b.size and ImageChops.difference(a,b).getbbox() is None
+    from browser_support import assert_svg_pixels
+    assert_svg_pixels(tmp_path,revised.to_svg(result['after']['state']),result['after']['svg'])

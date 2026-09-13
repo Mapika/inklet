@@ -134,8 +134,9 @@ needs. The complete example rejects widths below 140 mm.
 Run `python examples/composition_recipes.py --render` from the checkout to
 produce the SVG/PDF/PNG comparisons, standalone HTML viewers, revised-data
 exports and build statistics in `out/composition-recipes/`. PNG requires the
-render extras. This is a Python recipe API; serialized project templates
-and asset manifests remain separate upcoming work. Saved layout choices and
+render extras. This is a Python recipe API. [Figure projects](project-workflows.md) add verified
+asset manifests and portable editor choices in dev16. Full Python object
+serialization is outside that bundle contract. Saved layout choices and
 the [local inspector](layout-editor.md) build on these recipes.
 
 In dev7, [save and restore layout choices](layout-overrides.md) separately from

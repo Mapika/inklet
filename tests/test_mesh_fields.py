@@ -125,7 +125,7 @@ CHECKS=r'''
 
 
 def test_browser_triangle_oracle_backends_and_export(tmp_path):
-    from test_browser_series import browser_result
+    from browser_support import browser_result
     from inklet.render.preview import svg_png
     from PIL import Image,ImageChops
     original=recipe.make_scene();revised=recipe.make_scene('deformed')
@@ -161,7 +161,7 @@ def test_representable_area_avoids_squared_norm_overflow_underflow(scale):
 
 
 def test_shared_edges_overlap_filtering_and_removed_face_hole(tmp_path):
-    from test_browser_series import browser_result
+    from browser_support import browser_result
     f=MeshField([(0,0,0),(2,0,0),(0,2,0)],[(0,1,2),(0,1,2)],['a','b'],[1,2],[None,None])
     original=BrowserFigure(f.table(),[MeshFieldView('plan',f)])
     removed=recipe.make_scene('removed')
