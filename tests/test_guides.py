@@ -8,7 +8,7 @@ from urllib.parse import unquote, urlsplit
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-PAGES = ('README.md', 'docs/quickstart.md', 'docs/concepts.md', 'docs/layout.md',
+PAGES = ('README.md', 'docs/quickstart.md', 'docs/csv-figure.md', 'docs/concepts.md', 'docs/layout.md',
          'docs/plotting.md', 'docs/data.md', 'docs/diagrams.md',
          'docs/three-images.md', 'docs/export-review.md', 'docs/cli.md', 'docs/presets.md', 'docs/v3.md',
          'docs/migration.md', 'docs/lines-and-points.md', 'docs/bars-and-areas.md',

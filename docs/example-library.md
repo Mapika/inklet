@@ -1,7 +1,8 @@
 # More example recipes
 
-Start with the [figure gallery](examples.md) for eight curated mathematical,
-3D and architectural figures, including realistic and sketch renderings.
+Browse the [figure gallery](examples.md) for previews. For step-by-step
+instructions, start with [your first figure](quickstart.md) or
+[a figure from CSV](csv-figure.md). This page lists standalone scripts.
 
 These figures link to executable source in the repository. Commands below run
 from a checkout with Inklet installed. Review bundles need the

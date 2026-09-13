@@ -600,5 +600,12 @@
     "object": "fig",
     "image": "plots-rose.png",
     "alt": "Rose plots"
+  },
+  {
+    "page": "csv-figure.md",
+    "block": 2,
+    "object": "doc",
+    "image": "csv-figure.png",
+    "alt": "A response curve with supplied lower and upper bounds"
   }
 ]

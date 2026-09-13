@@ -15,7 +15,8 @@ Inklet's core dependencies; PNG export adds the render extra.
 
 ## Reproduce it
 
-This example uses Inklet 3.1. Check out `v3.1.0` to reproduce it.
+For a smaller step-by-step example, use [From CSV to a figure](csv-figure.md).
+The commands below pin the original 3.1 release to reproduce this gallery figure.
 
 ```bash
 git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
@@ -38,44 +39,23 @@ The [data guide](data.md#typed-csv-input) explains source hashes and parsing rul
 
 ## Plot appearance changes
 
-Axes now use the theme's hairline weight, leaving the normal stroke weight for
-data and other artwork. This applies to the built-in print, notebook and slide
-themes. Explicit axis `stroke_width` options still take precedence. Typography,
-scale domains and the established categorical palettes retain their existing
-conventions.
-
-Top and bottom legends now choose the largest measured column count that fits
-the plot width. Short entries can share a row; longer entries move onto more
-rows, in their original order. Text is not shrunk or clipped to fit. If even one
-entry or a title exceeds the requested width, the error reports the required
-space. Choose `columns=1` for explicit stacking, or set `max_width` when the
-legend is allowed more space than the data region. Corner and left/right legends
-retain their one-column default.
-
-`legend(font_size=...)` now shapes labels at the requested size before measuring
-the layout. Increasing type size can therefore change the number of columns
-without invalidating the measured bounds. Use a theme or preset for figure-wide
-typography.
+Axes use the theme's hairline weight. Top and bottom legends wrap to the
+available width without shrinking text. Use [axes and text](axes-and-scales.md)
+for font and stroke controls, and [plot layout](publication-plots.md) for legends
+and insets. These guides describe the current behavior.
 
 ## Compare the previous styling
 
-[Comparison figure](../gallery/general-plots-before.png)
-
-![The same six plots with the previous heavier axis rules and explicitly stacked legends.](../gallery/general-plots-before.png)
-
-Generate this controlled comparison with:
+The [previous styling comparison](../gallery/general-plots-before.png) uses the
+same data with heavier axes and one-column legends. Rebuild it with:
 
 ```bash
 python examples/general_plots.py --legacy-look --output out/general-plots/before
 ```
 
-It uses the current renderer and identical data, fonts, palette and page width,
-with the previous Cartesian axis weights and one-column legends explicitly
-requested. It demonstrates those styling choices, not a byte-for-byte rebuild
-of a historical Inklet release. Automatic figure height can differ because the
-legends require different amounts of space. The current figure is 240 mm wide;
-choose physical dimensions and type sizes for the intended destination rather
-than shrinking a finished figure indiscriminately.
+This uses the current renderer with explicit style settings, not a historical
+renderer. The main figure is 240 mm wide; rebuild at the required physical size
+instead of shrinking the finished image.
 
 ## Read the plots
 

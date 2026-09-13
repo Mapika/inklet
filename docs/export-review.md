@@ -3,12 +3,12 @@
 Compile a document once and use the resulting snapshot for all exports.
 Changing the authoring objects afterwards does not change that snapshot.
 
-V3 adds direct PNG export, vector brushes and rendered scene layers; see
-[the v3 rendering guide](v3.md). The review PNG now uses the `render` extra.
+PNG previews use the optional `render` extra; SVG/PDF export uses the core
+package. See [installation](installation.md#visual-review) for review tools.
 
 ![A four-panel figure exported as SVG, PDF and PNG with a separate caption](../gallery/plot-engine-review.png)
 
-The [plot review recipe](plotting-engine.md) exports this same drawing as SVG, PDF and PNG, with separate manuscript captions.
+The [plot review recipe](../examples/plot_engine_review.py) exports this same drawing as SVG, PDF and PNG, with separate manuscript captions.
 
 ## Save vectors
 

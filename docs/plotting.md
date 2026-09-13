@@ -37,9 +37,7 @@ Logarithmic domains and values must be positive.
 
 ## Select a mark
 
-The [visual plot gallery](plot-types.md) shows every core mark family with
-rendered examples and input conventions. Choose a plot there, then use this
-guide to combine marks, legends, annotations and insets in one live document.
+See the [visual plot gallery](plot-types.md) for mark families and input conventions.
 
 ## Uncertainty and legends
 

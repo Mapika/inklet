@@ -7,6 +7,7 @@ title: Overview
 | You want to… | Start here |
 |---|---|
 | Make and export your first figure | [First figure tutorial](quickstart.md) |
+| Build a figure from a CSV file | [CSV tutorial](csv-figure.md) |
 | Understand live recipes, physical units and compilation | [The authoring model](concepts.md) |
 | Choose a plot for your data | [Visual plot gallery](plot-types.md) |
 | Combine marks, legends and insets | [Build and combine plots](plotting.md) |

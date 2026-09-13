@@ -44,10 +44,10 @@ nav:
 - Start here:
   - Install Inklet: installation.md
   - First figure: quickstart.md
+  - From CSV to a figure: csv-figure.md
   - How Inklet works: concepts.md
 - Plots:
   - Visual plot gallery: plot-types.md
-  - Scientific figure gallery: scientific-gallery.md
   - Build and combine plots: plotting.md
   - Reusable recipes and styling: plot-recipes.md
   - Plot guides:
@@ -119,6 +119,7 @@ nav:
     - Microscopy intensity plots: label-intensities.md
 - Examples:
   - Figure gallery: examples.md
+  - Scientific figure gallery: scientific-gallery.md
   - Everyday plots from CSV: general-plots.md
   - All example scripts: example-library.md
   - Direct drawing cookbook: cookbook.md

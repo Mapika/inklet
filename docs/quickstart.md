@@ -1,13 +1,8 @@
 # Your first scientific figure
 
-Start with a response curve, export it at journal-column width, then revise the
-measurements and reuse the plot in a two-panel figure. Adding a panel changes
-the available space while typography and strokes keep their authored sizes.
-
-Use Python 3.11 or later and the [core installation](installation.md). These
-document APIs also work in the published **4.0.0.dev15 preview**. Only the optional
-review step needs preview renderers. Copy the Python blocks into one file or run
-them in order in a notebook; the documentation tests execute them that way.
+Make a two-panel figure, revise its data, and save SVG/PDF exports.
+Use Python 3.11+ and the [core installation](installation.md). Run the Python
+blocks in order; only the optional review step needs rendering extras.
 All data are simulated.
 
 ![The completed tutorial: a response curve and grouped outcomes in two labelled panels](assets/examples/quickstart.png)
@@ -122,6 +117,7 @@ inklet watch first_figure.py --output out/review
 
 | What you want to make next | Tutorial |
 |---|---|
+| A figure built from a measurement file | [From CSV to a figure](csv-figure.md) |
 | Multiple styled plots driven by the same measurements | [Reusable plots](plot-recipes.md) |
 | A repeatable layout mixing plots and diagrams | [Reusable compositions](composition-recipes.md) |
 | A dense, annotated scientific plate | [Complex scientific figures](complex-figures.md) |
