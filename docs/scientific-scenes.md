@@ -10,6 +10,8 @@ remain vector in SVG/PDF. Changing a label does not require another Blender rend
 [Figure recipe](../examples/scientific_blender.py) ·
 [Blender scene generator](../examples/blender/synapse_scene.py)
 
+For a downloaded anatomical mesh, use [the NIH model tutorial](open-anatomy.md).
+
 This is a **schematic**, with arbitrary geometry and simulated curves. Vesicle
 sizes, spacing and numbers do not represent measured anatomy. For calibrated
 microscopy and source segmentation meshes, see [real organelle scenes](real-biology.md).

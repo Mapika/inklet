@@ -1,5 +1,16 @@
 [
   {
+    "id": "open-anatomy",
+    "title": "Labelled human anatomy",
+    "category": "Scientific",
+    "description": "A licensed NIH model rendered in Blender with surface-anchored vector labels.",
+    "requires": "Blender + render extra",
+    "image": "assets/scenes/open-anatomy.png",
+    "version": "4.0 preview",
+    "page": "open-anatomy/",
+    "featured": false
+  },
+  {
     "id": "scientific-blender",
     "title": "A labelled synapse",
     "category": "Scientific",

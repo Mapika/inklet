@@ -98,7 +98,8 @@ nav:
 - 3D and images:
   - Meshes and images: three-images.md
   - Blender scenes: blender-scenes.md
-  - Biological scenes and labels: scientific-scenes.md
+  - Label an anatomy model: open-anatomy.md
+  - Biological schematics: scientific-scenes.md
   - GPU rendering and jobs: render-jobs.md
   - Vector paths in scenes: scene-paths.md
   - Annotations and measurements: scene-annotations.md

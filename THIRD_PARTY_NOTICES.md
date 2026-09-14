@@ -143,3 +143,18 @@ further. Population estimates and their individual years come from the source
 snapshot and are not current estimates. The original example code is MIT.
 
 Source and terms checked on 2026-09-08.
+
+## NIH Visible Human anatomy model
+
+`examples/open_anatomy.py` downloads **Visible Human Heart Vessels and Lungs**,
+by **kbrowne**, NIH 3D **3DPX-023212**, version **1.01**.
+[Source](https://3d.nih.gov/entries/3DPX-023212?version=1.01) ·
+[CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
+The exact file URL, byte count and SHA-256 are recorded in
+[the source manifest](examples/assets/open-anatomy.json).
+
+`docs/assets/scenes/open-anatomy.{png,svg,pdf}` are adaptations distributed under
+CC BY 4.0. Changes: Blender import, blue-grey material, lighting, cameras and
+Inklet vector labels. Source geometry and proportions are retained; no calibrated
+physical dimensions or individual vessel identities are asserted. Original
+example Python code is MIT. Source license checked on 2026-09-14.

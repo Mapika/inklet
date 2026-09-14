@@ -3,7 +3,8 @@
 Use an existing `.blend` scene as a figure
 panel while keeping Inklet annotations, axes and plots vector.
 
-Start with [biological scenes and labels](scientific-scenes.md) for a complete
+Start with [a freely licensed anatomy model](open-anatomy.md) for source-derived
+geometry and vector labels, [biological schematics](scientific-scenes.md) for a complete
 synapse schematic, [real organelle scenes](real-biology.md) for calibrated
 microscopy, or the [annotated laboratory](complex-scene.md) for apparatus views.
 
