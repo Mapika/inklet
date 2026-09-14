@@ -166,6 +166,6 @@ the named content in these Python recipes.
 
 [Save and restore layout choices](layout-overrides.md) separately from the
 recipe to preserve measured expressions and report removed targets. Use
-[figure projects](project-workflows.md) when you also need to carry input files
-and provenance through save, reopen and revision. Those project APIs are
-experimental in dev16 and require the Python recipe when reopening.
+[figure projects](project-workflows.md) when you also need to include input files
+and provenance through save, reopen and revision. Those project APIs are opt-in
+experimental APIs in stable 4.0.1 and require the Python recipe when reopening.

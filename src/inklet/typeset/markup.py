@@ -237,7 +237,7 @@ def parse(text: str, *, colors: Mapping[str, str] | None = None) -> Styled:
 
 
 def strip_markup(text: str) -> str:
-    """`text` with its markup removed -- what the reader will actually see."""
+    """Return `text` with its markup removed."""
     return parse(text).text
 
 

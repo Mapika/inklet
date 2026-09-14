@@ -1,5 +1,10 @@
 # Rendering and layout review
 
+This page records historical engine measurements from named development
+revisions. Use the current [dense data guide](dense-data.md) and [compiled
+viewer guide](compiled-viewer.md) for stable 4.0.1 workflows; the figures below
+are reproducibility studies, not current performance budgets.
+
 For the next engine architecture increment after dev2, see
 [packed vector markers](marker-batches.md) and
 [shared compiled scenes](compiled-scenes.md), including revision reuse and

@@ -40,7 +40,7 @@ output is `out/review`, with base name `figure`.
 | `--dpi NUMBER` | Positive preview DPI; otherwise the publication profile's value or 150 |
 | `--compare-to PATH` | Previous manifest, or directory containing `<name>-manifest.json` |
 | `--no-pdf-preview` | Omit Poppler's PNG rendering; still save the PDF |
-| `--png-backend NAME` | `resvg` (default in v3) or `chromium` |
+| `--png-backend NAME` | `resvg` (default) or `chromium`; both require the relevant preview dependencies |
 | `--vectors-only` | Write SVG and PDF without an HTML bundle or preview tools |
 
 `--vectors-only` cannot be combined with `--compare-to`. Bundle export embeds

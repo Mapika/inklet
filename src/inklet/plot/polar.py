@@ -236,7 +236,7 @@ class Theta:
 
 def theta_ticks(low: float, high: float, count: int = 8, *, unit: str = "deg",
                 closed: bool = False) -> tuple[float, ...]:
-    """Angles a reader can divide in their head, between `low` and `high`.
+    """Return readable angular tick values between `low` and `high`.
 
     The lattice is angular, not decimal: whole divisors of a turn, so an axis
     is labelled every 30 degrees or every pi/4 and never every 0.7 radians.
@@ -1417,7 +1417,7 @@ def _perpendicular(degrees: float, side: float) -> Vec2:
 
 
 def _arc_path(radius: float, start: float, end: float, **kwargs) -> Diagram:
-    """A ring or an arc of one, centred on the pole, as real cubics."""
+    """Return a ring or centered arc represented by cubic Bézier segments."""
     if abs(end - start) >= 360.0 - 1e-9:
         return draw_path(curves=arc_cubics(ORIGIN, radius, 0.0, 360.0),
                          closed=True, **kwargs)

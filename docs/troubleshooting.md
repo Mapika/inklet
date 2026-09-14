@@ -10,8 +10,8 @@ the SVG or [review page](export-review.md).
 |---|---|
 | `No module named inklet` or command not found | Activate the installation environment; use `python -m inklet` to select that interpreter |
 | No font found or missing glyphs | Install an appropriate font, verify Fontconfig, or choose an explicit font family/file |
-| PNG preview renderer unavailable | Install the `render` extra for v3; `--png-backend chromium` requires Chrome/Chromium |
-| Blender scene renderer unavailable | Install Blender 4.2+ and set `INKLET_BLENDER` to its executable; run `inklet doctor` |
+| PNG preview renderer unavailable | Install `inklet[render]`; the explicit `--png-backend chromium` path requires Chrome/Chromium |
+| Blender scene renderer unavailable | Choose a [tested Blender version](compatibility.md), set `INKLET_BLENDER` to its executable and run `inklet doctor`; legacy Grease Pencil recipes have separate version constraints |
 | PDF preview renderer unavailable | Install Poppler's `pdftoppm`, or pass `--no-pdf-preview` / `compare_pdf=False` |
 | Only vectors are needed | Use `save('figure.svg', 'figure.pdf')` or CLI `--vectors-only` |
 | Preview exceeds pixel limit | Lower preview DPI or page dimensions; SVG/PDF retain their vector resolution |
@@ -29,8 +29,9 @@ or move legends/insets. A fixed `Diagram` does not resize merely because its
 cell is narrower. Use a `PlotSpec` or a responsive component when it should
 adapt to available dimensions.
 
-Only plots in the same grid share furniture margins. Independently nested
-grids need their own alignment constraints. Explicit compositions should use
+Plot margin sharing is opt-in: set `share_plot_margins=True` on the document or
+subfigure that owns the grid. Independently nested grids need their own
+alignment settings. Explicit compositions should use
 measured anchors and dimensions instead of guessed text widths.
 
 ## Unexpected data or edits
@@ -38,6 +39,8 @@ measured anchors and dimensions instead of guessed text widths.
 | Symptom | Likely cause |
 |---|---|
 | Mutating a list does not change the plot | Literals were snapshotted; use a dataset reference or replace the instruction |
+| Export still shows the old data | A compiled figure is a snapshot; call `doc.compile()` again after editing its inputs |
+| Assigning to compiled placements raises `TypeError` | The placement mapping is read-only; edit named document cells or composition constraints and recompile |
 | Labels or curves appear twice | Drawing methods append; assign a `key` and use `replace()` |
 | A category moves or changes colour after filtering | Share a `CategoryEncoding` between the data marks and scale |
 | Horizontal category order is reversed | First y category is at the bottom; reverse the list or use an encoding's `scale(reverse=True)` |
@@ -59,6 +62,7 @@ datasets are separate operations; complete the related edits before compiling.
 | `LOW_CONTRAST` | Text/background contrast falls below the threshold; change the text or fill colour |
 | `TINY_TEXT` | Final transformed text is below the minimum; increase physical type size or avoid scaling it down |
 | `LOW_DPI` | A raster lacks pixels at its final size; use a higher-resolution source or a smaller placement |
+| `KEY_MISMATCH` | A legend or colourbar disagrees with the plotted marks or scale; derive it from the same panel and mapping |
 | `LINK_CROSSES` | A route passes through another object; adjust positions, waypoints or routing |
 | `LINK_CROSSES_LINK` | Routes cross; inspect whether the crossing is legible and intentional |
 | `RULE_FAILED` | A diagnostic rule failed internally; retain a minimal reproducer and report the error |
@@ -71,15 +75,20 @@ unrelated layout problems.
 ## Reproducibility and performance
 
 Compare source data, font hashes and environment versions when output changes
-between machines. Embedded text carries the selected font into the export;
+between machines. Embedded text includes the selected font in the export;
 it does not make two different font substitutions measure identically.
 SVG and PDF rasterizations can differ in antialiasing and image interpolation.
 
 Inspect `compiled.stats` for layout, paint and diagnostic time, recipe builds
-and cache hits. Reduce mesh tessellation or dense data when the detail is
-unnecessary at the intended physical size. The [stress report](stress20.md)
-documents a dense-scatter bottleneck and distinguishes full recompilation from
-an unchanged cached compile.
+and cache hits. These describe the compilation that produced the snapshot;
+calling `compile()` again without edits can return that same snapshot and its
+existing statistics. Time the call separately when measuring cache reuse.
+
+For large plots, start with the [dense-data guide](dense-data.md): packed vector
+markers, matrix batching, raster layers and optional line simplification address
+different costs. Measure construction, compilation and export separately. The
+[stress report](stress20.md) records a fixed workload; its timings are not a
+prediction for every figure or machine.
 
 When reporting a bug, include the smallest author script, environment versions,
 `doctor` output, diagnostics and expected versus actual behavior. Use simulated

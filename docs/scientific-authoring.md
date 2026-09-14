@@ -284,7 +284,9 @@ is still appropriate when routing must wait until a Figure has placed them.
 See the [original scientific gallery](scientific-gallery.md) for complete,
 reproducible figures made with these components and real released fly anatomy.
 
-## Coordinating a dense page in dev14
+<span id="coordinating-a-dense-page-in-dev14"></span>
+
+## Coordinating a dense page (introduced in dev14)
 
 `PanelSpec` adds minimum outer sizes and an optional drawing-area aspect ratio
 for panel factories. Automatic row/column weights also measure static content

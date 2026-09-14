@@ -1,10 +1,13 @@
 # Shared plotting quality
 
-Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+Available in stable **4.0.1**. The recorded comparison below preserves the
+4.0.0.dev1 baseline; see the [4.0 release guide](development-preview.md)
+for release and environment details.
 
-The development preview improves numeric ticks in the common scale engine.
+The common scale engine improves numeric ticks in the cases below.
 These fixes apply to ordinary plots, color scales and measured browser axes.
-They are included in 4.0.0.dev1 and are not part of 3.1.0.
+These fixes are included in stable 4.0.1 and were absent from the 3.1.0
+baseline.
 
 ![Four numeric-axis specimens with distinct large-baseline and tiny-value ticks](assets/guides/plot-quality-after.png)
 

@@ -13,11 +13,11 @@ image resizing and projection sampling do not change the source-grid volumes.
 
 ## Reproduce it
 
-Use the `v3.1.0` release checkout, the same locked COSEM source objects as the
+Use the `v4.0.1` release checkout, the same locked COSEM source objects as the
 [original real-biology example](real-biology.md), and Blender 4.5 LTS:
 
 ```bash
-git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.1 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[volume,render]'
 python -m pip install -r examples/biology/requirements.txt

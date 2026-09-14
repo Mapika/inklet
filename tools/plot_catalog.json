@@ -1,7 +1,7 @@
 [
   {
     "title": "Lines",
-    "description": "A continuous response connects the supplied observations in order.",
+    "description": "Two sampled response curves on a shared time and value scale.",
     "category": "Lines and points",
     "page": "lines-and-points/#lines",
     "image": "assets/guides/plots-line.png",
@@ -15,7 +15,7 @@
   },
   {
     "title": "Steps",
-    "description": "A step holds a value until the next observation.",
+    "description": "A held command compared with its simulated response.",
     "category": "Lines and points",
     "page": "lines-and-points/#steps",
     "image": "assets/guides/plots-step.png",
@@ -28,46 +28,19 @@
     "block": 2
   },
   {
-    "title": "Scatter",
-    "description": "Scatter shows individual observations without connecting them.",
+    "title": "Scatter and reference markers",
+    "description": "Individual observations with a distinct glyph for reference samples.",
     "category": "Lines and points",
     "page": "lines-and-points/#scatter",
     "image": "assets/guides/plots-scatter.png",
     "methods": [
-      "Panel.scatter"
-    ],
-    "version": "Core",
-    "requires": "Core only",
-    "source": "lines-and-points.md",
-    "block": 3
-  },
-  {
-    "title": "Custom markers",
-    "description": "A reusable drawing can mark each observation.",
-    "category": "Lines and points",
-    "page": "lines-and-points/#custom-markers",
-    "image": "assets/guides/plots-markers.png",
-    "methods": [
+      "Panel.scatter",
       "Panel.marks"
     ],
     "version": "Core",
     "requires": "Core only",
     "source": "lines-and-points.md",
-    "block": 4
-  },
-  {
-    "title": "Categorical bars",
-    "description": "Compare values across named categories.",
-    "category": "Bars and areas",
-    "page": "bars-and-areas/#categorical-bars",
-    "image": "assets/guides/plots-bars.png",
-    "methods": [
-      "Panel.bars"
-    ],
-    "version": "Core",
-    "requires": "Core only",
-    "source": "bars-and-areas.md",
-    "block": 1
+    "block": 3
   },
   {
     "title": "Grouped bars",
@@ -155,7 +128,7 @@
   },
   {
     "title": "Histograms",
-    "description": "Histograms count observations within explicit bins.",
+    "description": "Ninety-six durations in explicit half-second bins.",
     "category": "Distributions",
     "page": "distributions/#histograms",
     "image": "assets/guides/plots-hist.png",
@@ -238,22 +211,8 @@
     "block": 2
   },
   {
-    "title": "Line with errors",
-    "description": "A line can carry its own supplied uncertainty.",
-    "category": "Uncertainty",
-    "page": "uncertainty/#line-with-errors",
-    "image": "assets/guides/plots-line-errors.png",
-    "methods": [
-      "Panel.line"
-    ],
-    "version": "Core",
-    "requires": "Core only",
-    "source": "uncertainty.md",
-    "block": 3
-  },
-  {
-    "title": "Reusable series",
-    "description": "A Series keeps the name, values, colour and absolute bounds together.",
+    "title": "Compare series and bounds",
+    "description": "Two named trajectories with supplied intervals and a shared scale.",
     "category": "Uncertainty",
     "page": "uncertainty/#reusable-series",
     "image": "assets/guides/plots-series.png",

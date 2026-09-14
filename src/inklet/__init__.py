@@ -102,8 +102,7 @@ def text(content: str, *, size: float | str | None = None, font: str | None = No
          width: float | str | None = None, line_height: float | None = None,
          features: dict[str, bool | int] | None = None, markup: bool = True,
          angle: float = 0.0, kind: str = "text", bounds: str = "font", **style) -> Diagram:
-    """Shaped text as a diagram. Its envelope is the real inked extent, which is
-    what lets a box around it actually fit.
+    """Return shaped text as a diagram with bounds based on its ink extent.
 
     Inline markup, every piece of it escapable with `\\` and composable with
     the rest:
@@ -217,7 +216,7 @@ def _halo_envelope(prim, halo) -> Envelope | None:
 
 
 def label(content: str, **kwargs) -> Diagram:
-    """Smaller, quieter text -- for annotating rather than naming."""
+    """Text for annotations, using the theme's small font size by default."""
     _check_string("label", content)
     kwargs.setdefault("size", current_theme().font_size_small)
     kwargs.setdefault("kind", "label")

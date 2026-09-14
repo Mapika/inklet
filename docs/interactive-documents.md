@@ -4,8 +4,9 @@ Explore a figure in an offline HTML page, or use a local Python editor to revise
 its composition. Both workflows retain explicit saved choices, but their
 controls and state files serve different purposes.
 
-These interfaces are included in **4.0.0**, under opt-in experimental APIs.
-Install with `pip install inklet`; see the [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
+These interfaces were introduced during the **4.0.0** previews and are
+available in stable **4.0.1**, under opt-in experimental APIs. Install with
+`pip install "inklet==4.0.1"`; see the [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
 before relying on experimental state formats.
 
 ![A regional report linking a map, time series, distribution and category panels](assets/v4/regional-report.png)
@@ -22,7 +23,7 @@ before relying on experimental state formats.
 | Display distributions or supplied intervals | [Linked statistics](statistical-views.md) | Stated methods, reference populations and interval meaning |
 | Edit linked plot appearance offline | [Visual editing](visual-editing.md) | Source-bound style overrides, undo/redo and Python reconstruction |
 | Move named objects, revise labels or set a native camera | [Local layout editor](layout-editor.md) | Measured recompilation and saved composition choices |
-| Reopen a study with verified assets and corresponding objects | [Figure projects (dev16)](project-workflows.md) | Input hashes, provenance, canonical entity IDs and editor choices |
+| Reopen a study with verified assets and corresponding objects | [Figure projects (introduced in dev16)](project-workflows.md) | Input hashes, provenance, canonical entity IDs and editor choices |
 | Replace source data | [Data revisions](data-revisions.md) | Explicit missing-ID policy and a revision report |
 
 ## Viewers, editors and saved files

@@ -1,9 +1,13 @@
 # Shared compiled scenes
 
-Available in **4.0.0.dev3**. SVG, PDF and native
-PNG now consume one resolved scene. Compiled documents retain that scene across
-exports and reuse geometry and unchanged nodes across revisions. This release
-also adds [packed vector markers](marker-batches.md) for dense scatter.
+This page records the development revision in which shared compiled scenes were
+introduced. The feature is available in stable 4.0.1; use the [native figure
+viewer](compiled-viewer.md) for the current reader workflow.
+
+Introduced in **4.0.0.dev3**, shared scenes let SVG, PDF and native
+PNG consume one resolved scene. Compiled documents retain that scene across
+exports and reuse geometry and unchanged nodes across revisions. That revision
+also introduced [packed vector markers](marker-batches.md) for dense scatter.
 The [browser viewer](compiled-viewer.md) consumes these snapshots offline.
 
 ![A six-panel native figure with curves, a point cloud, bars, hatching, a processing diagram and a shaded cube](../gallery/render-scene-review.png)

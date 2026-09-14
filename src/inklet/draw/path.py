@@ -135,7 +135,7 @@ def polygon(points: Iterable[Point], **kwargs) -> Diagram:
 
 def curve(points: Iterable[Point], *, smooth: float = 0.5,
           closed: bool = False, **kwargs) -> Diagram:
-    """A Catmull-Rom spline through every point, as real cubics.
+    """Return a Catmull-Rom spline through every point as cubic Bézier segments.
 
     The curve passes exactly through its control points -- that is what
     Catmull-Rom is for, and what makes it the right interpolant for data.

@@ -1297,8 +1297,7 @@ def axes(*, width: float | str = 26.0,
          name: str = "axes",
          tolerance: float | None = DEFAULT_TOLERANCE,
          **options) -> Diagram:
-    """Three arrows and their labels: the figure element every methods section
-    needs and nobody wants to draw twice.
+    """Draw three coordinate arrows and their labels.
 
     The labels are real text, placed by projecting each arrow's tip through the
     same view the arrows were drawn with and pushing outward from the frame's

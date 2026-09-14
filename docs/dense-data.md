@@ -10,9 +10,19 @@ vector axes, labels, annotations and legends regardless of that choice.
 | Dense straight line | `line(..., simplify=0.02)` | Optional reduction of vector vertices within a physical tolerance |
 | Every authored vector point | Omit `simplify`, or use `simplify=0` | Every line vertex is retained |
 
-Raster scatter and matrices require Pillow (`pip install 'inklet[images]'`).
+Raster scatter requires Pillow (`pip install 'inklet[images]'`). Raster matrices
+use Inklet's standard-library PNG encoder, so creating the matrix and saving it
+as SVG do not require Pillow. Saving that embedded image to PDF does require
+Pillow (`images` or `render`).
 PNG export additionally needs the `render` extra. Vector line simplification is
-part of the core package in Inklet 3.1.
+part of the core package. Install extras in the environment that runs the
+script, for example `.venv/bin/pip install 'inklet[images,render]'`.
+
+Scatter layers with at least 256 points use packed vector markers automatically;
+they remain editable and retain every observation. Use `raster=True` when a
+single image layer is preferable. Matrix `raster='auto'` switches around 2,000
+cells; see [Matrices](matrices.md) for `vector='batched'`, `vector='seamless'`,
+missing values and interpolation choices.
 
 ## Reduce vector line geometry
 
@@ -44,6 +54,9 @@ the dataset or perform statistical smoothing. Uncertainty bands and error bars
 retain their own complete geometry. Use it for straight, open lines; combining
 positive simplification with `smooth` or `closed=True` raises an error.
 Coordinates must be finite.
+Validate the reduced export at its final physical size, especially where a
+sharp peak, crossing, or narrow interval matters to the interpretation. Keep an unsimplified
+archive when the figure is used for measurement or digitization.
 
 The reducer limits its work on difficult paths by retaining additional vertices.
 It does not increase the tolerance to satisfy a point-count target. Each reduced

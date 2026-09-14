@@ -54,6 +54,12 @@ relatively; the site hook includes gallery images and converts other
 out-of-docs links to repository URLs. This avoids duplicate copies of examples
 and preview assets.
 
+Use direct, literal prose. State what an option changes, when to use it and
+what its limits are. Prefer "parameter" to "dial" and describe the result
+instead of calling it "honest" or "elegant". Preserve technical terms such as
+plot spines and geometric envelopes. Generated API summaries come from source
+docstrings; edit those and run `tools/gen_api.py` rather than editing `docs/api.md`.
+
 ```sh
 uv pip install -r requirements-docs.txt
 .venv/bin/python -m pytest -q tests/test_docs.py tests/test_cookbook.py tests/test_guides.py tests/test_docs_site.py
@@ -69,6 +75,19 @@ Install the `render` and `volume` extras, then run
 update it when moving snippets. Keep the preview beside its code, write useful
 alt text, and put scientific figure descriptions outside the artwork. A guide
 using a larger gallery figure should link to its recipe and data attribution.
+
+For a focused update, use `tools/docs_previews.py --page matrices.md` (repeat
+`--page` for additional guides). The plot gallery also records source block
+numbers in `tools/plot_catalog.json`; keep those in sync when moving examples.
+Inspect the rendered figure as well as running its code: row labels must match
+matrix coordinates, tick formatting must retain the supplied precision, and
+legends and colourbars must explain the values actually drawn. Check figures
+at reading width and through the full-size image link.
+
+Current guides should describe released behavior and link to installation for
+dependencies. Identify experimental APIs explicitly. Preserve dated benchmark
+results and old anchors, while directing readers to current workflows; changing
+an availability statement is not evidence that a benchmark was rerun.
 
 The static site is written to `out/docs-site/`; local serving uses port 8000.
 The [MkDocs configuration reference](https://www.mkdocs.org/user-guide/configuration/)

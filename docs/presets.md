@@ -1,7 +1,5 @@
 # Presets
 
-Presets are available in **Inklet 2.6**. Upgrade with `python -m pip install --upgrade inklet`.
-
 A preset combines typography, colours, spacing, plot defaults, panel lettering,
 physical page dimensions and export settings. Live content is measured again
 when you switch presets; explicit plot colours and component styles stay intact.
@@ -183,6 +181,7 @@ checks at final export size. A preset is not a submission certification.
 overridden page fields. The manifest's top-level dimensions and `publication`
 record describe the actual document/export settings.
 
-The 2.5 `theme()` and `publication()` defaults continue to work unchanged.
-Publication profiles can now also accept `base_theme=`, `title_font_pt=`,
+Use `theme()` for drawing defaults, `publication()` for a physical page and
+export policy, or `preset()` for a named combination of both with lettering and
+destination-specific checks. Publication profiles also accept `base_theme=`, `title_font_pt=`,
 `max_font_pt=` and `max_height_mm=`.

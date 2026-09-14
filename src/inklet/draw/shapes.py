@@ -55,7 +55,7 @@ _MAX_ARC_SPAN = 90.0   # degrees per cubic; the kappa error is nil at 90, poor a
 
 def arc(radius: float | str, start: float, end: float, *,
         closed: bool = False, kind: str = ARC_KIND, **style) -> Diagram:
-    """A circular arc from `start` to `end` degrees, as real cubics.
+    """Approximate a circular arc from `start` to `end` degrees with cubic Bézier segments.
 
     `closed` shuts the chord, giving a circular segment; for the wedge from the
     centre, use `sector`.

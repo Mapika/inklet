@@ -38,9 +38,18 @@ figure.save('outlined.svg', 'outlined.pdf', text='outline')
 assert '<svg' in figure.to_svg(text='outline')
 ```
 
-Legacy `Figure.save()` retains its existing outlined-text default, while
-`Figure.export()` defaults to embedded text. Set `text=` explicitly when
-mixing APIs and needing one text policy.
+The direct `Figure` API has different defaults:
+
+| Export path | SVG text default | PDF text default |
+| --- | --- | --- |
+| `Document.save()` / `CompiledFigure.save()` | Embedded font | Embedded font |
+| Direct `Figure.save()` | Font-family names | Outlined glyphs |
+| `Figure.export()` review bundle | Embedded font | Embedded font |
+
+Publication settings can override the document defaults. SVG `text='names'`
+relies on fonts installed in the viewer and can change appearance on another
+machine. Use `text='embed'` for portable, searchable text or `text='outline'`
+for paths. Both work across SVG and PDF; set one explicitly when mixing APIs.
 
 Page dimensions are physical millimetres. Preview DPI changes the PNG pixel
 dimensions, not the page width, vector detail or source-image resolution.
@@ -131,6 +140,9 @@ This assumes the first bundle already exists. Watch mode compares successive
 successful builds automatically unless you specify a fixed reference.
 
 ## Automated visual checks
+
+For contributors working from a repository checkout with the
+[visual test dependencies](../tests/visual/README.md) installed:
 
 ```sh
 python tools/visual_check.py --output out/visual

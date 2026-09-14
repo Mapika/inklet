@@ -1,7 +1,8 @@
 # GeoJSON points, routes and regions
 
-Available in **4.0.0.dev5**, under `inklet.experimental`. See the
-[development-preview installation guide](development-preview.md).
+Introduced in **4.0.0.dev5** and available in stable **4.0.1**, under
+`inklet.experimental`. See the
+[4.0 release guide](development-preview.md).
 
 `GeoFeatures` snapshots mixed GeoJSON geometries. `MapView` joins each feature
 to one keyed table row, so a point, an entire route or all parts of an island

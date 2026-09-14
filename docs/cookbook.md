@@ -2,7 +2,14 @@
 
 Recipes for the shapes that come up in a real figure and are not obvious from
 the reference. Every block here is executed by `tests/test_cookbook.py`, and
-most of them assert a clean lint, so nothing on this page is aspirational.
+most of them assert a clean lint.
+
+This is the direct drawing reference: diagrams and panels keep their authored
+physical sizes. For a page that follows data edits and resizes its plots, start
+with [the first figure tutorial](quickstart.md) and
+[the authoring model](concepts.md). Use this cookbook for individual drawing
+techniques inside either workflow. The examples use illustrative data unless
+their source is stated; sections that need optional tools identify them locally.
 
 Each recipe starts from:
 
@@ -33,8 +40,8 @@ assert card.width == 52.0
 
 *Rendered from the code above.*
 
-The number you are solving for is yours -- a wrap width here, a plot area
-elsewhere, a radius, a font size. `fit` only compares what comes back against
+The quantity being solved for can be a wrap width, plot area, radius, or font
+size. `fit` only compares what comes back against
 the target. Because text wraps in whole words the measurement moves in jumps,
 so `fit` returns the widest build that still *fits* and pads the remainder;
 pass `exact=False` for the content's own size instead.
@@ -72,21 +79,20 @@ assert fig.lint() == []
 
 *Rendered from the code above.*
 
-Two details carry the recipe. `through=[junction]` tells the spine's arrow that
+Two settings are required. `through=[junction]` tells the spine's arrow that
 passing over the join is not a collision. And the branch starts at
 `junction.at("center")`, **not** at `junction`: a spacer draws nothing, so
 there is no outline for a link to clip against, and aiming at the node itself
-gets you `LINK_UNCLIPPED`. An anchor is a position rather than a clip, which is
-exactly what an invisible join wants.
+produces `LINK_UNCLIPPED`. An anchor supplies a position rather than a clipping
+outline, which is appropriate for an invisible join.
 
 ---
 
 ## A graph that lays itself out
 
-Past about a dozen boxes, hand-stacking a flow stops being worth it: one new
-step and every gap has to be re-thought. `inklet.graph` takes the boxes and the
-edges between them and decides the rest -- ranks, order within a rank, the
-corridors long edges run down, the millimetres.
+For flows with about a dozen or more boxes, manual stacking requires repeated
+gap and placement changes. `inklet.graph` takes the boxes and edges and computes
+ranks, order within each rank, edge corridors, and physical positions.
 
 ```python
 STEPS = {
@@ -125,12 +131,12 @@ aimed at from outside the graph after the fact.
 
 Four layouts, and the choice is about what the graph *is*:
 
-* `"layered"` (the default) for anything with a direction -- a pipeline, a
-  workflow, a CONSORT diagram. It is the one that gives you ranks.
+* `"layered"` (the default) for directed structures such as pipelines,
+  workflows and CONSORT diagrams. It assigns nodes to ranks.
 * `"tree"` for a real hierarchy: a taxonomy, a decision tree, a file layout.
   Parents sit centred over their children and subtrees never interleave.
 * `"force"` for an undirected network with no flow to it -- connectivity,
-  co-occurrence. Deterministic here: no seed, no run-to-run wobble.
+  co-occurrence. The layout is deterministic and does not require a seed.
 * `"circular"` for a small dense graph where every node should be equally
   visible.
 
@@ -145,23 +151,22 @@ labelled = inklet.graph(
 assert labelled.edges[0].label is not None
 ```
 
-A self-loop or a second edge between the same two boxes raises: both draw as
-one line wearing two arrowheads, and a layout that silently produced that would
-be lying about the graph. Draw the loop yourself with `inklet.arc`, or merge the
-two edges and put both labels on one.
+A self-loop or a second edge between the same two boxes raises because both
+would be represented by one line with two arrowheads. Draw a loop yourself with
+`inklet.arc`, or merge the two edges and put both labels on one.
 
 ---
 
 ## Which way an orthogonal arrow bends
 
-`route="orthogonal"` is not free-form: the elbow is decided before any clipping,
-which is what keeps every segment axis-aligned.
+`route="orthogonal"` selects an axis-aligned route. The elbow is decided before
+clipping.
 
 * The connector **leaves along whichever axis separates the two centres most**.
 * If the two shapes are clear of each other on that axis, it leaves *and*
-  arrives along it, jogging across in the middle -- a **Z**.
+  arrives along it, creating a **Z** route.
 * If they overlap on that axis there is no corridor, so it turns once and
-  arrives on the minor axis -- an **L**.
+  arrives on the minor axis, creating an **L** route.
 
 So a bend you did not expect usually means the dominant axis is not the one you
 had in mind. Moving the two shapes changes the answer; so does an extra
@@ -240,9 +245,9 @@ assert inklet.lint(chart) == []
 
 *Rendered from the code above.*
 
-Without it there is nothing to see and nothing to catch: each group is centred
-on its own box, the labelled group is the widest, and the three slide apart by
-half the difference. The drawing is simply out of register.
+Without it, each group is centred on its own bounding box. The labelled group is
+the widest, so the three groups are offset by half the width difference and the
+drawing is out of register.
 
 ```python
 loose = inklet.overlay([line.copy(), dots.copy(), tags.copy()])
@@ -283,8 +288,8 @@ assert inklet.to_svg(arms).count("Z") == 2      # two rings, not one bridged rin
 
 *Rendered from the code above.*
 
-A window across both arms of that U leaves two separate pieces, and they come
-back as two. That is worth an assertion because the textbook algorithm
+A window across both arms of that U leaves two separate pieces. Assert this
+because the textbook algorithm
 (Sutherland-Hodgman) answers with one ring joined by a zero-width bridge along
 the cut: right as a *nonzero fill* and wrong as everything else -- the bridge
 is stroked, it is a hole under the even-odd rule, and it is not the outline
@@ -296,7 +301,7 @@ anything downstream measures.
 
 `_{...}` lowers and `^{...}` raises. The braces are the whole of the syntax,
 so an underscore in a gene name or a caret in a unit is never touched, and
-there is nothing to escape. The rest of the markup -- bold, italic, colour --
+there is no escaping step. The rest of the markup -- bold, italic, colour --
 is in the next recipe, and composes with these.
 
 ```python
@@ -322,10 +327,10 @@ SVG backend draws.
 
 ## Inline bold, italic and colour
 
-A caption sets its panel letters bold and a species name italic in the middle
-of a justified paragraph, and no amount of stacking will do that: a separate
-diagram per phrase cannot be justified into the paragraph around it. So the
-markup travels inside the string, and `inklet.text`, `inklet.label`, `inklet.title` and
+A caption can contain bold panel letters and an italic species name inside a
+justified paragraph. A separate
+diagram per phrase cannot be justified into the paragraph around it. Put the
+markup in the string; `inklet.text`, `inklet.label`, `inklet.title` and
 a box's label all read it.
 
 | written | gives |
@@ -337,10 +342,10 @@ a box's label all read it.
 | `_{sub}`, `^{super}` | as in the recipe above |
 | `\*`, `\/`, `\{`, `\_`, `\^`, `\|`, `\\` | that character, literally |
 
-The delimiters are doubled on purpose. A lone `*` is the adsorbed-species
-prefix of every electrochemistry caption ever written (`*CO`, `*OH`) and a
+The delimiters are doubled to avoid ambiguity. A lone `*` is the adsorbed-species
+prefix in electrochemistry captions (`*CO`, `*OH`) and a
 lone `/` is in the middle of every URL, so Markdown's single-character
-spellings would silently swallow half a paragraph. Two rules make the rest
+spellings would consume adjacent paragraph text. Two rules make the rest
 predictable: **each opener takes the nearest matching closer**, so delimiters
 never cross, and **a delimiter with no partner is ordinary text**, so
 half-typed markup shows up as itself instead of eating what follows it.
@@ -531,9 +536,9 @@ assert inklet.lint(chip) == []
 
 ## A key that is not palette swatches
 
-`inklet.legend` is built around a categorical palette. When the key has to explain
-a shaded span and a marker rather than a series, build it out of the same
-pieces the figure uses -- which is also what keeps it honest.
+`inklet.legend` is built around a categorical palette. When a key explains a
+shaded span and a marker rather than a series, build it from the same components
+as the figure so its symbols and styling match.
 
 ```python
 swatch = inklet.polygon(((0, 0), (3.2, 0), (3.2, 1.7), (0, 1.7)),
@@ -567,21 +572,18 @@ strict = fig.lint(min_font_pt=6.0, min_clearance_mm=1.5, max_stroke_widths=3)
 assert strict == []
 ```
 
-Worth knowing about the severities:
+The severities distinguish findings that require different kinds of review:
 
-* **error** -- something is not on the page at all: type past its box
-  (`TINY_TEXT`, `TEXT_OVERFLOW`, `OFF_CANVAS`), a word a line is drawn through
-  (`PATH_CROSSES`), an arrow that came out as a point (`LINK_COLLAPSED`).
-* **warning** -- something you asked for is there but not where you aimed it
-  (`LINK_UNCLIPPED`, a `PATH_CROSSES` across a drawing rather than a word).
-  These are the ones a blind author has no other way to find.
-* **info** -- a judgement call (`CROWDING`, `INCONSISTENT_STROKE`). Low
-  severity, but `CROWDING` is the second most useful thing on the list if you
-  cannot see the figure.
+* **error** — examples include text below the minimum size (`TINY_TEXT`),
+  overflowing text (`TEXT_OVERFLOW`), off-page content (`OFF_CANVAS`), a path
+  crossing text (`PATH_CROSSES`), and collapsed links (`LINK_COLLAPSED`).
+* **warning** — examples include unclipped links (`LINK_UNCLIPPED`) and paths
+  crossing drawings (`PATH_CROSSES`). Inspect their geometry and placement.
+* **info** — review findings such as `CROWDING` and `INCONSISTENT_STROKE` in
+  context; some figures intentionally use close marks or varied line weights.
 
 Six rules read the *relationship* between two things rather than one node on
-its own, which makes them the ones worth knowing by name -- nothing else finds
-what they find:
+its own. Their names identify checks that other rules do not perform:
 
 * `PATH_CROSSES` -- a leader, an annotation arrow or any hand-drawn stroke
   running *through* a drawing on its way somewhere else. `OVERLAP` compares
@@ -608,8 +610,8 @@ under a caption when the backdrop is a photograph, which needs Pillow. Without
 it that one case is skipped rather than guessed at -- white type on a dark
 micrograph is never reported against the page colour it is nowhere near.
 
-Every rule is silent on well-formed input by design, so a code appearing at all
-is worth a look. `docs/api.md` lists them all.
+Review each finding against the rendered figure. The [API reference](api.md)
+lists all diagnostic codes.
 
 ### Saying that two things touch on purpose
 
@@ -645,11 +647,11 @@ one in the same panel -- both are where the scales put them.
 
 ## A matrix with a key that cannot disagree with it
 
-`Panel.matrix` colours one cell per value. The thing worth being careful about
-is not the matrix -- it is that the key beside it describes the same mapping.
+`Panel.matrix` colours one cell per value. The main requirement is that the key
+beside it describes the same mapping.
 `KEY_MISMATCH` catches half of that for you -- a bar and a matrix on different
 *ramps* -- but two scales on the same ramp with different *domains* draw exactly
-the same colours, so they lint perfectly clean and lie to the reader. Build
+the same colours, so they lint clean despite having different domains. Build
 **one** scale object and hand it to both.
 
 ```python
@@ -681,7 +683,7 @@ assert inklet.lint(heatmap) == []
 
 Three things that are easy to get wrong and are handled for you. Cells overlap
 their neighbours slightly, so no pale antialiasing seam draws a grid over the
-picture. They carry `kind="mark"`, so 360 cells are not 700 CROWDING findings.
+picture. They use `kind="mark"`, so 360 cells do not produce 700 CROWDING findings.
 And `values[0]` is the **top** row, which is what a reader expects of a matrix
 and the opposite of what a y axis does -- hence `y=(12.5, 0.5)`, counting down.
 
@@ -691,8 +693,8 @@ baseline and the maximum unlabelled. `thin=False` keeps every one you asked
 for.
 
 **One node per cell.** A 40 x 90 matrix is 3,600 rectangles and about a
-megabyte of SVG -- the honest cost of staying vector. That is the right trade
-for a figure and the wrong one for an image; use `inklet.image` for a photograph.
+megabyte of SVG. This is suitable for an editable figure but inefficient for a
+photograph; use `inklet.image` for photographic content.
 
 ---
 
@@ -702,7 +704,7 @@ for a figure and the wrong one for an image; use `inklet.image` for a photograph
 tell them apart. That question only makes sense when a *layout* put them there.
 When the position came from the data -- a scatter, a heatmap cell, a facet of a
 mesh -- the gap is what the measurement says, and "add 0.7mm of separation"
-asks you to falsify the figure.
+would misrepresent the figure.
 
 `inklet.plot` marks and `inklet.three` facets already declare this, so they are
 exempt from each other and you will never see it. Anything **you** compute and
@@ -740,16 +742,15 @@ the hint tells you which of the two it is:
 * *"…so move `tick-label7` rather than the mark…"* -- the other side is
   furniture, and the separation really is the fix.
 
-Use it for what it means. `kind="mark"` on a caption to quiet a finding is how
-you end up shipping the collision.
+Use `kind="mark"` only for data-positioned geometry. Applying it to a caption
+to suppress a finding leaves the collision unresolved.
 
 ---
 
 ## Shipping the figure: PDF, and text that cannot be re-shaped
 
-`fig.save` writes whatever the suffix asks for, and writing both from one build
-is the usual thing to want -- the PDF goes to the journal, the SVG stays open
-in Illustrator.
+`fig.save` selects the output format from each suffix. Writing both formats from
+one build is useful when the PDF is for publication and the SVG is for editing.
 
 ```python
 fig = inklet.figure(width="89mm")
@@ -762,14 +763,12 @@ fig.save("figure1.svg", "figure1.pdf")
 assert open("figure1.pdf", "rb").read(8) == b"%PDF-1.4"
 ```
 
-The default SVG ships live `<text>` with a `font-family` chain, which is right
-while you are still working: the file is searchable, restyleable and small. It
-carries one risk worth understanding. Every box on the page was sized against
-the font *this machine* resolved that chain to, and a renderer that resolves it
-differently re-shapes the type inside boxes built for the original. Nothing
-warns you; the labels just start touching the edges.
+`Figure.to_svg()` defaults to live `<text>` with a `font-family` chain. The file
+is searchable, editable and small, but another machine may resolve the chain
+to a different font. Its metrics can differ from those used for layout, causing
+labels to overlap box edges without a new Inklet diagnostic.
 
-`text="outline"` removes the chain, and with it the risk:
+`text="outline"` converts glyphs to paths to prevent font substitution:
 
 ```python
 plain = fig.to_svg()
@@ -780,14 +779,13 @@ assert "font-family" not in outlined
 assert len(outlined) > len(plain)          # glyphs as geometry are not free
 ```
 
-Outlining costs 1.4x to 4x the bytes -- each distinct glyph is defined once in
-`<defs>` and every occurrence after that is a `<use>`, so the price is per
-*alphabet* rather than per letter -- and it makes the type impossible to retype
-or search. `inklet.outline_text(tree)` is the same thing as a tree transform if
-you are calling `inklet.to_svg` on a tree rather than a figure.
+In the measured examples below, outlining increases file size by 1.4x to 4x.
+Each distinct glyph is defined once in `<defs>` and reused with `<use>`.
+Outlined text cannot be edited or searched as text. `inklet.outline_text(tree)`
+applies the same conversion to a drawing tree before export.
 
 `text="embed"` is usually the better trade. Each face is subset down to the
-characters this document actually uses and travels inside the file under a name
+characters this document actually uses and stores inside the file under a name
 of its own, so the type is pinned to the exact face it was measured against and
 is *still* live text:
 
@@ -799,7 +797,7 @@ assert "@font-face" in embedded            # ...and it cannot fall back
 assert len(embedded) < len(outlined)
 ```
 
-Reach for either when the file is leaving your machine -- a submission, a
+Use either when sharing the file -- a submission, a
 co-author, a print shop -- and keep the named version alongside for editing.
 Outline when the destination might not run a modern renderer at all; embed
 otherwise.
@@ -886,16 +884,15 @@ moved = inklet.annotate(core, "80 degC", side="n", avoid=[key], within=picture)
 assert inklet.annotation_side(moved) == "e"
 ```
 
-Nothing is guessed: the order is fixed, so the same figure gives the same
-answer every run, and `inklet.annotation_side` tells you when the answer was not
-the one you asked for.
+The order is fixed, so the same figure gives the same answer every run.
+`inklet.annotation_side` reports when the selected side differs from the request.
 
 ---
 
 ## Insets and brackets
 
-An inset is only worth the space if a reader can tell which part of the picture
-got bigger. `Panel.inset` puts a second panel in a corner on a plate, and
+An inset is useful when a reader can identify which part of the picture got
+bigger. `Panel.inset` puts a second panel in a corner on a plate, and
 `zoom=` in the parent's data coordinates draws the window it magnifies and
 joins the two with connectors that stay outside both rectangles.
 
@@ -923,9 +920,9 @@ assert plot.lint() == []
 *Rendered from the code above.*
 
 The inset is scaled to `width=` as a fraction of the plot area -- 0.35 by
-default -- and that scales its *type* too, which is honest: a third-size inset
-has third-size tick labels and `inklet.lint` will say so at 5pt. Build the sub
-panel near its finished size and pass `width=None` to leave it alone.
+default -- including its text. A third-size inset has third-size tick labels,
+and `inklet.lint` reports them at 5pt. Build the subpanel near its finished size
+and pass `width=None` to preserve its dimensions and typography.
 
 `Panel.bracket(x0, x1, y, text=...)` takes data for the span and millimetres
 for the tick length, because a tick is a mark on the page and has no meaning in
@@ -938,10 +935,10 @@ line.
 
 ## Panel letters
 
-Every multi-panel figure needs a, b, c in the corner, and the version everyone
-writes by hand puts them at the panels' bounding-box corners -- which is inside
+Every multi-panel figure may need panel letters. Placing them at the panels'
+bounding-box corners puts them inside
 the y-axis labels, because the axis is part of the panel. `inklet.letters` places
-them outside, and hands back tagged diagrams in the order given, so the handles
+them outside and returns tagged diagrams in the given order, so the handles
 you already have keep working.
 
 ```python
@@ -1008,10 +1005,9 @@ assert sheet.lint() == []
 
 *Rendered from the code above.*
 
-One series of bars is a grey tint with an ink outline, because a lone series
-has nothing to be distinguished *from* and colour would only be decoration.
-Hand `bars` a list of lists and it takes the palette instead, grouped side by
-side unless you ask for `stacked=True`.
+A single bar series defaults to a grey fill with a dark outline. Pass `bars`
+a list of lists to draw multiple series using the palette, grouped side by side
+unless `stacked=True` is supplied.
 
 `inklet.histogram` is separated from `Panel.hist` on purpose: you need the counts
 before you can build the y scale, and the bin edges before you can build the x
@@ -1031,7 +1027,7 @@ point for an asymmetric interval; `xerr=` does the same across.
 
 Two quantities against one x -- a current in mA and an efficiency in percent --
 are two scales over one rectangle. `Panel.twin_y` gives you the second scale
-and hands back something that behaves exactly like a panel: everything you draw
+and returns a panel handle: everything you draw
 on it lands in the same picture, mapped through the second scale.
 
 ```python
@@ -1059,13 +1055,12 @@ assert cellfig.lint() == []
 
 *Rendered from the code above.*
 
-Build the panel you called `twin_y` on, never the twin: the twin shares the
-parent's content and has none of its own. `color=` tints the second axis --
-spine, ticks and numbers together -- which is the only thing telling a reader
-which curve to read against which side, so it is worth setting even when the
-curves are obviously different. Pick a palette entry dark enough to carry text:
-`inklet.lint` checks tick labels for contrast, and the paler half of the
-Okabe-Ito set will not pass at 4.5:1 against white.
+Build the panel on which you called `twin_y`, rather than the returned twin:
+the twin uses its parent's content. `color=` sets the second axis's spine,
+ticks and numbers. Match it to the associated series and identify the mapping
+in the legend or caption. Choose a colour with sufficient text contrast;
+`inklet.lint` checks tick labels, and the paler Okabe-Ito colours do not meet
+4.5:1 contrast against white.
 
 `twin_x` is the same thing across the top -- wavelength above frequency, or a
 second time base.
@@ -1117,7 +1112,7 @@ stick out and nothing balances them on the right.
 Anything `facets` does not recognise is passed to every axis it builds, so
 `count=4`, `minor=True`, `si=True` or `format=" %"` style the whole grid at
 once. `axes=False` leaves the furniture to you and does the alignment only,
-which is what you want when the panels already carry their own axes.
+which is what you want when the panels already include their own axes.
 
 ---
 
@@ -1150,13 +1145,14 @@ assert small.to_svg() == packed           # and byte-identical on a re-render
 *Rendered from the code above.*
 
 `compact=True` packs every path, however short; `compact=False` packs none.
-Reach for `False` when a person is going to open the file and edit the
+Use `False` when someone will edit the
 geometry by hand, or when you need the coordinates to be *absolute*: a
 renderer accumulates relative steps in single precision, which moves
-antialiased edges by a fraction of a device pixel. It is not visible, but it
-is not nothing either, so the escape hatch is spelled out rather than hidden.
+antialiased edges by a fraction of a device pixel. The difference is usually not
+visible, but the option is explicit for workflows that require absolute
+coordinates.
 
-The other dial that moves real bytes is what happens to the type. Measured on
+The other setting that changes file size is text handling. Measured on
 the corpus, as a multiple of the default `text="names"` file:
 
 | figure | names | `text="embed"` | `text="outline"` |
@@ -1166,15 +1162,12 @@ the corpus, as a multiple of the default `text="names"` file:
 | `hard_figure` | 45 kB | 1.26x | 2.72x |
 | `mega_figure` | 908 kB | 1.06x | 1.39x |
 
-Embedding is close to free on a page that has real geometry in it, because a
-subset face is a fixed cost paid once while outlines scale with the number of
-distinct glyphs. It is only the very small, very text-heavy figure that pays
-much for it. Outlining costs more and buys less -- but it needs nothing of the
-renderer at the other end, which is occasionally the point. Neither changes
-what the page draws: both are measured against the same face the layout was
-built with. Gzip narrows all of it (a subset face is already compressed, so
-`embed` gains least): over the wire, `hard_figure` is 6.5 kB named, 14 kB
-embedded, 26 kB outlined.
+Embedding has a smaller proportional cost in geometry-heavy figures because
+each font subset is stored once. Outlining adds glyph paths and removes the
+need for the destination renderer to load fonts. Both use the face selected
+during layout. Gzip reduces all three files: in the recorded `hard_figure`
+comparison, compressed sizes are 6.5 kB with named fonts, 14 kB embedded and
+26 kB outlined.
 
 ---
 
@@ -1254,8 +1247,8 @@ stops second-guessing that part.
 `order="exact"` draws the assembly in one pass, so a part can no longer set its
 own `style` or `opacity` -- those belong to a pass, and there is one. What it
 *can* still set is `color`, `colors` and `stroke_width`, the three the fused
-mesh carries per face group. Line weight is how a technical illustration says
-which part the figure is about, so it is worth having:
+mesh stores per face group. Line weight identifies parts in a technical
+illustration:
 
 ```python
 threaded = inklet.scene([
@@ -1301,10 +1294,9 @@ assert sheet.lint(rules=["OFF_CANVAS"]) == []
 
 `axis=` defaults to `"z"` and takes `"x"`, `"-y"`, or a vector; `at=` is a point
 in the mesh's own frame that the axis passes through; `group=` names the wall
-faces, so `colors=` can darken the bore. `segments=` is how many sides the bore
-has and is worth setting down for a small hole -- a 2 mm hole on the printed
-page does not need twenty facets, and every one of them is a wall to hide, sort
-and write out.
+faces, so `colors=` can darken the bore. `segments=` sets the number of sides.
+Small holes may need fewer facets: choose a count that preserves the outline at
+print size while limiting the geometry that must be depth-sorted and exported.
 
 **This plate is what the default sort is for.** `sort="auto"` settles a mesh of
 up to 2000 faces pairwise -- facet against facet -- rather than by each facet's
@@ -1355,14 +1347,11 @@ when it is installed.
 
 ## Three tones, and which line is heaviest
 
-A drawn solid has three line weights available to it and should use exactly
-two: the silhouette at the theme's stroke, the creases at 0.62 of it, and
-nothing at all along a boundary between tones. That is the hierarchy a
-technical illustration is built on -- the outline is the heaviest thing on the
-page, folds are lighter, and shading carries no line -- and it is what
-`style="shaded"` gives with no arguments. Line weight does not scale with the
-drawing: a 0.25 mm line is 0.25 mm whether the solid is 18 mm or 80 mm wide,
-because it has to sit next to the axes and the leaders on the same page.
+`style="shaded"` uses the theme's stroke width for silhouettes, 0.62 of that
+width for creases, and no line at tone boundaries. This distinguishes the outer
+shape from surface folds without outlining each shading band. Stroke widths
+remain physical: a 0.25 mm line stays 0.25 mm whether the solid is 18 mm or
+80 mm wide.
 
 `style="toon"` is the same drawing with the shading turned into three flat
 bands instead of twenty steps, cut smoothly so the boundaries are the isolines
@@ -1385,12 +1374,13 @@ assert inklet.lint(cartoon) == [] and inklet.lint(counted) == []
 
 *Rendered from the code above.*
 
-`shading="smooth"` is the part worth knowing about on its own. Flat shading
-gives a facet one tone, so a band boundary follows facet edges and staircases;
+`shading="smooth"` applies smooth surface shading. Flat shading gives a facet
+one tone, so a band boundary follows facet edges and staircases;
 the auto-tessellation picks segment counts from the *outline's* chord error,
 which at 54 mm leaves facets several millimetres across -- invisible on the
-silhouette, very visible in the tone. It costs: about 40% more path data on a
-sphere. Worth it on a coarse curved body, a wash on a fine one.
+silhouette, very visible in the tone. It produces about 40% more path data on a
+sphere. Use it for coarse curved bodies; on fine meshes the additional detail
+may not be perceptible.
 
 ---
 
@@ -1481,7 +1471,7 @@ assert len(fig.to_svg()) < 60_000
 *Rendered from the code above.*
 
 `raster="auto"` is the default: vector below the threshold, pixels above it.
-`raster=True` forces it -- worth doing for a matrix you know is going into a
+`raster=True` forces it and is useful for a matrix you know is going into a
 figure with twenty others -- and `raster=False` keeps rectangles no matter how
 many there are, which is what you want if the cells must be individually
 selectable in Illustrator.
@@ -1497,8 +1487,9 @@ is printed at 40mm or 180mm.
 **It is a picture of the data, so the data has to be there.** A `NaN` cell is
 refused by name rather than painted as whatever the ramp returns for a
 non-number, and cells that are not evenly spaced cannot be pixels at all --
-pass `x=`/`y=` edges that step unevenly and `raster=True` is an error while
-`raster="auto"` quietly stays vector.
+pass `x=`/`y=` edges that step unevenly and `raster=True` is an error. With
+`raster="auto"`, unevenly spaced cells remain vector even when the cell-count
+threshold is exceeded.
 
 `colorbar()` takes its ramp and its scale from the matrix that was drawn, so
 the key and the picture cannot disagree even when the raster path has thrown
@@ -1537,7 +1528,7 @@ chosen: `2024`, `Mar`, `12 Mar`, `08:00`.
 **The year is written when a reader would otherwise meet the same month
 twice.** A twelve-month axis inside 2024 is labelled `Jan Apr Jul Oct`, and the
 year belongs in the axis name -- `x="2024"` above. Straddle New Year and every
-label gains its year, because `Jan` on its own would be a lie about which one.
+label gains its year, because `Jan` on its own would be ambiguous.
 
 `inklet.dates(domain, range)` builds the scale directly when you want to share it
 between panels, and `minor=True` on the axis divides into the next unit down --
@@ -1548,10 +1539,9 @@ not clear each other.
 
 ## Writing on the plot, in the plot's own units
 
-The three things an author reaches for after the data is drawn -- a word beside
-a point, an arrow from one place to another, a caption on a peak -- are the
-three places a plotting API usually hands back millimetres and leaves the
-arithmetic to you. These take data coordinates.
+After drawing data, authors commonly add a word beside a point, an arrow
+between positions, or a caption on a peak. Plotting methods accept data
+coordinates for these additions and perform the mapping to millimetres.
 
 ```python
 PEAK = max(range(len(LEVEL)), key=LEVEL.__getitem__)
@@ -1579,15 +1569,13 @@ the head every other arrow in the figure has, and both ends are anchors rather
 than shapes -- the arrow ends on the coordinates exactly, with nothing clipped
 back.
 
-`annotate(x, y, text)` is the one with a search in it. It places the label
-clear of an invisible datum sitting on the point, with a leader back to it, and
-`side=` is a *request*: a blocked side walks around the compass and
-`inklet.annotation_side` reads back where the label went. Two defaults are worth
-knowing. The label is kept inside the plot area, because a peak near the top of
-a panel is exactly where an outward search wants to go over the spine, and a
-caption floating above the axis reads as belonging to the panel above it --
-`inside=False` if you meant it. And `avoid=[...]` takes rectangles the label
-must miss, which is how you keep a callout off the legend.
+`annotate(x, y, text)` searches for a label position beside the datum and adds
+a leader to it. `side=` requests a starting side; when blocked, the search tries
+other directions. `inklet.annotation_side` reports the chosen side.
+
+Labels stay inside the plot area by default. Pass `inside=False` to allow
+outside placement. `avoid=[...]` supplies rectangles the label must avoid,
+for example a legend's bounds.
 
 `front=False` on any of the three puts the writing under the data instead of
 over it.
@@ -1677,14 +1665,10 @@ already spreads its own ports; this is for links you place by hand.
 
 ## An anchor that survives being turned
 
-`d.rotated(30)` does not rewrite `d` -- it returns a new parent holding the
-very same node, which is what keeps `fig.link(d, other)` working three levels
-of stacking later. The cost used to be that the anchors went with `d` and out
-of reach: the wrapper had none of its own, so you had to keep hold of the node
-you put the anchor on and hope nobody stacked it for you.
-
-A registered anchor is a point *of the shape*, so it now travels through those
-wrappers, before layout and after it.
+`d.rotated(30)` wraps `d` in a new parent and preserves its identity, so links
+to `d` still resolve after further layout. Registered anchors also resolve
+through wrappers before and after layout; callers can use them without
+retaining a separate reference to the original node.
 
 ```python
 import math
@@ -1734,14 +1718,14 @@ shape is a placement you meant, and `as_drawn` will not undo it.
 
 ## One part of a scene, drawn on top of it
 
-`order="exact"` buys exact depth by fusing the parts into one mesh, and the
-price is that a part stops being a unit of *painting*: one hidden-line pass and
-one facet sort for the whole scene, so only what a mesh can carry per face
+`order="exact"` provides exact depth by fusing the parts into one mesh. A part
+then stops being an independent rendering unit: one hidden-line pass and one
+facet sort for the whole scene, so only properties stored per face
 group -- `color`, `colors`, `stroke_width` -- may still differ between parts. A
 part asking for `style="lineart"` inside a shaded scene is refused rather than
-quietly ignored, because there is no pass of its own for it to be drawn in.
+ignored because there is no separate pass for it.
 
-`overlay=True` is the way out. The part is left out of the fused mesh and drawn
+`overlay=True` renders a part separately. The part is left out of the fused mesh and drawn
 as its own `model()` in the scene's own projection, so it takes everything
 `model()` takes -- `style`, `opacity`, `hidden`, `cull`, `occlusion`, `sort`.
 
@@ -1769,16 +1753,14 @@ assert fig.lint(rules=["DEPTH_ORDER"]) == []
 
 *Rendered from the code above.*
 
-The depth story is one sentence, and it is what the option costs: **an overlay
-is always on top.** It was not in the pass that settles depth, so it hides
-nothing behind it and nothing hides it -- the two drawings are composited, not
-sorted. That is the right trade for the cases it exists for (a ghosted case
-over a mechanism, a cutting plane, one part in line art over a shaded
-assembly) and the wrong one for anything that has to thread *through* the rest,
-which is what fusing was bought for in the first place. Two overlays are
-painted in the order they were declared, and `DEPTH_ORDER` reads an overlay as
-a part whose place the author chose -- the same way it reads `draw_order=` --
-so it does not report it as misordered.
+**An overlay is drawn above the depth-sorted scene** and can cover underlying
+content. Use it for a translucent enclosure, a cutting plane or a line-art part
+over a shaded assembly. Keep a part in the fused mesh when it must participate
+in depth sorting with the rest of the scene.
+
+Two overlays are drawn in their declared order. `DEPTH_ORDER` treats an overlay
+as an explicit ordering choice, as it does `draw_order=`, and does not report
+that choice as a depth-order error.
 
 An overlay is still a part in every other way: it keeps its name, its anchors,
 its silhouette for an arrow to clip on, and its entry in `inklet.three.parts_of`.
@@ -1788,11 +1770,9 @@ an overlay, which is `order="parts"` written the long way.
 
 ## When to cut the data at the plot edge
 
-`inklet.plot` does not clip by default, and that is a deliberate refusal: a trace
-that leaves the panel is data, and a library that silently swallows it has
-turned a spike into a flat line without telling anybody. The lint you get
-instead -- a mark outside the plot area -- is the library asking whether you
-meant it.
+`inklet.plot` does not clip by default. A trace that leaves the panel remains in
+the data, and the linter reports a mark outside the plot area. This preserves
+the distinction between an out-of-domain value and a clipped display.
 
 Sometimes you did. A long recording shown at the range the reader cares about,
 a density whose kernel tail runs past the axis, a scatter with three points at
@@ -1977,13 +1957,13 @@ It is usually much *smaller* than outlining -- 45% to 86% off across the
 corpus figures, because a subset face costs once per alphabet where outlines
 cost once per letter -- and larger only on a figure with a handful of words on
 it. The trade is the other way round: an embedded PDF depends on the subset
-surviving whatever the destination does to the file, and a printer's preflight
-will now have an opinion about it. Outline for the journal, embed for the
+surviving whatever the destination does to the file, and some printer workflows
+may reject or alter embedded fonts. Outline for the journal, embed for the
 preprint server, the co-author and the lab wiki.
 
-Two things worth knowing. A face with CFF outlines cannot be a `/FontFile2`,
-so blocks set in one are outlined and the rest of the page stays selectable --
-silently, because the alternative is refusing to write the file. And a haloed
+Two constraints apply. A face with CFF outlines cannot be a `/FontFile2`,
+so blocks set in one are outlined and the rest of the page stays selectable;
+this avoids refusing to write the file. A haloed
 label is drawn as a stroked path under one text object rather than as two, so
 searching the PDF finds each word once.
 
@@ -2038,22 +2018,20 @@ assert 'font-style="italic"' in fig.to_svg()   # the n really is slanted
 ```
 
 Pass `legend(markup=False)` for the other case: a name that came out of a
-column header, where `//` is a path separator and nobody meant anything by it.
+column header that contains literal `//` path separators.
 
 ---
 
 ## A fold angle that differs between the parts of one scene
 
-`crease` says how far a fold has to turn before it is worth a line, and the
-answer depends on the part, not on the page. A smooth scanned shell wants a
-high threshold so that its tessellation stays out of the drawing; a small
-faceted body standing next to it wants a low one so that its corners are
-actually drawn. `inklet.scene` used to fuse its parts into one mesh before the
-edges were found, so one number had to serve both, and the usual symptom was
-an organic body reading as cracked at the angle the shell needed.
+`crease` sets the minimum fold angle for drawing an edge. A smooth scanned
+shell often needs a high threshold to omit tessellation edges; a small faceted
+part may need a lower threshold to show its corners. Earlier scene rendering
+used one threshold after fusing all parts, which could draw unwanted edges on
+smooth surfaces.
 
-A part's own options carry `crease` the way they carry `color`, and it
-survives the fusing:
+Set `crease` in each part's options to preserve separate thresholds through
+mesh fusion:
 
 ```python
 import inklet.three
@@ -2074,21 +2052,17 @@ assert inklet.lint(rig) == []
 
 *Rendered from the code above.*
 
-The shell's own facet edges stay quiet at 120 degrees and the bead's corners
-ink at 20. A part that names no angle takes the scene's shared `crease`, which
-is the same rule `stroke_width` already followed, so a scene says both the
-same way.
+The shell's facet edges are omitted at 120 degrees and the bead's corners are
+drawn at 20. Parts without their own angle use the scene's shared `crease`, as
+they do for `stroke_width`.
 
-The threshold is compared per *edge*, and an edge between two parts belongs to
-both. The stricter of the two angles wins: the part that asked to see its
-folds is the one that gets an answer, which is what keeps a low-threshold body
-from losing its outline where it meets a high-threshold shell.
+An edge between two parts is tested against both thresholds. It is drawn if
+either part's threshold requires it, preserving edges where a low-threshold
+part meets a high-threshold part.
 
-`order="exact"` above is worth saying out loud in a scene like this one. It
-settles which facet paints over which by asking every overlapping pair, rather
-than by ranking each facet on the mean depth of its corners, and it is the
-default for anything up to `inklet.three.AUTO_EXACT_FACETS` faces. The cheap rank
-is the one that puts a nucleus behind the section plane it stands in front of.
+`order="exact"` resolves depth for overlapping facet pairs. It is the default
+up to `inklet.three.AUTO_EXACT_FACETS` faces. Mean-depth sorting is faster but
+can misorder intersecting or overlapping geometry.
 
 ## Both files a paper needs, from one build
 
@@ -2147,7 +2121,7 @@ what keeps one panel's wide y numbers from shoving its data out of line with
 its neighbour's. By default it puts the area **centres** on one line, which is
 right when the areas are the same height and wrong the moment one member is
 taller: a nested `column` of two panels centred among short neighbours rides
-up half the difference, and carries its panel letter with it.
+up half the difference, along with its panel letter.
 
 `align=` picks the edge instead -- `"top"`, `"center"` (the default,
 `"centre"` too) or `"bottom"` for a row; `"left"`, `"center"` or `"right"` for
@@ -2231,10 +2205,7 @@ assert snug.width <= loose.width
 
 *Rendered from the code above.*
 
-Two things it deliberately does not do. It has no opinion about a drawing
-that already fits -- pass a `fit` wider than the layout and you get the same
-millimetres back, because a drawing inside its column gains nothing from
-being narrower and buys crossings by trying:
+A `fit` wider than the existing graph leaves its width unchanged:
 
 ```python
 assert inklet.graph(boxes, EDGES, direction="down", fit=1000).width == loose.width
@@ -2253,15 +2224,11 @@ assert crammed.width > 10
 
 ## A page grid: laying finished panels out on a page
 
-There is no `page_grid` combinator, and the reason is that there already is
-one: `inklet.facets(..., axes=False)`. `facets` is usually reached for to *share*
-axes between panels of the same plot, but the sharing is one keyword and the
-alignment is the rest of it, so turning the axes off leaves exactly the thing a
-page wants -- panels placed on a grid, each keeping its own furniture, all of
-them lined up on their **plot areas**.
+Use `inklet.facets(..., axes=False)` to align finished panels by their **plot
+areas**. The `axes=False` option retains each panel's existing axes and other
+plot furniture. Axis sharing and plot-area alignment are separate options.
 
-That last word is the whole difference from `inklet.grid`, which lines the cells up
-on their bounding boxes. A panel with a legend over it is taller at the top than
+`inklet.grid` instead aligns cells by their bounding boxes. A panel with a legend over it is taller at the top than
 its neighbour, so aligning the boxes pushes its data area down by the height of
 the legend, and a reader comparing the two panels is comparing two plots whose
 frames do not agree:
@@ -2369,12 +2336,12 @@ fold = inklet.cartoon(chain)
 assert fold.group_names == ("helix", "strand")
 ```
 
-The two ends of a break are twenty angstroms apart and a spline through them
-would draw a girder across the middle of the fold, which is why `cartoon` asks
-the chain for its segments and sweeps each one separately. Nothing joins them.
+The two ends of this chain break are twenty angstroms apart. Connecting them
+would add a segment absent from the supplied chain. `cartoon` sweeps each
+segment separately and leaves the break unconnected.
 
-Drawing it wants two arguments that are not the defaults, and both come from
-the same number -- `SIDES`, the points round the cross-section:
+This requires two non-default arguments, both derived from `SIDES`, the number
+of points around the cross-section:
 
 * `crease=45` is above `360 / SIDES`. Below that the coil's own longitudinal
   seams are steeper than the threshold and get inked, and the protein comes out
@@ -2429,11 +2396,11 @@ a drawing has.
 
 ## Every animal, and the statistics over them
 
-Eleven animals are not a distribution. A box plot over them claims quartiles a
-reader cannot check, and a violin claims a smooth density that eleven points
-do not support, so under about twenty per group the honest picture is the
-points themselves. `swarm` draws one dot per observation and nudges them
-sideways until none hides another:
+For a small group, summary displays can conceal the number and arrangement of
+observations. Boxplots show quartiles and violins estimate a smooth density;
+consider overlaying or showing individual points so readers can assess the
+sample directly. `swarm` draws one dot per observation and nudges them sideways
+until none hides another:
 
 ```python
 CHR2 = [73.0, 74.1, 75.0, 77.9, 78.6, 80.0, 80.5, 83.0, 85.4, 92.5, 93.4, 99.0]
@@ -2454,18 +2421,17 @@ sheet.add(animals.build())
 assert sheet.lint() == []
 ```
 
-The offsets are the only thing the layout invents: **a dot is never moved
-along its value axis**, which is what lets the mean and the interval be drawn
+The layout adjusts only horizontal offsets: **a dot is never moved along its
+value axis**, so the mean and interval can be drawn
 over the very numbers the dots stand for. Nor is there a jitter to seed --
 the placement is greedy and nearest-first over the values in order, so the
 same sample swarms the same way in every run and the SVG stays
 byte-identical.
 
-Two things to reach for when the swarm gets crowded. `max_width=` caps it in
-millimetres, and it degrades by closing the air between the dots before it
-shrinks the dots themselves -- a dot too small to see is not a dot -- with one
-size for the whole call however uneven the groups are. And past twenty or so
-points a group, put the swarm *over* the summary rather than instead of it:
+When the swarm gets crowded, `max_width=` caps it in millimetres. The layout
+reduces gaps before reducing marker size, using one size for the whole call even
+when group sizes differ. For larger groups, put the swarm *over* the summary to
+show both distribution and summary statistics:
 
 ```python
 both = inklet.panel(40, 34, x=list(scores), y=(55, 105))
@@ -2484,12 +2450,10 @@ assert page.lint() == []
 
 ## Cutting the empty middle out of an axis
 
-Three colony counts in the tens and one in the hundreds. On a linear axis the
-three that carry the argument are three stubs; on a log axis a difference of
-*counts* is drawn as a difference of orders. The third answer is to draw only
-the parts of the scale that have data in them, and `inklet.broken` is how — but
-it will never decide that for you. The pieces to leave out are an argument
-about the data, and an argument nobody wrote down is one nobody can check:
+Three colony counts are in the tens and one is in the hundreds. A linear axis
+makes the smaller values difficult to compare; a log axis emphasizes ratios
+rather than additive differences. A broken axis is another option when the
+omitted range is disclosed. `inklet.broken` requires you to specify that range:
 
 ```python
 import inklet
@@ -2504,21 +2468,17 @@ plate.break_marks()
 plate.axes(y="colonies")
 ```
 
-`breaks=` is the stretch **not** drawn, and everything else follows from it.
-Both bands get the same millimetres per unit, so a length in one means what it
-means in the other; no tick and no gridline is ever placed inside the gap, even
-one you pass by hand with `ticks=`; the spine stops and starts again; and the
-step refines until each band has a number of its own to be read by.
+`breaks=` specifies the omitted range. Both retained bands use the same
+millimetres per unit. Ticks and gridlines are excluded from the omitted range,
+even when explicitly requested, and the spine is interrupted. Automatic tick
+spacing is refined so each retained band has a label.
 
-`break_marks()` is the second half of the convention and is separate on
-purpose. It puts the journal's slashes across every filled mark that runs
-through the gap — a bar drawn straight across it is the one shape in the figure
-whose length stands for nothing at all — and leaves everything else alone. A
-whisker is not cut: at a quarter of a millimetre there is nothing to cut, and a
-zigzag over a stroke reads as a second datum.
+`break_marks()` adds slashes to filled marks that cross the break. It leaves
+other geometry, including thin whiskers, unchanged. Slashes identify the
+omission but do not restore the original ratios between displayed bar lengths.
 
-Then read what the linter says, because this is the one piece of furniture in
-`inklet` that makes the picture disagree with the numbers deliberately:
+The linter reports the intentional difference between the displayed geometry and
+the numeric values:
 
 ```python
 paper = inklet.figure(width="60mm")
@@ -2532,19 +2492,14 @@ assert all(d.severity == "info" for d in paper.lint())
 
 *Rendered from the code above.*
 
-`BREAK_DISTORTS` is graded **info** because a broken axis is a legitimate thing
-to decide to do — an inset costs a second panel, a log scale misrepresents
-counts — and the finding's job is to make sure the decision was taken rather
-than fallen into. What it asks for is a caption, not a redraw. It reports two
-things: a filled mark drawn through the gap, and two marks on one baseline
-whose lengths no longer keep their ratio, with the number the caption owes the
-reader (*"the marks reading 385 and 31 read 3.4x apart where the data says
-12.4x"*). Drawing the slashes does not silence it, which is the way round it
-has to be: marking a bar does not make its length mean something again.
+`BREAK_DISTORTS` has **info** severity. It reports filled marks crossing the gap
+and marks on a shared baseline whose displayed lengths have altered ratios.
+In this example, the bars for 385 and 31 have a displayed length ratio of about
+3.4×, while their data ratio is 12.4×. Break marks do not remove the finding.
 
-If the caption is not where you want to spend that sentence, the alternatives
-are a second panel over the small values, or a log axis — which reports
-nothing, because a log axis makes no claim about a ratio it has not kept:
+Disclose the omitted interval and consider a separate panel for the smaller
+values or a log axis. The log-axis example below produces no diagnostic
+findings:
 
 ```python
 logged = inklet.panel(36, 32, x=STRAINS, y=inklet.log((10, 1000)))
@@ -2557,22 +2512,19 @@ sheet.add(logged.build())
 assert [d.code for d in sheet.lint()] == []
 ```
 
-Bars on a log axis carry their own argument — the baseline is a choice, not a
-zero — so this is a trade, not a fix. Which is the point: the break is
-sometimes the right answer, and `BREAK_DISTORTS` exists so that choosing it is
-a decision on the record rather than a thing that happened.
+A log axis cannot include zero. This example explicitly uses a baseline of 10,
+so bar lengths represent logarithmic distances from 10, rather than counts
+from zero. State the baseline and choose the scale for the comparison readers
+need to make.
 
 ## Forty labels and nowhere to put them
 
-`inklet.annotate` places one label the moment you call it, against the labels
-already down and nothing else. On a rig with six callouts that is the right
-answer. On a scatter of forty named points it is not: the label written second
-cannot know that the dot three millimetres north-east is about to want the same
-room, and the last few land on the marks, on each other, and with leaders
-crossing half the field.
+`inklet.annotate` places each label using the obstacles present when it is
+called. Later labels may compete for the same space, producing overlaps or
+crossing leaders in dense figures. A subsequent placement pass can consider
+the completed drawing.
 
-Label the field the obvious way first — the placer takes the tree that comes
-out, so nothing about the authoring changes:
+First construct and label the figure normally:
 
 ```python
 import inklet
@@ -2591,7 +2543,7 @@ for _, _, name in FIELD:
                            size=TH.font_size_small)
 ```
 
-`fig.lint()` already knows what is wrong with that. It has always known:
+`fig.lint()` reports these findings:
 
 ```python
 before = inklet.figure(width="72mm", theme=TH, margin=4)
@@ -2709,7 +2661,7 @@ sheet.add(called)
 assert fates["upper"].id in inklet.resolve(called)
 ```
 
-`tint="target"` is worth knowing about: it colours each band by where it ends
+`tint="target"` colours each band by where it ends
 rather than where it starts, which is the right choice when the first column is
 one undifferentiated pool and colouring by source would paint every band the
 same grey. `direction="down"` turns the whole picture a quarter turn.
@@ -2766,7 +2718,7 @@ assert round(axis_angle) == 40
 assert 0.4 < selectivity < 0.6
 ```
 
-An arrow too short to carry its own head is drawn as a dot at the pole instead.
+An arrow too short to fit its arrowhead is drawn as a dot at the pole instead.
 That is deliberate: a triangle with no shaft reads as a *large* resultant
 pointing nowhere, which is the opposite of what the sample says.
 
@@ -2812,10 +2764,10 @@ assert "π/4" in labels and "3π/2" in labels
 
 **The ticks stay when the labels thin.** A rectangular axis drops a tick with
 its label, because along a straight axis an unlabelled tick is a value the
-reader cannot name. A circle is a clock face: the marks are a rhythm the reader
-counts round, and keeping twenty-four while labelling twelve is how every
-compass rose and every dial is drawn. `theta_axis(curved=True)` sets those
-numbers along the rim instead of upright, which is worth it on a dial with long
+reader cannot name. On a circular axis, retaining tick marks while thinning
+labels preserves angular positions; keeping twenty-four marks while labelling
+twelve is useful for dense directional displays. `theta_axis(curved=True)` sets those
+numbers along the rim instead of upright, which is useful on a dial with long
 labels; which labels survive the thinning does not change either way.
 
 A `PolarPanel` is not a `Panel`, so pass its `build()` to `inklet.row` and
@@ -2832,8 +2784,8 @@ assert inklet.plot_area(cell.build()).width == 40.0
 
 Two ways to set a run somewhere other than horizontally, and one convention
 that governs both: **degrees are clockwise on the page**, because y grows
-downward. `angle=90` reads top-to-bottom, and the y-axis label every plot
-wants is `angle=-90`:
+downward. `angle=90` reads top-to-bottom; use `angle=-90` for a y-axis label
+that reads bottom-to-top:
 
 ```python
 import inklet
@@ -2849,7 +2801,7 @@ down.
 
 For a run that follows a curve, hand `inklet.text_on_path` the very node the
 figure draws. It takes the node's own cubics, so the type lands on the curve
-the backend strokes and not on a flattening of it, and it carries the curve's
+the backend strokes rather than a flattened approximation, and it retains the curve's
 origin, which is what keeps `inklet.drawn([...])` in register:
 
 ```python
@@ -2895,7 +2847,7 @@ assert sheet.lint() == []
 
 *Rendered from the code above.*
 
-Three things worth knowing about the result. Each shaping cluster becomes its
+The result has three relevant properties. Each shaping cluster becomes its
 own live text node, so `save(text="embed")` still writes words a reader can
 select and search -- one `<text>` per cluster, in reading order -- and the
 whole string is recorded on the group where a diagnostic can quote it. A run

@@ -5,8 +5,8 @@ together as the analysis changes. This tutorial builds a small diagram from a
 file, moves one object, saves and reopens the project, connects its objects to
 plotted measurements, then replaces the measurements without losing the edit.
 
-Available in **4.0.0**, under `inklet.experimental.project`;
-install the [4.0 release](development-preview.md). Run the Python
+Introduced in **4.0.0** and available in stable **4.0.1**, under
+`inklet.experimental.project`; install the [4.0 release](development-preview.md). Run the Python
 blocks below in order in a fresh working directory. The example uses simulated
 data and the core installation. Project schemas remain experimental; see the
 [API and saved-file policy](compatibility.md#api-and-saved-file-policy).
@@ -20,7 +20,7 @@ data and the core installation. Project schemas remain experimental; see the
 
 Three small objects describe different responsibilities: `AssetManifest`
 records the actual input files, `EntityMap` records which local objects refer
-to the same entity, and `FigureProject` carries the composition and editor
+to the same entity, and `FigureProject` stores the composition and editor
 choices through save and reopen. The Python recipe stays under your control.
 
 Choose files explicitly and record their provenance. A manifest stores relative

@@ -58,8 +58,15 @@ require additional builds while plot furniture settles. The
 [stress test](stress20.md) shows why a cached page is much faster than rebuilding
 a dense scatter plot.
 
-Do not modify the internal tree of a compiled snapshot. Make edits to the
-authoring objects and compile again.
+Make edits to the authoring objects and compile again. A compiled snapshot
+retains the drawing, fonts and data revisions from its compilation; exporting
+it after a dataset update still exports the earlier figure.
+
+`compiled.build()` returns the retained drawing and a read-only mapping of
+resolved placements. The mapping is for inspection. Copying it does not create
+an editable layout or update the drawing. Use the document's named cells,
+composition constraints or [saved layout choices](layout-overrides.md) to revise
+placement. Do not mutate the retained drawing tree.
 
 ## Explicit dependencies
 

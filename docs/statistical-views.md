@@ -1,10 +1,10 @@
 # Linked distributions and intervals
 
-Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.0.1**. See the [4.0 release guide](development-preview.md).
 
 Connect empirical distributions to individually selectable observations and
 supplied uncertainty intervals. `ECDFView` and `IntervalView` are development
-APIs under `inklet.experimental.browser`, **not part of PyPI 3.1.0**.
+APIs under `inklet.experimental.browser`; they remain opt-in experimental APIs.
 
 ![Empirical cycle-time distributions above linked batch estimates and supplied ranges](assets/v4/statistical-views.png)
 

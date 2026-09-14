@@ -2,6 +2,23 @@
 
 <span id="migrating-to-inklet-31"></span>
 
+## From 4.0.0 to 4.0.1
+
+4.0.1 is an engine maintenance release. Existing authoring recipes and export
+calls continue to work. Upgrade with `python -m pip install --upgrade inklet`,
+or pin `inklet==4.0.1` with the extras your workflow needs.
+
+`CompiledFigure.build()` now exposes its resolved placements through a read-only
+mapping. Code that only reads placements needs no change. If you previously
+mutated that mapping, move those edits to the document or composition and
+compile again; editing a placement mapping is not a supported layout workflow.
+Compiled exports also retain the font selections from compilation. Recompile
+the authoring document when you want an updated snapshot.
+
+Review a representative SVG/PDF pair with your usual fonts and renderers before
+replacing archived outputs. See [export and review](export-review.md) for revision
+comparison and [the authoring model](concepts.md#compilation) for snapshot behavior.
+
 ## From 3.1 to 4.0
 
 **4.0.1 is stable.** Upgrade with `python -m pip install --upgrade inklet`,

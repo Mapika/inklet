@@ -1,6 +1,9 @@
 # Save and restore layout choices
 
-Available since **4.0.0.dev7**; uniform artwork scale is added in **dev9**, named text and callout decisions in **dev10**, and supported appearance fields in **dev11**. Save placement and dimension edits separately from
+Available in stable 4.0.1 under the opt-in layout override API. The dev7–dev11
+previews introduced uniform artwork scale, named text and callout decisions,
+and supported appearance fields; those milestones explain the saved schema
+history below. Save placement and dimension edits separately from
 a [composition recipe](composition-recipes.md), then restore those choices
 when its data, labels or content change. The saved JSON records only differences
 from a reference recipe. Unedited source decisions remain in control.
@@ -14,7 +17,7 @@ uses live illustrative data and generated geometry.
 
 [Open the restored figure viewer](assets/guides/layout-restored.html).
 The viewer supports zoom, pan and vector export. Edit layouts through the
-Python APIs below or the [local inspector](layout-editor.md) in dev8. This format is separate from the experimental linked-table
+Python APIs below or the [local inspector](layout-editor.md). This format is separate from the experimental linked-table
 [plot-style overrides](visual-editing.md).
 
 ## Capture changes against a reference

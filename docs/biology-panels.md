@@ -61,8 +61,8 @@ clean warning count is not a substitute for scientific or visual review.
 This example establishes a reproducible starting point. More demanding cases
 should combine microscopy with calibrated scale bars, spatial cell maps, genomic
 tracks, clustered matrices and annotated molecular or cellular 3D structures.
-Those capabilities need explicit identities, units, data provenance and honest
-visibility handling. A biological-looking image alone does not establish them.
+Those capabilities need explicit identities, units, data provenance and explicit
+handling of occluded and off-frame objects. A biological-looking image alone does not establish them.
 
 The [real microscopy example](real-biology.md) now connects calibrated sections,
 annotated organelle surfaces and volume charts from openly licensed COSEM data.

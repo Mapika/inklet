@@ -2,6 +2,16 @@
 layout: home
 title: Overview
 ---
+## Start with a complete figure
+
+[Install Inklet](installation.md), then follow the [first figure tutorial](quickstart.md)
+to draw, revise and export a page. If your data already lives in a table, start
+with [CSV to figure](csv-figure.md). Both paths use the stable document and plot APIs.
+
+Read [the authoring model](concepts.md) before building reusable figures: it
+explains which objects remain editable, how data changes reach a plot, and what
+a compiled export preserves.
+
 ## Find the right guide
 
 | You want to… | Start here |

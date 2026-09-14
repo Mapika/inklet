@@ -16,7 +16,7 @@ illustrative. No paper images, downloaded meshes or external datasets are used.
 | q–t | Polar band and mean vector; conserved Sankey flow; 100-cell vector correlation matrix; 7,200 events in 80 vector paths |
 
 Only the dense scatter and scalar field are raster layers. Text, axes, diagrams,
-3D artwork and every other chart remain vector. Three live data tables carry
+3D artwork and every other chart remain vector. Three live data tables contain
 source records, revisions and content hashes into the export manifest.
 
 Run from the repository root, with Inklet's image extras, Chrome/Chromium and

@@ -3,6 +3,11 @@
 Control grouped categories, external insets and dense scatter in composite
 figures such as the [twenty-panel stress test](stress20.md).
 
+The examples below build `Panel` objects directly to show layout controls.
+They are one sequence: run the imports and first block, then later blocks in
+order. To export a finished panel, add it to `i.document(...)` and call
+`save`; `Panel.build()` alone returns an in-memory diagram.
+
 For manuscript figures, keep panel letters, axes, units, scale bars, legends and
 necessary annotations in the artwork. Put the figure title, panel descriptions,
 methods and attribution in the manuscript caption. Avoid embedding a suptitle or
@@ -49,7 +54,7 @@ p.inset(zoom, side="right", width=None, pad=3,
 
 External inset placement uses the completed parent and child at build time, so axes and labels may be added after `inset()`. `side` accepts left, right, top or bottom; `align` accepts start, center or end and aligns plot areas. `width=None` preserves the child's physical dimensions and typography. Changes to either panel invalidate the external inset layout; repeated unchanged builds remain cached. Translating or scaling the resulting composition keeps its connectors together. Cyclic inset relationships are rejected.
 
-Rasterization requires `inklet[images]` (Pillow). Only the requested scatter layer becomes a PNG; axes, legends and other marks remain vector. DPI describes the layer at its authored physical size; scaling the complete figure changes its effective print resolution. Group opacity is applied once after marker compositing. The raster path supports standard markers, solid outlines and clipping, with a 16-million-pixel output limit. Rasterization can increase PDF size or build time; compare exports for the intended density and print size.
+Rasterization requires `inklet[images]` (Pillow). Only the requested scatter layer becomes a PNG; axes, legends and other marks remain vector. DPI describes the layer at its authored physical size; scaling the complete figure changes its effective print resolution. Group opacity is applied once after marker compositing. The raster path supports standard markers, solid outlines and clipping, with a 16-million-pixel output limit. Rasterization can increase PDF size or build time; compare exports for the intended density and print size. Matrix rasterization uses the standard-library encoder; see [Matrices](matrices.md) for its options.
 
 ```python
 p = inklet.panel(60, 40, x=(0, 2), y=(0, 5))
@@ -63,7 +68,7 @@ p.legend()
 
 *Rendered from the code above.*
 
-`stackarea` accepts series-major, finite, nonnegative values. The baseline may be a finite scalar or a value per x-coordinate. Signed stacked areas require explicitly calculated `fill_between` bands.
+`stackarea` accepts series-major, finite, nonnegative values. The baseline may be a finite scalar or a value per x-coordinate. Signed stacked areas require explicitly calculated `fill_between` bands. Verify that each series uses the same x coordinates and units. A nonzero baseline is useful for a local comparison, but state it in the caption.
 
 Explicit `stroke` and `stroke_width` now take precedence over bar and histogram defaults. `box(radius=0)` keeps square corners under a rounded theme. Explicit tick lists retain the existing thinning default, but omitted labels now trigger a warning: use `thin=False` to preserve all labels or `thin=True` to permit thinning explicitly.
 
@@ -94,3 +99,5 @@ p.legend(side='right', markup=False)
 For other mark types, use `selected[key]` for colour and
 `selected.legend_entries` with `legend(entries=...)`. Group definitions must
 partition the category order into consecutive, non-empty groups.
+After filtering, inspect the resulting order and labels before exporting: an
+empty group disappears and a reordered subset keeps the shared category order.

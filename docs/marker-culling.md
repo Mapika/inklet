@@ -1,6 +1,8 @@
 # Spatial marker culling
 
-Available in **4.0.0.dev3**.
+Introduced in **4.0.0.dev3** and included in stable 4.0.1. This page preserves
+the recorded engine study and hardware measurements. Start with the
+[native figure viewer](compiled-viewer.md) for current usage.
 
 The [compiled-scene viewer](compiled-viewer.md) now queries individual marker
 footprints before repainting a visible region. This reduces Canvas work and GPU

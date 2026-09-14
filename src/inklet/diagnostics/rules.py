@@ -1503,7 +1503,7 @@ def _ink_overlap(first: Item, second: Item,
 
 
 def rule_inconsistent_stroke(ctx: LintContext) -> list[Diagnostic]:
-    """Too many distinct line weights reads as accidental rather than designed.
+    """Report more distinct line weights than the configured limit.
 
     Widths the author declared as data -- `inklet.encoded(kind)` -- sit outside
     the count. A ribbon chart legitimately draws thirty widths, and reporting
@@ -3052,7 +3052,7 @@ def _sliver_reason(ctx: LintContext, node_id: str) -> tuple[str, str] | None:
 
 
 def rule_link_unclipped(ctx: LintContext) -> list[Diagnostic]:
-    """An arrow that did not stop where the thing it points at stops.
+    """Report an arrow whose endpoint does not meet the target boundary.
 
     Clipping is the promise this library opens with: aim a link at a node and
     it lands on that node's boundary, wherever the layout has since moved it
@@ -3102,7 +3102,7 @@ def rule_link_unclipped(ctx: LintContext) -> list[Diagnostic]:
 
 
 def rule_font_substituted(ctx: LintContext) -> list[Diagnostic]:
-    """Type that was shaped in a font nobody asked for.
+    """Report text shaped with a font different from the requested font.
 
     `fc-match` never fails, so a request for Helvetica quietly becomes whatever
     is installed, and the figure ships in the wrong typeface with metrics to

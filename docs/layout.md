@@ -3,6 +3,9 @@
 A document places named cells on a physical page. Start with a grid; use a
 measured composition when components need an irregular arrangement.
 
+Run the Python blocks on this page in order. They use core Inklet; generating
+PNG previews additionally needs the `render` extra.
+
 ## Rows, columns and spans
 
 ```python
@@ -12,7 +15,8 @@ left = i.plot_spec(x=(0, 2), y=(0, 5)).line([(0, 1), (1, 3), (2, 2)]).axes()
 right = i.plot_spec(x=(-.5, 2.5), y=(0, 5))
 right.bars([0, 1, 2], [2, 4, 3], width=.8)
 right.axis('bottom', ticks=[0, 1, 2]).axis('left')
-doc = i.document(width=180, columns=[1, 1], gap=8, row_gap=5, margin=5)
+doc = i.document(width=180, columns=[1, 1], gap=8, row_gap=5, margin=5,
+                 share_plot_margins=True)
 doc.add('left', left, row=0, column=0, min_width=60, min_height=50)
 doc.add('right', right, row=0, column=1, min_width=60, min_height=50)
 doc.add('caption', i.component(i.text, 'Two simulated measurements'),
@@ -37,12 +41,14 @@ the entire cell, including axes and labels. They are not data-domain limits.
 
 With no explicit page height, rows grow to meet their measured content and
 minimum heights. A fixed `height` distributes the available space. Plot areas
-resize; text and strokes retain their physical dimensions. Plot cells sharing
-a row or column share relevant furniture margins within that grid.
+resize; text and strokes retain their physical dimensions. Set
+`share_plot_margins=True` to align plot areas by sharing relevant axis and
+legend margins within a grid. This is opt-in; equal cell sizes alone do not
+guarantee equal data-area sizes when labels take different amounts of space.
 
-## Nested subfigures
+## Align fixed artwork
 
-In Inklet 3.1, fixed artwork can align to a cell edge or corner:
+Fixed artwork can align to a cell edge or corner:
 
 ```python
 aligned = i.document(width=100, height=60, columns=2).letters()
@@ -56,12 +62,16 @@ assert aligned.compile().root.width == 100
 `align` defaults to `center`; it also accepts `n`, `s`, `e`, `w`, `nw`, `ne`,
 `sw` and `se`. The decorated artwork, including its panel letter, aligns within
 the cell. This positions geometry without scaling it. Plot cells continue to
-fill their available data regions and share axis margins. The compiler also
+fill their available data regions. The compiler also
 preserves fixed drawings' measured letter space when a parent assigns a final
 height to an automatically sized subfigure.
 
+## Nested subfigures
+
+Build a named group, then place and revise its children through the parent:
+
 ```python
-pair = i.subfigure(columns=2, gap=6).letters()
+pair = i.subfigure(columns=2, gap=6, share_plot_margins=True).letters()
 pair.add('control', left, row=0, column=0, min_height=50)
 pair.add('treatment', right, row=0, column=1, min_height=50)
 page = i.publication('double-column').document()

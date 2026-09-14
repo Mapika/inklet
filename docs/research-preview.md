@@ -153,9 +153,9 @@ revision change. A size choice may trade larger images for shorter leaders.
 
 All panels stack vertically and share an image width selected from the supplied
 finite options. Each label occupies a distinct measured row outside the image.
-`max_evaluations` bounds enumeration and raises on overflow; the search does not
-quietly truncate and claim an optimum. The optimum is only for this discrete
-model and its explicit cost function.
+`max_evaluations` limits enumeration and raises an error if the search exceeds
+that limit. A completed search finds the optimum only for this discrete model
+and its explicit cost function.
 
 The JSON report includes target identities/world points, snapshot cache keys,
 visibility results, constraints, locks, previous slots, chosen placements,

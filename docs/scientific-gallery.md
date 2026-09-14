@@ -89,7 +89,7 @@ paper values are used.
 - [MaleCNS release](https://male-cns.janelia.org/download/): anatomy and released
   annotations; source attribution and license recorded in the manifest.
 - [Pinned community and matched-type tables](https://github.com/flyconnectome/2025malecns/tree/67767d2233657983993ff6c2be48e836a935863c): community memberships and male connection weights.
-- [Pinned FlyWire annotations](https://github.com/flyconnectome/flywire_annotations/tree/8587524c1748ce5ef2080822a2fc890fc03bf597): female type counts; these data carry a CC BY-NC 4.0 license.
+- [Pinned FlyWire annotations](https://github.com/flyconnectome/flywire_annotations/tree/8587524c1748ce5ef2080822a2fc890fc03bf597): female type counts; these data are licensed under CC BY-NC 4.0.
 - [Pinned navis-flybrains templates](https://github.com/navis-org/navis-flybrains/tree/273333c8d8bf5adeebebd274e554621462e388bd): meshes and shared plotting-space landmarks; retain the repository and template attribution.
 
 The local AL view contains 756 sampled annotation records, with 742 unique

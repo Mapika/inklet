@@ -13,9 +13,11 @@ orthogonal sections and quantitative summaries from one fixed spatial crop of
 
 ## Reproduce it
 
-Use the release checkout and Blender 4.2 or 4.5 LTS:
+Use the `v4.0.1` release checkout and Blender 4.2 or 4.5 LTS:
 
 ```sh
+git clone --branch v4.0.1 https://github.com/Mapika/inklet.git
+cd inklet
 python -m pip install -e '.[volume,render]'
 python -m pip install -r examples/biology/requirements.txt
 python examples/real_biology.py --blender /path/to/blender
@@ -65,7 +67,7 @@ infer which cell owns each organelle or establish complete cell coverage.
 The crop retains 209 mitochondrial label IDs and 58 ER label IDs. These are
 source labels, not verified counts of independent biological organelles. Of the
 eight largest retained mitochondrial labels, **252 and 193 touch the crop
-boundary**; their bars carry a dagger. Their volumes may be incomplete.
+boundary**; their bars are marked with a dagger. Their volumes may be incomplete.
 
 The masks are not disjoint: the nucleus/ER pair overlaps at 80,697 voxels, and
 the nucleus/mitochondria and mitochondria/ER pairs overlap at 14 and 13 voxels.

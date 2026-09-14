@@ -607,5 +607,26 @@
     "object": "doc",
     "image": "csv-figure.png",
     "alt": "A response curve with supplied lower and upper bounds"
+  },
+  {
+    "page": "data.md",
+    "block": 1,
+    "object": "first",
+    "image": "data-before.png",
+    "alt": "Control and treatment before a live data update, sharing the original y scale"
+  },
+  {
+    "page": "matrices.md",
+    "block": 2,
+    "object": "doc",
+    "image": "matrix-row-order.png",
+    "alt": "Default and top-first matrix row ordering with the same colour scale"
+  },
+  {
+    "page": "matrices.md",
+    "block": 3,
+    "object": "doc",
+    "image": "matrix-samples.png",
+    "alt": "Uneven numeric sample centres overlaid on their matrix cells"
   }
 ]

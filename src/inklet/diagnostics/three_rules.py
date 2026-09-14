@@ -54,7 +54,7 @@ _MODEL_KIND = "model"
 
 
 def rule_depth_order(ctx: LintContext) -> list[Diagnostic]:
-    """A scene part painted over something it lies behind.
+    """Report a scene part drawn over another part that is geometrically in front of it.
 
     Silent unless the figure contains a `inklet.scene`, and silent on
     `order="exact"` scenes except for an explicit `assert_order=`, because

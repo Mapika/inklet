@@ -1,7 +1,8 @@
 # Local layout editor
 
-Available since **4.0.0.dev8**, with the redesigned studio workspace in
-**4.0.0.dev12**, under `inklet.experimental.layout_editor`. Arrange named
+Available in stable 4.0.1 under the opt-in `inklet.experimental.layout_editor`
+API. The redesigned studio workspace first appeared in the dev12 preview.
+Arrange named
 content, edit labels and appearance, and review the actual Python-compiled
 figure. Downloaded SVG/PDF files use that same successful preview.
 

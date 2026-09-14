@@ -1,11 +1,11 @@
 # Linked lines, bars and scatter
 
-Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.0.1**. See the [4.0 release guide](development-preview.md).
 
 The development preview now connects different plot types through the same row
 IDs. `BrowserFigure` combines measured scatter, line and bar views, while
 `BrowserScatter` keeps the earlier scatter-only entry point. These APIs live in
-`inklet.experimental.browser`; they are **not in PyPI 3.1.0**.
+`inklet.experimental.browser`; they remain opt-in experimental APIs.
 
 ![Four linked views of simulated monthly revenue, margin and work](assets/v4/linked-dashboard.png)
 

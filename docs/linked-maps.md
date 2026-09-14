@@ -1,11 +1,11 @@
 # Linked region maps
 
-Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.0.1**. See the [4.0 release guide](development-preview.md).
 
 The development preview now joins GeoJSON regions to the same keyed table used
 by linked bars and scatter plots. Select a region in either map to select its
 row across all panels, filter regions, save the view, and reconstruct it in
-Python. This is an experimental preview feature, **not part of PyPI 3.1.0**.
+Python. This remains an opt-in experimental feature.
 
 ![Real country map colored by Natural Earth's population estimates](assets/v4/world-population.png)
 

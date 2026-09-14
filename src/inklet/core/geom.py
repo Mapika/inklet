@@ -135,7 +135,7 @@ class Affine:
         return (self.a, self.b, self.c, self.d, self.e, self.f) == (1, 0, 0, 1, 0, 0)
 
     def uniform_scale(self) -> float:
-        """Geometric mean scale factor, for keeping stroke widths honest."""
+        """Return the geometric mean scale factor."""
         return math.sqrt(abs(self.determinant)) or 1.0
 
 

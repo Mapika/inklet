@@ -1,6 +1,8 @@
 # Packed vector markers
 
-Available in **4.0.0.dev3**. This engine increment stores dense vector
+Introduced in **4.0.0.dev3** and included in stable 4.0.1. The measurements below
+record that development revision; see [dense data](dense-data.md) for current
+authoring choices. Packed markers store dense vector
 scatter layers as immutable marker records. It reduces Python object overhead
 without removing observations or rasterizing the layer.
 
@@ -84,7 +86,7 @@ the complete affected buffer.
 
 **Inspection change:** dense scatter has one drawing handle per batch, instead
 of one handle per point. `resolve()` and `flatten()` expose that batch.
-Retained SVG marker elements carry `data-source-index`; combine this with the
+Retained SVG marker elements have a `data-source-index` attribute; combine this with the
 containing batch node to identify a source record. This is an inspection
 contract, not an interactive picking API or a spatial index.
 

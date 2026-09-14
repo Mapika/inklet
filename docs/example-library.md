@@ -9,6 +9,32 @@ from a checkout with Inklet installed. Review bundles need the
 [preview dependencies](installation.md#visual-review); add `--vectors-only`
 where supported to save only SVG/PDF.
 
+## Related studies and variants
+
+The main [figure gallery](examples.md) keeps one card for each distinct goal.
+These source routes remain available here as focused variants and recorded
+studies; they are grouped to keep the page useful as a source index.
+
+**Layout and rendering studies:** [save and restore layouts](layout-overrides.md),
+[local layout editor](layout-editor.md), [reusable plot compositions](plot-recipes.md),
+[dense plot engine review](plotting-engine.md),
+[rendering and nested layout](rendering-engine.md), [render jobs](render-jobs.md),
+and the [twenty-panel stress test](stress20.md).
+
+**Microscopy variants:** [fluorescence channels](fluorescence-biology.md),
+[slab projections](slab-biology.md) and [oblique sections](oblique-biology.md).
+
+**Anatomy variants:** [label an open anatomy model](open-anatomy.md) and the
+[community connectivity plate](scientific-gallery.md#community-structure-from-anatomy-to-connectivity).
+
+**3D scene studies:** [scene templates](scene-templates.md),
+[scene annotations](scene-annotations.md), [scene paths](scene-paths.md),
+[label movement revision](research-revision.md), [label crossing study](research-study.md),
+and the [figure planner study](research-preview.md).
+
+**Showcase and configuration variants:** [architectural sketch](recipes/architecture-sketch.md),
+[direct plot collection](#plot-collection), and [presets](presets.md).
+
 ## A complete live document
 
 The [v2.5 example](../examples/v25_document.py) combines nested grids, measured

@@ -40,7 +40,7 @@ in the [changelog](../CHANGELOG.md), rather than duplicated installation tutoria
 | Named reusable figure content | [Compositions](composition-recipes.md) |
 | Visual labels, layout, styles and native cameras | [Local editor](layout-editor.md) |
 | Saved override format and reconciliation | [Saved layouts](layout-overrides.md) |
-| Verified inputs and shared entity IDs (dev16) | [Figure projects](project-workflows.md) |
+| Verified inputs and shared entity IDs (introduced in dev16) | [Figure projects](project-workflows.md) |
 | Dense scientific figure authoring | [Scientific authoring](scientific-authoring.md), [complex plates](complex-figures.md) |
 | Performance measurements | [Rendering engine](rendering-engine.md) |
 

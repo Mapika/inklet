@@ -4,6 +4,9 @@ Use `composition()` when positions should depend on measured component sizes.
 Use `document()` or `subfigure()` for grids. The direct combinators remain
 useful for simple rows, stacks and fixed diagrams.
 
+Run the Python blocks in order with core Inklet installed. SVG/PDF exports need
+no preview tools; generating PNG previews additionally needs the `render` extra.
+
 The [diagram engine review](diagram-engine.md) includes an
 architecture example, connector-label comparisons and routing measurements.
 

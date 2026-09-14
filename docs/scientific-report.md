@@ -1,13 +1,13 @@
 # Calibrated image measurements
 
-Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.0.1**. See the [4.0 release guide](development-preview.md).
 
 Link a calibrated intensity image, a label map, regional intensity ranges and an
 area comparison. Select an irregular region, save and reopen its state, replace
 the image or labels, and recompile at two physical widths.
 
-These are development APIs under `inklet.experimental`, **not part of PyPI
-3.1.0**. They extend the bounded scientific workflow in Phase C of the
+These are opt-in experimental APIs under `inklet.experimental`, available in
+stable 4.0.1. They extend the bounded scientific workflow in Phase C of the
 [4.0 roadmap](roadmap.md).
 
 ![Calibrated simulated intensity image and label map above region measurements, with a ring-shaped region selected](assets/v4/scientific-report.png)
@@ -120,7 +120,7 @@ areas and extents are rejected.
 | Column | Definition |
 | --- | --- |
 | `id`, `label` | Stable region ID and supplied integer label |
-| `pixels` | Number of source pixels carrying that label |
+| `pixels` | Number of source pixels with that label |
 | `valid_pixels`, `missing_pixels` | Labeled pixels with/without an intensity |
 | `area` | Labeled pixel count × row spacing × column spacing, in squared image units |
 | `mean` | Arithmetic mean of nonmissing labeled intensities |

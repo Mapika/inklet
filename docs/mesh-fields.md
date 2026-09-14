@@ -1,12 +1,12 @@
 # Linked mesh fields
 
-Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.0.1**. See the [4.0 release guide](development-preview.md).
 
 Compare scalar values, planar vector arrows, a fixed-camera 3D surface and a
 linked scatter plot using one immutable triangle mesh with explicit face IDs.
 
-These development APIs live under `inklet.experimental` and are **not included
-in PyPI 3.1.0**. This is another bounded scientific workflow in Phase C of the
+These development APIs live under `inklet.experimental` and are available in
+stable 4.0.1 as opt-in experimental APIs. This is another bounded scientific workflow in Phase C of the
 [4.0 roadmap](roadmap.md).
 
 ![Scalar face colors and vector arrows above a 3D surface and linked scalar versus magnitude plot](assets/v4/mesh-fields.png)

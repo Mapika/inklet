@@ -2,14 +2,13 @@
 
 # `inklet` API reference
 
-Everything `import inklet` puts in front of you, in the order the package itself
-lists it. One line each: what it is, and what it is for. The full story is in
-the docstring, which is what `help(inklet.link)` prints.
+Public names exported by `inklet`, in package order, with signatures and short
+descriptions. Use `help(inklet.link)`, for example, to read the full docstring.
 
-Two conventions run through all of it. **Millimetres are the unit** -- every
-length is a number of millimetres, or a string like `"89mm"` / `"2in"` / a
-`pt(9)`. And **every combinator wraps rather than rewrites**, so a handle you
-took before layout still resolves inside the finished figure.
+**Numeric drawing lengths use millimetres.** Many dimension arguments also
+accept strings such as `"89mm"` or `"2in"`; `pt(9)` converts 9 points to
+millimetres. **Composition preserves child handles:** combinators wrap drawings
+in parent nodes, so handles created before layout still resolve in the figure.
 
 
 ## Core authoring
@@ -397,11 +396,11 @@ Derive live values, such as filtered rows or stacked series, from inputs.
 
 #### `text(content: 'str', *, size: 'float | str | None' = None, font: 'str | None' = None, weight: 'str | None' = None, align: 'str' = 'center', width: 'float | str | None' = None, line_height: 'float | None' = None, features: 'dict[str, bool | int] | None' = None, markup: 'bool' = True, angle: 'float' = 0.0, kind: 'str' = 'text', bounds: 'str' = 'font', **style) -> 'Diagram'`
 
-Shaped text as a diagram. Its envelope is the real inked extent, which is what lets a box around it actually fit.
+Return shaped text as a diagram with bounds based on its ink extent.
 
 #### `label(content: 'str', **kwargs) -> 'Diagram'`
 
-Smaller, quieter text -- for annotating rather than naming.
+Text for annotations, using the theme's small font size by default.
 
 #### `title(content: 'str', **kwargs) -> 'Diagram'`
 
@@ -425,7 +424,7 @@ Place an image as a diagram that knows its own silhouette.
 
 #### `strip_markup(text: 'str') -> 'str'`
 
-`text` with its markup removed -- what the reader will actually see.
+Return `text` with its markup removed.
 
 #### `text_on_path(content: 'str | Diagram', along, **kwargs) -> 'Diagram'`
 
@@ -476,11 +475,11 @@ A closed run of straight segments, fillable.
 
 #### `curve(points: 'Iterable[Point]', *, smooth: 'float' = 0.5, closed: 'bool' = False, **kwargs) -> 'Diagram'`
 
-A Catmull-Rom spline through every point, as real cubics.
+Return a Catmull-Rom spline through every point as cubic Bézier segments.
 
 #### `arc(radius: 'float | str', start: 'float', end: 'float', *, closed: 'bool' = False, kind: 'str' = 'path', **style) -> 'Diagram'`
 
-A circular arc from `start` to `end` degrees, as real cubics.
+Approximate a circular arc from `start` to `end` degrees with cubic Bézier segments.
 
 #### `sector(radius: 'float | str', start: 'float', end: 'float', *, inner: 'float | str' = 0.0, kind: 'str' = 'path', **style) -> 'Diagram'`
 
@@ -793,7 +792,7 @@ A disc, or a fan of one, plus the scales that map data into it.
 
 #### `theta_ticks(low: 'float', high: 'float', count: 'int' = 8, *, unit: 'str' = 'deg', closed: 'bool' = False) -> 'tuple[float, ...]'`
 
-Angles a reader can divide in their head, between `low` and `high`.
+Return readable angular tick values between `low` and `high`.
 
 #### `circular_mean(angles: 'Sequence[float]', weights: 'Sequence[float] | None' = None, *, unit: 'str' = 'deg', order: 'int' = 1) -> 'tuple[float, float]'`
 
@@ -836,7 +835,7 @@ Several meshes in one projection, painted back to front.
 
 #### `axes(*, width: 'float | str' = 26.0, view: 'Camera | str | tuple[float, float] | None' = 'isometric', labels: 'Sequence[str] | None' = ('x', 'y', 'z'), style: 'str' = 'shaded', length: 'float' = 1.0, thickness: 'float' = 1.0, gap: 'float | None' = None, label_size: 'float | str | None' = None, name: 'str' = 'axes', tolerance: 'float | None' = 0.06, **options) -> 'Diagram'`
 
-Three arrows and their labels: the figure element every methods section needs and nobody wants to draw twice.
+Draw three coordinate arrows and their labels.
 
 #### `cartoon(chain: 'Chain', *, name: 'str' = 'cartoon', group: 'str | None' = None, sides: 'int' = 12, steps: 'int' = 6) -> 'Mesh'`
 
@@ -914,7 +913,7 @@ Pack items along `direction`, each one `gap` past the last.
 
 #### `grid(items: 'Iterable[Diagram]', cols: 'int | None' = None, rows: 'int | None' = None, gap: 'Length' = 0.0, col_gap: 'Length | None' = None, row_gap: 'Length | None' = None, align: 'str' = 'center', valign: 'str' = 'center') -> 'Diagram'`
 
-Fill a real grid row-major: shared column widths and row heights.
+Arrange items in a row-major grid with shared column widths and row heights.
 
 #### `flow(items: 'Iterable[Diagram]', columns: 'int' = 2, gap: 'Length' = 0.0, col_gap: 'Length | None' = None, align: 'str' = 'left') -> 'Diagram'`
 
@@ -1025,7 +1024,7 @@ Figure(width: 'float' = 89.0, height: 'float | None' = None, theme: 'Theme' = <f
 * `build() -> 'tuple[Diagram, dict[str, Placement]]'` -- Lay out the content, route the links over it, put it on the page.
 * `page_rect(content_box: 'Rect | None' = None) -> 'Rect'` -- The finished page, in millimetres.
 * `lint(**kwargs) -> 'list[Diagnostic]'` -- Every rule, run over the built figure. See `inklet.lint`.
-* `report(**kwargs) -> 'str'` -- `lint()`, formatted for a human or an agent to read.
+* `report(**kwargs) -> 'str'` -- Return `lint()` diagnostics formatted as text.
 * `to_svg(*, text: 'str' = 'names', **kwargs) -> 'str'` -- The figure as SVG text, page frame and background included.
 * `to_pdf(*, text: 'str' = 'outline', **kwargs) -> 'bytes'` -- The figure as PDF bytes, on the same page as `to_svg` puts it.
 * `to_png(*, dpi=150, **kwargs) -> 'bytes'` -- Render PNG at physical DPI with optional resvg, without a browser.
@@ -1227,7 +1226,7 @@ SVG's matrix(a b c d e f): x' = a*x + c*y + e, y' = b*x + d*y + f.
 * `apply_vector(v: 'Vec2') -> 'Vec2'` -- Directions ignore translation.
 * `transpose_linear(v: 'Vec2') -> 'Vec2'` -- Apply the transpose of the linear part. This is what pulls a query direction back through a transform when evaluating an envelope.
 * `inverse() -> 'Affine'`
-* `uniform_scale() -> 'float'` -- Geometric mean scale factor, for keeping stroke widths honest.
+* `uniform_scale() -> 'float'` -- Return the geometric mean scale factor.
 
 #### `mm(value: 'float | int | str') -> 'float'`
 
@@ -1249,9 +1248,9 @@ Numeric constant.
 ## Diagnostic codes
 
 
-What `fig.report()` can tell you. Every rule is silent on a well-formed figure
-by design -- a linter that fires on good input teaches its reader to ignore it
--- so a code appearing at all means something is worth a look.
+Diagnostic codes returned by `fig.lint()` and formatted by `fig.report()`.
+Review each finding in the context of the finished figure; passing diagnostics
+does not replace visual or scientific review.
 
 `fig.lint()` takes the thresholds as keywords: `min_font_pt`, `min_clearance_mm`,
 `max_stroke_widths`, `min_contrast`, `min_dpi`. `fig.report()` takes the same
@@ -1259,7 +1258,7 @@ ones and formats the result.
 
 #### `BREAK_DISTORTS`
 
-Marks compared across a broken axis, and by how much the page lies.
+Report marks compared across a broken axis and the scale distortion.
 
 #### `COINCIDENT_SHAFT`
 
@@ -1271,7 +1270,7 @@ Neighbours that clear each other but only just.
 
 #### `DEPTH_ORDER`
 
-A scene part painted over something it lies behind.
+Report a scene part drawn over another part that is geometrically in front of it.
 
 #### `EMPTY_DIAGRAM`
 
@@ -1279,7 +1278,7 @@ Nodes that draw nothing, and figures that draw nothing at all.
 
 #### `FONT_SUBSTITUTED`
 
-Type that was shaped in a font nobody asked for.
+Report text shaped with a font different from the requested font.
 
 #### `HAIRLINE`
 
@@ -1287,11 +1286,11 @@ Strokes that vanish on press. 0.088mm is the usual 0.25pt floor.
 
 #### `INCONSISTENT_STROKE`
 
-Too many distinct line weights reads as accidental rather than designed.
+Report more distinct line weights than the configured limit.
 
 #### `KEY_MISMATCH`
 
-A colour key that does not describe the marks it stands next to.
+Report a color key that does not match the adjacent marks.
 
 #### `LABEL_COVERS_SHAFT`
 
@@ -1315,7 +1314,7 @@ Two connectors that cross each other.
 
 #### `LINK_UNCLIPPED`
 
-An arrow that did not stop where the thing it points at stops.
+Report an arrow whose endpoint does not meet the target boundary.
 
 #### `LOW_CONTRAST`
 

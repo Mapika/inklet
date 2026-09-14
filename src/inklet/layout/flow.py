@@ -507,7 +507,7 @@ def grid(items: Iterable[Diagram], cols: int | None = None,
          rows: int | None = None, gap: Length = 0.0,
          col_gap: Length | None = None, row_gap: Length | None = None,
          align: str = "center", valign: str = "center") -> Diagram:
-    """Fill a real grid row-major: shared column widths and row heights.
+    """Arrange items in a row-major grid with shared column widths and row heights.
 
     A column is as wide as its widest cell and a row as tall as its tallest, so
     columns line up down the whole figure rather than drifting the way nested

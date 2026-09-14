@@ -7,6 +7,9 @@ factories should create a working copy if they need to mutate an array. Explicit
 `replace()` and `configure()` calls compare complete array contents, including
 values omitted from NumPy’s text representation.
 
+Run the Python blocks in order. The examples use core Inklet and simulated
+data; PNG previews additionally need the `render` extra.
+
 ## A table shared by plots
 
 ```python
@@ -19,10 +22,12 @@ data = i.dataset(
     source=i.Source('Simulated example', method='simulated'),
 )
 y = i.shared_scale(data.column('control'), data.column('treatment'), include_zero=True)
-doc = i.document(width=180, columns=2)
+doc = i.document(width=180, columns=2, share_plot_margins=True)
+colours = {'control': '#176b9b', 'treatment': '#198c83'}
 for column, name in enumerate(('control', 'treatment')):
     p = i.plot_spec(x=(0, 2), y=y)
-    p.line(data.points('time', name)).axes(x='Time / s', y='Signal / mV')
+    p.line(data.points('time', name), name=name.title(), stroke=colours[name])
+    p.axes(x='Time / s', y='Signal / mV').legend(side='bottom')
     doc.add(name, p, row=0, column=column, min_height=50)
 first = doc.compile()
 data.update(treatment=[2, 4, 9])
@@ -31,9 +36,14 @@ assert first.to_svg() != second.to_svg()
 assert second.metadata['datasets'][0]['revision'] == 1
 ```
 
-![Two plots sharing a y scale after the treatment data are updated](assets/guides/data-1.png)
+![Before the update: control and treatment share a y domain ending at 5 mV](assets/guides/data-before.png)
 
-*Rendered from the code above.*
+*The first compiled snapshot.*
+
+![After the update: both y axes expand to include the treatment value of 9 mV](assets/guides/data-1.png)
+
+*The second snapshot. The control values are unchanged, but both plots use the
+new shared domain. The earlier snapshot retains its original scale and data.*
 
 All columns must have equal lengths. `update()` validates the complete table
 before changing it; failed updates leave the old table intact. Changing the
@@ -110,14 +120,14 @@ content hashes, alongside source records and font hashes. Nested subfigures
 retain their dataset provenance. The export bundle serializes it to
 `<name>-manifest.json`. This records construction details, not source validity.
 
-For CSV files, read and validate the file in your author script using Python's
+For a typed CSV table, use `read_csv()` as below. For custom parsing, use Python's
 `csv` module or your existing data tools, then create the dataset. Use
 `inklet watch figure.py --watch data.csv` to rerun the script when it changes.
 See [CLI reference](cli.md) for watch scope and file handling.
 
 ## Typed CSV input
 
-Inklet 3.1 adds `read_csv`. It returns the same live `Dataset` used
+`read_csv()` returns the same live `Dataset` used
 above and needs no pandas or NumPy dependency. This example creates a small local
 file so the complete workflow can be run as written:
 
@@ -156,7 +166,7 @@ for machine-learning, engineering and business tables.
 
 ## DataFrames for linked figures
 
-The 4.0 research preview adds optional pandas and Polars adapters for immutable,
+Inklet 4.0 includes experimental pandas and Polars adapters for immutable,
 keyed scalar tables. See [pandas and Polars inputs](table-inputs.md) for the
 illustrated import, revision and export workflow. These adapters feed experimental
 linked figures; the existing `Dataset` authoring API above retains its contract.

@@ -111,7 +111,7 @@ step. Use `inspect_blend()` to list their names.
 ## Reuse and attribution
 
 Credit **kbrowne / NIH 3D**, link to the model and **CC BY 4.0**, and identify your
-changes when sharing an adaptation. The exported figure carries a short credit;
+changes when sharing an adaptation. The exported figure includes a short credit;
 the source manifest and [third-party notices](../THIRD_PARTY_NOTICES.md) provide
 the complete source and license links. The derived figure assets in this guide
 are distributed under CC BY 4.0; the original Python example code is MIT.

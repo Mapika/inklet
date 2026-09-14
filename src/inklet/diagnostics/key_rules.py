@@ -90,7 +90,7 @@ _KEY_KINDS = (COLORBAR_KIND, LEGEND_KIND)
 
 
 def rule_key_mismatch(ctx: LintContext) -> list[Diagnostic]:
-    """A colour key that does not describe the marks it stands next to.
+    """Report a color key that does not match the adjacent marks.
 
     Each key is paired with one panel -- the one sharing the deepest ancestor
     with it, nearest first on a tie, so `vstack([panel, legend])` and

@@ -1,5 +1,10 @@
 # Reusable vector hatching
 
+This page records a historical engine study and its named development revision.
+For current export setup, use the [installation guide](installation.md) and
+[export review guide](export-review.md); the measurements below are not release
+performance budgets.
+
 These engine changes are included in **4.0.0.dev2**. They extend the
 [compositing improvements](compositing.md) to patterned fills in plots,
 technical sections and repeated shapes.

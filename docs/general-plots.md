@@ -7,6 +7,7 @@ residuals, grouped revenue bars and a composition heatmap. All inputs are origin
 Inklet's core dependencies; PNG export adds the render extra.
 
 [Full-size figure](../gallery/general-plots.png) ·
+[Editable SVG](assets/examples/general-plots.svg) · [PDF](assets/examples/general-plots.pdf) ·
 [Executable recipe](../examples/general_plots.py) ·
 [Data and source hashes](assets/research-preview/general-plots.json) ·
 [LaTeX caption](assets/research-preview/general-plots-caption.tex)
@@ -16,11 +17,10 @@ Inklet's core dependencies; PNG export adds the render extra.
 ## Reproduce it
 
 For a smaller step-by-step example, use [From CSV to a figure](csv-figure.md).
-The commands below pin the original 3.1 release to reproduce this gallery figure.
+Run these commands from a checkout of this documentation revision, which
+includes the updated [source recipe](../examples/general_plots.py):
 
 ```bash
-git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
-cd inklet
 python -m pip install -e '.[render]'
 python examples/general_plots.py
 ```
@@ -39,22 +39,30 @@ The [data guide](data.md#typed-csv-input) explains source hashes and parsing rul
 
 ## Plot appearance changes
 
-Axes use the theme's hairline weight. Top and bottom legends wrap to the
-available width without shrinking text. Use [axes and text](axes-and-scales.md)
+Each row pairs related views: loss with model comparison, response with
+residuals, and revenue with its composition. Blue, teal and rust consistently
+identify series. The benchmark labels name the points directly, while the
+response separates light sample markers from the darker model line. A reference
+line marks zero residual, and histogram separators make bin boundaries visible.
+
+Axes use the theme's hairline weight, with light grey horizontal guides. Legends wrap
+to the available width without shrinking text. Plot margins are shared so data
+areas align across the grid. Use [axes and text](axes-and-scales.md)
 for font and stroke controls, and [plot layout](publication-plots.md) for legends
 and insets. These guides describe the current behavior.
 
 ## Compare the previous styling
 
-The [previous styling comparison](../gallery/general-plots-before.png) uses the
-same data with heavier axes and one-column legends. Rebuild it with:
+The [earlier styling comparison](../gallery/general-plots-before.png) preserves
+the original six-panel layout with heavier axes and one-column legends. To
+compare those two styling choices in the **current** layout, run:
 
 ```bash
 python examples/general_plots.py --legacy-look --output out/general-plots/before
 ```
 
-This uses the current renderer with explicit style settings, not a historical
-renderer. The main figure is 240 mm wide; rebuild at the required physical size
+This uses the current renderer and arrangement; it does not reproduce the archived
+image pixel for pixel. The main figure is 200 mm wide; rebuild at the required physical size
 instead of shrinking the finished image.
 
 ## Read the plots

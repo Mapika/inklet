@@ -4,6 +4,9 @@ Scales map your values into physical plot coordinates. Axes use those same
 scales, then reserve space for tick labels and axis names. Cartesian y increases
 upward. Plot dimensions and text sizes are in millimetres; strings such as
 `'8pt'` work for physical lengths too.
+Choose a linear scale for additive differences, a log scale for multiplicative
+changes across orders of magnitude, and a categorical scale when order is
+nominal. A scale changes visual spacing; it does not transform the source data.
 
 ## Choose coordinates
 
@@ -19,6 +22,9 @@ upward. Plot dimensions and text sizes are in millimetres; strings such as
 Numeric domain limits do not clip marks automatically. Set `clip=True` on the
 plot when marks should stop at its boundary. A categorical y scale starts at the
 bottom; reverse the category order for top-to-bottom reading.
+Check that the domain includes the comparisons you intend to make. A truncated
+numeric axis can be useful for a measured detail, but disclose it and avoid
+reading bar lengths as ratios when zero is outside the view.
 
 ## Tick labels
 
@@ -31,10 +37,12 @@ Continuous scales thin labels when needed. Category labels remain visible by
 default. Pass `thin=False` to keep every requested tick, or `thin=True` to allow
 thinning. `rotate=45` rotates tick labels anticlockwise; it does not rotate the
 axis name. `labels=False` keeps rules and ticks on an interior shared axis.
+If labels still collide, widen the panel, reduce the requested tick count, or
+use a shorter formatter. Inklet does not automatically shrink the text.
 
 ## Measured typography
 
-Inklet 3.1 measures font overrides before thinning and layout.
+Inklet measures font overrides before thinning and layout.
 `font_size` sets the base size for text and spacing; `tick_font_size` and
 `label_font_size` control those roles independently. `font_family`, `font_weight`
 and `font_style` select the measured face. Explicit prebuilt axis-label diagrams
@@ -75,3 +83,6 @@ from `twin_y()` or `twin_x()` has an independent scale; colour it to identify it
 series and label its units. See [plotting](plotting.md) for a complete example,
 [layout](layout.md) for shared axes, and [advanced controls](publication-plots.md)
 for categorical groups and external insets.
+Use a secondary axis only when the two variables have a clear correspondence;
+otherwise separate panels prevent an apparent relationship created by arbitrary
+rescaling.

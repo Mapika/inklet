@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Replace figurative prose in guides, captions, the cookbook and generated API
+  descriptions with direct technical explanations. Document the writing guidance.
+
+- Consolidate the figure gallery from 41 cards to 20 selected workflows, retain
+  related recipes in the source library, and reduce overlapping plot-type cards.
+  Redraw plotting guides with richer illustrative data and consistent visual
+  encodings; reorganize the CSV example into paired analytical views with new
+  editable downloads.
+
+- Rework documentation content for 4.0.1: clarify current and experimental
+  workflows, plot selection, export font defaults, snapshot behavior and
+  opt-in shared plot margins. Expand matrix guidance, correct the heatmap
+  example's row labels, and add rendered row-order, sampling and live-data
+  comparisons. Extend executable guide coverage and retain historical links.
+
 ## 4.0.1 — 2026-09-14
 
 - Separate plot statistics from mark drawing, reuse sorted samples for

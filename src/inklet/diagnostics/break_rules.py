@@ -66,7 +66,7 @@ _MIN_LENGTH_MM = 0.05
 
 
 def rule_break_distorts(ctx: LintContext) -> list[Diagnostic]:
-    """Marks compared across a broken axis, and by how much the page lies."""
+    """Report marks compared across a broken axis and the scale distortion."""
     out: list[Diagnostic] = []
     for axis_id, breaks in _declared_breaks(ctx):
         placed = ctx.placements.get(axis_id)

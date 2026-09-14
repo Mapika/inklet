@@ -44,6 +44,8 @@ and [migration from 3.1](migration.md#from-31-to-40).
 | `python -m pip install 'inklet[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
 | `python -m pip install 'inklet[volume]'` | Experimental calibrated microscopy, TIFF import and label measurements |
 | `python -m pip install 'inklet[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
+| `python -m pip install 'inklet[pandas]'` | pandas adapter for experimental linked tables |
+| `python -m pip install 'inklet[polars]'` | Polars adapter for experimental linked tables |
 
 Extras can be combined: `python -m pip install 'inklet[render,images,three]'`.
 The built-in 3D renderer works without the `three` extra or Blender. Optional
@@ -139,6 +141,8 @@ inklet build examples/v25_document.py --output out/v25 --vectors-only
 `--no-pdf-preview` plus the `render` extra creates a review without Chrome or Poppler.
 
 ## Build the documentation
+
+From a repository checkout:
 
 ```sh
 python -m pip install -e '.[docs]'

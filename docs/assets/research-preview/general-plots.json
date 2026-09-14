@@ -1,6 +1,6 @@
 {
   "schema": "inklet.general-plots/0.1",
-  "inklet_version": "3.1.0.dev9",
+  "inklet_version": "4.0.1",
   "legacy_look": false,
   "sources": {
     "learning": {
@@ -708,8 +708,8 @@
     }
   },
   "figure": {
-    "width_mm": 240.0,
-    "height_mm": 153.43827778324749,
+    "width_mm": 200.0,
+    "height_mm": 259.77655000000004,
     "diagnostics": 0
   },
   "caption_sha256": "a018cae4266e08d0bfba9de1ea469ee211e157b960badc05802d5ecafd03761c"

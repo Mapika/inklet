@@ -1,13 +1,13 @@
 # Contours and streamlines
 
-Available in **4.0.0.dev1**. See the [development-preview installation guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.0.1**. See the [4.0 release guide](development-preview.md).
 
 Draw scalar contours and vector streamlines from values supplied at the vertices
 of a rectilinear grid. Link them to cell summaries and a scatter plot, with
 explicit interpolation, masks and tracing diagnostics.
 
-These APIs are in the **4.0 research preview**, under `inklet.experimental`.
-They are not part of PyPI 3.1.0.
+These APIs remain an opt-in research preview under `inklet.experimental` in
+stable 4.0.1.
 
 ![Scalar contours, rotational streamlines, cell corner means and a linked scatter plot](assets/v4/contours-streamlines.png)
 
