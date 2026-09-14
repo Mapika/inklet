@@ -50,6 +50,8 @@ jobs:
         run: .venv/bin/python tools/acceptance.py --output out/acceptance.xml
       - name: Complete project lifecycle budgets
         run: .venv/bin/python tools/benchmark_project.py --output out/project-benchmark.json
+      - name: Reference report and offline browser performance
+        run: .venv/bin/python tools/benchmark_reports.py --output out/report-benchmark
       - name: Generated API documentation
         run: .venv/bin/python tools/gen_api.py --check
       - name: Build documentation with strict link validation

@@ -1,0 +1,113 @@
+{
+  "environment": "Linux/Python 3.12 and pinned Chrome release CI; elapsed-time regression ceilings, not input latency or frame-rate guarantees",
+  "cases": {
+    "regional": {
+      "python": {
+        "build": 3,
+        "payload": 0.3,
+        "reopen": 3,
+        "revision": 3,
+        "resize_160": 3,
+        "resize_210": 3,
+        "svg": 2,
+        "total": 15,
+        "html_classic": 3,
+        "html_compiled": 3
+      },
+      "browser": {
+        "ready": 5,
+        "select_submit": 0.5,
+        "select_settled": 1,
+        "filter_submit": 0.5,
+        "filter_settled": 1,
+        "restore_submit": 0.5,
+        "restore_settled": 1,
+        "viewport_submit": 0.5,
+        "viewport_settled": 1,
+        "export_submit": 0.5,
+        "export_settled": 1
+      }
+    },
+    "engineering": {
+      "python": {
+        "build": 3,
+        "payload": 0.3,
+        "reopen": 3,
+        "revision": 3,
+        "resize_160": 3,
+        "resize_210": 3,
+        "svg": 2,
+        "total": 15,
+        "html_classic": 3,
+        "html_compiled": 3
+      },
+      "browser": {
+        "ready": 5,
+        "select_submit": 0.5,
+        "select_settled": 1,
+        "filter_submit": 0.5,
+        "filter_settled": 1,
+        "restore_submit": 0.5,
+        "restore_settled": 1,
+        "viewport_submit": 0.5,
+        "viewport_settled": 1,
+        "export_submit": 0.5,
+        "export_settled": 1
+      }
+    },
+    "scientific": {
+      "python": {
+        "build": 3,
+        "payload": 0.3,
+        "reopen": 3,
+        "revision": 3,
+        "resize_160": 3,
+        "resize_210": 3,
+        "svg": 2,
+        "total": 15,
+        "html_classic": 3,
+        "html_compiled": 3
+      },
+      "browser": {
+        "ready": 5,
+        "select_submit": 0.5,
+        "select_settled": 1,
+        "filter_submit": 0.5,
+        "filter_settled": 1,
+        "restore_submit": 0.5,
+        "restore_settled": 1,
+        "viewport_submit": 0.5,
+        "viewport_settled": 1,
+        "export_submit": 0.5,
+        "export_settled": 1
+      }
+    },
+    "dense-scatter": {
+      "python": {
+        "build": 3,
+        "payload": 0.3,
+        "reopen": 3,
+        "revision": 3,
+        "resize_160": 3,
+        "resize_210": 3,
+        "svg": 2,
+        "total": 15,
+        "html_classic": 3,
+        "html_compiled": 3
+      },
+      "browser": {
+        "ready": 5,
+        "select_submit": 0.5,
+        "select_settled": 1,
+        "filter_submit": 0.5,
+        "filter_settled": 1,
+        "restore_submit": 0.5,
+        "restore_settled": 1,
+        "viewport_submit": 0.5,
+        "viewport_settled": 1,
+        "export_submit": 0.5,
+        "export_settled": 1
+      }
+    }
+  }
+}

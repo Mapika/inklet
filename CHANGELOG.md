@@ -10,6 +10,10 @@ RC1 preparation after the published dev16 preview.
 - Enforce explicit project lifecycle performance budgets at two output widths,
   retaining timings and correctness checks for edit, reopen, revision and exports.
 
+- Add reference-report rebuild and offline browser performance gates covering
+  four fixtures and five software renderer/backend combinations, with real-clock
+  median/worst-sample budgets and retained review artifacts.
+
 ## 4.0.0.dev16 — 2026-09-14
 
 Sixteenth development preview: dense-field performance, reusable figure projects

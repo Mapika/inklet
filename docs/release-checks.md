@@ -60,6 +60,7 @@ uv pip install -r requirements-ci.txt -e .
 .venv/bin/python -m pytest -q -m "not acceptance"
 .venv/bin/python tools/acceptance.py --output out/acceptance.xml
 .venv/bin/python tools/benchmark_project.py --output out/project-benchmark.json
+.venv/bin/python tools/benchmark_reports.py --output out/report-benchmark
 .venv/bin/python tools/gen_api.py --check
 uv pip install -r requirements-docs.txt
 .venv/bin/python -m mkdocs build --strict

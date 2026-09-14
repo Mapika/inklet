@@ -39,7 +39,7 @@ explicit. Inklet does not become a CAD modeller or statistical inference engine.
 | Reproducible authoring | Layout, text, style and native-camera overrides; old schemas load; source revisions report conflicts | Supported controls and 3.1-to-4.0 migration documented; review candidate exports |
 | Render/cache correctness | Numerical and adversarial contracts, clean/cached comparisons, independent PDF and complete-figure visual checks | Require green results on the exact candidate; review any visual changes explicitly |
 | Offline interaction and accessibility | Chromium integration, keyboard controls and data-table alternatives | Linux Chromium target and keyboard/data-table evidence declared; review exact candidate results; other browsers remain unverified |
-| Performance | Cold/cached/edit/resize/export benchmarks, native budgets, dense-field measurements | Project lifecycle budgets enforced; finish larger-report/browser interaction budgets without relaxing existing thresholds |
+| Performance | Cold/cached/edit/resize/export benchmarks, native budgets, dense-field measurements | Project, reference-report and software-browser budgets implemented; review exact candidate measurements without relaxing thresholds |
 | Distribution | Linux/macOS/Windows wheel checks, two Blender CPU versions, optional dependency checks | Complete candidate CI, sdist-to-wheel rebuild, isolated installs, exact artifact checksums and docs verification |
 
 The [acceptance guide](acceptance.md) maps workflows to commands and failure
@@ -61,7 +61,7 @@ recipe. Mapped image/mesh picking retains its source adapter's geometry limits.
 ## Development order
 
 1. Review the shared acceptance gate and declared support/schema policy on CI.
-2. Finish larger-report and browser interaction performance budgets.
+2. Review project, reference-report and software-browser budgets on CI.
 3. Review migration examples and supported-browser evidence on the candidate.
 4. Freeze RC1, run the full release checks and publish the validated artifacts.
 

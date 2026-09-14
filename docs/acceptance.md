@@ -61,8 +61,39 @@ the timed stages; revision includes recipe reconstruction. Each stage and the
 sum of timed stages must pass. Review measurements before changing a limit;
 never raise one automatically after a failure.
 
-Browser interaction and larger report performance remain separate RC evidence;
-the small project benchmark does not establish their limits.
+## Reference report and browser performance
+
+```sh
+python tools/benchmark_reports.py --output out/report-benchmark
+```
+
+This separate release gate measures the regional report (18 countries, six
+panels), engineering assembly (three parts, four panels), calibrated-image report
+(eight regions, four panels) and a 3,000-row scatter fixture shown in two views.
+It enforces [fixed report budgets](../tests/performance/report-budgets.json)
+for construction, payload extraction, standalone HTML generation, reconstruction,
+data revision, two widths and SVG export. Revised source scene construction is included in revision time;
+correctness assertions and the initial selection setup are outside the timings.
+
+All four run in fresh Chromium processes for classic SVG/Canvas/hybrid and
+compiled SVG/Canvas rendering. Seven warm operations measure selection,
+visibility filtering, saved-state restoration, viewport changes and SVG export.
+The report records submission time separately from elapsed time through two
+real animation-frame callbacks, and checks both the median and slowest sample.
+Readiness is measured from navigation, including two frames after initialization,
+without browser-process launch. There is no virtual-time clock.
+
+The gates reject missing browsers, incomplete case/renderer coverage, external
+resource requests, invalid state changes and exceeded budgets. Reports retain
+raw measurements, browser version, viewport, backing scale, input counts, HTML,
+SVG exports and browser logs. State and physical export extents are checked
+within the benchmark; the independent pixel oracles remain in acceptance.
+
+These limits establish software-rendering regression ceilings in the Linux CI
+environment. They do not establish input-device latency, GPU execution time,
+mobile performance or a guaranteed frame rate. API timings exclude the DOM
+search/table controls; keyboard and data-table behavior have separate acceptance
+coverage. WebGL2 remains outside these performance budgets.
 
 ## Reviewing a candidate
 

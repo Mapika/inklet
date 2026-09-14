@@ -44,3 +44,19 @@ def test_project_budget_rejects_regression_and_missing_stage():
     for value in (0, -1, True, float('inf'), float('nan')):
         with pytest.raises(ValueError, match='Invalid project budget'):
             gate.check_budgets({'edit': .1}, {'edit': value})
+
+
+@pytest.mark.parametrize('problem', [None, 'case', 'renderer', 'empty', 'regression'])
+def test_report_gate_requires_complete_renderer_matrix(problem):
+    gate = tool('benchmark_reports')
+    cases = [dict(name=name, python_checks=[{'passed': True}], browsers=[
+        dict(renderer=renderer, backend=backend, checks=[{'passed': True}])
+        for renderer, backend in gate.RENDERERS]) for name in gate.CASES]
+    if problem == 'case': cases.pop()
+    elif problem == 'renderer': cases[-1]['browsers'].pop()
+    elif problem == 'empty': cases[-1]['browsers'][-1]['checks'] = []
+    elif problem == 'regression': cases[-1]['browsers'][-1]['checks'][0]['passed'] = False
+    if problem in ('case', 'renderer', 'empty'):
+        with pytest.raises(ValueError): gate.complete_results(cases)
+    else:
+        assert gate.complete_results(cases) is (problem is None)
