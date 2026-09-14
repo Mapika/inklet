@@ -4,7 +4,8 @@ The [GitHub workflow](../.github/workflows/checks.yml) runs on master pushes,
 pull requests and manual dispatch. It does not publish packages.
 
 - Contract/regression tests and end-to-end acceptance run in separate steps,
-  without collecting the same test in both runs. The acceptance marker and
+  without running the same test in both steps. The release acceptance runner
+  rejects skipped cases and missing reference workflows. The acceptance marker and
   workflow ownership are documented in [acceptance](acceptance.md). Tests use the pinned dependencies in
   [`requirements-ci.txt`](../requirements-ci.txt).
 - API documentation must match the generated reference. Guide examples are
@@ -56,7 +57,9 @@ Local equivalents:
 ```bash
 uv venv
 uv pip install -r requirements-ci.txt -e .
-.venv/bin/python -m pytest -q
+.venv/bin/python -m pytest -q -m "not acceptance"
+.venv/bin/python tools/acceptance.py --output out/acceptance.xml
+.venv/bin/python tools/benchmark_project.py --output out/project-benchmark.json
 .venv/bin/python tools/gen_api.py --check
 uv pip install -r requirements-docs.txt
 .venv/bin/python -m mkdocs build --strict

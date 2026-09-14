@@ -8,8 +8,8 @@ plotted measurements, then replaces the measurements without losing the edit.
 Available in **4.0.0.dev16**, under `inklet.experimental.project`;
 install the [published preview](development-preview.md). Run the Python
 blocks below in order in a fresh working directory. The example uses simulated
-data and the core installation. Project schemas remain experimental until the
-RC compatibility policy is settled.
+data and the core installation. Project schemas remain experimental; see the
+[API and saved-file policy](compatibility.md#api-and-saved-file-policy).
 
 ![An original simulated project combining supplied values, diagram objects, source pixels and native models](assets/guides/project-workflow.png)
 

@@ -1,0 +1,17 @@
+{
+  "environment": "Linux release CI, Python 3.12, locked requirements-ci.txt; elapsed-time regression ceilings, not interactive latency guarantees",
+  "seconds": {
+    "build": 0.5,
+    "edit": 0.5,
+    "undo": 0.5,
+    "redo": 0.5,
+    "select": 0.01,
+    "save": 0.5,
+    "reopen": 1,
+    "revise": 1,
+    "resize": 0.5,
+    "svg": 0.2,
+    "pdf": 0.3,
+    "total": 4
+  }
+}

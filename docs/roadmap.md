@@ -1,6 +1,6 @@
 # Roadmap to Inklet 4.0
 
-This is the current release checklist, updated during **4.0.0.dev16** development.
+This is the current release checklist for **RC1 preparation** after dev16.
 Dev14, dev15 and dev16 are published previews; 3.1.0 remains stable. A development
 release does not establish the compatibility guarantees of an RC.
 
@@ -33,13 +33,13 @@ explicit. Inklet does not become a CAD modeller or statistical inference engine.
 
 | Gate | Current evidence | Remaining release work |
 | --- | --- | --- |
-| Three reference workflows | Regional, engineering and calibrated-image reports have revision/browser/export tests; the mixed project adds bundling and editor reopen | Keep one executable acceptance entry point; review the exact candidate's results, including supported failure cases |
-| Cross-content identity | Explicit local-to-entity mappings, canonical table joins, mapped drawings/images/fields and composition paths | Confirm the declared adapter subset; do not infer identity from display text or row position |
-| Reusable assets | Explicit source/license/unit inventory, copied files verified by SHA-256, trusted-factory reopening | Document project/schema compatibility before promising stable saved files |
-| Reproducible authoring | Layout, text, style and native-camera overrides; old schemas load; source revisions report conflicts | Freeze the supported controls and upgrade policy; add 3.1-to-4.0 migration guidance |
+| Three reference workflows | Regional, engineering and calibrated-image reports have revision/browser/export tests; the mixed project adds bundling and editor reopen | Skip-free `tools/acceptance.py` gate implemented; review the exact candidate's results, including supported failure cases |
+| Cross-content identity | Explicit local-to-entity mappings, canonical table joins, mapped drawings/images/fields and composition paths | Adapter subset declared in compatibility; verify exact candidate results |
+| Reusable assets | Explicit source/license/unit inventory, copied files verified by SHA-256, trusted-factory reopening | Schema policy documented; experimental imports remain opt-in |
+| Reproducible authoring | Layout, text, style and native-camera overrides; old schemas load; source revisions report conflicts | Supported controls and 3.1-to-4.0 migration documented; review candidate exports |
 | Render/cache correctness | Numerical and adversarial contracts, clean/cached comparisons, independent PDF and complete-figure visual checks | Require green results on the exact candidate; review any visual changes explicitly |
-| Offline interaction and accessibility | Chromium integration, keyboard controls and data-table alternatives | Publish the supported-browser claim and its acceptance evidence; other browsers remain unverified |
-| Performance | Cold/cached/edit/resize/export benchmarks, native budgets, dense-field measurements | Apply declared budgets to supported complete editing/interaction workflows; do not silently relax thresholds |
+| Offline interaction and accessibility | Chromium integration, keyboard controls and data-table alternatives | Linux Chromium target and keyboard/data-table evidence declared; review exact candidate results; other browsers remain unverified |
+| Performance | Cold/cached/edit/resize/export benchmarks, native budgets, dense-field measurements | Project lifecycle budgets enforced; finish larger-report/browser interaction budgets without relaxing existing thresholds |
 | Distribution | Linux/macOS/Windows wheel checks, two Blender CPU versions, optional dependency checks | Complete candidate CI, sdist-to-wheel rebuild, isolated installs, exact artifact checksums and docs verification |
 
 The [acceptance guide](acceptance.md) maps workflows to commands and failure
@@ -48,11 +48,11 @@ define the distribution procedure and supported environments.
 
 ## Scope decisions before RC
 
-Freeze a bounded support statement before stabilizing APIs. Individual axis-label
-editing, camera dragging, depth-aware browser 3D picking, interactive volumes,
-additional projections and broader GPU primitives remain open. Decide explicitly
-which belong in 4.0 and which move to later 4.x. The current native camera
-inspector is implemented; it is no longer an upcoming feature.
+The [API and saved-file policy](compatibility.md#api-and-saved-file-policy)
+now declares the bounded 4.0 support scope. Individual axis-label editing,
+camera dragging, depth-aware browser 3D picking, interactive volumes, additional
+projections and broader GPU primitives are deferred beyond 4.0. Native camera
+inspector edits are included. Experimental APIs retain their opt-in namespace.
 
 Full serialized Python projects and arbitrary geometry constraints are not implied
 by reusable manifests. Projects reopen through an explicitly supplied trusted
@@ -60,9 +60,9 @@ recipe. Mapped image/mesh picking retains its source adapter's geometry limits.
 
 ## Development order
 
-1. Complete and review the shared project acceptance workflows and documentation.
-2. Settle remaining support decisions, public API stability and saved-state policy.
-3. Finish migration guidance and the supported browser/performance matrix.
+1. Review the shared acceptance gate and declared support/schema policy on CI.
+2. Finish larger-report and browser interaction performance budgets.
+3. Review migration examples and supported-browser evidence on the candidate.
 4. Freeze RC1, run the full release checks and publish the validated artifacts.
 
 ## After 4.0

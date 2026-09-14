@@ -1,4 +1,54 @@
-# Migrating to Inklet 3.1
+# Migration
+
+<span id="migrating-to-inklet-31"></span>
+
+## From 3.1 to 4.0
+
+The published preview is **4.0.0.dev16**; RC1 preparation is in progress.
+Opt in with `python -m pip install "inklet==4.0.0.dev16"`. An ordinary package
+upgrade continues to select stable 3.1.0 until 4.0 is released.
+
+Existing `figure()`, `document()`, `panel()`, `plot_spec()`, compositions and
+SVG/PDF exports remain the authoring path. There is no required conversion to a
+browser document or figure project. Keep existing recipes and first regenerate
+a representative figure with the same fonts, dimensions and source data.
+
+| Existing workflow | 4.0 action |
+| --- | --- |
+| Static 3.1 recipe | Run it unchanged, then review layout and vector output |
+| Dense vector matrix | Review rendered equivalence; compact PDF operators change output bytes and size |
+| PNG or raster layers | Keep the `render` extra and installed fonts |
+| Blender scenes | Keep the separate tested Blender installation and source assets |
+| Linked selection | Opt into `inklet.experimental.selection` and `.browser`; supply explicit stable row IDs |
+| Saved composition edits | Keep the Python recipe alongside the JSON overrides; reconcile missing targets explicitly |
+| Reusable project bundle | Opt into `inklet.experimental.project`; retain the trusted recipe, source files and dependency versions |
+
+New scientific layout options are explicit: use measured legends, colourbars,
+`Panel.placed()` and `Panel.guide()` when the figure needs them. Existing recipes
+do not need these options. See [scientific authoring](scientific-authoring.md).
+
+Exports are not promised to be byte-identical across package versions. Dev16's
+PDF changes preserve the tested rendered geometry while changing serialization.
+Compare pixels and geometry with the same renderer and fonts before accepting
+new baselines; keep explicit colours, typography and placement decisions.
+
+### Saved files from development previews
+
+Do not rename a JSON schema to make it load. Composition-layout readers accept
+versions 0.1 through 0.5; new files use 0.5. A missing composition target is a
+revision conflict, not a format upgrade. Use the documented `missing='drop'`
+policy only after reviewing the returned orphan/removal report.
+
+Project bundles record the Inklet version, asset hashes, selections and layout
+choices. Opening checks source bytes before invoking your trusted recipe, then
+checks the reconstructed SVG by default. A changed font, dependency or recipe
+can fail that final check even if the bundle schema still loads. Reproduce the
+original environment first; use `verify_export=False` only for an intentional,
+reviewed reconstruction and save the revised result separately.
+
+[Compatibility](compatibility.md#api-and-saved-file-policy) defines the RC scope
+and saved-file policy. Experimental imports remain experimental in 4.0; an RC
+does not silently promote them into the stable top-level API.
 
 ## From 3.0 to 3.1
 

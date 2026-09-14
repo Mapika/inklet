@@ -26,6 +26,45 @@ so a failed installation cannot turn the scene tests into a green skipped run.
 Each version also creates and renders all three templates from an installed
 wheel in an isolated environment.
 
+## API and saved-file policy
+
+RC1 preparation freezes the supported scope below. The published package is
+still dev16; candidate validation and publication remain separate release gates.
+
+- The documented top-level `inklet` authoring/export API remains supported.
+  Internal modules, names beginning with `_` and generated output bytes are not
+  compatibility interfaces. Existing 3.1 recipes do not require a new API.
+- `inklet.experimental` remains opt-in, including selection, browser documents,
+  the local editor, measurements and figure projects. Keep an exact package pin
+  and source recipe for archived work. These APIs are not promoted by an RC tag.
+- Readers validate schema identifiers and reject unsupported versions. A future
+  incompatible format needs a new schema identifier and migration guidance;
+  changing the identifier by hand is not a migration.
+- A readable schema does not guarantee identical rendering. Fonts, external
+  assets, renderers and trusted recipes remain part of a reproducible project.
+  Export caches are disposable; source data and saved decisions are not.
+
+| Saved content | Current writer | Accepted input |
+| --- | --- | --- |
+| Composition edits | `inklet.composition-layout/0.5` | 0.1–0.5, with controls restricted by schema version |
+| Keyed selection | `inklet.selection/0.1` | 0.1, with table identity and data digest validation |
+| Linked browser view | `inklet.browser-view/0.1` | 0.1, subject to view/source validation |
+| Asset inventory | `inklet.assets/0.1` | 0.1, with contained paths, size and SHA-256 checks |
+| Entity correspondence | `inklet.entities/0.1` | 0.1, explicit source-local IDs mapped to canonical entities |
+| Figure project | `inklet.figure-project/0.1` | 0.1, verified inputs and an explicitly supplied trusted factory |
+
+The supported composition inspector edits placement, dimensions, labels,
+registered styles and native-camera parameters. Linked cross-content views use
+explicit keyed tables and the documented drawing, labelled-image, mesh-field
+and grid-field adapters. Each adapter retains its own picking and geometry limits.
+
+Individual axis-label editing, direct camera dragging, depth-aware browser 3D
+picking, interactive volumes, additional projections and broader GPU primitives
+are deferred beyond 4.0. Arbitrary Python object serialization and general
+geometry constraints are outside the project-bundle contract.
+
+See [migration](migration.md#from-31-to-40) for existing recipes and saved files.
+
 ## Optional dependencies
 
 | Capability | Requirement |
@@ -58,7 +97,10 @@ The core wheel checks that neither integration is required or imported.
 ### Browser workflows and local editor
 
 The 4.0 preview includes standalone linked HTML and a Python-backed composition
-editor. Automated browser integration uses Chromium on Linux. Firefox, Safari,
+editor. The RC1 browser target is Chrome/Chromium on Linux; release evidence
+uses pinned Chrome 145.0.7632.45. Keyboard controls and data-table selection are
+automated acceptance checks, not a claim of a complete accessibility audit.
+Firefox, Safari,
 mobile browsers and browser interaction on Windows/macOS are not covered by
 that integration matrix. Windows/macOS wheel checks verify installed editor
 assets and representative static exports; they are not browser certification.
@@ -100,7 +142,7 @@ Before a stable tag:
 2. Build the wheel and source archive, check metadata with Twine, and run isolated
    wheel checks against those files. Build the wheel from the source archive too.
 3. Review the rendered examples and verify `latest` docs point to the release
-   commit. Follow the [3.1 migration guidance](migration.md#from-30-to-31).
+   commit. Follow the [4.0 migration guidance](migration.md#from-31-to-40).
 4. Freeze the release files with `SHA256SUMS`, then attach those exact files to
    the release. The [publishing workflow](release-checks.md#publishing-to-pypi)
    is a separate manual step.

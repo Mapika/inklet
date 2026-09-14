@@ -47,7 +47,9 @@ jobs:
       - name: Contracts and regressions
         run: .venv/bin/python -m pytest -q -m "not acceptance" --junitxml=out/tests.xml
       - name: End-to-end acceptance
-        run: .venv/bin/python -m pytest -q -m acceptance --junitxml=out/acceptance.xml
+        run: .venv/bin/python tools/acceptance.py --output out/acceptance.xml
+      - name: Complete project lifecycle budgets
+        run: .venv/bin/python tools/benchmark_project.py --output out/project-benchmark.json
       - name: Generated API documentation
         run: .venv/bin/python tools/gen_api.py --check
       - name: Build documentation with strict link validation

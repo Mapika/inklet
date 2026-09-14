@@ -12,7 +12,8 @@ reproducers even after a new end-to-end workflow covers their happy path.
 - **Visual fixtures:** `visual/` retains approved baselines and renderer/font
   fingerprints. Historical fixture identifiers stay stable for comparisons.
 - **Optional integrations:** explicit skip reasons distinguish missing tools
-  from passing coverage. A release gate must inspect skips as well as failures.
+  from passing coverage. The release runner `tools/acceptance.py` rejects skips as well as failures
+  and requires all four reference workflows.
 
 Before deleting a test, identify the replacement assertion and fixture. Matching
 function bodies can call different helpers and therefore test different artwork.

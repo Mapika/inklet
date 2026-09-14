@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.0.0.dev17 — Unreleased
+
+RC1 preparation after the published dev16 preview.
+
+- Declare the bounded 4.0 API, inspector, adapter and saved-file policy; add
+  3.1-to-4.0 migration guidance and defer unsupported interactions beyond 4.0.
+- Require every reference workflow to pass without skips in release acceptance.
+- Enforce explicit project lifecycle performance budgets at two output widths,
+  retaining timings and correctness checks for edit, reopen, revision and exports.
+
 ## 4.0.0.dev16 — 2026-09-14
 
 Sixteenth development preview: dense-field performance, reusable figure projects
