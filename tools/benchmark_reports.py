@@ -1,6 +1,10 @@
 """Budget reference-report rebuilds and real-clock offline browser interactions."""
 from pathlib import Path
 import argparse
+from contextlib import contextmanager
+import errno
+import os
+import signal
 import http.server
 import json
 import math
@@ -70,6 +74,37 @@ def measure_python(name):
     return original,times,dict(rows=len(original.table.row_ids),layers=len(payload['layers']),svg_bytes=len(svg.encode()))
 
 
+def stop_browser(process):
+    # Each benchmark owns a fresh session. Stop its renderers as well as the
+    # browser parent before removing the profile they can still be writing.
+    if os.name=='posix':
+        try: os.killpg(process.pid,signal.SIGTERM)
+        except ProcessLookupError: pass
+    else: process.terminate()
+    try: process.wait(timeout=5)
+    except subprocess.TimeoutExpired: pass
+    if os.name=='posix':
+        try: os.killpg(process.pid,signal.SIGKILL)
+        except ProcessLookupError: pass
+    elif process.poll() is None: process.kill()
+    process.wait(timeout=5)
+
+
+@contextmanager
+def browser_profile():
+    profile=tempfile.mkdtemp(prefix='inklet-report-chrome-')
+    try: yield profile
+    finally:
+        # SIGKILL delivery is asynchronous. Retry only the observed writer race;
+        # persistent failures and unrelated filesystem errors still fail the gate.
+        for attempt in range(20):
+            try:
+                shutil.rmtree(profile);break
+            except OSError as error:
+                if error.errno!=errno.ENOTEMPTY or attempt==19: raise
+                time.sleep(.05)
+
+
 def browser_run(page, browser, directory):
     """Use an ephemeral loopback callback; never use Chromium virtual-time budgets."""
     done=threading.Event();result=[];token=secrets.token_hex(16)
@@ -91,15 +126,13 @@ def browser_run(page, browser, directory):
     server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
     try:
-        with (directory/'chrome.log').open('w') as log, tempfile.TemporaryDirectory(prefix='inklet-report-chrome-') as profile:
+        with (directory/'chrome.log').open('w') as log, browser_profile() as profile:
             process=subprocess.Popen([browser,'--headless','--no-sandbox','--disable-gpu','--disable-background-networking',
-                '--window-size=1365,768',f'--user-data-dir={profile}',f'http://127.0.0.1:{server.server_port}/'],stdout=log,stderr=log)
+                '--window-size=1365,768',f'--user-data-dir={profile}',f'http://127.0.0.1:{server.server_port}/'],stdout=log,stderr=log,start_new_session=os.name=='posix')
             try:
                 if not done.wait(45): raise RuntimeError(f'Browser timed out; see {directory}/chrome.log')
             finally:
-                process.terminate()
-                try: process.wait(timeout=5)
-                except subprocess.TimeoutExpired: process.kill();process.wait(timeout=5)
+                stop_browser(process)
     finally:
         server.shutdown();server.server_close();thread.join(timeout=5)
     report=result[0]

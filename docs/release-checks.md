@@ -94,7 +94,7 @@ commit checked out for that documentation build.
 
 After tagging a release, check the project's build dashboard and confirm that
 **stable** successfully builds a new stable tag. For a development prerelease,
-keep **stable** on 3.1.0 and use **latest** or the explicitly activated preview tag. The old `v2.5.0` tag predates the
+keep **stable** on the latest stable release and use **latest** or the explicitly activated preview tag. The old `v2.5.0` tag predates the
 hosting configuration and is intentionally unchanged.
 
 ## Publishing to PyPI
@@ -134,10 +134,10 @@ The same operations are available through the GitHub CLI:
 
 ```bash
 # Validate the existing release without uploading.
-gh workflow run publish.yml --ref master -f tag=v3.1.0 -F dry_run=true
+gh workflow run publish.yml --ref master -f tag=v4.0.0 -F dry_run=true
 
 # Publish the verified release assets.
-gh workflow run publish.yml --ref master -f tag=v3.1.0 -F dry_run=false
+gh workflow run publish.yml --ref master -f tag=v4.0.0 -F dry_run=false
 ```
 
 For subsequent versions, run release checks, create the tag and GitHub release,

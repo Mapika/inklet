@@ -105,4 +105,4 @@ weaken assertions simply to make a candidate green.
 
 [Figure projects](project-workflows.md) documents the reproducible bundle API.
 [Release checks](release-checks.md) covers the broader installation, visual and
-performance gates. [The roadmap](roadmap.md) records the remaining work before final 4.0.
+performance gates. [The roadmap](roadmap.md) records the maintained release gates.

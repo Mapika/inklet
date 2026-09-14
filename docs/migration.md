@@ -4,9 +4,8 @@
 
 ## From 3.1 to 4.0
 
-The first release candidate is **4.0.0rc1**; stable remains 3.1.0.
-Opt in with `python -m pip install "inklet==4.0.0rc1"`. An ordinary package
-upgrade continues to select stable 3.1.0 until 4.0 is released.
+**4.0.0 is stable.** Upgrade with `python -m pip install --upgrade inklet`,
+or pin `inklet==4.0.0` for reproducible environments.
 
 Existing `figure()`, `document()`, `panel()`, `plot_spec()`, compositions and
 SVG/PDF exports remain the authoring path. There is no required conversion to a
@@ -46,8 +45,8 @@ can fail that final check even if the bundle schema still loads. Reproduce the
 original environment first; use `verify_export=False` only for an intentional,
 reviewed reconstruction and save the revised result separately.
 
-[Compatibility](compatibility.md#api-and-saved-file-policy) defines the RC scope
-and saved-file policy. Experimental imports remain experimental in 4.0; an RC
+[Compatibility](compatibility.md#api-and-saved-file-policy) defines the 4.0 scope
+and saved-file policy. Experimental imports remain experimental in 4.0; a stable package release
 does not silently promote them into the stable top-level API.
 
 ### Recorded migration checks

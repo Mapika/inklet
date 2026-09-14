@@ -99,7 +99,7 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert not any(row['location']=='dense-data/#dense-data' for row in search['docs'])
     for location,section in [('axes-and-scales/','Plots'),('api/','Reference'),
                              ('calibrated-volumes/','Microscopy (preview)'),
-                             ('visual-editing/','Interactive documents (preview)')]:
+                             ('visual-editing/','Interactive documents (experimental)')]:
         rows=[row for row in search['docs'] if row['location'].split('#')[0]==location]
         assert rows and all(row['section']==section and row['page_title'] for row in rows)
     axis_page=site/'axes-and-scales/index.html'

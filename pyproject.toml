@@ -1,12 +1,12 @@
 [project]
 name = "inklet"
-version = "4.0.0rc1"
+version = "4.0.0"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
 authors = [{name = "Mark Marosi"}]
 keywords = ["scientific-visualization", "plotting", "diagrams", "svg", "pdf"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Education",
     "Programming Language :: Python :: 3",

@@ -60,3 +60,57 @@ def test_report_gate_requires_complete_renderer_matrix(problem):
         with pytest.raises(ValueError): gate.complete_results(cases)
     else:
         assert gate.complete_results(cases) is (problem is None)
+
+
+def test_browser_shutdown_releases_descendant_file_handles(tmp_path):
+    import os,subprocess,sys,time
+    if os.name!='posix': pytest.skip('POSIX process group release gate')
+    import fcntl
+    gate=tool('benchmark_reports')
+    lock=tmp_path/'writer.lock';ready=tmp_path/'ready'
+    child="""import fcntl,signal,sys,time
+from pathlib import Path
+signal.signal(signal.SIGTERM,signal.SIG_IGN)
+with open(sys.argv[1],'w') as stream:
+ fcntl.flock(stream,fcntl.LOCK_EX)
+ Path(sys.argv[2]).touch()
+ time.sleep(60)
+"""
+    parent="import subprocess,sys,time; subprocess.Popen([sys.executable,'-c',sys.argv[1],*sys.argv[2:]]); time.sleep(60)"
+    process=subprocess.Popen([sys.executable,'-c',parent,child,str(lock),str(ready)],start_new_session=True)
+    try:
+        deadline=time.monotonic()+5
+        while not ready.exists() and time.monotonic()<deadline: time.sleep(.01)
+        assert ready.exists(),'descendant did not start'
+        with lock.open() as stream:
+            with pytest.raises(BlockingIOError): fcntl.flock(stream,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            gate.stop_browser(process)
+            deadline=time.monotonic()+2
+            while True:
+                try: fcntl.flock(stream,fcntl.LOCK_EX|fcntl.LOCK_NB);break
+                except BlockingIOError:
+                    if time.monotonic()>=deadline: raise
+                    time.sleep(.01)
+        assert process.poll() is not None
+    finally:
+        gate.stop_browser(process)
+
+
+def test_profile_cleanup_retries_only_transient_writer_races(monkeypatch):
+    import errno
+    gate=tool('benchmark_reports');remove=gate.shutil.rmtree;calls=[]
+    def racing(path):
+        calls.append(path)
+        if len(calls)==1: raise OSError(errno.ENOTEMPTY,'writer finishing')
+        remove(path)
+    monkeypatch.setattr(gate.shutil,'rmtree',racing)
+    with gate.browser_profile() as profile: Path(profile,'data').write_text('fixture')
+    assert len(calls)==2 and not Path(profile).exists()
+    def denied(path): raise OSError(errno.EACCES,'permission denied')
+    monkeypatch.setattr(gate.shutil,'rmtree',denied)
+    profile=None
+    try:
+        with pytest.raises(OSError,match='permission denied'):
+            with gate.browser_profile() as profile: pass
+    finally:
+        if profile: remove(profile)

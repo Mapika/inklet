@@ -2,7 +2,7 @@
 
 Read a measurement table, plot a response with supplied uncertainty bounds, and
 export at two physical widths. Then replace the file and rebuild the figure.
-This tutorial uses the core installation (stable 3.1 or the published 4.0 preview).
+This tutorial uses the core installation (4.0; also compatible with 3.1).
 Run the Python blocks in order in a new directory.
 
 ![A response curve with supplied lower and upper bounds](assets/guides/csv-figure.png)

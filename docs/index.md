@@ -18,8 +18,8 @@ title: Overview
 | Add images, meshes or Blender scenes | [3D and images](three-images.md) |
 | Author a dense scientific plate | [Complex scientific plates](complex-figures.md) |
 | Inspect print diagnostics and save final outputs | [Review and export](export-review.md) |
-| Build an offline interactive report | [Interactive documents (4.0 preview)](interactive-documents.md) |
-| Package source assets and saved figure choices | [Reusable figure projects (dev16)](project-workflows.md) |
+| Build an offline interactive report | [Interactive documents (experimental)](interactive-documents.md) |
+| Package source assets and saved figure choices | [Reusable figure projects](project-workflows.md) |
 | Work with microscopy data | [Calibrated volumes (preview)](calibrated-volumes.md) |
 
 ## Reference and development
@@ -27,9 +27,8 @@ title: Overview
 [Python API](api.md) · [CLI](cli.md) · [Troubleshooting](troubleshooting.md) ·
 [Migration](migration.md)
 
-The default install is stable **3.1.0**. See the
-[4.0 preview guide](development-preview.md) for published preview features and
-unreleased work on master.
+The default install is stable **4.0.0**. See [what is included](development-preview.md)
+and the [migration guide](migration.md#from-31-to-40) for existing recipes.
 
 [Compatibility](compatibility.md) · [Acceptance checks](acceptance.md) ·
 [4.0 roadmap](roadmap.md) · [Historical guides](history.md)

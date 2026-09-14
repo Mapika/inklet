@@ -1,6 +1,17 @@
 # Changelog
 
-## Unreleased
+## 4.0.0 — 2026-09-14
+
+Stable release of the bounded 4.0 scope, following RC1. Existing 3.1 authoring
+APIs remain supported; `inklet.experimental` retains its opt-in status.
+
+- Deliver dense-field PDF improvements, scientific layouts and annotations,
+  reusable figure projects and consolidated scientific tutorials.
+- Enforce skip-free reference acceptance, complete project/report performance
+  budgets and software-browser median/worst-sample checks.
+- Stop benchmark browser process groups before cleaning profiles, and retry only
+  transient directory-write races without weakening performance limits.
+
 
 - Verify public call-shape compatibility against the released 3.1 wheel and
   reopen archived dev16 project, layout and hidden-selection files in CI.

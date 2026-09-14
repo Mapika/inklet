@@ -4,9 +4,9 @@ Explore a figure in an offline HTML page, or use a local Python editor to revise
 its composition. Both workflows retain explicit saved choices, but their
 controls and state files serve different purposes.
 
-These interfaces are part of the **4.0 development preview**. Install the
-[preview version](development-preview.md) explicitly; `pip install inklet` still
-selects the stable release. Reusable figure projects are included in **dev16**.
+These interfaces are included in **4.0.0**, under opt-in experimental APIs.
+Install with `pip install inklet`; see the [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
+before relying on experimental state formats.
 
 ![A regional report linking a map, time series, distribution and category panels](assets/v4/regional-report.png)
 

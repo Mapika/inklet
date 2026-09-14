@@ -1,8 +1,10 @@
-# Roadmap to Inklet 4.0
+# Inklet 4.0 scope and release gates
 
-**4.0.0rc1** freezes the supported 4.0 scope after the development previews.
-**3.1.0 remains stable.** The gates below apply to each candidate and final 4.0;
-experimental namespaces retain their documented opt-in status.
+<span id="roadmap-to-inklet-40"></span>
+
+**4.0.0 is stable.** It releases the scope frozen during RC1. These gates
+continue to apply to maintenance releases; experimental namespaces retain their
+documented opt-in status.
 
 ## Product scope
 
@@ -29,7 +31,7 @@ explicit. Inklet does not become a CAD modeller or statistical inference engine.
   source-native image/drawing/field selection adapters and project reconstruction.
   These are experimental contracts; see [figure projects](project-workflows.md).
 
-## RC acceptance checklist
+## Release acceptance checklist
 
 | Gate | Current evidence | Remaining release work |
 | --- | --- | --- |
@@ -58,17 +60,17 @@ Full serialized Python projects and arbitrary geometry constraints are not impli
 by reusable manifests. Projects reopen through an explicitly supplied trusted
 recipe. Mapped image/mesh picking retains its source adapter's geometry limits.
 
-## Before final 4.0
+## Maintenance release requirements
 
 1. Keep the shared acceptance suite and all declared performance budgets green.
 2. Review candidate migration reports, saved-file compatibility and browser evidence.
    RC1 has a [recorded cross-version review](migration.md#recorded-migration-checks);
    archived 3.1 API and dev16 saved-file contracts now run in CI.
-3. Fix regressions within the frozen scope; publish another RC if package files change.
+3. Fix regressions within the supported scope; use a new package version for changed release files.
 4. Run the full release checks on the final commit and publish the exact verified artifacts.
 
-The [RC1 release](https://github.com/Mapika/inklet/releases/tag/v4.0.0rc1) links to
-its candidate validation. Distribution checks include source-archive rebuilding,
+The [4.0 release](https://github.com/Mapika/inklet/releases/tag/v4.0.0) links to
+its exact-commit validation. Distribution checks include source-archive rebuilding,
 isolated wheel installs and matching GitHub/PyPI archive checksums. A passing
 prerelease does not automatically publish or designate a stable release.
 

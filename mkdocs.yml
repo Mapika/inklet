@@ -71,9 +71,9 @@ nav:
   - Scientific illustrations: scientific-authoring.md
   - Complex scientific plates: complex-figures.md
   - Review and export: export-review.md
-- Interactive documents (preview):
+- Interactive documents (experimental):
   - Choose an interactive workflow: interactive-documents.md
-  - Install the 4.0 preview: development-preview.md
+  - Inklet 4.0: development-preview.md
   - Native figure viewer: compiled-viewer.md
   - Linked plots: linked-plots.md
   - Category panels: linked-facets.md

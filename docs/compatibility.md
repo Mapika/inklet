@@ -1,7 +1,7 @@
 # Compatibility
 
-Stable Inklet **3.1** and the **4.0 development line** use the environments
-and rendering paths below. Preview-only capabilities are identified separately.
+Stable Inklet **4.0.0** uses the environments and rendering paths below.
+Experimental capabilities are identified separately.
 The matrix distinguishes installed-package checks from full integration tests.
 
 ## Test coverage
@@ -28,16 +28,16 @@ wheel in an isolated environment.
 
 ## API and saved-file policy
 
-**4.0.0rc1** freezes the supported scope below. A release candidate remains
-opt-in until final 4.0; 3.1.0 remains stable. The same acceptance, distribution and
-performance gates apply to subsequent candidates and the final release.
+**4.0.0** releases the supported scope below, frozen during RC1.
+The same acceptance, distribution and performance gates apply to maintenance
+releases. Experimental namespaces retain their explicit opt-in status.
 
 - The documented top-level `inklet` authoring/export API remains supported.
   Internal modules, names beginning with `_` and generated output bytes are not
   compatibility interfaces. Existing 3.1 recipes do not require a new API.
 - `inklet.experimental` remains opt-in, including selection, browser documents,
   the local editor, measurements and figure projects. Keep an exact package pin
-  and source recipe for archived work. These APIs are not promoted by an RC tag.
+  and source recipe for archived work. These APIs are not promoted by the stable package release.
 - Readers validate schema identifiers and reject unsupported versions. A future
   incompatible format needs a new schema identifier and migration guidance;
   changing the identifier by hand is not a migration.
@@ -86,10 +86,10 @@ Blender. Scene creation and rendering run Blender in a separate process.
 
 ## Known boundaries
 
-### Development-preview table adapters
+### Experimental table adapters
 
 The [pandas and Polars adapters](table-inputs.md) are included in the experimental
-[4.0 development preview](development-preview.md), not in stable 3.1.0. Their `pandas` and `polars` extras are separate
+[4.0 release](development-preview.md); they were not part of 3.1.0. Their `pandas` and `polars` extras are separate
 from core dependencies. The adapter CI jobs use Linux/Python 3.12 with pandas
 2.2.0 / Polars 1.0.0 and the versions pinned in `requirements-tables.txt`.
 Both paths check scalar/identity contracts and saved-state SVG reconstruction.
@@ -97,8 +97,8 @@ The core wheel checks that neither integration is required or imported.
 
 ### Browser workflows and local editor
 
-The 4.0 preview includes standalone linked HTML and a Python-backed composition
-editor. The RC1 browser target is Chrome/Chromium on Linux; release evidence
+Inklet 4.0 includes standalone linked HTML and a Python-backed composition
+editor. The supported browser target is Chrome/Chromium on Linux; release evidence
 uses pinned Chrome 145.0.7632.45. Keyboard controls and data-table selection are
 automated acceptance checks, not a claim of a complete accessibility audit.
 Firefox, Safari,

@@ -3,7 +3,7 @@
 Inklet requires Python 3.11 or later and an installed TrueType/OpenType font.
 The core Python dependencies are HarfBuzz bindings and fontTools.
 
-This page covers stable **Inklet 3.1** and the opt-in **4.0.0rc1 release candidate**. See the
+This page covers stable **Inklet 4.0.0**. See the
 [compatibility matrix](compatibility.md) for tested platforms and Blender versions.
 
 ## From PyPI
@@ -21,18 +21,20 @@ The remaining commands assume an activated environment.
 With `uv`, use `uv venv --python 3.12` followed by `uv pip install inklet`.
 Activate the environment or prefix commands with `.venv/bin/` on Linux/macOS.
 
-## 4.0 development preview
+<span id="40-development-preview"></span>
+
+## Pinning a release
 
 ```sh
-python -m pip install "inklet==4.0.0rc1"
+python -m pip install "inklet==4.0.0"
 # Optional rendering and DataFrame adapters:
-python -m pip install "inklet[render,pandas,polars]==4.0.0rc1"
+python -m pip install "inklet[render,pandas,polars]==4.0.0"
 ```
 
-Use a separate virtual environment when trying the preview. Experimental APIs
-and saved-state schemas may change. Ordinary stable installs continue to use
-3.1.0. See the [preview guide](development-preview.md) for included workflows,
-exact-tag checkout instructions and current limits.
+An unpinned install selects stable 4.0.0. APIs under `inklet.experimental`
+remain opt-in and their schemas may change; retain an exact package pin and
+source recipe for archived projects. See [what is included in 4.0](development-preview.md)
+and [migration from 3.1](migration.md#from-31-to-40).
 
 ## Optional features
 
@@ -53,7 +55,7 @@ features. Their signatures and report schemas may change in future releases.
 ## From a checkout
 
 ```sh
-git clone --branch v3.1.0 https://github.com/Mapika/inklet.git
+git clone --branch v4.0.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m venv .venv
 source .venv/bin/activate

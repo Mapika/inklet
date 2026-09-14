@@ -1,6 +1,6 @@
 # Reproducible plot editing
 
-Available in the [published 4.0 preview](development-preview.md), under
+Available in the [4.0 release](development-preview.md), under
 `inklet.experimental`. This guide covers the offline linked-plot inspector.
 
 The offline inspector edits named plot styles: colour, marker radius and line
