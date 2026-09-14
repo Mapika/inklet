@@ -167,6 +167,8 @@ units; rotations are radians. Colour overrides replace Principled BSDF base
 colour inputs on copied materials, including linked texture inputs, without
 changing another object's material or the saved `.blend` file.
 
+For a rendered comparison, see [highlighting an anatomy region](open-anatomy.md#highlight-a-selected-region).
+
 For live data, use `blend_scene_spec`:
 
 ```python

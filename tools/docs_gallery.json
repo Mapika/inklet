@@ -1,11 +1,11 @@
 [
   {
     "id": "open-anatomy",
-    "title": "Labelled human anatomy",
+    "title": "Label and highlight anatomy",
     "category": "Scientific",
-    "description": "A licensed NIH model rendered in Blender with surface-anchored vector labels.",
+    "description": "A licensed NIH model with region colour bindings and vector labels.",
     "requires": "Blender + render extra",
-    "image": "assets/scenes/open-anatomy.png",
+    "image": "assets/scenes/open-anatomy-highlight.png",
     "version": "4.0 preview",
     "page": "open-anatomy/",
     "featured": false

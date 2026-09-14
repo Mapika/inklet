@@ -153,8 +153,11 @@ by **kbrowne**, NIH 3D **3DPX-023212**, version **1.01**.
 The exact file URL, byte count and SHA-256 are recorded in
 [the source manifest](examples/assets/open-anatomy.json).
 
-`docs/assets/scenes/open-anatomy.{png,svg,pdf}` are adaptations distributed under
+`docs/assets/scenes/open-anatomy.{png,svg,pdf}` and
+`docs/assets/scenes/open-anatomy-highlight.{png,svg,pdf}` are adaptations distributed under
 CC BY 4.0. Changes: Blender import, blue-grey material, lighting, cameras and
-Inklet vector labels. Source geometry and proportions are retained; no calibrated
+Inklet vector labels and an explicitly authored upper-region colour selection.
+Faces are partitioned without changing their geometry or normals. Source
+geometry and proportions are retained; no calibrated
 physical dimensions or individual vessel identities are asserted. Original
 example Python code is MIT. Source license checked on 2026-09-14.

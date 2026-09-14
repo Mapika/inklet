@@ -41,6 +41,24 @@ def make_document(front, oblique, anchors):
     return doc
 
 
+def make_highlight_document(neutral, highlighted):
+    doc = i.document(width=220, columns=2, gap=10, margin=8)
+    doc.add('title', i.text('Highlight a selected region', size=i.pt(18)), colspan=2)
+    doc.add('scope', i.text('Same source geometry and camera; authored upper region, not anatomical segmentation.', size=i.pt(8)), colspan=2)
+    for column, (title, scene) in enumerate([
+        ('A  Neutral model', neutral), ('B  Selected region in amber', highlighted)
+    ]):
+        doc.add('view-'+str(column), i.vstack([
+            i.text(title, size=i.pt(10)), scene.diagram,
+        ], gap=4), row=2, column=column)
+    doc.add('key', i.hstack([
+        i.text('Selected region', size=i.pt(8), text_fill='#a45c16'),
+        i.text('Remaining geometry', size=i.pt(8), text_fill='#586b6d'),
+    ], gap=12), colspan=2)
+    doc.add('credit', i.text('Model: kbrowne / NIH 3D, 3DPX-023212 v1.01 · CC BY 4.0', size=i.pt(8)), colspan=2)
+    return doc
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,default=ROOT/'out/open-anatomy')
@@ -61,7 +79,16 @@ def main():
     (args.output/'anatomy.png').write_bytes(figure.to_png(dpi=160))
     (args.output/'attribution.json').write_text(json.dumps(record,indent=2)+'\n')
     (args.output/'review.txt').write_text(figure.report())
+    highlighted = i.render_blend(blend,width=90,height=108,camera='Overview',
+        engine='CYCLES',samples=64,dpi=300,passes=('depth',),blender=binary,
+        bindings={'Upper region': {'color': '#d88b32'},
+                  'Context': {'color': '#c5d0d2'}})
+    comparison = make_highlight_document(views[0], highlighted).compile()
+    comparison.save(args.output/'highlight.svg', args.output/'highlight.pdf')
+    (args.output/'highlight.png').write_bytes(comparison.to_png(dpi=160))
+    (args.output/'highlight-review.txt').write_text(comparison.report())
     print(figure.report())
+    print(comparison.report())
 
 
 if __name__ == '__main__':

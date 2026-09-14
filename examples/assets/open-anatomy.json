@@ -10,5 +10,5 @@
   "filename": "lungs_heart_reoriented_NIH3D.glb",
   "bytes": 2590240,
   "sha256": "c7a50781d5736ab1a3821a2824438e1a1232343908a03d3aba312fa8570ee90f",
-  "changes": "Blender import, blue-grey material, authored lighting/cameras and Inklet vector labels; source geometry and proportions retained. No calibrated units asserted."
+  "changes": "Blender import, blue-grey material, authored lighting/cameras and Inklet vector labels; source faces partitioned into an authored upper region and context for optional colour bindings; geometry, normals and proportions retained. No calibrated units asserted."
 }

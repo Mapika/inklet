@@ -22,6 +22,45 @@ def main():
         obj.data.materials.append(mat)
         for face in obj.data.polygons:
             face.use_smooth = True
+    # This source is fused: partition faces by an explicit authored region,
+    # not by an inferred organ identity. Retain every face and its normals.
+    selected_count = context_count = 0
+    partitioned = []
+    for original in objects:
+        mesh = original.data
+        groups = {'Upper region': [], 'Context': []}
+        for face in mesh.polygons:
+            name = 'Upper region' if (original.matrix_world@face.center).z > .28 else 'Context'
+            groups[name].append(face)
+        for name, faces in groups.items():
+            if not faces:
+                continue
+            part = bpy.data.meshes.new(name)
+            part.from_pydata([tuple(v.co) for v in mesh.vertices], [],
+                             [tuple(face.vertices) for face in faces])
+            part.update()
+            for face in part.polygons:
+                face.use_smooth = True
+            part.normals_split_custom_set([tuple(mesh.corner_normals[index].vector)
+                for face in faces for index in face.loop_indices])
+            obj = bpy.data.objects.new(name, part)
+            bpy.context.collection.objects.link(obj)
+            obj.matrix_world = original.matrix_world.copy()
+            obj.data.materials.append(mat)
+            partitioned.append(obj)
+            if name == 'Upper region':
+                selected_count += len(faces)
+            else:
+                context_count += len(faces)
+        bpy.data.objects.remove(original, do_unlink=True)
+    if not selected_count or not context_count:
+        raise ValueError('Highlight partition must contain selected and context faces')
+    objects = partitioned
+    output.with_suffix('.selection.json').write_text(json.dumps({
+        'rule': 'Imported-world polygon centre z > 0.28',
+        'meaning': 'Authored upper region, not anatomical segmentation',
+        'selected_faces': selected_count, 'context_faces': context_count,
+    }, indent=2))
     bounds = [obj.matrix_world@Vector(corner) for obj in objects for corner in obj.bound_box]
     lo, hi = [Vector([fn(p[k] for p in bounds) for k in range(3)]) for fn in (min,max)]
     centre = (lo+hi)/2

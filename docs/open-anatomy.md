@@ -39,7 +39,8 @@ camera renders in Inklet's cache, SVG/PDF/PNG exports, `attribution.json`,
 The [Blender importer](../examples/blender/open_anatomy_scene.py) uses Blender's
 GLB importer, retains the mesh geometry and relative proportions, and assigns
 a blue-grey material. It adds an orthographic overview, an oblique camera and
-three area lights. The source's geometry is not simplified or reconstructed.
+three area lights. The source's geometry is not simplified or reconstructed. Faces are assigned
+to two objects for the optional region highlight described below.
 
 GLB-to-Blender import converts coordinate conventions. Label coordinates are
 therefore recorded in the imported Blender world, not copied from a screenshot.
@@ -65,6 +66,47 @@ target is visible. Recheck the labels after changing cameras. See
 To change only the annotations, reuse the existing rendered results in
 `make_document()`; the labels and leaders are vector overlays. The scene image
 remains raster in SVG/PDF, while the text remains editable.
+
+## Highlight a selected region
+
+![The same anatomy model and camera, first in a neutral colour and then with the selected upper region in amber](assets/scenes/open-anatomy-highlight.png)
+
+[Highlight SVG](assets/scenes/open-anatomy-highlight.svg) ·
+[Highlight PDF](assets/scenes/open-anatomy-highlight.pdf)
+
+The example also exports `highlight.svg`, `highlight.pdf` and `highlight.png`.
+Both panels use the same camera, lights and geometry. Only the object colours
+change: the selection is amber and the remaining model is muted.
+
+The source GLB is fused rather than divided into named organs. The importer
+therefore makes an **authored upper-region selection**: faces whose centres have
+`z > 0.28` in the imported Blender world. It assigns these faces to `Upper region`
+and the remainder to `Context`, preserving all source faces, vertex coordinates
+and surface normals. This is a geometric selection, not an airway segmentation.
+`anatomy.selection.json` records the rule and face counts.
+
+Inklet's `bindings` applies colours to copied object materials when rendering:
+
+```python
+import inklet as i
+
+highlight = i.render_blend('out/open-anatomy/anatomy.blend',
+    width=90, height=108, camera='Overview', engine='CYCLES',
+    samples=64, dpi=300, passes=('depth',),
+    bindings={
+        'Upper region': {'color': '#d88b32'},
+        'Context': {'color': '#c5d0d2'},
+    })
+doc = i.document(width=110, margin=8)
+doc.add('highlight', highlight.diagram)
+doc.compile().save('highlight-detail.svg', 'highlight-detail.pdf')
+```
+
+Change the colour strings to restyle the selection. The `.blend` file and the
+previous neutral render stay unchanged. Material changes require a render;
+vector-label edits can reuse the rendered image. If your source already has
+named structures, bind those object names directly and omit the face-partition
+step. Use `inspect_blend()` to list their names.
 
 ## Reuse and attribution
 
