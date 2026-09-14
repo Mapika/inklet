@@ -29,13 +29,13 @@ representation, while [layout](https://inklet.readthedocs.io/en/stable/layout/)
 and [export review](https://inklet.readthedocs.io/en/stable/export-review/)
 cover the finished page.
 
-## 4.0 development preview
+## 4.0 release candidate
 
-**4.0.0.dev16** adds compact dense-field PDF exports and reusable figure projects
-with verified input files, saved editor choices and shared entity identities.
+**4.0.0rc1** is the first release candidate, with compact dense-field PDF exports,
+reusable figure projects and enforced acceptance and performance checks.
 
 ```sh
-python -m pip install "inklet==4.0.0.dev16"
+python -m pip install "inklet==4.0.0rc1"
 ```
 
 [Preview guide](https://inklet.readthedocs.io/en/latest/development-preview/) ·
@@ -43,9 +43,10 @@ python -m pip install "inklet==4.0.0.dev16"
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
 [Release notes](https://github.com/Mapika/inklet/blob/master/CHANGELOG.md)
 
-This is an opt-in development release. Experimental APIs and saved-state schemas
-may change; 3.1.0 remains the stable release. General browser editing,
-depth-aware 3D selection and the remaining 4.0 release gates are still open.
+This is an opt-in release candidate; **3.1.0 remains stable**. APIs under
+`inklet.experimental` retain their opt-in status. The supported controls, saved-file
+policy and deferred features are listed in the
+[compatibility guide](https://inklet.readthedocs.io/en/latest/compatibility/).
 Animation and presentation authoring remain in the 5.0 direction.
 
 ## Install

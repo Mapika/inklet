@@ -1,8 +1,8 @@
 # Roadmap to Inklet 4.0
 
-This is the current release checklist for **RC1 preparation** after dev16.
-Dev14, dev15 and dev16 are published previews; 3.1.0 remains stable. A development
-release does not establish the compatibility guarantees of an RC.
+**4.0.0rc1** freezes the supported 4.0 scope after the development previews.
+**3.1.0 remains stable.** The gates below apply to each candidate and final 4.0;
+experimental namespaces retain their documented opt-in status.
 
 ## Product scope
 
@@ -46,7 +46,7 @@ The [acceptance guide](acceptance.md) maps workflows to commands and failure
 oracles. [Release checks](release-checks.md) and [compatibility](compatibility.md)
 define the distribution procedure and supported environments.
 
-## Scope decisions before RC
+## Frozen scope
 
 The [API and saved-file policy](compatibility.md#api-and-saved-file-policy)
 now declares the bounded 4.0 support scope. Individual axis-label editing,
@@ -58,12 +58,17 @@ Full serialized Python projects and arbitrary geometry constraints are not impli
 by reusable manifests. Projects reopen through an explicitly supplied trusted
 recipe. Mapped image/mesh picking retains its source adapter's geometry limits.
 
-## Development order
+## Before final 4.0
 
-1. Review the shared acceptance gate and declared support/schema policy on CI.
-2. Review project, reference-report and software-browser budgets on CI.
-3. Review migration examples and supported-browser evidence on the candidate.
-4. Freeze RC1, run the full release checks and publish the validated artifacts.
+1. Keep the shared acceptance suite and all declared performance budgets green.
+2. Review candidate migration reports, saved-file compatibility and browser evidence.
+3. Fix regressions within the frozen scope; publish another RC if package files change.
+4. Run the full release checks on the final commit and publish the exact verified artifacts.
+
+The [RC1 release](https://github.com/Mapika/inklet/releases/tag/v4.0.0rc1) links to
+its candidate validation. Distribution checks include source-archive rebuilding,
+isolated wheel installs and matching GitHub/PyPI archive checksums. A passing
+prerelease does not automatically publish or designate a stable release.
 
 ## After 4.0
 

@@ -4,8 +4,8 @@
 
 ## From 3.1 to 4.0
 
-The published preview is **4.0.0.dev16**; RC1 preparation is in progress.
-Opt in with `python -m pip install "inklet==4.0.0.dev16"`. An ordinary package
+The first release candidate is **4.0.0rc1**; stable remains 3.1.0.
+Opt in with `python -m pip install "inklet==4.0.0rc1"`. An ordinary package
 upgrade continues to select stable 3.1.0 until 4.0 is released.
 
 Existing `figure()`, `document()`, `panel()`, `plot_spec()`, compositions and

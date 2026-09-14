@@ -1,8 +1,10 @@
 # Changelog
 
-## 4.0.0.dev17 — Unreleased
+## 4.0.0rc1 — 2026-09-14
 
-RC1 preparation after the published dev16 preview.
+First release candidate for the bounded 4.0 scope. Includes the previously
+unreleased RC-preparation changes after dev16. Experimental APIs remain opt-in;
+3.1.0 remains the stable release.
 
 - Declare the bounded 4.0 API, inspector, adapter and saved-file policy; add
   3.1-to-4.0 migration guidance and defer unsupported interactions beyond 4.0.

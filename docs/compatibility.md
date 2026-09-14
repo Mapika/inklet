@@ -28,8 +28,9 @@ wheel in an isolated environment.
 
 ## API and saved-file policy
 
-RC1 preparation freezes the supported scope below. The published package is
-still dev16; candidate validation and publication remain separate release gates.
+**4.0.0rc1** freezes the supported scope below. A release candidate remains
+opt-in until final 4.0; 3.1.0 remains stable. The same acceptance, distribution and
+performance gates apply to subsequent candidates and the final release.
 
 - The documented top-level `inklet` authoring/export API remains supported.
   Internal modules, names beginning with `_` and generated output bytes are not
