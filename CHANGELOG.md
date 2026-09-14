@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Verify public call-shape compatibility against the released 3.1 wheel and
+  reopen archived dev16 project, layout and hidden-selection files in CI.
+- Record cross-version migration evidence, including pixel-identical publication
+  example exports from 3.1 and RC1 at two widths, with source/output hashes.
+
 ## 4.0.0rc1 — 2026-09-14
 
 First release candidate for the bounded 4.0 scope. Includes the previously

@@ -1,0 +1,54 @@
+{
+  "source": "Released PyPI wheels installed in isolated Python 3.13.9 environments, 2026-09-14",
+  "writers": {
+    "api-3.1.json": "3.1.0",
+    "dev16-project": "4.0.0.dev16",
+    "layout.json": "4.0.0.dev16",
+    "selection.json": "4.0.0.dev16"
+  },
+  "releases": {
+    "3.1.0": [
+      {
+        "filename": "inklet-3.1.0-py3-none-any.whl",
+        "digests": {
+          "blake2b_256": "79dbf85c720b6dc2b9efa51ef0db32ee835eece55a9c15a021cd8a216c05f5d7",
+          "md5": "6287f0c5a8932f3b932272c01a45e94e",
+          "sha256": "72e4eeeacafdee7e44f4b3605bfce37f685b9d1f76e4be2fdca691995061fd56"
+        },
+        "url": "https://files.pythonhosted.org/packages/79/db/f85c720b6dc2b9efa51ef0db32ee835eece55a9c15a021cd8a216c05f5d7/inklet-3.1.0-py3-none-any.whl"
+      }
+    ],
+    "4.0.0.dev16": [
+      {
+        "filename": "inklet-4.0.0.dev16-py3-none-any.whl",
+        "digests": {
+          "blake2b_256": "e62b80c180162059e65370459c1df8d8b2eacd6814de35645c146d1e7eb43d0a",
+          "md5": "cf60b6bff7daa86c7327276feb1ecf77",
+          "sha256": "2bb45d09861ee03f41796e4784667055c3aef19e4197cc500e15ad7cbab47930"
+        },
+        "url": "https://files.pythonhosted.org/packages/e6/2b/80c180162059e65370459c1df8d8b2eacd6814de35645c146d1e7eb43d0a/inklet-4.0.0.dev16-py3-none-any.whl"
+      }
+    ],
+    "4.0.0rc1": [
+      {
+        "filename": "inklet-4.0.0rc1-py3-none-any.whl",
+        "digests": {
+          "blake2b_256": "61a0d545f7de0bd6f482d7c9d6bf97d6923fc686addd9a0e5cfdef97442a168c",
+          "md5": "d60384c493f630b74844845ba57888e3",
+          "sha256": "fd306748b75c810aa17351373e932cdfbf821693cb5f531abd1a1a0708b81c61"
+        },
+        "url": "https://files.pythonhosted.org/packages/61/a0/d545f7de0bd6f482d7c9d6bf97d6923fc686addd9a0e5cfdef97442a168c/inklet-4.0.0rc1-py3-none-any.whl"
+      }
+    ]
+  },
+  "files": {
+    "api-3.1.json": "310fd9394375b773d0ee22d8e3def79837ee77c3706585f99cba7fc2139741fc",
+    "dev16-project/.inklet/figure.pdf": "7a527cb886e95fadb2abfddd8fa97efc134c4985bfcb16097412f6b5bea0bf7e",
+    "dev16-project/.inklet/figure.svg": "c8aff5492240ebc279e25f91f07474d9323d6447912b2b7cd4a30fa555af3fe5",
+    "dev16-project/.inklet/project.json": "9e4ecb7b47422c0ef102be531fbf2fa3a2cb09139f939571bd8990f29d37c5cf",
+    "dev16-project/measurements.json": "0ce7b4fcd6cc90bf5ce4348643235457e62551c1f1cb1e05a3810ebb16b4022e",
+    "layout.json": "4fadc2767ecc1af51802054ab90e1eced8808b36c5fe9d70794f5806992f9da7",
+    "recipe.py": "ce64cee4da152ac8632e38a274cf9847e647029ffdb9804ce5ceaae195cb8485",
+    "selection.json": "7a2da1a6bc41232578289baee0c3b46deab73a10f03fd576549f3333892e840e"
+  }
+}

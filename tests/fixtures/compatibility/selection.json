@@ -1,0 +1,12 @@
+{
+  "data_digest": "a0a7f41c4615292549fe2a19210da9038f8a374940abe2e2f1595a60d38f1f7a",
+  "schema": "inklet.selection/0.1",
+  "selected_ids": [
+    "sample-7"
+  ],
+  "table": "measurements",
+  "visible_ids": [
+    "sample-9"
+  ]
+}
+

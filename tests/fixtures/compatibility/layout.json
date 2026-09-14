@@ -1,0 +1,10 @@
+{
+  "schema": "inklet.composition-layout/0.5",
+  "targets": {
+    "/left": {
+      "placement": {
+        "x": 14
+      }
+    }
+  }
+}

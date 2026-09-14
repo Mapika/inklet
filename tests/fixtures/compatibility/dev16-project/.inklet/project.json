@@ -1,0 +1,56 @@
+{
+  "assets": {
+    "assets": [
+      {
+        "id": "measurements",
+        "license": "MIT",
+        "path": "measurements.json",
+        "role": "data",
+        "sha256": "0ce7b4fcd6cc90bf5ce4348643235457e62551c1f1cb1e05a3810ebb16b4022e",
+        "size": 7,
+        "source": "Original simulated compatibility fixture",
+        "unit": "arbitrary"
+      }
+    ],
+    "schema": "inklet.assets/0.1"
+  },
+  "editor": {
+    "height": null,
+    "preset": null,
+    "width": null
+  },
+  "identities": {
+    "entities": [
+      "a",
+      "b"
+    ],
+    "schema": "inklet.entities/0.1",
+    "sources": {
+      "composition": {
+        "/left": "a",
+        "/right": "b"
+      },
+      "rows": {
+        "sample-7": "a",
+        "sample-9": "b"
+      }
+    }
+  },
+  "inklet_version": "4.0.0.dev16",
+  "layout": {
+    "schema": "inklet.composition-layout/0.5",
+    "targets": {
+      "/left": {
+        "placement": {
+          "x": 14
+        }
+      }
+    }
+  },
+  "name": "Compatibility study",
+  "schema": "inklet.figure-project/0.1",
+  "selected": [
+    "a"
+  ],
+  "svg_sha256": "c8aff5492240ebc279e25f91f07474d9323d6447912b2b7cd4a30fa555af3fe5"
+}

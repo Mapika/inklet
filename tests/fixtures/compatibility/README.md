@@ -1,0 +1,25 @@
+# Released compatibility fixtures
+
+These files were written using isolated installations of the published wheels,
+not the current checkout. `provenance.json` records wheel URLs, archive hashes,
+writer versions and hashes for the captured files and their frozen recipe.
+
+- `api-3.1.json`: 204 exported names and 450 callable signatures from 3.1.0.
+  Private constructor storage fields are recorded but excluded from the public
+  compatibility check. Default values and type annotations are not compared.
+- `dev16-project/`: a complete two-entity project written by 4.0.0.dev16.
+- `layout.json` and `selection.json`: saved placement and a selected hidden row,
+  also written by dev16.
+- `recipe.py`: the trusted reconstruction recipe supplied by the test. Loading a
+  bundle never imports this file automatically.
+
+The RC1 wheel reopened the dev16 project with strict SVG hash verification.
+Release CI uses the reviewed fonts; other fonts or renderers can legitimately
+change SVG bytes. Do not silently disable that verification to pass a candidate.
+
+Keep these historical inputs unchanged. New formats should add appropriately
+sourced fixtures rather than replacing old files with current-version output.
+The API inventory can be recreated by running `inventory()` from
+`tools/check_compatibility.py` against an isolated released-wheel installation;
+`recipe.write()` captures the project and saved choices in a fresh directory.
+Neither the tests nor the release checker regenerate fixtures.

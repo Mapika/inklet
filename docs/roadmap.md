@@ -62,6 +62,8 @@ recipe. Mapped image/mesh picking retains its source adapter's geometry limits.
 
 1. Keep the shared acceptance suite and all declared performance budgets green.
 2. Review candidate migration reports, saved-file compatibility and browser evidence.
+   RC1 has a [recorded cross-version review](migration.md#recorded-migration-checks);
+   archived 3.1 API and dev16 saved-file contracts now run in CI.
 3. Fix regressions within the frozen scope; publish another RC if package files change.
 4. Run the full release checks on the final commit and publish the exact verified artifacts.
 

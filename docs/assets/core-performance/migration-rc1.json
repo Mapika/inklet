@@ -1,0 +1,97 @@
+{
+  "candidate_commit": "6a2cb562bec64dfba2d0dab623d2c73f61fe19f8",
+  "source_recipe": "examples/v25_document.py",
+  "source_sha256": "7b78d14fd25208ae49a61fa2b40cc386f1f824fda46a5df0694818fe67844d8c",
+  "environment": {
+    "python": "3.13.9",
+    "platform": "Linux",
+    "fonttools": "4.65.0",
+    "uharfbuzz": "0.56.1",
+    "pillow": "12.3.0",
+    "resvg-py": "0.3.4"
+  },
+  "method": "Released wheels installed in isolated environments on the same host; unchanged recipe at original and 190 mm width; exact RGBA comparisons. Package signatures and dev16 project reopening checked separately. Not a universal visual-compatibility guarantee.",
+  "api": {
+    "exports_retained": 204,
+    "callables_reviewed": 450,
+    "signature_changes": 12,
+    "incompatible_public_call_shapes": 0
+  },
+  "dev16_project": {
+    "strict_svg_verification": true,
+    "selection": [
+      "a"
+    ],
+    "saved_left_x": 14
+  },
+  "figures": [
+    {
+      "name": "figure",
+      "versions": {
+        "3.1.0": {
+          "page": {
+            "width": "183mm",
+            "height": "155mm",
+            "viewBox": "0 0 183 155"
+          },
+          "pixels": [
+            1081,
+            915
+          ],
+          "rgba_sha256": "68f93e3bf8a969d7f2893bc1325e303795e8e581bf6ecf085e7558f883e9d561",
+          "svg_sha256": "352a15f758cf0c8cd1c97c4a337edf5b871f8de56549023246e9dbc198b92510",
+          "pdf_sha256": "21dd5f8c5e7aae23b2d4cc30f703ff27924ee0539b77ad556134bb21efa9c31e"
+        },
+        "4.0.0rc1": {
+          "page": {
+            "width": "183mm",
+            "height": "155mm",
+            "viewBox": "0 0 183 155"
+          },
+          "pixels": [
+            1081,
+            915
+          ],
+          "rgba_sha256": "68f93e3bf8a969d7f2893bc1325e303795e8e581bf6ecf085e7558f883e9d561",
+          "svg_sha256": "352a15f758cf0c8cd1c97c4a337edf5b871f8de56549023246e9dbc198b92510",
+          "pdf_sha256": "21dd5f8c5e7aae23b2d4cc30f703ff27924ee0539b77ad556134bb21efa9c31e"
+        }
+      },
+      "pixel_identical": true
+    },
+    {
+      "name": "resized",
+      "versions": {
+        "3.1.0": {
+          "page": {
+            "width": "190mm",
+            "height": "155mm",
+            "viewBox": "0 0 190 155"
+          },
+          "pixels": [
+            1122,
+            915
+          ],
+          "rgba_sha256": "def9120e75a43539a28d381aaa66eeb094d68c0bd82a8791f7f2c900f6642f4f",
+          "svg_sha256": "6df2bd872dcbcebcc4ed175649c162531e13e244d834b1b172527ee56e605386",
+          "pdf_sha256": "86f5b7933ee8aa488800764f2e792cf1212bcf7ae015cab31d3f3fa0958cf892"
+        },
+        "4.0.0rc1": {
+          "page": {
+            "width": "190mm",
+            "height": "155mm",
+            "viewBox": "0 0 190 155"
+          },
+          "pixels": [
+            1122,
+            915
+          ],
+          "rgba_sha256": "def9120e75a43539a28d381aaa66eeb094d68c0bd82a8791f7f2c900f6642f4f",
+          "svg_sha256": "6df2bd872dcbcebcc4ed175649c162531e13e244d834b1b172527ee56e605386",
+          "pdf_sha256": "86f5b7933ee8aa488800764f2e792cf1212bcf7ae015cab31d3f3fa0958cf892"
+        }
+      },
+      "pixel_identical": true
+    }
+  ]
+}
