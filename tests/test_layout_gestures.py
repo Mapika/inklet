@@ -106,7 +106,8 @@ def test_scale_validation_is_atomic_and_noop_gesture_creates_no_history():
     assert not editor.snapshot()['undo']
 
 
-def test_browser_pointer_gestures_cancel_and_reopen_match_python(tmp_path):
+@pytest.mark.parametrize('window_size',['800,600','1365,768','1920,1080'])
+def test_browser_pointer_gestures_cancel_and_reopen_match_python(tmp_path,window_size):
     import html,re,shutil,subprocess
     chrome=shutil.which('google-chrome') or shutil.which('chromium')
     if not chrome:pytest.skip('Chrome/Chromium not installed')
@@ -122,7 +123,7 @@ def test_browser_pointer_gestures_cancel_and_reopen_match_python(tmp_path):
     let box=boxOf('.hit[data-path="'+target+'"]'),x=box.x+box.width/2,y=box.y+box.height/2;
     let scale=overlay.getScreenCTM().a;
     pointer(document.querySelector('.hit[data-path="'+target+'"]'),'pointerdown',x,y);pointer(overlay,'pointermove',x+6*scale,y+4*scale);pointer(overlay,'pointerup',x+6*scale,y+4*scale);await ready(1);
-    if(Math.abs(state.geometry[target].box[0]-old[0]-6)>1e-6)throw Error('move coordinates');
+    if(Math.abs(state.geometry[target].box[0]-old[0]-6)>1e-6||Math.abs(state.geometry[target].box[1]-old[1]-4)>1e-6)throw Error('move coordinates: '+JSON.stringify({old,actual:state.geometry[target].box,scale}));
     scale=overlay.getScreenCTM().a;box=boxOf('.handle[data-corner="se"]');x=box.x+box.width/2;y=box.y+box.height/2;const before=state.geometry[target].box;
     pointer(document.querySelector('.handle[data-corner="se"]'),'pointerdown',x,y);pointer(overlay,'pointermove',x+before[2]*scale*.2,y+before[3]*scale*.2);pointer(overlay,'pointerup',x+before[2]*scale*.2,y+before[3]*scale*.2);await ready(2);
     if(Math.abs(state.geometry[target].box[2]/before[2]-1.2)>1e-6)throw Error('scale geometry');
@@ -136,7 +137,7 @@ def test_browser_pointer_gestures_cancel_and_reopen_match_python(tmp_path):
     }catch(error){document.body.dataset.gestureTest=JSON.stringify({error:error.message});}})();</script>'''
     editor._html=lambda:page.replace('</body>',checks+'</body>')
     with editor:
-        run=subprocess.run([chrome,'--headless','--no-sandbox','--dump-dom','--virtual-time-budget=18000',
+        run=subprocess.run([chrome,'--headless','--no-sandbox','--dump-dom','--virtual-time-budget=18000',f'--window-size={window_size}',
                             f'--user-data-dir={tmp_path}/chrome',editor.url],capture_output=True,text=True,timeout=45)
     match=re.search(r'data-gesture-test="([^"]+)"',run.stdout)
     assert match,run.stderr[-2000:]

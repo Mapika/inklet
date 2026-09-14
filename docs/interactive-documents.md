@@ -6,8 +6,7 @@ controls and state files serve different purposes.
 
 These interfaces are part of the **4.0 development preview**. Install the
 [preview version](development-preview.md) explicitly; `pip install inklet` still
-selects the stable release. Reusable figure projects require **dev16 on master**
-until that preview is published.
+selects the stable release. Reusable figure projects are included in **dev16**.
 
 ![A regional report linking a map, time series, distribution and category panels](assets/v4/regional-report.png)
 
@@ -23,7 +22,7 @@ until that preview is published.
 | Display distributions or supplied intervals | [Linked statistics](statistical-views.md) | Stated methods, reference populations and interval meaning |
 | Edit linked plot appearance offline | [Visual editing](visual-editing.md) | Source-bound style overrides, undo/redo and Python reconstruction |
 | Move named objects, revise labels or set a native camera | [Local layout editor](layout-editor.md) | Measured recompilation and saved composition choices |
-| Reopen a study with verified assets and corresponding objects | [Figure projects (dev16 on master)](project-workflows.md) | Input hashes, provenance, canonical entity IDs and editor choices |
+| Reopen a study with verified assets and corresponding objects | [Figure projects (dev16)](project-workflows.md) | Input hashes, provenance, canonical entity IDs and editor choices |
 | Replace source data | [Data revisions](data-revisions.md) | Explicit missing-ID policy and a revision report |
 
 ## Viewers, editors and saved files

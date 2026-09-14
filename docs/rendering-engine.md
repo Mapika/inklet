@@ -128,7 +128,9 @@ Curve-preserving geometric clipping and explicit painted windows now share
 resolved clip regions across SVG/PDF, with separate layout and painted bounds.
 See the [clipping review](clipping.md) for semantics, limits and measurements.
 
-## Core optimization measurements (unreleased)
+<span id="core-optimization-measurements-unreleased"></span>
+
+## Core optimization measurements (dev15)
 
 The current core avoids corner/hull construction for rectangle envelopes and
 transformed bounds, skips allocation when composing identity transforms, and
@@ -174,7 +176,9 @@ Raw reports: [core before](assets/core-performance/core-before.json),
 [figures before](assets/core-performance/engine-before.json),
 [figures after](assets/core-performance/engine-after.json).
 
-## Dense-field PDF export in dev16 (unreleased)
+<span id="dense-field-pdf-export-in-dev16-unreleased"></span>
+
+## Dense-field PDF export in dev16
 
 Closed rectangular contours now use PDF's rectangle operator when it preserves
 the existing contour order. This keeps exact colors, rounded endpoints, signed

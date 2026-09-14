@@ -31,21 +31,18 @@ cover the finished page.
 
 ## 4.0 development preview
 
-**4.0.0.dev15** adds seamless fields, precise scientific layout and source-aware review,
-anatomical cutaways and compact vector matrices.
+**4.0.0.dev16** adds compact dense-field PDF exports and reusable figure projects
+with verified input files, saved editor choices and shared entity identities.
+
 ```sh
-python -m pip install "inklet==4.0.0.dev15"
+python -m pip install "inklet==4.0.0.dev16"
 ```
 
-[Preview guide and examples](https://inklet.readthedocs.io/en/latest/development-preview/) ·
+[Preview guide](https://inklet.readthedocs.io/en/latest/development-preview/) ·
+[Figure project tutorial](https://inklet.readthedocs.io/en/latest/project-workflows/) ·
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
 [Release notes](https://github.com/Mapika/inklet/blob/master/CHANGELOG.md)
 
-Dev14 and dev15 are published on GitHub and PyPI. Development on master now targets
-**4.0.0.dev16**, with dense-field export improvements and
-[reusable figure projects](https://inklet.readthedocs.io/en/latest/project-workflows/)
-that verify assets, restore saved edits and map selections across plots, images
-and drawings. These project APIs require a master checkout; they are not in dev15.
 This is an opt-in development release. Experimental APIs and saved-state schemas
 may change; 3.1.0 remains the stable release. General browser editing,
 depth-aware 3D selection and the remaining 4.0 release gates are still open.

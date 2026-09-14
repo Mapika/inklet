@@ -1,6 +1,9 @@
 # Changelog
 
-## 4.0.0.dev16 — Unreleased
+## 4.0.0.dev16 — 2026-09-14
+
+Sixteenth development preview: dense-field performance, reusable figure projects
+and scientific documentation. Experimental APIs and schemas remain opt-in.
 
 - Add experimental figure projects with portable SHA-256 asset manifests,
   explicit cross-content entity maps, source-native linked-view adapters,
@@ -13,10 +16,17 @@
   guides; update the RC checklist, archive superseded studies at their existing
   URLs and exclude historical pages from normal search.
 
+- Add runnable CSV-to-figure and project revision tutorials; consolidate current
+  guides and improve documentation navigation, typography and mobile layout.
+- Add labelled Blender biological examples, a hash-verified CC BY anatomy import,
+  and explicit region colour bindings with reproducible sources and attribution.
+
 - Encode horizontal-first closed rectangular contours with compact PDF rectangle
   operators, preserving rounded endpoints, signed winding and dash origins.
 - Buffer PDF content without retaining one Python string per drawing operator.
 - Add a reproducible dense-field benchmark for export time, size and memory.
+- Preserve double precision in browser drag coordinates and exercise multiple
+  viewport sizes; repair the table-adapter CI reference after test consolidation.
 
 ## 4.0.0.dev15 — 2026-09-13
 

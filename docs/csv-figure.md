@@ -122,4 +122,4 @@ steps outside that script so rebuilding does not replace your input file.
 Choose [reusable plots](plot-recipes.md) for independently styled variants,
 [reusable compositions](composition-recipes.md) for repeated layouts, or the
 [six-panel CSV example](general-plots.md) for multiple tables and plot families.
-[Figure projects](project-workflows.md) add verified input bundles on master/dev16.
+[Figure projects](project-workflows.md) add verified input bundles in dev16.

@@ -19,7 +19,7 @@ title: Overview
 | Author a dense scientific plate | [Complex scientific plates](complex-figures.md) |
 | Inspect print diagnostics and save final outputs | [Review and export](export-review.md) |
 | Build an offline interactive report | [Interactive documents (4.0 preview)](interactive-documents.md) |
-| Package source assets and saved figure choices | [Reusable figure projects (dev16 on master)](project-workflows.md) |
+| Package source assets and saved figure choices | [Reusable figure projects (dev16)](project-workflows.md) |
 | Work with microscopy data | [Calibrated volumes (preview)](calibrated-volumes.md) |
 
 ## Reference and development

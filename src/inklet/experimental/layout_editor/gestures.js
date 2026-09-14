@@ -19,7 +19,8 @@ function drawOverlay(){
   }
   const path=byId('target').value;if(state.geometry[path])overlay.append(selection(state.geometry[path].box,path));
 }
-function pointerPoint(event){const point=overlay.createSVGPoint();point.x=event.clientX;point.y=event.clientY;return point.matrixTransform(overlay.getScreenCTM().inverse());}
+// DOMPoint keeps double precision when converting screen coordinates to millimetres.
+function pointerPoint(event){return new DOMPoint(event.clientX,event.clientY).matrixTransform(overlay.getScreenCTM().inverse());}
 function cancelGesture(){if(!gesture)return;const id=gesture.pointerId;gesture=null;if(overlay.hasPointerCapture(id))overlay.releasePointerCapture(id);lock(false);drawOverlay();status('Drag cancelled.');}
 overlay.addEventListener('pointerdown',event=>{
   if(busy||gesture||!previewReady||event.button!==0||event.isPrimary===false)return;

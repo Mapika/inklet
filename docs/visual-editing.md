@@ -95,8 +95,7 @@ This offline inspector changes supported plot appearances. For named label text,
 panel dimensions, layout locks and native camera controls, use the Python-backed
 [composition editor](layout-editor.md). Its layout overrides are a separate
 format; they are not interchangeable with plot-style overrides.
-[Figure projects](project-workflows.md) add verified asset bundles on master
-(unreleased dev16). Undo history is local to the open page and is not serialized.
+[Figure projects](project-workflows.md) add verified asset bundles in dev16. Undo history is local to the open page and is not serialized.
 Style commands prepare a complete replacement renderer and rebuild picking
 geometry; they do not promise incremental layout or low-latency dense editing.
 

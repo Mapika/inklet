@@ -1,7 +1,7 @@
 # Roadmap to Inklet 4.0
 
 This is the current release checklist, updated during **4.0.0.dev16** development.
-Dev14 and dev15 are published previews; 3.1.0 remains stable. A development
+Dev14, dev15 and dev16 are published previews; 3.1.0 remains stable. A development
 release does not establish the compatibility guarantees of an RC.
 
 ## Product scope
