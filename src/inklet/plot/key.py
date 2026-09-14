@@ -22,7 +22,8 @@ from ..draw.shapes import marker
 from ..layout import grid as grid_layout, hstack, vstack
 from .axis import SPINE_KIND, axis, text_node, _font_style
 from .ramp import Ramp, ramp as make_ramp
-from .scale import Scale, _declare_domain, linear
+from .metadata import declare_domain as _declare_domain
+from .scale import Scale, linear
 
 __all__ = ["BANDS", "SWATCH_OF_TYPE", "colorbar", "legend"]
 
@@ -106,7 +107,7 @@ def colorbar(source, *, domain: tuple[float, float] = (0.0, 1.0),
                     else ruler.translated(0.0, edge))
     node = drawn_group(children, kind, style)
     # What the bar claims its ends mean, for the rule that compares it against
-    # the picture it stands beside. See `scale._declare_domain`.
+    # the picture it stands beside. See `metadata.declare_domain`.
     _declare_domain(node, measure)
     return node
 

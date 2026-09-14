@@ -9,7 +9,7 @@ import re
 from ..core import Affine, Diagram, Envelope, Rect
 from ..draw.coords import placed_anchor, plot_area
 from .spec import BuildSpec, ComponentSpec, fingerprint, freeze, length
-from .compiler import LayoutError
+from .errors import LayoutError
 
 
 def _scale(value):

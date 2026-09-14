@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import pytest
 
-from inklet.core import DiagramError, resolve
+from inklet.core import Diagram, DiagramError, Rect, RectPrim, resolve
 from inklet.draw import marker
 from inklet.draw.coords import as_drawn
-from inklet.plot import panel, ramp
+from inklet.plot import panel, polar, ramp
 from inklet.plot.key import LEGEND_LABEL_KIND
 from inklet.plot.scale import Linear
 from inklet.themes import theme as get_theme
@@ -122,6 +122,48 @@ def test_a_twin_axis_shares_the_key() -> None:
     p.line(LINE, name="left")
     p.twin_y((0, 100)).line([(0, 10), (2, 90)], name="right")
     assert [e.name for e in p.keys] == ["left", "right"]
+
+
+@pytest.fixture(params=["rectangular", "polar"])
+def keyed_panel(request):
+    return (panel(40, 30, x=(0, 2), y=(0, 1))
+            if request.param == "rectangular" else polar(20, r=(0, 1)))
+
+
+def test_uncoloured_records_reserve_one_palette_slot_per_name(keyed_panel):
+    p = keyed_panel
+    for name in (7, "7", "second", "second"):
+        p.marks(marker("triangle"), LINE, name=name)
+    p.line(LINE, name="third").line(LINE, name="7").line(LINE, name="second")
+    assert [entry.name for entry in p.keys] == ["7", "second", "third"]
+    assert [entry.color for entry in p.keys] == [get_theme().color(i) for i in range(3)]
+
+
+def test_a_colour_recorded_after_uncoloured_marks_is_reused(keyed_panel):
+    p = keyed_panel
+    p.marks(marker("triangle"), LINE, name="signal")
+    p.line(LINE, name="signal", stroke="#123456", kind="mark-line")
+    p.line(LINE, name="signal", stroke="#abcdef", kind="mark-line")
+    p.line(LINE, name="signal", kind="mark-line")
+    strokes = [placed.style.stroke for placed in resolve(p.build()).values()
+               if placed.diagram.kind == "mark-line" and placed.diagram.prim is not None]
+    assert strokes == ["#123456", "#abcdef", "#123456"]
+
+
+@pytest.mark.parametrize("side", ["left", "right", "top", "bottom"])
+def test_side_legends_clear_existing_ink_and_align_with_the_plot(keyed_panel, side):
+    p = keyed_panel.line(LINE, name="signal")
+    p.over(Diagram(prim=RectPrim(100, 100)).translated(20, -30))
+    ink = Rect(-30, -80, 70, 20)
+    p.legend(side=side, pad=2)
+    key = p._over[-1].bbox
+    if side in ("left", "right"):
+        assert key.center.y == pytest.approx(p.area.center.y)
+        clearance = key.x0 - ink.x1 if side == "right" else ink.x0 - key.x1
+    else:
+        assert key.center.x == pytest.approx(p.area.center.x)
+        clearance = key.y0 - ink.y1 if side == "bottom" else ink.y0 - key.y1
+    assert clearance == pytest.approx(2)
 
 
 # --- the block ---------------------------------------------------------------

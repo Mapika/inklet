@@ -20,8 +20,7 @@ from .core.prims import TextPrim
 from .layout import frame, vstack
 from .links import Link, link as make_link, route_all
 from .diagnostics import Diagnostic, format_report, lint
-from .render import (PDF_TEXT_MODES, TEXT_MODES, resolve_text_mode, to_pdf,
-                     to_svg)
+from .render.page import RenderedPage, save_outputs, validate_pdf_text
 from .typeset import shape, theme_colors
 from .themes import Theme, theme as get_theme
 
@@ -184,13 +183,10 @@ class Figure:
 
     # -- authoring --------------------------------------------------------
 
-    _scene_override: object = field(default=None, init=False, repr=False)
-
     def add(self, *diagrams: Diagram) -> Diagram:
         """Stack content vertically. Returns the last item for chaining."""
         self._content.extend(diagrams)
         self._built = None
-        self._scene_override = None
         return diagrams[-1] if diagrams else None
 
     def link(self, source, target, *, label: str | Diagram | None = None,
@@ -228,7 +224,6 @@ class Figure:
         connector = make_link(source, target, label=label, **kwargs)
         self._links.append(connector)
         self._built = None
-        self._scene_override = None
         return connector
 
     # -- resolution -------------------------------------------------------
@@ -313,6 +308,9 @@ class Figure:
 
     # -- output -----------------------------------------------------------
 
+    def _page(self) -> RenderedPage:
+        return RenderedPage(self.build()[0], self.background or self.theme.paper)
+
     def to_svg(self, *, text: str = "names", **kwargs) -> str:
         """The figure as SVG text, page frame and background included.
 
@@ -323,16 +321,7 @@ class Figure:
         subset of each face carried inside the file). `inklet.to_svg` says what
         each costs; `inklet.outline_text` is the tree transform behind the second.
         """
-        root = self._scene_override
-        if root is None:
-            root, _ = self.build()
-        options = dict(
-            margin=0.0,   # the page frame is already part of the tree
-            background=self.background or self.theme.paper,
-            text=resolve_text_mode(text),
-        )
-        options.update(kwargs)
-        return to_svg(root, **options)
+        return self._page().to_svg(text=text, **kwargs)
 
     def to_pdf(self, *, text: str = "outline", **kwargs) -> bytes:
         """The figure as PDF bytes, on the same page as `to_svg` puts it.
@@ -349,30 +338,12 @@ class Figure:
         refused here, with the figure's own name on the traceback, and so that
         the mode appears in the reference beside `to_svg`'s three.
         """
-        if text not in PDF_TEXT_MODES:
-            raise ValueError(
-                f"unknown text mode {text!r} for PDF; expected one of "
-                f"{', '.join(PDF_TEXT_MODES)}"
-                + ("; PDF has no font-name mode, so a searchable PDF is "
-                   "text='embed'" if text == "names" else ""))
-        root = self._scene_override
-        if root is None:
-            root, _ = self.build()
-        options = dict(
-            margin=0.0,   # the page frame is already part of the tree
-            background=self.background or self.theme.paper,
-            text=text,
-        )
-        options.update(kwargs)
-        return to_pdf(root, **options)
+        validate_pdf_text(text)
+        return self._page().to_pdf(text=text, **kwargs)
 
     def to_png(self, *, dpi=150, **kwargs) -> bytes:
         """Render PNG at physical DPI with optional resvg, without a browser."""
-        from .render.raster import to_png
-        root = self._scene_override
-        if root is None:
-            root, _ = self.build()
-        return to_png(root, dpi=dpi, **(dict(background=self.background or self.theme.paper) | kwargs))
+        return self._page().to_png(dpi=dpi, **kwargs)
 
     def export(self, directory: str | Path, *, name: str = "figure",
                dpi: float = 150, text: str = "embed", compare_pdf: bool = True,
@@ -411,29 +382,7 @@ class Figure:
         anything that is neither raises here rather than at whichever file
         happens to come first in the list.
         """
-        mode = kwargs.get("text")
-        if mode is not None and mode not in TEXT_MODES:
-            raise ValueError(
-                f"unknown text mode {mode!r}; expected one of "
-                f"{', '.join(TEXT_MODES)}"
-            )
-        for path in paths:
-            target = Path(path)
-            suffix = target.suffix.lower()
-            if suffix not in (".svg", ".pdf", ".png"):
-                raise NotImplementedError(
-                    f"{target.suffix} output is not supported; write .svg, .pdf or .png"
-                )
-            target.parent.mkdir(parents=True, exist_ok=True)
-            if suffix == '.png':
-                target.write_bytes(self.to_png(**kwargs))
-            elif suffix == ".pdf":
-                options = {k: v for k, v in kwargs.items() if k != "text"}
-                if mode in PDF_TEXT_MODES:
-                    options["text"] = mode
-                target.write_bytes(self.to_pdf(**options))
-            else:
-                target.write_text(self.to_svg(**kwargs), encoding="utf-8")
+        save_outputs(self, *paths, **kwargs)
 
 
 def figure(width: float | str = COLUMN_SINGLE, **kwargs) -> Figure:

@@ -31,6 +31,7 @@ from ..core import (
     IDENTITY, ORIGIN, Affine, Diagram, DiagramError, Prim, Rect, Vec2, mm,
     note_through,
 )
+from ..core.diagram import union_bounds as _union_box
 
 __all__ = [
     "AREA_NOTE", "ORIGIN_ANCHOR", "Point", "as_drawn", "declare_area", "drawn",
@@ -210,15 +211,6 @@ def active_theme():
     from .. import current_theme
 
     return current_theme()
-
-
-def _union_box(items: Iterable[Diagram]) -> Rect | None:
-    box = None
-    for item in items:
-        other = item.envelope.bbox()
-        if other is not None:
-            box = other if box is None else box.union(other)
-    return box
 
 
 # -- the plot-area contract -----------------------------------------------

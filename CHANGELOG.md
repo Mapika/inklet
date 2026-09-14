@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+## 4.0.1 — 2026-09-14
+
+- Separate plot statistics from mark drawing, reuse sorted samples for
+  quartiles, use binary search for histogram bins, and reuse violin bandwidths.
+- Share named-series colour selection between rectangular and polar plots,
+  replacing quadratic name scans with linear lookup. Separate diagnostic
+  metadata from scale mathematics and share outside-key positioning.
+- Separate matrix validation and rendering from panel authoring, share plot
+  furniture across rectangular and polar plots, and consolidate diagram-bound
+  unions used by drawing, layout and plotting.
+- Separate document track allocation, measured fitting and compiled snapshot
+  ownership. Compiled documents export directly from retained scene state;
+  authored figures and snapshots share page export settings and file dispatch.
+- Reuse captured scene font fingerprints for document metadata, exposed through
+  `RenderScene.font_manifest()`, while retaining export-time font validation.
+- Protect the compiled placement mapping from mutation through `build()`.
+- Resolve inherited paint once into immutable styles shared by sibling nodes,
+  while keeping group opacity on its compositing group.
+
 ## 4.0.0 — 2026-09-14
 
 Stable release of the bounded 4.0 scope, following RC1. Existing 3.1 authoring

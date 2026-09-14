@@ -35,6 +35,7 @@ from ..core import (
     Affine, Diagram, DiagramError, EllipsePrim, PhantomPrim, Rect, RectPrim,
     TextPrim, Vec2, mm,
 )
+from ..core.diagram import union_bounds as _union_box
 from ..draw.coords import ORIGIN_ANCHOR, needs_diagram, placed_anchor
 
 __all__ = [
@@ -105,15 +106,6 @@ def _box_of(item: Diagram) -> Rect | None:
     `Diagram.bbox` raises for empty nodes, which is right for an author but
     wrong here: layout treats an empty item as something to skip."""
     return item.envelope.bbox()
-
-
-def _union_box(items: Iterable[Diagram]) -> Rect | None:
-    box = None
-    for item in items:
-        other = _box_of(item)
-        if other is not None:
-            box = other if box is None else box.union(other)
-    return box
 
 
 def _centered(children: list[Diagram], kind: str,

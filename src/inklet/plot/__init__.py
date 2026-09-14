@@ -23,7 +23,7 @@ passed. `inklet.fit` is how you go the other way and hit a column width exactly.
 from .axis import AXIS_KIND, SIDES, axis, text_node, tick_texts, tick_values
 from .facets import facets
 from .key import BANDS, SWATCH_OF_TYPE, colorbar, legend
-from .marks import BoxStats, box_stats, histogram, kde, quantile
+from .statistics import BoxStats, box_stats, histogram, kde, quantile
 from .inset import INDICATOR_KIND, INSET_KIND, inset, panel_bracket
 from .panel import Panel, column, panel, row
 from .polar import (

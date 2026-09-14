@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from ..core import Diagram, Envelope, Rect, Vec2
 from .spec import BuildSpec, fingerprint, freeze, length, materialize
-from .compiler import LayoutError
+from .errors import LayoutError
 
 
 @dataclass(eq=False)

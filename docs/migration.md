@@ -4,8 +4,8 @@
 
 ## From 3.1 to 4.0
 
-**4.0.0 is stable.** Upgrade with `python -m pip install --upgrade inklet`,
-or pin `inklet==4.0.0` for reproducible environments.
+**4.0.1 is stable.** Upgrade with `python -m pip install --upgrade inklet`,
+or pin `inklet==4.0.1` for reproducible environments.
 
 Existing `figure()`, `document()`, `panel()`, `plot_spec()`, compositions and
 SVG/PDF exports remain the authoring path. There is no required conversion to a

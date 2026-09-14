@@ -27,7 +27,7 @@ title: Overview
 [Python API](api.md) · [CLI](cli.md) · [Troubleshooting](troubleshooting.md) ·
 [Migration](migration.md)
 
-The default install is stable **4.0.0**. See [what is included](development-preview.md)
+The default install is stable **4.0.1**. See [what is included](development-preview.md)
 and the [migration guide](migration.md#from-31-to-40) for existing recipes.
 
 [Compatibility](compatibility.md) · [Acceptance checks](acceptance.md) ·

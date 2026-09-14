@@ -29,7 +29,8 @@ from ..core import Diagram, Rect, Vec2, mm
 from ..draw.coords import (active_theme, declare_area, drawn_group,
                            plot_area)
 from .axis import AXIS_LABEL_KIND, text_node
-from .panel import Panel, _origin_of
+from .panel import Panel
+from .furniture import origin_of as _origin_of
 
 __all__ = ["facets"]
 

@@ -22,6 +22,20 @@ def test_paint_program_preserves_compositing_and_resolves_inheritance():
     assert program.root.children[0].style.fill=='red'
 
 
+def test_nested_opacity_stays_local_while_siblings_inherit_paint():
+    branch = Diagram(children=(Diagram(style=Style(opacity=.6)), Diagram()),
+                     style=Style(opacity=0., fill='blue'))
+    root = Diagram(children=(branch, Diagram(style=Style(opacity=.8))),
+                   style=Style(opacity=.4, fill='red', fill_opacity=.7))
+    program = resolve_paint(root, stable_ids=True)
+    nodes = list(program.root.walk())
+    assert [node.style.opacity for node in nodes] == [.4, 0., .6, None, .8]
+    assert [node.style.fill for node in nodes] == ['red', 'blue', 'blue', 'blue', 'red']
+    assert all(node.style.fill_opacity == .7 for node in nodes)
+    assert program.node_count == len(program.ids) == len(nodes) == 5
+    assert branch.children[1].style == Style()
+
+
 def test_resolved_paint_is_visually_identical_for_both_backends(tmp_path):
     Image=pytest.importorskip('PIL.Image')
     ImageChops=pytest.importorskip('PIL.ImageChops')

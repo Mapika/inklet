@@ -25,7 +25,7 @@ a matrix mapped 0..10 -- because both draw the same colours. `_declared_domain`
 is the hook for that: a `scale_domain` note carrying `(low, high)` on the key
 node and on the marks group makes the mismatch visible without any colour
 arithmetic, and `inklet.plot` now leaves one -- see
-`plot/scale.py::_declare_domain`.
+`plot/metadata.py::declare_domain`.
 """
 
 from __future__ import annotations
@@ -444,7 +444,7 @@ def _domain_clash(ctx: LintContext, key_id: str,
                   panel_id: str) -> tuple[str, str] | None:
     """The two numeric domains, when both sides bothered to record one.
 
-    `plot/scale.py::_declare_domain` notes `scale_domain` on the colorbar and
+    `plot/metadata.py::declare_domain` notes `scale_domain` on the colorbar and
     on the marks group, and `Diagram.notes` is a field, so the rebuild carries
     it without anyone copying it by name: a bar built over `linear((0, 100))`
     beside a matrix mapped through `linear((0, 10))` reports the mismatch even

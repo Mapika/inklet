@@ -1,6 +1,7 @@
 """Compiled snapshots, revision invalidation and native backend agreement."""
 from dataclasses import FrozenInstanceError, replace
 from io import BytesIO
+import hashlib
 from pathlib import Path
 import random
 import pytest
@@ -125,7 +126,7 @@ def test_document_recompiles_changed_image_inputs_and_keeps_previous_export(tmp_
     second=doc.compile()
     assert second is not first and second.to_pdf()!=original
     assert first.to_pdf()==original
-    assert first.scene is first._figure._scene_override
+    assert first.scene.to_pdf(text='embed',background=doc.theme.paper)==original
 
 
 def test_mutable_blend_notes_cannot_change_a_completed_snapshot():
@@ -150,11 +151,48 @@ def test_changed_font_is_refused_by_completed_scene(tmp_path):
     prim=replace(node.prim,font_path=str(font),lines=tuple(replace(line,runs=tuple(
         replace(run,font_path=str(font)) for run in line.runs)) for line in node.prim.lines))
     scene=i.compile_scene(replace(node,prim=prim))
+    manifest=scene.font_manifest()
+    assert manifest == [{'file': font.name, 'sha256': hashlib.sha256(font.read_bytes()).hexdigest()}]
     font.write_bytes(font.read_bytes()+b'changed')
+    assert scene.font_manifest() == manifest
     for backend in (scene.to_svg,scene.to_pdf):
         with pytest.raises(i.DiagramError,match='compiled font changed'):backend()
     with pytest.raises(i.DiagramError,match='compiled font changed'):
         i.compile_scene(replace(node,prim=prim),previous=scene)
+
+
+def test_font_manifest_is_sorted_and_returned_mutation_is_isolated(tmp_path):
+    node=i.text('Font manifest',size=4)
+    source=Path(node.prim.font_path).read_bytes()
+    paths=[tmp_path/'z-font.ttf',tmp_path/'a-font.ttf']
+    for path in paths:
+        path.write_bytes(source)
+    first=replace(node,prim=replace(node.prim,font_path=str(paths[0])))
+    second=replace(node,prim=replace(node.prim,font_path=str(paths[1])))
+    scene=i.compile_scene(Diagram(children=(first,second)))
+
+    expected=[{'file': path.name, 'sha256': hashlib.sha256(source).hexdigest()}
+              for path in sorted(paths)]
+    manifest=scene.font_manifest()
+    assert manifest == expected
+    manifest[0]['sha256']='changed'
+    manifest.append({'file':'extra.ttf','sha256':'changed'})
+    assert scene.font_manifest() == expected
+
+
+def test_font_manifest_does_not_read_font_files(monkeypatch, tmp_path):
+    node=i.text('Font manifest',size=4)
+    font=tmp_path/'font.ttf'
+    font.write_bytes(Path(node.prim.font_path).read_bytes())
+    prim=replace(node.prim,font_path=str(font),lines=tuple(replace(line,runs=tuple(
+        replace(run,font_path=str(font)) for run in line.runs)) for line in node.prim.lines))
+    scene=i.compile_scene(replace(node,prim=prim))
+    expected=scene.font_manifest()
+
+    def forbidden(self):
+        raise AssertionError('font manifest reread a font file')
+    monkeypatch.setattr(Path,'read_bytes',forbidden)
+    assert scene.font_manifest() == expected
 
 
 @pytest.mark.parametrize('seed',range(5))

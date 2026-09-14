@@ -56,6 +56,7 @@ from fractions import Fraction
 from typing import Iterable, Sequence
 
 from ..core import Diagram, DiagramError, ORIGIN, Rect, Vec2, mm
+from ..core.diagram import union_bounds as _union_box
 from ..draw.clip import clip as draw_clip
 from ..draw.coords import active_theme, as_drawn, declare_area, drawn_group
 from ..draw.path import path as draw_path, polyline
@@ -72,9 +73,11 @@ from .axis import (
     text_node, tick_texts, tick_values,
 )
 from .key import SWATCH_OF_TYPE, legend as make_legend
-from .panel import AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND
-from .scale import Linear, Scale, _declare_domain, format_number, linear
-from .series import SeriesKey, merge_keys, swatch_for
+from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
+                         into_corner, plated)
+from .scale import Linear, Scale, format_number, linear
+from .metadata import declare_domain as _declare_domain
+from .series import SeriesKey, merge_keys, series_color, swatch_for
 
 __all__ = [
     "PolarPanel", "Theta", "THETA_UNITS", "WINDINGS", "ZERO_DIRECTIONS",
@@ -1179,18 +1182,8 @@ class PolarPanel:
         return None
 
     def _series_color(self, name: str | None, given: str | None) -> str | None:
-        """The colour a named series is drawn in; see `Panel._series_color`."""
-        if given is not None or name is None:
-            return given
-        name = str(name)
-        seen: list[str] = []
-        for key in self._keys:
-            if key.name == name and key.color is not None:
-                return key.color
-            if key.name not in seen:
-                seen.append(key.name)
-        index = seen.index(name) if name in seen else len(seen)
-        return active_theme().color(index)
+        """The colour a named series is drawn in; see `plot.series`."""
+        return series_color(self._keys, name, given)
 
     @property
     def keys(self) -> tuple[SeriesKey, ...]:
@@ -1210,8 +1203,6 @@ class PolarPanel:
         place a key can sit inside the plot without covering anything.
         `side` puts it outside instead.
         """
-        from .panel import _into_corner, _plated
-
         theme = active_theme()
         rows = list(entries) if entries is not None else self._legend_rows(swatch)
         if not rows:
@@ -1230,8 +1221,8 @@ class PolarPanel:
             # usually just a box drawn round nothing.
             plate = False
         if plate:
-            node = _plated(node, theme, theme.gap("xs"))
-        self._over.append(_into_corner(node, self.area, corner or "ne", gap))
+            node = plated(node, theme, theme.gap("xs"))
+        self._over.append(into_corner(node, self.area, corner or "ne", gap))
         return self._touched()
 
     def _beside(self, node: Diagram, side: str, gap: float) -> Diagram:
@@ -1246,16 +1237,7 @@ class PolarPanel:
             raise DiagramError(
                 f"unknown side {side!r}; expected left, right, top or bottom")
         box = _union_box(self._under + self._content + self._over) or self.area
-        here = node.bbox
-        if side == "right":
-            at = Vec2(box.x1 + gap + here.width / 2, self.area.center.y)
-        elif side == "left":
-            at = Vec2(box.x0 - gap - here.width / 2, self.area.center.y)
-        elif side == "top":
-            at = Vec2(self.area.center.x, box.y0 - gap - here.height / 2)
-        else:
-            at = Vec2(self.area.center.x, box.y1 + gap + here.height / 2)
-        return node.translated(at.x - here.center.x, at.y - here.center.y)
+        return beside(node, box, side, gap, self.area.center)
 
     def _legend_rows(self, swatch: float | str | None) -> list[tuple[str, object]]:
         theme = active_theme()
@@ -1471,7 +1453,7 @@ def _arc_extremes(radius: float, a0: float, a1: float) -> list[Vec2]:
 def _knockout(node: Diagram, theme) -> Diagram:
     """A label on an opaque tile, so it stops what is behind it.
 
-    `plot.panel._plated` under a tighter pad: a legend plate is a block of
+    `plot.furniture.plated` under a tighter pad: a legend plate is a block of
     paper the reader sees as an object, and a tick label's is meant to be
     invisible -- just enough to keep a hairline out of the counter of an 8.
     """
@@ -1630,15 +1612,6 @@ def _formatted(texts: Sequence[str], format) -> tuple[str, ...]:
 
 def _clip_flag(style: dict) -> bool | None:
     return style.pop("clip", None)
-
-
-def _union_box(items: Iterable[Diagram]) -> Rect | None:
-    box = None
-    for item in items:
-        other = item.envelope.bbox()
-        if other is not None:
-            box = other if box is None else box.union(other)
-    return box
 
 
 def _vector(start: Vec2, end: Vec2, *, head: str, size: float,

@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 import re
 
-from .compiler import LayoutError
+from .errors import LayoutError
 from .spec import length
 from . import label_overrides as labels, style_overrides as styles, camera_overrides as cameras
 _EDITORS = {"labels":labels, "styles":styles, "cameras":cameras}

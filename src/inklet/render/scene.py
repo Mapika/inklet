@@ -119,6 +119,13 @@ class RenderScene:
             if current != digest:
                 raise DiagramError(f'compiled font changed: {path}; restart the process and rebuild the figure')
 
+    def font_manifest(self):
+        """Return the captured font inventory without rereading font files."""
+        return [
+            {'file': Path(path).name, 'sha256': digest.hex()}
+            for path, digest in sorted(self._fonts.items())
+        ]
+
     def sources_current(self):
         """Check external inputs when a document considers reusing a snapshot."""
         for path, data in self._images.items():

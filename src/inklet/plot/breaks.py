@@ -55,7 +55,7 @@ left to whatever fell out:
 * **`scale_domain`.** Not declared for a broken scale. Its `domain` is the two
   outer ends and not what it covers, and letting `KEY_MISMATCH` compare a key
   against that number would make a genuine disagreement agree; see
-  `plot.scale._declare_domain`.
+  `plot.metadata.declare_domain`.
 
 * **`OFF_PANEL`.** Unaffected, and checked: it reports *text* that leaves the
   plot box, and nothing here is text. A datum inside a break maps to the band

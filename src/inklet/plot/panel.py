@@ -24,46 +24,31 @@ from dataclasses import dataclass, field
 from typing import Iterable, Sequence
 
 from ..core import Diagram, DiagramError, Rect, RectPrim, Vec2, mm
+from ..core.diagram import union_bounds as _union_box
 from ..draw.clip import clip as draw_clip
-from ..draw.coords import (ORIGIN_ANCHOR, active_theme, as_drawn, declare_area,
+from ..draw.coords import (active_theme, as_drawn, declare_area,
                            drawn_group, plot_area)
 from ..draw.path import curve as draw_curve, polyline
 from ..draw.place import place as draw_place
-from ..draw.shapes import MARK_KIND
 from ..themes.color import mix
 from . import marks as _marks
 from . import notes as _notes
 from .axis import SIDES, SPINE_KIND, axis, text_node, tick_values
+from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
+                        into_corner as _into_corner, origin_of as _origin_of,
+                        plated as _plated)
 from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
                   legend as make_legend)
-from .raster import (_missing_colour, is_missing, raster_matrix,
-                     uniform_pitch)
-from .scale import Band, Linear, Scale, _declare_domain, linear
-from .series import SeriesKey, merge_keys, swatch_for
+from .matrix import (_RASTER_ABOVE_CELLS, matrix_centres, matrix_layer,
+                     prepare_matrix)
+from .scale import Band, Linear, Scale, linear
+from .metadata import declare_domain as _declare_domain
+from .series import SeriesKey, merge_keys, series_color, swatch_for
 from .timescale import dates, is_time_like
 
 __all__ = ["Panel", "column", "panel", "row"]
 
-PANEL_KIND = "panel"
-AREA_KIND = "plot-area"
-GRID_KIND = "gridline"
-TITLE_KIND = "title"
-
 _AXIS_SCALE = {"bottom": "x", "top": "x", "left": "y", "right": "y"}
-
-#: How far each matrix cell is grown past its own pitch, as a fraction of it.
-#: Enough to bury the antialiased seam under its neighbour, small enough that a
-#: cell still reads as square.
-_CELL_OVERLAP = 0.06
-
-#: Where `matrix(raster="auto")` stops drawing rectangles. About a 45 x 45
-#: field: a vector matrix costs roughly 280 bytes and one DOM node per cell, so
-#: this is where the picture passes half a megabyte -- and where, at a column
-#: width, a cell is under half a millimetre and has stopped being a thing a
-#: reader points at. Below it the vector form is worth its size: the cells stay
-#: individually selectable, and `KEY_MISMATCH` can compare their colours
-#: against the bar beside them.
-_RASTER_ABOVE_CELLS = 2048
 
 #: A confidence band, as a blend towards paper. Pale enough to read the line
 #: and the gridlines through, dark enough to have an edge on a 1x screen.
@@ -87,121 +72,6 @@ def _clip_flag(style: dict) -> bool | None:
     and nothing else.
     """
     return style.pop("clip", None)
-
-
-def _pitch(centres: Sequence[float]) -> float:
-    """The distance between neighbouring cell centres.
-
-    One row or column is a legitimate matrix and has no neighbour to measure
-    against, so it takes the whole extent -- which is what the caller asked for
-    by passing one.
-    """
-    if len(centres) < 2:
-        return abs(centres[0]) * 2.0 if centres else 0.0
-    return abs(centres[1] - centres[0])
-
-
-def _cell_spans(centres: Sequence[float],
-                overlap: float, singleton: float | None = None) -> list[tuple[float, float]]:
-    """Each cell's centre and its size, in millimetres.
-
-    Evenly spaced samples take the pitch, which is the whole of the old
-    behaviour and is kept as its own branch so that a uniform matrix renders
-    byte-identically to before rather than to within a float.
-
-    Unevenly spaced ones cannot: a cell there belongs to the interval its
-    sample *owns*, which runs to the midpoint of the gap on each side, so a
-    long gap draws a wide cell and the sample is not at its centre. Extending
-    by half the neighbouring gap at the two ends is the only choice that keeps
-    the first and last samples inside the cells that stand for them.
-    """
-    if len(centres) < 2:
-        size = (_pitch(centres) if singleton is None else singleton) * (1.0 + overlap)
-        return [(c, size) for c in centres]
-    gaps = [b - a for a, b in zip(centres, centres[1:])]
-    reach = max(abs(g) for g in gaps)
-    if max(gaps) - min(gaps) <= reach * 1e-9:
-        size = abs(gaps[0]) * (1.0 + overlap)
-        return [(c, size) for c in centres]
-    edges = ([centres[0] - gaps[0] / 2]
-             + [(a + b) / 2 for a, b in zip(centres, centres[1:])]
-             + [centres[-1] + gaps[-1] / 2])
-    return [((lo + hi) / 2, abs(hi - lo) * (1.0 + overlap))
-            for lo, hi in zip(edges, edges[1:])]
-
-
-def _rasterises(raster: bool | str, cells: int, xs: Sequence[float],
-                ys: Sequence[float]) -> bool:
-    """Whether this matrix is drawn as an image rather than as rectangles.
-
-    `"auto"` also asks whether the samples are evenly spaced, because unevenly
-    spaced ones cannot be pixels and the vector path draws them honestly. An
-    explicit `raster=True` does not check: it raises in `raster_matrix`, which
-    is the right answer to being told to do something that cannot be done.
-    """
-    if raster is True or raster is False:
-        return bool(raster)
-    if raster != "auto":
-        raise DiagramError(
-            f'matrix(raster=) is True, False or "auto", not {raster!r}')
-    if cells <= _RASTER_ABOVE_CELLS:
-        return False
-    return uniform_pitch(xs) is not None and uniform_pitch(ys) is not None
-
-
-def _cell_grid(rows: Sequence[Sequence[float]], ramp, unit,
-               xs: Sequence[tuple[float, float]],
-               ys: Sequence[tuple[float, float]], style: dict,
-               missing: str | None = None) -> Diagram:
-    """The vector matrix: one styled rectangle per cell.
-
-    Cells carry `kind="mark"`, because a cell's position is the data -- without
-    it a heatmap is thousands of CROWDING findings about its own neighbours.
-    """
-    cells = []
-    hole = _missing_colour(
-        any(is_missing(value) for row in rows for value in row), missing)
-    for row, (cy, tall) in zip(rows, ys):
-        for value, (cx, wide) in zip(row, xs):
-            if is_missing(value):
-                shade = hole
-            else:
-                shade = ramp(value if unit is None else unit.map(value))
-            cells.append((Vec2(cx, cy),
-                          Diagram(prim=RectPrim(wide, tall), kind=MARK_KIND)
-                          .styled(fill=shade, stroke="none")))
-    return draw_place(cells, **style)
-
-
-def _batched_cell_grid(rows,ramp,unit,xs,ys,style,missing=None,*,seamless=False):
-    """Disjoint cell rectangles batched by exact fill, with no color quantization."""
-    from ..core import PathPrim,Subpath
-    hole=_missing_colour(any(is_missing(value) for row in rows for value in row),missing)
-    buckets={};back={}
-    if seamless:
-        from ..themes.color import parse_color
-        xmin=min(c-w/2 for c,w in xs);xmax=max(c+w/2 for c,w in xs)
-        ymin=min(c-h/2 for c,h in ys);ymax=max(c+h/2 for c,h in ys)
-    for row,(cy,tall) in zip(rows,ys):
-        for value,(cx,wide) in zip(row,xs):
-            fill=hole if is_missing(value) else ramp(value if unit is None else unit.map(value))
-            box=Rect(cx-wide/2,cy-tall/2,cx+wide/2,cy+tall/2)
-            buckets.setdefault(fill,[]).append(Subpath(box.corners,closed=True))
-            if seamless:
-                # Opaque underpaint fills only the subpixel cracks of the exact
-                # foreground. Never change sample boundaries or the outer box.
-                parse_color(fill)
-                bleed=Rect(max(xmin,box.x0-wide/2),max(ymin,box.y0-tall/2),
-                           min(xmax,box.x1+wide/2),min(ymax,box.y1+tall/2))
-                back.setdefault(fill,[]).append(Subpath(bleed.corners,closed=True))
-    nodes=[]
-    for layer in ([back,buckets] if seamless else [buckets]):
-        for color,paths in layer.items():
-            for k in range(0,len(paths),512):
-                nodes.append(Diagram(prim=PathPrim(tuple(paths[k:k+512]),filled=True),
-                    kind='matrix-underpaint' if layer is back else MARK_KIND).styled(fill=color,stroke='none'))
-    result=Diagram(children=tuple(nodes),kind='vector-matrix',notes={'matrix_batch':{'cells':sum(map(len,rows)),'colors':len(buckets),'batches':len(nodes),'individual_cells':False,'seamless':seamless}})
-    return as_drawn(result.styled(**style) if style else result)
 
 
 @dataclass
@@ -423,85 +293,27 @@ class Panel:
         longer compare their colours against a colorbar, because there are no
         mark fills left to sample. The declared domain still crosses over.
         """
-        if interpolation not in ('nearest','linear'):
-            raise ValueError('matrix interpolation must be nearest or linear')
-        if interpolation=='linear' and (raster is not True or vector!='cells'):
-            raise ValueError('linear interpolation requires raster=True and vector="cells"')
-        if vector not in ('cells','batched','seamless'):raise ValueError('matrix vector must be cells, batched or seamless')
-        if vector in ('batched','seamless'):
-            if raster is True:raise ValueError('batched vector matrices cannot also request raster=True')
-            raster=False
-            if overlap not in (None,0):raise ValueError('batched matrices need overlap=0 to preserve cell boundaries')
-        overlap=(0. if vector in ('batched','seamless') else _CELL_OVERLAP) if overlap is None else overlap
-        if vector=='seamless' and any(style.get(k,1)!=1 for k in ('opacity','fill_opacity')):
-            raise ValueError('seamless matrices require opaque paint; apply opacity to a containing group')
-        clip = _clip_flag(style)
-        rows = [list(row) for row in values]
-        if not rows or not rows[0]:
-            raise DiagramError("matrix() needs at least one row and one column")
-        if len({len(row) for row in rows}) != 1:
-            raise DiagramError(
-                f"matrix() needs rows of equal length, got "
-                f"{sorted({len(row) for row in rows})}"
-            )
+        rows, raster, overlap, clip = prepare_matrix(
+            values, vector=vector, interpolation=interpolation, raster=raster,
+            overlap=overlap, style=style)
         centres_x = self._centres(x, len(rows[0]), self.x, self.width)
         centres_y = self._centres(y, len(rows), self.y, self.height)
-        # A scale maps value -> millimetres; re-ranged to 0..1 it maps
-        # value -> ramp position, which is the same question the colorbar asks.
         unit = None if scale is None else scale.with_range(0.0, 1.0)
         self._ramp = ramp
-
-        single_x=abs(self.x.map(x[1])-self.x.map(x[0])) if x is not None and len(x)==2 and len(centres_x)==1 else self.width
-        single_y=abs(self.y.map(y[1])-self.y.map(y[0])) if y is not None and len(y)==2 and len(centres_y)==1 else self.height
-        source_shape=(len(rows),len(rows[0]))
-        if interpolation=='linear':
-            from .raster import interpolate_matrix
-            rows,centres_x,centres_y=interpolate_matrix(rows,centres_x,centres_y,samples,single_x=single_x,single_y=single_y)
-
-        if _rasterises(raster, len(rows) * len(rows[0]), centres_x, centres_y):
-            group = raster_matrix(rows, ramp, unit, centres_x, centres_y,
-                                  missing,single_x=single_x,single_y=single_y)
-            if style:
-                group = group.styled(**style)
-        else:
-            grid_builder=_batched_cell_grid if vector in ("batched","seamless") else _cell_grid
-            group = grid_builder(rows, ramp, unit,
-                               _cell_spans(centres_x, overlap,single_x),
-                               _cell_spans(centres_y, overlap,single_y), style,
-                               missing, **({"seamless":True} if vector=="seamless" else {}))
-        # What the cells' colours mean, for the rule that compares a matrix
-        # against the colorbar beside it. On the group for anything reading the
-        # tree directly, and remembered so `build` can put it on the panel,
-        # which is the node the diagnostic pairs with a key.
-        _declare_domain(group, scale)
-        group.note('matrix_sampling', {'source_shape':source_shape,
-                   'interpolation':interpolation, 'vector':vector,
-                   'samples':samples if interpolation=='linear' else 1})
+        single_x = abs(self.x.map(x[1])-self.x.map(x[0])) if x is not None and len(x)==2 and len(centres_x)==1 else self.width
+        single_y = abs(self.y.map(y[1])-self.y.map(y[0])) if y is not None and len(y)==2 and len(centres_y)==1 else self.height
+        group = matrix_layer(
+            rows, ramp, unit, centres_x, centres_y, single_x=single_x, single_y=single_y,
+            scale=scale, interpolation=interpolation, samples=samples, raster=raster,
+            vector=vector, overlap=overlap, missing=missing, style=style)
+        # The group carries the domain for tree inspection; build() also records
+        # it on the panel, where diagnostics pair the field with its colorbar.
         self._scale_domain = scale
         return self.draw(group, clip=clip)
 
     def _centres(self, given: Sequence | None, count: int,
                  scale: Scale, extent: float) -> list[float]:
-        """Where each row or column sits, in panel millimetres.
-
-        Given values are data and go through the scale. Given nothing, the
-        cells divide the area evenly and the scale is not consulted at all --
-        which is what makes `matrix` line up with an axis built from the same
-        `count` without the caller computing half a cell anywhere.
-
-        One value more than there are cells means the caller gave the *edges*
-        -- 53 week boundaries for 52 weeks -- which is how a histogram, a
-        netCDF file and every gridded dataset states its axis. Read as centres
-        they would hang the field half a cell off the panel and stretch it by
-        one, so they are read as edges and the cells sit between them.
-        """
-        if given is not None:
-            at = [scale.map(v) for v in given]
-            if len(at) == count + 1:
-                return [(a + b) / 2 for a, b in zip(at, at[1:])]
-            return at
-        step = extent / count
-        return [-extent / 2 + step * (i + 0.5) for i in range(count)]
+        return matrix_centres(given, count, scale, extent)
 
     def line(self, points: Iterable[Sequence], *, smooth: float = 0.0,
              closed: bool = False, name: str | None = None, err=None,
@@ -1217,28 +1029,8 @@ class Panel:
         return self
 
     def _series_color(self, name: str | None, given: str | None) -> str | None:
-        """The colour a named series is drawn in.
-
-        What was asked for, if anything was. Otherwise the same colour this
-        name was already drawn in -- so a band and the line over it agree
-        without the caller holding the value -- and failing that the next
-        colour in the theme's palette, by the order the names first appeared.
-
-        Only named series are coloured this way. An unnamed one keeps the
-        theme's ink, because nothing distinguishes it from the next unnamed
-        one and a palette entry would be a claim that something does.
-        """
-        if given is not None or name is None:
-            return given
-        name = str(name)
-        seen: list[str] = []
-        for key in self._keys:
-            if key.name == name and key.color is not None:
-                return key.color
-            if key.name not in seen:
-                seen.append(key.name)
-        index = seen.index(name) if name in seen else len(seen)
-        return active_theme().color(index)
+        """The colour a named series is drawn in; see `plot.series`."""
+        return series_color(self._keys, name, given)
 
     def _note_series(self, names: Sequence[str],
                      colors: Sequence[str]) -> "Panel":
@@ -1405,16 +1197,7 @@ class Panel:
                 f"unknown side {side!r}; expected one of {', '.join(SIDES)}"
             )
         box = _union_box(self._under + self._content + self._over) or self.area
-        here = node.bbox
-        if side == "right":
-            at = Vec2(box.x1 + gap + here.width / 2, 0.0)
-        elif side == "left":
-            at = Vec2(box.x0 - gap - here.width / 2, 0.0)
-        elif side == "top":
-            at = Vec2(0.0, box.y0 - gap - here.height / 2)
-        else:
-            at = Vec2(0.0, box.y1 + gap + here.height / 2)
-        return node.translated(at.x - here.center.x, at.y - here.center.y)
+        return beside(node, box, side, gap, Vec2(0.0, 0.0))
 
     # -- writing on the plot, in data coordinates --------------------------
 
@@ -1919,55 +1702,6 @@ def _across(node: Diagram, box: Rect, mode: str, horizontal: bool) -> float:
     return area.x0 if mode == "start" else area.x1
 
 
-def _origin_of(node: Diagram) -> Vec2:
-    """The point a node is lined up on: the centre of its plot area.
-
-    A built `Panel`'s `origin` anchor already *is* that point, so reading the
-    note first changes nothing for one panel. It changes everything for a
-    `row`, `column` or `facets` group, whose `origin` is wherever
-    `drawn_group` happened to leave (0, 0) -- the top-left corner of the first
-    member, in practice. Placing a stacked pair by that is what stopped a
-    column from standing in a row.
-    """
-    area = plot_area(node)
-    if area is not None:
-        return area.center
-    try:
-        return node.transform.apply(node.anchor_point(ORIGIN_ANCHOR))
-    except DiagramError:
-        box = node.envelope.bbox()
-        return Vec2(0.0, 0.0) if box is None else box.center
-
-
-def _plated(node: Diagram, theme, pad: float) -> Diagram:
-    """A key on an opaque tile, so it knocks out whatever it covers.
-
-    Filled and *unstroked*: a legend inside the plot area has to be legible
-    over gridlines and data, and a box round it is a second frame competing
-    with the panel's own. What it needs is to stop the rules running under the
-    type, which the fill alone does.
-    """
-    from ..layout import frame as make_frame
-
-    from dataclasses import replace
-    framed=make_frame(node,pad=pad,kind="legend-plate")
-    # Paint the backdrop only. Inheriting white fill/no stroke into the key
-    # makes unstyled text white and turns a colorbar outline into a white tile.
-    return replace(framed,children=(framed.children[0].styled(fill=theme.paper,stroke='none'),
-                                   *framed.children[1:]))
-
-
-def _into_corner(node: Diagram, box: Rect, corner: str, pad: float) -> Diagram:
-    if corner not in ("nw", "ne", "sw", "se"):
-        raise ValueError(f"corner must be nw, ne, sw or se, not {corner!r}")
-    here = node.bbox
-    x = (box.x0 + pad + here.width / 2 if corner[1] == "w"
-         else box.x1 - pad - here.width / 2)
-    y = (box.y0 + pad + here.height / 2 if corner[0] == "n"
-         else box.y1 - pad - here.height / 2)
-    return node.translated(x - here.center.x, y - here.center.y)
-
-
 def _inside(box: Rect, area: Rect) -> bool:
     """Whether a node's box is already within the plot area, to a micrometre.
 
@@ -1978,12 +1712,3 @@ def _inside(box: Rect, area: Rect) -> bool:
     return (box.x0 >= area.x0 - _CLIP_SLACK and box.x1 <= area.x1 + _CLIP_SLACK
             and box.y0 >= area.y0 - _CLIP_SLACK
             and box.y1 <= area.y1 + _CLIP_SLACK)
-
-
-def _union_box(items: Iterable[Diagram]) -> Rect | None:
-    box = None
-    for item in items:
-        other = item.envelope.bbox()
-        if other is not None:
-            box = other if box is None else box.union(other)
-    return box

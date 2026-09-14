@@ -3,29 +3,25 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict, fields, is_dataclass, replace
 from collections.abc import Mapping
-from pathlib import Path
 from types import MappingProxyType
 import hashlib
 import json
-from itertools import accumulate
 import math
 import re
 import time
 
-from ..core import Affine, Diagram, DiagramError, Envelope, Rect, resolve
-from ..draw.coords import plot_area
+from ..core import Diagram, DiagramError, Envelope, Rect, resolve
 from ..plot import Panel, PolarPanel
-from ..figure import Figure, apply_theme
-from ..links import link, route_all
-from ..diagnostics import lint, format_report
+from ..figure import apply_theme
+from ..diagnostics import lint
 from ..render.paint import resolve_paint
 from ..themes import Theme, theme as get_theme
 from .spec import BuildSpec, ComponentSpec, PlotSpec, fingerprint, length, themed
 from .data import Dataset
-
-
-class LayoutError(DiagramError):
-    """A document cannot satisfy its declared physical layout constraints."""
+from .compiled import CompiledFigure, CompiledState
+from .errors import LayoutError
+from .layout import LayoutRequest, layout_document, plot_margins as _margins
+from .tracks import allocate_tracks as _tracks
 
 
 @dataclass(frozen=True)
@@ -84,75 +80,6 @@ class BuildContext:
         return node
 
 
-def _tracks(count, weights, constraints, available, gap, axis):
-    """Solve contiguous span minima, then fit weighted tracks to the page.
-
-    Longest paths between prefix sums give an exact feasibility bound. Dykstra
-    projections find the closest feasible allocation to the requested weights,
-    including overlapping spans whose minimum widths share the middle track.
-    """
-    spans={}
-    for start,span,required,_ in constraints:
-        spans[start,span]=max(spans.get((start,span),0),required-gap*(span-1))
-    prefix=[0.]*(count+1)
-    ending = {}
-    for (start,span),required in spans.items():
-        ending.setdefault(start+span,[]).append((start,required))
-    for end in range(1,count+1):
-        prefix[end]=max([prefix[end-1]]+[prefix[start]+required
-                         for start,required in ending.get(end,())])
-    minimum=prefix[-1]+gap*(count-1)
-    if available is not None and minimum>available+1e-6:
-        raise LayoutError(f'{axis} requires at least {minimum:.2f} mm; only {available:.2f} mm is available '
-                          f'for cells {", ".join(c[3] for c in constraints)}. Increase the page size or reduce cell minima.')
-    total=prefix[-1] if available is None else available-gap*(count-1)
-    weight_sum = sum(weights)
-    tracks=[total*w/weight_sum for w in weights]
-    if all(span == 1 for _, span in spans):
-        floors = [max(0., spans.get((index, 1), 0.)) for index in range(count)]
-        remaining = max(0., total-sum(floors))
-        if remaining == 0:
-            return floors
-        # Projection onto a simplex with per-track lower bounds. This is
-        # exact in O(n log n); ordinary grids need no iterative span solver.
-        values = [target-floor for target, floor in zip(tracks, floors)]
-        partial = 0.
-        threshold = 0.
-        for rank, value in enumerate(sorted(values, reverse=True), 1):
-            partial += value
-            candidate = (partial-remaining)/rank
-            if value > candidate:
-                threshold = candidate
-        return [floor+max(0., value-threshold) for floor, value in zip(floors, values)]
-    sets=[(tuple(range(count)),total,True)]
-    sets.extend(((index,),0.,False) for index in range(count))
-    sets.extend((tuple(range(start,start+span)),required,False) for (start,span),required in spans.items())
-    corrections=[0.]*len(sets)
-    for _ in range(10000):
-        before=tracks[:]
-        for index,(indices,required,equality) in enumerate(sets):
-            correction=corrections[index]
-            current=sum(tracks[j]+correction for j in indices)
-            adjustment=(required-current)/len(indices)
-            if not equality: adjustment=max(0.,adjustment)
-            for j in indices: tracks[j]+=correction+adjustment
-            corrections[index]=-adjustment
-        if max(abs(a-b) for a,b in zip(before,tracks))<1e-8:
-            if (abs(sum(tracks)-total)<1e-6 and min(tracks)>=-1e-6
-                    and all(sum(tracks[start:start+span]) >= required-1e-6
-                            for (start,span),required in spans.items())):
-                return [max(0.,v) for v in tracks]
-    raise LayoutError(f'{axis} constraints did not converge; simplify overlapping spans')
-
-
-def _margins(node):
-    area, box = plot_area(node), node.bbox
-    if area is None:
-        return (0.,0.,0.,0.)
-    return (max(0.,area.x0-box.x0), max(0.,box.x1-area.x1),
-            max(0.,area.y0-box.y0), max(0.,box.y1-area.y1))
-
-
 def _sources(items):
     tables, seen = {}, set()
     def canonical(value):
@@ -183,61 +110,6 @@ def _sources(items):
             for f in fields(value): visit(getattr(value,f.name))
     visit(items)
     return list(tables.values())
-
-
-@dataclass(frozen=True)
-class CompiledFigure:
-    """A resolved snapshot; later authoring changes cannot alter its exports."""
-    _figure: Figure = field(repr=False)
-    cells: Mapping
-    diagnostics: tuple
-    metadata: Mapping
-    stats: Mapping
-
-    @property
-    def scene(self):
-        """Shared compiled rendering snapshot used by every native export."""
-        return self._figure._scene_override
-
-    @property
-    def root(self):
-        return self._figure.build()[0]
-
-    def build(self):
-        return self._figure.build()
-
-    def lint(self, **kwargs):
-        if not kwargs: return list(self.diagnostics)
-        profile=self.metadata.get('publication',{})
-        defaults={k:profile[k] for k in ('min_font_pt','min_stroke_mm','min_dpi','max_font_pt','max_height_mm') if k in profile}
-        return self._figure.lint(**(defaults | kwargs))
-
-    def report(self, **kwargs):
-        return format_report(self.lint(**kwargs))
-
-    def to_svg(self, *, text=None, **kwargs):
-        if text is None: text=self.metadata.get('publication',{}).get('text','embed')
-        return self._figure.to_svg(text=text, **kwargs)
-
-    def to_pdf(self, *, text=None, **kwargs):
-        if text is None: text=self.metadata.get('publication',{}).get('text','embed')
-        return self._figure.to_pdf(text=text, **kwargs)
-
-    def to_png(self, *, dpi=None, **kwargs):
-        if dpi is None: dpi=self.metadata.get('publication',{}).get('dpi',150)
-        return self._figure.to_png(dpi=dpi, **kwargs)
-
-    def save(self, *paths, **kwargs):
-        kwargs.setdefault('text', self.metadata.get('publication',{}).get('text','embed'))
-        return self._figure.save(*paths, **kwargs)
-
-    def export(self, directory, **kwargs):
-        from ..render.bundle import export_bundle
-        profile=self.metadata.get('publication')
-        if profile:
-            kwargs.setdefault('dpi',profile['dpi'])
-            kwargs.setdefault('text',profile['text'])
-        return export_bundle(self, directory, **kwargs)
 
 
 @dataclass(eq=False)
@@ -396,153 +268,10 @@ class Document(BuildSpec):
                        Envelope.from_rect(Rect(0, 0, self.width if width is None else width, page_height)))
 
     def _layout(self, context, width, height):
-        if not self._cells: raise LayoutError('cannot compile an empty document')
-        theme = context.theme
-        cell_indices = {c.name:index for index,c in enumerate(self._cells)}
-        def decorate(node, cell):
-            if not self._letters: return node
-            from ..draw.annotate import letters
-            options = dict(self._letters)
-            if context.preset is not None:
-                options.setdefault('style', context.preset.letter_style)
-            start = chr(ord(options.pop('start')) + cell_indices[cell.name])
-            with themed(theme):
-                tagged = letters([node], start=start, **options)[0]
-            for name,point in node.anchors.items(): tagged.anchor(name,node.transform.apply(point))
-            return tagged
-        rows=max(c.row+c.rowspan for c in self._cells)
-        widths=_tracks(len(self.columns),self.columns,
-                       [(c.column,c.colspan,c.min_width,c.name) for c in self._cells],
-                       width-2*self.margin,self.gap,'width')
-        x_prefix = tuple(accumulate(widths,initial=0.))
-        # Auto-height preserves authored data-region heights plus measured furniture.
-        natural_heights = {}; natural_plots = {}
-        for c in self._cells:
-            fixed = isinstance(c.item, Diagram) or (isinstance(c.item, ComponentSpec) and not c.item.responsive)
-            if height is None or fixed:
-                cell_width = x_prefix[c.column+c.colspan]-x_prefix[c.column]+self.gap*(c.colspan-1)
-                natural = context.build(c.item, cell_width,
-                                        c.item.height if isinstance(c.item, PlotSpec) else None)
-                decorated = decorate(natural, c)
-                natural_heights[c.name] = decorated.height
-                if isinstance(c.item,PlotSpec):
-                    area=plot_area(decorated)
-                    natural_plots[c.name]=(area.height,*_margins(decorated)[2:])
-        if self.share_plot_margins and height is None:
-            # The largest top and bottom labels may belong to different
-            # plots. Sum their separate maxima so neither consumes authored
-            # data height merely because its peer has different furniture.
-            tallest=sum(max((v[n] for v in natural_plots.values()),default=0.) for n in range(3))
-            for name in natural_plots: natural_heights[name]=tallest
-        heights=_tracks(rows,(1.,)*rows,
-                        [(c.row,c.rowspan,max(c.min_height, natural_heights.get(c.name,0)),c.name)
-                         for c in self._cells],
-                        None if height is None else height-2*self.margin,self.row_gap,'height')
-        def cell_boxes(track_heights):
-            y_prefix = tuple(accumulate(track_heights,initial=0.))
-            return {c.name:Rect(self.margin+x_prefix[c.column]+self.gap*c.column,
-                               self.margin+y_prefix[c.row]+self.row_gap*c.row,
-                               self.margin+x_prefix[c.column+c.colspan]+self.gap*(c.column+c.colspan-1),
-                               self.margin+y_prefix[c.row+c.rowspan]+self.row_gap*(c.row+c.rowspan-1))
-                    for c in self._cells}
-        boxes=cell_boxes(heights)
-        margins={c.name:(0.,0.,0.,0.) for c in self._cells}
-        nodes={}
-        # Tick selection depends on available width, so measure to a stable fit.
-        for iteration in range(24):
-            for c in self._cells:
-                box=boxes[c.name];left,right,top,bottom=margins[c.name]
-                if isinstance(c.item,PlotSpec):
-                    pw,ph=box.width-left-right,box.height-top-bottom
-                    if pw < 5 or ph < 5:
-                        raise LayoutError(f'cell {c.name!r} leaves only {pw:.2f} × {ph:.2f} mm for data after labels. Increase its size.')
-                    nodes[c.name]=context.build(c.item,round(pw,6),round(ph,6))
-                else:
-                    pw,ph=box.width-left-right,box.height-top-bottom
-                    if pw <= 0 or ph <= 0: raise LayoutError(f'cell {c.name!r} has no space after panel letters')
-                    nodes[c.name]=context.build(c.item,pw,ph)
-            undecorated={name:node.bbox for name,node in nodes.items()}
-            nodes={c.name:decorate(nodes[c.name], c) for c in self._cells}
-            measured={c.name:_margins(nodes[c.name]) for c in self._cells}
-            if self._letters:
-                for c in self._cells:
-                    if isinstance(c.item,PlotSpec): continue
-                    a,b=undecorated[c.name],nodes[c.name].bbox
-                    measured[c.name]=tuple(max(0.,v,old) for v,old in zip(
-                        (a.x0-b.x0,b.x1-a.x1,a.y0-b.y0,b.y1-a.y1),margins[c.name]))
-            # Share plot margins among unspanned cells in each column/row.
-            columns, row_groups = {}, {}
-            for c in self._cells:
-                if not isinstance(c.item,PlotSpec): continue
-                left,right,top,bottom = measured[c.name]
-                a,b = columns.get((c.column,c.colspan),(0.,0.))
-                columns[c.column,c.colspan] = max(a,left),max(b,right)
-                a,b = row_groups.get((c.row,c.rowspan),(0.,0.))
-                row_groups[c.row,c.rowspan] = max(a,top),max(b,bottom)
-            shared=tuple(max((measured[c.name][n] for c in self._cells if isinstance(c.item,PlotSpec)),default=0.)
-                         for n in range(4)) if self.share_plot_margins else None
-            for c in self._cells:
-                if not isinstance(c.item,PlotSpec): continue
-                m = shared if shared is not None else (*columns[c.column,c.colspan], *row_groups[c.row,c.rowspan])
-                # Monotonic margins prevent tick-thinning oscillations.
-                measured[c.name]=tuple(max(a,b) for a,b in zip(m,margins[c.name]))
-            if height is None and natural_plots:
-                # Wrapping furniture must grow automatic tracks, regardless
-                # of whether margins are shared across the whole document.
-                if self.share_plot_margins:
-                    required = {name:(max(v[0] for v in natural_plots.values())+
-                                max(measured[n][2] for n in natural_plots)+
-                                max(measured[n][3] for n in natural_plots)) for name in natural_plots}
-                else:
-                    required = {name:values[0]+measured[name][2]+measured[name][3]
-                                for name,values in natural_plots.items()}
-                if any(natural_heights[name]<value-1e-6 for name,value in required.items()):
-                    for name,value in required.items(): natural_heights[name]=max(natural_heights[name],value)
-                    heights=_tracks(rows,(1.,)*rows,
-                                    [(c.row,c.rowspan,max(c.min_height,natural_heights.get(c.name,0)),c.name)
-                                     for c in self._cells],None,self.row_gap,'height')
-                    boxes=cell_boxes(heights);margins=measured
-                    continue
-            if all(max(abs(a-b) for a,b in zip(measured[n],margins[n]))<.005 for n in margins): break
-            margins=measured
-        else:
-            raise LayoutError('plot furniture did not settle after 24 measurement passes')
-        placed=[];handles={}
-        for c in self._cells:
-            node,box=nodes[c.name].copy(),boxes[c.name]
-            actual=node.bbox
-            if actual.width > box.width+.02 or actual.height > box.height+.02:
-                raise LayoutError(f'cell {c.name!r} contains {actual.width:.2f} × {actual.height:.2f} mm '
-                                  f'but has {box.width:.2f} × {box.height:.2f} mm. Increase its cell size.')
-            if isinstance(c.item,PlotSpec):
-                area=plot_area(node);left,_,top,_=margins[c.name]
-                dx,dy=box.x0+left-area.x0,box.y0+top-area.y0
-            else:
-                dx,dy=box.center.x-actual.center.x,box.center.y-actual.center.y
-                if c.align in ('w','nw','sw'): dx=box.x0-actual.x0
-                elif c.align in ('e','ne','se'): dx=box.x1-actual.x1
-                if c.align in ('n','nw','ne'): dy=box.y0-actual.y0
-                elif c.align in ('s','sw','se'): dy=box.y1-actual.y1
-            handles[c.name]=node
-            # Always wrap: at zero offset translated() returns the original
-            # node, whose semantic kind (e.g. abutting artwork) must survive.
-            placed.append(Diagram(children=(node,),transform=Affine.translation(dx,dy),
-                                  kind='document-cell',name=c.name).carry_notes(node))
-        with themed(theme):
-            content=Diagram(children=tuple(placed),kind='document-content')
-            if self._links:
-                def endpoint(value):
-                    if not isinstance(value,str): raise TypeError('document link endpoints must be cell or cell:anchor strings')
-                    name,sep,anchor=value.partition(':')
-                    if name not in handles: raise DiagramError(f'unknown link cell {name!r}')
-                    return handles[name].at(anchor) if sep else handles[name]
-                # Figure.link supplies theme-aware labels, plates and arrow defaults.
-                builder=Figure(theme=theme)
-                for a,b,kw in self._links: builder.link(endpoint(a),endpoint(b),**kw)
-                connectors=route_all(builder._links,resolve(content))
-                content=Diagram(children=(content,connectors),kind='document-content')
-            page_height=height if height is not None else 2*self.margin+sum(heights)+self.row_gap*(rows-1)
-        return content, boxes, handles, page_height, iteration+1
+        request = LayoutRequest(tuple(self._cells), self.columns, self.margin,
+                                self.gap, self.row_gap, dict(self._letters),
+                                tuple(self._links), self.share_plot_margins)
+        return layout_document(request, context, width, height)
 
     def compile(self):
         """Measure dependencies and return a cached CompiledFigure snapshot."""
@@ -574,20 +303,8 @@ class Document(BuildSpec):
             diagnostics=tuple(lint(program.root,page=program.root.bbox,placements=placements,page_fill=theme.paper,
                                    **({} if self.publication is None else self.publication.checks)))
         diagnostics_seconds=time.perf_counter()-scene_finished
-        figure=Figure(width=width,height=page_height,margin=0,theme=theme)
-        figure._built=(program.root,placements)
-        figure._scene_override=scene
-        from ..core.prims import TextPrim
-        font_paths=set()
-        for placement in placements.values():
-            prim=placement.diagram.prim
-            if isinstance(prim,TextPrim):
-                if prim.font_path: font_paths.add(prim.font_path)
-                for line in prim.lines:
-                    for run in line.runs:
-                        if run.font_path: font_paths.add(run.font_path)
-        fonts=[dict(file=Path(path).name,sha256=hashlib.sha256(Path(path).read_bytes()).hexdigest())
-               for path in sorted(font_paths)]
+        state = CompiledState(program.root, MappingProxyType(placements), scene, theme.paper)
+        fonts = scene.font_manifest()
         from ..assets.provenance import credits
         from .. import __version__
         alignment = {c.name:c.align for c in self._cells}
@@ -611,7 +328,7 @@ class Document(BuildSpec):
                    render_scene=dict(scene.stats),
                    cache_hits=context.hits,
                    builds=context.misses,layout_passes=passes,node_count=program.node_count)
-        result=CompiledFigure(figure,MappingProxyType(boxes),diagnostics,
+        result=CompiledFigure(state,MappingProxyType(boxes),diagnostics,
                               MappingProxyType(metadata),MappingProxyType(stats))
         self._last=(key,result)
         self._render_previous=scene

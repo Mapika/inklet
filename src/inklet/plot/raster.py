@@ -39,7 +39,7 @@ from typing import Sequence
 from ..core import Affine, Diagram, DiagramError, ImagePrim, Vec2
 from ..themes.color import parse_color
 from .png import encode_png
-from .scale import _annotate
+from .metadata import annotate as _annotate
 
 __all__ = ["LEVELS", "MATRIX_KIND", "raster_matrix", "uniform_pitch"]
 

@@ -24,6 +24,7 @@ A compiled native scene shared by SVG, PDF and PNG exports.
 
 * `walk()`
 * `validate_fonts()`
+* `font_manifest()` -- Return the captured font inventory without rereading font files.
 * `sources_current()` -- Check external inputs when a document considers reusing a snapshot.
 * `to_svg(**options)`
 * `to_pdf(**options)`
@@ -270,11 +271,11 @@ A physical page containing named, live figure definitions.
 * `export(directory, **kwargs)`
 * `save(*paths, **kwargs)`
 
-#### `class CompiledFigure(_figure: 'Figure', cells: 'Mapping', diagnostics: 'tuple', metadata: 'Mapping', stats: 'Mapping') -> None`
+#### `class CompiledFigure(_state: 'CompiledState', cells: 'Mapping', diagnostics: 'tuple', metadata: 'Mapping', stats: 'Mapping') -> None`
 
 A resolved snapshot; later authoring changes cannot alter its exports.
 
-* `build()`
+* `build()` -- Return the retained drawing and read-only resolved placements.
 * `lint(**kwargs)`
 * `report(**kwargs)`
 * `to_svg(*, text=None, **kwargs)`

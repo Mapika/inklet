@@ -20,6 +20,7 @@ reader is looking at.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from typing import Iterable
 
 from ..core import Diagram, RectPrim
 from ..draw.coords import active_theme
@@ -71,6 +72,26 @@ class SeriesKey:
             width=self.width if self.width is not None else other.width,
             node=self.node if self.node is not None else other.node,
         )
+
+
+def series_color(entries: Iterable[SeriesKey], name: str | None,
+                 given: str | None) -> str | None:
+    """Use an explicit colour, an existing series colour, or its palette slot.
+
+    Slots follow first appearance, including records without a colour. Scan
+    all records until a colour is found: an area can precede its coloured line.
+    Unnamed series keep the theme's ink instead of claiming a palette entry.
+    """
+    if given is not None or name is None:
+        return given
+    name = str(name)
+    positions: dict[str, int] = {}
+    for key in entries:
+        if key.name == name and key.color is not None:
+            return key.color
+        if key.name not in positions:
+            positions[key.name] = len(positions)
+    return active_theme().color(positions.get(name, len(positions)))
 
 
 def swatch_for(entry: SeriesKey, size: float) -> Diagram:

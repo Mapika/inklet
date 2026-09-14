@@ -51,9 +51,10 @@ def to_png(root, *, dpi=150, **options):
     rasterization cannot substitute fonts. A missing background is transparent.
     Other options follow to_svg; text modes do not affect PNG appearance.
     """
-    from .svg import to_svg, _canvas
+    from .scene import canvas
+    from .svg import to_svg
     if not math.isfinite(dpi) or dpi <= 0: raise ValueError('dpi must be finite and positive')
-    _, width, height = _canvas(root, options.get('width'), options.get('height'), options.get('margin', 0))
+    _, width, height = canvas(root, options.get('width'), options.get('height'), options.get('margin', 0))
     pixels = (max(1, round(width*dpi/25.4)), max(1, round(height*dpi/25.4)))
     options['text'] = 'outline'
     data = png_bytes(to_svg(root, **options), *pixels)

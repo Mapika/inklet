@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass, field, replace
 from itertools import count
-from typing import Iterator, Mapping
+from typing import Iterable, Iterator, Mapping
 
 from .envelope import Envelope
 from .geom import IDENTITY, ORIGIN, Affine, Rect, Vec2
@@ -381,6 +381,16 @@ class Diagram:
             if node.name == name:
                 return node
         raise DiagramError(f"no diagram named {name!r}")
+
+
+def union_bounds(items: Iterable[Diagram]) -> Rect | None:
+    """Return the union of non-empty diagram bounding boxes, in input order."""
+    box = None
+    for item in items:
+        other = item.envelope.bbox()
+        if other is not None:
+            box = other if box is None else box.union(other)
+    return box
 
 
 def _brief(node: Diagram) -> str:

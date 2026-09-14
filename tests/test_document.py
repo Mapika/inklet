@@ -177,3 +177,60 @@ def test_document_output_is_independent_of_global_theme():
         i.use_theme(replace(original,font_size=6))
         assert build()==first
     finally:i.use_theme(original)
+
+
+def test_completed_document_exports_without_an_authoring_figure(monkeypatch, tmp_path):
+    doc = i.document(width=80, theme=replace(i.current_theme(), paper='#f4ead8'))
+    doc.add('label', i.component(i.text, 'Retained snapshot'))
+    compiled = doc.compile()
+    svg, pdf = compiled.to_svg(), compiled.to_pdf()
+    findings = compiled.lint(min_font_pt=30)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('a completed document consulted an authoring Figure')
+
+    monkeypatch.setattr(i.Figure, 'build', forbidden)
+    monkeypatch.setattr(i.Figure, 'to_svg', forbidden)
+    monkeypatch.setattr(i.Figure, 'to_pdf', forbidden)
+    monkeypatch.setattr(i.Figure, 'lint', forbidden)
+    doc.configure(width=120, theme=replace(doc.theme, paper='#ffffff'))
+    assert compiled.to_svg() == svg
+    assert compiled.to_pdf() == pdf
+    assert compiled.lint(min_font_pt=30) == findings
+    assert compiled.root.width == 80
+    compiled.save(tmp_path/'snapshot.svg', tmp_path/'snapshot.pdf')
+    assert (tmp_path/'snapshot.svg').read_text() == svg
+    assert (tmp_path/'snapshot.pdf').read_bytes() == pdf
+
+
+@pytest.mark.parametrize('text', ['names', 'outline', 'embed'])
+def test_compiled_save_retains_format_specific_text_defaults(tmp_path, text):
+    doc = i.document(width=60)
+    doc.add('label', i.component(i.text, 'Searchable text'))
+    compiled = doc.compile()
+    compiled.save(tmp_path/'text.svg', tmp_path/'text.pdf', text=text)
+    # A shared names request preserves editable SVG and outlines PDF text.
+    expected_svg = compiled.to_svg(text=text)
+    expected_pdf = compiled.to_pdf(text=text if text in ('outline', 'embed') else 'outline')
+    assert (tmp_path/'text.svg').read_text() == expected_svg
+    assert (tmp_path/'text.pdf').read_bytes() == expected_pdf
+
+
+def test_compiled_save_explicit_none_keeps_existing_validation(tmp_path):
+    doc = i.document(width=60)
+    doc.add('label', i.component(i.text, 'Searchable text'))
+    compiled = doc.compile()
+    with pytest.raises(ValueError, match='unknown text mode None'):
+        compiled.save(tmp_path/'text.svg', text=None)
+    compiled.save(tmp_path/'text.pdf', text=None)
+    assert (tmp_path/'text.pdf').read_bytes() == compiled.to_pdf(text='outline')
+
+
+def test_completed_placements_cannot_be_removed_by_inspection():
+    doc = i.document(width=60)
+    doc.add('label', i.component(i.text, 'Keep placement'))
+    compiled = doc.compile()
+    root, placements = compiled.build()
+    with pytest.raises(TypeError):
+        del placements[root.id]
+    assert compiled.build()[1][root.id].diagram is root

@@ -24,7 +24,6 @@ class PaintProgram:
 
 def resolve_paint(root, *, stable_ids=False):
     """Freeze inherited paint choices once for SVG and PDF export."""
-    count = 0
     ids = {}
     def identify(node, path, scope=''):
         # Cell names are local to a document. Preserve named IDs across edits,
@@ -44,17 +43,17 @@ def resolve_paint(root, *, stable_ids=False):
         if isinstance(value,list): return [notes(v) for v in value]
         return value
     def visit(node, inherited):
-        nonlocal count
-        count += 1
         effective = node.style.over(inherited)
         if effective.stroke_linecap not in ('butt', 'round', 'square'):
             raise DiagramError(f'invalid stroke cap {effective.stroke_linecap!r}')
         if effective.stroke_linejoin not in ('miter', 'round', 'bevel'):
             raise DiagramError(f'invalid stroke join {effective.stroke_linejoin!r}')
-        style = replace(effective, opacity=node.style.opacity)
-        children = tuple(visit(child, replace(effective, opacity=None)) for child in node.children)
-        return replace(node, id=ids[node.id], style=style, children=children, anchors=dict(node.anchors),
+        # Group opacity stays on this node. All children can share the same
+        # immutable inherited style, with group opacity removed once.
+        child_style = replace(effective, opacity=None) if effective.opacity is not None else effective
+        children = tuple(visit(child, child_style) for child in node.children)
+        return replace(node, id=ids[node.id], style=effective, children=children, anchors=dict(node.anchors),
                        attached_to=tuple(ids.get(v,v) for v in node.attached_to),
                        notes=notes(node.notes), _cache=dict(node._cache))
     result = visit(root, DEFAULT_PAINT)
-    return PaintProgram(result, count, MappingProxyType(ids))
+    return PaintProgram(result, len(ids), MappingProxyType(ids))
