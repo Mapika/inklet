@@ -73,7 +73,7 @@ volcano.axes(x="log2 fold change", y="-log10 p")
 
 control = [rng.gauss(4.1, 0.62) for _ in range(72)]
 treated = [rng.gauss(4.65, 0.78) for _ in range(72)]
-ecdf = inklet.panel(32, 34, x=(1, 8), y=(0, 1))
+ecdf = inklet.panel(28, 34, x=(1, 8), y=(0, 1))
 ecdf.ecdf(control, name="control", stroke=BLUE)
 ecdf.ecdf(treated, name="treated", stroke=GREEN)
 ecdf.axes(x="measurement / a.u.", y="cumulative fraction").legend(side="top")
@@ -96,7 +96,7 @@ donut.legend(side="bottom")
 fig = inklet.figure(width=180, theme="nature")
 top = inklet.row(inklet.letters([bars, dumbbell, lollipop]), gap=8, align="top")
 bottom = inklet.row(inklet.letters([volcano, ecdf, radar.build(), donut.build()],
-                                   start="d"), gap=6, align="top")
+                                   start="d"), gap=4, align="top")
 fig.add(inklet.column([top, bottom], gap=6))
 fig.save("examples/new_plot_types.svg")
 fig.save("examples/new_plot_types.pdf")

@@ -127,3 +127,41 @@ def test_donut_and_radar_lint_clean_and_export() -> None:
         assert lint(node) == []
         assert inklet.to_pdf(node)[:4] == b"%PDF"
         assert "<path" in inklet.to_svg(node)
+
+
+def _ink_outside(node, margin: float = 2.0, dpi: int = 600) -> list[str]:
+    """Sides of the page margin that hold ink when `node` is laid out alone.
+
+    The figure is made exactly as wide as the node's measured box plus the
+    margin, so any ink the node draws past its own box lands in the margin.
+    """
+    import io
+
+    from PIL import Image
+
+    fig = inklet.figure(width=node.bbox.width + 2 * margin, theme="nature")
+    fig.add(node)
+    image = Image.open(io.BytesIO(fig.to_png(dpi=dpi))).convert("L")
+    width, height = image.size
+    band = int((margin - 0.25) * dpi / 25.4)
+    pixels = image.load()
+    sides = {"left": (range(band), range(height)),
+             "right": (range(width - band, width), range(height)),
+             "top": (range(width), range(band)),
+             "bottom": (range(width), range(height - band, height))}
+    return [side for side, (xs, ys) in sides.items()
+            if any(pixels[x, y] < 250 for x in xs for y in ys)]
+
+
+def test_pie_and_radar_ink_stays_inside_the_measured_panel() -> None:
+    donut = polar(11, hole=5.5, zero="up", winding="cw")
+    donut.pie([54, 28, 12, 4, 2], names=["a", "b", "c", "d", "e"],
+              colors=["#24698c", "#1f6f60", "#a4532f", "#e6b93f", "#b9b8b4"])
+    donut.legend(side="bottom")
+    crowded = polar(10, zero="right")
+    crowded.pie([70, 12, 8, 5, 3, 2])
+    radar = polar(12, r=(0, 1), zero="up", winding="cw")
+    radar.radar_grid(["speed", "accuracy", "recall", "depth", "range"])
+    radar.radar([0.8, 1.0, 0.9, 0.4, 1.0])
+    for panel in (donut, crowded, radar):
+        assert _ink_outside(panel.build()) == []
