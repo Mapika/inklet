@@ -165,3 +165,86 @@ def test_pie_and_radar_ink_stays_inside_the_measured_panel() -> None:
     radar.radar([0.8, 1.0, 0.9, 0.4, 1.0])
     for panel in (donut, crowded, radar):
         assert _ink_outside(panel.build()) == []
+
+
+def _breakout_panel(**kwargs):
+    p = polar(11, zero="up", winding="cw")
+    p.pie([24.8, 1.5, 73.7], colors=["#262626", "#e6b93f", "#ececec"],
+          labels=None)
+    p.breakout([0, 1], **kwargs)
+    return p
+
+
+def test_breakout_bar_renormalises_the_chosen_slices() -> None:
+    p = _breakout_panel()
+    node = p._content[-1]
+    note = node.notes["pie_breakout"]
+    assert note["slices"] == [0, 1] and note["parts"] == [24.8, 1.5]
+    labels = texts(p)
+    assert "94%" in labels and "6%" in labels
+    bars = [x for x in placements(p, MARK_KIND) if x.bbox.x0 > 11]
+    assert len(bars) == 2
+    tall = max(bars, key=lambda b: b.bbox.height)
+    assert math.isclose(sum(b.bbox.height for b in bars), 22, abs_tol=1e-6)
+    assert math.isclose(tall.bbox.height / 22, 24.8 / 26.3, abs_tol=1e-6)
+    assert tall.bbox.y0 < min(b.bbox.y0 for b in bars if b is not tall) + 1e-9
+    # Its segments take the slices' own colours.
+    assert tall.style.fill == "#262626"
+
+
+def test_breakout_connectors_run_from_the_rim_to_the_bar_corners() -> None:
+    p = _breakout_panel(labels=None)
+    links = [x for x in placements(p, MARK_LINE_KIND)
+             if x.diagram.style.stroke == active_theme().muted]
+    assert len(links) == 2
+    ends = []
+    for link in links:
+        a, b = (link.world.apply(v) for v in link.diagram.prim.subpaths[0].points)
+        assert math.isclose(math.hypot(a.x, a.y), 11, abs_tol=1e-6)
+        ends.append(b)
+    near = 11 + 0.75 * 11
+    assert all(math.isclose(e.x, near, abs_tol=1e-6) for e in ends)
+    assert sorted(e.y for e in ends) == pytest.approx([-11, 11])
+
+
+def test_breakout_parts_legend_and_left_side() -> None:
+    p = polar(11, zero="up", winding="ccw")
+    p.pie([30, 45, 25])
+    p.breakout(0, [60, 25, 10, 5], names=["w", "x", "y", "z"], side="left")
+    assert [k.name for k in p.keys] == ["w", "x", "y", "z"]
+    labels = texts(p)
+    for text in ("60%", "25%", "10%", "5%"):
+        assert labels[text].bbox.x1 < -11
+    note = p._content[-1].notes["pie_breakout"]
+    # 10% and 5% sit on thin segments and are moved apart.
+    assert note["moved"]
+    boxes = sorted((labels[t].bbox for t in ("60%", "25%", "10%", "5%")),
+                   key=lambda b: b.y0)
+    assert all(a.y1 <= b.y0 for a, b in zip(boxes, boxes[1:]))
+
+
+def test_breakout_needs_a_pie_and_adjacent_slices() -> None:
+    p = polar(11)
+    with pytest.raises(DiagramError):
+        p.breakout(0)
+    p.pie([1, 2, 3])
+    with pytest.raises(DiagramError):
+        p.breakout([0, 2])
+    with pytest.raises(DiagramError):
+        p.breakout(5)
+    with pytest.raises(DiagramError):
+        p.breakout(0, side="top")
+
+
+def test_breakout_lints_clean_exports_and_stays_measured() -> None:
+    p = _breakout_panel(title="without noise")
+    q = polar(10, hole=5, zero="up", winding="cw")
+    q.pie([30, 45, 25])
+    q.breakout(0, [60, 25, 10, 5], names=["w", "x", "y", "z"], side="left")
+    q.legend(side="bottom")
+    for panel in (p, q):
+        node = panel.build()
+        assert lint(node) == []
+        assert inklet.to_pdf(node)[:4] == b"%PDF"
+        assert "<path" in inklet.to_svg(node)
+        assert _ink_outside(node) == []

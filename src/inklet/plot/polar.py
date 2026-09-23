@@ -454,6 +454,8 @@ class PolarPanel:
     #: than into it. Written by `theta_axis`.
     _ring: list[tuple[float, Rect]] = field(default_factory=list, repr=False,
                                             compare=False)
+    #: `(pie_labels note, fills)` of the last pie drawn, for `breakout`.
+    _pie: tuple | None = field(default=None, repr=False, compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -1187,14 +1189,74 @@ class PolarPanel:
         from .wheel import pie as _pie
 
         clip = _clip_flag(style)
-        node, fills, _ = _pie(self, values, colors=colors, labels=labels,
-                              label_options=label_options,
-                              separator=separator, **style)
+        node, fills, note = _pie(self, values, colors=colors, labels=labels,
+                                 label_options=label_options,
+                                 separator=separator, **style)
         if names is not None:
             if len(names) != len(fills):
                 raise DiagramError(
                     f"names= has {len(names)} names for {len(fills)} slices")
             for label, fill in zip(names, fills):
+                self._note(label, "area", fill=fill, color=fill)
+        self._pie = (note, fills)
+        return self.draw(node, clip=clip)
+
+    def breakout(self, slices, parts: Sequence[float] | None = None, *,
+                 colors=None, names: Sequence[str] | None = None,
+                 labels="percent", label_options: dict | None = None,
+                 side: str = "right", width: float | str | None = None,
+                 height: float | str | None = None,
+                 gap: float | str | None = None, title: str | None = None,
+                 connector: dict | None = None, separator: bool = True,
+                 **style) -> "PolarPanel":
+        """Expand slices of the pie into a stacked bar beside it.
+
+        Call after `pie`. `slices` is the index of one slice, or a sequence
+        of adjacent indices. The bar stands to the `side` of the disc
+        (`"right"` or `"left"`) and two connector lines run from the rim,
+        where the chosen slices' outer edges meet it, to the bar's top and
+        bottom corners.
+
+            p = inklet.polar(11, zero="up", winding="cw")
+            p.pie([73.7, 24.8, 1.5], colors=[GREY, INK, YELLOW])
+            p.breakout([1, 2])                  # the two slices, renormalised
+            p.breakout(1, [70, 20, 10], names=["a", "b", "c"])
+
+        Without `parts`, the bar shows the chosen slices themselves, in their
+        colours, as shares of their sum. With `parts`, it shows those values
+        instead (the composition of the slice), in `colors=` or the theme
+        palette. The bar is stacked from the top in the order given.
+
+        `labels=` takes the same forms as `pie(labels=)` and writes each
+        part's share of the bar beside it, on the far side from the pie.
+        Labels that would overlap are moved down just far enough; the
+        node's `pie_breakout` note lists the moved ones. `title=` writes a
+        short heading above the bar. `names=` adds one area entry per part to
+        `legend()`.
+
+        `width` and `height` size the bar in mm (default: 0.22 of the radius
+        and the diameter); `gap` is the space between the rim and the bar
+        (default: 0.75 of the radius). `connector=` overrides the connector
+        style (default: a muted hairline). Place the chosen slices on the side
+        that faces the bar, with the panel's `zero` and `winding`, or the
+        connectors cross the pie.
+        """
+        from .wheel import breakout as _breakout
+
+        if self._pie is None:
+            raise DiagramError("breakout() needs a pie() drawn on the panel first")
+        note, fills = self._pie
+        clip = _clip_flag(style)
+        node, colours, _ = _breakout(
+            self, note, slices, parts, fills=fills, colors=colors,
+            labels=labels, label_options=label_options, side=side,
+            width=width, height=height, gap=gap, title=title,
+            connector=connector, separator=separator, **style)
+        if names is not None:
+            if len(names) != len(colours):
+                raise DiagramError(
+                    f"names= has {len(names)} names for {len(colours)} parts")
+            for label, fill in zip(names, colours):
                 self._note(label, "area", fill=fill, color=fill)
         return self.draw(node, clip=clip)
 

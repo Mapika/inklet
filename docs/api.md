@@ -765,7 +765,7 @@ Bin edges and the height of each bin: `(edges, heights)`.
 
 A polar plot area of a given rim radius.
 
-#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>) -> None`
+#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None) -> None`
 
 A disc, or a fan of one, plus the scales that map data into it.
 
@@ -792,6 +792,7 @@ A disc, or a fan of one, plus the scales that map data into it.
 * `radar(values: 'Sequence[float]', *, name: 'str | None' = None, color: 'str | None' = None, fill: 'bool' = True, markers: 'bool' = True, size: 'float | str | None' = None, **style) -> "'PolarPanel'"` -- One series of a radar chart: a closed polygon with a value per spoke.
 * `radar_grid(categories: 'Sequence[str]', *, rings=None, shape: 'str' = 'polygon', labels: 'bool' = True, values: 'bool' = False, **style) -> "'PolarPanel'"` -- The rings, spokes and category names of a radar chart.
 * `pie(values: 'Sequence[float]', *, names: 'Sequence[str] | None' = None, colors=None, labels='percent', label_options: 'dict | None' = None, separator: 'bool' = True, **style) -> "'PolarPanel'"` -- A pie chart, or a donut on a panel made with `hole=`.
+* `breakout(slices, parts: 'Sequence[float] | None' = None, *, colors=None, names: 'Sequence[str] | None' = None, labels='percent', label_options: 'dict | None' = None, side: 'str' = 'right', width: 'float | str | None' = None, height: 'float | str | None' = None, gap: 'float | str | None' = None, title: 'str | None' = None, connector: 'dict | None' = None, separator: 'bool' = True, **style) -> "'PolarPanel'"` -- Expand slices of the pie into a stacked bar beside it.
 * `mean_vector(angles: 'Sequence[float]', weights: 'Sequence[float] | None' = None, *, r: 'float | None' = None, order: 'int' = 1, head: 'str' = 'triangle', label: 'str | Diagram | None' = None, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'PolarPanel'"` -- The circular mean of `angles`, drawn as an arrow from the pole.
 * `text(theta, r, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, **style) -> "'PolarPanel'"` -- Writing at one data point, `anchor` of it on that point.
 * `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int' = 1, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, **style) -> "'PolarPanel'"` -- A key built from the series this panel actually drew.

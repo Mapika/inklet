@@ -120,6 +120,44 @@ fig.save('pie.svg', 'pie.pdf')
 
 *Illustrative shares. The two smallest slices are labelled outside the rim.*
 
+## Pie breakout bars
+
+`breakout` expands one slice, or several adjacent slices, of the pie into a
+stacked bar beside the disc. Two connector lines run from the rim at the
+slices' outer edges to the top and bottom of the bar. Without `parts`, the
+bar shows the chosen slices as shares of their sum, in their own colours.
+With `parts`, it shows the composition of the slice: those values, in
+`colors=` or in shades of the slice colour. Each part is labelled with its
+share of the bar; labels that would overlap are moved apart.
+
+Call `breakout` after `pie`. Put the chosen slices on the side that faces
+the bar with the panel's `zero` and `winding`; otherwise the connectors cross
+the pie. Small slices labelled outside the rim can sit under a connector, so
+leave their label out (`labels=` with `None` for that slice) when they do.
+
+```python
+import inklet as i
+ink, yellow, grey = '#262626', '#e6b93f', '#e4e4e4'
+share = i.polar(11, zero='up', winding='cw')
+share.pie([24.8, 1.5, 73.7], colors=[ink, yellow, grey],
+          labels=['24.8%', None, '73.7%'],
+          names=['Isomorphic', 'Dimorphic', 'Noise'])
+share.breakout([0, 1], labels='{share:.1%}', title='Without noise')
+share.legend(side='bottom')
+parts = i.polar(11, hole=5.5, zero='up', winding='cw')
+parts.pie([31, 44, 25], colors=['#24698c', '#b9b8b4', '#d9d8d4'])
+parts.breakout(0, [58, 27, 10, 5], names=['Type 1', 'Type 2', 'Type 3', 'Type 4'])
+parts.legend(side='bottom')
+fig = i.figure(width=120)
+fig.add(i.row([share.build(), parts.build()], gap=8, align='top'))
+fig.save('breakout.svg', 'breakout.pdf')
+```
+
+![Pie breakout bars: a pie whose two slices are expanded into a bar, and a donut slice expanded into four parts.](assets/guides/plots-breakout.png)
+
+*Illustrative shares. Left: the isomorphic and dimorphic slices as shares of
+their sum. Right: one donut slice divided into four parts.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

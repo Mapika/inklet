@@ -38,7 +38,7 @@ These were checked and are not gaps:
 | 4 | Empirical cumulative distributions | Sort, count ties and call `step` | Done: `Panel.ecdf`, `inklet.plot.ecdf` |
 | 5 | Radar charts | `PolarPanel.line(interpolate=False)` plus a hand-drawn polygon grid and labels | Done: `PolarPanel.radar`, `PolarPanel.radar_grid` |
 | 6 | Pie and donut charts with labels | `draw.sector` per slice and hand-placed labels | Done: `PolarPanel.pie` |
-| 7 | Pie breakout bar (a slice expanded into a stacked bar) | Compose by hand | Deferred: compose `pie` with `bars(stacked=True)` and `connect` |
+| 7 | Pie breakout bar (a slice expanded into a stacked bar) | Compose by hand | Done: `PolarPanel.breakout` |
 | 8 | Ridgeline (stacked density curves) | `fill` per group with offsets | Deferred |
 | 9 | Raincloud (half violin, box and points) | `violin` plus `swarm` with offsets | Deferred |
 | 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Deferred |
@@ -83,9 +83,21 @@ inside a slice when the label box fits within the annular sector with a
 margin, otherwise outside the rim, moved outward to avoid other outside
 labels.
 
+**Pie breakout bar.** `breakout` reads the slice angles and values that
+`pie` records in its `pie_labels` note, so it must follow a `pie` call on the
+same panel. The chosen slices must be adjacent. The bar is placed at a fixed
+offset from the rim in panel millimetres; connectors run from the rim at the
+two outer slice edges to the bar's near corners, upper to top. Part labels
+sit beside the bar at the segment centres and are moved down, then lifted
+back from the bottom, only as far as needed to clear each other. Default part
+colours are shades of the slice colour. Neither the bar nor the connectors
+avoid pie labels placed outside the rim.
+
 ## Deferred work
 
-- Pie breakout bars, ridgelines, rainclouds, dendrograms and UpSet plots.
+- Ridgelines, rainclouds, dendrograms and UpSet plots.
+- Breakout bars do not rotate the pie to face the bar; set `zero` and
+  `winding` so the chosen slices face it.
 - Leaders for pie labels placed outside the rim.
 - Ring values on radar charts sit inside the data region and collide with
   most polygons; `radar_grid(values=True)` draws them, and they are off by

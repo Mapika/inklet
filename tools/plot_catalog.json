@@ -369,5 +369,20 @@
     "requires": "Core only",
     "source": "polar-plots.md",
     "block": 4
+  },
+  {
+    "title": "Pie breakout bars",
+    "description": "Slices of a pie expanded into a stacked bar with connector lines.",
+    "category": "Polar",
+    "page": "polar-plots/#pie-breakout-bars",
+    "image": "assets/guides/plots-breakout.png",
+    "methods": [
+      "PolarPanel.pie",
+      "PolarPanel.breakout"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "polar-plots.md",
+    "block": 5
   }
 ]

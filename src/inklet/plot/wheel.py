@@ -19,6 +19,12 @@ Labels are written inside a slice when their box fits in it with a margin,
 in ink or paper by contrast with the slice; otherwise outside the rim in the
 theme ink, pushed further out if they would overlap another outside label.
 A donut is `inklet.polar(radius, hole=...)`.
+
+**Breakout bar.** `breakout` expands one or more adjacent slices of the pie
+into a stacked bar beside the disc, with two connector lines from the rim at
+the slices' outer edges to the bar's top and bottom corners. The bar is
+stacked from the top in the order the parts are given, and each part is
+labelled beside the bar with its share of the bar.
 """
 
 from __future__ import annotations
@@ -35,12 +41,13 @@ from ..draw.shapes import sector as draw_sector
 from ..themes.color import mix
 from . import marks as _marks
 from .axis import AXIS_KIND, TICK_LABEL_KIND, _PAD_OF_TYPE, _TICK_OF_TYPE, text_node
+from ..themes import contrast_ratio
 from .bar_labels import _ink_on
 from .furniture import GRID_KIND
 from .scale import format_number
 
 __all__ = ["RING_SHAPES", "radar_spokes", "radar", "radar_grid", "pie",
-           "pie_label_texts"]
+           "pie_label_texts", "breakout", "BREAKOUT_SIDES"]
 
 #: Accepted values of `radar_grid(rings=)`'s shape.
 RING_SHAPES = ("polygon", "circle")
@@ -262,13 +269,14 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
     wedges: list = []
     inside: list = []
     outside: list = []
-    note = {"inside": [], "outside": []}
+    note = {"inside": [], "outside": [], "angles": [], "values": data}
     start = low
     for index, (value, fill) in enumerate(zip(data, fills)):
         end = start + span * value / total
+        a0, a1 = sorted((panel.angle(start), panel.angle(end)))
+        note["angles"].append((a0, a1))
         if value <= 0:
             continue
-        a0, a1 = sorted((panel.angle(start), panel.angle(end)))
         if a1 - a0 >= 360.0 - 1e-9:
             # A single slice is the whole disc: two halves, one outline.
             wedges.append(as_drawn(draw_sector(outer, a0, a0 + 180, inner=inner,
@@ -358,3 +366,191 @@ def _fits_slice(box: Rect, inner: float, outer: float, a0: float, a1: float,
                 if abs(x * ey - y * ex) < margin and x * ex + y * ey > 0:
                     return False
     return True
+
+
+#: Breakout bar geometry, as fractions of the pie radius: the bar's width,
+#: and the space between the rim and the bar that the connectors cross.
+_BREAKOUT_WIDTH_OF_RADIUS = 0.22
+_BREAKOUT_GAP_OF_RADIUS = 0.75
+
+#: Sides a breakout bar may stand on.
+BREAKOUT_SIDES = ("right", "left")
+
+
+def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
+             colors=None, labels="percent", label_options: Mapping | None = None,
+             side: str = "right", width: float | str | None = None,
+             height: float | str | None = None, gap: float | str | None = None,
+             title: str | None = None, connector: Mapping | None = None,
+             separator: bool = True,
+             **style) -> tuple[Diagram, tuple[str, ...], dict]:
+    """A stacked bar that expands slices of a pie. See `PolarPanel.breakout`.
+
+    `pie_note` is the `pie_labels` note of the pie drawn on `panel`; it holds
+    each slice's page angles and value, and `fills` its colours. Returns
+    `(node, fills, note)`.
+    """
+    if side not in BREAKOUT_SIDES:
+        raise DiagramError(
+            f"breakout side is one of {', '.join(BREAKOUT_SIDES)}, not {side!r}")
+    angles = list(pie_note["angles"])
+    values = list(pie_note["values"])
+    chosen = [slices] if isinstance(slices, int) else [int(i) for i in slices]
+    if not chosen:
+        raise DiagramError("breakout() was given no slices")
+    if any(i < 0 or i >= len(angles) for i in chosen):
+        raise DiagramError(
+            f"breakout() slices must be between 0 and {len(angles) - 1}, "
+            f"got {chosen}")
+    ordered = sorted(set(chosen))
+    if ordered != list(range(ordered[0], ordered[-1] + 1)):
+        raise DiagramError(f"breakout() slices must be adjacent, got {chosen}")
+    theme = active_theme()
+    if parts is None:
+        data = [values[i] for i in ordered]
+        given = colors if colors is not None else [fills[i] for i in ordered]
+    else:
+        data = [float(v) for v in parts]
+        given = colors
+    if not data or any(v < 0 or math.isnan(v) for v in data):
+        raise DiagramError("breakout() parts must be zero or positive")
+    total = sum(data)
+    if total <= 0:
+        raise DiagramError("breakout() parts sum to zero")
+    if given is not None:
+        colours = _marks.series_colors(given, len(data))
+    else:
+        colours = _shades(fills[ordered[0]], len(data), theme)
+    if len(colours) != len(data):
+        raise DiagramError(
+            f"breakout() has {len(colours)} colours for {len(data)} parts")
+    options = dict(label_options or {})
+    unknown = set(options) - {"size", "fill", "markup", "font_weight"}
+    if unknown:
+        raise DiagramError(
+            "label_options accepts size, fill, markup and font_weight; "
+            f"got {', '.join(sorted(unknown))}")
+    size = theme.font_size_small if options.get("size") is None else mm(options["size"])
+    radius = panel.radius
+    bar_width = radius * _BREAKOUT_WIDTH_OF_RADIUS if width is None else mm(width)
+    bar_height = 2 * radius if height is None else mm(height)
+    space = radius * _BREAKOUT_GAP_OF_RADIUS if gap is None else mm(gap)
+    if bar_width <= 0 or bar_height <= 0 or space < 0:
+        raise DiagramError("breakout() needs a positive width and height "
+                           "and a gap of zero or more")
+    sign = 1.0 if side == "right" else -1.0
+    near = sign * (radius + space)
+    far = near + sign * (bar_width)
+    x0, x1 = sorted((near, far))
+    top = -bar_height / 2
+    # The segments, stacked downward from the top of the bar.
+    segments: list = []
+    spans: list[tuple[float, float]] = []
+    edge = top
+    for value, fill in zip(data, colours):
+        extent = bar_height * value / total
+        spans.append((edge, edge + extent))
+        if extent > 0:
+            segments.append(polyline(
+                (Vec2(x0, edge), Vec2(x1, edge), Vec2(x1, edge + extent),
+                 Vec2(x0, edge + extent)), closed=True, filled=True,
+                kind=MARK_KIND, fill=fill, stroke="none"))
+        edge += extent
+    if separator:
+        rule = {"stroke": theme.paper, "stroke_width": theme.stroke}
+        rule.update(style)
+        for a, _ in spans[1:]:
+            segments.append(polyline((Vec2(x0, a), Vec2(x1, a)),
+                                     kind=MARK_LINE_KIND, **rule))
+    # Connectors: from where the slices' outer edges meet the rim to the
+    # bar's near corners, the upper rim point to the top corner.
+    a0 = angles[ordered[0]][0]
+    a1 = angles[ordered[-1]][1]
+    if abs(a1 - a0) >= 360 - 1e-9:
+        raise DiagramError("breakout() slices cover the whole pie")
+    rim = sorted((Vec2(math.cos(math.radians(a)) * radius,
+                       math.sin(math.radians(a)) * radius) for a in (a0, a1)),
+                 key=lambda v: v.y)
+    line = {"stroke": theme.muted, "stroke_width": theme.hairline}
+    line.update(connector or {})
+    links = [polyline((rim[0], Vec2(near, top)), kind=MARK_LINE_KIND, **line),
+             polyline((rim[1], Vec2(near, top + bar_height)),
+                      kind=MARK_LINE_KIND, **line)]
+    layers = [draw_place(links, origin=(0, 0), kind="breakout-links"),
+              draw_place(segments, origin=(0, 0), kind="breakout-bar")]
+    texts = ([None] * len(data) if labels is None
+             else pie_label_texts(labels, data))
+    note = {"slices": ordered, "parts": data, "labelled": [], "moved": []}
+    pad = max(_PAD_OF_TYPE * theme.font_size, theme.gap("s"))
+    weight = options.get("font_weight")
+    extra = {} if weight is None else {"font_weight": weight}
+    wanted: list = []
+    for index, (text, (a, b)) in enumerate(zip(texts, spans)):
+        if not text:
+            continue
+        node = text_node(text, size, TICK_LABEL_KIND,
+                         markup=bool(options.get("markup", False)), **extra)
+        wanted.append((index, (a + b) / 2,
+                       node.styled(text_fill=options.get("fill") or theme.ink)))
+    centres = _stacked_centres([(m, n.bbox.height) for _, m, n in wanted],
+                               theme.gap("xs") * 0.5, top + bar_height)
+    items: list = []
+    for (index, middle, node), centre in zip(wanted, centres):
+        box = node.bbox
+        x = (x1 + pad - box.x0) if side == "right" else (x0 - pad - box.x1)
+        items.append((Vec2(x, centre - box.center.y), node))
+        note["labelled"].append(index)
+        if abs(centre - middle) > 1e-6:
+            note["moved"].append(index)
+    if title:
+        node = text_node(title, size, TICK_LABEL_KIND, markup=False)
+        node = node.styled(text_fill=theme.ink)
+        box = node.bbox
+        items.append((Vec2((x0 + x1) / 2 - box.center.x, top - pad - box.y1),
+                      node))
+    if items:
+        layers.append(draw_place(items, origin=(0, 0), kind=AXIS_KIND))
+    node = draw_place(layers, origin=(0, 0), kind="breakout")
+    node.notes["pie_breakout"] = note
+    return node, tuple(colours), note
+
+
+#: The lightest shade of a breakout bar's default colours, as a blend of the
+#: slice colour towards paper (or ink, for a pale slice).
+_SHADE_REACH = 0.7
+
+
+def _shades(color: str, count: int, theme) -> tuple[str, ...]:
+    """`count` shades of one slice colour, from the colour itself towards
+    paper, or towards ink when the colour is already pale."""
+    if count == 1:
+        return (color,)
+    pale = contrast_ratio(color, theme.paper) < 1.6
+    toward = theme.ink if pale else theme.paper
+    return tuple(mix(color, toward, _SHADE_REACH * k / (count - 1))
+                 for k in range(count))
+
+
+def _stacked_centres(wanted: Sequence[tuple[float, float]], clear: float,
+                     bottom: float) -> list[float]:
+    """Label centres down a column: each at its wanted centre, moved down
+    just clear of the label above it. If the last one then hangs past
+    `bottom`, the labels that were moved are lifted back, the lowest first,
+    as far as the ones above them allow."""
+    centres: list[float] = []
+    for index, (middle, height) in enumerate(wanted):
+        if centres:
+            above = centres[-1] + wanted[index - 1][1] / 2 + clear + height / 2
+            centres.append(max(middle, above))
+        else:
+            centres.append(middle)
+    if not centres:
+        return centres
+    over = centres[-1] + wanted[-1][1] / 2 - bottom
+    if over > 0:
+        centres[-1] -= over
+        for index in range(len(centres) - 2, -1, -1):
+            limit = (centres[index + 1] - wanted[index + 1][1] / 2 - clear
+                     - wanted[index][1] / 2)
+            centres[index] = min(centres[index], limit)
+    return centres

@@ -651,6 +651,13 @@
     "alt": "Pie and donut charts"
   },
   {
+    "page": "polar-plots.md",
+    "block": 5,
+    "object": "fig",
+    "image": "plots-breakout.png",
+    "alt": "Pie breakout bars"
+  },
+  {
     "page": "csv-figure.md",
     "block": 2,
     "object": "doc",
