@@ -1,57 +1,93 @@
-{% macro navigation(items) %}
+{% macro navigation(items, depth=0) %}
 {% for item in items %}
+{% if depth == 0 and item.title in config.extra.nav_labels %}<p class="nav-label">{{ config.extra.nav_labels[item.title] }}</p>{% endif %}
 {% if item.children %}
 <details class="nav-group" {% if item.active or item.title == 'Start here' %}open{% endif %}>
-  <summary>{{ item.title }}</summary><div>{{ navigation(item.children) }}</div>
+  <summary>{{ item.title }}</summary><div>{{ navigation(item.children, depth + 1) }}</div>
 </details>
-{% else %}<a href="{{ item.url|url }}" {% if item.active %}aria-current="page"{% endif %}>{{ item.title }}</a>{% endif %}
+{% else %}<a href="{{ item.url|url }}" {% if item.active %}aria-current="page"{% endif %}{% if item.is_link %} class="nav-external"{% endif %}>{{ item.title }}</a>{% endif %}
 {% endfor %}
 {% endmacro %}
+{%- set ns = namespace(top='') -%}
+{%- if page -%}{%- for ancestor in page.ancestors -%}{%- set ns.top = ancestor.title -%}{%- endfor -%}{%- endif -%}
+{%- set layout = page.meta.layout if page and page.meta.layout else 'doc' -%}
+{%- if page and page.url == 'plot-types/' -%}{%- set tab = 'plots' -%}
+{%- elif page and (page.url == 'examples/' or ns.top == 'Examples') -%}{%- set tab = 'gallery' -%}
+{%- elif page and page.url == 'api/' -%}{%- set tab = 'api' -%}
+{%- elif page and not page.is_homepage -%}{%- set tab = 'guides' -%}
+{%- else -%}{%- set tab = '' -%}{%- endif -%}
 <!doctype html>
-<html lang="en" data-bs-theme="light" class="no-js">
+<html lang="en" class="no-js">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{% if page and not page.is_homepage %}{{ page.title }} · {% endif %}Inklet documentation</title>
+  <title>{% if page and page.title and not page.is_homepage %}{{ page.title }} · {% endif %}Inklet documentation</title>
   <meta name="description" content="{{ page.meta.description if page and page.meta.description else config.site_description }}">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f6f8f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1718" media="(prefers-color-scheme: dark)">
   {% if page and page.canonical_url %}<link rel="canonical" href="{{ page.canonical_url }}">{% endif %}
   <link rel="icon" href="{{ 'assets/brand/inklet-icon.svg'|url }}?v={{ config.extra.asset_version }}" type="image/svg+xml">
+  <script>document.documentElement.className='js-ready';try{var t=localStorage.getItem('inklet-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
   {% for path in config.extra_css %}<link rel="stylesheet" href="{{ path|url }}?v={{ config.extra.asset_version }}">{% endfor %}
   {% for path in config.extra_javascript %}<script src="{{ path|url }}?v={{ config.extra.asset_version }}" defer></script>{% endfor %}
 </head>
-<body data-page-version="{{ config.extra.page_version }}" data-search-index="{{ 'search/search_index.json'|url }}?v={{ config.extra.asset_version }}" data-site-root="{{ '.'|url }}" class="{% if page and page.meta.layout %}layout-{{ page.meta.layout }}{% endif %}">
+<body data-page-version="{{ config.extra.page_version }}" data-search-index="{{ 'search/search_index.json'|url }}?v={{ config.extra.asset_version }}" data-site-root="{{ '.'|url }}" class="layout-{{ layout }}{% if page and page.url == 'api/' %} page-api{% endif %}">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="site-header">
-  <a class="brand" href="{{ '.'|url }}" aria-label="Inklet documentation home"><img src="{{ 'assets/brand/inklet-logo.svg'|url }}" alt="Inklet" width="122" height="30"><span class="brand-docs">/ docs</span></a>
-  {% if docs_version %}<span class="version">{{ docs_version }}</span>{% endif %}
-  <nav class="top-links" aria-label="Primary"><a href="{{ 'quickstart/'|url }}">Start</a><a href="{{ 'plot-types/'|url }}">Plot types</a><a href="{{ 'examples/'|url }}">Gallery</a><a href="{{ 'api/'|url }}">API</a></nav>
-  <button class="search-trigger" type="button" data-search-open><span>Search docs</span><kbd>/</kbd></button>
-  <button class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false">Menu</button>
+  <button class="menu-toggle icon-button" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h14"/></svg></button>
+  <a class="brand" href="{{ '.'|url }}" aria-label="Inklet documentation home"><img class="logo-light" src="{{ 'assets/brand/inklet-logo.svg'|url }}" alt="" width="106" height="26"><img class="logo-dark" src="{{ 'assets/brand/inklet-logo-dark.svg'|url }}" alt="" width="106" height="26"></a>
+  {% if docs_version %}<span class="version" title="Documented release">v{{ docs_version }}</span>{% endif %}
+  <nav class="top-links" aria-label="Primary">
+    <a href="{{ 'quickstart/'|url }}"{% if tab == 'guides' %} aria-current="true"{% endif %}>Guides</a>
+    <a href="{{ 'plot-types/'|url }}"{% if tab == 'plots' %} aria-current="true"{% endif %}>Plot types</a>
+    <a href="{{ 'examples/'|url }}"{% if tab == 'gallery' %} aria-current="true"{% endif %}>Gallery</a>
+    <a href="{{ 'api/'|url }}"{% if tab == 'api' %} aria-current="true"{% endif %}>API</a>
+  </nav>
+  <div class="header-actions">
+    <button class="search-trigger" type="button" data-search-open aria-label="Search documentation"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.25"/><path d="m12.5 12.5 4.5 4.5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button class="theme-toggle icon-button" type="button" aria-label="Use dark theme" title="Switch colour theme"><svg class="icon-moon" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M15.5 12.4A6.5 6.5 0 0 1 7.6 4.5a6.5 6.5 0 1 0 7.9 7.9Z"/></svg><svg class="icon-sun" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="3.4"/><path d="M10 2.5v1.8M10 15.7v1.8M2.5 10h1.8M15.7 10h1.8M4.7 4.7l1.3 1.3M14 14l1.3 1.3M4.7 15.3 6 14M14 6l1.3-1.3"/></svg></button>
+    <a class="icon-button repo-link" href="{{ config.repo_url }}" aria-label="Inklet source on GitHub"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+  </div>
 </header>
 <div class="site-layout">
-  <aside class="sidebar" id="sidebar"><nav aria-label="Documentation">{{ navigation(nav) }}</nav><div class="sidebar-note">Python figures.<br>Measured in millimetres.</div></aside>
+  <aside class="sidebar" id="sidebar" aria-label="Documentation navigation">
+    <nav aria-label="Documentation">{{ navigation(nav) }}</nav>
+  </aside>
+  <div class="nav-backdrop" hidden></div>
   <main id="main-content" tabindex="-1">
     {% block content %}
-    {% if page.meta.layout == 'home' %}{% include 'home.html' %}
-    {% elif page.meta.layout == 'gallery' %}
-      <div class="page-intro prose">{{ page.content }}</div>{% if page.meta.catalog == 'plots' %}{% include 'plot-gallery.html' %}{% else %}{% include 'gallery.html' %}{% endif %}
+    {% if layout == 'home' %}{% include 'home.html' %}
+    {% elif layout == 'gallery' %}
+      <div class="gallery-page"><div class="page-intro prose">{{ page.content }}</div>{% if page.meta.catalog == 'plots' %}{% include 'plot-gallery.html' %}{% else %}{% include 'gallery.html' %}{% endif %}</div>
     {% else %}
-      <div class="reading-layout"><article class="prose">
-        <div class="eyebrow">{% if page.parent %}{{ page.parent.title }}{% else %}Documentation{% endif %}</div>
-        {% if page.toc and (page.toc|first).children %}
+      {%- set has_toc = page.toc and (page.toc|first).children -%}
+      <div class="reading-layout{% if not has_toc %} no-toc{% endif %}"><article class="prose">
+        <nav class="breadcrumbs" aria-label="Breadcrumb">{% if page.ancestors %}{% for ancestor in page.ancestors|reverse %}<span>{{ ancestor.title }}</span>{% endfor %}{% else %}<span>Documentation</span>{% endif %}</nav>
+        {% if has_toc %}
         <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page sections">{% for item in page.toc %}{% for child in item.children %}<a href="{{ child.url }}">{{ child.title }}</a>{% endfor %}{% endfor %}</nav></details>
         {% endif %}
         {{ page.content }}
-        <nav class="page-pagination" aria-label="Adjacent pages">{% if page.previous_page %}<a href="{{ page.previous_page.url|url }}"><small>Previous</small>{{ page.previous_page.title }}</a>{% endif %}{% if page.next_page %}<a href="{{ page.next_page.url|url }}"><small>Next</small>{{ page.next_page.title }} →</a>{% endif %}</nav>
-      </article><aside class="page-toc"><nav aria-label="On this page"><p>On this page</p>{% for item in page.toc %}{% for child in item.children %}<a href="{{ child.url }}">{{ child.title }}</a>{% endfor %}{% endfor %}</nav></aside></div>
+        <nav class="page-pagination" aria-label="Adjacent pages">{% if page.previous_page %}<a class="prev" href="{{ page.previous_page.url|url }}"><small>Previous</small><span>{{ page.previous_page.title }}</span></a>{% endif %}{% if page.next_page %}<a class="next" href="{{ page.next_page.url|url }}"><small>Next</small><span>{{ page.next_page.title }}</span></a>{% endif %}</nav>
+      </article>{% if has_toc %}<aside class="page-toc"><nav aria-label="On this page"><p>On this page</p>{% for item in page.toc %}{% for child in item.children %}<a href="{{ child.url }}">{{ child.title }}</a>{% endfor %}{% endfor %}</nav></aside>{% endif %}</div>
     {% endif %}
     {% endblock %}
-    <footer class="site-footer"><span>Inklet · Mark Marosi · MIT</span><a href="{{ 'installation/'|url }}">Installation</a><a href="{{ config.repo_url }}/issues">Report an issue ↗</a></footer>
+    <footer class="site-footer">
+      <div class="footer-brand"><img src="{{ 'assets/brand/inklet-icon.svg'|url }}" alt="" width="24" height="24"><span>Inklet{% if docs_version %} {{ docs_version }}{% endif %} by Mark Marosi, released under the MIT licence.</span></div>
+      <nav aria-label="Footer"><a href="{{ 'installation/'|url }}">Installation</a><a href="{{ 'troubleshooting/'|url }}">Troubleshooting</a><a href="{{ 'brand/'|url }}">Brand assets</a><a href="{{ config.repo_url }}">GitHub</a><a href="{{ config.repo_url }}/issues">Report an issue</a></nav>
+    </footer>
   </main>
 </div>
 <dialog class="search-dialog" aria-labelledby="search-title">
-  <div class="search-heading"><h2 id="search-title">Search documentation</h2><button type="button" data-search-close aria-label="Close search">Close <kbd>Esc</kbd></button></div>
-  <label class="sr-only" for="docs-search">Search terms</label><input id="docs-search" type="search" placeholder="Try “scatter”, “Blender” or “presets”…" autocomplete="off">
-  <label class="search-scope" for="search-section">Search in <select id="search-section"><option value="">All documentation</option>{% for item in nav %}{% if item.children %}<option value="{{ item.title }}">{{ item.title }}</option>{% endif %}{% endfor %}</select></label>
-  <p class="search-status" role="status">Type to search guides, examples and the API.</p><div class="search-results"></div>
+  <div class="search-heading"><h2 id="search-title" class="sr-only">Search documentation</h2>
+    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.25"/><path d="m12.5 12.5 4.5 4.5"/></svg>
+    <label class="sr-only" for="docs-search">Search terms</label><input id="docs-search" type="search" placeholder="Search guides, examples and the API" autocomplete="off">
+    <button type="button" class="search-close" data-search-close aria-label="Close search"><kbd>Esc</kbd></button>
+  </div>
+  <div class="search-options"><label class="search-scope" for="search-section">Section <select id="search-section"><option value="">All documentation</option>{% for item in nav %}{% if item.children %}<option value="{{ item.title }}">{{ item.title }}</option>{% endif %}{% endfor %}</select></label><p class="search-status" role="status">Type to search guides, examples and the API.</p></div>
+  <div class="search-results"></div>
+</dialog>
+<dialog class="lightbox" aria-label="Figure preview">
+  <div class="lightbox-bar"><p class="lightbox-title"></p><a class="lightbox-open" href="#">Open example</a><a class="lightbox-full" href="#" target="_blank" rel="noopener">Full size</a><button type="button" class="lightbox-close icon-button" aria-label="Close preview"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
+  <div class="lightbox-sheet"><img alt=""></div>
 </dialog>
 </body></html>
