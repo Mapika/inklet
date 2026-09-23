@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Add value labels to `Panel.bars` (`labels=`, `label_position=`,
+  `label_options=`). Labels go inside a bar or segment when they fit and past
+  the bar end otherwise; stacked segments that do not fit are omitted and
+  listed in the `bar_labels` note.
+- Add `Panel.dumbbell` and `Panel.lollipop` for dot-and-connector plots on a
+  band scale.
+- Add `Panel.label_points`, which places many point labels clear of marks and
+  of each other, with hairline leaders for labels moved off their point.
+  Unresolved labels are listed in the `point_labels` note.
+- Add `Panel.ecdf` and `inklet.plot.ecdf` for empirical cumulative
+  distributions, including the complementary form and weighted counts.
+- Add `PolarPanel.radar`, `PolarPanel.radar_grid` and `PolarPanel.pie` for
+  radar charts and pie or donut charts with inside or outside labels.
+- Document the new plot types in the bars, lines-and-points, distributions
+  and polar guides, add catalog entries, and add
+  `examples/new_plot_types.py` and `docs/design/capability-gaps.md`.
 - Tighten default plot presentation toward journal figure pages. With
   `share_plot_margins=True` and an automatic height, top and bottom furniture
   is now shared along each row instead of across the whole grid, so a legend or

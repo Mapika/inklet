@@ -127,6 +127,88 @@ doc.save('markers.svg', 'markers.pdf')
 
 *Ten illustrative calibration values use the same diamond glyph. The connecting line follows the supplied values; no model is fitted.*
 
+## Dumbbells
+
+A dumbbell compares two or more values per category. Each series is a dot on
+the category line, and a grey connector runs from the smallest to the largest
+value. `values` has one list per series, in the same shape as grouped bars.
+`None` marks a missing value; a category with one value has no connector.
+
+```python
+import inklet as i
+
+genes = ['Gad1', 'Slc17a7', 'Pvalb', 'Sst', 'Vip', 'Olig2']
+before = [2.1, 3.4, 1.2, 4.0, 2.6, 0.8]
+after = [3.9, 2.0, 1.9, 5.2, 3.4, 0.9]
+p = i.plot_spec(x=(0, 6), y=genes, height=44)
+p.grid(y=False, count=4, stroke='#e1e7e4', stroke_width=.15)
+p.dumbbell(genes, [before, after], orient='h', names=['Before', 'After'],
+           colors=['#24698c', '#b86443'])
+p.axes(x='Expression / log CPM').legend(side='top')
+doc = i.document(width=100)
+doc.add('dumbbell', p)
+doc.save('dumbbell.svg', 'dumbbell.pdf')
+```
+
+![Dumbbells: two values per gene joined by a connector.](assets/guides/plots-dumbbell.png)
+
+*Illustrative expression before and after treatment. The connector length is
+the change; its direction is read from the dot colours.*
+
+## Lollipops
+
+A lollipop is one value per category: a stem from `baseline` and a dot at the
+value. Use it in place of bars when there are many categories.
+
+```python
+import inklet as i
+
+pathways = ['Synapse', 'Axon', 'Myelin', 'Immune', 'Vascular', 'Cilia', 'Ribosome']
+scores = [2.8, 2.1, 1.4, -0.9, -1.6, 0.6, -2.3]
+p = i.plot_spec(x=(-3, 3), y=pathways, height=48)
+p.vline(0, stroke='#5f6b7a', stroke_width=.2)
+p.lollipop(pathways, scores, orient='h', color='#24698c')
+p.axes(x='Enrichment score')
+doc = i.document(width=100)
+doc.add('lollipop', p)
+doc.save('lollipop.svg', 'lollipop.pdf')
+```
+
+![Lollipops: one enrichment score per pathway on a stem from zero.](assets/guides/plots-lollipop.png)
+
+*Illustrative enrichment scores. Stems start at the baseline of 0.*
+
+## Labelled points
+
+`label_points` names many points in one call. Each label is placed at the
+nearest free position around its point, clear of the marks already drawn and
+of the other labels. A label that has to move further out gets a thin leader
+line back to its point. Draw the marks first and call `label_points` last.
+The placement is deterministic.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(7)
+genes = [(rng.gauss(0, 1.2), abs(rng.gauss(0, 1.3)) * 1.6) for _ in range(400)]
+hits = sorted(genes, key=lambda g: -(g[1] + abs(g[0])))[:8]
+names = ['Fos', 'Arc', 'Egr1', 'Npas4', 'Junb', 'Nr4a1', 'Bdnf', 'Homer1']
+p = i.plot_spec(x=(-4, 4), y=(0, 8), height=50)
+p.scatter(genes, size=.7, color='#c4c9cf')
+p.scatter(hits, size=1.0, color='#b86443')
+p.label_points(hits, names)
+p.axes(x='log2 fold change', y='-log10 p')
+doc = i.document(width=90)
+doc.add('labelled-points', p)
+doc.save('labelled-points.svg', 'labelled-points.pdf')
+```
+
+![Labelled points: eight highlighted genes named in a volcano plot.](assets/guides/plots-labelled-points.png)
+
+*Simulated data. Labels that could not be placed without overlap are listed
+in the label node's `point_labels` note under `unresolved`.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),
