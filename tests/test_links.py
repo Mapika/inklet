@@ -293,6 +293,43 @@ def test_orthogonal_l_elbow_when_the_shapes_share_the_dominant_axis():
     assert boundary_gap(points[-1], Rect(5, 10, 35, 14)) == pytest.approx(0, abs=1e-9)
 
 
+def inside(p: Vec2, rect: Rect, margin: float = 1e-6) -> bool:
+    return (rect.x0 + margin < p.x < rect.x1 - margin
+            and rect.y0 + margin < p.y < rect.y1 - margin)
+
+
+@pytest.mark.parametrize("dy", [-10.0, 10.0])
+def test_orthogonal_side_anchors_arrive_through_their_own_faces(dy):
+    # Centre to centre the target is mostly above or below, but both ends are
+    # pinned to side faces: the route must leave east and arrive heading east,
+    # not run along the target's west face with the head inside its outline.
+    a, b = box(11, 7), box(11, 7)
+    places = figure(a, b.translated(20, dy))
+    target = Rect(14.5, dy - 3.5, 25.5, dy + 3.5)
+
+    routed = route(link(a.at("e"), b.at("w"), route="orthogonal"), places)
+    points = shaft(routed)
+    (tip, left, right), = heads(routed)
+
+    assert axis_aligned(points)
+    assert points[0].y == pytest.approx(0.0) and points[1].y == pytest.approx(0.0)
+    assert points[-1].y == pytest.approx(dy) and points[-2].y == pytest.approx(dy)
+    assert close(tip, Vec2(14.5, dy), tol=1e-9)
+    assert left.x < tip.x and right.x < tip.x     # pointing east, into the face
+    assert not any(inside(p, target) for p in (tip, left, right, *points))
+
+
+def test_orthogonal_free_end_follows_an_anchored_face():
+    # Only the target is pinned, to its north face: arrive heading south.
+    a, b = box(10, 6), box(10, 6)
+    places = figure(a, b.translated(30, 20))
+
+    points = shaft(route(link(a, b.at("n"), route="orthogonal", kind="line"), places))
+
+    assert axis_aligned(points)
+    assert [(p.x, p.y) for p in points] == [(5, 0), (30, 0), (30, 17)]
+
+
 def test_orthogonal_clips_along_the_segment_not_the_centre_line():
     # A centre-to-centre clip would leave through the top-right of a; the first
     # segment runs due east, so the endpoint must be on the east edge instead.

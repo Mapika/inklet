@@ -771,6 +771,9 @@ def _elbow_plan(src: _End, dst: _End) -> tuple[Vec2, Vec2, str]:
     """
     a, b = src.point, dst.point
     dx, dy = b.x - a.x, b.y - a.y
+    faced = _faced_plan(src, dst, dx, dy)
+    if faced is not None:
+        return faced
     if abs(dx) >= abs(dy):
         out = Vec2(_sign(dx), 0.0)
         if abs(dy) <= _ALIGN_TOL:
@@ -786,6 +789,62 @@ def _elbow_plan(src: _End, dst: _End) -> tuple[Vec2, Vec2, str]:
     if gap > _MIN_GAP:
         return out, out, "z"
     return out, Vec2(_sign(dx), 0.0), "l"
+
+
+def _face(end: _End) -> Vec2 | None:
+    """The outward normal of the box face an anchored end sits on, if any.
+
+    An anchor such as `in` or `right` is a point on one face of its shape, and
+    that face is the only side an orthogonal route can use there without
+    running along the outline. A centre, a corner or an anchor off the
+    bounding box has no single face, so it answers None.
+    """
+    if not end.pinned:
+        return None
+    box, p = end.box, end.point
+    if box.width <= _ALIGN_TOL or box.height <= _ALIGN_TOL:
+        return None
+    tol = 1e-3
+    faces = [normal for on, normal in (
+        (abs(p.x - box.x0) <= tol, Vec2(-1.0, 0.0)),
+        (abs(p.x - box.x1) <= tol, Vec2(1.0, 0.0)),
+        (abs(p.y - box.y0) <= tol, Vec2(0.0, -1.0)),
+        (abs(p.y - box.y1) <= tol, Vec2(0.0, 1.0))) if on]
+    return faces[0] if len(faces) == 1 else None
+
+
+def _faced_plan(src: _End, dst: _End, dx: float,
+                dy: float) -> tuple[Vec2, Vec2, str] | None:
+    """An elbow plan that leaves and arrives through anchored faces.
+
+    Without this, a route between two side anchors picks its axis from the
+    centre-to-centre direction, so a box to the upper right is reached by a
+    vertical run along its own left face with the head inside the outline.
+    A faced end fixes its direction; a free end runs across it, for a single
+    bend, when the ends are apart on that axis, and along it otherwise. Ends
+    that face each other the wrong way need a U-turn this elbow cannot draw,
+    so they keep the unfaced plan.
+    """
+    out, into = _face(src), _face(dst)
+    if out is None and into is None:
+        return None
+    delta = Vec2(dx, dy)
+
+    def free(known: Vec2) -> Vec2:
+        # One bend reads better than two, so turn across when there is room.
+        across = Vec2(_sign(dx), 0.0) if known.x == 0.0 else Vec2(0.0, _sign(dy))
+        return across if delta.dot(across) > _MIN_GAP else known
+
+    exit_dir = out if out is not None else free(-into)
+    entry_dir = -into if into is not None else free(exit_dir)
+    if exit_dir.x == 0.0 and entry_dir.x == 0.0 or exit_dir.y == 0.0 and entry_dir.y == 0.0:
+        if exit_dir.dot(entry_dir) < 0.0 or delta.dot(exit_dir) <= _ALIGN_TOL:
+            return None
+        across = dy if exit_dir.y == 0.0 else dx
+        return exit_dir, entry_dir, "straight" if abs(across) <= _ALIGN_TOL else "z"
+    if delta.dot(exit_dir) <= _ALIGN_TOL or delta.dot(entry_dir) <= _ALIGN_TOL:
+        return None
+    return exit_dir, entry_dir, "l"
 
 
 def _orthogonal_points(src: _End, dst: _End, standoff: float,

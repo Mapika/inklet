@@ -17,6 +17,11 @@
   (`tol-burd`) centred on zero for data across zero or on `center=`. Explicit
   ramps keep reading values as 0..1 fractions. Add the `magma` and `tol-burd`
   palettes.
+- Orthogonal links route through anchored faces: an end pinned to a side
+  anchor such as `in` or `out` leaves or arrives along that face's normal.
+  Previously the axis came from the centre-to-centre direction, so a target
+  mostly above or below the source was reached by a run along its own side
+  face with the arrowhead inside the box.
 - Add `examples/dense_figure.py`, a thirteen-panel 183 mm page with the
   `scientific.cell` preset, and its gallery image `gallery/dense-figure.png`.
 - Retighten `examples/general_plots.py`: the preset's 183 mm width, margin,
