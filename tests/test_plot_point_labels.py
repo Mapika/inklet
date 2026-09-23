@@ -112,3 +112,43 @@ def test_labelled_scatter_lints_clean_and_exports() -> None:
     node = p.build()
     assert lint(node) == []
     assert inklet.to_pdf(node)[:4] == b"%PDF"
+
+
+def _leaders(p):
+    node = next(n for n in p._over if "point_labels" in n.notes)
+    out = []
+    for placed in resolve(node).values():
+        if placed.diagram.kind == LEADER_KIND and placed.diagram.prim is not None:
+            points = [placed.world.apply(v)
+                      for sub in placed.diagram.prim.subpaths for v in sub.points]
+            out.append((points[0], points[-1]))
+    return out
+
+
+def _cross(a, b, c, d) -> bool:
+    def side(p, q, r):
+        return (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
+    return (side(c, d, a) * side(c, d, b) < 0
+            and side(a, b, c) * side(a, b, d) < 0)
+
+
+def test_crowded_edge_labels_keep_leaders_few_and_uncrossed() -> None:
+    # A volcano plot whose most significant genes crowd the right edge: two
+    # of them sit about a millimetre apart there.
+    rng = random.Random(11)
+    cloud = [(rng.gauss(0, 1.2), abs(rng.gauss(0, 1.3)) * 1.6)
+             for _ in range(600)]
+    hits = sorted(cloud, key=lambda g: -(g[1] + abs(g[0])))[:9]
+    names = ["Fos", "Arc", "Egr1", "Npas4", "Junb", "Nr4a1", "Bdnf",
+             "Homer1", "Egr2"]
+    p = panel(32, 34, x=(-4.5, 4.5), y=(0, 9))
+    p.hline(1.3, stroke_dash=(0.8, 0.6))
+    p.scatter(cloud, size=0.6, color="#c4c9cf")
+    p.scatter(hits, size=0.9)
+    p.label_points(hits, names)
+    lines = _leaders(p)
+    assert note_of(p)["unresolved"] == []
+    assert len(lines) <= 2
+    assert not any(_cross(*a, *b) for i, a in enumerate(lines)
+                   for b in lines[i + 1:])
+    assert lint(p.build()) == []

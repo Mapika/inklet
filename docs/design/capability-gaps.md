@@ -60,12 +60,18 @@ Missing values (`None`, NaN) draw no dot; a dumbbell category with one value
 draws no connector.
 
 **Point labels.** Deterministic candidate search round each point (8
-directions on the first ring, then 16 per ring out to `reach`). Candidates
-are scored by overlap with marks, labelled points and placed labels, and by
-crossings of stroked lines, leaders and labelled points, plus distance.
-Dense scatters stored as marker batches are expanded into per-marker boxes
-and indexed on a grid. Leaders are drawn only for labels off the first ring.
-Unresolved labels are listed in the `point_labels` note.
+directions on the first ring, then 16 per ring out to `reach`, plus boxes
+above, below and beside the point slid so one end lines up with it).
+Candidates are scored by overlap with marks, labelled points and placed
+labels, and by crossings of stroked lines, leaders and labelled points, plus
+distance and a fixed cost for needing a leader. After the first pass, a
+repair pass lifts each label on a leader together with its neighbours,
+places it first, and keeps the result when it scores better. Dense scatters
+stored as marker batches are expanded into per-marker boxes and indexed on a
+grid. Leaders are drawn only for labels off the first ring. Unresolved
+labels are listed in the `point_labels` note. A wide label on a point near
+the plot edge, with a dense cloud round it, can still need a long leader:
+the search does not place labels outside the plot area.
 
 **ECDF.** Ties share a step; missing values are excluded from the
 denominator. `complementary=True` gives the share strictly above each value.
