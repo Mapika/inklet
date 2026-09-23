@@ -41,8 +41,8 @@ def circuit():
                                  box_style={'fill': i.mix(color, '#ffffff', .78), 'stroke': color,
                                             'corner_radius': .6}), x=x, y=y)
     scene.link('sensory:out', 'pn:in', route='straight')
-    scene.link('pn:out', 'lh:in', route='orthogonal', corner=.6)
-    scene.link('pn:out', 'mb:in', route='orthogonal', corner=.6)
+    scene.link('pn:n', 'lh:in', route='orthogonal', corner=.6)
+    scene.link('pn:s', 'mb:in', route='orthogonal', corner=.6)
     return scene
 
 
@@ -127,11 +127,11 @@ g.legend(corner='ne', columns=2)
 # -- h: radar ---------------------------------------------------------------------
 
 def radar():
-    p = i.polar(7, r=(0, 1), zero='up', winding='cw')
+    p = i.polar(10, r=(0, 1), zero='up', winding='cw')
     p.radar_grid(['pheromones', 'hygro/thermo', 'aversive', 'attractive', 'unclear'])
     p.radar([.9, .35, .3, .25, .4], name='dimorphic', color=BLUE)
     p.radar([.45, .4, .42, .38, .44], name='remaining', color=INK, fill=False)
-    p.legend(side='bottom')
+    p.legend(side='bottom', columns=2)
     return p.build()
 
 # -- i: donut ------------------------------------------------------------------
