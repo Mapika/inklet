@@ -18,6 +18,12 @@ plugins:
   - search
 hooks:
   - tools/docs_site.py
+extra:
+  # Group labels shown in the sidebar before these top-level sections.
+  nav_labels:
+    Start here: Guides
+    Interactive documents (experimental): Previews
+    Examples: Examples and reference
 extra_css:
   - stylesheets/code.css
   - stylesheets/inklet.css
@@ -71,6 +77,20 @@ nav:
   - Scientific illustrations: scientific-authoring.md
   - Complex scientific plates: complex-figures.md
   - Review and export: export-review.md
+- Diagrams:
+  - Measured connections: diagrams.md
+  - Component library: diagram-components.md
+  - Architecture example: diagram-engine.md
+- 3D and images:
+  - Meshes and images: three-images.md
+  - Blender scenes: blender-scenes.md
+  - Label an anatomy model: open-anatomy.md
+  - Biological schematics: scientific-scenes.md
+  - GPU rendering and jobs: render-jobs.md
+  - Vector paths in scenes: scene-paths.md
+  - Annotations and measurements: scene-annotations.md
+  - Scene templates: scene-templates.md
+  - Annotated scene example: complex-scene.md
 - Interactive documents (experimental):
   - Choose an interactive workflow: interactive-documents.md
   - Inklet 4.0: development-preview.md
@@ -91,20 +111,6 @@ nav:
     - Image measurements: scientific-report.md
     - Mesh fields: mesh-fields.md
     - Contours and streamlines: contours-streamlines.md
-- Diagrams:
-  - Measured connections: diagrams.md
-  - Component library: diagram-components.md
-  - Architecture example: diagram-engine.md
-- 3D and images:
-  - Meshes and images: three-images.md
-  - Blender scenes: blender-scenes.md
-  - Label an anatomy model: open-anatomy.md
-  - Biological schematics: scientific-scenes.md
-  - GPU rendering and jobs: render-jobs.md
-  - Vector paths in scenes: scene-paths.md
-  - Annotations and measurements: scene-annotations.md
-  - Scene templates: scene-templates.md
-  - Annotated scene example: complex-scene.md
 - Microscopy (preview):
   - Calibrated volumes: calibrated-volumes.md
   - Oblique sections: oblique-sections.md
@@ -159,8 +165,7 @@ nav:
     - Compiled scenes: compiled-scenes.md
     - Packed markers: marker-batches.md
     - Spatial marker culling: marker-culling.md
-  - Research studies:
-    - Overview and availability: research-preview.md
+  - Research studies: research-preview.md
   - Compilation contract: design/v2.md
 not_in_nav: |
   /v2.md

@@ -1,23 +1,57 @@
-<div class="home-start">
-  <section class="hero-copy">
-    <div class="eyebrow">Python library · Scientific figures</div>
-    <h1>Scientific figures<br>in Python.</h1>
-    <p>Combine plots, diagrams and 3D on a page sized in millimetres. Export SVG, PDF or PNG.</p>
-    <div class="hero-actions"><a class="button primary" href="{{ 'quickstart/'|url }}">First figure tutorial →</a><a class="button" href="#follow-a-complete-workflow">More tutorials ↓</a></div>
-    <div class="install-command"><code>pip install inklet</code><button type="button" data-copy="pip install inklet" aria-label="Copy installation command">Copy</button></div>
-    <p class="install-note">Python 3.11+ · <a href="{{ 'installation/'|url }}">Installation options</a></p>
-  </section>
-  <section class="home-workflows" id="follow-a-complete-workflow" aria-labelledby="workflow-title">
-    <h2 id="workflow-title">Tutorials</h2>
-    <div class="workflow-grid">
-      <a href="{{ 'quickstart/'|url }}"><h3>Publication figure <span>→</span></h3><p>Plot data, add panels and export.</p></a>
-      <a href="{{ 'scientific-authoring/'|url }}"><h3>Scientific plate <span>→</span></h3><p>Combine anatomy, plots and annotations. <span class="workflow-version">4.0</span></p></a>
-      <a href="{{ 'regional-report/'|url }}"><h3>Interactive report <span>→</span></h3><p>Link selections across views. <span class="workflow-version">Experimental</span></p></a>
-      <a href="{{ 'project-workflows/'|url }}"><h3>Reusable project <span>→</span></h3><p>Save inputs and edits; revise data. <span class="workflow-version">Experimental</span></p></a>
-    </div>
-  </section>
-  <a class="hero-figure" href="{{ 'scientific-gallery/'|url }}"><img src="{{ 'assets/scientific/olfactory-detail.png'|url }}" alt="Detail of an Inklet figure: fly-brain anatomy, neuron paths, annotated close-ups and a weighted connectivity network" width="1920" height="928" fetchpriority="high"><div class="figure-caption"><span>Fly-brain figure detail · 4.0</span><span>Full figure &amp; source ↗</span></div></a>
+<div class="home">
+<section class="hero" aria-labelledby="hero-title">
+  <h1 id="hero-title">Scientific figures in Python, laid out in millimetres.</h1>
+  <div class="hero-side">
+    <p class="hero-lead">Inklet places plots, diagrams, images and 3D scenes on a page with physical dimensions. It measures labels, ticks and legends before fitting the data, then writes SVG, PDF and PNG from the same geometry.</p>
+    <div class="hero-actions"><a class="button primary" href="{{ 'quickstart/'|url }}">Make your first figure</a><a class="button" href="{{ 'examples/'|url }}">Browse the gallery</a></div>
+    <div class="install-command"><span aria-hidden="true">$</span><code>pip install inklet</code><button type="button" data-copy="pip install inklet" aria-label="Copy installation command">Copy</button></div>
+    <p class="install-note">Requires Python 3.11 or later. See <a href="{{ 'installation/'|url }}">installation options</a> for rendering extras.</p>
+  </div>
+  <figure class="plate plate-hero">
+    <div class="dim dim-x" aria-hidden="true"><span>240 mm</span></div>
+    <div class="dim dim-y" aria-hidden="true"><span>116 mm</span></div>
+    <a class="plate-paper" href="{{ 'scientific-gallery/'|url }}"><img src="{{ 'assets/scientific/olfactory-detail.png'|url }}" alt="Detail of an Inklet figure: fly-brain anatomy, neuron projection routes, local arbors and a weighted receptor-to-target network" width="1920" height="928" fetchpriority="high"></a>
+    <figcaption>Detail of a fly-brain plate built with Inklet: anatomy renders, projection routes, local arbors and a weighted connectivity network. <a href="{{ 'scientific-gallery/'|url }}">Full figure and source</a></figcaption>
+  </figure>
+</section>
+
+<section class="home-band home-example" aria-labelledby="example-title">
+  <div class="section-head">
+    <h2 id="example-title">From script to page</h2>
+    <p>This script builds the two-panel figure from the <a href="{{ 'quickstart/'|url }}">first figure tutorial</a>. The double-column preset fixes the page width at 183 mm, and Inklet sizes each plot region around its measured labels.</p>
+  </div>
+  <div class="example-grid">
+    <div class="example-code"><div class="code-title"><span>two_panels.py</span></div>{{ home_example }}</div>
+    <figure class="plate plate-example">
+      <div class="dim dim-x" aria-hidden="true"><span>183 mm</span></div>
+      <div class="plate-paper"><img src="{{ 'assets/examples/quickstart.svg'|url }}" alt="Output of the script: panel a shows a signal line over elapsed time, panel b shows bars for control and treatment" width="1153" height="428" loading="lazy"></div>
+      <figcaption>Output: <code>two-panels.svg</code>, 183 × 68 mm. Open the <a href="{{ 'assets/examples/quickstart.svg'|url }}">SVG</a> or the <a href="{{ 'assets/examples/quickstart.pdf'|url }}">PDF</a>.</figcaption>
+    </figure>
+  </div>
+  <ul class="facts">
+    <li><h3>Physical page sizes</h3><p>Presets such as single-column (89 mm) and double-column (183 mm) set the page width and type size. Type and strokes keep their size when the page changes.</p></li>
+    <li><h3>Measured layout</h3><p>Axis labels, tick labels and legends are measured with the embedded fonts before the data region is placed.</p></li>
+    <li><h3>Vector exports</h3><p>SVG and PDF are written from one resolved geometry with embedded fonts. Lines, ticks and labels remain vector content.</p></li>
+    <li><h3>Revisable data</h3><p>Update a dataset and compile again. Earlier snapshots stay unchanged, and each revision is recorded in the metadata.</p></li>
+  </ul>
+</section>
+
+<section class="home-band home-showcase" aria-labelledby="showcase-title">
+  <div class="section-head section-head-row"><h2 id="showcase-title">Figures built with Inklet</h2><a href="{{ 'examples/'|url }}">All {{ docs_gallery|length }} figures in the gallery</a></div>
+  <div class="showcase-grid">{% for id in ['biology-panels', 'complex-scene', 'wave-packets', 'scientific-blender', 'label-intensities', 'process'] %}{% for entry in docs_gallery if entry.id == id %}
+    <a class="showcase-item" href="{{ entry.page|url }}"><span class="plate-paper"><img src="{{ entry.image|url }}" alt="" loading="lazy" width="640" height="480"></span><span class="showcase-copy"><strong>{{ entry.title }}</strong><span>{{ entry.category }}</span></span></a>{% endfor %}{% endfor %}
+  </div>
+</section>
+
+<section class="home-band home-paths" id="follow-a-complete-workflow" aria-labelledby="workflow-title">
+  <div class="section-head"><h2 id="workflow-title">Tutorials</h2><p>Each tutorial builds one complete figure or document from start to export.</p></div>
+  <div class="path-grid">
+    <a href="{{ 'quickstart/'|url }}"><strong>Publication figure</strong><span>Plot data, add panels and export SVG and PDF.</span></a>
+    <a href="{{ 'scientific-authoring/'|url }}"><strong>Scientific plate</strong><span>Combine anatomy, plots and annotations.</span></a>
+    <a href="{{ 'regional-report/'|url }}"><strong>Interactive report <em class="tag">Experimental</em></strong><span>Link selections across views in an offline page.</span></a>
+    <a href="{{ 'project-workflows/'|url }}"><strong>Reusable project <em class="tag">Experimental</em></strong><span>Save inputs and layout edits, then revise the data.</span></a>
+  </div>
+</section>
+
+<section class="home-band home-reference"><div class="prose">{{ page.content }}</div></section>
 </div>
-<section class="home-section"><div class="section-heading"><h2>Examples</h2><a href="{{ 'examples/'|url }}">All examples →</a></div>
-<div class="featured-grid">{% for entry in docs_gallery if entry.id in ['general-plots', 'label-intensities', 'complex-scene'] %}{% include 'card.html' %}{% endfor %}</div></section>
-<section class="home-reference"><div class="prose">{{ page.content }}</div></section>
