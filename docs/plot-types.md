@@ -6,6 +6,9 @@ title: Choose a plot type
 # Choose a plot type
 
 Choose a preview to open its runnable Python code and input conventions.
+
+<!-- about -->
+
 These illustrative examples use core Inklet. Each image is generated from the
 code in its guide.
 

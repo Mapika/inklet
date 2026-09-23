@@ -58,7 +58,9 @@
     {% block content %}
     {% if layout == 'home' %}{% include 'home.html' %}
     {% elif layout == 'gallery' %}
-      <div class="gallery-page"><div class="page-intro prose">{{ page.content }}</div>{% if page.meta.catalog == 'plots' %}{% include 'plot-gallery.html' %}{% else %}{% include 'gallery.html' %}{% endif %}</div>
+      {#- Text after an <!-- about --> marker folds into a collapsed note so the grid starts on the first screen. -#}
+      {%- set intro = page.content.split('<!-- about -->', 1) -%}
+      <div class="gallery-page"><div class="page-intro prose">{{ intro[0] }}{% if intro|length > 1 %}<details class="gallery-about"><summary>About this gallery</summary>{{ intro[1] }}</details>{% endif %}</div>{% if page.meta.catalog == 'plots' %}{% include 'plot-gallery.html' %}{% else %}{% include 'gallery.html' %}{% endif %}</div>
     {% else %}
       {%- set has_toc = page.toc and (page.toc|first).children -%}
       <div class="reading-layout{% if not has_toc %} no-toc{% endif %}"><article class="prose">
