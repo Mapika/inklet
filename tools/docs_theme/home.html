@@ -1,3 +1,4 @@
+{% from 'thumb.html' import preview with context %}
 <div class="home">
 <section class="hero" aria-labelledby="hero-title">
   <h1 id="hero-title">Scientific figures in Python, laid out in millimetres.</h1>
@@ -10,7 +11,7 @@
   <figure class="plate plate-hero">
     <div class="dim dim-x" aria-hidden="true"><span>240 mm</span></div>
     <div class="dim dim-y" aria-hidden="true"><span>116 mm</span></div>
-    <a class="plate-paper" href="{{ 'scientific-gallery/'|url }}"><img src="{{ 'assets/scientific/olfactory-detail.png'|url }}" alt="Detail of an Inklet figure: fly-brain anatomy, neuron projection routes, local arbors and a weighted receptor-to-target network" width="1920" height="928" fetchpriority="high"></a>
+    <a class="plate-paper" href="{{ 'scientific-gallery/'|url }}">{{ preview('assets/scientific/olfactory-detail.png', '(max-width: 1023px) 100vw, 1180px', 'alt="Detail of an Inklet figure: fly-brain anatomy, neuron projection routes, local arbors and a weighted receptor-to-target network" width="1920" height="928" fetchpriority="high"') }}</a>
     <figcaption>Detail of a fly-brain plate built with Inklet: anatomy renders, projection routes, local arbors and a weighted connectivity network. <a href="{{ 'scientific-gallery/'|url }}">Full figure and source</a></figcaption>
   </figure>
 </section>
@@ -39,7 +40,7 @@
 <section class="home-band home-showcase" aria-labelledby="showcase-title">
   <div class="section-head section-head-row"><h2 id="showcase-title">Figures built with Inklet</h2><a href="{{ 'examples/'|url }}">All {{ docs_gallery|length }} figures in the gallery</a></div>
   <div class="showcase-grid">{% for id in ['biology-panels', 'complex-scene', 'wave-packets', 'scientific-blender', 'label-intensities', 'process'] %}{% for entry in docs_gallery if entry.id == id %}
-    <a class="showcase-item" href="{{ entry.page|url }}"><span class="plate-paper"><img src="{{ entry.image|url }}" alt="" loading="lazy" width="640" height="480"></span><span class="showcase-copy"><strong>{{ entry.title }}</strong><span>{{ entry.category }}</span></span></a>{% endfor %}{% endfor %}
+    <a class="showcase-item" href="{{ entry.page|url }}"><span class="plate-paper">{{ preview(entry.image, '(max-width: 640px) 50vw, 380px', 'alt="" loading="lazy" decoding="async" width="640" height="480"') }}</span><span class="showcase-copy"><strong>{{ entry.title }}</strong><span>{{ entry.category }}</span></span></a>{% endfor %}{% endfor %}
   </div>
 </section>
 

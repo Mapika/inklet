@@ -1,0 +1,10 @@
+{#- An <img> that uses the WebP previews from tools/docs_thumbnails.py when they
+    match the source image, and the full-size image otherwise. -#}
+{% macro preview(image, sizes, attrs='') -%}
+{%- set thumb = docs_thumbs.get(image) -%}
+{%- if thumb -%}
+<img src="{{ (thumb.files|last).path|url }}" srcset="{% for file in thumb.files %}{{ file.path|url }} {{ file.width }}w{% if not loop.last %}, {% endif %}{% endfor %}" sizes="{{ sizes }}" {{ attrs }}>
+{%- else -%}
+<img src="{{ image|url }}" {{ attrs }}>
+{%- endif -%}
+{%- endmacro %}

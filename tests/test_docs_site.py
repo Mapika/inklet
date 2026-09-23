@@ -145,6 +145,13 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
         assert destination in parsed_pages
         if location.fragment:
             assert location.fragment in parsed_pages[destination].ids
+    # Cards load small WebP previews; the lightbox keeps the full-size image.
+    examples_html = (site/'examples/index.html').read_text()
+    assert examples_html.count('srcset="../assets/thumbs/') == len(gallery)
+    assert f'data-lightbox="../{gallery[0]["image"]}"' in examples_html
+    assert 'srcset="assets/thumbs/' in (site/'index.html').read_text()
+    # Static templates such as the 404 page show the same version chip.
+    assert 'class="version"' in (site/'404.html').read_text()
 
     plots = json.loads((ROOT/'tools/plot_catalog.json').read_text())
     plot_page = site/'plot-types/index.html'
@@ -191,3 +198,21 @@ def test_homepage_example_runs_and_matches_its_published_figure(tmp_path, monkey
     produced = size.search((tmp_path/'two-panels.svg').read_text()).groups()
     published = size.search((ROOT/'docs/assets/examples/quickstart.svg').read_text()).groups()
     assert produced == published == ('183mm', '68mm')
+
+
+def test_gallery_previews_match_their_source_images():
+    """Run tools/docs_thumbnails.py after changing a gallery image."""
+    import hashlib
+
+    manifest = json.loads((ROOT/'docs/assets/thumbs/manifest.json').read_text())
+    gallery = json.loads((ROOT/'tools/docs_gallery.json').read_text())
+    assert {entry['image'] for entry in gallery} <= set(manifest)
+    for image, entry in manifest.items():
+        source = ROOT/image if image.startswith('gallery/') else ROOT/'docs'/image
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == entry['sha256'], (
+            f'{image} changed; run python tools/docs_thumbnails.py')
+        for item in entry['files']:
+            assert (ROOT/'docs'/item['path']).stat().st_size > 100
+    written = {path.name for path in (ROOT/'docs/assets/thumbs').glob('*.webp')}
+    listed = {item['path'].rsplit('/', 1)[1] for entry in manifest.values() for item in entry['files']}
+    assert written == listed

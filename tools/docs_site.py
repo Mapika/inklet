@@ -37,6 +37,7 @@ def repository_ref():
 def on_config(config):
     # A deployed page must not reuse a previous theme's cached CSS or JS.
     config['extra']['archive_pages'] = []
+    config['extra'].pop('docs_thumbs', None)
     config['extra'].setdefault('nav_labels', {})
     assets = [*config['extra_css'], *config['extra_javascript']]
     digest = hashlib.sha256()
@@ -129,11 +130,48 @@ def home_example():
     return Markup(highlight(source, PythonLexer(), HtmlFormatter(cssclass='codehilite', wrapcode=True)))
 
 
+def current_thumbnails():
+    """Return the WebP previews whose source image is unchanged since they were written.
+
+    tools/docs_thumbnails.py writes the previews and their manifest. A preview
+    of an older image is left out, so its card falls back to the full image.
+    """
+    import logging
+
+    manifest = DOCS/'assets/thumbs/manifest.json'
+    if not manifest.exists():
+        return {}
+    current = {}
+    for image, entry in json.loads(manifest.read_text()).items():
+        source = ROOT/image if image.startswith('gallery/') else DOCS/image
+        fresh = (source.exists() and hashlib.sha256(source.read_bytes()).hexdigest() == entry['sha256']
+                 and all((DOCS/item['path']).exists() for item in entry['files']))
+        if fresh:
+            current[image] = entry
+        else:
+            logging.getLogger('mkdocs.hooks.docs_site').info(
+                'Preview of %s is out of date; run tools/docs_thumbnails.py', image)
+    return current
+
+
+def docs_version():
+    version = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
+    return version.replace('.0.dev', ' dev ')
+
+
+def on_template_context(context, template_name, config):
+    """Give static templates such as 404.html the header's version chip."""
+    context['docs_version'] = docs_version()
+    return context
+
+
 def on_page_context(context, page, config, nav):
+    if 'docs_thumbs' not in config['extra']:
+        config['extra']['docs_thumbs'] = current_thumbnails()
+    context['docs_thumbs'] = config['extra']['docs_thumbs']
     context['docs_gallery'] = json.loads((ROOT/'tools/docs_gallery.json').read_text())
     context['docs_plots'] = json.loads((ROOT/'tools/plot_catalog.json').read_text())
-    version = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
-    context['docs_version'] = version.replace('.0.dev', ' dev ')
+    context['docs_version'] = docs_version()
     if page.meta.get('layout') == 'home':
         context['home_example'] = home_example()
     headings = list(page.toc)

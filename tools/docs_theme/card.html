@@ -1,6 +1,7 @@
+{% from 'thumb.html' import preview with context %}
 <article class="gallery-card" data-category="{{ entry.category }}" data-title="{{ entry.title }} {{ entry.description }} {{ entry.category }}">
   <a class="card-link" href="{{ entry.page|url }}">
-    <span class="card-image plate-paper"><img src="{{ entry.image|url }}" alt="" loading="lazy" width="640" height="480"></span>
+    <span class="card-image plate-paper">{{ preview(entry.image, '(max-width: 640px) calc(100vw - 32px), 420px', 'alt="" loading="lazy" decoding="async" width="640" height="480"') }}</span>
     <span class="card-copy"><strong class="card-title">{{ entry.title }}</strong><span class="card-text">{{ entry.description }}</span>
       <span class="card-meta"><span class="tag">{{ entry.category }}</span>{% if entry.version not in ['Stable', 'Core'] %}<span class="tag tag-flag">{{ entry.version }}</span>{% endif %}{% if entry.requires not in ['Core only', entry.version] %}<span class="card-requires">{{ entry.requires }}</span>{% endif %}</span></span>
   </a>

@@ -258,7 +258,7 @@ main:focus { outline:none; }
 
 /* ---------- Prose ---------- */
 .prose { min-width:0; font-size:16.5px; color:var(--ink-2); }
-.prose :is(h1,h2,h3,h4) { color:var(--ink); font-weight:650; scroll-margin-top:calc(var(--header) + 16px); }
+.prose :is(h1,h2,h3,h4) { color:var(--ink); font-weight:650; }
 .prose h1 {
   margin:0 0 18px; font-size:clamp(30px,3.4vw,40px); line-height:1.12; letter-spacing:-.025em; font-weight:700;
 }
@@ -506,6 +506,10 @@ main:focus { outline:none; }
 .page-intro { max-width:46rem; }
 .page-intro h1 { margin-bottom:14px; }
 .page-intro p { color:var(--muted); }
+.gallery-about { margin:4px 0 8px; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); }
+.gallery-about summary { cursor:pointer; padding:10px 14px; font-size:14px; font-weight:600; color:var(--ink); }
+.gallery-about > p { margin:0; padding:0 14px 12px; font-size:15px; }
+.gallery-about > p:first-of-type { padding-top:12px; border-top:1px solid var(--line); }
 .gallery-toolbar {
   position:sticky; top:var(--header); z-index:5;
   display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px;
