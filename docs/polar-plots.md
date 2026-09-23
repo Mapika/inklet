@@ -68,6 +68,58 @@ fig.save('rose.svg', 'rose.pdf')
 
 *Rendered from the code above.*
 
+## Radar charts
+
+A radar chart places one spoke per category, equally spaced round the turn,
+and draws each series as a closed polygon through its value on each spoke.
+`radar_grid` draws the rings, the spokes and the category names.
+Rings are polygons by default; `shape='circle'` draws circles. The panel's
+theta domain must be a whole turn.
+
+```python
+import inklet as i
+axes = ['Speed', 'Accuracy', 'Recall', 'Depth', 'Range', 'Stability']
+p = i.polar(18, r=(0, 1), zero='up', winding='cw')
+p.radar_grid(axes)
+p.radar([.8, .6, .9, .4, .7, .5], name='Model A', color='#24698c')
+p.radar([.5, .9, .6, .8, .4, .7], name='Model B', color='#b86443')
+p.legend(side='bottom')
+fig = i.figure(width=80)
+fig.add(p.build())
+fig.save('radar.svg', 'radar.pdf')
+```
+
+![Radar charts: two models compared on six scores.](assets/guides/plots-radar.png)
+
+*Illustrative scores between 0 and 1. The rings are at 0.2 steps.*
+
+## Pie and donut charts
+
+`pie` divides the turn in proportion to the values, starting at the start
+of the theta domain and following the panel's winding. A panel made with
+`hole=` draws a donut. Each label is set inside its slice when it fits and
+outside the rim when it does not. `labels=` takes `'percent'` (default),
+`'value'`, `None`, a format such as `'{share:.1%}'`, a function of
+`(value, share)` or one string per slice.
+
+```python
+import inklet as i
+pie = i.polar(14, zero='up', winding='cw')
+pie.pie([54, 28, 12, 4, 2],
+        colors=['#24698c', '#288675', '#b86443', '#e6b93f', '#b9b8b4'],
+        names=['Neurons', 'Glia', 'Vascular', 'Immune', 'Other'])
+pie.legend(side='right')
+donut = i.polar(14, hole=7, zero='up', winding='cw')
+donut.pie([61, 39], colors=['#668fb8', '#e6b93f'])
+fig = i.figure(width=120)
+fig.add(i.row([pie.build(), donut.build()]))
+fig.save('pie.svg', 'pie.pdf')
+```
+
+![Pie and donut charts: cell-type shares and a two-part donut.](assets/guides/plots-pie.png)
+
+*Illustrative shares. The two smallest slices are labelled outside the rim.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

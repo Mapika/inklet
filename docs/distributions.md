@@ -129,6 +129,36 @@ doc.save('swarm.svg', 'swarm.pdf')
 *Rendered from the code above. Every point is one of the same 72 observations
 per group used above; only its horizontal position is adjusted to separate overlapping points.*
 
+## Cumulative distributions
+
+`ecdf` draws the empirical cumulative distribution: the fraction of
+observations at or below each value, as a step line. Every observation is
+shown and no bin width or bandwidth is chosen. `complementary=True` draws
+the fraction above each value instead. `normalize=False` draws counts.
+`inklet.plot.ecdf(values)` returns the steps without drawing them.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(402)
+control = [rng.gauss(4.1, .62) for _ in range(72)]
+treated = [rng.gauss(4.65, .78) for _ in range(72)]
+p = i.plot_spec(x=(1, 8), y=(0, 1), height=44)
+p.grid(x=False, count=4, stroke='#e1e7e4', stroke_width=.15)
+p.ecdf(control, name='Control', stroke='#24698c', stroke_width=.45)
+p.ecdf(treated, name='Treated', stroke='#288675', stroke_width=.45)
+p.axes(x='Measurement / a.u.', y='Cumulative fraction').legend(side='bottom')
+doc = i.document(width=110)
+doc.add('ecdf', p)
+doc.save('ecdf.svg', 'ecdf.pdf')
+```
+
+![Cumulative distributions: two empirical cumulative distributions.](assets/guides/plots-ecdf.png)
+
+*Rendered from the code above, with the same 72 observations per group used
+above. The curves run flat to both ends of the x axis.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

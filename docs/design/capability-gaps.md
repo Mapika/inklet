@@ -1,0 +1,87 @@
+# Plotting capability gaps
+
+This note lists the plot types and annotations that dense journal figures use
+and that Inklet did not provide as a single call. The reference pages were
+two Cell figure pages (stacked cell-type bars with counts, dumbbells,
+diverging bars, radar charts, pies with a breakout bar, a labelled scatter,
+cumulative curves and several colorbars on one page).
+
+For each gap, "before" is what an author had to write. The ranking puts
+first the gaps that appear most often in published figures and that took the
+most hand-written geometry.
+
+## Audit: already provided
+
+These were checked and are not gaps:
+
+| Need | Existing API |
+| --- | --- |
+| Significance brackets | `Panel.bracket` |
+| Zoom insets | `Panel.inset(zoom=)` |
+| Colorbars | `Panel.colorbar`, `inklet.plot.colorbar` |
+| Swarm, box, violin, histogram | `Panel.swarm`, `boxplot`, `violin`, `hist` |
+| Sankey and alluvial bands | `Panel.ribbon`, `inklet.sankey` |
+| Network graphs | `inklet.graph` |
+| One annotation with a leader | `Panel.annotate`, `Panel.guide` |
+| Label columns beside lines | `label_column`, `place_labels` |
+| Polar lines, bands, roses | `PolarPanel.line`, `band`, `rose` |
+| Diverging bars | `bars(stacked=True)` with negative values and `format=lambda v: f"{abs(v):g}"` on the axis |
+| Heatmaps | `Panel.matrix` |
+
+## Ranked gaps
+
+| Rank | Gap | Before | Status |
+| --- | --- | --- | --- |
+| 1 | Value labels on bars and stacked segments | `Panel.text` per bar, with the segment arithmetic copied from `marks.py` | Done: `Panel.bars(labels=)` |
+| 2 | Dumbbell and lollipop plots | `line` plus two `scatter` calls per category | Done: `Panel.dumbbell`, `Panel.lollipop` |
+| 3 | Labels for many points, clear of each other | `Panel.text` or `annotate` per point with hand-set offsets | Done: `Panel.label_points` |
+| 4 | Empirical cumulative distributions | Sort, count ties and call `step` | Done: `Panel.ecdf`, `inklet.plot.ecdf` |
+| 5 | Radar charts | `PolarPanel.line(interpolate=False)` plus a hand-drawn polygon grid and labels | Done: `PolarPanel.radar`, `PolarPanel.radar_grid` |
+| 6 | Pie and donut charts with labels | `draw.sector` per slice and hand-placed labels | Done: `PolarPanel.pie` |
+| 7 | Pie breakout bar (a slice expanded into a stacked bar) | Compose by hand | Deferred: compose `pie` with `bars(stacked=True)` and `connect` |
+| 8 | Ridgeline (stacked density curves) | `fill` per group with offsets | Deferred |
+| 9 | Raincloud (half violin, box and points) | `violin` plus `swarm` with offsets | Deferred |
+| 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Deferred |
+| 11 | UpSet plots | Matrix of dots plus bars, by hand | Deferred |
+| 12 | Volcano plot helper | `scatter`, `hline`, `vline` and now `label_points` | Deferred: the composition is four calls |
+
+## Implemented behaviour
+
+**Bar value labels.** Labels use the same slot and span arithmetic as the
+rectangles. A label goes inside when it fits (the text width plus a quarter
+of the type size on each side along the bar, and the full font box across
+it), otherwise past the bar end. A stacked segment that does not fit is
+omitted and listed in the `bar_labels` note. Inside labels use the theme ink
+or paper, whichever has more contrast with the fill. Labels are never
+shrunk.
+
+**Dumbbell and lollipop.** Positions come from the band scale, like `bars`.
+Missing values (`None`, NaN) draw no dot; a dumbbell category with one value
+draws no connector.
+
+**Point labels.** Deterministic candidate search round each point (8
+directions on the first ring, then 16 per ring out to `reach`). Candidates
+are scored by overlap with marks, labelled points and placed labels, and by
+crossings of stroked lines, leaders and labelled points, plus distance.
+Dense scatters stored as marker batches are expanded into per-marker boxes
+and indexed on a grid. Leaders are drawn only for labels off the first ring.
+Unresolved labels are listed in the `point_labels` note.
+
+**ECDF.** Ties share a step; missing values are excluded from the
+denominator. `complementary=True` gives the share strictly above each value.
+On a log axis, points that cannot be mapped are dropped.
+
+**Radar and pie.** Both require a whole-turn polar panel and follow its
+`zero` and `winding`. Radar rings are polygons by default. Pie labels go
+inside a slice when the label box fits within the annular sector with a
+margin, otherwise outside the rim, moved outward to avoid other outside
+labels.
+
+## Deferred work
+
+- Pie breakout bars, ridgelines, rainclouds, dendrograms and UpSet plots.
+- Leaders for pie labels placed outside the rim.
+- Ring values on radar charts sit inside the data region and collide with
+  most polygons; `radar_grid(values=True)` draws them, and they are off by
+  default.
+- `label_points` avoids only what is drawn before it is called.
