@@ -1,0 +1,317 @@
+{
+  "assets/guides/composition-recipes.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-composition-recipes-480-f8173b5a19.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-composition-recipes-960-f8173b5a19.webp",
+        "width": 960
+      }
+    ],
+    "height": 650,
+    "sha256": "f8173b5a19f91d29dc898158b268ad5dbd4243d0a8a764bff6224c2db5dd0c1e",
+    "width": 1063
+  },
+  "assets/scenes/synapse.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-scenes-synapse-480-face9f06c3.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-scenes-synapse-960-face9f06c3.webp",
+        "width": 960
+      }
+    ],
+    "height": 1404,
+    "sha256": "face9f06c39c3a53d1558793a24892e0afaaeeec0842c744ea049a87ad858d25",
+    "width": 1386
+  },
+  "assets/scientific/olfactory-detail.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-scientific-olfactory-detail-960-8e3eba95a0.webp",
+        "width": 960
+      },
+      {
+        "path": "assets/thumbs/assets-scientific-olfactory-detail-1600-8e3eba95a0.webp",
+        "width": 1600
+      }
+    ],
+    "height": 928,
+    "sha256": "8e3eba95a0a16ae2611852d6f8feb0fbbf93c2f3b0bfda9dc7db769dcec5af14",
+    "width": 1920
+  },
+  "assets/scientific/olfactory.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-scientific-olfactory-480-46811a499b.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-scientific-olfactory-960-46811a499b.webp",
+        "width": 960
+      }
+    ],
+    "height": 2702,
+    "sha256": "46811a499b28b2a9958f24fccc0d8f4f772caaef7e8dbca58be91013b8a01894",
+    "width": 2079
+  },
+  "gallery/biology-panels.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-biology-panels-480-61b7210781.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-biology-panels-960-61b7210781.webp",
+        "width": 960
+      }
+    ],
+    "height": 1731,
+    "sha256": "61b7210781609dda3a8665d0dea1b4e6e17bd1dbd1a0afb0b231e91392208cf7",
+    "width": 2445
+  },
+  "gallery/diagram-review.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-diagram-review-480-41ebf11512.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-diagram-review-960-41ebf11512.webp",
+        "width": 960
+      }
+    ],
+    "height": 859,
+    "sha256": "41ebf11512a34d1129fc69df477417871f71a2d4af8463e5824bea0dcdde245a",
+    "width": 1181
+  },
+  "gallery/general-plots.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-general-plots-480-7c01c3a8da.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-general-plots-960-7c01c3a8da.webp",
+        "width": 960
+      }
+    ],
+    "height": 1698,
+    "sha256": "7c01c3a8dae3916c87cc2b4bf2cd607379e292a6ad5dc51776df5172a41f79c5",
+    "width": 1496
+  },
+  "gallery/label-intensities.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-label-intensities-480-56f074ae66.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-label-intensities-960-56f074ae66.webp",
+        "width": 960
+      }
+    ],
+    "height": 1489,
+    "sha256": "56f074ae666bd44444cb8deb17e7d5a8459ee92087d481010399aee14d0c80f2",
+    "width": 2244
+  },
+  "gallery/part.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-part-480-b7af066841.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-part-960-b7af066841.webp",
+        "width": 960
+      }
+    ],
+    "height": 747,
+    "sha256": "b7af066841c435fb59a0095ee3c132e70dc3d129c1fd22c7b2f8181a26515adc",
+    "width": 1008
+  },
+  "gallery/polar.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-polar-480-944aff7cb6.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-polar-960-944aff7cb6.webp",
+        "width": 960
+      }
+    ],
+    "height": 787,
+    "sha256": "944aff7cb69b1982d3e602e43ef1cabd34f72f0ebfe1391648ef105161373d78",
+    "width": 1542
+  },
+  "gallery/process.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-process-480-eda9fd6999.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-process-960-eda9fd6999.webp",
+        "width": 960
+      }
+    ],
+    "height": 1365,
+    "sha256": "eda9fd69990fb1a62c0aa1cc013d9ed28b08b86434f7c78da5e0f3d5e22dae90",
+    "width": 1008
+  },
+  "gallery/real-biology.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-real-biology-480-09f9c50d24.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-real-biology-960-09f9c50d24.webp",
+        "width": 960
+      }
+    ],
+    "height": 3033,
+    "sha256": "09f9c50d24830c512139e306e2182a8de07e1a6758c16c249dfc8f1fdc4c6e17",
+    "width": 2268
+  },
+  "gallery/season.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-season-480-37566b0c7d.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-season-960-37566b0c7d.webp",
+        "width": 960
+      }
+    ],
+    "height": 810,
+    "sha256": "37566b0c7d6b0610a67f6d6e5df3649035b2c7c53877d2dc5d3e92929a4d5289",
+    "width": 1008
+  },
+  "gallery/showcase-architecture.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-showcase-architecture-480-2c579ba763.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-showcase-architecture-960-2c579ba763.webp",
+        "width": 960
+      }
+    ],
+    "height": 1877,
+    "sha256": "2c579ba7632f1595e1cf0d724a10c96a08b6dc22b5c0e2f6e179450d7de994ad",
+    "width": 2244
+  },
+  "gallery/showcase-attractor.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-showcase-attractor-480-52c84c5527.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-showcase-attractor-960-52c84c5527.webp",
+        "width": 960
+      }
+    ],
+    "height": 1779,
+    "sha256": "52c84c5527ee13430d27766cfe12b4bc3bdd9d7846b44d536f2d386f261b4e39",
+    "width": 2244
+  },
+  "gallery/showcase-helix.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-showcase-helix-480-3fe4ef1b11.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-showcase-helix-960-3fe4ef1b11.webp",
+        "width": 960
+      }
+    ],
+    "height": 1877,
+    "sha256": "3fe4ef1b11ab0731179e1e27bc637a00f0b328b3064dcba46611a164b8c9b754",
+    "width": 2244
+  },
+  "gallery/showcase-interference.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-showcase-interference-480-905d490f26.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-showcase-interference-960-905d490f26.webp",
+        "width": 960
+      }
+    ],
+    "height": 1796,
+    "sha256": "905d490f26cdc35568099785b6451011b558cfb8893d6bee57e22cd9f4d13f4c",
+    "width": 2244
+  },
+  "gallery/showcase-lattice.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-showcase-lattice-480-5f13708689.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-showcase-lattice-960-5f13708689.webp",
+        "width": 960
+      }
+    ],
+    "height": 1877,
+    "sha256": "5f137086895477604b701a5ce3c5eff8196c3b493fb5f0aa97f2b16a30853216",
+    "width": 2244
+  },
+  "gallery/showcase-photonics.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-showcase-photonics-480-aaf06a88ff.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-showcase-photonics-960-aaf06a88ff.webp",
+        "width": 960
+      }
+    ],
+    "height": 2407,
+    "sha256": "aaf06a88ff6e7321bb0dff870fcd2bb1329d3453689080b69634e9c48dd43e93",
+    "width": 2244
+  },
+  "gallery/showcase-wave-packets.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-showcase-wave-packets-480-705631fd5a.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-showcase-wave-packets-960-705631fd5a.webp",
+        "width": 960
+      }
+    ],
+    "height": 1779,
+    "sha256": "705631fd5a81d2f207c71408650065e3a6cee835504581ace6d10a76185ad6a3",
+    "width": 2244
+  },
+  "gallery/v3-complex-scene.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-v3-complex-scene-480-732e2e2b11.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-v3-complex-scene-960-732e2e2b11.webp",
+        "width": 960
+      }
+    ],
+    "height": 3158,
+    "sha256": "732e2e2b115029c6cdc919e9f034b359613710fa06ada516de315075476d94f5",
+    "width": 3071
+  }
+}
