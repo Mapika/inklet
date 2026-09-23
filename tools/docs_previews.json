@@ -651,6 +651,13 @@
     "alt": "Pie and donut charts"
   },
   {
+    "page": "distributions.md",
+    "block": 6,
+    "object": "doc",
+    "image": "plots-ridgeline.png",
+    "alt": "Ridgelines"
+  },
+  {
     "page": "polar-plots.md",
     "block": 5,
     "object": "fig",

@@ -1644,6 +1644,47 @@ class Panel:
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
         return self.draw(polyline(self.map(points), **style), clip=clip)
 
+    def ridgeline(self, groups, *, at=None, overlap: float = 1.5,
+                  bandwidth: float | None = None, samples: int = 96,
+                  scale: str = "shared", fit: bool = True, colors=None,
+                  **style) -> "Panel":
+        """Overlapping kernel densities, one per category: a ridgeline plot.
+
+        The panel needs a band y scale (the categories) and a continuous x
+        scale (the values), which every ridge shares. `groups` is spelled as
+        for `violin`: a mapping of category to samples, or a sequence of
+        samples in the order of the y categories.
+
+            p = inklet.panel(50, 40, x=(0, 10), y=list(reversed(stages)))
+            p.ridgeline({s: times[s] for s in stages})
+
+        Each ridge's baseline is the lower edge of its category's step, and
+        `overlap` is the height of the tallest ridge in steps; above 1 a
+        ridge rises into the rows above it. Ridges are filled with an opaque
+        colour and drawn from the top of the page down, so lower ridges cover
+        the ones behind them. The density runs over the whole x domain.
+
+        `scale="shared"` (default) uses one height scale for every ridge, so
+        a narrow sample has a tall peak; `scale="each"` gives every ridge the
+        same peak height. `bandwidth` defaults to Silverman's robust rule per
+        group, as for `violin`, and `samples` is the number of points along
+        x. `colors=` sets one fill per group (default: one tint for all);
+        other keywords style the outline.
+
+        `fit=True` (default) scales every ridge down by one common factor
+        when the top ridges would otherwise rise above the plot area, so
+        `overlap` is a maximum; the node's `ridgeline` note records the
+        overlap drawn. With `fit=False` the ridges keep `overlap` and may
+        rise above the area (the note's `above`, in mm).
+        """
+        from .ridgeline import ridgeline as _ridgeline
+
+        clip = _clip_flag(style)
+        node, _, _ = _ridgeline(self, groups, at=at, overlap=overlap,
+                                bandwidth=bandwidth, samples=samples,
+                                scale=scale, fit=fit, colors=colors, **style)
+        return self.draw(node, clip=clip)
+
     def label_points(self, points: Iterable[Sequence], labels: Sequence[str],
                      **kwargs) -> "Panel":
         """Label many data points at once, clear of the marks and each other.

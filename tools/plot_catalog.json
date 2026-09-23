@@ -254,6 +254,20 @@
     "block": 5
   },
   {
+    "title": "Ridgelines",
+    "description": "Overlapping kernel densities, one per category, on a shared x scale.",
+    "category": "Distributions",
+    "page": "distributions/#ridgelines",
+    "image": "assets/guides/plots-ridgeline.png",
+    "methods": [
+      "Panel.ridgeline"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 6
+  },
+  {
     "title": "Bands",
     "description": "A band joins supplied lower and upper bounds over x.",
     "category": "Uncertainty",

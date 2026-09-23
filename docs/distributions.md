@@ -159,6 +159,45 @@ doc.save('ecdf.svg', 'ecdf.pdf')
 *Rendered from the code above, with the same 72 observations per group used
 above. The curves run flat to both ends of the x axis.*
 
+## Ridgelines
+
+`ridgeline` draws one kernel density per category on a shared x scale, with
+the categories on a band y scale. Each ridge stands on the lower edge of its
+category's row, and `overlap` is the height of the tallest ridge in rows, so
+values above 1 let a ridge rise into the rows above it. Ridges are filled
+with an opaque colour and drawn from the top down, so lower ridges cover the
+ones behind them.
+
+`scale='shared'` (default) uses one height scale for all ridges, so their
+areas compare; `scale='each'` gives every ridge the same peak height. By
+default all ridges are scaled down by one factor if the top ones would rise
+above the plot area, so `overlap` is a maximum; `fit=False` keeps it and
+lets them rise above. The bandwidth follows the same rule as `violin`.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(403)
+stages = ['E12', 'E14', 'E16', 'E18', 'P0', 'P7']
+onsets = {s: [rng.gauss(2 + k * .9, .9 - .08 * k) for _ in range(80)]
+          + [rng.gauss(4.2 + k * .9, .4) for _ in range(20 * (k % 3))]
+          for k, s in enumerate(stages)}
+p = i.plot_spec(x=(0, 10), y=stages[::-1], height=48)
+p.ridgeline(onsets, overlap=1.8,
+            colors=['#24698c', '#2d7d8a', '#3a9083', '#5aa374', '#8bb35f', '#c2bf52'],
+            stroke='white', stroke_width=.3)
+p.axes(x='Onset time / h')
+doc = i.document(width=90)
+doc.add('ridgeline', p)
+doc.save('ridgeline.svg', 'ridgeline.pdf')
+```
+
+![Ridgelines: onset-time densities for six developmental stages.](assets/guides/plots-ridgeline.png)
+
+*Rendered from the code above. Each ridge is a kernel density of 80 to 120
+simulated onset times; heights share one scale.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

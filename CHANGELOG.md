@@ -6,6 +6,9 @@
   into a stacked bar beside the disc, with connector lines from the rim and
   a share label per part. The `pie_labels` note now also records each
   slice's page angles and value.
+- Add `Panel.ridgeline` for overlapping kernel densities per category on a
+  shared x scale, with shared or per-ridge height scaling and a common
+  scale-down that keeps the ridges inside the plot area.
 - Add value labels to `Panel.bars` (`labels=`, `label_position=`,
   `label_options=`). Labels go inside a bar or segment when they fit and past
   the bar end otherwise; stacked segments that do not fit are omitted and

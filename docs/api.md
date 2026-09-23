@@ -656,6 +656,7 @@ A drawing region plus the scales that map data into it.
 * `dumbbell(at: 'Sequence', values, *, orient: 'str' = 'v', size: 'float | str | None' = None, colors=None, names: 'Sequence[str] | None' = None, marker: 'str' = 'circle', connector: 'dict | None' = None, **style) -> "'Panel'"` -- Two or more dots per category joined by a line: a dumbbell plot.
 * `lollipop(at: 'Sequence', values: 'Sequence', *, baseline: 'float' = 0.0, orient: 'str' = 'v', size: 'float | str | None' = None, color: 'str | None' = None, marker: 'str' = 'circle', stem: 'dict | None' = None, name: 'str | None' = None, **style) -> "'Panel'"` -- One value per category as a dot on a stem from `baseline`.
 * `ecdf(values: 'Sequence[float]', *, weights: 'Sequence[float] | None' = None, complementary: 'bool' = False, normalize: 'bool' = True, extend: 'bool' = True, name: 'str | None' = None, **style) -> "'Panel'"` -- The empirical cumulative distribution of `values` as a step line.
+* `ridgeline(groups, *, at=None, overlap: 'float' = 1.5, bandwidth: 'float | None' = None, samples: 'int' = 96, scale: 'str' = 'shared', fit: 'bool' = True, colors=None, **style) -> "'Panel'"` -- Overlapping kernel densities, one per category: a ridgeline plot.
 * `label_points(points: 'Iterable[Sequence]', labels: 'Sequence[str]', **kwargs) -> "'Panel'"` -- Label many data points at once, clear of the marks and each other.
 
 #### `row(panels: 'Iterable[Panel | Diagram]', gap: 'float | str | None' = None, align: 'str' = 'center') -> 'Diagram'`

@@ -39,7 +39,7 @@ These were checked and are not gaps:
 | 5 | Radar charts | `PolarPanel.line(interpolate=False)` plus a hand-drawn polygon grid and labels | Done: `PolarPanel.radar`, `PolarPanel.radar_grid` |
 | 6 | Pie and donut charts with labels | `draw.sector` per slice and hand-placed labels | Done: `PolarPanel.pie` |
 | 7 | Pie breakout bar (a slice expanded into a stacked bar) | Compose by hand | Done: `PolarPanel.breakout` |
-| 8 | Ridgeline (stacked density curves) | `fill` per group with offsets | Deferred |
+| 8 | Ridgeline (stacked density curves) | `fill` per group with offsets | Done: `Panel.ridgeline` |
 | 9 | Raincloud (half violin, box and points) | `violin` plus `swarm` with offsets | Deferred |
 | 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Deferred |
 | 11 | UpSet plots | Matrix of dots plus bars, by hand | Deferred |
@@ -93,9 +93,16 @@ back from the bottom, only as far as needed to clear each other. Default part
 colours are shades of the slice colour. Neither the bar nor the connectors
 avoid pie labels placed outside the rim.
 
+**Ridgeline.** Needs a band y scale and a continuous x scale. Each ridge's
+baseline is the lower edge of its category's step, and the density is
+evaluated over the whole x domain with the `violin` bandwidth rule. Ridges
+are drawn top-down with opaque fills. `fit=True` scales all ridges by one
+factor so the top ones stay in the plot area; when the top row holds the
+tallest peak this can reduce the overlap to about one row.
+
 ## Deferred work
 
-- Ridgelines, rainclouds, dendrograms and UpSet plots.
+- Rainclouds, dendrograms and UpSet plots.
 - Breakout bars do not rotate the pie to face the bar; set `zero` and
   `winding` so the chosen slices face it.
 - Leaders for pie labels placed outside the rim.
