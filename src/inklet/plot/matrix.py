@@ -184,6 +184,43 @@ def prepare_matrix(values, *, vector, interpolation, raster, overlap, style):
     return rows, raster, overlap, clip
 
 
+def default_colouring(rows, ramp, scale, center):
+    """The ramp and colour scale a matrix uses when the caller leaves them out.
+
+    Without `scale`, a given `center` or an omitted `ramp` means the scale is
+    taken from the data: its extent, or the extent made symmetric about the
+    centre when the ramp diverges. Without `ramp`, data on both sides of the
+    centre (0 when no `center` is given) get the diverging ramp and everything
+    else the sequential one. An explicit ramp with no scale keeps its old
+    meaning: values are already fractions of the ramp.
+    """
+    from .ramp import default_ramp
+    from .scale import linear
+    if center is not None and scale is not None:
+        raise DiagramError('matrix() takes center= or scale=, not both: '
+                           'a scale already fixes where its middle is')
+    if center is not None:
+        center = float(center)
+        if center != center or center in (float('inf'), float('-inf')):
+            raise DiagramError(f'matrix(center=) must be a finite number, not {center!r}')
+    if scale is None and (ramp is None or center is not None):
+        values = [float(v) for row in rows for v in row if not is_missing(v)]
+        if not values:
+            raise DiagramError('matrix() cannot choose a colour scale: every cell is missing')
+        low, high = min(values), max(values)
+        middle = center if center is not None else (0.0 if ramp is None and low < 0.0 < high else None)
+        if middle is not None:
+            reach = max(abs(low - middle), abs(high - middle)) or 1.0
+            scale = linear((middle - reach, middle + reach))
+        else:
+            scale = linear((low, high if high > low else low + 1.0))
+    if ramp is None:
+        low, high = getattr(scale, 'domain', (0.0, 1.0))
+        middle = 0.0 if center is None else center
+        ramp = default_ramp(center is not None or min(low, high) < middle < max(low, high))
+    return ramp, scale
+
+
 def matrix_layer(rows, ramp, unit, centres_x, centres_y, *,
                  single_x, single_y, scale, interpolation, samples,
                  raster, vector, overlap, missing, style) -> Diagram:

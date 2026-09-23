@@ -40,7 +40,7 @@ from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
 from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
                   legend as make_legend)
 from .matrix import (_RASTER_ABOVE_CELLS, matrix_centres, matrix_layer,
-                     prepare_matrix)
+                     prepare_matrix, default_colouring)
 from .scale import Band, Linear, Log, Scale, linear
 from .metadata import declare_domain as _declare_domain
 from .series import SeriesKey, merge_keys, series_color, swatch_for
@@ -217,8 +217,8 @@ class Panel:
         self._note(name, "marker", node=item.copy())
         return self.draw(draw_place(placed, **style), clip=clip)
 
-    def matrix(self, values: Sequence[Sequence[float]], *, ramp,
-               scale: Scale | None = None,
+    def matrix(self, values: Sequence[Sequence[float]], *, ramp=None,
+               scale: Scale | None = None, center: float | None = None,
                x: Sequence | None = None, y: Sequence | None = None,
                overlap: float | None = None, missing: str | None = None,
                vector: str = "cells",
@@ -243,6 +243,15 @@ class Panel:
         to the ramp. Give it the same scale object you gave the colorbar --
         passing two that merely agree today is how a key ends up describing a
         picture it no longer matches, and no rule can see it.
+
+        **Leave `ramp` out for the defaults.** Data that stay on one side of
+        zero get a sequential ramp (magma, pale yellow for low values to deep
+        purple for high); data on both sides get a diverging blue-white-red
+        ramp with white at zero. `center=` picks the diverging ramp and puts
+        white at that value instead. Without `scale`, the colour scale spans
+        the data, made symmetric about `center` when one is given; the
+        colorbar reads the same scale. With an explicit `ramp` and no `scale`
+        the values are fractions of the ramp, 0 to 1, as before.
 
         **A cell with no measurement is `None` or a NaN, and needs a colour of
         its own.** `missing="#dedede"` paints those cells a tone that is not on
@@ -296,6 +305,7 @@ class Panel:
         rows, raster, overlap, clip = prepare_matrix(
             values, vector=vector, interpolation=interpolation, raster=raster,
             overlap=overlap, style=style)
+        ramp, scale = default_colouring(rows, ramp, scale, center)
         centres_x = self._centres(x, len(rows[0]), self.x, self.width)
         centres_y = self._centres(y, len(rows), self.y, self.height)
         unit = None if scale is None else scale.with_range(0.0, 1.0)

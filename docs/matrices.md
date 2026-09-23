@@ -113,6 +113,51 @@ it. Uniform edge arrays with one more entry than the number of cells are also
 accepted. For uneven sampling, supply centres and review the resulting cell
 boundaries at the final scale.
 
+## Default colour ramps
+
+Omit `ramp=` to use the built-in ramps. `matrix()` chooses one from the data:
+
+- Values on one side of zero use a sequential ramp: matplotlib's magma,
+  reversed, so low values are pale yellow and high values are deep purple.
+  Lightness falls at a steady perceived rate, so equal value steps look equal.
+  The near-black end is omitted so the darkest cells stay distinct from black
+  text and outlines.
+- Values on both sides of zero use Paul Tol's blue-white-red diverging ramp
+  (`tol-burd`), with white at zero.
+- `center=` selects the diverging ramp and puts white at that value.
+
+Without `scale=`, the colour scale spans the data. For a diverging ramp it is
+made symmetric about the centre, so equal distances above and below the centre
+get equally strong colours. `colorbar()` reads the same scale. An explicit
+`scale=` is used as given; if its domain includes zero, the diverging ramp is
+chosen. `center=` and `scale=` cannot be combined.
+
+```python
+import inklet as i
+
+levels = [[0.4, 1.1, 2.3, 3.0], [0.9, 2.2, 3.6, 4.1], [1.5, 2.8, 4.4, 5.2]]
+change = [[-1.8, -0.6, 0.2, 1.4], [-0.9, 0.1, 0.8, 2.1], [-0.2, 0.7, 1.6, 2.6]]
+conditions = ['A', 'B', 'C', 'D']
+runs = ['Run 1', 'Run 2', 'Run 3']
+doc = i.document(width=150, columns=2)
+panels = [('level', levels, 'Level / a.u.'), ('change', change, 'Change / a.u.')]
+for column, (name, values, key) in enumerate(panels):
+    p = i.plot_spec(x=conditions, y=runs, height=30)
+    p.matrix(values, x=conditions, y=runs, raster=False)
+    p.axes(x='Condition', y='Run')
+    p.colorbar(label=key)
+    doc.add(name, p, row=0, column=column)
+doc.save('matrix-default-ramps.svg', 'matrix-default-ramps.pdf')
+```
+
+![Two heatmaps: magma for one-sided values, blue-white-red for values across zero](assets/guides/matrix-default-ramps.png)
+
+*Left: sequential default. Right: diverging default with white at zero.*
+
+An explicit `ramp=` keeps its previous meaning. Without `scale=`, the values
+are read as fractions of the ramp from 0 to 1. Pass `ramp=i.ramp('magma')` or
+`ramp=i.ramp('tol-burd')` to use either palette with your own scale.
+
 ## Choose vector or raster cells
 
 These options change the representation of the matrix layer. Axes, labels and

@@ -677,5 +677,12 @@
     "object": "doc",
     "image": "matrix-samples.png",
     "alt": "Uneven numeric sample centres overlaid on their matrix cells"
+  },
+  {
+    "page": "matrices.md",
+    "block": 4,
+    "object": "doc",
+    "image": "matrix-default-ramps.png",
+    "alt": "Two heatmaps: magma for one-sided values, blue-white-red for values across zero"
   }
 ]
