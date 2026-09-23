@@ -65,7 +65,16 @@ def test_shared_margins_equalize_data_regions_with_letters_and_empty_series(heig
                         region.y0 - cell.y0, cell.y1 - region.y1))
     assert all(min(margin) >= 0 for margin in margins)
     for margin in margins[1:]:
-        assert margin == pytest.approx(margins[0], abs=1e-5)
+        assert margin[:2] == pytest.approx(margins[0][:2], abs=1e-5)
+    if height is None:
+        # Automatic rows share top and bottom furniture along the row only,
+        # so one row's tall labels do not open a gap under every other row.
+        assert margins[1][2:] == pytest.approx(margins[0][2:], abs=1e-5)
+        assert margins[3][2:] == pytest.approx(margins[2][2:], abs=1e-5)
+        assert margins[0][2:] != pytest.approx(margins[2][2:], abs=1e-3)
+    else:
+        for margin in margins[1:]:
+            assert margin == pytest.approx(margins[0], abs=1e-5)
     assert regions['a'].y0 == pytest.approx(regions['b'].y0)
     assert regions['a'].x0 == pytest.approx(regions['c'].x0)
     assert not any(d.code in ('OFF_CANVAS', 'RULE_FAILED') for d in compiled.diagnostics)

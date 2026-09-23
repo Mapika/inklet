@@ -82,9 +82,16 @@ def _natural_sizes(request, context, x_prefix, height, decorate):
                 plots[cell.name] = (plot_area(node).height, *plot_margins(node)[2:])
     if request.share_plot_margins and height is None:
         # Maxima may belong to different plots; retain all of their furniture.
-        tallest = sum(max((v[n] for v in plots.values()), default=0.) for n in range(3))
-        for name in plots:
-            heights[name] = tallest
+        # Top and bottom furniture is shared within a row only: a colorbar
+        # under one bottom panel must not open the same gap under every row.
+        rows = {(c.row, c.rowspan) for c in request.cells if c.name in plots}
+        data = max((v[0] for v in plots.values()), default=0.)
+        for key in rows:
+            members = [c.name for c in request.cells
+                       if c.name in plots and (c.row, c.rowspan) == key]
+            tallest = data + sum(max(plots[m][n] for m in members) for n in (1, 2))
+            for name in members:
+                heights[name] = tallest
     return heights, plots
 
 
@@ -133,7 +140,7 @@ def _measure_cells(request, context, boxes, margins, decorate):
     return nodes, measured
 
 
-def _share_margins(request, measured, margins):
+def _share_margins(request, measured, margins, per_row=False):
     columns, rows = {}, {}
     plots = [cell for cell in request.cells if isinstance(cell.item, PlotSpec)]
     for cell in plots:
@@ -145,17 +152,24 @@ def _share_margins(request, measured, margins):
     shared = (tuple(max((measured[c.name][n] for c in plots), default=0.) for n in range(4))
               if request.share_plot_margins else None)
     for cell in plots:
-        values = shared if shared is not None else (
-            *columns[cell.column, cell.colspan], *rows[cell.row, cell.rowspan])
+        if shared is None:
+            values = (*columns[cell.column, cell.colspan], *rows[cell.row, cell.rowspan])
+        elif per_row:
+            # Equal data areas need equal left/right furniture everywhere, but
+            # only equal top/bottom furniture along a row: each automatic row
+            # track grows by its own furniture around the common data height.
+            values = (*shared[:2], *rows[cell.row, cell.rowspan])
+        else:
+            values = shared
         # Monotonic margins prevent tick-thinning oscillations.
         measured[cell.name] = tuple(max(a, b) for a, b in zip(values, margins[cell.name]))
 
 
 def _grow_natural_heights(request, plots, measured, heights):
     if request.share_plot_margins:
-        required = {name: (max(v[0] for v in plots.values())
-                          + max(measured[n][2] for n in plots)
-                          + max(measured[n][3] for n in plots)) for name in plots}
+        # Measured margins are already shared, per row for automatic heights.
+        tallest = max(v[0] for v in plots.values())
+        required = {name: tallest+measured[name][2]+measured[name][3] for name in plots}
     else:
         required = {name: values[0]+measured[name][2]+measured[name][3]
                     for name, values in plots.items()}
@@ -233,7 +247,7 @@ def layout_document(request: LayoutRequest, context: BuildContext,
     # Tick selection depends on width; grow furniture and tracks to a stable fit.
     for iteration in range(24):
         nodes, measured = _measure_cells(request, context, boxes, margins, decorate)
-        _share_margins(request, measured, margins)
+        _share_margins(request, measured, margins, per_row=height is None)
         if (height is None and natural_plots
                 and _grow_natural_heights(request, natural_plots, measured, natural_heights)):
             heights = _row_tracks(request, rows, natural_heights, None)
