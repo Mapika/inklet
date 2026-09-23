@@ -167,6 +167,7 @@ nav:
     - Spatial marker culling: marker-culling.md
   - Research studies: research-preview.md
   - Compilation contract: design/v2.md
+  - Plot capability gaps: design/capability-gaps.md
 not_in_nav: |
   /v2.md
   /v2.5.md
