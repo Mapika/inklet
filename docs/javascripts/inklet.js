@@ -242,15 +242,29 @@
   const sections = tocLinks.map(link => document.getElementById(decodeURIComponent(link.hash.slice(1)))).filter(Boolean);
   if (sections.length) {
     let frame;
+    const header = document.querySelector('.site-header');
     const update = () => {
       frame = null;
-      const offset = document.querySelector('.site-header').offsetHeight + 40;
+      // The reading line sits a quarter of the way down the area below the
+      // sticky header. The last heading above it is the one nearest the top
+      // of the content, including a heading an anchor jump just scrolled to.
+      const top = header ? header.getBoundingClientRect().bottom : 0;
+      const line = top + Math.max(48, (innerHeight - top) * .25);
       let active = sections[0];
-      for (const target of sections) { if (target.getBoundingClientRect().top - offset <= 0) active = target; else break; }
-      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) active = sections[sections.length - 1];
-      tocLinks.forEach(link => link.classList.toggle('active', decodeURIComponent(link.hash.slice(1)) === active.id));
+      for (const target of sections) { if (target.getBoundingClientRect().top <= line) active = target; else break; }
+      // Sections near the end cannot scroll up to the line. At the bottom of
+      // the page, prefer a linked section that is on screen, else the last one.
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) {
+        const linked = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        const box = linked && sections.includes(linked) && linked.getBoundingClientRect();
+        active = box && box.top >= top && box.bottom <= innerHeight ? linked : sections[sections.length - 1];
+      }
+      tocLinks.forEach(link => link.classList.toggle('active', link.hash && decodeURIComponent(link.hash.slice(1)) === active.id));
     };
-    addEventListener('scroll', () => { if (!frame) frame = requestAnimationFrame(update); }, {passive: true});
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    addEventListener('scroll', schedule, {passive: true});
+    addEventListener('resize', schedule);
+    addEventListener('hashchange', schedule);
     update();
   }
 })();
