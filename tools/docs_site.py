@@ -154,14 +154,24 @@ def current_thumbnails():
     return current
 
 
+def docs_version():
+    version = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
+    return version.replace('.0.dev', ' dev ')
+
+
+def on_template_context(context, template_name, config):
+    """Give static templates such as 404.html the header's version chip."""
+    context['docs_version'] = docs_version()
+    return context
+
+
 def on_page_context(context, page, config, nav):
     if 'docs_thumbs' not in config['extra']:
         config['extra']['docs_thumbs'] = current_thumbnails()
     context['docs_thumbs'] = config['extra']['docs_thumbs']
     context['docs_gallery'] = json.loads((ROOT/'tools/docs_gallery.json').read_text())
     context['docs_plots'] = json.loads((ROOT/'tools/plot_catalog.json').read_text())
-    version = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
-    context['docs_version'] = version.replace('.0.dev', ' dev ')
+    context['docs_version'] = docs_version()
     if page.meta.get('layout') == 'home':
         context['home_example'] = home_example()
     headings = list(page.toc)

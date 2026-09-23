@@ -150,6 +150,8 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert examples_html.count('srcset="../assets/thumbs/') == len(gallery)
     assert f'data-lightbox="../{gallery[0]["image"]}"' in examples_html
     assert 'srcset="assets/thumbs/' in (site/'index.html').read_text()
+    # Static templates such as the 404 page show the same version chip.
+    assert 'class="version"' in (site/'404.html').read_text()
 
     plots = json.loads((ROOT/'tools/plot_catalog.json').read_text())
     plot_page = site/'plot-types/index.html'
