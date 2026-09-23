@@ -1637,6 +1637,32 @@ class Panel:
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
         return self.draw(polyline(self.map(points), **style), clip=clip)
 
+    def label_points(self, points: Iterable[Sequence], labels: Sequence[str],
+                     **kwargs) -> "Panel":
+        """Label many data points at once, clear of the marks and each other.
+
+        `points` are data coordinates and `labels` one string per point.
+        Each label goes to the nearest free position around its point; a
+        label that had to move further out gets a hairline leader back to
+        the point. Draw the marks first and call this last: it avoids what
+        the panel holds at the time of the call.
+
+            p.scatter(cloud, color=TH.muted)
+            p.label_points(hits, names)
+
+        Keywords: `size` (type size, mm), `clear` (the smallest gap between a
+        point and its label, mm), `reach` (how far out a label may go, mm),
+        `leader=False` to never draw leaders, `markup`, `avoid=` (more
+        diagrams to keep clear of), `leader_style=` and any text style such
+        as `fill=`. The placement is deterministic. A label that could not be
+        placed without overlap is still drawn at its best position and listed
+        in the node's `point_labels` note under `unresolved`. See
+        `plot.point_labels`.
+        """
+        from .point_labels import label_points as _label_points
+
+        node = _label_points(self, list(points), labels, **kwargs)
+        return self.over(node, clip=False)
 
 
 def _mappable(scale, value) -> bool:
