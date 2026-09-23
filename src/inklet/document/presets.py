@@ -211,7 +211,9 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
     family = name.split('.')[0]
     base = get_theme('nature')
     palette = ('#0072b2', '#d55e00', '#009e73', '#cc79a7', '#e69f00', '#56b4e9')
-    font, small, title, stroke, radius = 8., 7., 9., .18, .8
+    # 7 pt names over 6 pt ticks and keys: the working sizes of a printed
+    # journal page, a step apart so the hierarchy survives reduction.
+    font, small, title, stroke, radius = 7., 6., 9., .18, .8
     grid, letters, margin, gap = 'none', 'bold-lower', 4., 6.
     min_font = 6.
     sources = ()

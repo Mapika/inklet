@@ -1110,7 +1110,11 @@ class Panel:
                            markup=markup, order=order, col_gap=col_gap, row_gap=row_gap, **style)
         gap = theme.gap("s") if pad is None else mm(pad)
         if side is not None:
-            self._over.append(self._beside(node, side, gap))
+            # Outside the plot the key is measured against the furniture's
+            # line boxes, which already carry the type's leading; a further
+            # 's' step parted it from the axis name it explains.
+            beside_gap = theme.gap("xs") if pad is None else gap
+            self._over.append(self._beside(node, side, beside_gap))
             return self._touched()
         if plate is None:
             plate = True
@@ -1169,6 +1173,9 @@ class Panel:
             bar, scale=self._scale_domain if scale is None else scale,
             side=side, length=span, **kwargs))
         gap = theme.gap("s") if pad is None else mm(pad)
+        if corner is None and pad is None:
+            # Beside the panel, like an outside legend: close to the furniture.
+            gap = theme.gap("xs")
         if title is not None:
             from ..layout import vstack
             node=vstack([text_node(title,mm(kwargs.get('tick_font_size') or theme.font_size_small),'label',

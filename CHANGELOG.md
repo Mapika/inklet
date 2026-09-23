@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Tighten default plot presentation toward journal figure pages. With
+  `share_plot_margins=True` and an automatic height, top and bottom furniture
+  is now shared along each row instead of across the whole grid, so a legend or
+  colorbar under one row no longer adds the same space under every row; data
+  areas stay equal. `scientific.general` (and `scientific.science`/`cell`) use
+  7 pt text with 6 pt ticks and keys (was 8/7 pt). Ticks are 0.45 of the type
+  size (was 0.55) and axis names sit 0.4 type sizes beyond the tick labels
+  (was 0.5). Outside legends and colorbars sit one `xs` step from the
+  furniture (was `s`), and colorbars are one type size thick (was 1.4).
+  Bold panel letters are now shaped and embedded with the bold face; they
+  previously exported the regular face under `font-weight="bold"`.
+  Visual baselines, `gallery/plots.png`, `gallery/general-plots.png` and the
+  general-plots SVG/PDF downloads are regenerated for the new defaults.
+
 - Replace figurative prose in guides, captions, the cookbook and generated API
   descriptions with direct technical explanations. Document the writing guidance.
 
