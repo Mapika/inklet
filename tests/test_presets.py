@@ -162,7 +162,8 @@ def test_values_are_immutable_and_bad_changes_are_atomic():
 @pytest.mark.parametrize('options', [dict(width=0), dict(height=float('nan')), dict(gap=-1),
     dict(margin=1000), dict(font_pt=0), dict(title_font_pt=-1), dict(dpi=float('inf')),
     dict(palette=[]), dict(accent='not a colour'), dict(grid='diagonal'),
-    dict(tick_count=True), dict(legend_side='inside'), dict(font_family=''),
+    dict(tick_count=True), dict(legend_side='middle'), dict(font_family=''),
+    dict(letter_pad=-1),
     dict(radius=-1), dict(line_height=0)])
 def test_invalid_overrides_fail_at_selection(options):
     with pytest.raises((TypeError, ValueError)): i.preset(**options)
@@ -216,3 +217,60 @@ def test_bar_defaults_follow_brand_and_keep_explicit_colours_and_matching_keys()
     assert '#552299' in compiled.to_svg() and '#a12b35' in compiled.to_svg()
     assert not any(d.code == 'KEY_MISMATCH' for d in compiled.diagnostics)
     assert 'fill' not in auto._steps[0][3]
+
+
+def test_cell_preset_sets_dense_page_defaults():
+    dense = i.preset('scientific.cell')
+    theme = dense.theme
+    assert theme.font_size == pytest.approx(i.pt(6))
+    assert theme.font_size_small == pytest.approx(i.pt(5))
+    assert theme.stroke == pytest.approx(i.pt(.4))
+    assert theme.hairline == pytest.approx(.088)
+    assert dense.publication.min_font_pt == 5
+    assert dense.publication.min_stroke_mm == pytest.approx(.088)
+    assert (dense.margin, dense.gap, dense.letter_pad) == (2, 3.5, .5)
+    assert dense.plot.legend_side == 'inside' and dense.plot.tick_count == 4
+    assert dense.letter_style == 'bold-upper'
+    assert theme.gap('s') < i.preset('scientific.general').theme.gap('s')
+    assert theme.palette[:4] == ('#4677b0', '#e0a526', '#c2449c', '#8f8f8f')
+    # Other presets keep the 0.1 mm stroke floor and the default letter offset.
+    assert i.preset('scientific.general').publication.min_stroke_mm == .1
+    assert i.preset('scientific.general').letter_pad is None
+    assert dense.customize(letter_pad=1).letter_pad == 1
+
+
+def _legend_and_area(panel):
+    from inklet.document.spec import _inside_legend
+    _inside_legend(panel, {})
+    built = panel.build()
+    legend = next(p for p in i.resolve(built).values() if p.diagram.kind == 'legend')
+    return legend.bbox, i.plot_area(built)
+
+
+def test_inside_legends_use_clear_data_space_or_move_above():
+    sparse = i.panel(40, 30, x=(0, 1), y=(0, 1)).line([(0, 0), (1, .2)], name='low')
+    box, area = _legend_and_area(sparse)
+    assert area.x0 <= box.x0 and box.x1 <= area.x1 and area.y0 <= box.y0 and box.y1 <= area.y1
+    full = i.panel(20, 8, x=(0, 1), y=(0, 1)).bars(
+        [.1, .3, .5, .7, .9], [1] * 5, width=.2, names=['filled'])
+    box, area = _legend_and_area(full)
+    assert box.y1 <= area.y0 + 1e-6
+
+
+def test_cell_preset_compiles_a_legend_without_findings():
+    doc = i.preset('scientific.cell').document().letters()
+    doc.add('plot', chart())
+    compiled = doc.compile()
+    assert not compiled.diagnostics
+
+
+def test_letter_pad_moves_panel_letters_closer():
+    def clearance(style):
+        doc = style.document().letters()
+        doc.add('plot', chart())
+        placed = [p for p in doc.compile().build()[1].values() if p.diagram.prim is not None]
+        letter = next(p.bbox for p in placed if isinstance(p.diagram.prim, TextPrim)
+                      and p.diagram.prim.text == 'A')
+        return min(p.bbox.x0 for p in placed if p.bbox.x0 > letter.x1) - letter.x1
+    near = i.preset('scientific.cell')
+    assert clearance(near.customize(letter_pad=3)) == pytest.approx(clearance(near) + 2.5, abs=.05)

@@ -36,8 +36,8 @@ class PlotDefaults:
     def __post_init__(self):
         if self.grid not in ('none', 'x', 'y', 'both'):
             raise ValueError('grid must be none, x, y or both')
-        if self.legend_side not in ('bottom', 'top', 'left', 'right'):
-            raise ValueError('legend_side must be bottom, top, left or right')
+        if self.legend_side not in ('bottom', 'top', 'left', 'right', 'inside'):
+            raise ValueError('legend_side must be bottom, top, left, right or inside')
         if isinstance(self.tick_count, bool) or not isinstance(self.tick_count, int) or self.tick_count < 2:
             raise ValueError('tick_count must be an integer >= 2')
         if self.bar_fill not in ('neutral', 'accent'):
@@ -71,6 +71,7 @@ class Preset:
     gap: float = 6
     letter_style: str = 'bold-lower'
     sources: tuple[GuidelineSource, ...] = ()
+    letter_pad: float | None = None
 
     def __post_init__(self):
         if not isinstance(self.format, FigureFormat): raise TypeError('format must be a FigureFormat')
@@ -78,6 +79,8 @@ class Preset:
         if not isinstance(self.plot, PlotDefaults): raise TypeError('plot must be PlotDefaults')
         for field in ('margin', 'gap'):
             object.__setattr__(self, field, length(getattr(self, field), field, zero=True))
+        if self.letter_pad is not None:
+            object.__setattr__(self, 'letter_pad', length(self.letter_pad, 'letter_pad', zero=True))
         if 2*self.margin >= self.format.width:
             raise ValueError('preset margins leave no page width')
         if self.format.height is not None and 2*self.margin >= self.format.height:
@@ -106,7 +109,7 @@ class Preset:
         profile_fields = {'font_pt', 'small_font_pt', 'title_font_pt', 'stroke_mm',
                           'min_font_pt', 'min_stroke_mm', 'min_dpi', 'dpi', 'text',
                           'max_font_pt', 'max_height_mm'}
-        other_fields = {'width', 'height', 'margin', 'gap', 'letter_style',
+        other_fields = {'width', 'height', 'margin', 'gap', 'letter_style', 'letter_pad',
                         'grid', 'legend_side', 'tick_count', 'bar_fill'}
         unknown = set(options) - theme_fields - profile_fields - other_fields
         if unknown: raise TypeError(f'unknown preset options: {", ".join(sorted(unknown))}')
@@ -132,7 +135,7 @@ class Preset:
                           **{k: v for k, v in options.items() if k in profile_fields})
         return replace(self, format=physical, publication=profile,
                        plot=replace(self.plot, **{k: options[k] for k in ('grid', 'legend_side', 'tick_count', 'bar_fill') if k in options}),
-                       **{k: options[k] for k in ('margin', 'gap', 'letter_style') if k in options})
+                       **{k: options[k] for k in ('margin', 'gap', 'letter_style', 'letter_pad') if k in options})
 
     def document(self, **options):
         """Create a live document, retaining explicit page overrides on preset switches."""
@@ -166,7 +169,7 @@ _STYLES = {
     'scientific.general': ('double-column', 'Compact figures for papers and technical reports.'),
     'scientific.nature': ('double-column', 'Nature main-figure typography and column widths.'),
     'scientific.science': ('double-column', 'Scientific authoring style; Science guidance review pending.'),
-    'scientific.cell': ('double-column', 'Scientific authoring style; Cell guidance review pending.'),
+    'scientific.cell': ('double-column', 'Dense multi-panel pages with 6/5 pt type and hairline strokes; Cell guidance review pending.'),
     'educational.textbook': ('report', 'Readable labels and light horizontal guides for printed explanations.'),
     'educational.classroom': ('slide', 'Large projected labels and grids for teaching.'),
     'educational.worksheet': ('a4', 'Monochrome figures and grids for printed exercises.'),
@@ -215,9 +218,10 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
     # journal page, a step apart so the hierarchy survives reduction.
     font, small, title, stroke, radius = 7., 6., 9., .18, .8
     grid, letters, margin, gap = 'none', 'bold-lower', 4., 6.
-    min_font = 6.
+    min_font, min_stroke = 6., .1
     sources = ()
     max_font, max_height = None, None
+    legend, ticks, letter_pad, spacing = 'bottom', 5, None, 1.
     if family == 'educational':
         font, small, title, stroke, radius = 10., 9., 13., .25, 1.5
         grid, letters, margin, gap, min_font = 'y', 'paren', 6., 8., 8.
@@ -246,6 +250,20 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
     elif name in ('scientific.science', 'scientific.cell'):
         journal = name.split('.')[1]
         letters = 'bold-upper'
+        if journal == 'cell':
+            # A dense page: many small panels at 174-183 mm. Names are 6 pt over
+            # 5 pt ticks, the smallest pair that stays a step apart above a
+            # 5 pt floor. Axes are 0.4 pt and the hairline is 0.25 pt, the
+            # thinnest rule that survives printing (HAIRLINE_FLOOR), so the
+            # stroke check uses that floor instead of the general 0.1 mm.
+            font, small, title, stroke, radius = 6., 5., 8., pt(.4), .5
+            min_font, min_stroke = 5., .088
+            margin, gap, letter_pad, spacing = 2., 3.5, .5, .8
+            legend, ticks = 'inside', 4
+            # Muted blue, amber, magenta and grey carry most encodings; green
+            # and a dark ink cover a fifth and sixth group. White and ink labels
+            # on the blue and magenta both clear 4.5:1 in one of the two.
+            palette = ('#4677b0', '#e0a526', '#c2449c', '#8f8f8f', '#5a9a4f', '#2e2e2e')
         sources = (GuidelineSource(
             'Science author instructions' if journal == 'science' else 'Cell figure guidelines',
             'https://www.science.org/content/page/instructions-preparing-initial-manuscript' if journal == 'science'
@@ -257,16 +275,18 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
                    font_family='Arial, Helvetica, Liberation Sans, DejaVu Sans, sans-serif',
                    font_mono='DejaVu Sans Mono, monospace',
                    font_size=pt(font), font_size_small=pt(small), font_size_large=pt(title),
-                   stroke=stroke, hairline=max(.1, stroke*.6), thick=stroke*2,
+                   stroke=stroke, hairline=max(min_stroke, stroke*.6), thick=stroke*2,
                    radius=radius, arrow_size=1.6 if family == 'scientific' else 2.2,
-                   space=tuple(v*(1 if family == 'scientific' else 1.3) for v in base.space),
+                   space=tuple(v*(spacing if family == 'scientific' else 1.3) for v in base.space),
                    muted='#525a65', grid='#dedee3').scaled(factor)
     profile = PublicationProfile(name, chosen.width, font*factor, small*factor,
-                                 stroke*factor, min_font*factor, .1*factor,
+                                 stroke*factor, min_font*factor, min_stroke*factor,
                                  min_dpi=150 if chosen.name == 'slide' else 300,
                                  dpi=150 if chosen.name == 'slide' else 300,
                                  base_theme=base, title_font_pt=title*factor,
                                  max_font_pt=max_font, max_height_mm=max_height)
     bar_fill = 'accent' if family in ('educational', 'marketing') and not name.endswith('worksheet') else 'neutral'
-    return Preset(name, description, chosen, profile, PlotDefaults(grid, bar_fill=bar_fill),
-                  margin*factor, gap*factor, letters, sources).customize(**overrides)
+    return Preset(name, description, chosen, profile,
+                  PlotDefaults(grid, legend, ticks, bar_fill=bar_fill),
+                  margin*factor, gap*factor, letters, sources,
+                  None if letter_pad is None else letter_pad*factor).customize(**overrides)

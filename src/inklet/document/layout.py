@@ -55,6 +55,8 @@ def _decorator(request, context):
         options = dict(request.letters)
         if context.preset is not None:
             options.setdefault('style', context.preset.letter_style)
+            if context.preset.letter_pad is not None:
+                options.setdefault('pad', context.preset.letter_pad)
         start = chr(ord(options.pop('start')) + indices[cell.name])
         with themed(context.theme):
             tagged = letters([node], start=start, **options)[0]
