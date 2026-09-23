@@ -365,7 +365,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "matrices.md",
-    "block": 4
+    "block": 5
   },
   {
     "title": "Polar curves",
