@@ -199,6 +199,41 @@ doc.save('stackarea.svg', 'stackarea.pdf')
 
 *Illustrative grid, wind and solar power over one day. The total height is their sum; the colour mapping matches the stacked-bar example.*
 
+## Bar value labels
+
+`labels=` writes each value on its bar. `True` writes the number; a format
+string such as `"{:.0f}%"`, a function or a list of strings in the shape of
+the heights sets the text. With the default `label_position="auto"` a label
+goes inside its bar when it fits and past the end of the bar when it does
+not. Inside labels are set in the ink or paper colour, whichever has more
+contrast with the bar.
+
+In a stacked bar only the last segment has a free end. A segment label that
+does not fit inside its segment is left out, not shrunk; the omitted labels
+are listed in the label node's `bar_labels` note.
+
+```python
+import inklet as i
+
+cells = ['79', '81', '102', '116', '153', '186']
+specific = [43, 18, 51, 40, 26, 9]
+shared = [0, 7, 1, 6, 7, 3]
+common = [0, 1, 0, 3, 3, 1]
+p = i.plot_spec(x=(0, 70), y=cells, height=44)
+p.bars(cells, [specific, shared, common], stacked=True, orient='h',
+       width=.7, colors=['#668fb8', '#e6b93f', '#b9b8b4'],
+       names=['Specific', 'Shared', 'Common'], labels=True, stroke='none')
+p.axes(x='Cell types', y='Neuron class').legend(side='top')
+doc = i.document(width=110)
+doc.add('bar-labels', p)
+doc.save('bar-labels.svg', 'bar-labels.pdf')
+```
+
+![Bar value labels: counts written inside each stacked segment.](assets/guides/plots-bar-labels.png)
+
+*Illustrative counts. Segments too short for their count carry no label;
+the last segment of each bar may place its label past the bar end.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

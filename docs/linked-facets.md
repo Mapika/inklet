@@ -79,9 +79,11 @@ Facet figures share measured plot margins, so equal domains also have equal
 physical scales across their panels. Empty panels reserve the same space.
 Ordinary documents can opt into the same fitting rule with
 `document(..., share_plot_margins=True)` or
-`subfigure(..., share_plot_margins=True)`. It reserves the largest plot furniture
-on every plot and combines the tallest natural data region with shared top and
-bottom margins for automatic heights. Equal tracks and unspanned cells give
+`subfigure(..., share_plot_margins=True)`. It reserves the largest left and
+right plot furniture on every plot. With an automatic page height, top and
+bottom furniture is shared along each row, and every row adds its own furniture
+to the tallest natural data region; a legend or colorbar under one row no longer
+adds space under the others. A fixed page height shares all four margins. Equal tracks and unspanned cells give
 equal data areas; unequal track weights, spans or larger cell minimum sizes can
 still produce different areas. Fixed artwork retains its authored size. This
 option is included in the development preview and defaults to `False`.

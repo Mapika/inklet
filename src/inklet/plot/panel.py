@@ -21,7 +21,7 @@ panels whose y labels are different widths.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
 
 from ..core import Diagram, DiagramError, Rect, RectPrim, Vec2, mm
 from ..core.diagram import union_bounds as _union_box
@@ -41,7 +41,7 @@ from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
                   legend as make_legend)
 from .matrix import (_RASTER_ABOVE_CELLS, matrix_centres, matrix_layer,
                      prepare_matrix)
-from .scale import Band, Linear, Scale, linear
+from .scale import Band, Linear, Log, Scale, linear
 from .metadata import declare_domain as _declare_domain
 from .series import SeriesKey, merge_keys, series_color, swatch_for
 from .timescale import dates, is_time_like
@@ -509,6 +509,8 @@ class Panel:
              baseline: float = 0.0, orient: str = "v",
              stacked: bool | None = None, grouped: bool | None = None,
              gap: float = 0.12, colors=None, bar_colors=None, names: Sequence[str] | None = None,
+             labels=None, label_position: str = "auto",
+             label_options: dict | None = None,
              **style) -> "Panel":
         """A rectangle per value, standing on a baseline.
 
@@ -539,6 +541,19 @@ class Panel:
         Unstacked values equal to the baseline draw no rectangle; stacked
         contributions of zero also draw nothing. If every bar has zero length,
         the series remains valid and retains axes and requested legend entries.
+
+        `labels=` writes each value on its bar or segment: `True` for the
+        number, a format such as `"{:.1f}%"`, a callable, or explicit strings
+        in the shape of `heights`. `label_position` is `"auto"` (inside when
+        the label fits with a margin, otherwise past the bar end; for stacked
+        bars a segment label that does not fit is omitted), `"inside"` or
+        `"end"`. Inside labels use the theme ink or paper, whichever contrasts
+        more with the fill. `label_options` takes `size`, `fill`, `markup` and
+        `font_weight`. Labels are never shrunk; omitted labels are listed in
+        the label node's `bar_labels` note.
+
+            p.bars(ids, [specific, dimorphic, isomorphic], stacked=True,
+                   orient="h", labels=True)
         """
         clip = _clip_flag(style)
         if names is not None and bar_colors is not None:
@@ -557,7 +572,26 @@ class Panel:
         if isinstance(bar_colors, CategorySet):
             for label, color in bar_colors.subset(at).legend_entries:
                 self._note(label, "area", fill=color, color=color)
-        return self.draw(*(() if node is None else (node,)), clip=clip)
+        self.draw(*(() if node is None else (node,)), clip=clip)
+        if labels is not None and labels is not False:
+            from .bar_labels import bar_labels
+            count = _marks.series_count(heights)
+            fills = _marks.series_colors(
+                style.get("fill") if colors is None else colors, count)
+            per_bar = None
+            if bar_colors is not None:
+                per_bar = ([bar_colors[a] for a in at]
+                           if isinstance(bar_colors, Mapping)
+                           else _marks._per_point(bar_colors, len(at),
+                                                  "bar_colors"))
+            written = bar_labels(
+                self, at, heights, labels=labels, position=label_position,
+                width=width, baseline=baseline, orient=orient, stacked=stacked,
+                grouped=grouped, gap=gap, fills=fills, bar_fills=per_bar,
+                options=label_options)
+            if written is not None:
+                self.over(written, clip=False)
+        return self
 
     def hist(self, values: Sequence[float], bins: int | Sequence[float] = 10, *,
              range: tuple[float, float] | None = None, density: bool = False,
@@ -1110,7 +1144,11 @@ class Panel:
                            markup=markup, order=order, col_gap=col_gap, row_gap=row_gap, **style)
         gap = theme.gap("s") if pad is None else mm(pad)
         if side is not None:
-            self._over.append(self._beside(node, side, gap))
+            # Outside the plot the key is measured against the furniture's
+            # line boxes, which already carry the type's leading; a further
+            # 's' step parted it from the axis name it explains.
+            beside_gap = theme.gap("xs") if pad is None else gap
+            self._over.append(self._beside(node, side, beside_gap))
             return self._touched()
         if plate is None:
             plate = True
@@ -1169,6 +1207,9 @@ class Panel:
             bar, scale=self._scale_domain if scale is None else scale,
             side=side, length=span, **kwargs))
         gap = theme.gap("s") if pad is None else mm(pad)
+        if corner is None and pad is None:
+            # Beside the panel, like an outside legend: close to the furniture.
+            gap = theme.gap("xs")
         if title is not None:
             from ..layout import vstack
             node=vstack([text_node(title,mm(kwargs.get('tick_font_size') or theme.font_size_small),'label',
@@ -1490,6 +1531,152 @@ class Panel:
             self, groups, at=at, width=width, max_width=max_width,
             orient=orient, size=size, gap=gap, marker=marker, hollow=hollow,
             colors=colors, **style), clip=clip)
+
+    def dumbbell(self, at: Sequence, values, *, orient: str = "v",
+                 size: float | str | None = None, colors=None,
+                 names: Sequence[str] | None = None, marker: str = "circle",
+                 connector: dict | None = None, **style) -> "Panel":
+        """Two or more dots per category joined by a line: a dumbbell plot.
+
+        `values` holds one sequence per series, each with one value per
+        position in `at`, the same shape `bars` takes for grouped bars. The
+        dots of one category share its centre on the band scale, and a line
+        runs from the smallest to the largest value present. `None` or NaN is
+        a missing value: that dot is not drawn, and a category with only one
+        value has no line.
+
+            p.dumbbell(genes, [before, after], names=["before", "after"],
+                       orient="h")
+
+        `size` is the dot diameter in millimetres (default: the scatter
+        marker). `colors=` sets one colour per series; the default is the
+        theme palette. `connector=` overrides the line's style, which by
+        default is a light grey at the theme's thick stroke. `names=` adds one
+        marker entry per series to `legend()`.
+        """
+        from .paired import dumbbell as _dumbbell
+
+        clip = _clip_flag(style)
+        node, fills = _dumbbell(self, at, values, orient=orient, size=size,
+                                colors=colors, marker=marker,
+                                connector=connector, **style)
+        if names is not None:
+            if len(names) != len(fills):
+                raise DiagramError(
+                    f"names= has {len(names)} names for {len(fills)} series")
+            for name, fill in zip(names, fills):
+                self._note(name, "marker", color=fill, marker=marker)
+        return self.draw(node, clip=clip)
+
+    def lollipop(self, at: Sequence, values: Sequence, *, baseline: float = 0.0,
+                 orient: str = "v", size: float | str | None = None,
+                 color: str | None = None, marker: str = "circle",
+                 stem: dict | None = None, name: str | None = None,
+                 **style) -> "Panel":
+        """One value per category as a dot on a stem from `baseline`.
+
+        A lighter alternative to a bar chart when there are many categories
+        and the value, not the area, is what the reader compares. Positions
+        come from the band scale, as for `bars`. `None` or NaN draws nothing
+        for that category.
+
+            p.lollipop(pathways, scores, orient="h", color=TH.color(1))
+
+        `stem=` overrides the stem's style (default: the dot colour at the
+        theme stroke width). `name=` adds a marker entry to `legend()`.
+        """
+        from .paired import lollipop as _lollipop
+
+        clip = _clip_flag(style)
+        color = self._series_color(name, color)
+        node, ink = _lollipop(self, at, values, baseline=baseline,
+                              orient=orient, size=size, color=color,
+                              marker=marker, stem=stem, **style)
+        self._note(name, "marker", color=ink, marker=marker)
+        return self.draw(node, clip=clip)
+
+    def ecdf(self, values: Sequence[float], *, weights: Sequence[float] | None = None,
+             complementary: bool = False, normalize: bool = True,
+             extend: bool = True, name: str | None = None,
+             **style) -> "Panel":
+        """The empirical cumulative distribution of `values` as a step line.
+
+        Each distinct value raises the curve by the share of observations
+        equal to it, so the curve reads "fraction of observations at or below
+        x". `complementary=True` draws the share strictly above x instead
+        (the survival curve), which is the form a heavy tail is read from on
+        a log y axis. `weights=` weights each observation, and
+        `normalize=False` plots counts (or weight sums) instead of fractions.
+
+            p.ecdf(control, name="control")
+            p.ecdf(treated, name="treated")
+
+        `extend=True` runs the curve flat to both ends of a continuous x
+        axis. On a log axis, points that cannot be mapped (zero or negative)
+        are left out. `name=` adds a line entry to `legend()`.
+        `inklet.plot.ecdf(values)` returns the steps without drawing them.
+        """
+        from .cumulative import ecdf as _ecdf, staircase
+
+        values = list(values)
+        weights = None if weights is None else list(weights)
+        clip = _clip_flag(style)
+        xs, ys = _ecdf(values, weights=weights, complementary=complementary,
+                       normalize=normalize)
+        # The level before the first step: nothing for the ECDF, everything
+        # (the last cumulative value) for its complement.
+        start = (_ecdf(values, weights=weights, normalize=normalize)[1][-1]
+                 if complementary else 0.0)
+        low = high = None
+        domain = getattr(self.x, "domain", None)
+        if (extend and not isinstance(self.x, Band) and domain is not None
+                and all(isinstance(v, (int, float)) for v in domain)):
+            low, high = min(domain), max(domain)
+        points = staircase(xs, ys, start=start, low=low, high=high)
+        points = [p for p in points
+                  if _mappable(self.x, p[0]) and _mappable(self.y, p[1])]
+        if len(points) < 2:
+            raise DiagramError("ecdf() has fewer than two points this axis can show")
+        stroke = self._series_color(name, style.get("stroke"))
+        if stroke is not None:
+            style["stroke"] = stroke
+        self._note(name, "line", color=style.get("stroke"),
+                   dash=style.get("stroke_dash"), width=style.get("stroke_width"))
+        return self.draw(polyline(self.map(points), **style), clip=clip)
+
+    def label_points(self, points: Iterable[Sequence], labels: Sequence[str],
+                     **kwargs) -> "Panel":
+        """Label many data points at once, clear of the marks and each other.
+
+        `points` are data coordinates and `labels` one string per point.
+        Each label goes to the nearest free position around its point; a
+        label that had to move further out gets a hairline leader back to
+        the point. Draw the marks first and call this last: it avoids what
+        the panel holds at the time of the call.
+
+            p.scatter(cloud, color=TH.muted)
+            p.label_points(hits, names)
+
+        Keywords: `size` (type size, mm), `clear` (the smallest gap between a
+        point and its label, mm), `reach` (how far out a label may go, mm),
+        `leader=False` to never draw leaders, `markup`, `avoid=` (more
+        diagrams to keep clear of), `leader_style=` and any text style such
+        as `fill=`. The placement is deterministic. A label that could not be
+        placed without overlap is still drawn at its best position and listed
+        in the node's `point_labels` note under `unresolved`. See
+        `plot.point_labels`.
+        """
+        from .point_labels import label_points as _label_points
+
+        node = _label_points(self, list(points), labels, **kwargs)
+        return self.over(node, clip=False)
+
+
+def _mappable(scale, value) -> bool:
+    """False for a value a log scale cannot place (zero or negative)."""
+    if isinstance(scale, Log):
+        return value > 0
+    return True
 
 
 def panel(width: float | str, height: float | str, *, x=None, y=None,

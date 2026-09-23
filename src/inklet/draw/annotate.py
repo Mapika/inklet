@@ -761,6 +761,15 @@ def _letter_node(content: str, style: str, size: float | str | None,
                             "font_size": (theme.font_size_large if size is None
                                           else mm(size)),
                             "font_weight": weight, **text_style})
+    # Shape with the face the style asks for. A letter measured in the regular
+    # file carries that file into the export, and the embedded subset then
+    # serves every weight, so `font_weight="bold"` drew a regular "a".
+    shaped = text_style.get("font_weight", weight)
+    if shaped not in (None, "normal", "regular"):
+        node = Diagram(prim=shape(content, font=theme.font_family,
+                                  size=node.prim.font_size, weight=str(shaped),
+                                  align="center", line_height=theme.line_height),
+                       style=node.style)
     return Diagram(prim=node.prim, kind=LETTER_KIND,
                    style=node.style)
 

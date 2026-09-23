@@ -1096,6 +1096,108 @@ class PolarPanel:
         return self.draw(draw_place(wedges, origin=(0, 0)),
                          clip=_clip_flag(style))
 
+    def radar(self, values: Sequence[float], *, name: str | None = None,
+              color: str | None = None, fill: bool = True,
+              markers: bool = True, size: float | str | None = None,
+              **style) -> "PolarPanel":
+        """One series of a radar chart: a closed polygon with a value per spoke.
+
+        `values` has one r value per category. The spokes are equally spaced
+        round the turn, the first at the start of the theta domain, so every
+        series drawn on the panel with the same number of values shares them.
+        The polygon's edges are straight chords, because between two
+        categories there is no value to interpolate.
+
+            p = inklet.polar(18, r=(0, 1), zero="up", winding="cw")
+            p.radar_grid(["speed", "accuracy", "recall", "depth", "range"])
+            p.radar(model_a, name="model A").radar(model_b, name="model B")
+
+        `fill=True` shades the polygon at a low opacity so overlapping series
+        stay readable; `markers=True` puts a dot on each vertex, `size` in mm.
+        The colour follows the same rule as `line`: `color=`, or the next
+        palette colour for a new `name=`. Needs a whole-turn panel.
+        """
+        from .wheel import radar as _radar
+
+        clip = _clip_flag(style)
+        color = self._series_color(name, color)
+        node = _radar(self, values, color=color, fill=fill, markers=markers,
+                      size=size, **style)
+        ink = color or active_theme().ink
+        self._note(name, "line", color=ink)
+        if markers:
+            self._note(name, "marker", color=ink, marker="circle")
+        return self.draw(node, clip=clip)
+
+    def radar_grid(self, categories: Sequence[str], *, rings=None,
+                   shape: str = "polygon", labels: bool = True,
+                   values: bool = False, **style) -> "PolarPanel":
+        """The rings, spokes and category names of a radar chart.
+
+        One spoke per category, at the angles `radar` uses. Rings are drawn at
+        the r ticks (or at `rings=`, a count or a sequence of r values) plus
+        the end of the r domain, as polygons by default so that they run
+        parallel to the data's edges; `shape="circle"` draws circles. The
+        category names are written outside the rim, each pushed out along its
+        own spoke. `values=True` writes each ring's r value beside the first
+        spoke. Those numbers sit inside the data region, so they collide
+        with the polygons of most data; they are off by default, and the
+        scale is better stated in the legend or the axis note (for example
+        "rings at 0.2 steps").
+        """
+        from .wheel import radar_grid as _radar_grid
+
+        lines, node, ring = _radar_grid(self, categories, rings=rings,
+                                        shape=shape, labels=labels, values=values,
+                                        **style)
+        self._under.extend(as_drawn(line) for line in lines)
+        from .wheel import radar_spokes
+        self._spokes = [self.angle(t) for t in radar_spokes(self, len(categories))]
+        if node is not None:
+            self._over.append(as_drawn(node))
+            self._ring = ring
+        return self._touched()
+
+    def pie(self, values: Sequence[float], *, names: Sequence[str] | None = None,
+            colors=None, labels="percent", label_options: dict | None = None,
+            separator: bool = True, **style) -> "PolarPanel":
+        """A pie chart, or a donut on a panel made with `hole=`.
+
+        Each value gets a sector from the hole to the rim spanning its share
+        of the turn, in order from the start of the theta domain in the
+        panel's winding. `inklet.polar(16, zero="up", winding="cw")` starts at
+        twelve o'clock and runs clockwise.
+
+            p = inklet.polar(14, hole=7, zero="up", winding="cw")
+            p.pie([54, 28, 18], names=["neurons", "glia", "other"])
+
+        `labels=` is `"percent"` (default), `"value"`, `None`, a format such
+        as `"{share:.1%}"` (the value is `{}`, its fraction is `share`), a
+        callable taking `(value, share)`, or one string per slice. A label is
+        set inside its slice when it fits with a margin, in ink or paper
+        against the slice colour; otherwise it goes outside the rim. The
+        node's `pie_labels` note lists which went where. `label_options`
+        takes `size`, `fill`, `markup` and `font_weight`.
+
+        `colors=` gives one colour per slice (default: the theme palette).
+        `separator=True` draws a thin paper-coloured line between slices.
+        `names=` adds one area entry per slice to `legend()`. Needs a
+        whole-turn panel.
+        """
+        from .wheel import pie as _pie
+
+        clip = _clip_flag(style)
+        node, fills, _ = _pie(self, values, colors=colors, labels=labels,
+                              label_options=label_options,
+                              separator=separator, **style)
+        if names is not None:
+            if len(names) != len(fills):
+                raise DiagramError(
+                    f"names= has {len(names)} names for {len(fills)} slices")
+            for label, fill in zip(names, fills):
+                self._note(label, "area", fill=fill, color=fill)
+        return self.draw(node, clip=clip)
+
     def mean_vector(self, angles: Sequence[float],
                     weights: Sequence[float] | None = None, *,
                     r: float | None = None, order: int = 1,

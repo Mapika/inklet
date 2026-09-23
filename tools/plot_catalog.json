@@ -43,6 +43,49 @@
     "block": 3
   },
   {
+    "title": "Dumbbells",
+    "description": "Two or more values per category joined by a connector.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#dumbbells",
+    "image": "assets/guides/plots-dumbbell.png",
+    "methods": [
+      "Panel.dumbbell"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 5
+  },
+  {
+    "title": "Lollipops",
+    "description": "One value per category as a dot on a stem from a baseline.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#lollipops",
+    "image": "assets/guides/plots-lollipop.png",
+    "methods": [
+      "Panel.lollipop"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 6
+  },
+  {
+    "title": "Labelled points",
+    "description": "Many point labels placed clear of marks, with leaders where needed.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#labelled-points",
+    "image": "assets/guides/plots-labelled-points.png",
+    "methods": [
+      "Panel.scatter",
+      "Panel.label_points"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 7
+  },
+  {
     "title": "Grouped bars",
     "description": "Grouped bars compare several series within each category.",
     "category": "Bars and areas",
@@ -127,6 +170,20 @@
     "block": 7
   },
   {
+    "title": "Bar value labels",
+    "description": "Values written inside bars and stacked segments, or past the bar end.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#bar-value-labels",
+    "image": "assets/guides/plots-bar-labels.png",
+    "methods": [
+      "Panel.bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 8
+  },
+  {
     "title": "Histograms",
     "description": "Ninety-six durations in explicit half-second bins.",
     "category": "Distributions",
@@ -181,6 +238,20 @@
     "requires": "Core only",
     "source": "distributions.md",
     "block": 4
+  },
+  {
+    "title": "Cumulative distributions",
+    "description": "Empirical cumulative distributions drawn as step lines.",
+    "category": "Distributions",
+    "page": "distributions/#cumulative-distributions",
+    "image": "assets/guides/plots-ecdf.png",
+    "methods": [
+      "Panel.ecdf"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 5
   },
   {
     "title": "Bands",
@@ -269,5 +340,34 @@
     "requires": "Core only",
     "source": "polar-plots.md",
     "block": 2
+  },
+  {
+    "title": "Radar charts",
+    "description": "One closed polygon per series over equally spaced category spokes.",
+    "category": "Polar",
+    "page": "polar-plots/#radar-charts",
+    "image": "assets/guides/plots-radar.png",
+    "methods": [
+      "PolarPanel.radar_grid",
+      "PolarPanel.radar"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "polar-plots.md",
+    "block": 3
+  },
+  {
+    "title": "Pie and donut charts",
+    "description": "Shares of a whole as sectors, with labels inside or outside.",
+    "category": "Polar",
+    "page": "polar-plots/#pie-and-donut-charts",
+    "image": "assets/guides/plots-pie.png",
+    "methods": [
+      "PolarPanel.pie"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "polar-plots.md",
+    "block": 4
   }
 ]

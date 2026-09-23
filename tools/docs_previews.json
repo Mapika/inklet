@@ -476,6 +476,27 @@
     "alt": "Custom markers"
   },
   {
+    "page": "lines-and-points.md",
+    "block": 5,
+    "object": "doc",
+    "image": "plots-dumbbell.png",
+    "alt": "Dumbbells"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 6,
+    "object": "doc",
+    "image": "plots-lollipop.png",
+    "alt": "Lollipops"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 7,
+    "object": "doc",
+    "image": "plots-labelled-points.png",
+    "alt": "Labelled points"
+  },
+  {
     "page": "bars-and-areas.md",
     "block": 1,
     "object": "doc",
@@ -525,6 +546,13 @@
     "alt": "Stacked areas"
   },
   {
+    "page": "bars-and-areas.md",
+    "block": 8,
+    "object": "doc",
+    "image": "plots-bar-labels.png",
+    "alt": "Bar value labels"
+  },
+  {
     "page": "distributions.md",
     "block": 1,
     "object": "doc",
@@ -551,6 +579,13 @@
     "object": "doc",
     "image": "plots-swarm.png",
     "alt": "Swarms"
+  },
+  {
+    "page": "distributions.md",
+    "block": 5,
+    "object": "doc",
+    "image": "plots-ecdf.png",
+    "alt": "Cumulative distributions"
   },
   {
     "page": "uncertainty.md",
@@ -600,6 +635,20 @@
     "object": "fig",
     "image": "plots-rose.png",
     "alt": "Rose plots"
+  },
+  {
+    "page": "polar-plots.md",
+    "block": 3,
+    "object": "fig",
+    "image": "plots-radar.png",
+    "alt": "Radar charts"
+  },
+  {
+    "page": "polar-plots.md",
+    "block": 4,
+    "object": "fig",
+    "image": "plots-pie.png",
+    "alt": "Pie and donut charts"
   },
   {
     "page": "csv-figure.md",

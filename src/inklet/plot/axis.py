@@ -20,8 +20,9 @@ information gone, and gone silently. Enumerated scales therefore keep every
 label and let it collide, because a collision is at least visible, and the
 linter reports it. `thin=` overrides the choice either way.
 
-**Sizes come from the type size, not from millimetres.** A tick is 0.55 of the
-label height, its gap 0.35. Anything else and an axis retuned for a slide deck
+**Sizes come from the type size, not from millimetres.** A tick is 0.45 of the
+type size, its gap 0.35 and the axis name sits 0.4 beyond the numbers; the
+line boxes already carry the leading. Anything else and an axis retuned for a slide deck
 grows its type without growing its furniture.
 """
 
@@ -50,9 +51,9 @@ TICK_KIND = "tick"
 TICK_LABEL_KIND = "tick-label"
 AXIS_LABEL_KIND = "axis-label"
 
-_TICK_OF_TYPE = 0.55
+_TICK_OF_TYPE = 0.45
 _PAD_OF_TYPE = 0.35
-_LABEL_PAD_OF_TYPE = 0.5
+_LABEL_PAD_OF_TYPE = 0.4
 # A minor tick, as a fraction of a major one. Much shorter than a half and the
 # two read as one comb; much longer and the reader starts looking for a number
 # against it.

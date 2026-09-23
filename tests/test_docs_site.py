@@ -178,3 +178,16 @@ def test_plot_catalog_covers_core_families_with_rendered_source():
         assert all(method.split('.')[-1] in calls for method in entry['methods'])
         assert any(row['page'] == entry['source'] and row['block'] == entry['block']
                    and entry['image'] == 'assets/guides/'+row['image'] for row in previews)
+
+
+def test_homepage_example_runs_and_matches_its_published_figure(tmp_path, monkeypatch):
+    """The homepage shows this script beside docs/assets/examples/quickstart.svg."""
+    import re
+
+    monkeypatch.chdir(tmp_path)
+    source = (ROOT/'tools/docs_home_example.py').read_text()
+    exec(compile(source, 'docs_home_example.py', 'exec'), {'__name__': '__docs__'})
+    size = re.compile(r'<svg\b[^>]*?width="([^"]+)" height="([^"]+)"')
+    produced = size.search((tmp_path/'two-panels.svg').read_text()).groups()
+    published = size.search((ROOT/'docs/assets/examples/quickstart.svg').read_text()).groups()
+    assert produced == published == ('183mm', '68mm')

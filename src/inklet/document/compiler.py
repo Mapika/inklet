@@ -344,8 +344,9 @@ class Document(BuildSpec):
 def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False):
     """Create a live document; optionally share plot furniture across the grid.
 
-    Shared margins reserve the largest labels/letters on every plot and use
-    the tallest data region plus shared furniture for automatic row heights. Equal tracks and
+    Shared margins reserve the largest left/right labels and letters on every
+    plot. Automatic row heights use the tallest data region plus the top and
+    bottom furniture of that row; a fixed height shares all four. Equal tracks and
     unspanned plot cells then have equal data areas. Fixed artwork is unchanged;
     unequal track weights, spans or larger cell minima can still vary areas.
     """

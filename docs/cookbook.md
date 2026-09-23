@@ -2238,7 +2238,8 @@ def measured(name, key):
     q = inklet.panel(38, 24, x=(0, 10), y=(0, 10))
     q.line([(0, 1), (5, 6), (10, 9)], name=name)
     if key:
-        q.legend(side="top")
+        q.line([(0, 2), (10, 8)], name="fit", stroke_dash=(1, 0.8))
+        q.legend(side="top", columns=1)
     q.axes(x="t / s", y="signal")
     return q.build()
 

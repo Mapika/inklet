@@ -37,6 +37,7 @@ def repository_ref():
 def on_config(config):
     # A deployed page must not reuse a previous theme's cached CSS or JS.
     config['extra']['archive_pages'] = []
+    config['extra'].setdefault('nav_labels', {})
     assets = [*config['extra_css'], *config['extra_javascript']]
     digest = hashlib.sha256()
     for asset in assets:
@@ -113,11 +114,28 @@ def on_page_markdown(markdown, page, config, files):
     return rewrite_links(markdown,Path(page.file.abs_src_path),config['repo_url'],repository_ref())
 
 
+def home_example():
+    """Highlight the homepage script with the same markup as guide code blocks.
+
+    tests/test_docs_site.py runs the script, so the homepage cannot show code
+    that no longer works.
+    """
+    from markupsafe import Markup
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import PythonLexer
+
+    source = (ROOT/'tools/docs_home_example.py').read_text()
+    return Markup(highlight(source, PythonLexer(), HtmlFormatter(cssclass='codehilite', wrapcode=True)))
+
+
 def on_page_context(context, page, config, nav):
     context['docs_gallery'] = json.loads((ROOT/'tools/docs_gallery.json').read_text())
     context['docs_plots'] = json.loads((ROOT/'tools/plot_catalog.json').read_text())
     version = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
     context['docs_version'] = version.replace('.0.dev', ' dev ')
+    if page.meta.get('layout') == 'home':
+        context['home_example'] = home_example()
     headings = list(page.toc)
     if headings and headings[0].level == 1:
         config['extra']['search_page_heads'][page.url] = headings[0].id

@@ -38,7 +38,9 @@ LEGEND_LABEL_KIND = "label"
 BANDS = 128
 
 _LENGTH_OF_COLUMN = 0.45      # of a single column, for a bar given no length
-_THICKNESS_OF_TYPE = 1.4      # a bar much thinner than the type reads as a rule
+# A bar much thinner than the type reads as a rule; much thicker and the key
+# outweighs the data it explains. One type size sits between the two.
+_THICKNESS_OF_TYPE = 1.0
 # A swatch, as a fraction of the *label's* size. Keyed to the label rather
 # than to the base type because a legend's names are set small: measured
 # against `font_size` the block came out taller than the capitals beside it,

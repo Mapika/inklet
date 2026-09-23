@@ -124,10 +124,14 @@ def test_complete_regional_display_matches_classic_svg(tmp_path, backend, dpr, e
     images = []
     overrides=f.overrides({'comparison':dict(color='#a03050',radius_mm=1.3),
                           'history':dict(color='#2060a0',line_width_mm=.7)}) if edited else None
+    # The stage keeps the page's own aspect; a mismatched box letterboxes the
+    # frame and the marks differently, which is not what this compares.
+    payload = f.payload()
+    stage = round(1112*payload['height']/payload['width'])
     for renderer, mode in [('classic', 'svg'), ('compiled', backend)]:
         page = f.to_html(renderer=renderer, backend=mode, state=state, overrides=overrides)
         page = page.replace('</style>', '</style><style>#stage{position:fixed;left:0;top:0;'
-                            'width:1112px;height:1342px;z-index:10}</style>', 1)
+                            f'width:1112px;height:{stage}px;z-index:10}}</style>', 1)
         # Crop just the drawing; differing backend controls must not influence
         # this independently executed full-figure paint comparison.
         check = """<script>inkletDocument.ready.then(()=>{

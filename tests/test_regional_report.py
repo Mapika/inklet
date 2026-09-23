@@ -116,7 +116,9 @@ def test_optional_svg_pdf_is_one_physical_vector_page(tmp_path):
         from inklet.render.preview import svg_png, pdf_png
         svg_png(source,tmp_path/'svg.png',dpi=150);pdf_png(output,tmp_path/'pdf.png',dpi=150)
         a,b=(Image.open(tmp_path/(name+'.png')).convert('RGB') for name in ('svg','pdf'))
-        assert abs(a.width-b.width)<=1 and abs(a.height-b.height)<=1
+        # pdfinfo above bounds the page to 0.8 pt, which is 1.7 px at 150 dpi;
+        # Chrome's print page rounding can land a whole-pixel edge either way.
+        assert abs(a.width-b.width)<=2 and abs(a.height-b.height)<=2
         box=(0,0,min(a.width,b.width),min(a.height,b.height))
         # Independent PDF rasterization must preserve the actual plots. Allow
         # subpixel print-page rounding and different edge antialiasing.
