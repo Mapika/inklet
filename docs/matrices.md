@@ -139,6 +139,70 @@ linear interpolation requires uniform displayed spacing and the default
 being filled with zero. Use interpolation only when the figure should show a
 continuous field, and describe that choice in the caption.
 
+## Dendrograms
+
+`dendrogram` draws the merge tree of a hierarchical clustering as elbows. It
+takes a SciPy linkage matrix, one row `[a, b, distance, count]` per merge, or
+a nested sequence of leaf names such as `(('a', 'b'), ('c', 'd'))`. A nested
+tree has no distances, so each merge is drawn one unit above its tallest
+child. `labels=` names the leaves of a linkage in their original order.
+
+With `orient='v'` (default) the leaves run along x and the merge heights on
+y. With `orient='h'` the leaves run along y and the heights on x. Reverse the
+height domain to grow the tree the other way: `x=(height, 0)` puts the root on
+the left and the leaves on the right, next to a heatmap.
+
+To line the tree up with a heatmap, use the same band scale for both. The
+band's categories must be in the dendrogram's leaf order, and `dendrogram`
+raises an error when they are not. `inklet.plot.dendrogram_layout(tree,
+labels=...)` returns that order in `leaves`; reorder the matrix rows and
+columns to match. On a y band the first leaf is at the bottom. `row` and
+`column` align the panels on their plot areas.
+
+`threshold=` gives each subtree whose merges are all below that height its
+own colour and draws the merges above it in the ink.
+
+```python
+import inklet as i
+from inklet.plot import dendrogram_layout
+
+genes = ['Fos', 'Arc', 'Egr1', 'Npas4', 'Junb', 'Gfap', 'Aqp4', 'Mbp', 'Plp1', 'Mog']
+samples = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6']
+values = [[1.1, .8, -.8, -2, .1, -.7], [1.9, 1.3, -.5, -1.4, .3, 0],
+          [1.2, 1.3, -1.4, -1.3, .4, .1], [1.4, 2, -1, -1.4, .3, -.1],
+          [1.4, 1.1, -.3, -1.2, .3, .3], [-.3, -.9, 1.2, 2, -.8, -.1],
+          [-.8, 0, 1.1, .3, -.1, -.2], [-.1, .4, -.2, .1, 1.4, 1.9],
+          [.5, .2, -.5, .3, 1.8, 1], [-.2, .6, -.3, -.1, 1.7, 1.4]]
+# Average-linkage Euclidean clustering of the rows and of the columns.
+gene_tree = [[7, 9, .66, 2], [1, 4, .68, 2], [2, 3, .87, 2], [8, 10, 1.12, 3],
+             [11, 12, 1.13, 4], [0, 14, 1.43, 5], [5, 6, 2.11, 2],
+             [13, 15, 3.19, 8], [16, 17, 4.06, 10]]
+sample_tree = [[4, 5, 1.57, 2], [0, 1, 1.7, 2], [2, 3, 2.3, 2], [6, 7, 3.82, 4],
+               [8, 9, 5.51, 6]]
+rows = list(dendrogram_layout(gene_tree, labels=genes).leaves)
+cols = list(dendrogram_layout(sample_tree, labels=samples).leaves)
+cells = [[values[genes.index(g)][samples.index(s)] for s in cols] for g in rows]
+
+heat = i.panel(36, 50, x=cols, y=rows)
+heat.matrix(cells, x=cols, y=rows, ramp=i.ramp('tol-sunset'),
+            scale=i.linear((-2, 2)), raster=False)
+heat.axis('bottom', spine=False).axis('right', spine=False)
+heat.colorbar(label='z-score', side='bottom')
+left = i.panel(12, 50, x=(4.06, 0), y=rows)
+left.dendrogram(gene_tree, labels=genes, orient='h', threshold=2)
+top = i.panel(36, 8, x=cols, y=(0, 5.51))
+top.dendrogram(sample_tree, labels=samples)
+fig = i.figure(width=90)
+fig.add(i.column([top, i.row([left, heat], gap=1)], gap=1, align='right'))
+fig.save('dendrogram.svg', 'dendrogram.pdf')
+```
+
+![Dendrograms: a clustered heatmap with gene and sample trees aligned to its rows and columns.](assets/guides/plots-dendrogram.png)
+
+*Illustrative values. The gene tree is coloured below a height of 2, which
+gives two coloured groups. The Gfap and Aqp4 merge, at 2.11, is above the
+threshold and is drawn in the ink.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

@@ -26,6 +26,7 @@ from .key import BANDS, SWATCH_OF_TYPE, colorbar, legend
 from .statistics import BoxStats, box_stats, histogram, kde, quantile
 from .cumulative import ecdf
 from .volcano import volcano_points
+from .dendrogram import DendrogramLayout, DendrogramLink, dendrogram_layout
 from .inset import INDICATOR_KIND, INSET_KIND, inset, panel_bracket
 from .panel import Panel, column, panel, row
 from .polar import (
@@ -62,7 +63,7 @@ __all__ = [
     "ZERO_DIRECTIONS", "WINDINGS", "THETA_UNITS",
     # what a dataset is before it is a shape
     "histogram", "box_stats", "BoxStats", "kde", "quantile", "ecdf",
-    "volcano_points",
+    "volcano_points", "dendrogram_layout", "DendrogramLayout", "DendrogramLink",
     "inset", "panel_bracket", "INSET_KIND", "INDICATOR_KIND",
     "ribbon", "ribbon_between", "ribbon_cubics", "eased_cubic",
     "panel_ribbon", "RIBBON_EASE",

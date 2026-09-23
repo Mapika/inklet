@@ -1753,6 +1753,46 @@ class Panel:
         node = _label_points(self, list(points), labels, **kwargs)
         return self.over(node, clip=False)
 
+    def dendrogram(self, tree, *, labels: Sequence | None = None,
+                   orient: str = "v", threshold: float | None = None,
+                   colors=None, **style) -> "Panel":
+        """The merge tree of a hierarchical clustering, drawn as elbows.
+
+        `tree` is a SciPy linkage matrix (rows `[a, b, distance, count]`) or
+        a nested sequence of leaves such as `(("a", "b"), ("c", "d"))`.
+        `labels` names the leaves of a linkage, one per original index. A
+        nested tree has no distances: each merge is one unit above its
+        tallest child.
+
+        With `orient="v"` (default) the leaves run along x and merge heights
+        on y; with `orient="h"` the leaves run along y and heights on x. The
+        height axis must be continuous; reverse its domain to grow the tree
+        the other way, for example `x=(height, 0)` to put the root on the
+        left and the leaves on the right.
+
+        On a continuous leaf axis the leaves are at 0, 1, ..., n-1. On a band
+        leaf axis they are at the band positions, and the band's categories
+        must be the leaf order, so a heatmap on the same band lines up with
+        it; `inklet.plot.dendrogram_layout(tree, labels=...).leaves` gives
+        that order. The first category is at the bottom of a y band.
+
+            order = inklet.plot.dendrogram_layout(link, labels=genes).leaves
+            tree = inklet.panel(12, 40, x=(3.2, 0), y=order)
+            tree.dendrogram(link, labels=genes, orient="h")
+
+        `threshold=` colours each subtree whose merges are all below that
+        height in its own colour from the theme's ink palette (or `colors=`)
+        and draws the merges above it in the ink. Other keywords style the
+        lines. The node carries a `dendrogram` note with the leaf order, the
+        root height and the leaves of each coloured cluster.
+        """
+        from .dendrogram import dendrogram as _dendrogram
+
+        clip = _clip_flag(style)
+        node, _, _ = _dendrogram(self, tree, labels=labels, orient=orient,
+                                 threshold=threshold, colors=colors, **style)
+        return self.draw(node, clip=clip)
+
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
                 labels: Sequence[str] | None = None, top: int = 10,
                 fold_threshold: float = 1.0, p_threshold: float = 0.05,

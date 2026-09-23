@@ -14,6 +14,10 @@
 - Add `Panel.volcano` and `inklet.plot.volcano_points` for volcano plots:
   threshold rules, up, down and non-significant colours, legend names and
   labels for the top N significant points through `label_points`.
+- Add `Panel.dendrogram` and `inklet.plot.dendrogram_layout` for
+  hierarchical clustering trees from a SciPy linkage matrix or a nested
+  sequence, vertical or horizontal, with threshold cluster colours. On a
+  band scale the leaves line up with a heatmap on the same categories.
 - Add value labels to `Panel.bars` (`labels=`, `label_position=`,
   `label_options=`). Labels go inside a bar or segment when they fit and past
   the bar end otherwise; stacked segments that do not fit are omitted and

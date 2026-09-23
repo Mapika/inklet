@@ -705,5 +705,12 @@
     "object": "doc",
     "image": "matrix-samples.png",
     "alt": "Uneven numeric sample centres overlaid on their matrix cells"
+  },
+  {
+    "page": "matrices.md",
+    "block": 4,
+    "object": "fig",
+    "image": "plots-dendrogram.png",
+    "alt": "Dendrograms"
   }
 ]

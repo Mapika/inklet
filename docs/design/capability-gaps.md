@@ -41,7 +41,7 @@ These were checked and are not gaps:
 | 7 | Pie breakout bar (a slice expanded into a stacked bar) | Compose by hand | Done: `PolarPanel.breakout` |
 | 8 | Ridgeline (stacked density curves) | `fill` per group with offsets | Done: `Panel.ridgeline` |
 | 9 | Raincloud (half violin, box and points) | `violin` plus `swarm` with offsets | Done: `Panel.raincloud` |
-| 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Deferred |
+| 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Done: `Panel.dendrogram` |
 | 11 | UpSet plots | Matrix of dots plus bars, by hand | Deferred |
 | 12 | Volcano plot helper | `scatter`, `hline`, `vline` and now `label_points` | Done: `Panel.volcano` |
 
@@ -121,9 +121,19 @@ sunset palette, and the ns colour is the theme's muted colour blended
 towards paper. In a dense cloud `label_points` can leave a label closer than
 the 1 mm lint clearance to an unlabelled point.
 
+**Dendrogram.** The leaf order is SciPy's default: the first cluster of each
+merge row on the left. Leaves sit at positions 0 to n-1 and each merge
+midway between its outer children. A nested tree's merges are one unit
+above their tallest child, and a node may have more than two children. On a
+band leaf axis the categories must equal the leaf order, or `dendrogram`
+raises an error naming the order to use; it does not reorder the band or
+the matrix. `threshold=` colours the subtrees whose merges are all below it,
+one colour each from left to right, skipping palette colours too close to
+the ink.
+
 ## Deferred work
 
-- Dendrograms and UpSet plots.
+- UpSet plots.
 - Breakout bars do not rotate the pie to face the bar; set `zero` and
   `winding` so the chosen slices face it.
 - Leaders for pie labels placed outside the rim.

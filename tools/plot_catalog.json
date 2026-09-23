@@ -353,6 +353,21 @@
     "block": 1
   },
   {
+    "title": "Dendrograms",
+    "description": "Hierarchical clustering trees, alone or aligned with a heatmap's rows and columns.",
+    "category": "Matrices",
+    "page": "matrices/#dendrograms",
+    "image": "assets/guides/plots-dendrogram.png",
+    "methods": [
+      "Panel.dendrogram",
+      "Panel.matrix"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 4
+  },
+  {
     "title": "Polar curves",
     "description": "Show a response as a function of angle.",
     "category": "Polar",
