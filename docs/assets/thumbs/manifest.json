@@ -74,6 +74,21 @@
     "sha256": "61b7210781609dda3a8665d0dea1b4e6e17bd1dbd1a0afb0b231e91392208cf7",
     "width": 2445
   },
+  "gallery/dense-figure.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-dense-figure-480-6f6a126eec.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-dense-figure-960-6f6a126eec.webp",
+        "width": 960
+      }
+    ],
+    "height": 2019,
+    "sha256": "6f6a126eeccc8a169c5860ed041cdc5de0bfd02be97b37bceb9cc50bd68cf3c8",
+    "width": 2076
+  },
   "gallery/diagram-review.png": {
     "files": [
       {
@@ -92,17 +107,17 @@
   "gallery/general-plots.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-general-plots-480-7c01c3a8da.webp",
+        "path": "assets/thumbs/gallery-general-plots-480-6fdf4424ca.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-general-plots-960-7c01c3a8da.webp",
+        "path": "assets/thumbs/gallery-general-plots-960-6fdf4424ca.webp",
         "width": 960
       }
     ],
-    "height": 1698,
-    "sha256": "7c01c3a8dae3916c87cc2b4bf2cd607379e292a6ad5dc51776df5172a41f79c5",
-    "width": 1496
+    "height": 1311,
+    "sha256": "6fdf4424ca076a5999aacf059e187c21d7561ccfaa68162014002bd605c9911a",
+    "width": 1369
   },
   "gallery/label-intensities.png": {
     "files": [
