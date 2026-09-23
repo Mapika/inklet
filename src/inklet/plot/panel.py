@@ -41,7 +41,7 @@ from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
                   legend as make_legend)
 from .matrix import (_RASTER_ABOVE_CELLS, matrix_centres, matrix_layer,
                      prepare_matrix)
-from .scale import Band, Linear, Scale, linear
+from .scale import Band, Linear, Log, Scale, linear
 from .metadata import declare_domain as _declare_domain
 from .series import SeriesKey, merge_keys, series_color, swatch_for
 from .timescale import dates, is_time_like
@@ -1588,6 +1588,62 @@ class Panel:
         self._note(name, "marker", color=ink, marker=marker)
         return self.draw(node, clip=clip)
 
+    def ecdf(self, values: Sequence[float], *, weights: Sequence[float] | None = None,
+             complementary: bool = False, normalize: bool = True,
+             extend: bool = True, name: str | None = None,
+             **style) -> "Panel":
+        """The empirical cumulative distribution of `values` as a step line.
+
+        Each distinct value raises the curve by the share of observations
+        equal to it, so the curve reads "fraction of observations at or below
+        x". `complementary=True` draws the share strictly above x instead
+        (the survival curve), which is the form a heavy tail is read from on
+        a log y axis. `weights=` weights each observation, and
+        `normalize=False` plots counts (or weight sums) instead of fractions.
+
+            p.ecdf(control, name="control")
+            p.ecdf(treated, name="treated")
+
+        `extend=True` runs the curve flat to both ends of a continuous x
+        axis. On a log axis, points that cannot be mapped (zero or negative)
+        are left out. `name=` adds a line entry to `legend()`.
+        `inklet.plot.ecdf(values)` returns the steps without drawing them.
+        """
+        from .cumulative import ecdf as _ecdf, staircase
+
+        values = list(values)
+        weights = None if weights is None else list(weights)
+        clip = _clip_flag(style)
+        xs, ys = _ecdf(values, weights=weights, complementary=complementary,
+                       normalize=normalize)
+        # The level before the first step: nothing for the ECDF, everything
+        # (the last cumulative value) for its complement.
+        start = (_ecdf(values, weights=weights, normalize=normalize)[1][-1]
+                 if complementary else 0.0)
+        low = high = None
+        domain = getattr(self.x, "domain", None)
+        if (extend and not isinstance(self.x, Band) and domain is not None
+                and all(isinstance(v, (int, float)) for v in domain)):
+            low, high = min(domain), max(domain)
+        points = staircase(xs, ys, start=start, low=low, high=high)
+        points = [p for p in points
+                  if _mappable(self.x, p[0]) and _mappable(self.y, p[1])]
+        if len(points) < 2:
+            raise DiagramError("ecdf() has fewer than two points this axis can show")
+        stroke = self._series_color(name, style.get("stroke"))
+        if stroke is not None:
+            style["stroke"] = stroke
+        self._note(name, "line", color=style.get("stroke"),
+                   dash=style.get("stroke_dash"), width=style.get("stroke_width"))
+        return self.draw(polyline(self.map(points), **style), clip=clip)
+
+
+
+def _mappable(scale, value) -> bool:
+    """False for a value a log scale cannot place (zero or negative)."""
+    if isinstance(scale, Log):
+        return value > 0
+    return True
 
 
 def panel(width: float | str, height: float | str, *, x=None, y=None,
