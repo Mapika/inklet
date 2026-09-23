@@ -708,8 +708,8 @@
     }
   },
   "figure": {
-    "width_mm": 200.0,
-    "height_mm": 259.77655000000004,
+    "width_mm": 183.0,
+    "height_mm": 175.2809611111111,
     "diagnostics": 0
   },
   "caption_sha256": "a018cae4266e08d0bfba9de1ea469ee211e157b960badc05802d5ecafd03761c"

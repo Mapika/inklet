@@ -45,9 +45,11 @@ identify series. The benchmark labels name the points directly, while the
 response separates light sample markers from the darker model line. A reference
 line marks zero residual, and histogram separators make bin boundaries visible.
 
-Axes use the theme's hairline weight, with light grey horizontal guides. Legends wrap
-to the available width without shrinking text. Plot margins are shared so data
-areas align across the grid. Use [axes and text](axes-and-scales.md)
+Axes use the theme's hairline weight, with light grey horizontal guides. The loss
+and response legends sit in empty corners of their data areas; the revenue
+legend sits in one row above the bars, which fill the corners. The matrix uses
+the default sequential colour ramp. Plot margins are shared so data areas align
+across the grid. Use [axes and text](axes-and-scales.md)
 for font and stroke controls, and [plot layout](publication-plots.md) for legends
 and insets. These guides describe the current behavior.
 
@@ -62,8 +64,9 @@ python examples/general_plots.py --legacy-look --output out/general-plots/before
 ```
 
 This uses the current renderer and arrangement; it does not reproduce the archived
-image pixel for pixel. The main figure is 200 mm wide; rebuild at the required physical size
-instead of shrinking the finished image.
+image pixel for pixel. The main figure is 183 mm wide, the preset's double-column
+width. Rebuild at the required physical size instead of shrinking the finished
+image.
 
 ## Read the plots
 

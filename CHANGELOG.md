@@ -19,6 +19,11 @@
   palettes.
 - Add `examples/dense_figure.py`, a thirteen-panel 183 mm page with the
   `scientific.cell` preset, and its gallery image `gallery/dense-figure.png`.
+- Retighten `examples/general_plots.py`: the preset's 183 mm width, margin,
+  gap and 7/6 pt type instead of 200 mm, 6/12 mm and 8 pt; 34 mm plots; theme
+  hairlines; legends in empty corners or one row above the bars; and the
+  default matrix ramp. Data and panels are unchanged. Regenerate
+  `gallery/general-plots.png`, its SVG/PDF downloads and `gallery/presets.png`.
 - Add value labels to `Panel.bars` (`labels=`, `label_position=`,
   `label_options=`). Labels go inside a bar or segment when they fit and past
   the bar end otherwise; stacked segments that do not fit are omitted and
