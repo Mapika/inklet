@@ -1525,6 +1525,69 @@ class Panel:
             orient=orient, size=size, gap=gap, marker=marker, hollow=hollow,
             colors=colors, **style), clip=clip)
 
+    def dumbbell(self, at: Sequence, values, *, orient: str = "v",
+                 size: float | str | None = None, colors=None,
+                 names: Sequence[str] | None = None, marker: str = "circle",
+                 connector: dict | None = None, **style) -> "Panel":
+        """Two or more dots per category joined by a line: a dumbbell plot.
+
+        `values` holds one sequence per series, each with one value per
+        position in `at`, the same shape `bars` takes for grouped bars. The
+        dots of one category share its centre on the band scale, and a line
+        runs from the smallest to the largest value present. `None` or NaN is
+        a missing value: that dot is not drawn, and a category with only one
+        value has no line.
+
+            p.dumbbell(genes, [before, after], names=["before", "after"],
+                       orient="h")
+
+        `size` is the dot diameter in millimetres (default: the scatter
+        marker). `colors=` sets one colour per series; the default is the
+        theme palette. `connector=` overrides the line's style, which by
+        default is a light grey at the theme's thick stroke. `names=` adds one
+        marker entry per series to `legend()`.
+        """
+        from .paired import dumbbell as _dumbbell
+
+        clip = _clip_flag(style)
+        node, fills = _dumbbell(self, at, values, orient=orient, size=size,
+                                colors=colors, marker=marker,
+                                connector=connector, **style)
+        if names is not None:
+            if len(names) != len(fills):
+                raise DiagramError(
+                    f"names= has {len(names)} names for {len(fills)} series")
+            for name, fill in zip(names, fills):
+                self._note(name, "marker", color=fill, marker=marker)
+        return self.draw(node, clip=clip)
+
+    def lollipop(self, at: Sequence, values: Sequence, *, baseline: float = 0.0,
+                 orient: str = "v", size: float | str | None = None,
+                 color: str | None = None, marker: str = "circle",
+                 stem: dict | None = None, name: str | None = None,
+                 **style) -> "Panel":
+        """One value per category as a dot on a stem from `baseline`.
+
+        A lighter alternative to a bar chart when there are many categories
+        and the value, not the area, is what the reader compares. Positions
+        come from the band scale, as for `bars`. `None` or NaN draws nothing
+        for that category.
+
+            p.lollipop(pathways, scores, orient="h", color=TH.color(1))
+
+        `stem=` overrides the stem's style (default: the dot colour at the
+        theme stroke width). `name=` adds a marker entry to `legend()`.
+        """
+        from .paired import lollipop as _lollipop
+
+        clip = _clip_flag(style)
+        color = self._series_color(name, color)
+        node, ink = _lollipop(self, at, values, baseline=baseline,
+                              orient=orient, size=size, color=color,
+                              marker=marker, stem=stem, **style)
+        self._note(name, "marker", color=ink, marker=marker)
+        return self.draw(node, clip=clip)
+
 
 
 def panel(width: float | str, height: float | str, *, x=None, y=None,
