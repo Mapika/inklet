@@ -658,6 +658,13 @@
     "alt": "Ridgelines"
   },
   {
+    "page": "distributions.md",
+    "block": 7,
+    "object": "doc",
+    "image": "plots-raincloud.png",
+    "alt": "Rainclouds"
+  },
+  {
     "page": "polar-plots.md",
     "block": 5,
     "object": "fig",

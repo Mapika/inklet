@@ -40,7 +40,7 @@ These were checked and are not gaps:
 | 6 | Pie and donut charts with labels | `draw.sector` per slice and hand-placed labels | Done: `PolarPanel.pie` |
 | 7 | Pie breakout bar (a slice expanded into a stacked bar) | Compose by hand | Done: `PolarPanel.breakout` |
 | 8 | Ridgeline (stacked density curves) | `fill` per group with offsets | Done: `Panel.ridgeline` |
-| 9 | Raincloud (half violin, box and points) | `violin` plus `swarm` with offsets | Deferred |
+| 9 | Raincloud (half violin, box and points) | `violin` plus `swarm` with offsets | Done: `Panel.raincloud` |
 | 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Deferred |
 | 11 | UpSet plots | Matrix of dots plus bars, by hand | Deferred |
 | 12 | Volcano plot helper | `scatter`, `hline`, `vline` and now `label_points` | Deferred: the composition is four calls |
@@ -100,9 +100,19 @@ are drawn top-down with opaque fills. `fit=True` scales all ridges by one
 factor so the top ones stay in the plot area; when the top row holds the
 tallest peak this can reduce the overlap to about one row.
 
+**Raincloud.** Uses the `violin` groups, bandwidth rule and `cut`, and the
+`boxplot` statistics. Each slot is split into lanes by fixed fractions of its
+half-width: the half violin from the centre line to 0.95, the box centred at
+-0.2 and the points across -0.32 to -0.92. The box has no caps and no
+outlier points. Jitter is uniform within the points lane from a generator
+seeded by `seed`; `points="swarm"` packs the points with the `swarm` fit,
+which shrinks the dots of a crowded group. The half violin's fill is the
+group colour blended at least 35% towards paper, and further for dark
+colours until its contrast with paper is at most 3:1.
+
 ## Deferred work
 
-- Rainclouds, dendrograms and UpSet plots.
+- Dendrograms and UpSet plots.
 - Breakout bars do not rotate the pie to face the bar; set `zero` and
   `winding` so the chosen slices face it.
 - Leaders for pie labels placed outside the rim.

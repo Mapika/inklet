@@ -1685,6 +1685,47 @@ class Panel:
                                 scale=scale, fit=fit, colors=colors, **style)
         return self.draw(node, clip=clip)
 
+    def raincloud(self, groups, *, at=None, orient: str = "h",
+                  width: float = 0.9, bandwidth: float | None = None,
+                  samples: int = 64, cut: float = 2.0, whisker: float = 1.5,
+                  points: str | None = "jitter", size: float | str | None = None,
+                  seed: int = 0, box: bool = True, colors=None,
+                  **style) -> "Panel":
+        """A half violin, a narrow box and the observations, per group.
+
+        `groups` is spelled as for `violin` and `swarm`: a mapping of
+        position to samples, or a sequence taking its positions from the
+        band scale. Each slot (`width` of the band step) is split into three
+        lanes: the half violin stands on the category's centre line, the box
+        sits just beside it, and the points fill the far half of the slot.
+        With `orient="h"` (default; groups on y) the half violin rises up the
+        page; with `orient="v"` it extends to the right.
+
+            p = inklet.panel(50, 36, x=(0, 8), y=["treated", "control"])
+            p.raincloud({"control": control, "treated": treated})
+
+        The half violin uses the `violin` bandwidth rule, `bandwidth`,
+        `samples` and `cut`. The box shows quartiles, the median and
+        whiskers to the furthest observations within `whisker` interquartile
+        ranges, without caps or separate outliers. `points="jitter"`
+        (default) scatters the observations across their lane with a random
+        generator seeded by `seed`, so the figure is the same on every run;
+        `points="swarm"` packs them as `swarm` does; `None` leaves them out.
+        `size` is the dot diameter in mm. `box=False` omits the box.
+
+        `colors=` sets one colour per group: the points use it and the half
+        violin a paler blend of it. The default is the ink for one group and
+        the theme's ink palette for several. Other keywords style the points.
+        """
+        from .raincloud import raincloud as _raincloud
+
+        clip = _clip_flag(style)
+        node, _, _ = _raincloud(self, groups, at=at, orient=orient, width=width,
+                                bandwidth=bandwidth, samples=samples, cut=cut,
+                                whisker=whisker, points=points, size=size,
+                                seed=seed, box=box, colors=colors, **style)
+        return self.draw(node, clip=clip)
+
     def label_points(self, points: Iterable[Sequence], labels: Sequence[str],
                      **kwargs) -> "Panel":
         """Label many data points at once, clear of the marks and each other.

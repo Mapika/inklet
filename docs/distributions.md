@@ -198,6 +198,47 @@ doc.save('ridgeline.svg', 'ridgeline.pdf')
 *Rendered from the code above. Each ridge is a kernel density of 80 to 120
 simulated onset times; heights share one scale.*
 
+## Rainclouds
+
+`raincloud` draws, for each group, a half violin, a narrow box and every
+observation. It takes the same groups as `violin` and `swarm`. Each group's
+slot is split into three lanes: the half violin stands on the category's
+centre line, the box sits just beside it, and the observations fill the far
+half of the slot. With `orient='h'` (default) the groups are on the y axis
+and the half violin rises up the page; with `orient='v'` it extends to the
+right.
+
+The half violin uses the `violin` bandwidth rule. The box shows the
+quartiles, the median and whiskers to the furthest observations within 1.5
+interquartile ranges, without caps; outliers are not drawn separately
+because every observation is shown. `points='jitter'` (default) moves each
+observation sideways by a random offset from a generator seeded by `seed`,
+so the figure is the same on every run. `points='swarm'` packs them as
+`swarm` does, and `points=None` leaves them out. `box=False` leaves out the
+box. The points use each group's colour and the half violin a paler blend
+of it.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(402)
+samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
+           'Treated': [rng.gauss(4.65, .78) for _ in range(52)]
+           + [rng.gauss(6.2, .3) for _ in range(20)]}
+p = i.plot_spec(x=(1, 8), y=['Treated', 'Control'], height=44)
+p.raincloud(samples, colors=['#24698c', '#288675'], size=.9)
+p.axes(x='Measurement / a.u.')
+doc = i.document(width=90)
+doc.add('raincloud', p)
+doc.save('raincloud.svg', 'raincloud.pdf')
+```
+
+![Rainclouds: half violins, boxes and jittered observations for two groups.](assets/guides/plots-raincloud.png)
+
+*Rendered from the code above. The treated group has a second mode near 6,
+which the half violin and the points show and the box does not.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),
