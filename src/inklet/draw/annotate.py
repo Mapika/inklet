@@ -587,10 +587,16 @@ def dimension(a, b, text: str | Diagram | None = None, *,
 
 def _plated(body: Diagram, theme) -> Diagram:
     """The label on an opaque tile, so the line reads as broken under it."""
+    from dataclasses import replace
+
     from ..layout import frame as make_frame
 
-    return make_frame(body, pad=theme.gap("2xs"), kind="label-plate").styled(
-        fill=theme.paper, stroke="none")
+    plate = make_frame(body, pad=theme.gap("2xs"), kind="label-plate")
+    # The paper goes on the backdrop alone: styling the whole frame would hand
+    # the same white fill down to a label that carries none of its own.
+    backdrop, content = plate.children
+    return replace(plate, children=(backdrop.styled(fill=theme.paper, stroke="none"), content),
+                   _cache={}, anchors=dict(plate.anchors), notes=dict(plate.notes))
 
 
 # -- scale bars -----------------------------------------------------------
