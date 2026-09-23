@@ -86,6 +86,20 @@
     "block": 7
   },
   {
+    "title": "Volcano plots",
+    "description": "Fold change against significance, with thresholds, class colours and the top hits named.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#volcano-plots",
+    "image": "assets/guides/plots-volcano.png",
+    "methods": [
+      "Panel.volcano"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 8
+  },
+  {
     "title": "Grouped bars",
     "description": "Grouped bars compare several series within each category.",
     "category": "Bars and areas",

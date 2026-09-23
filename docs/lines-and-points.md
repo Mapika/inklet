@@ -209,6 +209,48 @@ doc.save('labelled-points.svg', 'labelled-points.pdf')
 *Simulated data. Labels that could not be placed without overlap are listed
 in the label node's `point_labels` note under `unresolved`.*
 
+## Volcano plots
+
+`volcano` takes log2 fold changes and p-values, one per feature, and draws
+each feature at `(log2 fold change, -log10 p)`. A point with p below
+`p_threshold` (default 0.05) and a fold change of at least `fold_threshold`
+(default 1) is "up", one with a fold change of at most `-fold_threshold` is
+"down", and every other point is "ns". The "ns" points are drawn first in a
+pale grey; "up" points are red and "down" points blue. Dashed rules mark the
+three thresholds; `thresholds=False` leaves them out.
+
+With `labels=` (one name per feature), the `top` significant points with the
+smallest p-values are named with `label_points`. Points outside the plot area
+are not labelled. `names=` gives legend names for the classes, in the order
+down, ns, up; `None` leaves a class out of the legend. A p-value of 0 is
+drawn at the smallest positive p-value in the data.
+`inklet.plot.volcano_points` returns the classes and the ranking without
+drawing.
+
+```python
+import inklet as i
+import math
+import random
+
+rng = random.Random(11)
+fold, pvalues = [], []
+for _ in range(1500):
+    effect = rng.gauss(0, .5) if rng.random() < .9 else rng.gauss(0, 1.8)
+    fold.append(effect)
+    pvalues.append(math.erfc(abs(effect * 1.3 + rng.gauss(0, 1)) / math.sqrt(2)))
+genes = [f'G{k}' for k in range(1500)]
+p = i.plot_spec(x=(-6, 6), y=(0, 16), height=50)
+p.volcano(fold, pvalues, labels=genes, top=10, names=('Down', None, 'Up'), size=.8)
+p.axes(x='log2 fold change', y='-log10 p').legend(side='right')
+doc = i.document(width=90)
+doc.add('volcano', p)
+doc.save('volcano.svg', 'volcano.pdf')
+```
+
+![Volcano plots: 1,500 simulated genes with the ten most significant named.](assets/guides/plots-volcano.png)
+
+*Simulated data. The dashed rules are at a fold change of ±1 and at p = 0.05.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

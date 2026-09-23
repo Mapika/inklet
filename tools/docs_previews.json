@@ -497,6 +497,13 @@
     "alt": "Labelled points"
   },
   {
+    "page": "lines-and-points.md",
+    "block": 8,
+    "object": "doc",
+    "image": "plots-volcano.png",
+    "alt": "Volcano plots"
+  },
+  {
     "page": "bars-and-areas.md",
     "block": 1,
     "object": "doc",

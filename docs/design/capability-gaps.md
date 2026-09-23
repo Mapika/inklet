@@ -43,7 +43,7 @@ These were checked and are not gaps:
 | 9 | Raincloud (half violin, box and points) | `violin` plus `swarm` with offsets | Done: `Panel.raincloud` |
 | 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Deferred |
 | 11 | UpSet plots | Matrix of dots plus bars, by hand | Deferred |
-| 12 | Volcano plot helper | `scatter`, `hline`, `vline` and now `label_points` | Deferred: the composition is four calls |
+| 12 | Volcano plot helper | `scatter`, `hline`, `vline` and now `label_points` | Done: `Panel.volcano` |
 
 ## Implemented behaviour
 
@@ -109,6 +109,17 @@ seeded by `seed`; `points="swarm"` packs the points with the `swarm` fit,
 which shrinks the dots of a crowded group. The half violin's fill is the
 group colour blended at least 35% towards paper, and further for dark
 colours until its contrast with paper is at most 3:1.
+
+**Volcano.** A point is significant when p is strictly below `p_threshold`
+and its absolute fold change is at least `fold_threshold`. Points are drawn
+with `scatter` in the order ns, down, up, and threshold rules with `hline`
+and `vline`, so they sit under the points. Labels go to the `top`
+significant points inside the plot area, ranked by p and then by absolute
+fold change. A p-value of 0 is drawn at the smallest positive p-value;
+missing values are skipped. The default up and down colours are from the Tol
+sunset palette, and the ns colour is the theme's muted colour blended
+towards paper. In a dense cloud `label_points` can leave a label closer than
+the 1 mm lint clearance to an unlabelled point.
 
 ## Deferred work
 

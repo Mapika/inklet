@@ -659,6 +659,7 @@ A drawing region plus the scales that map data into it.
 * `ridgeline(groups, *, at=None, overlap: 'float' = 1.5, bandwidth: 'float | None' = None, samples: 'int' = 96, scale: 'str' = 'shared', fit: 'bool' = True, colors=None, **style) -> "'Panel'"` -- Overlapping kernel densities, one per category: a ridgeline plot.
 * `raincloud(groups, *, at=None, orient: 'str' = 'h', width: 'float' = 0.9, bandwidth: 'float | None' = None, samples: 'int' = 64, cut: 'float' = 2.0, whisker: 'float' = 1.5, points: 'str | None' = 'jitter', size: 'float | str | None' = None, seed: 'int' = 0, box: 'bool' = True, colors=None, **style) -> "'Panel'"` -- A half violin, a narrow box and the observations, per group.
 * `label_points(points: 'Iterable[Sequence]', labels: 'Sequence[str]', **kwargs) -> "'Panel'"` -- Label many data points at once, clear of the marks and each other.
+* `volcano(fold: 'Sequence[float]', p: 'Sequence[float]', *, labels: 'Sequence[str] | None' = None, top: 'int' = 10, fold_threshold: 'float' = 1.0, p_threshold: 'float' = 0.05, colors=None, names=None, size: 'float | None' = None, thresholds: 'bool' = True, label_options: 'dict | None' = None, **style) -> "'Panel'"` -- A volcano plot: log2 fold change on x against -log10 p on y.
 
 #### `row(panels: 'Iterable[Panel | Diagram]', gap: 'float | str | None' = None, align: 'str' = 'center') -> 'Diagram'`
 

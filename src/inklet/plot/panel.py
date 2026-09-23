@@ -1753,6 +1753,116 @@ class Panel:
         node = _label_points(self, list(points), labels, **kwargs)
         return self.over(node, clip=False)
 
+    def volcano(self, fold: Sequence[float], p: Sequence[float], *,
+                labels: Sequence[str] | None = None, top: int = 10,
+                fold_threshold: float = 1.0, p_threshold: float = 0.05,
+                colors=None, names=None, size: float | None = None,
+                thresholds: bool = True, label_options: dict | None = None,
+                **style) -> "Panel":
+        """A volcano plot: log2 fold change on x against -log10 p on y.
+
+        `fold` are log2 fold changes and `p` the p-values, one per feature.
+        Points with p below `p_threshold` and a fold change of at least
+        `fold_threshold` in either direction are "up" or "down"; the rest
+        are "ns" and drawn first, in a pale grey, so the significant points
+        sit on top.
+
+            p = inklet.panel(60, 50, x=(-5, 5), y=(0, 12))
+            p.volcano(fold, pvalues, labels=genes, top=8)
+            p.axes(x="log2 fold change", y="-log10 p")
+
+        `thresholds=True` (default) draws dashed rules at `±fold_threshold`
+        and at `-log10(p_threshold)`, under the points. With `labels=` (one
+        string per feature), the `top` significant points with the smallest
+        p-values are named with `label_points`, clear of the points and of
+        each other; points outside the plot area are not labelled.
+        `label_options=` passes keywords to `label_points`. A p-value of 0
+        is drawn at the smallest positive p-value in the data.
+
+        `colors=` is a mapping with keys "up", "down" and "ns", or three
+        colours in the order down, ns, up. The default is red for up and blue
+        for down, from the Tol sunset diverging palette. `names=` (the same
+        shapes) names the classes in `legend()`; a class with no name has no
+        legend row. `size` is the dot diameter in mm; other keywords style
+        the points. The last layer drawn carries a `volcano` note with the
+        classes, the ranked significant indices, the labelled indices and the
+        capped and skipped indices. `inklet.plot.volcano_points` does the
+        same classification without drawing.
+        """
+        import math
+
+        from ..themes.palettes import palette as _palette
+        from .volcano import VOLCANO_CLASSES, volcano_points
+
+        if isinstance(self.x, Band) or isinstance(self.y, Band):
+            raise DiagramError("volcano needs continuous x and y scales")
+        if top < 0:
+            raise DiagramError(f"volcano top must be 0 or more, got {top!r}")
+        result = volcano_points(fold, p, fold_threshold=fold_threshold,
+                                p_threshold=p_threshold)
+        theme = active_theme()
+        sunset = _palette("tol-sunset").colors
+        paint = {"down": sunset[1], "ns": mix(theme.muted, theme.paper, 0.55),
+                 "up": sunset[9]}
+        paint.update(_volcano_triple(colors, "colors"))
+        named = _volcano_triple(names, "names")
+        if thresholds:
+            rule = {"stroke": theme.muted, "stroke_width": theme.hairline,
+                    "stroke_dash": (1.0, 0.8)}
+            if fold_threshold > 0:
+                self.vline(-fold_threshold, **rule)
+                self.vline(fold_threshold, **rule)
+            else:
+                self.vline(0, **rule)
+            self.hline(-math.log10(p_threshold), **rule)
+        dot = {} if size is None else {"size": size}
+        for kind in VOLCANO_CLASSES:
+            chosen = [pt for pt, c in zip(result["points"], result["classes"])
+                      if c == kind]
+            if chosen:
+                self.scatter(chosen, color=paint[kind], name=named.get(kind),
+                             **dot, **style)
+        labelled: list[int] = []
+        if labels is not None:
+            labels = list(labels)
+            if len(labels) != len(result["points"]):
+                raise DiagramError(
+                    f"volcano needs one label per point, got {len(labels)} labels "
+                    f"for {len(result['points'])} points")
+            # A point outside the plot area has nowhere to put its label.
+            area = self.area
+            inside = [i for i in result["ranked"]
+                      if area.x0 - 1e-9 <= self.x.map(result["points"][i][0]) <= area.x1 + 1e-9
+                      and area.y0 - 1e-9 <= self.y.map(result["points"][i][1]) <= area.y1 + 1e-9]
+            labelled = inside[:top]
+            if labelled:
+                self.label_points([result["points"][i] for i in labelled],
+                                  [labels[i] for i in labelled],
+                                  **(label_options or {}))
+        last = (self._over or self._content)[-1] if (self._over or self._content) else None
+        note = {"classes": result["classes"], "ranked": result["ranked"],
+                "labelled": labelled, "capped": result["capped"],
+                "skipped": result["skipped"]}
+        if last is not None:
+            last.notes["volcano"] = note
+        return self
+
+
+def _volcano_triple(given, what: str) -> dict:
+    """`colors=` or `names=` of `Panel.volcano` as a mapping by class."""
+    if given is None:
+        return {}
+    if isinstance(given, Mapping):
+        unknown = set(given) - {"up", "down", "ns"}
+        if unknown:
+            raise DiagramError(
+                f'volcano {what} keys are "up", "down" and "ns", not {sorted(unknown)}')
+        return dict(given)
+    if isinstance(given, str) or len(given) != 3:
+        raise DiagramError(
+            f"volcano {what} is a mapping or three values (down, ns, up), got {given!r}")
+    return dict(zip(("down", "ns", "up"), given))
+
 
 def _mappable(scale, value) -> bool:
     """False for a value a log scale cannot place (zero or negative)."""

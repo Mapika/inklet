@@ -11,6 +11,9 @@
   scale-down that keeps the ridges inside the plot area.
 - Add `Panel.raincloud`: per group, a half violin, a narrow box and every
   observation as seeded jitter or a swarm, horizontal or vertical.
+- Add `Panel.volcano` and `inklet.plot.volcano_points` for volcano plots:
+  threshold rules, up, down and non-significant colours, legend names and
+  labels for the top N significant points through `label_points`.
 - Add value labels to `Panel.bars` (`labels=`, `label_position=`,
   `label_options=`). Labels go inside a bar or segment when they fit and past
   the bar end otherwise; stacked segments that do not fit are omitted and
