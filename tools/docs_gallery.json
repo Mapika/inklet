@@ -22,6 +22,17 @@
     "featured": false
   },
   {
+    "id": "dense-figure",
+    "title": "Dense figure page",
+    "category": "Plots",
+    "description": "Thirteen panels on one 183 mm page with the scientific.cell preset: diagram, bars, heatmaps, distributions, radar and donut.",
+    "requires": "Core; render for previews",
+    "image": "gallery/dense-figure.png",
+    "version": "Stable",
+    "page": "presets/#dense-pages",
+    "featured": false
+  },
+  {
     "id": "wave-packets",
     "title": "Travelling wave packets",
     "category": "Plots",
