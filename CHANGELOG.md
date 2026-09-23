@@ -18,6 +18,33 @@
   hierarchical clustering trees from a SciPy linkage matrix or a nested
   sequence, vertical or horizontal, with threshold cluster colours. On a
   band scale the leaves line up with a heatmap on the same categories.
+- Make `scientific.cell` a preset for dense multi-panel pages: 6 pt text,
+  5 pt ticks and keys, 8 pt letters, 0.4 pt strokes, 0.25 pt hairlines, a
+  2 mm margin, 3.5 mm gaps, a 0.8× spacing scale, 4 ticks and a muted blue,
+  amber, magenta and grey palette. Its checks accept 5 pt text and 0.25 pt
+  (0.088 mm) strokes, the lint default, instead of 6 pt and 0.1 mm.
+- Add `legend_side='inside'` to presets. Legends without `side=` or `corner=`
+  are placed in clear data space, or above the data area when none fits.
+  `scientific.cell` uses it.
+- Add `Preset.letter_pad` (`customize(letter_pad=...)`), the distance between
+  a panel letter and its panel. `scientific.cell` sets 0.5 mm.
+- `matrix()` without `ramp=` now uses a default colouring: reversed magma
+  over the data extent for one-sided data, and Paul Tol's blue-white-red
+  (`tol-burd`) centred on zero for data across zero or on `center=`. Explicit
+  ramps keep reading values as 0..1 fractions. Add the `magma` and `tol-burd`
+  palettes.
+- Orthogonal links route through anchored faces: an end pinned to a side
+  anchor such as `in` or `out` leaves or arrives along that face's normal.
+  Previously the axis came from the centre-to-centre direction, so a target
+  mostly above or below the source was reached by a run along its own side
+  face with the arrowhead inside the box.
+- Add `examples/dense_figure.py`, a thirteen-panel 183 mm page with the
+  `scientific.cell` preset, and its gallery image `gallery/dense-figure.png`.
+- Retighten `examples/general_plots.py`: the preset's 183 mm width, margin,
+  gap and 7/6 pt type instead of 200 mm, 6/12 mm and 8 pt; 34 mm plots; theme
+  hairlines; legends in empty corners or one row above the bars; and the
+  default matrix ramp. Data and panels are unchanged. Regenerate
+  `gallery/general-plots.png`, its SVG/PDF downloads and `gallery/presets.png`.
 - Add value labels to `Panel.bars` (`labels=`, `label_position=`,
   `label_options=`). Labels go inside a bar or segment when they fit and past
   the bar end otherwise; stacked segments that do not fit are omitted and

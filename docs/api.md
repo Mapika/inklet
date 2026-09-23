@@ -188,7 +188,7 @@ Defaults for live plot recipes; explicit recipe options take precedence.
 
 Journal guidance provenance, distinguishing reviewed and unverified sources.
 
-#### `class Preset(name: 'str', description: 'str', format: 'FigureFormat', publication: 'PublicationProfile', plot: 'PlotDefaults' = PlotDefaults(grid='none', legend_side='bottom', tick_count=5, bar_fill='neutral'), margin: 'float' = 4, gap: 'float' = 6, letter_style: 'str' = 'bold-lower', sources: 'tuple[GuidelineSource, ...]' = ()) -> None`
+#### `class Preset(name: 'str', description: 'str', format: 'FigureFormat', publication: 'PublicationProfile', plot: 'PlotDefaults' = PlotDefaults(grid='none', legend_side='bottom', tick_count=5, bar_fill='neutral'), margin: 'float' = 4, gap: 'float' = 6, letter_style: 'str' = 'bold-lower', sources: 'tuple[GuidelineSource, ...]' = (), letter_pad: 'float | None' = None) -> None`
 
 An immutable figure style, format, plot policy and publication profile.
 
@@ -612,7 +612,7 @@ A drawing region plus the scales that map data into it.
 * `draw(*items: 'Diagram', clip: 'bool | None' = None) -> "'Panel'"` -- Add content already expressed in panel coordinates.
 * `place(items, *, clip: 'bool | None' = None) -> "'Panel'"` -- `draw.place()` in data coordinates: `((x, y), diagram)` pairs, or bare diagrams that already know where they go.
 * `marks(item: 'Diagram', points: 'Iterable[Sequence]', *, name: 'str | None' = None, **style) -> "'Panel'"` -- A copy of `item` centred on every data point.
-* `matrix(values: 'Sequence[Sequence[float]]', *, ramp, scale: 'Scale | None' = None, x: 'Sequence | None' = None, y: 'Sequence | None' = None, overlap: 'float | None' = None, missing: 'str | None' = None, vector: 'str' = 'cells', interpolation: 'str' = 'nearest', samples: 'int' = 4, raster: 'bool | str' = 'auto', **style) -> "'Panel'"` -- A 2D array of values, one coloured cell each.
+* `matrix(values: 'Sequence[Sequence[float]]', *, ramp=None, scale: 'Scale | None' = None, center: 'float | None' = None, x: 'Sequence | None' = None, y: 'Sequence | None' = None, overlap: 'float | None' = None, missing: 'str | None' = None, vector: 'str' = 'cells', interpolation: 'str' = 'nearest', samples: 'int' = 4, raster: 'bool | str' = 'auto', **style) -> "'Panel'"` -- A 2D array of values, one coloured cell each.
 * `line(points: 'Iterable[Sequence]', *, smooth: 'float' = 0.0, closed: 'bool' = False, name: 'str | None' = None, err=None, err_style: 'str' = 'band', simplify: 'float | str | None' = None, **style) -> "'Panel'"` -- A path through data points: straight by default, curved with `smooth`.
 * `band(x: 'Sequence', lo, hi, *, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'Panel'"` -- The shaded envelope between two edges over shared x.
 * `scatter(points: 'Iterable[Sequence]', *, size=None, color=None, ramp=None, scale: 'Scale | None' = None, marker: 'str' = 'circle', name: 'str | None' = None, raster: 'bool' = False, dpi: 'float' = 300, **style) -> "'Panel'"` -- Markers at data points, with size and colour that may be data too.

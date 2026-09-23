@@ -21,7 +21,7 @@ from .color import interpolate
 __all__ = [
     "Palette", "PALETTES", "palette", "palette_names",
     "OKABE_ITO", "TOL_BRIGHT", "TOL_MUTED", "TOL_VIBRANT", "TOL_HIGH_CONTRAST",
-    "TOL_YLORBR", "TOL_SUNSET",
+    "TOL_YLORBR", "TOL_SUNSET", "TOL_BURD", "MAGMA",
 ]
 
 
@@ -170,10 +170,39 @@ TOL_SUNSET = Palette(
     source=_TOL,
 )
 
+TOL_BURD = Palette(
+    name="tol-burd",
+    colors=(
+        "#2166ac", "#4393c3", "#92c5de", "#d1e5f0", "#f7f7f7",
+        "#fddbc7", "#f4a582", "#d6604d", "#b2182b",
+    ),
+    kind="diverging",
+    # ColorBrewer RdBu reversed, so that low is blue and high is red. The
+    # white centre is the one colour a reader takes to mean "no change".
+    bad="#ffee99",
+    source=_TOL,
+)
+
+# Stefan van der Walt and Nathaniel Smith's magma, from matplotlib's
+# `_cm_listed.py` (CC0): entries 0, 32, ... 224 and 255 of the 256-entry
+# table. Designed in CAM02-UCS, so lightness rises at a steady perceived rate
+# from near-black to pale yellow; the stops are interpolated in CIELAB here.
+MAGMA = Palette(
+    name="magma",
+    colors=(
+        "#000004", "#1d1147", "#51127c", "#832681", "#b73779",
+        "#e75263", "#fc8961", "#fec488", "#fcfdbf",
+    ),
+    kind="sequential",
+    bad="#bfbfbf",
+    source=("van der Walt & Smith, matplotlib colormap magma (CC0), "
+            "https://bids.github.io/colormap/"),
+)
+
 PALETTES: dict[str, Palette] = {
     p.name: p for p in (
         OKABE_ITO, TOL_BRIGHT, TOL_MUTED, TOL_VIBRANT, TOL_HIGH_CONTRAST,
-        TOL_YLORBR, TOL_SUNSET,
+        TOL_YLORBR, TOL_SUNSET, TOL_BURD, MAGMA,
     )
 }
 

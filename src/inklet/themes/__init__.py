@@ -21,8 +21,9 @@ from .color import (
     readable, relative_luminance, simulate_cvd, to_hex, to_lab,
 )
 from .palettes import (
-    OKABE_ITO, PALETTES, TOL_BRIGHT, TOL_HIGH_CONTRAST, TOL_MUTED, TOL_SUNSET,
-    TOL_VIBRANT, TOL_YLORBR, Palette, palette, palette_names,
+    MAGMA, OKABE_ITO, PALETTES, TOL_BRIGHT, TOL_BURD, TOL_HIGH_CONTRAST,
+    TOL_MUTED, TOL_SUNSET, TOL_VIBRANT, TOL_YLORBR, Palette, palette,
+    palette_names,
 )
 from .theme import (
     GAP_NAMES, HAIRLINE_FLOOR, NATURE, NOTEBOOK, ROLES, SLIDES, THEMES, Theme,
@@ -36,7 +37,7 @@ __all__ = [
     # palettes
     "Palette", "PALETTES", "palette", "palette_names",
     "OKABE_ITO", "TOL_BRIGHT", "TOL_MUTED", "TOL_VIBRANT", "TOL_HIGH_CONTRAST",
-    "TOL_YLORBR", "TOL_SUNSET",
+    "TOL_YLORBR", "TOL_SUNSET", "TOL_BURD", "MAGMA",
     # colour utilities
     "RGB", "ColorError", "CVD_KINDS", "parse_color", "to_hex",
     "relative_luminance", "contrast_ratio", "mix", "lighten", "darken",

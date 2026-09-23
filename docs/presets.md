@@ -29,7 +29,7 @@ text. See [publication figure composition](publication-plots.md).
 | `scientific.general` | Double column | Papers and technical reports |
 | `scientific.nature` | Double column | Nature main figures; source guidance below |
 | `scientific.science` | Double column | Provisional style; guidelines not verified |
-| `scientific.cell` | Double column | Provisional style; guidelines not verified |
+| `scientific.cell` | Double column | Dense multi-panel pages; guidelines not verified |
 | `educational.textbook` | Report | Larger labels and horizontal guides |
 | `educational.classroom` | Slide | Projected text and both grid directions |
 | `educational.worksheet` | A4 | Monochrome figures and grids for printed exercises |
@@ -65,6 +65,49 @@ Fixed pages use `min_height=` on document cells to reserve space for plots and
 keep headings and captions compact.
 
 ![Journal figure, 16:9 teaching slide and A4 worksheet](../gallery/preset-formats.png)
+
+## Dense pages
+
+`scientific.cell` is for figure pages with many small panels, such as a
+twelve-panel page at 183 mm. It sets:
+
+| Setting | Value |
+| --- | --- |
+| Axis names and body text | 6 pt |
+| Tick labels, legend keys | 5 pt |
+| Panel letters | 8 pt bold capitals, 0.5 mm from the panel |
+| Axis and default strokes | 0.4 pt (0.14 mm) |
+| Hairlines | 0.25 pt (0.088 mm) |
+| Page margin, gap between panels | 2 mm, 3.5 mm |
+| Spacing scale (label pads, legend gaps) | 0.8 × the scientific scale |
+| Tick count | 4 |
+| Legends | Inside the data area |
+| Palette | muted blue, amber, magenta, grey, green, dark grey |
+
+`legend_side='inside'` places each `.legend()` without an explicit `side=` or
+`corner=` in empty data space, found after the marks are drawn. If no position
+clears the marks, the legend goes above the data area instead. The legend is
+never shrunk.
+
+The checks are tuned for this density. The minimum text size is 5 pt, and the
+minimum stroke width is 0.25 pt (0.088 mm) instead of the 0.1 mm used by the
+other presets. 0.25 pt is Inklet's `HAIRLINE_FLOOR`, the thinnest line it
+treats as printable, and the default of the lint stroke check. With the
+0.1 mm floor, every 0.25 pt hairline in a dense page would be reported.
+
+The blue (`#4677b0`) and magenta (`#c2449c`) are dark enough for white bar
+labels at 4.5:1 contrast; amber, grey and green take dark labels.
+
+```python
+dense = i.preset('scientific.cell')
+doc = dense.document(columns=12).letters()
+doc.add('response', plot, row=0, column=0, colspan=4)
+```
+
+For a complete example with thirteen panels, see
+[`examples/dense_figure.py`](../examples/dense_figure.py):
+
+![A thirteen-panel figure page: diagram, bars, dumbbells, labelled scatter, heatmaps, cumulative distributions, radar, donut and violins](../gallery/dense-figure.png)
 
 ## Keep style and format separate
 
@@ -117,10 +160,12 @@ its options. It accepts:
   `grid_color`, `radius` and `line_height`.
 - Type sizes in points: `font_pt`, `small_font_pt`, `title_font_pt`.
 - Page geometry in millimetres: `width`, `height`, `margin`, `gap`, `stroke_mm`.
-- Plot furniture: `grid` (`none`, `x`, `y`, `both`), `legend_side`, `tick_count`.
+- Plot furniture: `grid` (`none`, `x`, `y`, `both`), `legend_side`
+  (`bottom`, `top`, `left`, `right`, `inside`), `tick_count`.
 - Single-series bars: `bar_fill` (`neutral` or `accent`). Educational and
   marketing presets use the accent; scientific and worksheet presets use neutral.
-- Lettering: `letter_style` (`bold-lower`, `lower`, `upper`, `bold-upper`, `paren`).
+- Lettering: `letter_style` (`bold-lower`, `lower`, `upper`, `bold-upper`, `paren`)
+  and `letter_pad`, the distance in millimetres between a letter and its panel.
 - Export and checks: `dpi`, `text` (`embed` or `outline`), `min_font_pt`,
   `min_stroke_mm`, `min_dpi`, `max_font_pt` and `max_height_mm`.
 
@@ -172,8 +217,9 @@ The [Science author instructions](https://www.science.org/content/page/instructi
 and [Cell figure guidelines](https://www.cell.com/figureguidelines) could not be
 accessed for review. Those presets are explicitly provisional: their dimensions,
 typography and uppercase lettering are authoring defaults, not verified journal
-requirements. They use the general 89/183 mm formats. Their source records have
-`status='unverified'` and no review date.
+requirements. The dense `scientific.cell` settings follow printed Cell figure
+pages, not the publisher's written guidance. They use the general 89/183 mm
+formats. Their source records have `status='unverified'` and no review date.
 
 All presets use the existing minimum text-size, stroke-width and raster-DPI
 checks at final export size. A preset is not a submission certification.

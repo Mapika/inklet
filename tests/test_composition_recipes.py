@@ -143,3 +143,33 @@ def test_mixed_report_example_keeps_content_and_data_relationships_at_two_widths
         assert new.to_svg()!=svg and old.to_svg()==svg and doc.compile() is new
     assert reports[0]['workflow']['model'].label=='Model'
     assert reports[1]['workflow']['model'].label=='Revised model'
+
+
+def test_branch_arrows_stop_at_the_target_face_and_off_its_label():
+    # The targets sit mostly above and below the source, 4 mm to its right:
+    # centre to centre the route is vertical, but both ends are side ports.
+    recipe=i.composition(42,30)
+    for name,label,x,y in (('pn','projection\nneurons',15,11),('lh','lateral\nhorn',30,1),
+                           ('mb','mushroom\nbody',30,21)):
+        recipe.add(name,i.module(label,min_width=11,min_height=7,pad=.8,text_style={'size':i.pt(5)}),x=x,y=y)
+    recipe.link('pn:out','lh:in',route='orthogonal',corner=.6)
+    recipe.link('pn:out','mb:in',route='orthogonal',corner=.6)
+    _,figure=compile_recipe(recipe,width=42,height=30)
+    root,places=figure.build()
+    heads=[[q.world.apply(p) for p in q.diagram.prim.subpaths[0].points]
+           for q in places.values() if q.diagram.kind=='arrowhead']
+    assert len(heads)==2
+    source=next(q for q in places.values() if q.diagram.name=='pn').bbox
+    assert source.width<12
+    for name in ('lh','mb'):
+        part=next(q for q in places.values() if q.diagram.name==name)
+        box=part.bbox
+        texts=[q.bbox for key,q in places.items()
+               if key.startswith(part.diagram.id+'/') and type(q.diagram.prim).__name__=='TextPrim']
+        assert texts
+        for head in heads:
+            assert not any(box.x0+1e-6<p.x<box.x1-1e-6 and box.y0+1e-6<p.y<box.y1-1e-6 for p in head)
+            x0,x1=min(p.x for p in head),max(p.x for p in head)
+            y0,y1=min(p.y for p in head),max(p.y for p in head)
+            for t in texts:
+                assert x1<=t.x0 or x0>=t.x1 or y1<=t.y0 or y0>=t.y1

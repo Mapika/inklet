@@ -283,6 +283,9 @@ class PlotSpec(BuildSpec):
                 if method in ('axes', 'axis'):
                     kwargs.setdefault('count', defaults.tick_count)
                 elif method == 'legend' and not {'side', 'corner'} & kwargs.keys():
+                    if defaults.legend_side == 'inside':
+                        _inside_legend(panel, kwargs)
+                        continue
                     kwargs['side'] = defaults.legend_side
                 elif method == 'bars' and defaults.bar_fill == 'accent' and not {'colors', 'bar_colors', 'fill'} & kwargs.keys():
                     from ..plot.marks import series_count
@@ -303,6 +306,20 @@ class PlotSpec(BuildSpec):
                 args[0].draw(panel, **kwargs)
             else:
                 getattr(panel, method)(*args, **kwargs)
+
+
+def _inside_legend(panel, options):
+    """Place a key in clear data space, or above the plot when none fits.
+
+    The clear-space search runs after marks are drawn and never shrinks the
+    key. A crowded plot keeps its data visible: the key moves above the data
+    area, in as many columns as fit its width, which costs height rather than
+    the data width a key on the right would take.
+    """
+    try:
+        panel.legend(corner='auto', **options)
+    except DiagramError:
+        panel.legend(side='top', **options)
 
 
 def _copy_plot_value(value, memo):

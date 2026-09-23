@@ -708,9 +708,16 @@
   },
   {
     "page": "matrices.md",
-    "block": 4,
+    "block": 5,
     "object": "fig",
     "image": "plots-dendrogram.png",
     "alt": "Dendrograms"
+  },
+  {
+    "page": "matrices.md",
+    "block": 4,
+    "object": "doc",
+    "image": "matrix-default-ramps.png",
+    "alt": "Two heatmaps: magma for one-sided values, blue-white-red for values across zero"
   }
 ]

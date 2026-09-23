@@ -20,7 +20,7 @@ from typing import Sequence
 from ..themes.color import ColorError, interpolate, interpolate_lab, to_hex, parse_color
 from ..themes.palettes import Palette, palette
 
-__all__ = ["Ramp", "ramp"]
+__all__ = ["Ramp", "ramp", "default_ramp", "SEQUENTIAL", "DIVERGING"]
 
 SPACES = ("lab", "srgb")
 
@@ -72,3 +72,19 @@ def ramp(stops: str | Palette | Sequence[str], *, space: str = "lab") -> Ramp:
         stops = stops.colors
     colors = tuple(to_hex(parse_color(c)) for c in stops)
     return Ramp(colors, space)
+
+
+#: The ramp `Panel.matrix` uses when it is given none: magma run from pale
+#: yellow (low) to deep purple (high), so the highest values are the darkest
+#: cells on white paper. The near-black first stop is left out; the darkest
+#: cell is then still distinct from black outlines and text drawn over it.
+SEQUENTIAL = Ramp(tuple(reversed(palette("magma").colors[1:])))
+
+#: The ramp `Panel.matrix` uses for data on both sides of a centre: Tol's
+#: blue-white-red, with white at the centre value.
+DIVERGING = Ramp(palette("tol-burd").colors)
+
+
+def default_ramp(diverging: bool = False) -> Ramp:
+    """The built-in sequential ramp, or the diverging one."""
+    return DIVERGING if diverging else SEQUENTIAL
