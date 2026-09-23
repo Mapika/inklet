@@ -21,7 +21,7 @@ panels whose y labels are different widths.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
 
 from ..core import Diagram, DiagramError, Rect, RectPrim, Vec2, mm
 from ..core.diagram import union_bounds as _union_box
@@ -509,6 +509,8 @@ class Panel:
              baseline: float = 0.0, orient: str = "v",
              stacked: bool | None = None, grouped: bool | None = None,
              gap: float = 0.12, colors=None, bar_colors=None, names: Sequence[str] | None = None,
+             labels=None, label_position: str = "auto",
+             label_options: dict | None = None,
              **style) -> "Panel":
         """A rectangle per value, standing on a baseline.
 
@@ -539,6 +541,19 @@ class Panel:
         Unstacked values equal to the baseline draw no rectangle; stacked
         contributions of zero also draw nothing. If every bar has zero length,
         the series remains valid and retains axes and requested legend entries.
+
+        `labels=` writes each value on its bar or segment: `True` for the
+        number, a format such as `"{:.1f}%"`, a callable, or explicit strings
+        in the shape of `heights`. `label_position` is `"auto"` (inside when
+        the label fits with a margin, otherwise past the bar end; for stacked
+        bars a segment label that does not fit is omitted), `"inside"` or
+        `"end"`. Inside labels use the theme ink or paper, whichever contrasts
+        more with the fill. `label_options` takes `size`, `fill`, `markup` and
+        `font_weight`. Labels are never shrunk; omitted labels are listed in
+        the label node's `bar_labels` note.
+
+            p.bars(ids, [specific, dimorphic, isomorphic], stacked=True,
+                   orient="h", labels=True)
         """
         clip = _clip_flag(style)
         if names is not None and bar_colors is not None:
@@ -557,7 +572,26 @@ class Panel:
         if isinstance(bar_colors, CategorySet):
             for label, color in bar_colors.subset(at).legend_entries:
                 self._note(label, "area", fill=color, color=color)
-        return self.draw(*(() if node is None else (node,)), clip=clip)
+        self.draw(*(() if node is None else (node,)), clip=clip)
+        if labels is not None and labels is not False:
+            from .bar_labels import bar_labels
+            count = _marks.series_count(heights)
+            fills = _marks.series_colors(
+                style.get("fill") if colors is None else colors, count)
+            per_bar = None
+            if bar_colors is not None:
+                per_bar = ([bar_colors[a] for a in at]
+                           if isinstance(bar_colors, Mapping)
+                           else _marks._per_point(bar_colors, len(at),
+                                                  "bar_colors"))
+            written = bar_labels(
+                self, at, heights, labels=labels, position=label_position,
+                width=width, baseline=baseline, orient=orient, stacked=stacked,
+                grouped=grouped, gap=gap, fills=fills, bar_fills=per_bar,
+                options=label_options)
+            if written is not None:
+                self.over(written, clip=False)
+        return self
 
     def hist(self, values: Sequence[float], bins: int | Sequence[float] = 10, *,
              range: tuple[float, float] | None = None, density: bool = False,
@@ -1490,6 +1524,7 @@ class Panel:
             self, groups, at=at, width=width, max_width=max_width,
             orient=orient, size=size, gap=gap, marker=marker, hollow=hollow,
             colors=colors, **style), clip=clip)
+
 
 
 def panel(width: float | str, height: float | str, *, x=None, y=None,
