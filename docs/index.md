@@ -17,28 +17,25 @@ a compiled export preserves.
 | You want to… | Start here |
 |---|---|
 | Make and export your first figure | [First figure tutorial](quickstart.md) |
-| Build a figure from a CSV file | [CSV tutorial](csv-figure.md) |
-| Understand live recipes, physical units and compilation | [The authoring model](concepts.md) |
-| Choose a plot for your data | [Visual plot gallery](plot-types.md) |
+| Choose a plot for your data | [Plot type gallery](plot-types.md) |
+| Put a dozen panels on one journal page | [Dense figure pages](dense-figures.md) |
+| Set page width, spans and panel letters in millimetres | [Panel layout](layout.md) |
+| Match a journal's type sizes and strokes | [Presets](presets.md) |
 | Combine marks, legends and insets | [Build and combine plots](plotting.md) |
 | Set scales, tick labels and fonts | [Axes, scales and text](axes-and-scales.md) |
-| Share data, colours and units | [Live data](data.md) |
-| Build a page that can be resized and revised | [Reusable compositions](composition-recipes.md) |
-| Draw measured components and connections | [Diagrams](diagrams.md) |
-| Add images, meshes or Blender scenes | [3D and images](three-images.md) |
-| Author a dense scientific plate | [Complex scientific plates](complex-figures.md) |
-| Inspect print diagnostics and save final outputs | [Review and export](export-review.md) |
-| Build an offline interactive report | [Interactive documents (experimental)](interactive-documents.md) |
-| Package source assets and saved figure choices | [Reusable figure projects](project-workflows.md) |
-| Work with microscopy data | [Calibrated volumes (preview)](calibrated-volumes.md) |
+| Draw measured components and connections | [Diagrams](diagrams-overview.md) |
+| Add images, meshes or Blender scenes | [3D and images](three-d.md) |
+| Check a figure and save SVG, PDF and PNG | [Export and review](export.md) |
+| See complete figures with source | [Figure gallery](examples.md) |
+| Build an offline interactive report or use microscopy volumes | [Experimental features](experimental.md) |
 
-## Reference and development
+## Reference
 
-[Python API](api.md) · [CLI](cli.md) · [Troubleshooting](troubleshooting.md) ·
+[Python API](api.md) · [CLI](cli.md) · [Cookbook](cookbook.md) ·
+[Troubleshooting](troubleshooting.md) · [Compatibility](compatibility.md) ·
 [Migration](migration.md)
 
 The default install is stable **4.0.1**. See [what is included](development-preview.md)
 and the [migration guide](migration.md#from-31-to-40) for existing recipes.
-
-[Compatibility](compatibility.md) · [Acceptance checks](acceptance.md) ·
-[4.0 roadmap](roadmap.md) · [Historical guides](history.md)
+Release process, engine studies and earlier guides are in the
+[development notes](development.md).
