@@ -195,8 +195,9 @@ def default_coloring(rows, ramp, scale, center):
     else the sequential one. An explicit ramp with no scale keeps its old
     meaning: values are already fractions of the ramp.
     """
-    from .ramp import default_ramp
+    from .ramp import as_ramp, default_ramp
     from .scale import linear
+    ramp = as_ramp(ramp)  # a palette name such as "viridis" works too
     if center is not None and scale is not None:
         raise DiagramError('matrix() takes center= or scale=, not both: '
                            'a scale already fixes where its middle is')

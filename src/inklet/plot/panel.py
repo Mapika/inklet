@@ -525,6 +525,8 @@ class Panel:
                 "scatter(ramp=) colours by a value per point: pass color= a "
                 "sequence of numbers the length of the data"
             )
+        from .ramp import as_ramp
+        ramp = as_ramp(ramp)  # a palette name such as "viridis" works too
         numbers = [float(v) for v in values]
         if scale is None:
             low, high = min(numbers), max(numbers)

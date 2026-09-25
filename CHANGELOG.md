@@ -81,6 +81,62 @@ a `DeprecationWarning` subclass that names the replacement. See the
   "Distributions" and "Bars and areas", gallery entries, and
   `examples/stat_plot_types.py`.
 
+### Colour palettes
+
+- A curated palette collection now ships with Inklet: 98 palettes, each
+  recording its source and licence. See the new
+  [Colour palettes](docs/palettes.md) page. It includes:
+  - viridis, cividis, inferno, plasma and magma;
+  - 36 of Crameri's Scientific colour maps (sequential, diverging and
+    cyclic);
+  - all 35 ColorBrewer schemes;
+  - the remaining Paul Tol schemes: `tol-medium-contrast`, `tol-light`,
+    `tol-pale`, `tol-dark`, `tol-nightfall`, `tol-prgn`, `tol-whorbr`,
+    `tol-iridescent`, `tol-incandescent` and `tol-rainbow`.
+
+  The dense maps reproduce their published 256-entry tables within
+  CIEDE2000 1. `tools/gen_palette_data.py` regenerates them from pinned,
+  checksummed sources. Licence notices are in `THIRD_PARTY_NOTICES.md` and
+  `LICENSES/`.
+- Four palettes of Inklet's own, designed in OKLCH and validated in tests:
+  - `inklet`: eight colours, at least 12.4 ΔE00 apart under every
+    dichromacy and at least 5.5 L* apart in greyscale;
+  - `inklet-muted`;
+  - `inklet-pairs`: dark/light pairs;
+  - `inklet-duo`: two conditions plus a reference.
+
+  Default palettes are unchanged.
+- `Palette` gains:
+  - `kind` (`categorical`, `sequential`, `diverging` or `cyclic`), plus
+    `license` and `notes`;
+  - `reversed()`, `resampled(n)` and `ramp(t, space="oklab")`;
+  - `cvd(kind, severity)` using Machado et al. 2009, and `greyscale()`;
+  - `lightness()`, `min_delta_e()`, and `report()`, which returns a
+    `PaletteReport`.
+- `palette_names(kind=...)` lists the palettes of one kind.
+  `palette("viridis_r")` returns the reversed palette.
+- `inklet.themes.color` gains:
+  - OKLab and OKLCH (`to_oklab`, `from_oklab`, `to_oklch`, `from_oklch`,
+    `mix_oklab`, `interpolate_oklab`, `in_gamut_oklab`);
+  - CIEDE2000 (`delta_e_2000`) and `delta_e_ok`;
+  - `simulate_cvd(..., method="machado", severity=...)`. The Viénot method
+    stays the default.
+- Palette names now work in more places:
+  - `Ramp` gains an `"oklab"` space, and `as_ramp()` coerces names;
+  - `matrix(ramp="viridis")`, `scatter(ramp="batlow")` and dot plots take a
+    palette name;
+  - `Theme(palette=...)` and the new `Theme.with_palette()` take a
+    categorical palette name or a `Palette`;
+  - `Preset.customize(palette="inklet-muted")` now accepts a name instead of
+    raising `TypeError`.
+- Behaviour notes:
+  - The `qualitative` kind is now called `categorical`. `qualitative` is
+    still accepted as an alias.
+  - `palette("magma")` now carries 52 dense stops instead of 9. The default
+    matrix ramp keeps its previous nine-stop magma literally, so default
+    output does not change.
+  - `palette("viridis")` used to raise `KeyError`; it now returns the map.
+
 ## 4.3.0 — 2026-09-25
 
 4.3 moves microscopy volumes, keyed selections, figure projects and the layout

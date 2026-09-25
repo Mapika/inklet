@@ -4,7 +4,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, replace
 
 from ..core import pt
-from ..themes import Theme, theme as get_theme
+from ..themes import Palette, Theme, theme as get_theme
+from ..themes.theme import _resolve_palette
 from ..themes.color import parse_color
 from .publication import PublicationProfile
 from .spec import length
@@ -101,7 +102,8 @@ class Preset:
 
         Typography uses font_pt, small_font_pt and title_font_pt. Theme options
         include font_family, font_mono, accent, palette, paper, ink, muted,
-        grid_color, radius and line_height. An accent override also changes
+        grid_color, radius and line_height. palette may be a sequence of
+        colours, a categorical palette name such as 'inklet', or a Palette. An accent override also changes
         the first automatic series colour unless palette is supplied.
         """
         theme_fields = {'font_family', 'font_mono', 'accent', 'palette', 'paper',
@@ -116,7 +118,9 @@ class Preset:
         changes = {key: value for key, value in options.items() if key in theme_fields}
         if 'grid_color' in changes: changes['grid'] = changes.pop('grid_color')
         if 'palette' in changes:
-            if isinstance(changes['palette'], str): raise TypeError('palette must be a sequence of colours')
+            if isinstance(changes['palette'], (str, Palette)):
+                # A name such as 'inklet' or 'tol-muted', or a Palette object.
+                changes['palette'] = _resolve_palette(changes['palette'])
             changes['palette'] = tuple(changes['palette'])
             if not changes['palette']: raise ValueError('palette must not be empty')
             for color in changes['palette']: parse_color(color)
