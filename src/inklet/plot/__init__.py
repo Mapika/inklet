@@ -118,3 +118,22 @@ __all__ = [
     "Ramp", "ramp", "colorbar", "legend", "BANDS", "SWATCH_OF_TYPE",
     "raster_matrix", "MATRIX_KIND", "LEVELS",
 ]
+
+# categorical, composition, comparison and time plots
+from .waterfall import WaterfallStep, waterfall_steps
+from .slope import ranks
+from .diverging import likert_colors, likert_spans, unsigned
+from .waffle import waffle_cells
+from .mosaic import MosaicColumn, mosaic_layout
+from .stream import STREAM_OFFSETS, STREAM_ORDERS, stream_layers
+from .parallel import parallel_ranges
+from .bullet import bullet_shades
+from .calendar import WEEKDAYS, calendar_weeks
+from .barplot import summary_stats
+
+__all__ += [
+    "WaterfallStep", "waterfall_steps", "ranks", "likert_colors", "likert_spans",
+    "unsigned", "waffle_cells", "MosaicColumn", "mosaic_layout", "STREAM_OFFSETS",
+    "STREAM_ORDERS", "stream_layers", "parallel_ranges", "bullet_shades",
+    "WEEKDAYS", "calendar_weeks", "summary_stats",
+]

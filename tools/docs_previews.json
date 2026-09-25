@@ -950,5 +950,117 @@
     "object": "fig",
     "image": "plots-ternary.png",
     "alt": "A ternary plot of soil texture"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 10,
+    "object": "doc",
+    "image": "plots-waterfall.png",
+    "alt": "Waterfalls"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 11,
+    "object": "doc",
+    "image": "plots-barplot.png",
+    "alt": "Bars with points"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 12,
+    "object": "doc",
+    "image": "plots-diverging-bars.png",
+    "alt": "Diverging bars"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 13,
+    "object": "doc",
+    "image": "plots-pyramid.png",
+    "alt": "Population pyramid"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 14,
+    "object": "doc",
+    "image": "plots-likert.png",
+    "alt": "Likert scale"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 15,
+    "object": "doc",
+    "image": "plots-mosaic.png",
+    "alt": "Mosaic plot"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 16,
+    "object": "doc",
+    "image": "plots-waffle.png",
+    "alt": "Waffle chart"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 17,
+    "object": "doc",
+    "image": "plots-streamgraph.png",
+    "alt": "Streamgraph"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 18,
+    "object": "doc",
+    "image": "plots-bullet.png",
+    "alt": "Bullet chart"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 10,
+    "object": "doc",
+    "image": "plots-slope.png",
+    "alt": "Slope chart"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 11,
+    "object": "doc",
+    "image": "plots-bump.png",
+    "alt": "Bump chart"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 12,
+    "object": "doc",
+    "image": "plots-stem.png",
+    "alt": "Stem plot"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 13,
+    "object": "doc",
+    "image": "plots-parallel.png",
+    "alt": "Parallel coordinates"
+  },
+  {
+    "page": "timelines-and-calendars.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-gantt.png",
+    "alt": "Gantt chart"
+  },
+  {
+    "page": "timelines-and-calendars.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plots-timeline.png",
+    "alt": "Event timeline"
+  },
+  {
+    "page": "timelines-and-calendars.md",
+    "block": 3,
+    "object": "doc",
+    "image": "plots-calendar.png",
+    "alt": "Calendar heatmap"
   }
 ]

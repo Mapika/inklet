@@ -150,6 +150,7 @@ nav:
   - Networks and hierarchies: networks-and-hierarchies.md
   - Genomics and ternary plots: genomics-plots.md
   - Polar, radar and pie: polar-plots.md
+  - Timelines and calendars: timelines-and-calendars.md
   - Axes, scales and text: axes-and-scales.md
   - Live data and categories: data.md
   - Dense data: dense-data.md
