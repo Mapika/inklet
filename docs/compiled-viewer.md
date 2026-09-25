@@ -1,6 +1,6 @@
 # Compiled-scene browser viewer
 
-Introduced in **4.0.0.dev3** and available in stable **4.2.0**.
+Introduced in **4.0.0.dev3** and available in stable **4.3.0**.
 `RenderScene.to_html()` is an offline viewer for
 ordinary native figures, using the same compiled geometry, text, transforms,
 clipping and paint order as SVG/PDF export.
@@ -45,6 +45,9 @@ f.add(p.build())
 scene = i.compile_scene(f.build()[0])
 Path("figure.html").write_text(scene.to_html(), encoding="utf-8")
 ```
+
+The viewer runtime lives in the private `inklet.render._viewer` module; the old
+`inklet.experimental.scene_viewer` path still works. Call `RenderScene.to_html()`.
 
 A compiled document already supplies `compiled.scene`. The HTML contains its
 runtime, marker buffers, outlined text and image resources; no server, CDN or

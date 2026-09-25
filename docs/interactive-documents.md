@@ -4,9 +4,11 @@ Explore a figure in an offline HTML page, or use a local Python editor to revise
 its composition. Both workflows retain explicit saved choices, but their
 controls and state files serve different purposes.
 
-These interfaces were introduced during the **4.0.0** previews and are
-available in stable **4.2.0**, under opt-in experimental APIs. Install with
-`pip install "inklet==4.2.0"`; see the [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
+These interfaces were introduced during the **4.0.0** previews. The linked
+HTML documents remain opt-in experimental APIs (`inklet.experimental.browser`);
+from 4.3 the [layout editor](layout-editor.md) (`inklet.editor`), keyed
+selections (`inklet.selection`) and [figure projects](project-workflows.md)
+(`inklet.project`) are stable. See the [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
 before relying on experimental state formats.
 
 ![A regional report linking a map, time series, distribution and category panels](assets/v4/regional-report.png)

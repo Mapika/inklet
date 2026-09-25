@@ -1,4 +1,12 @@
-"""Local browser editing of composition layouts, labels, styles and cameras through Python."""
+"""Local browser editing of composition layouts, labels, styles and cameras through Python.
+
+The supported contract is the Python `LayoutEditor` class and the composition
+layout overrides it saves (`overrides()`, applied with
+`Composition.with_layout_overrides`). The loopback HTTP/JSON protocol, the
+browser page and the `snapshot()` payload are private and may change between
+releases. Available in 4.3; the same class remains importable from
+`inklet.experimental.layout_editor`.
+"""
 from __future__ import annotations
 
 import copy
@@ -11,9 +19,11 @@ import threading
 from urllib.parse import urlsplit, parse_qs
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from ...document import Composition, document
-from ...document.layout_overrides import _EDITORS
-from ...document.layout_overrides import SCHEMA, _targets, _placement, _expression
+from ..document import Composition, document
+from ..document.layout_overrides import _EDITORS
+from ..document.layout_overrides import SCHEMA, _targets, _placement, _expression
+
+__all__ = ['LayoutEditor']
 
 
 class LayoutEditor:
@@ -23,6 +33,9 @@ class LayoutEditor:
     source recipe is retained but never edited. Refresh explicitly after source
     changes. Width/height optionally fix the containing document's millimetres;
     otherwise its size follows the composition. History retains at most 100 edits.
+
+    The class and the saved layout overrides are the contract; the local
+    HTTP/JSON protocol between this server and its page is private.
     """
 
     def __init__(self, recipe, *, width=None, height=None, preset=None):
@@ -42,7 +55,7 @@ class LayoutEditor:
                      height=self.height if self.height is not None else recipe.height*recipe.unit,margin=0)
         if self.preset is None: doc=document(**options)
         else:
-            from ...document import preset
+            from ..document import preset
             doc=preset(self.preset).document(**options)
         doc.add('composition',recipe)
         figure=doc.compile()
@@ -61,8 +74,8 @@ class LayoutEditor:
         with self._lock:return copy.deepcopy(self._value)
 
     def _geometry(self):
-        from ...core import Vec2
-        from ...draw.coords import placed_anchor, plot_area
+        from ..core import Vec2
+        from ..draw.coords import placed_anchor, plot_area
         root,resolved=self._figure.build()
         targets=_targets(self._recipe)
         geometry={}
@@ -89,7 +102,7 @@ class LayoutEditor:
         return geometry
 
     def _gesture(self,value):
-        from ...document.composition import LayoutValue, _scale
+        from ..document.composition import LayoutValue, _scale
         if (not isinstance(value,dict) or not {'path','dx','dy'}<=set(value) or
                 not set(value)<={'path','dx','dy','factor','corner'}):
             raise ValueError('gesture needs path and finite figure-space dx/dy')
@@ -123,7 +136,11 @@ class LayoutEditor:
         return dict(path=path,placement=fields) if fields else None
 
     def snapshot(self):
-        """Return current controls, revision and preview without rebuilding."""
+        """Return current controls, revision and preview without rebuilding.
+
+        The payload feeds the private browser page; its shape is not a stable
+        contract. Persist `overrides()` instead.
+        """
         with self._lock:
             targets={}
             for path,(_,part,item) in _targets(self._recipe).items():

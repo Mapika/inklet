@@ -5,10 +5,11 @@ together as the analysis changes. This tutorial builds a small diagram from a
 file, moves one object, saves and reopens the project, connects its objects to
 plotted measurements, then replaces the measurements without losing the edit.
 
-Introduced in **4.0.0** and available in stable **4.2.0**, under
-`inklet.experimental.project`; install the [4.0 release](development-preview.md). Run the Python
-blocks below in order in a fresh working directory. The example uses simulated
-data and the core installation. Project schemas remain experimental; see the
+Introduced in **4.0.0**; imported from `inklet.project` since **4.3**. The
+old `inklet.experimental.project` path still works and returns the same objects.
+Run the Python blocks below in order in a fresh working directory. The example
+uses simulated data and the core installation. Saved files keep their
+`figure-project/0.1`, `assets/0.1` and `entities/0.1` schemas; see the
 [API and saved-file policy](compatibility.md#api-and-saved-file-policy).
 
 ![An original simulated project combining supplied values, diagram objects, source pixels and native models](assets/guides/project-workflow.png)
@@ -31,7 +32,7 @@ URLs are descriptive metadata; verification does not download anything.
 import json
 from pathlib import Path
 import inklet as i
-from inklet.experimental.project import AssetManifest, EntityMap, FigureProject
+from inklet.project import AssetManifest, EntityMap, FigureProject
 
 inputs = Path('project-inputs')
 inputs.mkdir(exist_ok=True)
@@ -76,10 +77,13 @@ the source directory are not copied.
 Reopening verifies input hashes **before calling the supplied factory**. It never
 imports bundled Python automatically. The factory reconstructs the composition;
 saved layout, labels, styles and native-camera choices are then applied. The
-reconstructed SVG must match its recorded digest. A different recipe, font setup
-or Inklet version can fail this check. Use `verify_export=False` only when
-intentionally accepting and reviewing that reconstruction difference; asset
-verification still runs. Hashes establish consistency, not trust in a recipe.
+reconstructed SVG is then compared with its recorded digest. A different recipe,
+font setup or Inklet version can change it: the project still opens, with an
+`ExportDriftWarning` and `open_report['export_drift']` set to `True`. Review the
+figure, then save again to record the new export. Pass `verify_export='strict'`
+to raise `ValueError` instead, for example in release checks, or
+`verify_export=False` to skip the comparison. Asset verification always runs.
+Hashes establish consistency, not trust in a recipe.
 
 ## Connect different local IDs
 
@@ -98,7 +102,7 @@ Use `validate_source(source, local_ids)` to reject stale or incomplete inventori
 The reserved `composition` source validates paths against the actual recipe.
 
 ```python
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 from inklet.experimental.browser import BrowserFigure, ScatterView
 
 measurements = KeyedTable('measurements', {

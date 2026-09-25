@@ -1,6 +1,6 @@
 # Linked distributions and intervals
 
-Introduced in **4.0.0.dev1** and available in stable **4.2.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
 
 Connect empirical distributions to individually selectable observations and
 supplied uncertainty intervals. `ECDFView` and `IntervalView` are development
@@ -21,7 +21,7 @@ Mark Marosi. The supplied ranges are illustrative, **not confidence intervals**.
 
 ```python
 from inklet.experimental.browser import BrowserFigure, ECDFView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable("observations", {
     "id": ["a", "b", "c", "d"],
@@ -61,7 +61,7 @@ them. Domains and reference populations stay fixed during page pan/zoom.
 
 ```python
 from inklet.experimental.browser import BrowserFigure, IntervalView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable("estimates", {
     "id": ["batch-1", "batch-2"],

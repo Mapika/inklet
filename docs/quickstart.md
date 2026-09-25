@@ -121,7 +121,7 @@ inklet watch first_figure.py --output out/review
 | Multiple styled plots driven by the same measurements | [Reusable plots](plot-recipes.md) |
 | A repeatable layout mixing plots and diagrams | [Reusable compositions](composition-recipes.md) |
 | A dense, annotated scientific plate | [Complex scientific figures](complex-figures.md) |
-| A saved project with verified files and linked object IDs | [Figure projects](project-workflows.md), opt-in experimental in stable 4.2.0 |
+| A saved project with verified files and linked object IDs | [Figure projects](project-workflows.md), stable `inklet.project` since 4.3.0 |
 
 The files from this tutorial are `response.svg`/`.pdf`,
 `response-revised.svg`/`.pdf` and `two-panels.svg`/`.pdf`. Keep the Python recipe

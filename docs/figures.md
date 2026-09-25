@@ -60,15 +60,12 @@ groups:
       - title: Figure projects
         page: project-workflows.md
         text: Keep source files, layout edits and object IDs together while the data change.
-        tag: Experimental
       - title: Save layout choices
         page: layout-overrides.md
         text: Store placement and size edits separately from the recipe and restore them after a data change.
-        tag: Experimental
       - title: Local layout editor
         page: layout-editor.md
         text: Arrange named content in a local browser editor and review the compiled figure.
-        tag: Experimental
 ---
 # Figures and layout
 

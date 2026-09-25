@@ -31,8 +31,10 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.2.0 is stable**, with compact dense-field PDF exports,
-reusable figure projects and enforced acceptance and performance checks.
+**4.3.0 is stable**. Microscopy volumes, keyed selections, figure projects and
+the layout editor now live in stable `inklet.volume`, `inklet.selection`,
+`inklet.project` and `inklet.editor`; the old `inklet.experimental` imports
+still work.
 
 ```sh
 python -m pip install --upgrade inklet
@@ -43,7 +45,9 @@ python -m pip install --upgrade inklet
 [4.0 roadmap](https://inklet.readthedocs.io/en/latest/roadmap/) ·
 [Release notes](https://github.com/Mapika/inklet/blob/master/CHANGELOG.md)
 
-APIs under `inklet.experimental` retain their opt-in status in 4.0. The supported controls,
+From 4.3, microscopy volumes (`inklet.volume`), keyed selections
+(`inklet.selection`), figure projects (`inklet.project`) and the layout editor
+(`inklet.editor`) are stable; the rest of `inklet.experimental` stays opt-in. The supported controls,
 saved-file policy and deferred features are listed in the
 [compatibility guide](https://inklet.readthedocs.io/en/latest/compatibility/).
 Animation and presentation authoring remain in the 5.0 direction.

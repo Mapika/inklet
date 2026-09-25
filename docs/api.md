@@ -4,6 +4,9 @@
 
 Public names exported by `inklet`, in package order, with signatures and short
 descriptions. Use `help(inklet.link)`, for example, to read the full docstring.
+The [stable subpackages](#stable-subpackages) `inklet.volume`, `inklet.selection`,
+`inklet.project` and `inklet.editor` follow; `import inklet` does not import
+them, so import each one you use.
 
 **Numeric drawing lengths use millimetres.** Many dimension arguments also
 accept strings such as `"89mm"` or `"2in"`; `pt(9)` converts 9 points to
@@ -28,7 +31,7 @@ A compiled native scene shared by SVG, PDF and PNG exports.
 * `to_svg(**options)`
 * `to_pdf(**options)`
 * `to_png(**options)`
-* `to_html(*, title='Inklet figure', backend='auto', **options)` -- Offline experimental viewer; WebGL2 filled markers, Canvas fallback, SVG art.
+* `to_html(*, title='Inklet figure', backend='auto', **options)` -- Offline HTML viewer; WebGL2 filled markers, Canvas fallback, SVG art.
 * `damage_bounds(previous: 'RenderScene')` -- Conservative old/new ink union for changed placements, in page mm.
 
 #### `compile_scene(root: 'Diagram | RenderScene', *, previous: 'RenderScene | None' = None) -> 'RenderScene'`
@@ -666,7 +669,7 @@ A drawing region plus the scales that map data into it.
 * `kaplan_meier(data, *, confidence: 'float' = 0.95, band: 'str | None' = 'log-log', shade: 'bool' = True, censors: 'bool' = True, colors=None, pvalue: 'float | str | None' = None, pvalue_corner: 'str' = 'sw', **style) -> "'Panel'"` -- Kaplan-Meier survival curves, with censor ticks and confidence bands.
 * `at_risk(*, ticks: 'Sequence | None' = None, count: 'int' = 5, title: 'str | None' = 'Number at risk', font_size: 'float | str | None' = None, pad: 'float | str | None' = None, **kwargs) -> "'Panel'"` -- The number-at-risk table under the x axis of a `kaplan_meier` plot.
 * `split_violin(first, second, *, at=None, orient: 'str' = 'v', width: 'float' = 0.8, bandwidth: 'float | None' = None, samples: 'int' = 64, cut: 'float' = 2.0, scale: 'str' = 'shared', median: 'bool' = True, quartiles: 'bool' = False, colors=None, names: 'Sequence[str] | None' = None, **style) -> "'Panel'"` -- Two conditions per category as the two halves of one violin.
-* `embedding(points: 'Iterable[Sequence]', clusters: 'Sequence', *, colors=None, size=None, labels: 'bool' = True, centre: 'str' = 'median', label_size: 'float | str | None' = None, arrows=None, shuffle: 'bool' = True, seed: 'int' = 0, raster: 'bool' = False, **style) -> "'Panel'"` -- A UMAP or t-SNE style scatter, coloured and named by cluster.
+* `embedding(points: 'Iterable[Sequence]', clusters: 'Sequence', *, colors=None, size=None, labels: 'bool' = True, centre: 'str' = 'median', label_size: 'float | str | None' = None, arrows=None, shuffle: 'bool' = True, seed: 'int' = 0, raster: 'bool' = False, outline=None, outline_core: 'float' = 0.8, **style) -> "'Panel'"` -- A UMAP or t-SNE style scatter, coloured and named by cluster.
 * `brackets(comparisons: 'Sequence', *, format='stars', hide_ns: 'bool' = False, stars=None, ns: 'str' = 'ns', **kwargs) -> "'Panel'"` -- Significance brackets for many pairs of groups, stacked clear of each other.
 
 #### `row(panels: 'Iterable[Panel | Diagram]', gap: 'float | str | None' = None, align: 'str' = 'center') -> 'Diagram'`
@@ -784,7 +787,7 @@ A forest plot: one estimate and confidence interval per row, with aligned text c
 
 A polar plot area of a given rim radius.
 
-#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None, _free: 'tuple[bool, bool]' = (False, False), _journal: 'list' = <factory>, _depth: 'int' = 0, _replayable: 'bool' = True, _ring_values: 'tuple | None' = None, _radar_data: 'list' = <factory>) -> None`
+#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None, _free: 'tuple[bool, bool]' = (False, False), _journal: 'list' = <factory>, _depth: 'int' = 0, _replayable: 'bool' = True, _ring_values: 'tuple | None' = None, _radar_data: 'list' = <factory>, _breakout_clear: 'tuple | None' = None, _theta_axes: 'list' = <factory>) -> None`
 
 A disc, or a fan of one, plus the scales that map data into it.
 
@@ -1270,6 +1273,225 @@ Numeric constant.
 #### `COLUMN_DOUBLE = 183.0`
 
 Numeric constant.
+
+
+## Stable subpackages
+
+
+These packages are covered by the same
+[compatibility policy](compatibility.md#api-and-saved-file-policy) as top-level
+`inklet`. Before 4.3 they lived under `inklet.experimental`; those paths still
+work and return the same objects (see [migration](migration.md#from-42-to-43)).
+
+
+### `inklet.volume`
+
+Calibrated microscopy volumes, sections, slabs, channels and measurements.
+
+#### `class Volume(data: object, spacing_zyx: tuple[float, float, float], unit: str, origin_xyz: tuple[float, float, float] = (0.0, 0.0, 0.0), source_id: str = '') -> None`
+
+An immutable scalar snapshot with explicit voxel calibration and identity.
+
+* `world(index_zyx)` -- Convert a finite fractional voxel index to a physical X,Y,Z position.
+* `report()`
+* `slice(axis, index)` -- An axis-aligned physical section, with the second axis pointing up.
+* `crop(start_zyx, stop_zyx)` -- Half-open voxel bounds; preserve the original physical coordinate frame.
+* `reslice(plane, *, kind)` -- Sample an explicit physical plane: linear intensities or nearest labels.
+* `project_slab(slab, *, reduction, region=None)` -- Project physical intensity samples, optionally restricted to a shared region.
+* `measure(label)` -- Voxel-count volume, centroid and boundary status of one integer label.
+* `surface(label, *, allow_clipped=False, step_size=1)` -- Marching-cubes surface of one label, in calibrated world coordinates.
+
+#### `class Slice(volume: inklet.volume._volume.Volume, axis: str, index: int) -> None`
+
+Slice(volume: inklet.volume._volume.Volume, axis: str, index: int)
+
+* `project(world_xyz, *, width)` -- Image-centred mm (+y down); accepts points in this voxel slab only.
+* `diagram(*, width, window)` -- A greyscale slice with an explicit shared display window and no resampling.
+* `scalebar(length, *, width)` -- A separate vector key; place beside the image without further scaling.
+
+#### `class Plane(centre_xyz: tuple[float, float, float], right_xyz: tuple[float, float, float], up_xyz: tuple[float, float, float], shape_yx: tuple[int, int], spacing_yx: tuple[float, float], unit: str) -> None`
+
+A rectangular sampling plane; output rows run downward, columns rightward.
+
+* `world(row, column)` -- Physical XYZ for a fractional output pixel index; index 0 is a centre.
+* `project(world_xyz, *, width)` -- Project an on-plane point to image-centred page mm, with +y downward.
+* `scalebar(length, *, width)` -- A separate vector key in physical units; scale together with the image.
+* `report()`
+
+#### `class SampledSection(plane: inklet.volume._sections.Plane, volume: inklet.volume._volume.Volume, kind: str, data: object, valid: object) -> None`
+
+An immutable resampled array plus an explicit source-coverage mask.
+
+* `report()`
+* `contours(label)` -- Exact sampled-label pixel edges, with source-coverage limits kept separate.
+* `measure(label)` -- Sampled label area, not 3D volume or a native-resolution measurement.
+* `diagram(*, width, window)` -- Windowed greyscale RGBA image; out-of-volume samples are transparent.
+
+#### `reslice(volume, plane, *, kind)`
+
+Resample a plane; labels preserve exact integer IDs, including uint64.
+
+#### `class Slab(plane: inklet.volume._sections.Plane, thickness: float, samples: int) -> None`
+
+A finite thickness about a Plane, sampled at equal-width bin midpoints.
+
+* `face(offset)` -- A parallel plane at a signed physical distance along the normal.
+* `report()`
+
+#### `class SlabProjection(slab: inklet.volume._slabs.Slab, volume: inklet.volume._volume.Volume, reduction: str, data: object, counts: object, region: inklet.volume._regions.BoxRegion | None = None) -> None`
+
+Immutable intensity projection and count of contributing samples at each pixel.
+
+* `report()`
+* `diagram(*, width, window)` -- Windowed image; pixels with no contributing samples are transparent.
+
+#### `project_slab(volume, slab, *, reduction, region=None)`
+
+Reduce intensity samples with O(output pixels) working memory.
+
+#### `class BoxRegion(selection_id: str, lower_xyz: tuple[float, float, float], upper_xyz: tuple[float, float, float], unit: str) -> None`
+
+An axis-aligned world XYZ box with a stable, caller-assigned identity.
+
+* `report()`
+* `mask(plane)` -- Immutable YX membership of section pixel centres, independent of source coverage.
+* `intersection(plane)` -- World XYZ polygon of box/plane intersection, clipped to the image extent.
+* `outline(plane, *, width, **style)` -- Vector outline in the same image-centred page coordinates as Plane.project.
+* `measure(volume, *, label)` -- Count an exact integer label within the box on the supplied source grid.
+
+#### `class Channel(name: str, sampled: inklet.volume._sections.SampledSection | inklet.volume._slabs.SlabProjection, color: str, window: tuple[float, float], weight: float = 1.0) -> None`
+
+One sampled intensity signal and its explicit display mapping.
+
+* `report()`
+
+#### `class Composite(channels: tuple[inklet.volume._channels.Channel, ...], coverage: str) -> None`
+
+Additive display RGB from channels sharing exactly the same sampling geometry.
+
+* `report()`
+* `diagram(*, width)`
+* `legend(*, size=2.822222222222222)` -- Vector color keys recording channel names, windows and display weights.
+
+#### `class LabelContour(section: inklet.volume._sections.SampledSection, label: int) -> None`
+
+Boundary segments of one exact label ID on a sampled section grid.
+
+* `report()`
+* `world_segments(*, include_coverage=False)` -- Physical XYZ edge pairs for use with saved-camera vector paths.
+* `diagram(*, width, stroke, stroke_width=0.25, coverage='omit')` -- Vector boundaries aligned with the section image; coverage edges are explicit.
+
+#### `class LabelMeasurements(_payload: str) -> None`
+
+A reproducible long-form table; report and row access return fresh copies.
+
+* `report()`
+* `to_json()`
+* `to_csv()` -- Long-form CSV; retain label_id as text when importing large IDs.
+
+#### `measure_labels(labels, channels, *, label_ids=None, region=None, coverage='intersection')`
+
+Measure source intensities without display windows, weights or RGB conversion.
+
+#### `class TiffImage(names: tuple[str, ...], volumes: tuple[inklet.volume._volume.Volume, ...], _provenance: str) -> None`
+
+Named immutable scalar volumes plus import provenance.
+
+* `report()`
+
+#### `read_tiff(path, *, spacing_zyx, unit, source_id, channel_names=None, origin_xyz=(0.0, 0.0, 0.0), series=0, time_index=None, axes=None)`
+
+Read a calibrated ZYX volume per channel from a local TIFF series.
+
+
+### `inklet.selection`
+
+Immutable keyed tables and portable selection states.
+
+#### `class KeyedTable(name, columns, *, key='id')`
+
+Snapshot scalar columns with a stable table name and unique string key.
+
+* `from_pandas(name, frame, *, key='id', columns=None, time_columns=None)` -- Snapshot a pandas DataFrame; ignore its index and require a string key.
+* `from_polars(name, frame, *, key='id', columns=None, time_columns=None)` -- Snapshot an eager Polars DataFrame with an explicit string key.
+* `subset(ids)` -- Return columns in source order, rejecting IDs absent from this table.
+
+#### `class SelectionState(table: 'str', data_digest: 'str', selected_ids: 'tuple[str, ...]' = (), visible_ids: 'tuple[str, ...] | None' = None) -> None`
+
+A selection and optional visibility filter tied to exact table contents.
+
+* `for_table(table, *, selected=(), visible=None)`
+* `validate(table)`
+* `visible(table)`
+* `rebase(table, *, missing='error')` -- Bind to revised contents; report removed IDs when explicitly dropping.
+* `to_json()`
+* `from_json(payload)`
+
+#### `class RebasedSelection(state: 'SelectionState', removed_selected: 'tuple[str, ...]', removed_visible: 'tuple[str, ...]') -> None`
+
+The result of `SelectionState.rebase`: the rebound state and dropped IDs.
+
+
+### `inklet.project`
+
+Reproducible figure projects with verified assets and explicit correspondence.
+
+#### `class Asset(id: str, path: str, sha256: str, size: int, source: str, license: str, role: str = 'data', unit: str | None = None) -> None`
+
+One source file with author-supplied provenance and optional physical units.
+
+#### `class AssetManifest(assets: tuple[inklet.project.assets.Asset, ...] = ()) -> None`
+
+Immutable inventory. Capture explicitly chosen files; verify before reuse.
+
+* `capture(root, entries)` -- Capture dictionaries with id/path/source/license and optional role/unit.
+* `verify(root)` -- Return verified file paths by asset ID; reject missing or changed bytes.
+* `to_dict()`
+* `from_dict(value)`
+
+#### `class EntityMap(entities=(), sources=None)`
+
+An immutable entity registry with source-local, many-to-one bindings.
+
+* `selected(source, local_ids)` -- Translate a source selection to canonical entity IDs.
+* `targets(entities)` -- Translate canonical selection to every mapped content source.
+* `selection_for(source, table, entities)` -- Bind selection to an existing table with source-local keys.
+* `validate_source(source, local_ids)` -- Require exact coverage, including IDs which are currently unselected.
+* `view(source, table, view)` -- Map a source-native drawing/image/field view into the linked runtime.
+* `joined_table(name, tables)` -- Join keyed tables by explicit entities for the existing linked runtime.
+* `changes(revised)` -- Report removed entities and every removed or reassigned local binding.
+* `to_dict()`
+* `from_dict(value)`
+
+#### `class ExportDriftWarning`
+
+A reopened project's SVG differs from the export recorded when it was saved.
+
+#### `class FigureProject(name, recipe, *, assets=None, identities=None, selected=(), width=None, height=None, preset=None)`
+
+Connect a Composition editor, an asset inventory and entity selection.
+
+* `select(source, local_ids)` -- Select through any registered content source; return all linked targets.
+* `state_for(figure)` -- Apply canonical selection to a BrowserFigure built from joined_table().
+* `select_state(figure, state)` -- Transfer a validated linked-view selection back into the project.
+* `save(directory, *, asset_root)` -- Stage a new portable directory with verified assets and SVG/PDF exports.
+* `open(directory, factory, *, verify_export=True)` -- Verify the bundle, then call trusted factory(root) to rebuild its recipe.
+* `revise(recipe, *, assets=None, identities=None, missing='error')` -- Return a new project, preserving valid choices and reporting conflicts.
+
+
+### `inklet.editor`
+
+Local browser editing of composition layouts, labels, styles and cameras through Python.
+
+#### `class LayoutEditor(recipe, *, width=None, height=None, preset=None)`
+
+Edit a live Composition layout, labels, styles and cameras with matching Python exports.
+
+* `overrides()` -- Return independently owned JSON-compatible saved layout choices.
+* `snapshot()` -- Return current controls, revision and preview without rebuilding.
+* `command(action, value=None, *, revision=None, missing='error')` -- Compile a command atomically; a stale revision or failed build changes nothing.
+* `start(*, port=0)` -- Start a loopback-only editor server; port=0 chooses a free local port.
+* `close()` -- Stop the local server; compiled output and saved choices remain accessible.
 
 
 ## Diagnostic codes

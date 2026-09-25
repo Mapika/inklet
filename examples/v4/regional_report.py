@@ -8,7 +8,7 @@ from pathlib import Path
 
 from inklet.experimental.browser import (BrowserFigure, ECDFView, FacetView, GeoRegions,
     RegionView, RevisionOption, ScatterView, SeriesView, TimeAxis)
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 DATA = Path(__file__).with_name('data')
 GROUPS = {

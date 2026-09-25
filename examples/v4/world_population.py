@@ -7,7 +7,7 @@ from pathlib import Path
 
 from inklet import read_csv
 from inklet.experimental.browser import BrowserFigure, GeoRegions, RegionView
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 DATA=Path(__file__).with_name('data')
 CREDIT=('Made with Natural Earth · public-domain country boundaries at 1:110m. '

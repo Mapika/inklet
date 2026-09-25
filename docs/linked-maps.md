@@ -1,6 +1,6 @@
 # Linked region maps
 
-Introduced in **4.0.0.dev1** and available in stable **4.2.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
 
 The development preview now joins GeoJSON regions to the same keyed table used
 by linked bars and scatter plots. Select a region in either map to select its
@@ -97,7 +97,7 @@ remain future work. Page zoom changes the viewport, not the geographic extent.
 ```python
 from pathlib import Path
 from inklet.experimental.browser import BrowserFigure, GeoRegions, RegionView, ScatterView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 # Use IDs present in your GeoJSON file.
 table = KeyedTable("regions", {

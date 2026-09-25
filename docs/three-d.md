@@ -58,8 +58,8 @@ A 3D panel sits in a document cell like a plot. The built-in renderer draws
 solids and meshes as vector paths and resolves depth between intersecting
 parts. For photographic lighting, Inklet renders a Blender scene and keeps its
 annotations as vector geometry, positioned with the saved camera and depth
-pass. Calibrated microscopy volumes are listed with the
-[experimental features](experimental.md).
+pass. Calibrated microscopy volumes have their own
+[section](volumes.md).
 
 <!-- cards -->
 

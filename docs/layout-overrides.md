@@ -1,6 +1,6 @@
 # Save and restore layout choices
 
-Available in stable 4.2.0 under the opt-in layout override API. The dev7–dev11
+Available in stable 4.3.0 under the opt-in layout override API. The dev7–dev11
 previews introduced uniform artwork scale, named text and callout decisions,
 and supported appearance fields; those milestones explain the saved schema
 history below. Save placement and dimension edits separately from
@@ -17,7 +17,8 @@ uses live illustrative data and generated geometry.
 
 [Open the restored figure viewer](assets/guides/layout-restored.html).
 The viewer supports zoom, pan and vector export. Edit layouts through the
-Python APIs below or the [local inspector](layout-editor.md). This format is separate from the experimental linked-table
+Python APIs below or the [local inspector](layout-editor.md) (`inklet.editor.LayoutEditor`;
+the old `inklet.experimental.layout_editor` path still works). This format is separate from the experimental linked-table
 [plot-style overrides](visual-editing.md).
 
 ## Capture changes against a reference

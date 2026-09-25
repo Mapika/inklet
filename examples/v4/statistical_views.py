@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from inklet.experimental.browser import BrowserFigure, ECDFView, FacetView, IntervalView, RevisionOption
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 CREDIT = ('Original simulated cycle times by Mark Marosi · MIT material. '
           'The ranges are illustrative supplied bounds, not confidence intervals. '

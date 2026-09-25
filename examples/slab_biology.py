@@ -6,9 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import inklet as i
-from inklet.experimental.sections import SampledSection
-from inklet.experimental.slabs import Slab
-from inklet.experimental.regions import BoxRegion
+from inklet.volume import BoxRegion, SampledSection, Slab
 from biology.data import fetch,load
 from real_biology import ROOT,WINDOW,build_scene
 from oblique_biology import planes,framed_section

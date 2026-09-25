@@ -2,7 +2,7 @@
 import {readFileSync} from 'node:fs';
 import {compileFunction} from 'node:vm';
 import {performance} from 'node:perf_hooks';
-const source=process.argv[2]||'src/inklet/experimental/scene_viewer/spatial.js';
+const source=process.argv[2]||'src/inklet/render/_viewer/spatial.js';
 const MarkerIndex=compileFunction(readFileSync(source,'utf8')+'\nreturn MarkerIndex;')();
 const median=a=>[...a].sort((a,b)=>a-b)[Math.floor(a.length/2)];
 const results=[];

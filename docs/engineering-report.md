@@ -1,6 +1,6 @@
 # Linked engineering report
 
-Introduced in **4.0.0.dev1** and available in stable **4.2.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
 
 Connect native Inklet drawings to table rows: a component selection reaches a
 dimensioned plan, an authored section, a system diagram and supplied response
@@ -8,7 +8,7 @@ curves. Save the selected state, replace geometry, retain label offsets and
 export the report at two physical widths.
 
 These are opt-in experimental APIs under `inklet.experimental`, available in
-stable 4.2.0. This starts the mixed-content engineering work in Phase C of the
+stable 4.3.0. This starts the mixed-content engineering work in Phase C of the
 [4.0 roadmap](roadmap.md). The first numbered preview is 4.0.0.dev1.
 
 ![Linked plan, section, system diagram and supplied component response curves, with the sensor selected](assets/v4/engineering-report.png)
@@ -81,7 +81,7 @@ and hit boxes are **panel-local millimetres**, with X rightward and Y downward.
 ```python
 import inklet as i
 from inklet.experimental.browser import BrowserFigure, DrawingItem, DrawingView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 
 def draw_sensor(table, width, height):

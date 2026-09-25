@@ -9,11 +9,7 @@ from pathlib import Path
 import numpy as np
 from scipy import ndimage as ndi
 import inklet as i
-from inklet.experimental.volume import Volume
-from inklet.experimental.sections import Plane
-from inklet.experimental.slabs import Slab
-from inklet.experimental.regions import BoxRegion
-from inklet.experimental.channels import Channel,Composite
+from inklet.volume import BoxRegion, Channel, Composite, Plane, Slab, Volume
 from biology.fluorescence import load
 
 ROOT=Path(__file__).resolve().parents[1]

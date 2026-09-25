@@ -1,7 +1,10 @@
 # Local layout editor
 
-Available in stable 4.2.0 under the opt-in `inklet.experimental.layout_editor`
-API. The redesigned studio workspace first appeared in the dev12 preview.
+Import `LayoutEditor` from `inklet.editor` (4.3); the old
+`inklet.experimental.layout_editor` path still works and returns the same class.
+The contract is the Python class and the saved composition-layout overrides; the
+browser page, its local HTTP/JSON protocol and the `snapshot()` payload are
+private. The redesigned studio workspace first appeared in the dev12 preview.
 Arrange named
 content, edit labels and appearance, and review the actual Python-compiled
 figure. Downloaded SVG/PDF files use that same successful preview.
@@ -55,7 +58,7 @@ retain native text undo.
 
 ```python
 import inklet as i
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 
 recipe = i.composition(120, 75)
 recipe.add('chart', i.plot_spec(x=(0, 2), y=(0, 4)).line([(0, 1), (1, 2), (2, 3)]).axes(),
@@ -308,7 +311,7 @@ Canvas zoom and pan remain view-only controls.
 
 ```python
 import inklet as i
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 
 study = i.composition(100, 70)
 study.add('model', i.component(i.solid, 'cube', width=35, style='shaded'),

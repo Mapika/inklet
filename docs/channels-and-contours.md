@@ -1,9 +1,10 @@
 # Microscopy channels and label contours
 
-Introduced in Inklet 3.1, stable 4.2.0 includes `Channel`, `Composite` and
-`LabelContour` under `inklet.experimental`. Install the [volume extra](calibrated-volumes.md) from
-PyPI with `pip install "inklet[volume,render]==4.2.0"`. These APIs and report
-schemas remain an experimental research preview.
+Introduced in Inklet 3.1, `Channel`, `Composite` and `LabelContour` are
+available from `inklet.volume`. Install the [volume extra](calibrated-volumes.md) from
+PyPI with `pip install "inklet[volume,render]>=4.3"`.
+The `inklet.experimental` import paths used before 4.3 still work and return
+the same objects.
 
 Channels control display color and windowing without changing sampled intensity
 values. Contours trace the exact edges of a sampled integer label mask and keep
@@ -17,9 +18,7 @@ in the [fluorescence example](fluorescence-biology.md).
 ```python
 import numpy as np
 import inklet as i
-from inklet.experimental.volume import Volume
-from inklet.experimental.sections import Plane
-from inklet.experimental.channels import Channel, Composite
+from inklet.volume import Volume, Plane, Channel, Composite
 
 z, y, x = np.indices((9, 41, 51))
 radius = (x-25)**2 + (y-20)**2

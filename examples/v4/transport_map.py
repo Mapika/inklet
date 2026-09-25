@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from inklet.experimental.browser import BrowserFigure, GeoFeatures, MapView, BarView, SeriesView, RevisionOption
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 FIXTURE = Path(__file__).with_name('fixtures')/'transport.geojson'
 CREDIT = ('Original illustrative transport fixture · MIT. Coordinates describe an invented district, '

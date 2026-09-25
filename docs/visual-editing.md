@@ -40,7 +40,7 @@ report, exact-viewport SVG and 210/160 mm SVG/PDF/PNG exports.
 
 ```python
 from inklet.experimental.browser import BrowserFigure, ScatterView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable('measurements', {'id': ['a', 'b'], 'x': [1, 2], 'y': [2, 3]})
 figure = BrowserFigure(table, [ScatterView('observations', 'x', 'y', (0, 3), (0, 4))])

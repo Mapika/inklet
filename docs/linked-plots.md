@@ -1,6 +1,6 @@
 # Linked lines, bars and scatter
 
-Introduced in **4.0.0.dev1** and available in stable **4.2.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
 
 The development preview now connects different plot types through the same row
 IDs. `BrowserFigure` combines measured scatter, line and bar views, while
@@ -68,7 +68,7 @@ the page's scroll position when keyboard focus moves to the plot.
 
 ```python
 from pathlib import Path
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 from inklet.experimental.browser import BrowserFigure, LineView, BarView
 
 table = KeyedTable("trial", {

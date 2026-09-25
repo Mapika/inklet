@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
-from ..temporal import time_milliseconds, time_value
+from ...selection._temporal import time_milliseconds, time_value
 from .timeaxis import TimeAxis
 
 
