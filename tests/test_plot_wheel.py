@@ -248,3 +248,89 @@ def test_breakout_lints_clean_exports_and_stays_measured() -> None:
         assert inklet.to_pdf(node)[:4] == b"%PDF"
         assert "<path" in inklet.to_svg(node)
         assert _ink_outside(node) == []
+
+
+def _middle_bearing(p, slices):
+    """The page bearing of the middle of adjacent `slices`, from the pie's
+    note."""
+    angles = p._pie[0]["angles"]
+    a0 = min(angles[i][0] for i in slices)
+    a1 = max(angles[i][1] for i in slices)
+    return ((a0 + a1) / 2) % 360
+
+
+@pytest.mark.parametrize("side, facing", [("right", 0.0), ("left", 180.0)])
+def test_breakout_turns_a_default_pie_to_face_the_bar(side, facing) -> None:
+    p = polar(11)
+    p.pie([24.8, 1.5, 73.7], labels=None)
+    p.breakout([0, 1], side=side)
+    note = p._content[-1].notes["pie_breakout"]
+    assert note["turned"]
+    assert p.theta.winding == ("cw" if side == "right" else "ccw")
+    assert math.isclose(_middle_bearing(p, [0, 1]), facing, abs_tol=1e-6)
+    # The first slice is the upper one, as the first part is on the bar.
+    angles = p._pie[0]["angles"]
+    first = math.sin(math.radians(sum(angles[0]) / 2))
+    second = math.sin(math.radians(sum(angles[1]) / 2))
+    assert first < second
+    # The pie was drawn again, not twice.
+    assert len(p._content) == 2
+    links = [x for x in placements(p, MARK_LINE_KIND)
+             if x.diagram.style.stroke == active_theme().muted]
+    for link in links:
+        a, b = (link.world.apply(v) for v in link.diagram.prim.subpaths[0].points)
+        assert (a.x > 0) == (side == "right")
+
+
+def test_breakout_keeps_a_given_zero_and_winding() -> None:
+    p = _breakout_panel()
+    assert (p.theta.zero % 360, p.theta.winding) == (270.0, "cw")
+    assert not p._content[-1].notes["pie_breakout"]["turned"]
+    # Only the free one changes: zero is kept, the winding follows the side.
+    q = polar(11, zero="up")
+    q.pie([30, 45, 25], labels=None)
+    q.breakout(0, side="left")
+    assert q.theta.zero % 360 == 270.0 and q.theta.winding == "ccw"
+    # Only the winding given: zero turns the slice to the bar.
+    r = polar(11, winding="ccw")
+    r.pie([30, 45, 25], labels=None)
+    r.breakout(1)
+    assert r.theta.winding == "ccw"
+    assert math.isclose(_middle_bearing(r, [1]), 0.0, abs_tol=1e-6)
+
+
+def test_breakout_leaves_a_pie_with_other_content_unturned() -> None:
+    p = polar(11)
+    p.grid()
+    p.pie([30, 45, 25], labels=None)
+    p.breakout(1)
+    assert (p.theta.zero, p.theta.winding) == (0.0, "ccw")
+    assert not p._content[-1].notes["pie_breakout"]["turned"]
+
+
+def test_breakout_connectors_clear_outside_pie_labels() -> None:
+    from inklet.plot.wheel import _segment_hits, breakout_connectors
+    from inklet.plot.wheel import pie as wheel_pie
+
+    values = [3, 25, 4, 68]
+    alone = polar(11, zero="up", winding="cw")
+    node, _, note = wheel_pie(alone, values)
+    links = breakout_connectors(alone, note["angles"], [1, 2])
+    boxes = [x.bbox for x in resolve(as_drawn(node)).values()
+             if getattr(x.diagram.prim, "text", None)]
+    # Without the breakout in view, an outside label sits on a connector.
+    assert any(_segment_hits(b, a, c) for b in boxes for a, c in links)
+    p = polar(11, zero="up", winding="cw")
+    p.pie(values)
+    p.breakout([1, 2], labels=None)
+    assert p._pie[0]["outside"] == [0, 2] and p._pie[0]["crossing"] == []
+    links = [x for x in placements(p, MARK_LINE_KIND)
+             if x.diagram.style.stroke == active_theme().muted]
+    ends = [tuple(x.world.apply(v) for v in x.diagram.prim.subpaths[0].points)
+            for x in links]
+    for text in ("3%", "4%"):
+        box = texts(p)[text].bbox
+        assert not any(_segment_hits(box, a, b) for a, b in ends)
+    node = p.build()
+    assert lint(node) == []
+    assert _ink_outside(node) == []

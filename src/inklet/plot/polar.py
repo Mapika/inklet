@@ -51,7 +51,7 @@ all keep working without knowing this module exists. A `PolarPanel` is not a
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from fractions import Fraction
 from typing import Iterable, Sequence
 
@@ -454,8 +454,15 @@ class PolarPanel:
     #: than into it. Written by `theta_axis`.
     _ring: list[tuple[float, Rect]] = field(default_factory=list, repr=False,
                                             compare=False)
-    #: `(pie_labels note, fills)` of the last pie drawn, for `breakout`.
+    #: `(pie_labels note, fills, redraw)` of the last pie drawn, for
+    #: `breakout`; `redraw` holds the drawn node and the arguments that drew
+    #: it, so `breakout` can draw it again turned or with its outside labels
+    #: moved clear of the connectors.
     _pie: tuple | None = field(default=None, repr=False, compare=False)
+    #: Whether `zero` and `winding` were left to their defaults by `polar()`,
+    #: so `breakout` may choose them.
+    _free: tuple[bool, bool] = field(default=(False, False), repr=False,
+                                     compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -1198,8 +1205,13 @@ class PolarPanel:
                     f"names= has {len(names)} names for {len(fills)} slices")
             for label, fill in zip(names, fills):
                 self._note(label, "area", fill=fill, color=fill)
-        self._pie = (note, fills)
-        return self.draw(node, clip=clip)
+        self.draw(node, clip=clip)
+        redraw = {"node": self._content[-1], "values": values, "clip": clip,
+                  "options": dict(colors=colors, labels=labels,
+                                  label_options=label_options,
+                                  separator=separator, **style)}
+        self._pie = (note, fills, redraw)
+        return self
 
     def breakout(self, slices, parts: Sequence[float] | None = None, *,
                  colors=None, names: Sequence[str] | None = None,
@@ -1237,21 +1249,69 @@ class PolarPanel:
         `width` and `height` size the bar in mm (default: 0.22 of the radius
         and the diameter); `gap` is the space between the rim and the bar
         (default: 0.75 of the radius). `connector=` overrides the connector
-        style (default: a muted hairline). Place the chosen slices on the side
-        that faces the bar, with the panel's `zero` and `winding`, or the
-        connectors cross the pie.
+        style (default: a muted hairline).
+
+        The pie turns so the middle of the chosen slices faces the bar, the
+        first slice uppermost: `zero` moves the slices to the bar's side and
+        `winding` becomes `"cw"` for a bar on the right and `"ccw"` for one
+        on the left. A `zero` or `winding` given to `inklet.polar` is kept,
+        so `inklet.polar(11, zero="up", winding="cw")` draws the pie as
+        given. The pie only turns when it is the only thing on the panel;
+        after a grid, axis or other content it stays where it is. Pie labels
+        set outside the rim move within their slice, or further out, to
+        keep clear of the connectors and the bar; the pie's `pie_labels`
+        note lists any that could not under `"crossing"`. The node's
+        `pie_breakout` note records the `zero` and `winding` used and
+        whether the pie was `"turned"`.
         """
         from .wheel import breakout as _breakout
+        from .wheel import breakout_connectors, breakout_frame, breakout_turn
+        from .wheel import pie as _pie
 
         if self._pie is None:
             raise DiagramError("breakout() needs a pie() drawn on the panel first")
-        note, fills = self._pie
+        note, fills, redraw = self._pie
         clip = _clip_flag(style)
-        node, colours, _ = _breakout(
+        chosen = [slices] if isinstance(slices, int) else list(slices)
+        ordered = sorted(set(chosen))
+        valid = (bool(ordered) and all(isinstance(i, int) for i in ordered)
+                 and 0 <= ordered[0] and ordered[-1] < len(note["values"])
+                 and ordered == list(range(ordered[0], ordered[-1] + 1)))
+        held = [k for k, item in enumerate(self._content)
+                if item is redraw["node"]]
+        alone = (len(self._content) == 1 and held == [0] and not self._under
+                 and not self._over and not self._spokes and not self._ring)
+        turned = False
+        if valid and alone and any(self._free):
+            zero, winding = breakout_turn(self.theta, note["values"], ordered,
+                                          side=side, zero=self._free[0],
+                                          winding=self._free[1])
+            if (abs(zero - self.theta.zero) > 1e-9
+                    or winding != self.theta.winding):
+                self.theta = replace(self.theta, zero=zero, winding=winding)
+                turned = True
+        if valid and held and side in ("right", "left"):
+            # Draw the pie again, turned, with its outside labels clear of
+            # the connectors and the bar.
+            frame = dict(side=side, width=width, height=height, gap=gap)
+            _, top, tall, x0, x1 = breakout_frame(self, **frame)
+            angles = [(self.angle(a), self.angle(b)) for a, b in
+                      _slice_bounds(self.theta.domain, note["values"])]
+            angles = [tuple(sorted(pair)) for pair in angles]
+            links = breakout_connectors(self, angles, ordered, **frame)
+            node, fills, note = _pie(self, redraw["values"], avoid=links,
+                                     avoid_boxes=[Rect(x0, top, x1, top + tall)],
+                                     **redraw["options"])
+            drawn = self._to_area([as_drawn(node)], redraw["clip"])[0]
+            self._content[held[0]] = drawn
+            self._pie = (note, fills, dict(redraw, node=drawn))
+        node, colours, made = _breakout(
             self, note, slices, parts, fills=fills, colors=colors,
             labels=labels, label_options=label_options, side=side,
             width=width, height=height, gap=gap, title=title,
             connector=connector, separator=separator, **style)
+        made.update(zero=self.theta.zero, winding=self.theta.winding,
+                    turned=turned)
         if names is not None:
             if len(names) != len(colours):
                 raise DiagramError(
@@ -1483,7 +1543,7 @@ class PolarPanel:
 
 
 def polar(radius: float | str = 30.0, *, r=None, theta=None,
-          zero: float | str = "east", winding: str = "ccw",
+          zero: float | str | None = None, winding: str | None = None,
           unit: str = "deg", hole: float | str = 0.0,
           clip: bool = False, nice: bool = False) -> PolarPanel:
     """A polar plot area of a given rim radius.
@@ -1498,7 +1558,9 @@ def polar(radius: float | str = 30.0, *, r=None, theta=None,
     `zero` is where theta = 0 points, in page degrees from east increasing
     clockwise, or one of the names in `ZERO_DIRECTIONS` -- `"up"`, `"east"`,
     `"north"`. `winding` is which way the data runs: `"ccw"` is the
-    mathematical convention, `"cw"` the compass one.
+    mathematical convention, `"cw"` the compass one. Left out, they are
+    `"east"` and `"ccw"`, and `PolarPanel.breakout` may turn a pie by
+    choosing them.
 
         p = inklet.polar(26, r=(0, 12), zero="up", winding="cw")   # a compass
         p = inklet.polar(26, r=(0, 1), theta=(0, 180))             # a 180 fan
@@ -1513,8 +1575,25 @@ def polar(radius: float | str = 30.0, *, r=None, theta=None,
     if not 0 <= pit < rim:
         raise DiagramError(f"hole= must be inside the rim, got {hole!r} of {radius!r}")
     scale = _r_scale(r, pit, rim, nice)
-    angles = _theta_of(theta, unit, zero, winding)
-    return PolarPanel(radius=rim, r=scale, theta=angles, hole=pit, clip=clip)
+    angles = _theta_of(theta, unit, "east" if zero is None else zero,
+                       "ccw" if winding is None else winding)
+    free = (False, False) if isinstance(theta, Theta) \
+        else (zero is None, winding is None)
+    return PolarPanel(radius=rim, r=scale, theta=angles, hole=pit, clip=clip,
+                      _free=free)
+
+
+def _slice_bounds(domain: tuple[float, float],
+                  values: Sequence[float]) -> list[tuple[float, float]]:
+    """Each pie slice's data angles, from the start of `domain`."""
+    low, high = domain
+    total = sum(values)
+    bounds, start = [], low
+    for value in values:
+        end = start + (high - low) * value / total
+        bounds.append((start, end))
+        start = end
+    return bounds
 
 
 def _r_scale(spec, hole: float, rim: float, nice: bool) -> Scale:

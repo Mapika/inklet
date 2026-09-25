@@ -29,7 +29,8 @@ BLUE, GREEN, INK, YELLOW, GREY = "#24698c", "#288675", "#262626", "#e6b93f", "#e
 
 # -- a: pie with a breakout bar ----------------------------------------------
 
-share = inklet.polar(10, zero="up", winding="cw")
+# The pie turns so the broken-out slices face the bar.
+share = inklet.polar(10)
 share.pie([24.8, 1.5, 73.7], colors=[INK, YELLOW, GREY], labels=["24.8%", None, "73.7%"],
           names=["isomorphic", "dimorphic", "noise"])
 share.breakout([0, 1], labels="{share:.1%}", title="without noise")

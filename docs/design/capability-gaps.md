@@ -90,8 +90,15 @@ offset from the rim in panel millimetres; connectors run from the rim at the
 two outer slice edges to the bar's near corners, upper to top. Part labels
 sit beside the bar at the segment centres and are moved down, then lifted
 back from the bottom, only as far as needed to clear each other. Default part
-colours are shades of the slice colour. Neither the bar nor the connectors
-avoid pie labels placed outside the rim.
+colours are shades of the slice colour. When `inklet.polar` was not given
+`zero` or `winding` and the pie is the only content on the panel, `breakout`
+chooses them: the winding runs the chosen slices down the side that faces the
+bar (clockwise on the right, counter-clockwise on the left) and `zero` puts
+their middle on the bar's axis. The pie is then drawn again in place. Outside
+pie labels that meet a connector or the bar try spots turned within their
+slice and up to two type sizes further out, and take the smallest change
+that clears; the ones that cannot are listed under `crossing` in the
+`pie_labels` note.
 
 **Ridgeline.** Needs a band y scale and a continuous x scale. Each ridge's
 baseline is the lower edge of its category's step, and the density is
@@ -144,9 +151,8 @@ labels, the default column pitch widens to fit the widest label.
 
 ## Deferred work
 
-- Breakout bars do not rotate the pie to face the bar; set `zero` and
-  `winding` so the chosen slices face it.
 - Leaders for pie labels placed outside the rim.
+- A pie drawn after other content on its panel is not turned by `breakout`.
 - Ring values on radar charts sit inside the data region and collide with
   most polygons; `radar_grid(values=True)` draws them, and they are off by
   default.

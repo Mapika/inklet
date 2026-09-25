@@ -10,6 +10,13 @@
   share band scales, so each bar stands over its matrix column. Add a guide
   section to `bars-and-areas.md`, a catalog entry and panel f of
   `examples/more_plot_types.py`.
+- `PolarPanel.breakout` now turns the pie so the middle of the chosen
+  slices faces the bar, first slice uppermost, when `inklet.polar` was given
+  no `zero` or `winding`; explicit values are kept. `inklet.polar` defaults
+  for `zero` and `winding` are now `None`, which means `"east"` and `"ccw"`
+  as before. Pie labels outside the rim move clear of the breakout
+  connectors and bar; any that cannot are listed under `crossing` in the
+  `pie_labels` note.
 - Add `PolarPanel.breakout`, which expands one or more adjacent pie slices
   into a stacked bar beside the disc, with connector lines from the rim and
   a share label per part. The `pie_labels` note now also records each

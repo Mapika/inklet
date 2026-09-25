@@ -130,21 +130,28 @@ With `parts`, it shows the composition of the slice: those values, in
 `colors=` or in shades of the slice colour. Each part is labelled with its
 share of the bar; labels that would overlap are moved apart.
 
-Call `breakout` after `pie`. Put the chosen slices on the side that faces
-the bar with the panel's `zero` and `winding`; otherwise the connectors cross
-the pie. Small slices labelled outside the rim can sit under a connector, so
-leave their label out (`labels=` with `None` for that slice) when they do.
+Call `breakout` after `pie`. The pie turns so the middle of the chosen
+slices faces the bar, with the first slice uppermost. A `zero` or `winding`
+given to `i.polar` is kept, so `i.polar(11, zero='up', winding='cw')` draws
+the pie as given; then put the chosen slices on the side that faces the bar,
+or the connectors cross the pie. The pie turns only when nothing else is
+drawn on the panel before `breakout`.
+
+Pie labels set outside the rim move within their slice, or further out, to
+keep clear of the connectors and the bar. A label that cannot is listed under
+`crossing` in the pie's `pie_labels` note; leave it out (`labels=` with
+`None` for that slice) or pass `zero=`.
 
 ```python
 import inklet as i
 ink, yellow, grey = '#262626', '#e6b93f', '#e4e4e4'
-share = i.polar(11, zero='up', winding='cw')
+share = i.polar(11)
 share.pie([24.8, 1.5, 73.7], colors=[ink, yellow, grey],
           labels=['24.8%', None, '73.7%'],
           names=['Isomorphic', 'Dimorphic', 'Noise'])
 share.breakout([0, 1], labels='{share:.1%}', title='Without noise')
 share.legend(side='bottom')
-parts = i.polar(11, hole=5.5, zero='up', winding='cw')
+parts = i.polar(11, hole=5.5)
 parts.pie([31, 44, 25], colors=['#24698c', '#b9b8b4', '#d9d8d4'])
 parts.breakout(0, [58, 27, 10, 5], names=['Type 1', 'Type 2', 'Type 3', 'Type 4'])
 parts.legend(side='bottom')

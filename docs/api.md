@@ -769,11 +769,11 @@ Bin edges and the height of each bin: `(edges, heights)`.
 
 An UpSet plot: intersection sizes as bars over a membership matrix.
 
-#### `polar(radius: 'float | str' = 30.0, *, r=None, theta=None, zero: 'float | str' = 'east', winding: 'str' = 'ccw', unit: 'str' = 'deg', hole: 'float | str' = 0.0, clip: 'bool' = False, nice: 'bool' = False) -> 'PolarPanel'`
+#### `polar(radius: 'float | str' = 30.0, *, r=None, theta=None, zero: 'float | str | None' = None, winding: 'str | None' = None, unit: 'str' = 'deg', hole: 'float | str' = 0.0, clip: 'bool' = False, nice: 'bool' = False) -> 'PolarPanel'`
 
 A polar plot area of a given rim radius.
 
-#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None) -> None`
+#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None, _free: 'tuple[bool, bool]' = (False, False)) -> None`
 
 A disc, or a fan of one, plus the scales that map data into it.
 

@@ -47,7 +47,8 @@ from .furniture import GRID_KIND
 from .scale import format_number
 
 __all__ = ["RING_SHAPES", "radar_spokes", "radar", "radar_grid", "pie",
-           "pie_label_texts", "breakout", "BREAKOUT_SIDES"]
+           "pie_label_texts", "breakout", "breakout_frame",
+           "breakout_connectors", "breakout_turn", "BREAKOUT_SIDES"]
 
 #: Accepted values of `radar_grid(rings=)`'s shape.
 RING_SHAPES = ("polygon", "circle")
@@ -231,12 +232,16 @@ def pie_label_texts(labels, values: Sequence[float]) -> list[str | None]:
 
 def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
         label_options: Mapping | None = None, separator: bool = True,
+        avoid: Sequence[tuple[Vec2, Vec2]] = (), avoid_boxes: Sequence[Rect] = (),
         **style) -> tuple[Diagram, tuple[str, ...], dict]:
     """Sectors that divide the turn in proportion to `values`. See
     `PolarPanel.pie`.
 
-    Returns `(node, fills, note)`, where `note` records which labels went
-    inside and which outside.
+    `avoid` holds line segments and `avoid_boxes` rectangles, in panel
+    millimetres, that labels placed outside the rim keep clear of; a
+    breakout passes its connectors and its bar. Returns `(node, fills,
+    note)`, where `note` records which labels went inside and which outside,
+    and under `"crossing"` any outside label that could not clear `avoid`.
     """
     _full(panel, "pie")
     data = [float(v) for v in values]
@@ -269,7 +274,8 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
     wedges: list = []
     inside: list = []
     outside: list = []
-    note = {"inside": [], "outside": [], "angles": [], "values": data}
+    note = {"inside": [], "outside": [], "angles": [], "values": data,
+            "crossing": []}
     start = low
     for index, (value, fill) in enumerate(zip(data, fills)):
         end = start + span * value / total
@@ -306,20 +312,18 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
                 inside.append((centre - node.bbox.center, node.styled(text_fill=ink)))
                 note["inside"].append(index)
             else:
-                outside.append((index, mid, node))
+                outside.append((index, mid, node, a0, a1))
         start = end
     placed_boxes: list[Rect] = []
     labels_out: list = []
     gap = _PAD_OF_TYPE * theme.font_size
-    for index, mid, node in outside:
-        distance = outer + gap
-        for _ in range(40):
-            at = _outward_centre(node.bbox, distance, mid)
-            box = _moved(node.bbox, at)
-            if not any(_touch(box, other, theme.gap("xs") * 0.5)
-                       for other in placed_boxes):
-                break
-            distance += 0.3 * size
+    clear = theme.gap("xs") * 0.5
+    for index, mid, node, a0, a1 in outside:
+        at, box, crossing = _outside_spot(node, mid, a0, a1, outer, gap, size,
+                                          placed_boxes, clear, avoid, avoid_boxes,
+                                          [w.bbox for w in wedges])
+        if crossing:
+            note["crossing"].append(index)
         placed_boxes.append(box)
         ink = options.get("fill") or theme.ink
         labels_out.append((at, node.styled(text_fill=ink)))
@@ -331,6 +335,80 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
     node = draw_place(parts, origin=(0, 0), kind="pie")
     node.notes["pie_labels"] = note
     return node, tuple(fills), note
+
+
+def _outside_spot(node: Diagram, mid: float, a0: float, a1: float,
+                  outer: float, gap: float, size: float, placed: Sequence[Rect],
+                  clear: float, avoid: Sequence[tuple[Vec2, Vec2]],
+                  avoid_boxes: Sequence[Rect],
+                  slices: Sequence[Rect]) -> tuple[Vec2, Rect, bool]:
+    """Where an outside pie label goes, as `(offset, box, crossing)`.
+
+    The label sits `gap` beyond the rim `outer` on the slice's middle angle,
+    pushed further out until it clears the labels already `placed`. If that
+    spot meets a segment of `avoid` or a box of `avoid_boxes`, the label may
+    turn within its slice's angles `a0`..`a1` and move out by up to two type
+    sizes; the smallest change that keeps the lint's minimum clearance from
+    `avoid` and from the rim wins. The lint measures a slice by its box
+    (`slices`), so a moved label also either keeps that clearance from each
+    box or overlaps it. If nothing clears, the first spot is kept and
+    `crossing` is True."""
+    def free_of_labels(box: Rect) -> bool:
+        return not any(_touch(box, other, clear) for other in placed)
+
+    from ..diagnostics.rules import DEFAULT_MIN_CLEARANCE_MM as keep
+
+    def free_of_avoid(box: Rect) -> bool:
+        grown = Rect(box.x0 - keep, box.y0 - keep, box.x1 + keep, box.y1 + keep)
+        return (not any(_segment_hits(grown, a, b) for a, b in avoid)
+                and not any(_touch(box, other, keep) for other in avoid_boxes))
+
+    def free_of_rim(box: Rect) -> bool:
+        x = min(max(0.0, box.x0), box.x1)
+        y = min(max(0.0, box.y0), box.y1)
+        return (math.hypot(x, y) >= outer + keep
+                and not any(_touch(box, other, keep) and not _touch(box, other, 0.0)
+                            for other in slices))
+
+    reach = outer + gap
+    for _ in range(40):
+        at = _outward_centre(node.bbox, reach, mid)
+        box = _moved(node.bbox, at)
+        if free_of_labels(box):
+            break
+        reach += 0.3 * size
+    if (not avoid and not avoid_boxes) or free_of_avoid(box):
+        return at, box, False
+    half = (a1 - a0) / 2
+    tries = sorted((step / 3 + abs(turn) / 6, step, turn)
+                   for step in range(7) for turn in range(-6, 7))
+    for _, step, turn in tries:
+        spot = _outward_centre(node.bbox, reach + step * size / 3,
+                               mid + half * turn / 6)
+        moved = _moved(node.bbox, spot)
+        if free_of_labels(moved) and free_of_avoid(moved) and free_of_rim(moved):
+            return spot, moved, False
+    return at, box, True
+
+
+def _segment_hits(box: Rect, a: Vec2, b: Vec2) -> bool:
+    """Whether the segment from `a` to `b` passes through `box`."""
+    low, high = 0.0, 1.0
+    dx, dy = b.x - a.x, b.y - a.y
+    for p, q in ((-dx, a.x - box.x0), (dx, box.x1 - a.x),
+                 (-dy, a.y - box.y0), (dy, box.y1 - a.y)):
+        if abs(p) < 1e-12:
+            if q < 0:
+                return False
+            continue
+        t = q / p
+        if p < 0:
+            low = max(low, t)
+        else:
+            high = min(high, t)
+        if low > high:
+            return False
+    return True
 
 
 def _moved(box: Rect, by: Vec2) -> Rect:
@@ -431,18 +509,8 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
             "label_options accepts size, fill, markup and font_weight; "
             f"got {', '.join(sorted(unknown))}")
     size = theme.font_size_small if options.get("size") is None else mm(options["size"])
-    radius = panel.radius
-    bar_width = radius * _BREAKOUT_WIDTH_OF_RADIUS if width is None else mm(width)
-    bar_height = 2 * radius if height is None else mm(height)
-    space = radius * _BREAKOUT_GAP_OF_RADIUS if gap is None else mm(gap)
-    if bar_width <= 0 or bar_height <= 0 or space < 0:
-        raise DiagramError("breakout() needs a positive width and height "
-                           "and a gap of zero or more")
-    sign = 1.0 if side == "right" else -1.0
-    near = sign * (radius + space)
-    far = near + sign * (bar_width)
-    x0, x1 = sorted((near, far))
-    top = -bar_height / 2
+    _, top, bar_height, x0, x1 = breakout_frame(panel, side=side, width=width,
+                                                height=height, gap=gap)
     # The segments, stacked downward from the top of the bar.
     segments: list = []
     spans: list[tuple[float, float]] = []
@@ -462,20 +530,11 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
         for a, _ in spans[1:]:
             segments.append(polyline((Vec2(x0, a), Vec2(x1, a)),
                                      kind=MARK_LINE_KIND, **rule))
-    # Connectors: from where the slices' outer edges meet the rim to the
-    # bar's near corners, the upper rim point to the top corner.
-    a0 = angles[ordered[0]][0]
-    a1 = angles[ordered[-1]][1]
-    if abs(a1 - a0) >= 360 - 1e-9:
-        raise DiagramError("breakout() slices cover the whole pie")
-    rim = sorted((Vec2(math.cos(math.radians(a)) * radius,
-                       math.sin(math.radians(a)) * radius) for a in (a0, a1)),
-                 key=lambda v: v.y)
     line = {"stroke": theme.muted, "stroke_width": theme.hairline}
     line.update(connector or {})
-    links = [polyline((rim[0], Vec2(near, top)), kind=MARK_LINE_KIND, **line),
-             polyline((rim[1], Vec2(near, top + bar_height)),
-                      kind=MARK_LINE_KIND, **line)]
+    links = [polyline(ends, kind=MARK_LINE_KIND, **line)
+             for ends in breakout_connectors(panel, angles, ordered, side=side,
+                                             width=width, height=height, gap=gap)]
     layers = [draw_place(links, origin=(0, 0), kind="breakout-links"),
               draw_place(segments, origin=(0, 0), kind="breakout-bar")]
     texts = ([None] * len(data) if labels is None
@@ -513,6 +572,67 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
     node = draw_place(layers, origin=(0, 0), kind="breakout")
     node.notes["pie_breakout"] = note
     return node, tuple(colours), note
+
+
+def breakout_frame(panel, *, side: str = "right", width: float | str | None = None,
+                   height: float | str | None = None,
+                   gap: float | str | None = None) -> tuple[float, ...]:
+    """A breakout bar's place in panel millimetres, as `(near, top, height,
+    x0, x1)`: `near` is the x of the bar's side that faces the pie."""
+    radius = panel.radius
+    bar_width = radius * _BREAKOUT_WIDTH_OF_RADIUS if width is None else mm(width)
+    bar_height = 2 * radius if height is None else mm(height)
+    space = radius * _BREAKOUT_GAP_OF_RADIUS if gap is None else mm(gap)
+    if bar_width <= 0 or bar_height <= 0 or space < 0:
+        raise DiagramError("breakout() needs a positive width and height "
+                           "and a gap of zero or more")
+    sign = 1.0 if side == "right" else -1.0
+    near = sign * (radius + space)
+    x0, x1 = sorted((near, near + sign * bar_width))
+    return near, -bar_height / 2, bar_height, x0, x1
+
+
+def breakout_connectors(panel, angles: Sequence[tuple[float, float]],
+                        slices: Sequence[int], *, side: str = "right",
+                        width: float | str | None = None,
+                        height: float | str | None = None,
+                        gap: float | str | None = None) -> list[tuple[Vec2, Vec2]]:
+    """A breakout's two connector segments: from where the outer edges of
+    the adjacent `slices` meet the rim to the bar's near corners, the upper
+    rim point to the top corner. `angles` are the slices' page angles from
+    the pie's `pie_labels` note."""
+    near, top, bar_height, _, _ = breakout_frame(panel, side=side, width=width,
+                                                 height=height, gap=gap)
+    a0 = min(angles[i][0] for i in slices)
+    a1 = max(angles[i][1] for i in slices)
+    if a1 - a0 >= 360 - 1e-9:
+        raise DiagramError("breakout() slices cover the whole pie")
+    radius = panel.radius
+    rim = sorted((Vec2(math.cos(math.radians(a)) * radius,
+                       math.sin(math.radians(a)) * radius) for a in (a0, a1)),
+                 key=lambda v: v.y)
+    return [(rim[0], Vec2(near, top)), (rim[1], Vec2(near, top + bar_height))]
+
+
+def breakout_turn(theta, values: Sequence[float], slices: Sequence[int], *,
+                  side: str, zero: bool = True,
+                  winding: bool = True) -> tuple[float, str]:
+    """The `zero` (page degrees) and `winding` of `theta` that turn a pie of
+    `values` so the middle of the adjacent `slices` faces a breakout bar on
+    `side`. The winding runs the slices down the facing side, so the first
+    one is uppermost like the bar's first part. `zero` and `winding` say
+    which of the two may change; the other keeps `theta`'s own."""
+    new_winding = ("cw" if side == "right" else "ccw") if winding else theta.winding
+    if not zero:
+        return theta.zero, new_winding
+    sign = 1.0 if new_winding == "cw" else -1.0
+    total = sum(values)
+    low, high = theta.domain
+    start = sum(values[:slices[0]]) / total
+    end = sum(values[:slices[-1] + 1]) / total
+    middle = low + (high - low) * (start + end) / 2
+    target = 0.0 if side == "right" else 180.0
+    return (target - sign * middle * 360.0 / theta.turn) % 360.0, new_winding
 
 
 #: The lightest shade of a breakout bar's default colours, as a blend of the
