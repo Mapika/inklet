@@ -1,18 +1,18 @@
 # Calibrated microscopy volumes
 
-The experimental `Volume` API keeps voxel spacing, coordinate origin and source
-identity attached to microscopy and segmentation arrays. Cropping, slices,
-scale bars, measured volumes and 3D surfaces use the same physical coordinates.
-It was introduced in Inklet 3.1 and is available in stable 4.2.0 as an opt-in
-research API. Signatures and report schemas may change. Install it with
-`pip install "inklet[volume,render]==4.2.0"`.
+The `Volume` API in `inklet.volume` keeps voxel spacing, coordinate origin and
+source identity attached to microscopy and segmentation arrays. Cropping,
+slices, scale bars, measured volumes and 3D surfaces use the same physical
+coordinates. It was introduced in Inklet 3.1 and moved to `inklet.volume` in
+4.3. The `inklet.experimental` import paths used before 4.3 still work and
+return the same objects. Install it with `pip install "inklet[volume,render]>=4.3"`.
 
 ```sh
 python -m pip install -e '.[volume,render]'
 ```
 
 The optional `volume` extra supplies NumPy, Pillow and scikit-image. Importing
-the module does not load these dependencies. The core Inklet install still
+the package does not load these dependencies. The core Inklet install still
 requires none of them. This API accepts arrays; it does not claim to parse every
 microscopy file format or infer missing calibration.
 
@@ -20,7 +20,7 @@ microscopy file format or infer missing calibration.
 
 ```python
 import numpy as np
-from inklet.experimental.volume import Volume
+from inklet.volume import Volume
 
 labels = np.zeros((12, 16, 20), dtype=np.uint16)
 labels[2:8, 3:11, 4:14] = 7

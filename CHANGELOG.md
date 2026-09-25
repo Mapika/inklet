@@ -12,6 +12,14 @@
   their new home; `import inklet` stays free of numpy, pandas, polars, PIL,
   scikit-image, SciPy, tifffile and `inklet.volume`; stable namespaces
   define `__all__`.
+- The microscopy APIs move from `inklet.experimental` to the stable
+  `inklet.volume` package: `Volume`, `Slice`, `Plane`, `SampledSection`,
+  `reslice`, `Slab`, `SlabProjection`, `project_slab`, `BoxRegion`, `Channel`,
+  `Composite`, `LabelContour`, `LabelMeasurements`, `measure_labels`,
+  `TiffImage` and `read_tiff`. The old `inklet.experimental.volume`,
+  `sections`, `slabs`, `regions`, `channels`, `contours`, `measurements` and
+  `tiff` paths still work, return the same objects and do not warn. Report
+  schema strings are unchanged. `import inklet` does not import the package.
 
 ## 4.2.0 — 2026-09-25
 

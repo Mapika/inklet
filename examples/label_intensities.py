@@ -8,9 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import inklet as i
-from inklet.experimental.sections import Plane
-from inklet.experimental.regions import BoxRegion
-from inklet.experimental.measurements import measure_labels
+from inklet.volume import BoxRegion, Plane, measure_labels
 from biology.fluorescence import load
 from fluorescence_biology import candidate_labels, composite, outlined, frame
 

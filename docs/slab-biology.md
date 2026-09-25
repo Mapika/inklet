@@ -13,6 +13,9 @@ image resizing and projection sampling do not change the source-grid volumes.
 
 ## Reproduce it
 
+From 4.3 the example imports from `inklet.volume`; the `inklet.experimental`
+paths in the 4.2.0 checkout still work.
+
 Use the `v4.2.0` release checkout, the same locked COSEM source objects as the
 [original real-biology example](real-biology.md), and Blender 4.5 LTS:
 

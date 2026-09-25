@@ -15,6 +15,8 @@ a region zoom, intensity profiles and area measurements. It uses data from the
 
 Use the `v4.2.0` release checkout and the volume/render extras. Blender is not required
 for this example.
+From 4.3 the example imports from `inklet.volume`; the `inklet.experimental`
+paths in the 4.2.0 checkout still work.
 
 ```bash
 git clone --branch v4.2.0 https://github.com/Mapika/inklet.git

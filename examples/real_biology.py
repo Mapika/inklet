@@ -14,7 +14,7 @@ import numpy as np
 from PIL import Image
 import inklet as i
 from inklet.core import ImagePrim
-from inklet.experimental.volume import Volume
+from inklet.volume import Volume
 from inklet.experimental.figure_planner import Target,View,plan
 from inklet.three import templates
 from inklet.three.blender import find_blender

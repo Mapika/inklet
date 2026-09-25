@@ -13,6 +13,9 @@ orthogonal sections and quantitative summaries from one fixed spatial crop of
 
 ## Reproduce it
 
+From 4.3 the example imports from `inklet.volume`; the `inklet.experimental`
+paths in the 4.2.0 checkout still work.
+
 Use the `v4.2.0` release checkout and Blender 4.2 or 4.5 LTS:
 
 ```sh
