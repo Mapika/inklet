@@ -1,10 +1,9 @@
 # Per-label intensity measurements
 
-Introduced in Inklet 3.1, stable 4.2.0 includes `measure_labels` under
-`inklet.experimental.measurements`.
+Introduced in Inklet 3.1, `measure_labels` is available from `inklet.volume`.
 Install the [volume extra](calibrated-volumes.md) with
-`pip install "inklet[volume]==4.2.0"`. This API and its report schema remain
-an experimental research preview.
+`pip install "inklet[volume]>=4.3"`. The `inklet.experimental` import paths
+used before 4.3 still work and return the same objects.
 
 Measure original channel values on a native voxel grid or on one sampled plane.
 The returned table supplies plots, CSV exports and JSON provenance. Display
@@ -19,8 +18,7 @@ The [complete microscopy intensity example](label-intensities.md) connects measu
 
 ```python
 import numpy as np
-from inklet.experimental.volume import Volume
-from inklet.experimental.measurements import measure_labels
+from inklet.volume import Volume, measure_labels
 
 labels = Volume(np.array([[[17, 17, 0]]], dtype='uint64'),
                 (2, 3, 4), 'um', source_id='illustrative labels')

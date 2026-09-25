@@ -1,7 +1,7 @@
 """Read the hash-locked, calibrated two-channel Allen Institute example."""
 from pathlib import Path
 
-from inklet.experimental.tiff import read_tiff
+from inklet.volume import read_tiff
 from .data import fetch
 
 LOCK=Path(__file__).with_name('cells3d.lock.json')

@@ -15,8 +15,9 @@ identify masks and table rows. It uses the Allen Institute for Cell Science
 
 ## Reproduce it
 
-Use the `v4.2.0` release checkout with the volume/render extras. These APIs
-remain experimental. Blender is not required.
+Use the `v4.2.0` release checkout with the volume/render extras. Blender is not
+required. From 4.3 the example imports from `inklet.volume`; the
+`inklet.experimental` paths in the 4.2.0 checkout still work.
 
 ```bash
 git clone --branch v4.2.0 https://github.com/Mapika/inklet.git

@@ -1,10 +1,10 @@
 # Oblique microscopy sections
 
-Introduced in Inklet 3.1, stable 4.2.0 can sample an arbitrarily oriented physical plane
+Introduced in Inklet 3.1, `inklet.volume` can sample an arbitrarily oriented physical plane
 through calibrated microscopy and segmentation arrays. The same `Plane` defines
 the output pixels, scale bar, projected annotations and rectangle in a 3D scene.
-This capability ships under `inklet.experimental`; its signatures and report
-schemas may change. Install with `pip install "inklet[volume,render]==4.2.0"`.
+The `inklet.experimental` import paths used before 4.3 still work and return
+the same objects. Install with `pip install "inklet[volume,render]>=4.3"`.
 
 From the release checkout:
 
@@ -17,8 +17,7 @@ python -m pip install -e '.[volume,render]'
 ```python
 import numpy as np
 import inklet as i
-from inklet.experimental.volume import Volume
-from inklet.experimental.sections import Plane
+from inklet.volume import Volume, Plane
 
 z, y, x = np.indices((9, 11, 13))
 raw = Volume((20*x + 7*y + z).astype('uint16'),

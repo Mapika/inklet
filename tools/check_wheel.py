@@ -118,21 +118,18 @@ assert 'evenodd' in region_scene.to_svg() and 'polygonContains' in region_scene.
 Path('table.csv').write_text('x,y\\n0,1\\n1,2\\n')
 table = i.read_csv('table.csv', types={'x': int, 'y': float}, method='simulated')
 assert table.columns['y'] == (1., 2.) and table.source.sha256
-from inklet.experimental.volume import Volume
-from inklet.experimental.sections import Plane
+import inklet.volume
+from inklet.volume import BoxRegion, Plane, Slab, Volume
 plane = Plane((0,0,0), (1,0,0), (0,1,0), (10,20), (.1,.1), 'um')
 assert plane.extent == (2,1)
-from inklet.experimental.slabs import Slab
-from inklet.experimental.regions import BoxRegion
 slab = Slab(plane, .5, 5)
 region = BoxRegion('wheel-region', (-1,-1,-1), (1,1,1), 'um')
 assert len(region.edges) == 12 and len(region.intersection(plane)) == 4
 assert region.outline(plane, width=40).width >= 40
 assert slab.report()['samples'] == 5
-from inklet.experimental.channels import Channel, Composite
-from inklet.experimental.contours import LabelContour
-from inklet.experimental.measurements import LabelMeasurements, measure_labels
-from inklet.experimental.tiff import TiffImage, read_tiff
+assert all(getattr(inklet.volume, name) for name in inklet.volume.__all__)
+from inklet.experimental.sections import Plane as OldPlane
+assert OldPlane is Plane
 assert find_spec("numpy") is None
 try:
     Volume([[[1]]], (1,1,1), 'um', source_id='wheel')

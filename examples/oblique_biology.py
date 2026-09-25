@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 import inklet as i
 from inklet.core import ImagePrim
-from inklet.experimental.sections import Plane
+from inklet.volume import Plane
 from biology.data import fetch,load
 from real_biology import ROOT,WINDOW,COLORS,build_scene
 
