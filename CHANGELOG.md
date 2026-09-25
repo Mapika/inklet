@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased
+
+### Added: statistical plots
+
+- `Panel.hist(histtype=, cumulative=)`: step, outline and filled-step
+  histograms, a mapping of groups sharing one set of edges, `stat="density"`
+  and cumulative counts or fractions. The plain call is unchanged.
+- `Panel.kde` (1D kernel densities, Scott or Silverman bandwidth, groups,
+  `stat="count"`, log axes) and `Panel.kde2d` (2D density contours, filled or
+  lines, at highest-density mass levels).
+- `Panel.hexbin`, `Panel.hist2d` and `Panel.density_scatter` for dense point
+  clouds. `density_scatter(raster=True)` draws 10⁵ points as one image and
+  works on log axes. Each draws a colour ramp that `colorbar()` explains.
+- `Panel.regression`: a linear fit with a confidence or prediction band, or a
+  lowess smoother, with R². On a log x axis the fit is on log10(x).
+  `Panel.residuals` plots what the fit leaves over.
+- `Panel.qq` and `Panel.pp`: normal (or `statistics.NormalDist`) quantile and
+  probability plots with a reference line.
+- `Panel.bland_altman`: bias, limits of agreement, optional confidence
+  intervals and margin labels.
+- `Panel.boxen` (letter-value plots), `Panel.strip` (jittered points) and
+  `Panel.sina` (points spread by their density).
+- `inklet.pairplot` and `inklet.jointplot`: scatter-matrix and joint plots
+  with histogram or KDE diagonals and marginals, groups and a shared legend.
+- `Panel.bars(normalize=True)`: 100% stacked bars; `labels=True` writes the
+  percentages.
+- The computations are public in `inklet.plot`: `kde_curve`, `kde2d`,
+  `mass_levels`, `histogram2d`, `point_density`, `linear_fit`, `lowess`,
+  `qq_points`, `pp_points`, `bland_altman`, `letter_values`, `cumulate` and
+  `percent_of_totals`. Every new plot carries a diagnostics note.
+- A new guide, "Relationships and agreement", new sections in
+  "Distributions" and "Bars and areas", gallery entries, and
+  `examples/stat_plot_types.py`.
+
 ## 4.3.0 — 2026-09-25
 
 4.3 moves microscopy volumes, keyed selections, figure projects and the layout

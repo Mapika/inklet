@@ -47,7 +47,8 @@ extra:
   plot_families:
     Lines and points: Ordered series, steps and scatter, with paired-value dumbbells, lollipops, labelled points, volcano plots and UMAP or t-SNE embedding scatters.
     Bars and areas: Grouped, stacked and horizontal bars with value labels, UpSet plots of set intersections, and areas between curves.
-    Distributions: Histograms, boxplots, violins and split violins, swarms, cumulative distributions, ridgelines, rainclouds, Kaplan-Meier survival curves and stacked significance brackets.
+    Distributions: Histograms, kernel densities, boxplots, letter-value plots, violins and split violins, swarms, strip and sina plots, QQ and PP plots, cumulative distributions, ridgelines, rainclouds, Kaplan-Meier survival curves and stacked significance brackets.
+    Relationships: Hexbins, 2D histograms and density contours, density-coloured scatter, regression with confidence bands and residuals, Bland-Altman agreement, and pair and joint plots.
     Uncertainty: Supplied bounds as bands and error bars, and forest plots of effect sizes with summary diamonds.
     Matrices: Heatmaps and dot plots with colour and size keys, and dendrograms that order the rows.
     Polar: Angle and radius, from polar curves and roses to radar charts, pies, donuts and breakout bars.
@@ -143,6 +144,7 @@ nav:
   - Lines and points: lines-and-points.md
   - Bars and areas: bars-and-areas.md
   - Distributions: distributions.md
+  - Relationships and agreement: relationships.md
   - Uncertainty: uncertainty.md
   - Matrices and dendrograms: matrices.md
   - Polar, radar and pie: polar-plots.md

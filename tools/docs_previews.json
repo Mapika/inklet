@@ -789,5 +789,96 @@
     "object": "doc",
     "image": "journal-figure-3.png",
     "alt": "The finished eight-panel page with panel letters"
+  },
+  {
+    "page": "distributions.md",
+    "block": 11,
+    "object": "doc",
+    "image": "plots-hist-groups.png",
+    "alt": "Overlaid histograms and cumulative fractions"
+  },
+  {
+    "page": "distributions.md",
+    "block": 12,
+    "object": "doc",
+    "image": "plots-kde.png",
+    "alt": "Kernel density curves"
+  },
+  {
+    "page": "distributions.md",
+    "block": 13,
+    "object": "doc",
+    "image": "plots-boxen.png",
+    "alt": "Letter-value plots"
+  },
+  {
+    "page": "distributions.md",
+    "block": 14,
+    "object": "doc",
+    "image": "plots-strip-sina.png",
+    "alt": "Strip and sina plots"
+  },
+  {
+    "page": "distributions.md",
+    "block": 15,
+    "object": "doc",
+    "image": "plots-qq.png",
+    "alt": "QQ and PP plots"
+  },
+  {
+    "page": "relationships.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-hexbin.png",
+    "alt": "Hexbin and 2D histogram"
+  },
+  {
+    "page": "relationships.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plots-density-scatter.png",
+    "alt": "Density-coloured scatter"
+  },
+  {
+    "page": "relationships.md",
+    "block": 3,
+    "object": "doc",
+    "image": "plots-kde2d.png",
+    "alt": "2D density contours"
+  },
+  {
+    "page": "relationships.md",
+    "block": 4,
+    "object": "doc",
+    "image": "plots-regression.png",
+    "alt": "Regression and residuals"
+  },
+  {
+    "page": "relationships.md",
+    "block": 5,
+    "object": "doc",
+    "image": "plots-bland-altman.png",
+    "alt": "Bland-Altman plot"
+  },
+  {
+    "page": "relationships.md",
+    "block": 6,
+    "object": "doc",
+    "image": "plots-pairplot.png",
+    "alt": "Pair plot"
+  },
+  {
+    "page": "relationships.md",
+    "block": 7,
+    "object": "doc",
+    "image": "plots-jointplot.png",
+    "alt": "Joint plot"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 10,
+    "object": "doc",
+    "image": "plots-bars-percent.png",
+    "alt": "100% stacked bars"
   }
 ]

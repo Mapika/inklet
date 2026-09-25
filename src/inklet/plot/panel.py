@@ -20,6 +20,7 @@ panels whose y labels are different widths.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Iterable, Mapping, Sequence
 
@@ -537,7 +538,7 @@ class Panel:
              stacked: bool | None = None, grouped: bool | None = None,
              gap: float = 0.12, colors=None, bar_colors=None, names: Sequence[str] | None = None,
              labels=None, label_position: str = "auto",
-             label_options: dict | None = None,
+             label_options: dict | None = None, normalize: bool = False,
              **style) -> "Panel":
         """A rectangle per value, standing on a baseline.
 
@@ -581,8 +582,18 @@ class Panel:
 
             p.bars(ids, [specific, dimorphic, isomorphic], stacked=True,
                    orient="h", labels=True)
+
+        `normalize=True` draws 100% bars: each position's series become
+        percentages of its total and are stacked, so the value axis runs 0
+        to 100, and `labels=True` writes each share as `"{:.0f}%"`.
         """
         clip = _clip_flag(style)
+        if normalize:
+            from .percent import PERCENT_LABEL, percent_of_totals
+            heights = percent_of_totals(heights)
+            stacked = True if stacked is None else stacked
+            if labels is True:
+                labels = PERCENT_LABEL
         if names is not None and bar_colors is not None:
             raise DiagramError("a per-category colour set cannot have one series legend; omit names")
         if names is not None:
@@ -623,7 +634,8 @@ class Panel:
     def hist(self, values: Sequence[float], bins: int | Sequence[float] = 10, *,
              range: tuple[float, float] | None = None, density: bool = False,
              baseline: float = 0.0, orient: str = "v", colors=None,
-             name: str | None = None, **style) -> "Panel":
+             name: str | None = None, histtype: str | None = None,
+             cumulative: bool = False, **style) -> "Panel":
         """Binned counts as touching rectangles.
 
         `bins` is a count -- the edges then land on round numbers and you get
@@ -638,8 +650,28 @@ class Panel:
             edges, counts = inklet.plot.histogram(latencies, 12)
             p = inklet.panel(60, 34, x=(edges[0], edges[-1]), y=(0, max(counts)))
             p.hist(latencies, 12)
+
+        `histtype="step"` draws the outline alone, `"stepfilled"` a filled
+        outline with no edges between bins. `cumulative=True` draws running
+        totals (with `density=True`, the fraction of observations up to
+        each bin's upper edge). `values` may be a mapping of group name to
+        values: every group is binned on the same edges, drawn as a
+        translucent filled outline in its own colour (`colors=` one per
+        group) and named for `legend()`. `inklet.plot.cumulate` gives the
+        running totals of `histogram`'s heights.
         """
         clip = _clip_flag(style)
+        if (isinstance(values, Mapping) or cumulative
+                or histtype not in (None, "bar")):
+            from .histograms import hist_layer
+            node, keys = hist_layer(self, values, bins, range=range,
+                                    density=density, cumulative=cumulative,
+                                    histtype=histtype, baseline=baseline,
+                                    orient=orient, colors=colors, **style)
+            for group, (form, ink, fill) in keys:
+                self._note(group if group is not None else name, form,
+                           color=ink, fill=fill)
+            return self.draw(node, clip=clip)
         self._note(name, "area", fill=_marks.series_colors(
             style.get("fill") if colors is None else colors, 1)[0])
         return self.draw(_marks.hist(
@@ -2344,6 +2376,462 @@ class Panel:
         if drawn:
             self._over[-1].notes["brackets"] = drawn
         return self
+
+    # -- statistical plots: density, regression, probability, agreement ----
+    #
+    # Thin wrappers. The arithmetic and geometry live in plot/kernel_density.py,
+    # density.py, regression.py, probability.py, agreement.py,
+    # letter_values.py and strip.py.
+
+    def kde(self, values, *, bandwidth="scott", adjust: float = 1.0,
+            cut: float = 3.0, samples: int = 200, fill: bool = False,
+            stat: str = "density", orient: str = "v", color=None,
+            name: str | None = None, baseline: float = 0.0,
+            **style) -> "Panel":
+        """A kernel density curve, or one per group.
+
+        `values` is one sample, or a mapping of group name to samples; each
+        group gets its own curve, colour (the theme's ink palette, or
+        `color=` one colour or a sequence) and legend entry. Values run
+        along x and density up y; `orient="h"` swaps them.
+
+            grid, density = inklet.plot.kde_curve(control)
+            p = inklet.panel(50, 30, x=(0, 10), y=(0, 0.5))
+            p.kde({"control": control, "treated": treated}, fill=True)
+
+        `bandwidth` is `"scott"` (R's `bw.nrd`, the default), `"silverman"`
+        (R's `bw.nrd0`) or a number in data units, times `adjust`. The curve
+        runs `cut` bandwidths past the extreme values, stopping at the axis
+        domain, in `samples` points. `fill=True` shades under each curve at
+        25% opacity so overlapping groups stay visible. `stat="count"`
+        multiplies each density by its sample size, so the areas compare
+        group sizes. On a log value axis the density is estimated in
+        ``log10`` units, so it is per decade and a log-normal sample is a
+        symmetric bump. A single named curve takes the next series colour,
+        so repeated calls stay apart. Other keywords style the lines. The
+        node carries a
+        `kde` note with each group's bandwidth and peak;
+        `inklet.plot.kde_curve` computes a curve without drawing it.
+        """
+        from .kernel_density import kde_layer
+
+        clip = _clip_flag(style)
+        if color is None and not isinstance(values, Mapping):
+            color = self._series_color(name, None)
+        node, drawn, _ = kde_layer(self, values, bandwidth=bandwidth,
+                                   adjust=adjust, cut=cut, samples=samples,
+                                   fill=fill, stat=stat, orient=orient,
+                                   color=color, baseline=baseline, **style)
+        for group, ink in drawn:
+            label = group if group is not None else name
+            if fill:
+                self._note(label, "area", color=ink,
+                           fill=mix(ink, active_theme().paper, 0.75))
+            self._note(label, "line", color=ink)
+        return self.draw(node, clip=clip)
+
+    def kde2d(self, points: Iterable[Sequence], *, levels=5, fill: bool = False,
+              bandwidth="scott", adjust: float = 1.0, gridsize: int = 96,
+              color=None, ramp=None, name: str | None = None,
+              **style) -> "Panel":
+        """Contours of a 2D kernel density: lines, or filled levels.
+
+        Each contour encloses a share of the estimated probability mass:
+        `levels=5` (default) draws five, holding 19%, 38%, 57%, 76% and 95%;
+        a sequence such as `levels=(0.5, 0.95)` gives the shares directly.
+        `fill=True` fills the regions between them, palest outside, from
+        the density ramp or tints of `color=`; lines are `color` (default:
+        the ink) or a colour per level, outermost first.
+
+            p = inklet.panel(50, 50, x=(-3, 3), y=(-3, 3))
+            p.scatter(points, size=0.5, color="#bbbbbb")
+            p.kde2d(points, levels=(0.5, 0.8, 0.95))
+
+        The density uses a Gaussian product kernel with `bandwidth` per axis
+        (`"scott"`: ``sd * n ** (-1/6)``; a number or an `(x, y)` pair in
+        data units), times `adjust`, estimated on a lattice of at least
+        `gridsize` points a side. On a log axis it is estimated in log
+        units. Contours are cut to the plot area unless `clip=False`. The
+        node carries a `kde2d` note with the masses, their
+        density thresholds and the bandwidth; `inklet.plot.kde2d` returns
+        the lattice without drawing it.
+        """
+        from .kernel_density import kde2d_layer
+
+        clip = _clip_flag(style)
+        node, note = kde2d_layer(self, points, levels=levels, fill=fill,
+                                 bandwidth=bandwidth, adjust=adjust,
+                                 gridsize=gridsize, color=color, ramp=ramp,
+                                 **style)
+        if name is not None:
+            ink = color if isinstance(color, str) else active_theme().ink
+            self._note(name, "line", color=ink)
+        return self.draw(node, clip=True if clip is None else clip)
+
+    def hexbin(self, points: Iterable[Sequence], *, gridsize: int = 24,
+               min_count: int = 1, ramp=None, scale: Scale | None = None,
+               log: bool = False, **style) -> "Panel":
+        """Points counted in hexagons, each coloured by its count.
+
+        `gridsize` hexagons span the plot area's width; they are regular on
+        the page whatever the axes, log axes included. Hexagons with fewer
+        than `min_count` points are left empty. The colour runs through
+        `ramp` (default: magma without its palest end, so a hexagon of one
+        point still shows) over `scale`, by default 0 to the largest count,
+        or a log scale from the smallest with `log=True`. `colorbar()`
+        afterwards explains the colours:
+
+            p.hexbin(points, gridsize=30).colorbar(label="points")
+
+        Hexagons at the edge are cut to the plot area unless `clip=False`.
+        The node carries a `hexbin` note with the hexagon diameter in mm and
+        the largest count.
+        """
+        from .density import hexbin_layer
+
+        clip = _clip_flag(style)
+        node, ramp, scale, _ = hexbin_layer(self, points, gridsize=gridsize,
+                                            min_count=min_count, ramp=ramp,
+                                            scale=scale, log=log, **style)
+        self._ramp, self._scale_domain = ramp, scale
+        return self.draw(node, clip=True if clip is None else clip)
+
+    def hist2d(self, points: Iterable[Sequence], bins=20, *, range=None,
+               density: bool = False, min_count: float = 1, ramp=None,
+               scale: Scale | None = None, log: bool = False,
+               **style) -> "Panel":
+        """A 2D histogram: points counted in rectangular bins on continuous
+        axes, each bin coloured by its count.
+
+        `bins` is a count or a list of edges, for both axes or as an
+        `(x, y)` pair. A count gives round edges over the data or, with
+        `range=((x0, x1), (y0, y1))`, even ones over that range; on a log
+        axis the bins have equal ratios. Bins with fewer than `min_count`
+        points are left empty. `density=True` colours by count per unit
+        area over the total. `ramp`, `scale` and `log` choose the colours
+        as for `hexbin`, and `colorbar()` explains them. Bins at the edge
+        are cut to the plot area unless `clip=False`.
+        `inklet.plot.histogram2d` returns the edges and counts.
+        """
+        from .density import hist2d_layer
+
+        clip = _clip_flag(style)
+        node, ramp, scale, _ = hist2d_layer(self, points, bins=bins, range=range,
+                                            density=density, min_count=min_count,
+                                            ramp=ramp, scale=scale, log=log,
+                                            **style)
+        self._ramp, self._scale_domain = ramp, scale
+        return self.draw(node, clip=True if clip is None else clip)
+
+    def density_scatter(self, points: Iterable[Sequence], *,
+                        bandwidth: float | None = None, ramp=None,
+                        size=None, sort: bool = True, raster: bool = False,
+                        dpi: float = 300, marker: str = "circle",
+                        **style) -> "Panel":
+        """A scatter coloured by how crowded each point's neighbourhood is.
+
+        The density is estimated on the page: points are smoothed with a
+        Gaussian of `bandwidth` millimetres (default: a normal-reference
+        rule on the page coordinates), so it works the same on log axes
+        and shows where marks actually overlap. Colours run through `ramp`
+        (default: magma without its palest end) from 0 to the densest
+        point, and `sort=True` draws the densest points last so they are
+        not buried. `raster=True` embeds the markers as one image, which
+        keeps 100,000 points small; `colorbar(label="relative density")`
+        explains the colours. Markers have no outline unless `stroke=` is
+        given. `inklet.plot.point_density` returns the densities.
+        """
+        from .density import DENSITY_RAMP, point_density
+
+        kept, density, h = point_density(self, points, bandwidth=bandwidth)
+        order = (sorted(range(len(kept)), key=lambda k: (density[k], k))
+                 if sort else list(range(len(kept))))
+        style.setdefault("stroke", "none")
+        self.scatter([kept[k] for k in order], color=[density[k] for k in order],
+                     ramp=DENSITY_RAMP if ramp is None else ramp,
+                     scale=linear((0.0, 1.0)), size=size, marker=marker,
+                     raster=raster, dpi=dpi, **style)
+        last = self._content[-1]
+        last.notes["density_scatter"] = {"bandwidth_mm": h, "points": len(kept)}
+        return self
+
+    def regression(self, points: Iterable[Sequence], *, method: str = "linear",
+                   confidence: float | None = 0.95, prediction: bool = False,
+                   scatter: bool = True, frac: float = 2 / 3,
+                   iterations: int = 3, span: tuple | None = None,
+                   color: str | None = None, size=None, name: str | None = None,
+                   **style) -> "Panel":
+        """Points with a fitted line and its confidence band.
+
+        `method="linear"` fits y on x by least squares and shades the
+        `confidence` band for the mean response (Student's t on n - 2
+        degrees of freedom); `prediction=True` shades the wider interval for
+        a new observation instead, and `confidence=None` draws no band.
+        The line spans the data's x range, or `span=(x0, x1)`. On a log x
+        axis the fit is of y on ``log10(x)``, so the line is straight on
+        the page and the slope is per decade.
+        `method="lowess"` draws R's `lowess()` smoother with `frac` and
+        `iterations`, without a band.
+
+            p.regression(points, color="#24698c", name="wild type")
+
+        The line and band are cut to the plot area unless `clip=False`.
+        `scatter=False` leaves the points out. The points are a pale tint of
+        `color` (default: the ink), `size` their diameter in mm; the line is
+        `color` and the band a paler tint. Other keywords style the line.
+        The line's node carries a `regression` note with the slope,
+        intercept, r2, p-value and n; `inklet.plot.linear_fit` and
+        `inklet.plot.lowess` compute them without drawing.
+        """
+        from .regression import regression_curve
+
+        clip = _clip_flag(style)
+        clip = True if clip is None else clip
+        theme = active_theme()
+        data = [tuple(p) for p in points]
+        ink = self._series_color(name, color) or theme.ink
+        curve = regression_curve(data, method=method, confidence=confidence,
+                                 prediction=prediction, span=span, frac=frac,
+                                 iterations=iterations,
+                                 log_x=isinstance(self.x, Log))
+        if scatter:
+            from .strip import _dots
+            dots = {"color": mix(ink, theme.paper, 0.45), "size": _dots(theme, size)}
+            self.scatter([p for p in data if len(p) >= 2 and _mappable(self.x, p[0])
+                          and _mappable(self.y, p[1])], **dots)
+        if curve["band"] is not None:
+            grid, lo, hi = curve["band"]
+            self.band(grid, lo, hi, color=ink, name=name, clip=clip)
+        line = {"stroke": ink, "stroke_width": theme.thick * 0.7, "clip": clip}
+        line.update(style)
+        self.line(curve["line"], name=name, **line)
+        fit = curve["fit"]
+        note = {"method": method, "confidence": confidence,
+                "prediction": prediction}
+        if fit is not None:
+            note.update(slope=fit.slope, intercept=fit.intercept, r2=fit.r2,
+                        p=fit.p, n=fit.n)
+        self._content[-1].notes["regression"] = note
+        return self
+
+    def residuals(self, points: Iterable[Sequence], *, method: str = "linear",
+                  frac: float = 2 / 3, iterations: int = 3,
+                  smooth: bool = False, color: str | None = None, size=None,
+                  name: str | None = None, **style) -> "Panel":
+        """The residuals of a fit against x, with a zero line.
+
+        The companion to `regression`: the same `method`, `frac` and
+        `iterations` fit the points, and each point is drawn at
+        `(x, y - fitted)`. Structure left in the residuals -- a curve, a
+        funnel -- is what the fit missed. `smooth=True` adds a LOWESS line
+        through the residuals to make a trend visible. Find the y domain
+        first with `inklet.plot.linear_fit(points).residuals(points)`.
+        Other keywords style the points.
+        """
+        from .regression import linear_fit, lowess
+
+        theme = active_theme()
+        data = [tuple(p) for p in points]
+        if method == "linear":
+            fitted = linear_fit(data).residuals(
+                [p for p in data if p[0] is not None and p[1] is not None])
+        elif method == "lowess":
+            smooth_line = dict(lowess(data, frac=frac, iterations=iterations))
+            fitted = [(float(p[0]), float(p[1]) - smooth_line[float(p[0])])
+                      for p in data if p[0] is not None and p[1] is not None
+                      and float(p[0]) in smooth_line]
+        else:
+            raise DiagramError(f'residuals method is "linear" or "lowess", not {method!r}')
+        fitted = [p for p in fitted if math.isfinite(p[0]) and math.isfinite(p[1])]
+        self.hline(0, stroke=theme.muted, stroke_width=theme.hairline,
+                   stroke_dash=(1.0, 0.8))
+        ink = self._series_color(name, color) or theme.ink
+        from .strip import _dots
+        dots = {"color": ink, "size": _dots(theme, size)}
+        dots.update(style)
+        self.scatter(fitted, name=name, **dots)
+        self._content[-1].notes["residuals"] = {"method": method, "n": len(fitted)}
+        if smooth and len(fitted) >= 3:
+            self.line(lowess(fitted, frac=frac, iterations=iterations),
+                      stroke=theme.accent, stroke_width=theme.stroke)
+        return self
+
+    def qq(self, values: Sequence[float], *, dist="normal",
+           line: str | None = "quartiles", color: str | None = None,
+           size=None, name: str | None = None, **style) -> "Panel":
+        """A normal quantile-quantile plot: sample against theoretical
+        quantiles, with a reference line.
+
+        Each sorted value is drawn against the standard normal quantile at
+        its plotting position (R's `ppoints`), so a normal sample lies on a
+        straight line and heavy tails bend away from it at the ends.
+        `dist=` takes a `statistics.NormalDist` or any quantile function
+        instead. `line="quartiles"` (default) passes through the first and
+        third quartiles, as R's `qqline` does; `"fit"` uses the sample mean
+        and standard deviation, `"identity"` is ``y = x``, and `None` omits
+        it. `inklet.plot.qq_points` returns the points without drawing.
+        """
+        from .probability import qq_line, qq_points
+
+        theme = active_theme()
+        pts = qq_points(values, dist)
+        if line is not None:
+            intercept, slope = qq_line(values, dist, line)
+            xs = [pts[0][0], pts[-1][0]]
+            domain = getattr(self.x, "domain", None)
+            if domain is not None and not isinstance(self.x, Band):
+                xs = [min(domain), max(domain)]
+            self.line([(x, intercept + slope * x) for x in xs], stroke=theme.accent,
+                      stroke_width=theme.stroke, clip=True)
+        ink = self._series_color(name, color) or theme.ink
+        from .strip import _dots
+        dots = {"color": ink, "size": _dots(theme, size)}
+        dots.update(style)
+        self.scatter(pts, name=name, **dots)
+        self._content[-1].notes["qq"] = {"line": line, "n": len(pts)}
+        return self
+
+    def pp(self, values: Sequence[float], *, dist="normal",
+           color: str | None = None, size=None, name: str | None = None,
+           **style) -> "Panel":
+        """A probability-probability plot against a fitted normal.
+
+        Each sorted value is drawn at (the normal CDF at that value, its
+        empirical probability), with the diagonal ``y = x`` a perfect fit
+        would follow. The normal takes the sample's mean and standard
+        deviation unless `dist=` gives a `statistics.NormalDist` or any
+        CDF. A PP plot is most sensitive in the middle of the distribution,
+        a QQ plot in the tails. Draw it on `x=(0, 1), y=(0, 1)`.
+        """
+        from .probability import pp_points
+
+        theme = active_theme()
+        self.line([(0.0, 0.0), (1.0, 1.0)], stroke=theme.accent,
+                  stroke_width=theme.stroke)
+        pts = pp_points(values, dist)
+        ink = self._series_color(name, color) or theme.ink
+        from .strip import _dots
+        dots = {"color": ink, "size": _dots(theme, size)}
+        dots.update(style)
+        self.scatter(pts, name=name, **dots)
+        self._content[-1].notes["pp"] = {"n": len(pts)}
+        return self
+
+    def bland_altman(self, a: Sequence[float], b: Sequence[float], *,
+                     z: float = 1.96, percent: bool = False,
+                     confidence: float | None = None, labels: bool = True,
+                     format: str = "{:.2f}", color: str | None = None,
+                     size=None, name: str | None = None, **style) -> "Panel":
+        """A Bland-Altman (mean-difference) plot of two methods' agreement.
+
+        Each pair of measurements is drawn at (their mean, `a - b`) -- or
+        the difference as a percentage of the mean with `percent=True` --
+        with a solid line at the bias (the mean difference) and dashed lines
+        at the limits of agreement, `bias ± z × sd`. `labels=True` names
+        each line and its value just outside the plot area on the right,
+        formatted with `format`, so the labels never sit on the data.
+        `confidence=0.95` also shades the confidence interval of the bias
+        and of each limit. Find the y domain first with
+        `inklet.plot.bland_altman(a, b)`, which returns the same numbers;
+        the points' node carries them as a `bland_altman` note.
+        """
+        from .agreement import bland_altman as _agreement
+        from .strip import _dots
+
+        theme = active_theme()
+        result = _agreement(a, b, z=z, percent=percent, confidence=confidence)
+        if confidence is not None:
+            tint = mix(theme.ink, theme.paper, 0.9)
+            for low, high in (result.lower_ci, result.bias_ci, result.upper_ci):
+                self.hspan(low, high, fill=tint, stroke="none")
+        self.hline(result.bias, stroke=theme.ink, stroke_width=theme.stroke)
+        rule = {"stroke": theme.muted, "stroke_width": theme.stroke,
+                "stroke_dash": (1.2, 0.8)}
+        self.hline(result.upper, **rule)
+        self.hline(result.lower, **rule)
+        ink = self._series_color(name, color) or mix(theme.ink, theme.paper, 0.3)
+        dots = {"color": ink, "size": _dots(theme, size)}
+        dots.update(style)
+        self.scatter(result.points, name=name, **dots)
+        self._content[-1].notes["bland_altman"] = {
+            "bias": result.bias, "sd": result.sd, "lower": result.lower,
+            "upper": result.upper, "n": result.n, "bias_ci": result.bias_ci,
+            "lower_ci": result.lower_ci, "upper_ci": result.upper_ci}
+        if labels:
+            from .agreement import margin_labels
+            unit = "%" if percent else ""
+
+            def format(value, spec=format):
+                return spec.format(value).replace("-", "\u2212")
+            words = [(result.upper, f"+{z:g} SD", format(result.upper) + unit),
+                     (result.bias, "Mean", format(result.bias) + unit),
+                     (result.lower, f"\u2212{z:g} SD", format(result.lower) + unit)]
+            self.over(margin_labels(self, words), clip=False)
+        return self
+
+    def boxen(self, groups, *, at=None, width: float = 0.8, orient: str = "v",
+              depth="tukey", outliers: bool = True, color=None, size=None,
+              **style) -> "Panel":
+        """Letter-value (boxen) plots: nested boxes out into the tails.
+
+        For large samples, where a box plot's whiskers leave hundreds of
+        ordinary tail values drawn as "outliers". The inner box spans the
+        quartiles, the next the eighths (the middle 75%), then the
+        sixteenths, and so on; each is narrower and paler than the one
+        inside it, and the median is a paper-coloured line. `depth="tukey"`
+        (default) draws ``floor(log2 n) - 3`` boxes, `"trustworthy"` as many
+        as have non-overlapping 95% confidence intervals, or give a number.
+        Values beyond the outermost box are drawn as dots when `outliers`.
+        `groups` is spelled as for `boxplot`; `color=` is one colour or one
+        per group. `inklet.plot.letter_values` returns the boxes.
+        """
+        from .letter_values import boxen_layer
+
+        clip = _clip_flag(style)
+        node, _ = boxen_layer(self, groups, at=at, width=width, orient=orient,
+                              depth=depth, outliers=outliers, color=color,
+                              size=size, **style)
+        return self.draw(node, clip=clip)
+
+    def strip(self, groups, *, at=None, width: float = 0.8, jitter: float = 0.5,
+              orient: str = "v", size=None, seed: int = 0, color=None,
+              marker: str = "circle", **style) -> "Panel":
+        """A strip plot: each group's observations, jittered across its slot.
+
+        The points spread uniformly over `jitter` of the slot (`width` of
+        the band step), using a random generator seeded by `seed`, so the
+        same call draws the same figure every time; `jitter=0` puts them on
+        the centre line. `groups` is spelled as for `boxplot`, and a strip
+        drawn after `boxplot(..., outliers=False)` shows the points over the
+        summary. `size` is the dot diameter in mm; `color=` one colour or
+        one per group (default: the ink, or the ink palette).
+        """
+        from .strip import strip_layer
+
+        clip = _clip_flag(style)
+        node, _ = strip_layer(self, groups, at=at, width=width, jitter=jitter,
+                              orient=orient, size=size, seed=seed, color=color,
+                              marker=marker, **style)
+        return self.draw(node, clip=clip)
+
+    def sina(self, groups, *, at=None, width: float = 0.8, orient: str = "v",
+             bandwidth="scott", adjust: float = 1.0, size=None, seed: int = 0,
+             color=None, marker: str = "circle", **style) -> "Panel":
+        """A sina plot: points jittered within their group's density.
+
+        Each point moves sideways by a seeded random share of the group's
+        kernel density at its own value, scaled so the densest value spans
+        the slot, so the points take the outline of a violin while every
+        observation stays visible. `bandwidth` and `adjust` are as for
+        `kde`; the other arguments as for `strip`.
+        """
+        from .strip import sina_layer
+
+        clip = _clip_flag(style)
+        node, _ = sina_layer(self, groups, at=at, width=width, orient=orient,
+                             bandwidth=bandwidth, adjust=adjust, size=size,
+                             seed=seed, color=color, marker=marker, **style)
+        return self.draw(node, clip=clip)
 
 
 def _volcano_triple(given, what: str) -> dict:

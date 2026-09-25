@@ -274,6 +274,35 @@ doc.save('upset.svg', 'upset.pdf')
 *Illustrative gene counts. The two intersections smaller than 5 are
 dropped; the set sizes at the left still count them.*
 
+## 100% stacked bars
+
+`normalize=True` turns each category's series into percentages of its total
+and stacks them, so composition compares across categories whose totals
+differ. The value axis runs from 0 to 100, and `labels=True` writes each
+share as a whole percentage, omitting any that do not fit their segment. The
+totals are no longer visible, so give them in the caption or beside the
+axis. A category whose values are all zero draws no bar.
+
+```python
+import inklet as i
+
+samples = ['S1', 'S2', 'S3', 'S4']
+cells = [[412, 530, 96, 210], [220, 180, 305, 60], [118, 210, 640, 190]]
+p = i.plot_spec(x=samples, y=(0, 100), height=45)
+p.bars(samples, cells, normalize=True, labels=True, width=.7,
+       colors=['#24698c', '#e3a33b', '#8fbfdc'],
+       names=['T cells', 'B cells', 'Myeloid'], stroke='none')
+p.axes(y='Share of cells / %').legend(side='right')
+doc = i.document(width=100)
+doc.add('bars-percent', p)
+doc.save('bars-percent.svg', 'bars-percent.pdf')
+```
+
+![100% stacked bars: cell-type composition of four samples with percentage labels.](assets/guides/plots-bars-percent.png)
+
+*Illustrative cell counts; each bar is scaled to its own total, which
+ranges from 460 to 1,041 cells.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

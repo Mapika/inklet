@@ -212,6 +212,20 @@
     "block": 9
   },
   {
+    "title": "100% stacked bars",
+    "description": "Each category's series as percentages of its total, stacked to 100 with percent labels.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#100-stacked-bars",
+    "image": "assets/guides/plots-bars-percent.png",
+    "methods": [
+      "Panel.bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 10
+  },
+  {
     "title": "Histograms",
     "description": "Ninety-six durations in explicit half-second bins.",
     "category": "Distributions",
@@ -307,6 +321,106 @@
     "version": "Core",
     "requires": "Core only",
     "source": "distributions.md",
+    "block": 7
+  },
+  {
+    "title": "Hexbin and 2D histograms",
+    "description": "Overlapping points counted in hexagons or rectangles and coloured by count, with colour bars.",
+    "category": "Relationships",
+    "page": "relationships/#2d-histograms-and-hexbins",
+    "image": "assets/guides/plots-hexbin.png",
+    "methods": [
+      "Panel.hexbin",
+      "Panel.hist2d"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 1
+  },
+  {
+    "title": "Density-coloured scatter",
+    "description": "Every point coloured by local density, rasterised for 100,000 points, on log axes.",
+    "category": "Relationships",
+    "page": "relationships/#density-coloured-scatter",
+    "image": "assets/guides/plots-density-scatter.png",
+    "methods": [
+      "Panel.density_scatter"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 2
+  },
+  {
+    "title": "2D density contours",
+    "description": "Kernel density contours enclosing chosen shares of the probability, as lines or filled levels.",
+    "category": "Relationships",
+    "page": "relationships/#2d-density-contours",
+    "image": "assets/guides/plots-kde2d.png",
+    "methods": [
+      "Panel.kde2d"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 3
+  },
+  {
+    "title": "Regression and residuals",
+    "description": "Least-squares lines with confidence bands, LOWESS smoothers and residual plots.",
+    "category": "Relationships",
+    "page": "relationships/#regression-and-residuals",
+    "image": "assets/guides/plots-regression.png",
+    "methods": [
+      "Panel.regression",
+      "Panel.residuals"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 4
+  },
+  {
+    "title": "Bland-Altman plots",
+    "description": "Agreement between two methods: bias, limits of agreement and their confidence intervals.",
+    "category": "Relationships",
+    "page": "relationships/#bland-altman-agreement",
+    "image": "assets/guides/plots-bland-altman.png",
+    "methods": [
+      "Panel.bland_altman"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 5
+  },
+  {
+    "title": "Pair plots",
+    "description": "Every pair of variables in one grid with shared axes, groups and distributions on the diagonal.",
+    "category": "Relationships",
+    "page": "relationships/#pair-plots",
+    "image": "assets/guides/plots-pairplot.png",
+    "methods": [
+      "pairplot"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 6
+  },
+  {
+    "title": "Joint plots",
+    "description": "One pair of variables with marginal histograms or densities on the same scales.",
+    "category": "Relationships",
+    "page": "relationships/#joint-plots",
+    "image": "assets/guides/plots-jointplot.png",
+    "methods": [
+      "jointplot"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
     "block": 7
   },
   {
@@ -543,5 +657,77 @@
     "requires": "Core only",
     "source": "distributions.md",
     "block": 10
+  },
+  {
+    "title": "Histogram groups and outlines",
+    "description": "Several groups on shared bins as translucent outlines, step outlines and cumulative fractions.",
+    "category": "Distributions",
+    "page": "distributions/#histogram-outlines-groups-and-cumulative-counts",
+    "image": "assets/guides/plots-hist-groups.png",
+    "methods": [
+      "Panel.hist"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 11
+  },
+  {
+    "title": "Kernel density curves",
+    "description": "Gaussian kernel densities for one or several groups, filled or as lines, with Scott or Silverman bandwidths.",
+    "category": "Distributions",
+    "page": "distributions/#kernel-density-curves",
+    "image": "assets/guides/plots-kde.png",
+    "methods": [
+      "Panel.kde"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 12
+  },
+  {
+    "title": "Letter-value plots",
+    "description": "Boxen plots: nested boxes at the quartiles, eighths and sixteenths for large samples.",
+    "category": "Distributions",
+    "page": "distributions/#letter-value-plots",
+    "image": "assets/guides/plots-boxen.png",
+    "methods": [
+      "Panel.boxen"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 13
+  },
+  {
+    "title": "Strip and sina plots",
+    "description": "Every observation with seeded jitter, alone or over boxes, or spread by the group's density.",
+    "category": "Distributions",
+    "page": "distributions/#strip-and-sina-plots",
+    "image": "assets/guides/plots-strip-sina.png",
+    "methods": [
+      "Panel.strip",
+      "Panel.sina"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 14
+  },
+  {
+    "title": "QQ and PP plots",
+    "description": "Sample quantiles against the normal with a quartile reference line, and probability-probability plots.",
+    "category": "Distributions",
+    "page": "distributions/#quantile-quantile-and-probability-plots",
+    "image": "assets/guides/plots-qq.png",
+    "methods": [
+      "Panel.qq",
+      "Panel.pp"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 15
   }
 ]
