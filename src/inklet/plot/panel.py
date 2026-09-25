@@ -1913,6 +1913,111 @@ class Panel:
                                  threshold=threshold, colors=colors, **style)
         return self.draw(node, clip=clip)
 
+    # -- hierarchies (plot/hierarchy_plots.py) ------------------------------
+
+    def treemap(self, data, *, colors=None, highlight=None,
+                highlight_color: str | None = None,
+                padding: float | str | None = None, header: bool | None = None,
+                labels: bool = True, values=None, sort: bool = True,
+                size: float | str | None = None, **style) -> "Panel":
+        """A squarified treemap: each leaf a rectangle with area proportional
+        to its value, filling the plot area.
+
+        `data` is any input of `inklet.plot.hierarchy`: a nested mapping
+        (`{"L5": {"ET": 40, "IT": 65}, "L6": 80}`), `(name, children)`
+        tuples, or a `(name, parent[, value])` table. Nested groups are
+        drawn as pale plates `padding` mm inside their parent (default about
+        0.6 mm when the tree is more than one level deep) with the group's
+        name in a header strip (`header=`). Siblings are laid out largest
+        first unless `sort=False`.
+
+        Colours follow the branch (child of the root): the theme's
+        categorical palette, `colors=` a list per branch, a mapping of node
+        name to colour (inherited by descendants) or one colour. `highlight=`
+        names or paths get `highlight_color` (a red by default) and every
+        other node a pale fill. Leaves are named in their top-left corner
+        when the name fits (`labels=False` to omit); `values=True` or a
+        format string such as `"{:.0f}"` adds the value on a second line.
+        The panel's scales are not used. The node carries a `treemap` note
+        with each cell's path and area in mm².
+        """
+        from .hierarchy_plots import treemap as _treemap
+
+        clip = _clip_flag(style)
+        node, _ = _treemap(self, data, colors=colors, highlight=highlight,
+                           highlight_color=highlight_color, padding=padding,
+                           header=header, labels=labels, values=values,
+                           sort=sort, size=size, **style)
+        return self.draw(node, clip=clip)
+
+    def icicle(self, data, *, orient: str = "h", root: bool | None = None,
+               gap: float | str | None = None, spacing: float | str | None = None,
+               links: bool | None = None, colors=None, highlight=None,
+               highlight_color: str | None = None, labels="fit",
+               levels: bool = False, counts: bool = False, sort: bool = False,
+               size: float | str | None = None, **style) -> "Panel":
+        """An icicle (partition) chart: one band per level of a hierarchy,
+        each node spanning its share of its parent.
+
+        `data` is any input of `inklet.plot.hierarchy`. With `orient="h"`
+        (default) the levels are columns from left to right and the nodes
+        stack down each column; `"v"` puts the levels in rows from the top.
+        The root is drawn as the first level when it has a name (`root=`
+        overrides).
+
+        `gap=` (mm) separates the levels and, by default, fills the gap with
+        pale fans joining each node to its parent (`links=`); `spacing=` is
+        the space between neighbouring nodes in a level, shrunk where a
+        level has too many nodes to afford it. This is the "clustering
+        levels" figure: with `highlight=` a set of node names or paths, those
+        nodes are drawn in `highlight_color` and the rest pale,
+        `labels="highlight"` names them beyond the last level with leader
+        ticks, `levels=True` numbers the levels from 0 above them and
+        `counts=True` writes the number of nodes per level beneath (the
+        highlighted count above it, in the highlight colour).
+
+        `labels="fit"` (default) writes a name inside every node where it
+        fits; a list of names labels those nodes outside, like
+        `"highlight"`; `False` writes none. Colours are as for `treemap`,
+        blended towards paper one step per level. The node carries an
+        `icicle` note with the node counts and highlighted counts per level
+        and every node's span in mm.
+        """
+        from .hierarchy_plots import icicle as _icicle
+
+        clip = _clip_flag(style)
+        node, _ = _icicle(self, data, orient=orient, root=root, gap=gap,
+                          spacing=spacing, links=links, colors=colors,
+                          highlight=highlight, highlight_color=highlight_color,
+                          labels=labels, levels=levels, counts=counts, sort=sort,
+                          size=size, **style)
+        return self.draw(node, clip=clip)
+
+    def sunburst(self, data, *, inner: float = 0.3, start: float = -90.0,
+                 colors=None, highlight=None, highlight_color: str | None = None,
+                 labels: bool = True, center: str | None = None, sort: bool = False,
+                 size: float | str | None = None, **style) -> "Panel":
+        """A sunburst: an icicle chart bent into rings about the centre of
+        the plot area, the first level innermost.
+
+        `data` is any input of `inklet.plot.hierarchy`. The rings fill the
+        largest circle in the area; `inner` is the radius of the central hole
+        as a fraction of it, where `center=` (default: the root's name)
+        is written. Angles run clockwise from `start` degrees (-90 is twelve
+        o'clock), each node spanning its share of 360. A name is written in
+        its segment only when its whole box fits inside. Colours and
+        `highlight=` are as for `icicle`. The node carries a `sunburst` note
+        with the radii and every node's angle.
+        """
+        from .hierarchy_plots import sunburst as _sunburst
+
+        clip = _clip_flag(style)
+        node, _ = _sunburst(self, data, inner=inner, start=start, colors=colors,
+                            highlight=highlight, highlight_color=highlight_color,
+                            labels=labels, center=center, sort=sort, size=size,
+                            **style)
+        return self.draw(node, clip=clip)
+
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
                 labels: Sequence[str] | None = None, top: int = 10,
                 fold_threshold: float = 1.0, p_threshold: float = 0.05,
