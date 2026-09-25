@@ -602,7 +602,7 @@ A compact numeric/text table with measured, glyph-centered cells.
 
 A plot area of a fixed size, with scales fitted to it.
 
-#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = ()) -> None`
+#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = (), _sizes: 'object | None' = None, _survival: 'list' = <factory>) -> None`
 
 A drawing region plus the scales that map data into it.
 
@@ -661,6 +661,10 @@ A drawing region plus the scales that map data into it.
 * `label_points(points: 'Iterable[Sequence]', labels: 'Sequence[str]', **kwargs) -> "'Panel'"` -- Label many data points at once, clear of the marks and each other.
 * `dendrogram(tree, *, labels: 'Sequence | None' = None, orient: 'str' = 'v', threshold: 'float | None' = None, colors=None, **style) -> "'Panel'"` -- The merge tree of a hierarchical clustering, drawn as elbows.
 * `volcano(fold: 'Sequence[float]', p: 'Sequence[float]', *, labels: 'Sequence[str] | None' = None, top: 'int' = 10, fold_threshold: 'float' = 1.0, p_threshold: 'float' = 0.05, colors=None, names=None, size: 'float | None' = None, thresholds: 'bool' = True, label_options: 'dict | None' = None, **style) -> "'Panel'"` -- A volcano plot: log2 fold change on x against -log10 p on y.
+* `dotplot(sizes: 'Sequence[Sequence[float]]', colors=None, *, x: 'Sequence | None' = None, y: 'Sequence | None' = None, top: 'float | None' = None, diameter: 'float | str | None' = None, ramp=None, scale: 'Scale | None' = None, center: 'float | None' = None, color: 'str | None' = None, **style) -> "'Panel'"` -- A dot plot: a circle per cell, its area one value, its colour another.
+* `size_key(source=None, *, side: 'str' = 'right', corner: 'str | None' = None, values: 'Sequence[float] | None' = None, count: 'int' = 3, format=None, title: 'str | None' = None, orient: 'str | None' = None, pad: 'float | str | None' = None, plate: 'bool' = False, **style) -> "'Panel'"` -- Reference circles with their values: the key to a size encoding.
+* `kaplan_meier(data, *, confidence: 'float' = 0.95, band: 'str | None' = 'log-log', shade: 'bool' = True, censors: 'bool' = True, colors=None, pvalue: 'float | str | None' = None, pvalue_corner: 'str' = 'sw', **style) -> "'Panel'"` -- Kaplan-Meier survival curves, with censor ticks and confidence bands.
+* `at_risk(*, ticks: 'Sequence | None' = None, count: 'int' = 5, title: 'str | None' = 'Number at risk', font_size: 'float | str | None' = None, pad: 'float | str | None' = None, **kwargs) -> "'Panel'"` -- The number-at-risk table under the x axis of a `kaplan_meier` plot.
 
 #### `row(panels: 'Iterable[Panel | Diagram]', gap: 'float | str | None' = None, align: 'str' = 'center') -> 'Diagram'`
 
