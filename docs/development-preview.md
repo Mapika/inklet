@@ -4,27 +4,27 @@
 
 <span id="install-the-40-development-preview"></span>
 
-**4.1.0 is the stable release** on GitHub and PyPI. It includes scientific
+**4.2.0 is the stable release** on GitHub and PyPI. It includes scientific
 figure authoring, compact dense-field PDFs and reproducible interactive workflows
 within the [documented support scope](compatibility.md#api-and-saved-file-policy).
 Experimental imports retain their opt-in status. This page keeps its historical
 URL so links from the development previews continue to work.
 
 ```sh
-python -m pip install "inklet==4.1.0"
+python -m pip install "inklet==4.2.0"
 # Optional rendering and table integrations:
-python -m pip install "inklet[render,pandas,polars]==4.1.0"
+python -m pip install "inklet[render,pandas,polars]==4.2.0"
 ```
 
 Python 3.11 or later and an installed font are required. See
 [installation](installation.md) and the [support matrix](compatibility.md).
-An ordinary upgrade selects stable 4.1.0. Exact pins preserve the package version
+An ordinary upgrade selects stable 4.2.0. Exact pins preserve the package version
 used by an archived recipe.
 
 To reproduce this release from a checkout:
 
 ```sh
-git clone --branch v4.1.0 https://github.com/Mapika/inklet.git
+git clone --branch v4.2.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e ".[render]"
 ```

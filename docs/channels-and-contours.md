@@ -1,8 +1,8 @@
 # Microscopy channels and label contours
 
-Introduced in Inklet 3.1, stable 4.1.0 includes `Channel`, `Composite` and
+Introduced in Inklet 3.1, stable 4.2.0 includes `Channel`, `Composite` and
 `LabelContour` under `inklet.experimental`. Install the [volume extra](calibrated-volumes.md) from
-PyPI with `pip install "inklet[volume,render]==4.1.0"`. These APIs and report
+PyPI with `pip install "inklet[volume,render]==4.2.0"`. These APIs and report
 schemas remain an experimental research preview.
 
 Channels control display color and windowing without changing sampled intensity

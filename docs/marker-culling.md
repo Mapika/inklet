@@ -1,6 +1,6 @@
 # Spatial marker culling
 
-Introduced in **4.0.0.dev3** and included in stable 4.1.0. This page preserves
+Introduced in **4.0.0.dev3** and included in stable 4.2.0. This page preserves
 the recorded engine study and hardware measurements. Start with the
 [native figure viewer](compiled-viewer.md) for current usage.
 

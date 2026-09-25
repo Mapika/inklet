@@ -4,6 +4,9 @@
 
 ## From 4.1.0 to 4.2.0
 
+4.2.0 adds plot types and finishes several layout behaviours. Existing recipes
+run unchanged. Pin `inklet==4.1.0` to keep the previous output.
+
 Output changes:
 
 - `share_plot_margins=True` with an automatic page height shares data heights
@@ -19,6 +22,12 @@ Output changes:
   content, when `polar()` was given no `zero` or `winding`. The other content
   is drawn again under the turned angles. Pass `zero=` and `winding=` to
   `polar()` to keep the pie as drawn.
+- Pie labels outside the rim search nearby spots before moving far out, and
+  get a hairline leader to their slice when they end up away from it. The
+  `pie_labels` note lists them under `leaders`.
+- `radar_grid(values=True)` places ring values in the clearest spoke gap when
+  the panel is built, on a paper halo, and drops values that cannot stay clear
+  of the data. The default stays off.
 - `examples/dense_figure.py` turns on `share_plot_margins`.
 
 ## From 4.0.1 to 4.1.0

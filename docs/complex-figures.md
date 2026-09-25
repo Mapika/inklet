@@ -2,7 +2,7 @@
 
 The three-paper reproduction audit exercised 43 axes, thousands of prediction
 trajectories and 240,000 response-map samples. Its authoring improvements are
-supported in stable 4.1.0; the audit was first assembled in the 4.0.0.dev15
+supported in stable 4.2.0; the audit was first assembled in the 4.0.0.dev15
 development snapshot.
 
 ## Dense fields: choose the representation

@@ -1,7 +1,7 @@
 # Transparency and compositing
 
 This is a historical engine study. The measurements and comparison files retain
-their recorded development revisions; stable 4.1.0 users should follow the
+their recorded development revisions; stable 4.2.0 users should follow the
 current [export and review guide](export-review.md) for ordinary exports.
 
 These engine changes are included in **4.0.0.dev2**. They correct native

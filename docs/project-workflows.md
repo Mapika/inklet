@@ -5,7 +5,7 @@ together as the analysis changes. This tutorial builds a small diagram from a
 file, moves one object, saves and reopens the project, connects its objects to
 plotted measurements, then replaces the measurements without losing the edit.
 
-Introduced in **4.0.0** and available in stable **4.1.0**, under
+Introduced in **4.0.0** and available in stable **4.2.0**, under
 `inklet.experimental.project`; install the [4.0 release](development-preview.md). Run the Python
 blocks below in order in a fresh working directory. The example uses simulated
 data and the core installation. Project schemas remain experimental; see the

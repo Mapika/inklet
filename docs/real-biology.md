@@ -13,10 +13,10 @@ orthogonal sections and quantitative summaries from one fixed spatial crop of
 
 ## Reproduce it
 
-Use the `v4.1.0` release checkout and Blender 4.2 or 4.5 LTS:
+Use the `v4.2.0` release checkout and Blender 4.2 or 4.5 LTS:
 
 ```sh
-git clone --branch v4.1.0 https://github.com/Mapika/inklet.git
+git clone --branch v4.2.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[volume,render]'
 python -m pip install -r examples/biology/requirements.txt

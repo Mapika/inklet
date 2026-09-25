@@ -1,6 +1,6 @@
 # Slab projections and linked regions
 
-Introduced in Inklet 3.1, stable 4.1.0 provides `Slab` and `BoxRegion` under
+Introduced in Inklet 3.1, stable 4.2.0 provides `Slab` and `BoxRegion` under
 `inklet.experimental`. Install `inklet[volume]` from PyPI as
 shown in the [calibrated-volume guide](calibrated-volumes.md). These APIs and
 report schemas remain an experimental research preview.

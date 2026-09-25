@@ -1,6 +1,6 @@
 # Compatibility
 
-Stable Inklet **4.1.0** uses the environments and rendering paths below.
+Stable Inklet **4.2.0** uses the environments and rendering paths below.
 Experimental capabilities are identified separately.
 The matrix distinguishes installed-package checks from full integration tests.
 
@@ -28,7 +28,7 @@ wheel in an isolated environment.
 
 ## API and saved-file policy
 
-**4.0.0** released the supported scope below, frozen during RC1; 4.1.0 adds
+**4.0.0** released the supported scope below, frozen during RC1; 4.1.0 and 4.2.0 add
 plot types within it. The same acceptance, distribution and performance gates
 apply to later releases. Experimental namespaces retain their explicit opt-in status.
 

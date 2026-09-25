@@ -2,8 +2,8 @@
 
 <span id="roadmap-to-inklet-40"></span>
 
-**4.1.0 is the current stable release.** 4.0.0 released the scope frozen
-during RC1; 4.1.0 adds plot types within it. These gates continue to apply to
+**4.2.0 is the current stable release.** 4.0.0 released the scope frozen
+during RC1; 4.1.0 and 4.2.0 add plot types within it. These gates continue to apply to
 later releases; experimental namespaces retain their documented opt-in status.
 
 ## Product scope
@@ -69,7 +69,7 @@ recipe. Mapped image/mesh picking retains its source adapter's geometry limits.
 3. Fix regressions within the supported scope; use a new package version for changed release files.
 4. Run the full release checks on the final commit and publish the exact verified artifacts.
 
-Each release, such as [4.1.0](https://github.com/Mapika/inklet/releases/tag/v4.1.0),
+Each release, such as [4.2.0](https://github.com/Mapika/inklet/releases/tag/v4.2.0),
 links to its exact-commit validation. Distribution checks include source-archive rebuilding,
 isolated wheel installs and matching GitHub/PyPI archive checksums. A passing
 prerelease does not automatically publish or designate a stable release.

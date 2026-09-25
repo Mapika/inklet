@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 4.2.0 — 2026-09-25
+
+4.2.0 adds dot plots with size keys, Kaplan–Meier curves with number-at-risk
+tables, forest plots, embedding scatters, split violins and stacked
+significance brackets, finishes the layout work left by the dense figure, and
+fixes the Blender 4.2 Line Art hang listed as a known issue in 4.1.0. See the
+[migration notes](docs/migration.md#from-410-to-420) for output changes.
+
 - `share_plot_margins=True` shares data heights along rows only, so heights
   set per row are kept; `'all'` keeps the tallest height across the grid.
   `examples/dense_figure.py` now shares margins.

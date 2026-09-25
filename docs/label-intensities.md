@@ -15,11 +15,11 @@ identify masks and table rows. It uses the Allen Institute for Cell Science
 
 ## Reproduce it
 
-Use the `v4.1.0` release checkout with the volume/render extras. These APIs
+Use the `v4.2.0` release checkout with the volume/render extras. These APIs
 remain experimental. Blender is not required.
 
 ```bash
-git clone --branch v4.1.0 https://github.com/Mapika/inklet.git
+git clone --branch v4.2.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[volume,render]'
 python examples/label_intensities.py

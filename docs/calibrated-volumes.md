@@ -3,9 +3,9 @@
 The experimental `Volume` API keeps voxel spacing, coordinate origin and source
 identity attached to microscopy and segmentation arrays. Cropping, slices,
 scale bars, measured volumes and 3D surfaces use the same physical coordinates.
-It was introduced in Inklet 3.1 and is available in stable 4.1.0 as an opt-in
+It was introduced in Inklet 3.1 and is available in stable 4.2.0 as an opt-in
 research API. Signatures and report schemas may change. Install it with
-`pip install "inklet[volume,render]==4.1.0"`.
+`pip install "inklet[volume,render]==4.2.0"`.
 
 ```sh
 python -m pip install -e '.[volume,render]'

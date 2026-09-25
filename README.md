@@ -31,7 +31,7 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.1.0 is stable**, with compact dense-field PDF exports,
+**4.2.0 is stable**, with compact dense-field PDF exports,
 reusable figure projects and enforced acceptance and performance checks.
 
 ```sh

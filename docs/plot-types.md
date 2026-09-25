@@ -19,7 +19,7 @@ as [single-series bars](bars-and-areas.md#categorical-bars),
 [custom glyphs](lines-and-points.md#custom-markers) and
 [a line with error magnitudes](uncertainty.md#line-with-errors).
 
-Added since 4.1.0: [dot plots](matrices.md#dot-plots) with a size key,
+Added in 4.2.0: [dot plots](matrices.md#dot-plots) with a size key,
 [survival curves](distributions.md#survival-curves) with a number-at-risk
 table, [forest plots](uncertainty.md#forest-plots),
 [embedding scatters](lines-and-points.md#embedding-scatters),
