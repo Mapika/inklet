@@ -1,10 +1,10 @@
 # Linked category panels
 
-Introduced in **4.0.0.dev1** and available in stable **4.2.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
 
 Split a line, bar or scatter view into ordered category panels while keeping
 selection linked by row ID. `FacetView` was introduced in the 4.0.0.dev1 preview
-and is available in stable 4.2.0 under `inklet.experimental.browser`.
+and is available in stable 4.3.0 under `inklet.experimental.browser`.
 
 ![Six linked panels of simulated monthly revenue and profit for North, South and West](assets/v4/faceted-operations.png)
 

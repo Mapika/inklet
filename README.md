@@ -31,8 +31,10 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.2.0 is stable**, with compact dense-field PDF exports,
-reusable figure projects and enforced acceptance and performance checks.
+**4.3.0 is stable**. Microscopy volumes, keyed selections, figure projects and
+the layout editor now live in stable `inklet.volume`, `inklet.selection`,
+`inklet.project` and `inklet.editor`; the old `inklet.experimental` imports
+still work.
 
 ```sh
 python -m pip install --upgrade inklet

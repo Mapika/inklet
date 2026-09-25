@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.3.0 — 2026-09-25
 
 4.3 moves microscopy volumes, keyed selections, figure projects and the layout
 editor out of `inklet.experimental` into stable packages. Nothing is removed.

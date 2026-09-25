@@ -1,13 +1,13 @@
 # Calibrated image measurements
 
-Introduced in **4.0.0.dev1** and available in stable **4.2.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
 
 Link a calibrated intensity image, a label map, regional intensity ranges and an
 area comparison. Select an irregular region, save and reopen its state, replace
 the image or labels, and recompile at two physical widths.
 
 These are opt-in experimental APIs under `inklet.experimental`, available in
-stable 4.2.0. They extend the bounded scientific workflow in Phase C of the
+stable 4.3.0. They extend the bounded scientific workflow in Phase C of the
 [4.0 roadmap](roadmap.md).
 
 ![Calibrated simulated intensity image and label map above region measurements, with a ring-shaped region selected](assets/v4/scientific-report.png)
