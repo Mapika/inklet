@@ -8,7 +8,7 @@ components. Each instance keeps its own author choices and shares explicit
 live data dependencies.
 
 This tutorial creates two report instances, revises their shared data and
-exports one at a second width. It uses the published **4.3.0 release**
+exports one at a second width. It uses the published **4.4.0 release**
 and the core installation. Run the Python blocks in order. Start with
 [plot recipes](plot-recipes.md) for marks inside one plot, or
 [panel layout](layout.md) for document rows and columns.

@@ -1,10 +1,12 @@
 # Changelog
 
-## Unreleased
+## 4.4.0 — 2026-09-25
 
-4.4 is the deprecation release before 5.0. Nothing is removed. Old spellings
-and paths keep working and warn with `inklet._compat.InkletDeprecationWarning`,
-a `DeprecationWarning` subclass that names the replacement. See the
+4.4 is the deprecation release before 5.0. It adds about 60 plot types, 98
+curated palettes with a new default `inklet` palette, and a label placement
+engine. Nothing is removed. Old spellings and paths keep working and warn with
+`inklet._compat.InkletDeprecationWarning`, a `DeprecationWarning` subclass that
+names the replacement. See the
 [migration notes](docs/migration.md#from-43-to-44).
 
 ### Deprecated
@@ -28,28 +30,13 @@ a `DeprecationWarning` subclass that names the replacement. See the
     ridgeline, raincloud, dendrogram, kaplan_meier and embedding methods, and
     on `PolarPanel.pie` and `breakout`.
   - `Panel.dotplot(sizes=, colors=)` keywords become `size=` and `color=`.
+    The new keywords sit beside the positional slots, and a string `color=`
+    still paints every dot.
   - `centre=` becomes `center=` on `embedding`, `text_on_arc`, `baseline_arc`
     and `arc_cubics`, and `centres=` becomes `centers=` on `uniform_pitch`.
   - Renamed functions and names: `cluster_centers`, `CENTER_METHODS`,
     `matrix_centers`, `default_coloring`, `average_color`, `PolarPanel.center`,
     `inklet.assets.Harmonize`, `as_harmonize` and `harmonize`.
-
-### Added
-
-- `name=` on multi-series marks accepts a single string for one series.
-- The plots new in 4.4 use `color=`, `name=` and `size=` from the start and
-  have no plural aliases: `color=` on `treemap`, `icicle`, `sunburst`,
-  `chord`, `ma` and `inklet.manhattan`; `name=` on `waterfall`, `barplot`,
-  `diverging_bars`, `likert`, `mosaic`, `waffle`, `streamgraph`, `ma`,
-  `label_lines`, `chord`, `correlogram` and `chord_layout`. `network` and
-  `arc_diagram` take node values as `size=`, fills as `color=` (one colour
-  or a mapping), edge colours as `edge_color=` (one colour, a mapping or a
-  list) and the label font size as `label_size=`. `slope(name=False)` writes
-  the values without the series names. `inklet.clustermap` takes
-  `row_color=` and `col_color=` annotation strips, and `ManhattanLayout`
-  has `centers`.
-- `Panel.dotplot(size=, color=)` keywords beside the positional slots. A string
-  `color=` still paints every dot.
 - `tests/test_deprecations.py` checks every alias: same result, exactly one
   warning, and no warning from the new spelling. The test suite turns
   `InkletDeprecationWarning` into an error.
@@ -66,15 +53,40 @@ a `DeprecationWarning` subclass that names the replacement. See the
   `diverging_bars`, `gantt`, `waterfall`) skip a palette's black, grey and
   pale yellow, and `waterfall` takes the palette's green for increases and
   its red for decreases, so they read the same under any palette.
+- `Panel.label_points` (and so `volcano(labels=...)` and the embedding
+  scatters) uses the new joint placement search, so label positions differ
+  from 4.3.0. There is no option to restore the 4.3 placement; see
+  [Label placement](#added-label-placement) and the
+  [migration notes](docs/migration.md#label-placement).
 - `Theme.text_on` walks the other of ink and paper when the nearer one is
   already at the end of its lightness range and still falls short. White on
   the `inklet` green is 4.496:1; near-black clears 4.5:1. Labels on filled
   bars, slices, treemap tiles and network nodes use the same rule.
-- Roadmap: 5.0 is about dense journal figures (a placement engine, a broad plot
-  catalogue and palettes) and removes the 4.x deprecations. Animation and
-  presentation authoring move to the 5.x direction.
+- `name=` on multi-series marks accepts a single string for one series.
+- Palettes:
+  - The `qualitative` kind is now called `categorical`. `qualitative` is
+    still accepted as an alias.
+  - `palette("magma")` now carries 52 dense stops instead of 9. The default
+    matrix ramp keeps its previous nine-stop magma literally, so default
+    output does not change.
+  - `palette("viridis")` used to raise `KeyError`; it now returns the map.
+  - `Preset.customize(palette="inklet-muted")` now accepts a name instead of
+    raising `TypeError`.
 
-### Added: statistical plots
+### Added: plots
+
+The plots new in 4.4 use `color=`, `name=` and `size=` from the start and have
+no plural aliases: `color=` on `treemap`, `icicle`, `sunburst`, `chord`, `ma`
+and `inklet.manhattan`; `name=` on `waterfall`, `barplot`, `diverging_bars`,
+`likert`, `mosaic`, `waffle`, `streamgraph`, `ma`, `label_lines`, `chord`,
+`correlogram` and `chord_layout`. `network` and `arc_diagram` take node values
+as `size=`, fills as `color=` (one colour or a mapping), edge colours as
+`edge_color=` (one colour, a mapping or a list) and the label font size as
+`label_size=`. `slope(name=False)` writes the values without the series names.
+`inklet.clustermap` takes `row_color=` and `col_color=` annotation strips, and
+`ManhattanLayout` has `centers`.
+
+#### Statistical
 
 - `Panel.hist(histtype=, cumulative=)`: step, outline and filled-step
   histograms, a mapping of groups sharing one set of edges, `stat="density"`
@@ -102,15 +114,67 @@ a `DeprecationWarning` subclass that names the replacement. See the
   `mass_levels`, `histogram2d`, `point_density`, `linear_fit`, `lowess`,
   `qq_points`, `pp_points`, `bland_altman`, `letter_values`, `cumulate` and
   `percent_of_totals`. Every new plot carries a diagnostics note.
-- A new guide, "Relationships and agreement", new sections in
-  "Distributions" and "Bars and areas", gallery entries, and
-  `examples/stat_plot_types.py`.
 
-### Colour palettes
+#### Categorical, composition, comparison and time
+
+Each plot has its own module under `inklet.plot`, a `Panel` method,
+Nature-style defaults and a node note for diagnostics.
+
+- `Panel.waterfall`: signed changes floating from a running total, with
+  totals, dashed connectors and `+45` / `−38` labels (`waterfall_steps`).
+- `Panel.barplot`: bars of the mean or median, error bars (`sem`, `sd`,
+  `ci95`, `iqr` or a function) and every observation swarmed inside its bar,
+  grouped when given several series (`summary_stats`).
+- `Panel.diverging_bars` and `Panel.pyramid`: two quantities per category
+  back to back, stacked outward, with dashed reference lines and side titles;
+  `inklet.plot.unsigned` formats the axis as magnitudes.
+- `Panel.likert`: diverging stacked bars centred on the neutral response
+  (`likert_spans`, `likert_colors`).
+- `Panel.mosaic` (Marimekko, `mosaic_layout`) and `Panel.waffle`
+  (largest-remainder `waffle_cells`).
+- `Panel.streamgraph`: wiggle, silhouette, zero and expand offsets with
+  inside-out ordering (`stream_layers`).
+- `Panel.slope` and `Panel.bump`: end labels spread so they never overlap,
+  `highlight=` to grey the other series, and rank tables (`ranks`).
+- `Panel.stem`: stems from a baseline for sampled signals.
+- `Panel.parallel`: parallel coordinates with an axis per variable
+  (`parallel_ranges`).
+- `Panel.bullet`: a measure, a target and grey qualitative ranges.
+- `Panel.gantt` and `Panel.timeline`: tasks and milestones on a date axis,
+  and events staggered so their labels stay apart.
+- `Panel.calendar`: a calendar heatmap with a square per day, explained by
+  `colorbar()` (`calendar_weeks`).
+
+#### Hierarchies, networks and genomics
+
+- Hierarchies: `Panel.treemap` (squarified, with group plates),
+  `Panel.icicle` (clustering levels with fans, a highlighted lineage, level
+  numbers and counts) and `Panel.sunburst`. `inklet.plot.hierarchy` reads
+  nested mappings, `(name, children)` tuples or `(name, parent, value)`
+  tables; `partition_layout`, `treemap_layout` and `squarify` return the
+  geometry.
+- Networks: `Panel.network` (circular, force, layered or tree layouts; node
+  area by value, edge width by weight, groups, edge categories, arrows),
+  `Panel.chord` (undirected or directed ribbons, `chord_layout`),
+  `Panel.arc_diagram`, and `Panel.width_key` to explain edge widths
+  (`inklet.plot.width_scale`).
+- Clustered matrices: `inklet.plot.linkage` (single, complete, average,
+  weighted and Ward; SciPy's output format, no SciPy needed), `cut`,
+  `correlation` and `distance_matrix`; `Panel.clusters` boxes clusters on a
+  matrix diagonal; `Panel.correlogram` draws a correlation triangle; and
+  `inklet.clustermap` builds a clustered heatmap with dendrograms,
+  annotation strips and a colorbar.
+- Genomics: `inklet.manhattan` (natural chromosome order, significance lines,
+  lead-hit labels, `manhattan_layout`) and `Panel.ma`.
+- `Panel.ternary` plots three-part compositions in a triangle
+  (`inklet.plot.ternary_frame`, `TernaryFrame`).
+- `Panel.inset(..., connector={...})` styles the zoom connector lines
+  separately from the inset window.
+
+### Added: palettes
 
 - A curated palette collection now ships with Inklet: 98 palettes, each
-  recording its source and licence. See the new
-  [Colour palettes](docs/palettes.md) page. It includes:
+  recording its source and licence. It includes:
   - viridis, cividis, inferno, plasma and magma;
   - 36 of Crameri's Scientific colour maps (sequential, diverging and
     cyclic);
@@ -152,80 +216,9 @@ a `DeprecationWarning` subclass that names the replacement. See the
   - `matrix(ramp="viridis")`, `scatter(ramp="batlow")` and dot plots take a
     palette name;
   - `Theme(palette=...)` and the new `Theme.with_palette()` take a
-    categorical palette name or a `Palette`;
-  - `Preset.customize(palette="inklet-muted")` now accepts a name instead of
-    raising `TypeError`.
-- Behaviour notes:
-  - The `qualitative` kind is now called `categorical`. `qualitative` is
-    still accepted as an alias.
-  - `palette("magma")` now carries 52 dense stops instead of 9. The default
-    matrix ramp keeps its previous nine-stop magma literally, so default
-    output does not change.
-  - `palette("viridis")` used to raise `KeyError`; it now returns the map.
+    categorical palette name or a `Palette`.
 
-### Added
-
-- Hierarchies: `Panel.treemap` (squarified, with group plates),
-  `Panel.icicle` (clustering levels with fans, a highlighted lineage, level
-  numbers and counts) and `Panel.sunburst`. `inklet.plot.hierarchy` reads
-  nested mappings, `(name, children)` tuples or `(name, parent, value)`
-  tables; `partition_layout`, `treemap_layout` and `squarify` return the
-  geometry. See [Networks and hierarchies](docs/networks-and-hierarchies.md).
-- Networks: `Panel.network` (circular, force, layered or tree layouts; node
-  area by value, edge width by weight, groups, edge categories, arrows),
-  `Panel.chord` (undirected or directed ribbons, `chord_layout`),
-  `Panel.arc_diagram`, and `Panel.width_key` to explain edge widths
-  (`inklet.plot.width_scale`).
-- Clustered matrices: `inklet.plot.linkage` (single, complete, average,
-  weighted and Ward; SciPy's output format, no SciPy needed), `cut`,
-  `correlation` and `distance_matrix`; `Panel.clusters` boxes clusters on a
-  matrix diagonal; `Panel.correlogram` draws a correlation triangle; and
-  `inklet.clustermap` builds a clustered heatmap with dendrograms,
-  annotation strips and a colorbar.
-- `Panel.inset(..., connector={...})` styles the zoom connector lines
-  separately from the inset window.
-- Genomics: `inklet.manhattan` (natural chromosome order, significance lines,
-  lead-hit labels, `manhattan_layout`) and `Panel.ma`. See
-  [Genomics and ternary plots](docs/genomics-plots.md).
-- `Panel.ternary` plots three-part compositions in a triangle
-  (`inklet.plot.ternary_frame`, `TernaryFrame`).
-- `examples/network_hierarchy_plot_types.py` shows every plot above in one
-  180 mm figure.
-
-### Categorical, composition, comparison and time plots
-
-Each plot has its own module under `inklet.plot`, a `Panel` method,
-Nature-style defaults and a node note for diagnostics. Guides are in
-[bars and areas](docs/bars-and-areas.md), [lines and points](docs/lines-and-points.md)
-and the new [timelines and calendars](docs/timelines-and-calendars.md) page.
-
-- `Panel.waterfall`: signed changes floating from a running total, with
-  totals, dashed connectors and `+45` / `−38` labels (`waterfall_steps`).
-- `Panel.barplot`: bars of the mean or median, error bars (`sem`, `sd`,
-  `ci95`, `iqr` or a function) and every observation swarmed inside its bar,
-  grouped when given several series (`summary_stats`).
-- `Panel.diverging_bars` and `Panel.pyramid`: two quantities per category
-  back to back, stacked outward, with dashed reference lines and side titles;
-  `inklet.plot.unsigned` formats the axis as magnitudes.
-- `Panel.likert`: diverging stacked bars centred on the neutral response
-  (`likert_spans`, `likert_colors`).
-- `Panel.mosaic` (Marimekko, `mosaic_layout`) and `Panel.waffle`
-  (largest-remainder `waffle_cells`).
-- `Panel.streamgraph`: wiggle, silhouette, zero and expand offsets with
-  inside-out ordering (`stream_layers`).
-- `Panel.slope` and `Panel.bump`: end labels spread so they never overlap,
-  `highlight=` to grey the other series, and rank tables (`ranks`).
-- `Panel.stem`: stems from a baseline for sampled signals.
-- `Panel.parallel`: parallel coordinates with an axis per variable
-  (`parallel_ranges`).
-- `Panel.bullet`: a measure, a target and grey qualitative ranges.
-- `Panel.gantt` and `Panel.timeline`: tasks and milestones on a date axis,
-  and events staggered so their labels stay apart.
-- `Panel.calendar`: a calendar heatmap with a square per day, explained by
-  `colorbar()` (`calendar_weeks`).
-- `examples/categorical_plot_types.py` draws all of them on one page.
-
-### Label placement
+### Added: label placement
 
 - `Panel.label_points` (and so `volcano(labels=...)` and the embedding
   scatters) now places labels with a joint, deterministic search
@@ -259,8 +252,29 @@ and the new [timelines and calendars](docs/timelines-and-calendars.md) page.
   as unresolved, by name.
 - New `tools/benchmark_labels.py`: a dense label-placement benchmark that
   reports overlaps, labels on marks, leader crossings, displacement, lint and
-  runtime. New guide: [Label placement and direct
-  labelling](docs/label-placement.md).
+  runtime.
+
+### Docs
+
+- New guides: "Relationships and agreement",
+  [Timelines and calendars](docs/timelines-and-calendars.md),
+  [Networks and hierarchies](docs/networks-and-hierarchies.md),
+  [Genomics and ternary plots](docs/genomics-plots.md),
+  [Colour palettes](docs/palettes.md) and
+  [Label placement and direct labelling](docs/label-placement.md).
+- New sections in "Distributions", [bars and areas](docs/bars-and-areas.md)
+  and [lines and points](docs/lines-and-points.md), and gallery entries for
+  the new plots.
+- New examples: `examples/stat_plot_types.py`,
+  `examples/categorical_plot_types.py` (all categorical, composition and time
+  plots on one page) and `examples/network_hierarchy_plot_types.py` (every
+  hierarchy, network and genomics plot in one 180 mm figure).
+- [Migration notes](docs/migration.md#from-43-to-44) for every deprecation and
+  the palette and label placement changes.
+- Roadmap: 5.0 is about dense journal figures (a placement engine, a broad plot
+  catalogue and palettes) and removes the 4.x deprecations. Animation and
+  presentation authoring move to the 5.x direction.
+
 
 ## 4.3.0 — 2026-09-25
 

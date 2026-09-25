@@ -36,7 +36,7 @@ a compiled export preserves.
 [Troubleshooting](troubleshooting.md) · [Compatibility](compatibility.md) ·
 [Migration](migration.md)
 
-The default install is stable **4.3.0**. See [what is included](development-preview.md)
+The default install is stable **4.4.0**. See [what is included](development-preview.md)
 and the [migration guide](migration.md#from-31-to-40) for existing recipes.
 Release process, engine studies and earlier guides are in the
 [development notes](development.md).

@@ -10,6 +10,11 @@ recipe still runs. Each old spelling now raises
 The warning points at your line and names the replacement. Everything in the
 table below goes in 5.0.
 
+Two changes alter figure output without a warning: the
+[default series colours](#default-series-colours) of the `nature` and
+`notebook` themes, and the [label positions](#label-placement) chosen by
+`Panel.label_points`.
+
 To find every deprecated spelling in a project, run it or its tests with the
 warning turned into an error:
 
@@ -110,6 +115,33 @@ notebook_43 = NOTEBOOK.with_palette("tol-muted")
 i.use_theme(nature_43)                          # new panels use it
 fig = i.figure(width=89, theme=nature_43)       # and so does the figure
 ```
+
+### Label placement
+
+`Panel.label_points`, and the labels drawn by `volcano(labels=...)` and the
+embedding scatters, now use the joint placement engine
+(`inklet.layout.label_search`). The call and its keywords are unchanged, but
+the labels land in different places than in 4.3:
+
+- labels are chosen together (greedy start, best response, seeded annealing
+  and a pair repair pass) rather than one after another, so a label may sit on
+  a different side of its point;
+- bands and filled areas are measured by their outline rather than their
+  bounding box, so labels may now sit in the empty part of a band's box, and
+  legends count as obstacles;
+- a label with no room nearby moves further out on a hairline leader instead
+  of staying in an overlap, and leaders no longer cross each other or run
+  through labels;
+- fewer labels end up in the `point_labels` note's `unresolved` list, and the
+  note gains `covering_marks`. Dense label sets place much faster.
+
+Placement is still deterministic: the same figure gives the same positions on
+every run. There is no option to restore the 4.3 placement. To keep a 4.3
+layout exactly, pin `inklet==4.3.0` for that recipe, or place the few labels
+that matter yourself with `annotate`. `place_labels` and `label_plan` keep
+their `"greedy"` default; the joint search there is opt-in with
+`method="joint"`. The new `LABEL_UNPLACED` lint warning names any label a
+placer could not resolve.
 
 ### Experimental classes and saved files
 

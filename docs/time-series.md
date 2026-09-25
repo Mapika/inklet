@@ -1,10 +1,10 @@
 # Linked dates and time series
 
-Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.4.0**. See the [4.0 release guide](development-preview.md).
 
 Use calendar dates or offset-aware timestamps in linked lines, bars, scatter
 and facets. `TimeAxis` was introduced in the 4.0.0.dev1 preview under
-`inklet.experimental.browser` and is available in stable 4.3.0.
+`inklet.experimental.browser` and is available in stable 4.4.0.
 
 ![Daily batch counts on calendar dates linked to processing duration on a UTC time axis](assets/v4/time-series.png)
 

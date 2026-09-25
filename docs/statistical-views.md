@@ -1,6 +1,6 @@
 # Linked distributions and intervals
 
-Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.4.0**. See the [4.0 release guide](development-preview.md).
 
 Connect empirical distributions to individually selectable observations and
 supplied uncertainty intervals. `ECDFView` and `IntervalView` are development

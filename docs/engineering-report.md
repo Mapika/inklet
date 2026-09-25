@@ -1,6 +1,6 @@
 # Linked engineering report
 
-Introduced in **4.0.0.dev1** and available in stable **4.3.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.4.0**. See the [4.0 release guide](development-preview.md).
 
 Connect native Inklet drawings to table rows: a component selection reaches a
 dimensioned plan, an authored section, a system diagram and supplied response
@@ -8,7 +8,7 @@ curves. Save the selected state, replace geometry, retain label offsets and
 export the report at two physical widths.
 
 These are opt-in experimental APIs under `inklet.experimental`, available in
-stable 4.3.0. **`inklet.experimental.engineering` (`BoxComponent`,
+stable 4.4.0. **`inklet.experimental.engineering` (`BoxComponent`,
 `BoxAssembly`) is deprecated in 4.4 and will be removed in 5.0**, with no
 replacement; importing it warns. Pin `inklet<5` for recipes that use it. This starts the mixed-content engineering work in Phase C of the
 [4.0 roadmap](roadmap.md). The first numbered preview is 4.0.0.dev1.

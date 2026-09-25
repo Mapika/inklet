@@ -1,6 +1,6 @@
 # Compatibility
 
-Stable Inklet **4.3.0** uses the environments and rendering paths below.
+Stable Inklet **4.4.0** uses the environments and rendering paths below.
 Experimental capabilities are identified separately.
 The matrix distinguishes installed-package checks from full integration tests.
 
