@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Add `inklet.forest` and `inklet.plot.forest_layout` for forest plots: a
+  row per study with a square sized by weight, summary diamonds, group
+  headers, a no-effect line at 1 (log) or 0, arrowheads for intervals past
+  the limits and aligned text columns such as `'ci'` and `'n'`.
+- Add `Panel.embedding` for UMAP or t-SNE scatters: points coloured by
+  cluster in one marker batch, names at robust centres placed clear of each
+  other, and optional corner axis arrows. Add
+  `inklet.plot.cluster_centres`.
+- Add `Panel.split_violin`: two conditions per category as the halves of
+  one violin, with median and optional quartile lines.
+- Add `Panel.brackets`, which stacks significance brackets for many pairs,
+  shortest span lowest, and `inklet.plot.format_p` for stars or P values.
+  No test is run.
+- Add guide sections for the four, catalog entries and
+  `examples/study_plot_types.py`.
+
 ## 4.1.0 — 2026-09-25
 
 4.1.0 adds thirteen plot and annotation types, tightens default presentation toward journal

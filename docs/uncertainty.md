@@ -123,6 +123,53 @@ bands do not claim confidence intervals.*
 The final line-only pass keeps both trajectories visible above the overlapping
 bands. Reusing a series name keeps one combined entry in the legend.
 
+## Forest plots
+
+`i.forest` draws one row per study or subgroup: a square at the point
+estimate on a line across its confidence interval, a diamond for a summary
+row and a bold label for a group header. Rows are listed top to bottom as
+mappings with `label`, `estimate`, `low`, `high` and optionally `weight`,
+`summary=True` or `header=True`; a bare string is a header, and a tuple
+`(label, estimate, low, high)` is a study. Rows after a header are indented
+until the next summary. With weights, the square areas follow the weights.
+
+`log=True` puts x on a log axis, for odds or hazard ratios, and draws the
+line of no effect at 1; on a linear axis it is at 0. `limits=` fixes the x
+range, and an interval that runs past it ends in an arrowhead at the limit.
+`left=` and `right=` list the text columns on each side: `'label'`, `'ci'`
+(the estimate and interval as text, with `digits` decimals), `'estimate'`,
+`'weight'`, any other key of the row mappings, or a `(header, key or
+function)` pair. Numbers are right-aligned. `measure` names the estimate in
+the column headers. `inklet.plot.forest_layout` returns the parsed rows,
+limits and clipped interval ends without drawing.
+
+```python
+import inklet as i
+
+rows = [
+    'Adults',
+    {'label': 'Ahmed 2019', 'estimate': .72, 'low': .55, 'high': .94, 'weight': 18.2, 'n': 812},
+    {'label': 'Berg 2020', 'estimate': .91, 'low': .62, 'high': 1.33, 'weight': 9.4, 'n': 355},
+    {'label': 'Chen 2021', 'estimate': .64, 'low': .38, 'high': 1.08, 'weight': 6.1, 'n': 210},
+    {'label': 'Subtotal', 'estimate': .76, 'low': .63, 'high': .92, 'summary': True},
+    'Children',
+    {'label': 'Diaz 2018', 'estimate': 1.12, 'low': .70, 'high': 1.80, 'weight': 6.3, 'n': 240},
+    {'label': 'Evans 2022', 'estimate': .58, 'low': .12, 'high': 6.4, 'weight': 1.0, 'n': 31},
+    {'label': 'Subtotal', 'estimate': 1.02, 'low': .66, 'high': 1.58, 'summary': True},
+    {'label': 'Overall', 'estimate': .81, 'low': .69, 'high': .95, 'summary': True},
+]
+plot = i.forest(rows, log=True, limits=(.2, 5), measure='OR', right=['ci', 'n'],
+                label='Odds ratio', width=34)
+doc = i.document(width=120)
+doc.add('forest', plot)
+doc.save('forest.svg', 'forest.pdf')
+```
+
+![Forest plots: odds ratios for two subgroups with subtotals and an overall summary.](assets/guides/plots-forest.png)
+
+*Illustrative numbers. The Evans 2022 interval runs past both axis limits
+and ends in arrowheads; its square is the smallest because its weight is.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

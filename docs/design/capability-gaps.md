@@ -44,6 +44,10 @@ These were checked and are not gaps:
 | 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Done: `Panel.dendrogram` |
 | 11 | UpSet plots | Matrix of dots plus bars, by hand | Done: `inklet.upset` |
 | 12 | Volcano plot helper | `scatter`, `hline`, `vline` and now `label_points` | Done: `Panel.volcano` |
+| 13 | Forest plots with text columns | `errorbars` plus `Panel.text` per row and column | Done: `inklet.forest` |
+| 14 | Embedding scatter named by cluster | `scatter` per cluster and hand-placed names | Done: `Panel.embedding` |
+| 15 | Split violins for two conditions | Two `violin` calls with hand-clipped halves | Done: `Panel.split_violin` |
+| 16 | Many significance brackets, stacked | `bracket` per pair with hand-set heights | Done: `Panel.brackets`, `inklet.plot.format_p` |
 
 ## Implemented behaviour
 
@@ -180,6 +184,29 @@ label plates and the arrowheads, and about the label offset from other
 shafts. The smallest step wins, and ties go to the point nearest the middle
 of the line.
 
+**Forest plots.** `forest` builds one panel with a row per study; the text
+columns are drawn outside the plot area on the same row positions, so they
+line up with the intervals. Square areas are proportional to the weights,
+between 0.7 and 2.4 mm a side. An interval end beyond `limits` stops at the
+limit with an arrowhead and is listed under `clipped` in the `forest`
+note. It returns a `Diagram`, like `upset`.
+
+**Embedding scatters.** A cluster's name sits at the member point nearest
+the coordinate-wise median (distances scaled by the median absolute
+deviation), so it stays on the data for curved clusters. A name that would
+overlap one already placed moves to the nearest free candidate position.
+The names do not avoid the points of other clusters.
+
+**Split violins.** Each half is the `violin` density of its group; with
+`scale="shared"` the wider peak of the two halves sets the width, so the
+halves compare as densities. A half with fewer than two values is skipped
+and listed under `empty` in the note.
+
+**Stacked brackets.** Comparisons are drawn shortest page span first. Each
+bracket clears the data between its ends by `gap("xs")` and earlier
+brackets by that plus the tick length, so ticks at a shared end do not touch
+the bracket below. `format_p` uses strict bounds: p = 0.001 is `**`.
+
 ## Deferred work
 
 - Leaders for pie labels placed outside the rim.
@@ -188,3 +215,4 @@ of the line.
   most polygons; `radar_grid(values=True)` draws them, and they are off by
   default.
 - `label_points` avoids only what is drawn before it is called.
+- Per-cluster outlines (hulls or density contours) for `Panel.embedding`.

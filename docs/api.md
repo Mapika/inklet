@@ -661,6 +661,9 @@ A drawing region plus the scales that map data into it.
 * `label_points(points: 'Iterable[Sequence]', labels: 'Sequence[str]', **kwargs) -> "'Panel'"` -- Label many data points at once, clear of the marks and each other.
 * `dendrogram(tree, *, labels: 'Sequence | None' = None, orient: 'str' = 'v', threshold: 'float | None' = None, colors=None, **style) -> "'Panel'"` -- The merge tree of a hierarchical clustering, drawn as elbows.
 * `volcano(fold: 'Sequence[float]', p: 'Sequence[float]', *, labels: 'Sequence[str] | None' = None, top: 'int' = 10, fold_threshold: 'float' = 1.0, p_threshold: 'float' = 0.05, colors=None, names=None, size: 'float | None' = None, thresholds: 'bool' = True, label_options: 'dict | None' = None, **style) -> "'Panel'"` -- A volcano plot: log2 fold change on x against -log10 p on y.
+* `split_violin(first, second, *, at=None, orient: 'str' = 'v', width: 'float' = 0.8, bandwidth: 'float | None' = None, samples: 'int' = 64, cut: 'float' = 2.0, scale: 'str' = 'shared', median: 'bool' = True, quartiles: 'bool' = False, colors=None, names: 'Sequence[str] | None' = None, **style) -> "'Panel'"` -- Two conditions per category as the two halves of one violin.
+* `embedding(points: 'Iterable[Sequence]', clusters: 'Sequence', *, colors=None, size=None, labels: 'bool' = True, centre: 'str' = 'median', label_size: 'float | str | None' = None, arrows=None, shuffle: 'bool' = True, seed: 'int' = 0, raster: 'bool' = False, **style) -> "'Panel'"` -- A UMAP or t-SNE style scatter, coloured and named by cluster.
+* `brackets(comparisons: 'Sequence', *, format='stars', hide_ns: 'bool' = False, stars=None, ns: 'str' = 'ns', **kwargs) -> "'Panel'"` -- Significance brackets for many pairs of groups, stacked clear of each other.
 
 #### `row(panels: 'Iterable[Panel | Diagram]', gap: 'float | str | None' = None, align: 'str' = 'center') -> 'Diagram'`
 
@@ -768,6 +771,10 @@ Bin edges and the height of each bin: `(edges, heights)`.
 #### `upset(data, *, sets: 'Sequence[str] | None' = None, sort: 'str' = 'size', sort_sets: 'bool' = True, min_size: 'float' = 1, max_intersections: 'int | None' = None, empty: 'bool' = False, set_sizes: 'bool' = True, width: 'float | str | None' = None, height: 'float | str' = 26, matrix_height: 'float | str | None' = None, set_width: 'float | str' = 16, color: 'str | None' = None, labels=None, stripes: 'bool' = True, bar_label: 'str | None' = 'intersection size', set_label: 'str | None' = 'set size', gap: 'float | str | None' = None, count: 'int' = 4) -> 'Diagram'`
 
 An UpSet plot: intersection sizes as bars over a membership matrix.
+
+#### `forest(rows: 'Sequence', *, log: 'bool' = False, limits: 'tuple[float, float] | None' = None, null: 'float | None' = None, left: 'Sequence' = ('label',), right: 'Sequence' = ('ci',), headers: 'bool' = True, measure: 'str' = 'Estimate', digits: 'int' = 2, label: 'str | None' = None, ticks: 'Sequence[float] | None' = None, width: 'float | str' = 36, row_height: 'float | str | None' = None, color: 'str | None' = None, summary_color: 'str | None' = None, size: 'float | str | None' = None, summary_line: 'bool' = False, gap: 'float | str | None' = None, count: 'int' = 5) -> 'Diagram'`
+
+A forest plot: one estimate and confidence interval per row, with aligned text columns beside it.
 
 #### `polar(radius: 'float | str' = 30.0, *, r=None, theta=None, zero: 'float | str | None' = None, winding: 'str | None' = None, unit: 'str' = 'deg', hole: 'float | str' = 0.0, clip: 'bool' = False, nice: 'bool' = False) -> 'PolarPanel'`
 

@@ -51,6 +51,7 @@ from .plot import (
     Panel, Ramp, Scale, axis, band, grouped_band, broken, colorbar, column, dates, facets,
     histogram, inset, legend, linear, log, panel, ramp, ribbon, row, symlog, upset,
 )
+from .plot import forest
 from .plot import (
     PolarPanel, circular_histogram, circular_mean, polar, theta_ticks,
 )
@@ -467,7 +468,7 @@ __all__ = [
     "panel", "Panel", "row", "column", "axis", "colorbar", "legend",
     "linear", "log", "symlog", "band", "grouped_band", "broken", "dates", "Scale",
     "ramp", "Ramp", "CategorySet", "categories",
-    "inset", "ribbon", "facets", "histogram", "upset",
+    "inset", "ribbon", "facets", "histogram", "upset", "forest",
     "polar", "PolarPanel", "theta_ticks",
     "circular_mean", "circular_histogram",
     "AnatomyView", "anatomy_view", "model", "solid", "scene", "axes", "cartoon",
