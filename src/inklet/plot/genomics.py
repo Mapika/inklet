@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass
 from typing import Sequence
 
-from ..core import DiagramError, mm
+from ..core import DiagramError
 from ..draw.coords import active_theme
 from ..themes.color import mix
 

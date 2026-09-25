@@ -204,7 +204,9 @@ def _quad_split(p0: Vec2, c: Vec2, p1: Vec2, t0: float, t1: float) -> tuple[Vec2
 def _exit(p0: Vec2, c: Vec2, p1: Vec2, centre: Vec2, reach: float, from_start: bool) -> float:
     """The parameter where the curve leaves the disc of `reach` around `centre`."""
     lo, hi = (0.0, 0.5) if from_start else (0.5, 1.0)
-    inside = (lambda t: (_quad_point(p0, c, p1, t) - centre).length < reach)
+    def inside(t: float) -> bool:
+        return (_quad_point(p0, c, p1, t) - centre).length < reach
+
     if from_start:
         if not inside(0.0):
             return 0.0

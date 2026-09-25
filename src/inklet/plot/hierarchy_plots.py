@@ -8,7 +8,7 @@ input of `inklet.plot.hierarchy` and one colouring rule (see `_Paint`).
 from __future__ import annotations
 
 import math
-from typing import Mapping, Sequence
+from typing import Mapping
 
 from ..core import Diagram, DiagramError, Rect, Vec2, mm
 from ..diagnostics.abut import abutting

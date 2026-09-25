@@ -147,9 +147,9 @@ def clustermap(values, *, rows: Sequence[str] | None = None,
     heat = panel(w, h, x=col_names_o, y=list(reversed(row_names_o)))
     heat.matrix(shown, ramp=ramp, scale=scale, center=center)
     if row_labels:
-        heat.axis("right", tick_size=0, tick_pad=theme.gap("xs"), spine=False, thin=False)
+        heat.axis("right", tick_size=0, tick_pad=theme.gap("xs") * 1.3, spine=False, thin=False)
     if col_labels:
-        heat.axis("bottom", tick_size=0, tick_pad=theme.gap("xs"), spine=False, thin=False,
+        heat.axis("bottom", tick_size=0, tick_pad=theme.gap("xs") * 1.3, spine=False, thin=False,
                   rotate=90)
     clusters_of = None
     if k is not None:

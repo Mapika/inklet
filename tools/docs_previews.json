@@ -789,5 +789,75 @@
     "object": "doc",
     "image": "journal-figure-3.png",
     "alt": "The finished eight-panel page with panel letters"
+  },
+  {
+    "page": "networks-and-hierarchies.md",
+    "block": 1,
+    "object": "fig",
+    "image": "plots-treemap.png",
+    "alt": "A treemap and a sunburst of cortical cell types"
+  },
+  {
+    "page": "networks-and-hierarchies.md",
+    "block": 2,
+    "object": "fig",
+    "image": "plots-icicle.png",
+    "alt": "Clustering levels drawn as an icicle with a highlighted lineage"
+  },
+  {
+    "page": "networks-and-hierarchies.md",
+    "block": 3,
+    "object": "fig",
+    "image": "plots-network.png",
+    "alt": "A circular weighted network with a width key"
+  },
+  {
+    "page": "networks-and-hierarchies.md",
+    "block": 4,
+    "object": "fig",
+    "image": "plots-chord.png",
+    "alt": "A chord diagram and an arc diagram"
+  },
+  {
+    "page": "matrices.md",
+    "block": 7,
+    "object": "fig",
+    "image": "plots-clusters.png",
+    "alt": "A clustered adjacency matrix with cluster boxes and a zoomed inset"
+  },
+  {
+    "page": "matrices.md",
+    "block": 8,
+    "object": "fig",
+    "image": "plots-clustermap.png",
+    "alt": "A clustermap with dendrograms and an annotation strip"
+  },
+  {
+    "page": "matrices.md",
+    "block": 9,
+    "object": "fig",
+    "image": "plots-correlogram.png",
+    "alt": "Two correlograms of one correlation matrix"
+  },
+  {
+    "page": "genomics-plots.md",
+    "block": 1,
+    "object": "fig",
+    "image": "plots-manhattan.png",
+    "alt": "A Manhattan plot with labelled lead hits"
+  },
+  {
+    "page": "genomics-plots.md",
+    "block": 2,
+    "object": "fig",
+    "image": "plots-ma.png",
+    "alt": "An MA plot with regulated genes coloured"
+  },
+  {
+    "page": "genomics-plots.md",
+    "block": 3,
+    "object": "fig",
+    "image": "plots-ternary.png",
+    "alt": "A ternary plot of soil texture"
   }
 ]

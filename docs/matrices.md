@@ -307,6 +307,136 @@ fig.save('dotplot.svg', 'dotplot.pdf')
 fraction and a high mean. The cluster tree is a nested sequence, so its merge
 heights are levels rather than distances.*
 
+## Clustered matrices
+
+`inklet.plot.linkage(rows, method=, metric=)` clusters the rows of a table
+hierarchically without SciPy. It returns the merge table SciPy returns, so
+`dendrogram` and `dendrogram_layout` take it unchanged. The methods are
+`"average"` (default), `"single"`, `"complete"`, `"weighted"` and `"ward"`.
+The metrics are `"euclidean"`, `"correlation"`, `"cosine"`, `"cityblock"`, a
+function, or `"precomputed"` for a distance matrix. `cut(link, k)` returns
+one cluster number per row, numbered in the tree's leaf order, so once the
+matrix is reordered by `dendrogram_layout(link).order` each cluster is a run
+of consecutive rows.
+
+`clusters(groups)` draws a box on the diagonal around each run of equal
+labels in `groups`, one label per matrix row from the top. `highlight=` draws
+chosen clusters in red over the others, and `labels=True` names each cluster
+to the right of the matrix.
+
+To magnify part of the matrix, pass `zoom=(x0, x1, y0, y1)` to `inset`.
+Style keywords colour the window; `connector=` styles the connector lines
+alone, for example dashed.
+
+```python
+import inklet as i
+import random
+from inklet.plot import cut, dendrogram_layout, linkage
+
+rng = random.Random(5)
+n = 40
+community = [k % 5 for k in range(n)]
+rng.shuffle(community)
+weights = [[0.0] * n for _ in range(n)]
+for a in range(n):
+    for b in range(a):
+        linked = rng.random() < (0.7 if community[a] == community[b] else 0.05)
+        weights[a][b] = weights[b][a] = linked * rng.uniform(0.3, 1)
+link = linkage(weights, metric='correlation')
+order = dendrogram_layout(link).order
+groups = [cut(link, 5)[k] for k in order]
+adjacency = [[weights[a][b] for b in order] for a in order]
+scale = i.linear((0, 1))
+m = i.panel(50, 50, x=(0, n), y=(n, 0))
+m.matrix(adjacency, scale=scale).clusters(groups, highlight=2, labels=True)
+zoom = i.panel(24, 24)
+zoom.matrix([row[8:16] for row in adjacency[8:16]], scale=scale)
+m.inset(zoom, side='right', width=None, zoom=(8, 16, 8, 16), stroke='#c9352b',
+        stroke_width=0.35, connector={'stroke_dash': (1, 0.6)})
+m.colorbar(side='bottom', label='weight', length=24)
+fig = i.figure(width=100)
+fig.add(m.build())
+fig.save('clusters.svg', 'clusters.pdf')
+```
+
+![A reordered adjacency matrix with cluster boxes, one highlighted cluster and a zoomed inset.](assets/guides/plots-clusters.png)
+
+*Simulated network of five communities. The rows are in the dendrogram's
+leaf order, so each community is one box on the diagonal; the inset
+magnifies the highlighted one.*
+
+## Clustermaps
+
+`inklet.clustermap(values)` builds the whole clustered heatmap. It clusters
+the rows and columns, reorders the matrix, and adds both dendrograms,
+annotation strips, a colorbar and the row and column names when there is
+room for them. `standardize="rows"` z-scores each row first. `k=` cuts the
+row tree into clusters, colours the tree by cluster, and separates the
+clusters with rules. When the matrix is square with the same order on both
+axes, such as a correlation matrix, the clusters are boxed on the diagonal
+instead. `row_colors=` and `col_colors=` map a track name to one value per
+row or column: colours, or categories that are coloured from the palette and
+named in a legend.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(7)
+genes = ['Fos', 'Arc', 'Egr1', 'Npas4', 'Junb', 'Gfap', 'Aqp4', 'Aldh1l1',
+         'Mbp', 'Plp1', 'Mog', 'Olig2']
+samples = [f'S{k}' for k in range(1, 10)]
+condition = ['ctrl', 'ctrl', 'ctrl', 'KA', 'KA', 'KA', 'LPS', 'LPS', 'LPS']
+signal = {'ctrl': 8, 'KA': 0, 'LPS': 4}
+expression = [[rng.gauss(2.5 if signal[c] <= g < signal[c] + 4 else 0, 0.8)
+               for c in condition] for g in range(12)]
+cm = i.clustermap(expression, rows=genes, columns=samples, standardize='rows', k=3,
+                  col_colors={'condition': condition}, label='z-score', width=36)
+fig = i.figure(width=100)
+fig.add(cm)
+fig.save('clustermap.svg', 'clustermap.pdf')
+```
+
+![A clustermap with row and column dendrograms, a condition strip and three row clusters.](assets/guides/plots-clustermap.png)
+
+*Simulated expression. Three gene modules respond to three conditions, and
+the row tree is coloured by the three clusters `k=3` cuts.*
+
+## Correlograms
+
+`correlogram(r, names)` draws a correlation matrix as a triangle of glyphs.
+Each glyph's area is proportional to |r| and its colour is r on a diverging
+ramp fixed from -1 to 1, so `colorbar()` shows the full scale.
+`inklet.plot.correlation(table)` computes Pearson r between rows, or columns
+with `by="columns"`. `triangle="lower"` (default) and `"upper"` draw each pair
+once without the diagonal. `shape=` is `"circle"`, `"square"` or `"tile"`, and
+`values=True` writes r in each glyph.
+
+```python
+import inklet as i
+import random
+from inklet.plot import correlation
+
+rng = random.Random(8)
+genes = ['Gad1', 'Gad2', 'Slc32a1', 'Pvalb', 'Sst', 'Vip', 'Slc17a7', 'Satb2']
+base = [[rng.gauss(0, 1) for _ in range(40)] for _ in range(3)]
+module = [0, 0, 0, 1, 1, 2, 2, 2]
+sign = [1, 1, 1, 1, -1, -1, 1, 1]
+table = [[sign[g] * base[module[g]][k] + rng.gauss(0, 0.7) for k in range(40)]
+         for g in range(8)]
+r = correlation(table)
+dots = i.panel(40, 40).correlogram(r, genes).colorbar(label='r', length=24)
+tiles = i.panel(40, 40).correlogram(r, genes, triangle='upper', shape='tile', values='{:.1f}')
+fig = i.figure(width=130)
+fig.add(i.row([dots, tiles], gap=14, align='top'))
+fig.save('correlogram.svg', 'correlogram.pdf')
+```
+
+![Two correlograms of the same matrix: circles sized by |r| and tiles with values.](assets/guides/plots-correlogram.png)
+
+*Simulated expression of three gene modules. Colour gives the sign of r and
+circle area its strength.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),
