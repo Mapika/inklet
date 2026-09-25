@@ -28,6 +28,16 @@ from .cumulative import ecdf
 from .volcano import volcano_points
 from .dendrogram import DendrogramLayout, DendrogramLink, dendrogram_layout
 from .upset import Intersection, UpSetLayout, upset, upset_layout
+from .hierarchy import (
+    Hierarchy, HierarchyNode, PartitionCell, hierarchy, partition_layout, squarify,
+    treemap_layout,
+)
+from .network import WidthScale, width_scale
+from .chord import ChordGroup, ChordLayout, ChordRibbon, chord_layout
+from .cluster import correlation, cut, distance_matrix, linkage
+from .clustermap import clustermap
+from .genomics import ManhattanLayout, chromosome_key, manhattan, manhattan_layout
+from .ternary import TernaryFrame, ternary_frame
 from .dotplot import AreaScale, area_scale, size_key
 from .survival import SurvivalEstimate, kaplan_meier
 from .forest import ForestLayout, ForestRow, forest, forest_layout
@@ -71,6 +81,12 @@ __all__ = [
     "histogram", "box_stats", "BoxStats", "kde", "quantile", "ecdf",
     "volcano_points", "dendrogram_layout", "DendrogramLayout", "DendrogramLink",
     "upset", "upset_layout", "UpSetLayout", "Intersection",
+    "hierarchy", "Hierarchy", "HierarchyNode", "squarify", "treemap_layout",
+    "partition_layout", "PartitionCell", "width_scale", "WidthScale",
+    "chord_layout", "ChordLayout", "ChordGroup", "ChordRibbon",
+    "linkage", "cut", "correlation", "distance_matrix", "clustermap",
+    "manhattan", "manhattan_layout", "ManhattanLayout", "chromosome_key",
+    "ternary_frame", "TernaryFrame",
     "area_scale", "AreaScale", "size_key", "kaplan_meier", "SurvivalEstimate",
     "forest", "forest_layout", "ForestLayout", "ForestRow",
     "cluster_centres", "format_p",

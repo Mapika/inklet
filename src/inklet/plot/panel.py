@@ -133,6 +133,7 @@ class Panel:
     #: The width scale the last `network` drew its edges with, for
     #: `width_key()`.
     _widths: object | None = field(default=None, repr=False, compare=False)
+    _ternary: object | None = field(default=None, repr=False, compare=False)
     #: `(name, estimate, colour)` per curve `kaplan_meier` drew, for
     #: `at_risk()`.
     _survival: list = field(default_factory=list, repr=False, compare=False)
@@ -1984,6 +1985,47 @@ class Panel:
         self._scale_domain = note["scale"]
         return self.draw(node, clip=clip)
 
+    def ternary(self, points: Iterable[Sequence[float]], *, labels: Sequence[str] | None = None,
+                ticks: int = 5, grid: bool = True, total: float = 100, format=None,
+                color=None, size=None, marker: str = "circle", name: str | None = None,
+                **style) -> "Panel":
+        """Compositions of three parts as points in a triangle.
+
+        `points` are `(a, b, c)` triples in any units; each is normalised to
+        fractions of its sum. The first call draws the triangle, fitted into
+        the plot area with component `labels[0]` at the top vertex,
+        `labels[1]` bottom left and `labels[2]` bottom right, with `ticks`
+        divisions whose inner gridlines are labelled as parts of `total`
+        (100, so percentages; `format=` a function to write them) and a pale grid (`grid=False` to omit).
+        Later calls on the same panel add points to the same triangle.
+
+            p = inklet.panel(50, 45)
+            p.ternary(soils, labels=("clay", "sand", "silt"), name="site 1")
+            p.ternary(more, name="site 2").legend()
+
+        The points are an ordinary `scatter`, so `color`, `size`, `marker`,
+        `name` and other style keywords mean what they mean there (a
+        sequence of colours or a ramp included). The triangle carries a
+        `ternary` note with its vertices; `inklet.plot.ternary_frame` gives
+        the geometry for drawing anything else in it.
+        """
+        from .ternary import ternary_frame
+
+        if isinstance(self.x, Band) or isinstance(self.y, Band):
+            raise DiagramError("ternary needs continuous x and y scales")
+        if self._ternary is None:
+            node, frame = ternary_frame(self, labels=labels or ("A", "B", "C"), ticks=ticks,
+                                        grid=grid, total=total, format=format)
+            self._ternary = frame
+            self.under(node)
+        elif labels is not None:
+            raise DiagramError("this panel's ternary triangle is already drawn with its labels")
+        frame = self._ternary
+        at = [frame.point(*triple) for triple in points]
+        data = [(self.x.invert(p.x), self.y.invert(p.y)) for p in at]
+        return self.scatter(data, color=color, size=size, marker=marker, name=name,
+                            clip=False, **style)
+
     # -- hierarchies (plot/hierarchy_plots.py) ------------------------------
 
     def treemap(self, data, *, colors=None, highlight=None,
@@ -2381,6 +2423,44 @@ class Panel:
                 "skipped": result["skipped"]}
         if last is not None:
             last.notes["volcano"] = note
+        return self
+
+    def ma(self, mean: Sequence[float], fold: Sequence[float],
+           p: Sequence[float] | None = None, *, labels: Sequence[str] | None = None,
+           top: int = 10, fold_threshold: float = 1.0, p_threshold: float = 0.05,
+           colors=None, names=None, size: float | None = None, log: bool = True,
+           zero: bool = True, **style) -> "Panel":
+        """An MA plot: mean expression on x against log2 fold change on y.
+
+        `mean` is each feature's mean expression (normalised counts), drawn
+        as log2(mean + 1) unless `log=False` says it is already on the axis
+        scale; `fold` are log2 fold changes and `p` the (adjusted) p-values.
+        Points are classed exactly as `volcano` classes them -- "up" and
+        "down" need p below `p_threshold` and |fold| of at least
+        `fold_threshold` -- and without `p` by fold change alone. The "ns"
+        points are pale grey and drawn first.
+
+            p = inklet.panel(60, 45, x=(0, 16), y=(-6, 6))
+            p.ma(base_mean, log2fc, padj, labels=genes, top=6)
+            p.axes(x="log2 mean expression", y="log2 fold change")
+
+        `zero=True` draws a hairline at a fold change of 0. `labels=` names
+        the `top` significant points with the smallest p (or the largest
+        |fold| without `p`) with `label_points`. `colors=` and `names=` take
+        the same shapes as in `volcano`; `size` is the dot diameter (0.9 mm) and
+        other keywords style the points. The last layer carries an `ma` note
+        with the classes and labelled indices.
+        """
+        from .genomics import ma as _ma
+
+        if isinstance(self.x, Band) or isinstance(self.y, Band):
+            raise DiagramError("ma needs continuous x and y scales")
+        note = _ma(self, mean, fold, p, labels=labels, top=top,
+                   fold_threshold=fold_threshold, p_threshold=p_threshold, colors=colors,
+                   names=names, size=size, log=log, zero=zero, **style)
+        last = (self._over or self._content)[-1] if (self._over or self._content) else None
+        if last is not None:
+            last.notes["ma"] = note
         return self
 
     def dotplot(self, sizes: Sequence[Sequence[float]], colors=None, *,
