@@ -2132,6 +2132,95 @@ class Panel:
         self._over.append(placed)
         return self._touched()
 
+    def chord(self, matrix, names: Sequence[str] | None = None, *, colors=None,
+              gap: float = 2.0, start: float = -90.0, directed: bool = False,
+              sort: bool = False, thickness: float | str | None = None,
+              pad: float | str | None = None, labels: bool = True,
+              opacity: float = 0.72, color_by: str = "source",
+              size: float | str | None = None, **style) -> "Panel":
+        """A chord diagram: groups as arcs around a ring, flows between them
+        as ribbons through the middle, fitted into the plot area.
+
+        `matrix[i][j]` is the flow from group i to group j (a list of rows
+        or a 2-D array; zeros draw nothing).
+
+            p = inklet.panel(50, 50)
+            p.chord([[0, 5, 3], [5, 0, 2], [3, 2, 1]], ["V1", "LM", "AL"])
+
+        Undirected (the default), a group's arc is its row sum and the ribbon
+        between i and j is `matrix[i][j]` wide at i and `matrix[j][i]` wide
+        at j. `directed=True` gives each group its row plus column sum,
+        outgoing flows first, and points each ribbon at its target. `gap` is
+        the angle between groups in degrees; `start` is where the first
+        group begins (-90, twelve o'clock); `sort=True` orders each group's
+        flows largest first. `colors` is one colour, a list, or a mapping of
+        group name to colour (default: the palette); ribbons take the colour
+        of their source (`color_by="source"`), target, or larger end, at
+        `opacity`. `thickness` is the ring's radial width in mm, and group
+        names go outside the ring, `pad` mm clear of it. Other keywords style
+        the ribbons. The node carries a `chord` note with the group angles
+        and values and the ring radius.
+        """
+        from .chord import chord as _chord
+
+        clip = _clip_flag(style)
+        node, _ = _chord(self, matrix, names, colors=colors, gap=gap, start=start,
+                         directed=directed, sort=sort, thickness=thickness, pad=pad,
+                         labels=labels, opacity=opacity, color_by=color_by, size=size,
+                         **style)
+        return self.draw(node, clip=clip)
+
+    def arc_diagram(self, nodes, edges, *, sizes=None, top: float | None = None,
+                    diameter: float | str | None = None, floor: float | str | None = None,
+                    shape: str = "circle", shapes=None, groups=None, colors=None,
+                    color: str | None = None, labels: bool = True,
+                    rotate: float | None = None, weights=None,
+                    width: float | str | None = None,
+                    width_floor: float | str | None = None,
+                    edge_color: str | None = None, edge_colors=None,
+                    directed: bool = False, opacity: float = 0.8,
+                    size: float | str | None = None, **style) -> "Panel":
+        """An arc diagram: nodes in a row, each edge a half-ellipse arc
+        above them whose width is the edge weight.
+
+        `nodes` and `edges` read as in `network()` (names or a mapping of
+        name to value; `(source, target[, weight[, category]])` rows), and
+        node sizes, shapes, group colours, edge widths and edge categories
+        are encoded the same way, so `size_key()`, `width_key()` and
+        `legend()` work after it.
+
+            p = inklet.panel(80, 30)
+            p.arc_diagram(["a", "b", "c", "d"], [("a", "c", 4), ("b", "d", 1)])
+
+        Nodes keep their input order, evenly spaced across the plot area,
+        with names below them (turned by `rotate` degrees; by default 90
+        when they would collide). Arcs are as tall as half their span, all
+        scaled down together to fit. `directed=True` draws edges running
+        right to left below the row instead, so direction reads as side.
+        Lighter edges are drawn first; other keywords style the arcs. The
+        node carries an `arc_diagram` note with the node x positions.
+        """
+        from .chord import arc_diagram as _arc_diagram
+        from .series import SeriesKey
+
+        clip = _clip_flag(style)
+        node, note = _arc_diagram(self, nodes, edges, sizes=sizes, top=top,
+                                  diameter=diameter, floor=floor, shape=shape,
+                                  shapes=shapes, groups=groups, colors=colors,
+                                  color=color, labels=labels, rotate=rotate,
+                                  weights=weights, width=width, width_floor=width_floor,
+                                  edge_color=edge_color, edge_colors=edge_colors,
+                                  directed=directed, opacity=opacity, size=size, **style)
+        self._widths = note["widths"]
+        if note["sizes"] is not None:
+            self._sizes = note["sizes"]
+        for name, fill, kind in note["node_keys"]:
+            self._keys.append(SeriesKey(name=name, forms=frozenset(("marker",)),
+                                        color=fill, marker=kind))
+        for name, ink in note["edge_keys"]:
+            self._note(name, "line", color=ink, width=active_theme().thick)
+        return self.draw(node, clip=clip)
+
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
                 labels: Sequence[str] | None = None, top: int = 10,
                 fold_threshold: float = 1.0, p_threshold: float = 0.05,

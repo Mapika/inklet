@@ -82,8 +82,13 @@ class WidthScale:
         return self.width * float(weight) / self.top < self.floor
 
     def ticks(self, count: int = 3) -> tuple[float, ...]:
-        values = [v for v in nice_ticks(0.0, self.top, count) if v > 0]
-        if len(values) > count:
+        """Round reference weights in (0, top], at most `count + 1` of them."""
+        values: list[float] = []
+        for asked in range(count, count + 4):
+            values = [v for v in nice_ticks(0.0, self.top, asked) if v > 0]
+            if len(values) >= count:
+                break
+        if len(values) > count + 1:
             values = values[::-1][::2][::-1]
         return tuple(values) or (self.top,)
 
