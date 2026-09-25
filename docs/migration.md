@@ -2,6 +2,37 @@
 
 <span id="migrating-to-inklet-31"></span>
 
+## From 4.0.1 to 4.1.0
+
+4.1.0 adds plot types and changes several presentation defaults. Existing
+recipes run unchanged, but pages can come out smaller or differently spaced.
+Regenerate a representative figure and compare it with the archived output
+before replacing files. Pin `inklet==4.0.1` to keep the previous output.
+
+Default output changes:
+
+- `scientific.general`, `scientific.science` and `scientific.cell` use 7 pt
+  text over 6 pt ticks and keys (was 8/7 pt). `scientific.cell` is now a dense
+  page preset: 6/5 pt type, 0.25 pt hairlines, smaller gaps and in-plot legends.
+- Ticks are shorter, axis names sit closer to the tick labels, outside legends
+  and colorbars sit one `xs` step from the plot, and colorbars are thinner.
+- `share_plot_margins=True` shares top and bottom margins within each row and
+  left and right margins along each vertical grid line, instead of across the
+  whole grid. Pass `share_plot_margins='all'` for the previous rule.
+- Top and bottom legends can use the whole panel width when that saves rows.
+- `matrix()` without `ramp=` uses a default colour ramp: reversed magma for
+  one-sided data, blue-white-red when the data cross zero or `center=` is given.
+  An explicit `ramp=` keeps its previous meaning.
+- A heatmap axis with no ticks draws no spine; pass `spine=True` to keep it.
+- Orthogonal links leave and enter through the face of their anchors, and
+  labels on short links move to the nearest clear spot (lint `LABEL_OFF_LINK`).
+- Bold panel letters are embedded with the bold face.
+- `polar()` leaves `zero` and `winding` unset by default; they still resolve to
+  east and counter-clockwise. `PolarPanel.breakout` turns the pie to face its
+  bar only when neither was given.
+
+New plot types are listed in the [changelog](https://github.com/Mapika/inklet/blob/master/CHANGELOG.md).
+
 ## From 4.0.0 to 4.0.1
 
 4.0.1 is an engine maintenance release. Existing authoring recipes and export
@@ -21,8 +52,8 @@ comparison and [the authoring model](concepts.md#compilation) for snapshot behav
 
 ## From 3.1 to 4.0
 
-**4.0.1 is stable.** Upgrade with `python -m pip install --upgrade inklet`,
-or pin `inklet==4.0.1` for reproducible environments.
+**4.1.0 is stable.** Upgrade with `python -m pip install --upgrade inklet`,
+or pin `inklet==4.1.0` for reproducible environments.
 
 Existing `figure()`, `document()`, `panel()`, `plot_spec()`, compositions and
 SVG/PDF exports remain the authoring path. There is no required conversion to a

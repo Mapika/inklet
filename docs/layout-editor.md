@@ -1,6 +1,6 @@
 # Local layout editor
 
-Available in stable 4.0.1 under the opt-in `inklet.experimental.layout_editor`
+Available in stable 4.1.0 under the opt-in `inklet.experimental.layout_editor`
 API. The redesigned studio workspace first appeared in the dev12 preview.
 Arrange named
 content, edit labels and appearance, and review the actual Python-compiled

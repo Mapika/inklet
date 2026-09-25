@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 4.1.0 — 2026-09-25
+
+4.1.0 adds thirteen plot and annotation types, tightens default presentation toward journal
+pages and reorganises the documentation. See the
+[migration notes](docs/migration.md#from-401-to-410) for output changes.
+Known issue: with Blender 4.2, the single-thread Line Art bake of large meshes
+can exceed its timeout on some machines; the optional Blender tests are
+affected, figure building is not.
+
 - Add `inklet.upset` and `inklet.plot.upset_layout` for UpSet plots:
   intersection sizes as bars over a set-membership dot matrix, with optional
   set-size bars at the left. Input is a mapping of set name to members or a

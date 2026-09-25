@@ -5,8 +5,8 @@ its composition. Both workflows retain explicit saved choices, but their
 controls and state files serve different purposes.
 
 These interfaces were introduced during the **4.0.0** previews and are
-available in stable **4.0.1**, under opt-in experimental APIs. Install with
-`pip install "inklet==4.0.1"`; see the [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
+available in stable **4.1.0**, under opt-in experimental APIs. Install with
+`pip install "inklet==4.1.0"`; see the [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
 before relying on experimental state formats.
 
 ![A regional report linking a map, time series, distribution and category panels](assets/v4/regional-report.png)

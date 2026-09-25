@@ -1,11 +1,11 @@
 # pandas and Polars inputs
 
-Introduced in **4.0.0.dev1** and available in stable **4.0.1**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.1.0**. See the [4.0 release guide](development-preview.md).
 
 Create an immutable `KeyedTable` directly from a pandas or Polars DataFrame,
 then use it in linked plots, facets or joined maps. These adapters are available
 in the 4.0.0.dev1 preview under `inklet.experimental.selection`;
-they are available in stable 4.0.1 with the optional `pandas` and `polars` extras.
+they are available in stable 4.1.0 with the optional `pandas` and `polars` extras.
 
 ![Four linked panels showing completed units and turnaround for two simulated workshop benches](assets/v4/table-inputs.png)
 

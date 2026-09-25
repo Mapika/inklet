@@ -2,7 +2,7 @@
 
 <span id="roadmap-to-inklet-40"></span>
 
-**4.0.1 is stable.** It releases the scope frozen during RC1. These gates
+**4.1.0 is stable.** It releases the scope frozen during RC1. These gates
 continue to apply to maintenance releases; experimental namespaces retain their
 documented opt-in status.
 
@@ -69,7 +69,7 @@ recipe. Mapped image/mesh picking retains its source adapter's geometry limits.
 3. Fix regressions within the supported scope; use a new package version for changed release files.
 4. Run the full release checks on the final commit and publish the exact verified artifacts.
 
-The [4.0 release](https://github.com/Mapika/inklet/releases/tag/v4.0.1) links to
+The [4.0 release](https://github.com/Mapika/inklet/releases/tag/v4.1.0) links to
 its exact-commit validation. Distribution checks include source-archive rebuilding,
 isolated wheel installs and matching GitHub/PyPI archive checksums. A passing
 prerelease does not automatically publish or designate a stable release.

@@ -12,10 +12,10 @@ matching source labels, sampled cross-sectional areas and intensity profiles.
 
 ## Reproduce it
 
-From the `v4.0.1` release checkout with Blender 4.2 or 4.5 LTS:
+From the `v4.1.0` release checkout with Blender 4.2 or 4.5 LTS:
 
 ```sh
-git clone --branch v4.0.1 https://github.com/Mapika/inklet.git
+git clone --branch v4.1.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m pip install -e '.[volume,render]'
 python -m pip install -r examples/biology/requirements.txt

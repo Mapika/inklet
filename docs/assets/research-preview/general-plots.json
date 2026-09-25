@@ -1,6 +1,6 @@
 {
   "schema": "inklet.general-plots/0.1",
-  "inklet_version": "4.0.1",
+  "inklet_version": "4.1.0",
   "legacy_look": false,
   "sources": {
     "learning": {

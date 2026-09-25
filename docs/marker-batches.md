@@ -1,6 +1,6 @@
 # Packed vector markers
 
-Introduced in **4.0.0.dev3** and included in stable 4.0.1. The measurements below
+Introduced in **4.0.0.dev3** and included in stable 4.1.0. The measurements below
 record that development revision; see [dense data](dense-data.md) for current
 authoring choices. Packed markers store dense vector
 scatter layers as immutable marker records. It reduces Python object overhead

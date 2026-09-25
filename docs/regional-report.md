@@ -1,6 +1,6 @@
 # Complete regional report
 
-Introduced in **4.0.0.dev1** and available in stable **4.0.1**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.1.0**. See the [4.0 release guide](development-preview.md).
 
 Build a six-panel offline report with a real map, monthly histories, an
 empirical distribution and three group comparisons. Select a country, filter
@@ -8,7 +8,7 @@ a group, save and reopen the view, replace the input table, and export the
 selected result at **210 mm and 160 mm**.
 
 These are opt-in experimental APIs under `inklet.experimental.browser`, available
-in stable 4.0.1.
+in stable 4.1.0.
 
 ![Real European country boundaries linked to simulated monthly rates, an empirical distribution and category comparisons](assets/v4/regional-report.png)
 
@@ -145,7 +145,7 @@ remain open.
 ## Shared compiled renderer
 
 The shared compiled renderer was introduced in **4.0.0.dev3** and is available
-in stable **4.0.1**:
+in stable **4.1.0**:
 
 ```bash
 python examples/v4/regional_report.py --renderer compiled --render --output out/compiled-regional

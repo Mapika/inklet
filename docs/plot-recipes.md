@@ -4,7 +4,7 @@ Make a paired comparison without maintaining two copies of the plotting code.
 This tutorial combines line and point recipes, gives one copy a different
 visual treatment, then updates both from shared measurements.
 
-Available in the published **4.0.1 release**; see the
+Available in the published **4.1.0 release**; see the
 [installation guide](development-preview.md). Run the Python blocks in order
 after [your first figure](quickstart.md). The core installation is sufficient
 for the SVG/PDF outputs.

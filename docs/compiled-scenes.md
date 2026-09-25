@@ -1,7 +1,7 @@
 # Shared compiled scenes
 
 This page records the development revision in which shared compiled scenes were
-introduced. The feature is available in stable 4.0.1; use the [native figure
+introduced. The feature is available in stable 4.1.0; use the [native figure
 viewer](compiled-viewer.md) for the current reader workflow.
 
 Introduced in **4.0.0.dev3**, shared scenes let SVG, PDF and native
