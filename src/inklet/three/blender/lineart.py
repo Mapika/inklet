@@ -18,6 +18,7 @@ nor a comma-decimal locale can reach the numbers in the SVG.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import subprocess
 import tempfile
@@ -62,10 +63,18 @@ ATTEMPTS = 3
 
 #: Threads to give Blender, pinned rather than left to the core count.
 #:
-#: Parallel legacy stroke chaining changes stroke order and can lose a stroke
-#: when workers contend on a small CPU allocation. A single bake thread gives
-#: identical exports on both full and two-core allocations. This affects only
-#: legacy vector line art; complete-scene CPU/GPU rendering has its own settings.
+#: Line Art chains strokes in worker threads, and with more than one the
+#: result depends on how they were scheduled. In a hidden-line bake the stroke
+#: order, the direction of some strokes and where chains start change between
+#: runs, over the same segments. With occlusion levels (`hidden=False`) the
+#: segments change too: 8 x-ray bakes of `brain-lh.obj` gave 2 or 3 different
+#: drawings at 2, 4 or 8 threads and 6 at 8 threads on two cores, differing by
+#: a stroke, dozens of segments and smoothed points a twentieth of a pixel
+#: apart -- so no reordering, merging or rounding afterwards can make them
+#: agree. One thread gives the same bytes on every run and any CPU allocation,
+#: and costs little: that brain bakes in 1.0s against 0.7s at eight threads.
+#: This affects only legacy vector line art; complete-scene rendering has its
+#: own settings.
 THREADS = 1
 
 #: Fraction of the camera frame left empty on each side when the framing is
@@ -315,6 +324,12 @@ def bake_svg(mesh: Path, out: Path, *, script: str,
     `--python-exit-code` is what makes a traceback in the bake script a
     non-zero return code; without it Blender reports success having done
     nothing.
+
+    Blender writes the export and its report into a private workspace and
+    leaves the moment the exporter returns (`script.py` explains why no Python
+    may run in Blender after that). The report is appended here, and Blender's
+    own temp directory is pointed into the workspace so that it is removed
+    with it.
     """
     found = find_blender(blender)
     if found.version[:2] != (4, 2):
@@ -327,20 +342,29 @@ def bake_svg(mesh: Path, out: Path, *, script: str,
     with tempfile.TemporaryDirectory(prefix="inklet-lineart-") as workspace:
         program = Path(workspace) / "bake.py"
         program.write_text(script, encoding="utf-8")
+        raw = Path(workspace) / "export.svg"
+        sidecar = Path(workspace) / "report.json"
+        scratch = Path(workspace) / "tmp"
+        scratch.mkdir()
         command = [
             str(found.path), "--background", "--factory-startup", "-noaudio",
             "--threads", str(THREADS),
             "--python-exit-code", "3", "--python", str(program),
-            "--", str(mesh), str(out),
+            "--", str(mesh), str(raw), str(sidecar),
         ]
         # A fixed hash seed and the C locale, because the bake script sorts and
         # formats numbers and the result has to be byte-identical between two
-        # machines that disagree about decimal commas.
+        # machines that disagree about decimal commas. TMPDIR is where Blender
+        # makes its per-process temp directory, which a process that leaves by
+        # `os._exit` never removes.
         environment = dict(os.environ)
         environment["PYTHONHASHSEED"] = "0"
         environment["LC_ALL"] = "C"
         environment["LANG"] = "C"
+        environment["TMPDIR"] = str(scratch)
         for attempt in range(ATTEMPTS):
+            for stale in (raw, sidecar):
+                stale.unlink(missing_ok=True)
             try:
                 done = subprocess.run(
                     command, capture_output=True, text=True, timeout=timeout,
@@ -355,41 +379,47 @@ def bake_svg(mesh: Path, out: Path, *, script: str,
                 ) from exc
             except OSError as exc:
                 raise BlenderError(f"cannot run {found.path}: {exc}") from exc
-            if done.returncode >= 0 or _finished(out) or attempt == ATTEMPTS - 1:
+            if done.returncode >= 0 or attempt == ATTEMPTS - 1:
                 break
             # Blender 4.2's Line Art can die of a signal on a convoluted mesh,
             # rarely and without a pattern. Retrying is safe precisely because
             # the bake is deterministic: a second run either writes the same
             # bytes the first would have, or fails again and is reported.
 
-    # The exit status is not the last word. Blender can also die in CPython's
-    # finalisation, after the export has been written and closed -- the bake
-    # script leaves before finalisation for exactly that reason, but a crash
-    # anywhere downstream of `annotate` would be equally harmless. So a
-    # completed artifact overrules a bad status: `_finished` insists on the
-    # metadata comment, which is written last of all and which nothing but a
-    # complete bake can produce.
-    if done.returncode != 0 and not _finished(out):
-        raise BlenderError(
-            f"{found.banner} failed to bake {mesh.name} "
-            f"(exit {done.returncode}).\n{_diagnosis(done)}"
-        )
-    if not out.exists() or out.stat().st_size == 0:
-        raise BlenderError(
-            f"{found.banner} reported success but wrote no SVG for "
-            f"{mesh.name}.\n{_diagnosis(done)}"
-        )
+        # Exit status 0 is only reachable through the script's `leave(0)`,
+        # straight after the exporter reported FINISHED; a signal or a
+        # traceback on the way there is a failure, whatever is on disk.
+        if done.returncode != 0:
+            raise BlenderError(
+                f"{found.banner} failed to bake {mesh.name} "
+                f"(exit {done.returncode}).\n{_diagnosis(done)}"
+            )
+        if not raw.exists() or raw.stat().st_size == 0 or not sidecar.exists():
+            raise BlenderError(
+                f"{found.banner} reported success but wrote no SVG for "
+                f"{mesh.name}.\n{_diagnosis(done)}"
+            )
+        text = raw.read_text(encoding="utf-8")
+        report = json.loads(sidecar.read_text(encoding="utf-8"))
+    out.write_text(annotate(text, report), encoding="utf-8")
     return found
 
 
-def _finished(out: Path) -> bool:
-    """Whether `out` carries the end-of-bake marker the script appends last."""
-    try:
-        tail = out.read_bytes()[-4096:]
-    except OSError:
-        return False
-    return METADATA_MARKER.encode("utf-8") in tail and tail.rstrip().endswith(
-        b"</svg>")
+def annotate(text: str, report: dict[str, Any]) -> str:
+    """`text` with the bake report appended as a comment.
+
+    One cached file then carries both the drawing and the numbers that describe
+    it -- how the camera was framed, how many strokes came out -- so a cache hit
+    can answer the same questions a fresh bake can.
+    """
+    # An XML comment may not contain a double hyphen, and an object name in
+    # the report is whatever the mesh's author called it. `\u002d` is a hyphen
+    # to a JSON reader and not one to an XML parser, so escaping the second of
+    # every pair keeps both happy.
+    payload = json.dumps(report, sort_keys=True).replace("--", "-\\u002d")
+    comment = f"<!--{METADATA_MARKER}{payload}-->\n"
+    index = text.rfind("</svg>")
+    return text[:index] + comment + text[index:] if index >= 0 else text + comment
 
 
 # -- plumbing -------------------------------------------------------------
