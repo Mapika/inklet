@@ -2,6 +2,25 @@
 
 <span id="migrating-to-inklet-31"></span>
 
+## From 4.1.0 to 4.2.0
+
+Output changes:
+
+- `share_plot_margins=True` with an automatic page height shares data heights
+  along each row only, so rows keep the heights set on their plots. Before, every
+  plot got the tallest data height in the grid. Pass `share_plot_margins='all'`
+  for the previous rule.
+- `Panel.label_points` places its labels when the panel is built, clear of
+  marks drawn after the call as well. Output is unchanged when nothing is drawn
+  after the call. The label node and its `point_labels` note exist only after
+  `build()`; until then `_over` holds an empty placeholder. A wrong number of
+  labels is still refused at the call.
+- `PolarPanel.breakout` also turns a pie that shares its panel with other
+  content, when `polar()` was given no `zero` or `winding`. The other content
+  is drawn again under the turned angles. Pass `zero=` and `winding=` to
+  `polar()` to keep the pie as drawn.
+- `examples/dense_figure.py` turns on `share_plot_margins`.
+
 ## From 4.0.1 to 4.1.0
 
 4.1.0 adds plot types and changes several presentation defaults. Existing

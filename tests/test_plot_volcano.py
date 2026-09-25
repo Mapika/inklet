@@ -68,6 +68,7 @@ def test_volcano_draws_rules_points_and_top_labels() -> None:
     v = volcano_panel(top=6)
     note = v._over[-1].notes["volcano"]
     assert note["labelled"] == note["ranked"][:6]
+    v.build()                           # labels are placed when built
     label_note = v._over[-1].notes["point_labels"]
     assert label_note["unresolved"] == []
     # Three dashed rules under the points: two at the fold threshold, one at p.

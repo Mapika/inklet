@@ -91,10 +91,14 @@ two outer slice edges to the bar's near corners, upper to top. Part labels
 sit beside the bar at the segment centres and are moved down, then lifted
 back from the bottom, only as far as needed to clear each other. Default part
 colours are shades of the slice colour. When `inklet.polar` was not given
-`zero` or `winding` and the pie is the only content on the panel, `breakout`
-chooses them: the winding runs the chosen slices down the side that faces the
-bar (clockwise on the right, counter-clockwise on the left) and `zero` puts
-their middle on the bar's axis. The pie is then drawn again in place. Outside
+`zero` or `winding`, `breakout` chooses them: the winding runs the chosen
+slices down the side that faces the bar (clockwise on the right,
+counter-clockwise on the left) and `zero` puts their middle on the bar's axis.
+The pie is then drawn again in place. On a busy panel the panel keeps a
+journal of its drawing calls and makes them all again under the turned angles,
+so grids, axes and text drawn before or after the pie turn with it. Content
+passed to `draw`, `under` or `over` in panel coordinates cannot be redrawn,
+and an earlier `breakout` is not repeated; either keeps the pie as it is. Outside
 pie labels that meet a connector or the bar try spots turned within their
 slice and up to two type sizes further out, and take the smallest change
 that clears; the ones that cannot are listed under `crossing` in the
@@ -157,15 +161,17 @@ labels, the default column pitch widens to fit the widest label.
 | Limit | Workaround | Status |
 | --- | --- | --- |
 | `share_plot_margins=True` reserved the largest left and right furniture on every plot, which squeezed grids with mixed spans | Sharing turned off | Done: left and right margins are shared along vertical grid lines; `'all'` keeps the whole-grid rule |
+| Sharing also gave every plot the tallest data height, overriding the heights chosen per row | Sharing turned off | Done (4.2): data heights are shared along rows only; `'all'` keeps the tallest height; the dense figure shares margins |
 | A top or bottom legend, including an inside legend moved above the plot, could only be as wide as the data area | Panel B widened | Done: the key uses the whole panel width when that saves rows |
 | A label on a link a few millimetres long floated a label height or more above the boxes, or sat on the arrowhead | The circuit panel has no link labels | Done: nearest clear spot, flagged and reported by `LABEL_OFF_LINK` |
 
 **Grid-line sharing.** A plot's left edge is grid line `column` and its
 right edge is grid line `column + colspan`. The left margin of a plot is the
 largest measured left margin among plots on its left line, and the right
-margin the largest among plots on its right line. The dense figure still
-leaves sharing off: sharing also gives every plot the tallest data height,
-which would override the heights chosen per row.
+margin the largest among plots on its right line. With an automatic page
+height, the data height is the tallest among plots in the same row and row
+span, so each row keeps its authored heights; `'all'` gives every plot the
+tallest data height in the grid. The dense figure shares margins.
 
 **Panel-wide keys.** The key is fitted to the data width first. If the
 panel, including the tick labels and axis name left of the data, is wider,
@@ -183,8 +189,10 @@ of the line.
 ## Deferred work
 
 - Leaders for pie labels placed outside the rim.
-- A pie drawn after other content on its panel is not turned by `breakout`.
+- Done (4.2): a pie drawn with other content on its panel is turned by
+  `breakout`; the other content is drawn again with it.
 - Ring values on radar charts sit inside the data region and collide with
   most polygons; `radar_grid(values=True)` draws them, and they are off by
   default.
-- `label_points` avoids only what is drawn before it is called.
+- Done (4.2): `label_points` is placed when the panel is built, so it avoids
+  marks drawn after the call. Several calls are placed in call order.

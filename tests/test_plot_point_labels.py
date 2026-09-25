@@ -30,6 +30,7 @@ def label_boxes(p):
 
 
 def note_of(p):
+    p.build()                           # labels are placed when built
     for node in p._over:
         if "point_labels" in node.notes:
             return node.notes["point_labels"]
@@ -114,8 +115,13 @@ def test_labelled_scatter_lints_clean_and_exports() -> None:
     assert inklet.to_pdf(node)[:4] == b"%PDF"
 
 
+def _labels_node(p):
+    return next(placed.diagram for placed in resolve(p.build()).values()
+                if placed.diagram.kind == "point-labels")
+
+
 def _leaders(p):
-    node = next(n for n in p._over if "point_labels" in n.notes)
+    node = _labels_node(p)
     out = []
     for placed in resolve(node).values():
         if placed.diagram.kind == LEADER_KIND and placed.diagram.prim is not None:
@@ -152,3 +158,62 @@ def test_crowded_edge_labels_keep_leaders_few_and_uncrossed() -> None:
     assert not any(_cross(*a, *b) for i, a in enumerate(lines)
                    for b in lines[i + 1:])
     assert lint(p.build()) == []
+
+
+@pytest.mark.parametrize("layer", ["content", "over"])
+def test_labels_avoid_marks_drawn_after_the_call(layer) -> None:
+    # The first-choice spot east of the point is filled by a block drawn
+    # after label_points; placement waits for build and moves clear of it.
+    def make(block: bool):
+        p = panel(40, 30, x=(0, 10), y=(0, 10))
+        p.scatter([(5, 5)])
+        p.label_points([(5, 5)], ["late"])
+        if block and layer == "over":
+            p.rect(5.3, 3, 9, 7, fill="#888888", front=True)
+        elif block:
+            p.draw(inklet.polygon(p.map([(5.3, 3), (9, 3), (9, 7), (5.3, 7)]),
+                                  fill="#888888"))
+        return p
+
+    before = label_boxes(make(False))["late"]
+    p = make(True)
+    after = label_boxes(p)["late"]
+    block = p.region(5.3, 3, 9, 7)
+    assert overlaps(before, block)
+    assert not overlaps(after, block)
+    assert note_of(p)["unresolved"] == []
+
+
+def test_deferred_labels_match_placement_at_the_call() -> None:
+    from inklet.plot.point_labels import label_points as place_now
+
+    rng = random.Random(5)
+    cloud = [(rng.uniform(0, 10), rng.uniform(0, 10)) for _ in range(150)]
+    hits = cloud[:8]
+    names = [f"n{k}" for k in range(8)]
+    p = panel(40, 30, x=(0, 10), y=(0, 10))
+    p.scatter(cloud, size=0.6)
+    p.label_points(hits, names)
+    q = panel(40, 30, x=(0, 10), y=(0, 10))
+    q.scatter(cloud, size=0.6)
+    q.over(place_now(q, hits, names))
+    assert label_boxes(p) == label_boxes(q)
+    again = panel(40, 30, x=(0, 10), y=(0, 10))
+    again.scatter(cloud, size=0.6)
+    again.label_points(hits, names)
+    assert label_boxes(again) == label_boxes(p)
+
+
+def test_later_calls_avoid_earlier_labels() -> None:
+    p = panel(40, 30, x=(0, 10), y=(0, 10))
+    p.scatter([(5, 5), (5.4, 5)])
+    p.label_points([(5, 5)], ["first"])
+    p.label_points([(5.4, 5)], ["second"])
+    boxes = label_boxes(p)
+    assert not overlaps(boxes["first"], boxes["second"])
+
+
+def test_mismatched_labels_are_refused_at_the_call() -> None:
+    p = panel(40, 30, x=(0, 10), y=(0, 10))
+    with pytest.raises(DiagramError):
+        p.label_points([], [])

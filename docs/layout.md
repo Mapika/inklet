@@ -46,9 +46,12 @@ resize; text and strokes retain their physical dimensions. Set
 legend margins within a grid. Left and right margins are shared along vertical
 grid lines: plots that start on the same grid line get the same left margin,
 and plots that end on the same grid line get the same right margin. A plot
-that shares neither line with a wide label is not narrowed by it.
+that shares neither line with a wide label is not narrowed by it. With an
+automatic page height, data heights are shared along each row only, so rows
+keep the plot heights set for them.
 `share_plot_margins='all'` shares the largest left and right margins across
-the whole grid instead, so equal columns give equal data widths. This is
+the whole grid instead, and gives every plot the tallest data height, so equal
+columns give equal data areas. This is
 opt-in; equal cell sizes alone do not guarantee equal data-area sizes when
 labels take different amounts of space.
 

@@ -299,9 +299,45 @@ def test_breakout_keeps_a_given_zero_and_winding() -> None:
     assert math.isclose(_middle_bearing(r, [1]), 0.0, abs_tol=1e-6)
 
 
-def test_breakout_leaves_a_pie_with_other_content_unturned() -> None:
+def _svg(p) -> str:
+    import re
+    return re.sub(r'(id|href|clip-path|data-[a-z-]+)="[^"]*"', "",
+                  inklet.to_svg(p.build()))
+
+
+def _busy(p, order):
+    values = [30, 45, 25]
+    for step in order:
+        if step == "grid":
+            p.grid()
+        elif step == "pie":
+            p.pie(values, names=["a", "b", "c"])
+        elif step == "text":
+            p.text(45, 0.5, "note")
+    return p
+
+
+@pytest.mark.parametrize("order", [("grid", "pie"), ("pie", "text"),
+                                   ("grid", "pie", "text")])
+def test_breakout_turns_a_pie_drawn_with_other_content(order) -> None:
+    p = _busy(polar(11), order)
+    p.breakout(1)
+    note = p._content[-1].notes["pie_breakout"]
+    assert note["turned"]
+    assert p.theta.winding == "cw"
+    assert math.isclose(_middle_bearing(p, [1]), 0.0, abs_tol=1e-6)
+    # Everything is drawn again under the turned angles: the page matches a
+    # panel given the same zero and winding up front.
+    given = _busy(polar(11, zero=p.theta.zero, winding=p.theta.winding), order)
+    given.breakout(1)
+    assert _svg(p) == _svg(given)
+    if "text" not in order:              # the note is placed by hand
+        assert lint(p.build()) == []
+
+
+def test_breakout_keeps_a_pie_with_content_in_panel_coordinates() -> None:
     p = polar(11)
-    p.grid()
+    p.draw(inklet.circle(width=1, height=1))
     p.pie([30, 45, 25], labels=None)
     p.breakout(1)
     assert (p.theta.zero, p.theta.winding) == (0.0, "ccw")

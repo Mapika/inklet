@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `share_plot_margins=True` shares data heights along rows only, so heights
+  set per row are kept; `'all'` keeps the tallest height across the grid.
+  `examples/dense_figure.py` now shares margins.
+- `Panel.label_points` places labels at build time, clear of marks drawn
+  after the call. Results are unchanged when nothing is drawn after.
+- `PolarPanel.breakout` turns a pie drawn before or after other content,
+  drawing that content again under the turned angles.
+
 ## 4.1.0 — 2026-09-25
 
 4.1.0 adds thirteen plot and annotation types, tightens default presentation toward journal

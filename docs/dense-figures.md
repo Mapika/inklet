@@ -32,8 +32,10 @@ report for the page.
 ## The page grid
 
 The document has 12 columns and four rows. Each panel spans a number of
-columns; row heights come from the tallest plot in the row. Panel letters are
-added by `.letters()` in the order the panels are added.
+columns; row heights come from the tallest plot in the row. The example sets
+`share_plot_margins=True`, so data edges line up along shared grid lines while
+each row keeps its own plot height. Panel letters are added by `.letters()`
+in the order the panels are added.
 
 ```python
 import inklet as i

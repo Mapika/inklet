@@ -120,6 +120,10 @@ class Panel:
 
     _insets: list = field(default_factory=list, repr=False, compare=False)
     _inset_state: tuple = field(default=(), repr=False, compare=False)
+    #: `label_points` calls waiting for `build`, by the id of the empty node
+    #: that holds each call's place in `_over`. Placed at build time so the
+    #: labels avoid marks drawn after the call too.
+    _deferred: dict = field(default_factory=dict, repr=False, compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -1060,6 +1064,7 @@ class Panel:
         twin._insets = self._insets
         twin._keys = self._keys
         twin._brackets = self._brackets
+        twin._deferred = self._deferred
         twin._parent = self
         return twin
 
@@ -1439,7 +1444,7 @@ class Panel:
             self._built = None
         if self._built is not None:
             return self._built
-        children = list(self._under) + list(self._content) + list(self._over)
+        children = list(self._under) + list(self._content) + self._placed_over()
         if self._title is not None:
             children.append(self._titled(children))
         if self._insets:
@@ -1797,8 +1802,10 @@ class Panel:
         `points` are data coordinates and `labels` one string per point.
         Each label goes to the nearest free position around its point; a
         label that had to move further out gets a hairline leader back to
-        the point. Draw the marks first and call this last: it avoids what
-        the panel holds at the time of the call.
+        the point. Placement waits for `build()`, so the labels avoid every
+        mark in the panel's content and over layers, including marks drawn
+        after this call. Several calls are placed in call order, each clear
+        of the labels before it.
 
             p.scatter(cloud, color=TH.muted)
             p.label_points(hits, names)
@@ -1809,13 +1816,53 @@ class Panel:
         diagrams to keep clear of), `leader_style=` and any text style such
         as `fill=`. The placement is deterministic. A label that could not be
         placed without overlap is still drawn at its best position and listed
-        in the node's `point_labels` note under `unresolved`. See
-        `plot.point_labels`.
+        in the node's `point_labels` note under `unresolved`; the note is
+        filled in when the panel is built. See `plot.point_labels`.
         """
+        from .point_labels import PENDING_KIND, checked
         from .point_labels import label_points as _label_points
 
-        node = _label_points(self, list(points), labels, **kwargs)
-        return self.over(node, clip=False)
+        data, names = checked(points, labels)
+        theme = active_theme()
+
+        def place(marks):
+            import inklet
+            token = inklet._theme_context.set(theme)
+            try:
+                return _label_points(self, data, names, marks=marks, **kwargs)
+            finally:
+                inklet._theme_context.reset(token)
+
+        holder = Diagram(kind=PENDING_KIND)
+        self._deferred[id(holder)] = place
+        self._over.append(holder)
+        return self._touched()
+
+    def _placed_over(self) -> list[Diagram]:
+        """`_over` with each deferred `label_points` call placed.
+
+        Calls are placed in order. Each sees the content layer and the over
+        layer, with earlier calls already placed and later calls left out,
+        so a call with nothing drawn after it places exactly as it would
+        have at the time of the call.
+        """
+        if not self._deferred:
+            return list(self._over)
+        over = list(self._over)
+        waiting = {n for n, node in enumerate(over) if id(node) in self._deferred}
+        for n in sorted(waiting):
+            holder = over[n]
+            waiting.discard(n)
+            marks = [*self._content,
+                     *(node for m, node in enumerate(over) if m != n and m not in waiting)]
+            node = self._deferred[id(holder)](marks)
+            for key, value in holder.notes.items():
+                node.notes.setdefault(key, value)
+            # The holder carries the result's notes, so a caller holding
+            # `_over` can read them once the panel is built.
+            holder.notes.update(node.notes)
+            over[n] = node
+        return over
 
     def dendrogram(self, tree, *, labels: Sequence | None = None,
                    orient: str = "v", threshold: float | None = None,

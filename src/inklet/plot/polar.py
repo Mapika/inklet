@@ -463,6 +463,17 @@ class PolarPanel:
     #: so `breakout` may choose them.
     _free: tuple[bool, bool] = field(default=(False, False), repr=False,
                                      compare=False)
+    #: Each drawing call made on the panel, `(method, args, kwargs)` in call
+    #: order, so `breakout` can draw everything again with the pie turned.
+    #: Calls a method makes on its own panel are not listed.
+    _journal: list = field(default_factory=list, repr=False, compare=False)
+    #: How deep in journalled calls the panel is: only the outermost call is
+    #: listed.
+    _depth: int = field(default=0, repr=False, compare=False)
+    #: Whether every journalled call can be drawn again under another
+    #: `theta`: not so after content already in panel coordinates, or an
+    #: argument that was an iterator and has been used up.
+    _replayable: bool = field(default=True, repr=False, compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -1256,8 +1267,10 @@ class PolarPanel:
         `winding` becomes `"cw"` for a bar on the right and `"ccw"` for one
         on the left. A `zero` or `winding` given to `inklet.polar` is kept,
         so `inklet.polar(11, zero="up", winding="cw")` draws the pie as
-        given. The pie only turns when it is the only thing on the panel;
-        after a grid, axis or other content it stays where it is. Pie labels
+        given. Other content on the panel, drawn before or after the pie, is
+        drawn again with it under the turned angles; content handed to
+        `draw`, `under` or `over` in panel coordinates cannot be, and keeps
+        the pie where it is, as does an earlier `breakout`. Pie labels
         set outside the rim move within their slice, or further out, to
         keep clear of the connectors and the bar; the pie's `pie_labels`
         note lists any that could not under `"crossing"`. The node's
@@ -1281,14 +1294,26 @@ class PolarPanel:
                 if item is redraw["node"]]
         alone = (len(self._content) == 1 and held == [0] and not self._under
                  and not self._over and not self._spokes and not self._ring)
+        # With other content on the panel, turning the pie means drawing
+        # every earlier call again under the turned theta. That needs each
+        # call to be repeatable, and at most one breakout per panel.
+        again = (not alone and held and self._replayable
+                 and not any(name == "breakout" for name, _, _ in self._journal))
         turned = False
-        if valid and alone and any(self._free):
+        if valid and (alone or again) and any(self._free):
             zero, winding = breakout_turn(self.theta, note["values"], ordered,
                                           side=side, zero=self._free[0],
                                           winding=self._free[1])
             if (abs(zero - self.theta.zero) > 1e-9
                     or winding != self.theta.winding):
-                self.theta = replace(self.theta, zero=zero, winding=winding)
+                theta = replace(self.theta, zero=zero, winding=winding)
+                if alone:
+                    self.theta = theta
+                else:
+                    self._redraw(theta)
+                    note, fills, redraw = self._pie
+                    held = [k for k, item in enumerate(self._content)
+                            if item is redraw["node"]]
                 turned = True
         if valid and held and side in ("right", "left"):
             # Draw the pie again, turned, with its outside labels clear of
@@ -1319,6 +1344,18 @@ class PolarPanel:
             for label, fill in zip(names, colours):
                 self._note(label, "area", fill=fill, color=fill)
         return self.draw(node, clip=clip)
+
+    def _redraw(self, theta: Theta) -> None:
+        """Clear the panel and make every journalled call again under
+        `theta`."""
+        journal = list(self._journal)
+        self._under, self._content, self._over = [], [], []
+        self._title, self._pie, self._built = None, None, None
+        self._keys, self._spokes, self._ring = [], [], []
+        self.theta = theta
+        for name, args, kwargs in journal:
+            getattr(self, name)(*args, **dict(kwargs))
+        self._journal = journal
 
     def mean_vector(self, angles: Sequence[float],
                     weights: Sequence[float] | None = None, *,
@@ -1540,6 +1577,45 @@ class PolarPanel:
 
 
 # -- construction ---------------------------------------------------------
+
+
+def _journalled(method):
+    """`method`, listing each outermost call in the panel's `_journal`."""
+    from collections.abc import Iterator
+    from functools import wraps
+
+    name = method.__name__
+    # Content handed over already in panel coordinates cannot be moved to
+    # another theta.
+    raw = name in ("draw", "under", "over")
+
+    @wraps(method)
+    def call(self, *args, **kwargs):
+        if self._depth:
+            return method(self, *args, **kwargs)
+        self._depth += 1
+        try:
+            result = method(self, *args, **kwargs)
+        finally:
+            self._depth -= 1
+        values = [*args, *kwargs.values()]
+        if (raw or any(isinstance(v, Iterator) for v in values)
+                or (name == "place" and any(
+                    isinstance(item, Diagram)
+                    for item in (args[0] if args else kwargs.get("items", ()))))):
+            self._replayable = False
+        self._journal.append((name, args, dict(kwargs)))
+        return result
+
+    return call
+
+
+for _name in ("draw", "under", "over", "place", "background", "spine", "grid",
+              "theta_axis", "r_axis", "title", "line", "scatter", "marks",
+              "band", "rose", "radar", "radar_grid", "pie", "breakout",
+              "mean_vector", "text", "legend"):
+    setattr(PolarPanel, _name, _journalled(getattr(PolarPanel, _name)))
+del _name
 
 
 def polar(radius: float | str = 30.0, *, r=None, theta=None,

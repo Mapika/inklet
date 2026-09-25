@@ -602,7 +602,7 @@ A compact numeric/text table with measured, glyph-centered cells.
 
 A plot area of a fixed size, with scales fitted to it.
 
-#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = ()) -> None`
+#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = (), _deferred: 'dict' = <factory>) -> None`
 
 A drawing region plus the scales that map data into it.
 
@@ -773,7 +773,7 @@ An UpSet plot: intersection sizes as bars over a membership matrix.
 
 A polar plot area of a given rim radius.
 
-#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None, _free: 'tuple[bool, bool]' = (False, False)) -> None`
+#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None, _free: 'tuple[bool, bool]' = (False, False), _journal: 'list' = <factory>, _depth: 'int' = 0, _replayable: 'bool' = True) -> None`
 
 A disc, or a fan of one, plus the scales that map data into it.
 

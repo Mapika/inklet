@@ -294,3 +294,40 @@ def test_all_shares_left_and_right_furniture_across_the_grid():
                 (first.width, first.height), abs=1e-5)
     spanned = _areas(_spanned('all'), 'abcde')
     assert spanned['d'].width == pytest.approx(spanned['c'].width, abs=1e-5)
+
+
+def _rows(shared):
+    # Rows with their own authored data heights, as on a dense page, and
+    # different furniture in each column.
+    doc = i.document(width=183, columns=12, share_plot_margins=shared).letters()
+
+    def plot(height):
+        return i.plot_spec(height=height, x=(0, 10), y=(0, 10)).line([(0, 0), (10, 10)])
+
+    doc.add('a', plot(20).axes(y='Response').axis(
+        'left', format=lambda value: f'{value:.4f}'), row=0, column=0, colspan=6)
+    doc.add('b', plot(20).axes(), row=0, column=6, colspan=6)
+    doc.add('c', plot(34).axes(), row=1, column=0, colspan=4)
+    doc.add('d', plot(34).axes().axis('right', label='Secondary axis'),
+            row=1, column=4, colspan=8)
+    return doc.compile()
+
+
+def test_true_keeps_row_heights_while_sharing_grid_lines():
+    names = 'abcd'
+    shared, alone = _areas(_rows(True), names), _areas(_rows(False), names)
+    for name, height in zip(names, (20, 20, 34, 34)):
+        assert shared[name].height == pytest.approx(height, abs=1e-5)
+        assert alone[name].height == pytest.approx(height, abs=1e-5)
+    # Left and right edges still line up along the shared grid lines.
+    assert shared['c'].x0 == pytest.approx(shared['a'].x0, abs=1e-5)
+    assert shared['d'].x1 == pytest.approx(shared['b'].x1, abs=1e-5)
+    assert alone['c'].x0 != pytest.approx(alone['a'].x0, abs=1e-2)
+    assert shared['a'].y0 == pytest.approx(shared['b'].y0, abs=1e-5)
+    assert shared['c'].y0 == pytest.approx(shared['d'].y0, abs=1e-5)
+
+
+def test_all_still_gives_every_plot_the_tallest_data_height():
+    areas = _areas(_rows('all'), 'abcd')
+    for area in areas.values():
+        assert area.height == pytest.approx(34, abs=1e-5)

@@ -194,7 +194,7 @@ m.axes(y='fraction dimorphic')
 
 
 def make_document():
-    doc = STYLE.document(columns=12).letters()
+    doc = STYLE.document(columns=12, share_plot_margins=True).letters()
     doc.add('circuit', circuit(), row=0, column=0, colspan=3, align='nw')
     doc.add('bars', b, row=0, column=3, colspan=5)
     doc.add('dumbbell', c, row=0, column=8, colspan=4)

@@ -181,10 +181,10 @@ doc.save('lollipop.svg', 'lollipop.pdf')
 ## Labelled points
 
 `label_points` names many points in one call. Each label is placed at the
-nearest free position around its point, clear of the marks already drawn and
-of the other labels. A label that has to move further out gets a thin leader
-line back to its point. Draw the marks first and call `label_points` last.
-The placement is deterministic.
+nearest free position around its point, clear of the marks and of the other
+labels. A label that has to move further out gets a thin leader line back to
+its point. Placement happens when the panel is built, so the labels also avoid
+marks drawn after the call. The placement is deterministic.
 
 ```python
 import inklet as i

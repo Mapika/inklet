@@ -86,15 +86,33 @@ def _natural_sizes(request, context, x_prefix, height, decorate):
         # Maxima may belong to different plots; retain all of their furniture.
         # Top and bottom furniture is shared within a row only: a colorbar
         # under one bottom panel must not open the same gap under every row.
+        data = _shared_data_heights(request, plots)
         rows = {(c.row, c.rowspan) for c in request.cells if c.name in plots}
-        data = max((v[0] for v in plots.values()), default=0.)
         for key in rows:
             members = [c.name for c in request.cells
                        if c.name in plots and (c.row, c.rowspan) == key]
-            tallest = data + sum(max(plots[m][n] for m in members) for n in (1, 2))
+            furniture = sum(max(plots[m][n] for m in members) for n in (1, 2))
             for name in members:
-                heights[name] = tallest
+                heights[name] = data[name] + furniture
     return heights, plots
+
+
+def _shared_data_heights(request, plots):
+    """Data height each plot reserves when margins are shared.
+
+    `True` shares data height along a row only, so heights chosen per row
+    survive; `'all'` gives every plot the tallest data height in the grid.
+    """
+    if request.share_plot_margins == 'all':
+        tallest = max((v[0] for v in plots.values()), default=0.)
+        return {name: tallest for name in plots}
+    rows = {}
+    for cell in request.cells:
+        if cell.name in plots:
+            key = cell.row, cell.rowspan
+            rows[key] = max(rows.get(key, 0.), plots[cell.name][0])
+    return {cell.name: rows[cell.row, cell.rowspan]
+            for cell in request.cells if cell.name in plots}
 
 
 def _row_tracks(request, rows, natural_heights, height):
@@ -179,8 +197,8 @@ def _share_margins(request, measured, margins, per_row=False):
 def _grow_natural_heights(request, plots, measured, heights):
     if request.share_plot_margins:
         # Measured margins are already shared, per row for automatic heights.
-        tallest = max(v[0] for v in plots.values())
-        required = {name: tallest+measured[name][2]+measured[name][3] for name in plots}
+        data = _shared_data_heights(request, plots)
+        required = {name: data[name]+measured[name][2]+measured[name][3] for name in plots}
     else:
         required = {name: values[0]+measured[name][2]+measured[name][3]
                     for name, values in plots.items()}

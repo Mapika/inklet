@@ -28,8 +28,10 @@ a hairline leader back to its point. A label that still covers a labelled
 point or another label, or whose leader crosses something, is listed as
 unresolved in the node's `point_labels` note.
 
-This works on the panel's content at the time of the call: draw the marks
-first and label them last. Labels drawn by later calls are not avoided.
+`Panel.label_points` defers the placement to `Panel.build`, so the labels
+avoid every mark on the panel, including marks drawn after the call. Labels
+from several calls are placed in call order, each clear of the ones before.
+With nothing drawn after the call the result is the same as placing at once.
 """
 
 from __future__ import annotations
@@ -44,10 +46,13 @@ from ..draw.path import polyline
 from ..draw.place import place as draw_place
 from .axis import text_node
 
-__all__ = ["POINT_LABEL_KIND", "LEADER_KIND", "label_points"]
+__all__ = ["POINT_LABEL_KIND", "LEADER_KIND", "PENDING_KIND", "label_points"]
 
 #: Kind of each label text node.
 POINT_LABEL_KIND = "label"
+#: Kind of the empty node that holds a `Panel.label_points` call's place in
+#: paint order until the panel is built.
+PENDING_KIND = "point-labels-pending"
 #: Kind of each leader line.
 LEADER_KIND = "mark-line"
 
@@ -103,15 +108,14 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
                  reach: float | str | None = None,
                  leader: bool = True, markup: bool = False,
                  avoid: Sequence[Diagram] = (),
-                 leader_style: dict | None = None, **style) -> Diagram:
-    """Place one label per point. See `Panel.label_points`."""
-    data = [tuple(p) for p in points]
-    names = list(labels)
-    if len(data) != len(names):
-        raise DiagramError(
-            f"label_points() got {len(names)} labels for {len(data)} points")
-    if not data:
-        raise DiagramError("label_points() was given no points")
+                 leader_style: dict | None = None,
+                 marks: Sequence[Diagram] | None = None, **style) -> Diagram:
+    """Place one label per point. See `Panel.label_points`.
+
+    `marks` are the drawn nodes to keep clear of; the default is what the
+    panel holds now, in its content and over layers.
+    """
+    data, names = checked(points, labels)
     theme = active_theme()
     if "fill" in style:                 # text is coloured by text_fill
         style["text_fill"] = style.pop("fill")
@@ -125,7 +129,9 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
     far = 8 * font if reach is None else mm(reach)
     area = panel.area
     anchors = [panel.point(*p) for p in data]
-    boxes, segments = _obstacles([*panel._content, *panel._over, *avoid])
+    if marks is None:
+        marks = [*panel._content, *panel._over]
+    boxes, segments = _obstacles([*marks, *avoid])
     index_of = _Grid(boxes, max(ring * 2, 1.0))
     # The markers drawn at each labelled point (there may be two: a grey
     # cloud and a highlight drawn over it).
@@ -314,6 +320,19 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
         "unresolved": [names[i] for i in sorted(unresolved)],
     }
     return node
+
+
+def checked(points: Sequence[Sequence], labels: Sequence[str]) -> tuple[list, list]:
+    """The points as tuples and the labels as a list, or an error when they
+    do not pair up."""
+    data = [tuple(p) for p in points]
+    names = list(labels)
+    if len(data) != len(names):
+        raise DiagramError(
+            f"label_points() got {len(names)} labels for {len(data)} points")
+    if not data:
+        raise DiagramError("label_points() was given no points")
+    return data, names
 
 
 def _candidates(start: float, ring: float, far: float):
