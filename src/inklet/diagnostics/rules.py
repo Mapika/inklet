@@ -1178,7 +1178,8 @@ def rule_low_contrast(ctx: LintContext) -> list[Diagnostic]:
             continue
         foreground = item.style.text_fill or item.node.style.fill or "#000000"
         background, source = ctx.background_of(item)
-        if item.style.halo:
+        on_halo = bool(item.style.halo)
+        if on_halo:
             # The glyphs sit on their own halo, painted in the page colour
             # unless the text names another.
             background = item.style.halo_color or ctx.page_fill or background
@@ -1195,7 +1196,9 @@ def rule_low_contrast(ctx: LintContext) -> list[Diagnostic]:
                      else _CONTRAST_NORMAL)
         if ratio >= threshold - 1e-9:
             continue
-        if source is None:
+        if on_halo:
+            against = f"its halo {background}"
+        elif source is None:
             against = f"the page background {background}"
         elif isinstance(source.prim, ImagePrim):
             against = f"{source.label}, averaging {background} under the text"

@@ -79,7 +79,10 @@ def main():
     parser.add_argument('--output',type=Path,default=ROOT/'out/compositing-review')
     args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=True)
     compiled=make_document().compile()
-    if any(d.severity in ('error','warning') for d in compiled.diagnostics):
+    # The halo specimen puts blue text on an orange halo on purpose, so the
+    # overlap between glyphs and halo shows under group opacity.
+    expected=lambda d: d.code=='LOW_CONTRAST' and d.targets[0].startswith('cell-halo/')
+    if any(d.severity in ('error','warning') and not expected(d) for d in compiled.diagnostics):
         raise RuntimeError(compiled.report())
     compiled.save(args.output/'figure.svg',args.output/'figure.pdf',args.output/'figure.png')
     (args.output/'caption.tex').write_text('\\caption{'+CAPTION.replace('\n',' ').strip()+'}\n')
