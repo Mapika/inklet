@@ -1308,6 +1308,10 @@ Report a color key that does not match the adjacent marks.
 
 A link's own label plate drawn over its own elbow.
 
+#### `LABEL_OFF_LINK`
+
+A link label that found no room beside its link and was moved away.
+
 #### `LARGE_TEXT`
 
 Text above an optional publication maximum after enclosing transforms.

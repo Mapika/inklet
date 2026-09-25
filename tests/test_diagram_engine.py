@@ -112,5 +112,8 @@ def test_dense_graph_routes_without_avoidance_fallback():
 
 
 def test_diagram_review_has_no_diagnostics():
+    """Apart from one info: the middle of three parallel channels has no room
+    beside its line, so its label sits beside a neighbour's label."""
     from examples.diagram_review import make_document
-    assert make_document().compile().diagnostics == ()
+    found = make_document().compile().diagnostics
+    assert [(d.code, d.severity) for d in found] == [('LABEL_OFF_LINK', 'info')]

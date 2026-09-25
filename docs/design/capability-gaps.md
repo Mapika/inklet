@@ -139,6 +139,7 @@ the ink.
 | --- | --- | --- |
 | `share_plot_margins=True` reserved the largest left and right furniture on every plot, which squeezed grids with mixed spans | Sharing turned off | Done: left and right margins are shared along vertical grid lines; `'all'` keeps the whole-grid rule |
 | A top or bottom legend, including an inside legend moved above the plot, could only be as wide as the data area | Panel B widened | Done: the key uses the whole panel width when that saves rows |
+| A label on a link a few millimetres long floated a label height or more above the boxes, or sat on the arrowhead | The circuit panel has no link labels | Done: nearest clear spot, flagged and reported by `LABEL_OFF_LINK` |
 
 **Grid-line sharing.** A plot's left edge is grid line `column` and its
 right edge is grid line `column + colspan`. The left margin of a plot is the
@@ -152,6 +153,13 @@ panel, including the tick labels and axis name left of the data, is wider,
 the key is refitted to that width and kept when it has fewer rows. It is then
 centred on the data if it fits within the data width, and otherwise starts at
 the panel's left edge, next to the panel letter.
+
+**Short link labels.** When no candidate spot beside the line is clear, the
+label is moved out along the normal from eleven points on the line, in
+0.25 mm steps up to two label sizes. It must be 0.25 mm clear of nodes, other
+label plates and the arrowheads, and about the label offset from other
+shafts. The smallest step wins, and ties go to the point nearest the middle
+of the line.
 
 ## Deferred work
 

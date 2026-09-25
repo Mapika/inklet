@@ -80,9 +80,19 @@ The option works against the previous checkout too, by setting `PYTHONPATH` to
 its `src` directory.
 
 The placer first tries the existing midpoint, opposite-side and along-line
-positions. If those fail, it tries positions beside bends and up to two extra
-label-sized clearances. A final pass checks earlier labels against later shafts
-and updated label reservations. Unobstructed initial positions stay unchanged.
+positions. If those fail, it tries positions right beside bends, then moves the
+label out from the line in 0.25 mm steps to the nearest spot that is 0.25 mm
+clear of every node, label plate and arrowhead, and about the label offset
+from every other shaft. Further positions beside bends and two extra
+label-sized clearances come last. A final pass checks earlier labels against
+later shafts and updated label reservations. Unobstructed initial positions
+stay unchanged.
+
+A label that cannot sit beside its line flags the link, and lint reports it as
+`LABEL_OFF_LINK` (info). This is common on a link only a few millimetres long:
+the label is wider than the gap between the two boxes, so it moves to just
+above or below them, centred on the gap. In panel b above, `progress` has no
+room beside the middle line and sits beside the `complete` label instead.
 
 This is a bounded local placement method. It cannot guarantee a clear position
 in every diagram, and moved labels may require matching colours or more spacing

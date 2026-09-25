@@ -54,6 +54,15 @@
   width and left-aligned with the panel's outer edge; a key that fits the data
   width stays centred on it. This includes `legend_side='inside'` keys moved
   above a crowded plot. Explicit `columns=` or `max_width=` are unchanged.
+- Link labels keep clear of arrowheads, and `inklet.connect` and `route()`
+  keep a label off the link's own end shapes even when no obstacles are
+  passed. When no spot beside the line is clear, as on a link a few
+  millimetres long between two boxes, the label moves out from the line in
+  0.25 mm steps to the nearest clear spot, usually just above or below the
+  boxes and centred on the gap, instead of a full label size or more away.
+  The link is flagged `FLAG_LABEL_OFF_LINK` and the new lint rule
+  `LABEL_OFF_LINK` reports it as an info. Regenerate `gallery/process.png`,
+  `gallery/diagram-review.png` and `gallery/diagram-labels-after.png`.
 - Add `examples/dense_figure.py`, a thirteen-panel 183 mm page with the
   `scientific.cell` preset, and its gallery image `gallery/dense-figure.png`.
 - Retighten `examples/general_plots.py`: the preset's 183 mm width, margin,
