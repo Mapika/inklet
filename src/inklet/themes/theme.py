@@ -16,7 +16,8 @@ from dataclasses import dataclass, replace
 from ..core.style import Style
 from ..core.units import pt
 from .color import contrast_ratio, mix, readable
-from .palettes import OKABE_ITO, TOL_BRIGHT, TOL_MUTED
+from .palettes import OKABE_ITO, TOL_BRIGHT, TOL_MUTED, Palette, palette as _palette
+
 
 __all__ = [
     "Theme", "ThemeError", "THEMES", "ROLES", "GAP_NAMES", "HAIRLINE_FLOOR",
@@ -26,6 +27,22 @@ __all__ = [
 
 class ThemeError(ValueError):
     """An unknown theme, role or spacing step."""
+
+
+def _resolve_palette(value: "str | Palette") -> tuple[str, ...]:
+    """Series colours from a palette name or object. A name must be a
+    categorical palette: fifty viridis stops are not eight series colours,
+    and `palette("viridis").resampled(6)` says how many were meant."""
+    if isinstance(value, str):
+        found = _palette(value)
+        if found.kind != "categorical":
+            raise ThemeError(
+                f"theme palette {value!r} is a {found.kind} map, not a set of "
+                f"series colours; pass palette({value!r}).resampled(n) for n "
+                "colours sampled from it"
+            )
+        value = found
+    return value.colors
 
 
 # 0.25pt. Below this a line either drops out of the plate on press or fills in
@@ -64,7 +81,10 @@ class Theme:
     accent: str         # the one colour that means "look here"
     grid: str           # rules and guides, meant to sit under everything
 
-    palette: tuple[str, ...]   # categorical series, colour-vision-deficiency safe
+    #: Categorical series colours, colour-vision-deficiency safe. A palette
+    #: name ("inklet", "tol-bright") or a `Palette` is accepted and stored as
+    #: its colours.
+    palette: tuple[str, ...]
 
     # -- type -------------------------------------------------------------
     font_family: str
@@ -82,6 +102,17 @@ class Theme:
     space: tuple[float, ...]   # spacing scale, small to large
     arrow_size: float          # arrowhead length
     link_radius: float = 0.0   # elbow rounding on a connector; 0 is square
+
+    def __post_init__(self) -> None:
+        if isinstance(self.palette, (str, Palette)):
+            object.__setattr__(self, "palette", _resolve_palette(self.palette))
+
+    def with_palette(self, palette: "str | Palette | tuple[str, ...]") -> "Theme":
+        """This theme with other series colours, given by name, as a `Palette`
+        or as a sequence of colours: `NATURE.with_palette("inklet")`."""
+        if not isinstance(palette, (str, Palette)):
+            palette = tuple(palette)
+        return replace(self, palette=palette)
 
     # -- roles ------------------------------------------------------------
 

@@ -214,8 +214,12 @@ class PaletteReport:
     `lightness` is each colour's CIE L*, and `min_lightness_gap` the smallest
     step between any two after sorting -- how far apart the colours stay in
     greyscale. `monotonic` (ramps) says whether L* only rises or only falls
-    along the stops; `symmetric` (diverging) whether the lightness extreme
-    sits at the centre and mirrored stops match within 8 L*.
+    along the stops. For a diverging map, `symmetric` says whether its single
+    lightness extreme sits at the centre (within a tenth of its length) with
+    lightness running monotonically away from it on both arms, and
+    `asymmetry` is the largest L* difference between mirrored stops. Published
+    maps are rarely exact mirrors -- ColorBrewer's PRGn ends 11 L* apart --
+    so the shape is the test and the mismatch is reported, not judged.
     """
 
     name: str
@@ -228,6 +232,7 @@ class PaletteReport:
     min_lightness_gap: float
     monotonic: bool | None = None
     symmetric: bool | None = None
+    asymmetry: float | None = None
 
     @property
     def min_delta_e_any(self) -> float:
@@ -245,7 +250,8 @@ class PaletteReport:
         if self.monotonic is not None:
             lines.append(f"  lightness monotonic: {self.monotonic}")
         if self.symmetric is not None:
-            lines.append(f"  symmetric about the centre: {self.symmetric}")
+            lines.append(f"  symmetric about the centre: {self.symmetric} "
+                         f"(mirrored stops within {self.asymmetry:.1f} L*)")
         return "\n".join(lines)
 
 
@@ -275,25 +281,34 @@ def _report(p: Palette) -> PaletteReport:
     lightness = p.lightness()
     ordered = sorted(lightness)
     gap = min((b - a for a, b in zip(ordered, ordered[1:])), default=float("inf"))
-    monotonic = symmetric = None
+    monotonic = symmetric = asymmetry = None
     if p.is_ramp and p.kind != "cyclic":
         steps = [b - a for a, b in zip(lightness, lightness[1:])]
         monotonic = all(s > 0 for s in steps) or all(s < 0 for s in steps)
     if p.kind == "diverging":
         symmetric = _symmetric(lightness)
+        n = len(lightness)
+        asymmetry = max((abs(lightness[i] - lightness[n - 1 - i])
+                         for i in range(n // 2)), default=0.0)
     return PaletteReport(p.name, p.kind, len(p), normal, cvd, pairs, lightness,
-                         gap, monotonic, symmetric)
+                         gap, monotonic, symmetric, asymmetry)
 
 
-def _symmetric(lightness: tuple[float, ...], tolerance: float = 8.0) -> bool:
+def _symmetric(lightness: tuple[float, ...]) -> bool:
+    """One lightness extreme near the centre, monotonic arms either side."""
     n = len(lightness)
     centre = (n - 1) / 2
-    extreme_light = max(range(n), key=lightness.__getitem__)
-    extreme_dark = min(range(n), key=lightness.__getitem__)
-    centred = min(abs(extreme_light - centre), abs(extreme_dark - centre)) <= 1
-    mirrored = all(abs(lightness[i] - lightness[n - 1 - i]) <= tolerance
-                   for i in range(n // 2))
-    return centred and mirrored
+    reach = max(1.0, 0.1 * n)
+    for pick in (max, min):
+        k = pick(range(n), key=lightness.__getitem__)
+        if abs(k - centre) > reach:
+            continue
+        left = [b - a for a, b in zip(lightness[:k + 1], lightness[1:k + 1])]
+        right = [b - a for a, b in zip(lightness[k:], lightness[k + 1:])]
+        toward = 1 if pick is max else -1
+        if all(d * toward > 0 for d in left) and all(d * toward < 0 for d in right):
+            return True
+    return False
 
 
 # --- Okabe-Ito ----------------------------------------------------------------

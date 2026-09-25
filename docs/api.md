@@ -1072,6 +1072,7 @@ Look up a theme by name. The default is the one built for print.
 
 A complete set of design tokens.
 
+* `with_palette(palette: "'str | Palette | tuple[str, ...]'") -> "'Theme'"` -- This theme with other series colours, given by name, as a `Palette` or as a sequence of colours: `NATURE.with_palette("inklet")`.
 * `style_for(role: 'str') -> 'Style'` -- The `Style` for a semantic role.
 * `color(index: 'int') -> 'str'` -- The categorical colour for series `index`.
 * `text_on(background: 'str', min_ratio: 'float' = 4.5) -> 'str'` -- Ink that stays readable on `background`.
