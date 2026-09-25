@@ -1509,7 +1509,9 @@ class Panel:
         """Put a smaller panel in a corner of this one. See `plot.inset`.
 
         `zoom=(x0, x1, y0, y1)` in this panel's data coordinates also draws the
-        window the inset magnifies and joins it to the inset.
+        window the inset magnifies and joins it to the inset. Style keywords
+        (`stroke=`, `stroke_width=`) paint the window and connectors;
+        `connector={"stroke_dash": (1, 0.6)}` styles the connectors alone.
         """
         from .inset import inset as _inset
 
@@ -1914,6 +1916,72 @@ class Panel:
         clip = _clip_flag(style)
         node, _, _ = _dendrogram(self, tree, labels=labels, orient=orient,
                                  threshold=threshold, colors=colors, **style)
+        return self.draw(node, clip=clip)
+
+    # -- clustered matrices (plot/cluster.py, plot/correlogram.py) -----------
+
+    def clusters(self, groups: Sequence, *, color: str | None = None, highlight=None,
+                 highlight_color: str | None = None, width: float | str | None = None,
+                 labels: bool = False, size: float | str | None = None,
+                 min_size: int = 1, **style) -> "Panel":
+        """Boxes on the diagonal of a matrix, one per cluster.
+
+        `groups` is one cluster label per matrix row, in the order the rows
+        are drawn (top first), so each cluster is a run of equal labels;
+        `inklet.plot.cut(link, k)` numbered in leaf order gives exactly that
+        once the matrix is reordered by the dendrogram:
+
+            link = inklet.plot.linkage(r, metric="precomputed")
+            order = inklet.plot.dendrogram_layout(link).order
+            groups = [inklet.plot.cut(link, 4)[i] for i in order]
+            p.matrix([[r[i][j] for j in order] for i in order]).clusters(groups, highlight=2)
+
+        Boxes span whole cells of an n x n matrix filling the plot area,
+        drawn `width` mm thick (default the theme's thick stroke) in `color`
+        (ink); `highlight=` clusters are drawn over the others in
+        `highlight_color` (red). `labels=True` names each cluster outside
+        the matrix on the right, level with its box. Runs shorter than `min_size` rows get no box,
+        and a `None` label is never boxed. Other keywords style the boxes.
+        The node carries a `clusters` note with each box's row span.
+        """
+        from .cluster import clusters as _clusters
+
+        node, _ = _clusters(self, groups, color=color, highlight=highlight,
+                            highlight_color=highlight_color, width=width, labels=labels,
+                            size=size, min_size=min_size, **style)
+        return self.over(node, clip=False)
+
+    def correlogram(self, r, names: Sequence[str] | None = None, *,
+                    triangle: str = "lower", shape: str = "circle", ramp=None,
+                    values=False, labels: bool = True,
+                    size: float | str | None = None, **style) -> "Panel":
+        """A correlation matrix as a triangle of glyphs sized and coloured by r.
+
+        `r` is a square matrix of correlations (`inklet.plot.correlation`
+        computes one); `names` label its rows. Each glyph's area is
+        proportional to |r| (a full cell less a margin at |r| = 1) and its
+        colour is r on the diverging ramp from -1 (blue) to 1 (red), so
+        `colorbar()` afterwards shows the fixed -1..1 scale.
+
+            p = inklet.panel(40, 40)
+            p.correlogram(inklet.plot.correlation(table), genes).colorbar(label="r")
+
+        `triangle="lower"` (default) or `"upper"` draws each pair once and
+        leaves out the diagonal; `"full"` draws everything. `shape` is
+        "circle", "square" or "tile" (whole cells, the classic heatmap).
+        `values=True` or a format such as `"{:.1f}"` writes r in each glyph.
+        Names go outside the grid, left and below (above for "upper"),
+        turned when they do not fit a column. Missing values (None or NaN)
+        are left empty. The node carries a `correlogram` note.
+        """
+        from .correlogram import correlogram as _correlogram
+
+        clip = _clip_flag(style)
+        node, note = _correlogram(self, r, names, triangle=triangle, shape=shape,
+                                  ramp=ramp, values=values, labels=labels, size=size,
+                                  **style)
+        self._ramp = note["ramp"]
+        self._scale_domain = note["scale"]
         return self.draw(node, clip=clip)
 
     # -- hierarchies (plot/hierarchy_plots.py) ------------------------------
