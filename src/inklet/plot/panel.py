@@ -130,6 +130,9 @@ class Panel:
     #: The area scale the last `dotplot` sized its circles with, for
     #: `size_key()`.
     _sizes: object | None = field(default=None, repr=False, compare=False)
+    #: The width scale the last `network` drew its edges with, for
+    #: `width_key()`.
+    _widths: object | None = field(default=None, repr=False, compare=False)
     #: `(name, estimate, colour)` per curve `kaplan_meier` drew, for
     #: `at_risk()`.
     _survival: list = field(default_factory=list, repr=False, compare=False)
@@ -2017,6 +2020,117 @@ class Panel:
                             labels=labels, center=center, sort=sort, size=size,
                             **style)
         return self.draw(node, clip=clip)
+
+    # -- networks (plot/network.py, plot/chord.py) ---------------------------
+
+    def network(self, nodes, edges, *, layout: str = "circular", order=None,
+                sizes=None, top: float | None = None,
+                diameter: float | str | None = None, floor: float | str | None = None,
+                shape: str = "circle", shapes=None, groups=None, colors=None,
+                color: str | None = None, labels="auto", size: float | str | None = None,
+                weights=None, width: float | str | None = None,
+                width_floor: float | str | None = None, edge_color: str | None = None,
+                edge_colors=None, bend: float | None = None, arrows: bool = False,
+                opacity: float = 0.85, gap: float | str | None = None,
+                iterations: int = 300, **style) -> "Panel":
+        """A weighted network: node area from a value, edge width from a
+        weight, colours from categories, fitted into the plot area.
+
+        `nodes` is a list of names, or a mapping of name to value. `edges`
+        are `(source, target)`, `(source, target, weight)` or
+        `(source, target, weight, category)` rows.
+
+            p = inklet.panel(50, 50)
+            p.network({"102": 36, "79": 12, "81": 9},
+                      [("102", "79", 5e4, "dimorphic"), ("81", "102", 900, "isomorphic")],
+                      shape="square", groups={"102": "enriched"}, arrows=True)
+            p.width_key(title="synapses").legend(side="bottom")
+
+        `layout="circular"` (default) puts the nodes on one ring, in input
+        order or `order=`, starting at twelve o'clock, and bows every edge
+        towards the centre by `bend` times its length (default 0.25).
+        `"force"`, `"layered"` and `"tree"` take their positions from the
+        solvers `inklet.graph` uses (`gap=` and `iterations=` pass through),
+        stretched to fill the area, with straight edges unless `bend` is
+        given. Two opposite directed edges bow to opposite sides.
+
+        Node values (or `sizes=`, a mapping or one per node) set the area of
+        each node: `top` is drawn `diameter` mm across (default: the largest
+        value, 4 mm) and nothing is smaller than `floor` (1.2 mm). `shape` is
+        "circle" or "square" (rounded), per node with `shapes=`. `groups=`
+        maps nodes to categories coloured from the palette and named in
+        `legend()`; `colors=` maps node or group names to colours, and
+        `color` is the fill of ungrouped nodes. `labels="auto"` writes a name
+        inside its node when it fits and outside (away from the centre)
+        otherwise; "inside", "outside" or False force the choice.
+
+        Edge widths are proportional to weight: the heaviest edge is `width`
+        mm (default 1.6), and nothing is thinner than `width_floor` (a
+        hairline); pass `weights=inklet.plot.width_scale(top, width)` to share
+        a scale between panels. Edge categories are coloured from the palette
+        (after the node groups) or by `edge_colors=` and named in `legend()`.
+        Lighter edges are drawn first. `arrows=True` puts a head on each edge
+        at its target. Other keywords style the edges. `width_key()` and
+        `size_key()` explain the widths and areas actually used. The node
+        carries a `network` note with positions, diameters and the number of
+        edges drawn at the width floor.
+        """
+        from .network import network as _network
+        from .series import SeriesKey
+
+        clip = _clip_flag(style)
+        node, note = _network(self, nodes, edges, layout=layout, order=order,
+                              sizes=sizes, top=top, diameter=diameter, floor=floor,
+                              shape=shape, shapes=shapes, groups=groups, colors=colors,
+                              color=color, labels=labels, size=size, weights=weights,
+                              width=width, width_floor=width_floor,
+                              edge_color=edge_color, edge_colors=edge_colors, bend=bend,
+                              arrows=arrows, opacity=opacity, gap=gap,
+                              iterations=iterations, **style)
+        self._widths = note["widths"]
+        if note["sizes"] is not None:
+            self._sizes = note["sizes"]
+        for name, fill, kind in note["node_keys"]:
+            self._keys.append(SeriesKey(name=name, forms=frozenset(("marker",)),
+                                        color=fill, marker=kind))
+        for name, ink in note["edge_keys"]:
+            self._note(name, "line", color=ink, width=active_theme().thick)
+        return self.draw(node, clip=clip)
+
+    def width_key(self, source=None, *, side: str = "right", corner: str | None = None,
+                  values: Sequence[float] | None = None, count: int = 3, format=None,
+                  title: str | None = None, color: str | None = None,
+                  length: float | str | None = None, pad: float | str | None = None,
+                  plate: bool = False) -> "Panel":
+        """Reference lines with their weights: the key to an edge-width
+        encoding.
+
+        Built from the `WidthScale` the last `network`, `chord` or
+        `arc_diagram` call used, or `source=` (`inklet.plot.width_scale`).
+        Placed like `size_key`: outside on `side`, or inside a `corner` of
+        the plot area. `values`, `count` and `format` choose and write the
+        reference weights, `length` is the line length in mm and `color`
+        its ink.
+        """
+        from .network import width_key as _width_key
+
+        scale = getattr(self, "_widths", None) if source is None else source
+        if scale is None:
+            raise DiagramError(
+                "width_key() has no widths to explain: call network() first, or "
+                "pass source= an inklet.plot.width_scale")
+        node = as_drawn(_width_key(scale, values=values, count=count, format=format,
+                                   title=title, color=color, length=length))
+        theme = active_theme()
+        gap = theme.gap("xs") if pad is None else mm(pad)
+        if plate:
+            node = _plated(node, theme, theme.gap("xs"))
+        if corner is None:
+            placed = self._beside(node, side, gap)
+        else:
+            placed = _into_corner(node, self.area, corner, gap)
+        self._over.append(placed)
+        return self._touched()
 
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
                 labels: Sequence[str] | None = None, top: int = 10,
