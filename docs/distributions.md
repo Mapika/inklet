@@ -239,6 +239,56 @@ doc.save('raincloud.svg', 'raincloud.pdf')
 *Rendered from the code above. The treated group has a second mode near 6,
 which the half violin and the points show and the box does not.*
 
+## Survival curves
+
+`kaplan_meier` draws Kaplan–Meier survival curves. Pass a mapping of group
+name to `(durations, events)`, where `events` is true for an observed event
+and false for a censored subject. Each curve is a step line from 1 at time 0
+to the last observed time. A short vertical tick marks each censoring time.
+
+The estimate is the product-limit estimate with Greenwood's variance. The
+shaded band is a 95% log-log confidence interval, which stays between 0 and 1.
+`band='linear'` gives the plain Greenwood interval, and `band=None` leaves the
+band out. `inklet.plot.kaplan_meier(durations, events)` returns the estimate
+without drawing it: times, survival, numbers at risk, variance, band and
+median.
+
+`at_risk()` adds the number-at-risk table below everything already drawn, so
+call it after `axes()`. Each column sits under an x tick, and each row is
+set in its curve's colour. Inklet does not run a log-rank test. To annotate a
+p-value computed elsewhere, pass `pvalue=`.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(7)
+
+def arm(rate, n=60):
+    durations, events = [], []
+    for _ in range(n):
+        event, dropout = rng.expovariate(rate), rng.uniform(6, 60)
+        durations.append(round(min(event, dropout, 36), 1))
+        events.append(event <= min(dropout, 36))
+    return durations, events
+
+p = i.panel(62, 38, x=(0, 36), y=(0, 1))
+p.kaplan_meier({'Control': arm(1 / 14), 'Treated': arm(1 / 30)},
+               colors=['#262626', '#24698c'], pvalue=0.003)
+p.axes(x='Time / months', y='Survival probability',
+       x_options={'ticks': [0, 6, 12, 18, 24, 30, 36]})
+p.legend(corner='ne')
+p.at_risk(ticks=[0, 6, 12, 18, 24, 30, 36])
+fig = i.figure(width=90)
+fig.add(p.build())
+fig.save('survival.svg', 'survival.pdf')
+```
+
+![Survival curves: Kaplan–Meier curves for two groups with confidence bands, censor ticks and a number-at-risk table.](assets/guides/plots-survival.png)
+
+*Rendered from the code above with simulated follow-up of 60 subjects per
+group. The p-value is illustrative and was not computed from these data.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

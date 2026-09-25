@@ -9,6 +9,17 @@
   after the call. Results are unchanged when nothing is drawn after.
 - `PolarPanel.breakout` turns a pie drawn before or after other content,
   drawing that content again under the turned angles.
+- Add `Panel.dotplot` for dot-plot matrices on band scales: circle area
+  encodes one value, colour another with the `matrix` default ramps, and
+  missing values draw nothing. It lines up with `dendrogram` and takes a
+  `colorbar`. Add `Panel.size_key`, a key of circle areas for a dot plot or
+  for a `scatter` sized with the new `inklet.plot.area_scale`.
+- Add `Panel.kaplan_meier` for survival curves: steps, censor ticks and
+  log-log (or linear) Greenwood bands, with an optional supplied p-value.
+  Add `Panel.at_risk` for a number-at-risk table under the x axis, and the
+  estimator `inklet.plot.kaplan_meier`, which returns a `SurvivalEstimate`.
+- Add guide sections to `matrices.md` and `distributions.md`, catalog
+  entries and `examples/dotplot_survival.py`.
 
 ## 4.1.0 — 2026-09-25
 

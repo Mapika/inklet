@@ -43,9 +43,9 @@ extra:
   plot_families:
     Lines and points: Ordered series, steps and scatter, with paired-value dumbbells, lollipops, labelled points and volcano plots.
     Bars and areas: Grouped, stacked and horizontal bars with value labels, and areas between curves.
-    Distributions: Histograms, boxplots, violins, swarms, cumulative distributions, ridgelines and rainclouds.
+    Distributions: Histograms, boxplots, violins, swarms, cumulative distributions, ridgelines, rainclouds and survival curves.
     Uncertainty: Supplied bounds as bands and error bars.
-    Matrices: Heatmaps with a colour key, and dendrograms that order the rows.
+    Matrices: Heatmaps and dot plots with colour and size keys, and dendrograms that order the rows.
     Polar: Angle and radius, from polar curves and roses to radar charts, pies, donuts and breakout bars.
   # Pages built and searchable but left out of the sidebar. Each one belongs
   # to a section: the sidebar opens that section and search reports it. Every

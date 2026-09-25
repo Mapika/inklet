@@ -56,6 +56,9 @@ _BAND_TINT = 0.78
 
 _ERROR_STYLES = ("band", "bars")
 
+#: A censor tick on a survival curve, as a fraction of the type size.
+_CENSOR_TICK_OF_TYPE = 0.4
+
 #: How far past the plot area a node may reach and still count as inside it.
 #: A micrometre: smaller than any printer, larger than the float error in
 #: mapping a datum that sits exactly on the end of the domain.
@@ -124,6 +127,12 @@ class Panel:
     #: that holds each call's place in `_over`. Placed at build time so the
     #: labels avoid marks drawn after the call too.
     _deferred: dict = field(default_factory=dict, repr=False, compare=False)
+    #: The area scale the last `dotplot` sized its circles with, for
+    #: `size_key()`.
+    _sizes: object | None = field(default=None, repr=False, compare=False)
+    #: `(name, estimate, colour)` per curve `kaplan_meier` drew, for
+    #: `at_risk()`.
+    _survival: list = field(default_factory=list, repr=False, compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -1998,6 +2007,199 @@ class Panel:
             last.notes["volcano"] = note
         return self
 
+    def dotplot(self, sizes: Sequence[Sequence[float]], colors=None, *,
+                x: Sequence | None = None, y: Sequence | None = None,
+                top: float | None = None, diameter: float | str | None = None,
+                ramp=None, scale: Scale | None = None,
+                center: float | None = None, color: str | None = None,
+                **style) -> "Panel":
+        """A dot plot: a circle per cell, its area one value, its colour another.
+
+        `sizes` is row-major like `matrix`: `sizes[r][c]` is drawn at the
+        `r`th y category and the `c`th x category, both band scales (or
+        `x=` and `y=` naming a position per column and row). A circle's area
+        is proportional to its value; `top` is the value drawn at the full
+        `diameter` (defaults: the largest value, and 0.9 of the smaller band
+        step). `colors`, the same shape, colours each circle through the
+        default matrix ramps, or `ramp=`, `scale=` and `center=` exactly as
+        `matrix` takes them; without it every circle is `color` (default: a
+        grey). A cell whose size or colour is missing (None or NaN) draws
+        nothing, and so does a size of 0.
+
+            p = inklet.panel(40, 30, x=genes, y=clusters)
+            p.dotplot(fraction, mean_expression)
+            p.axis("bottom", rotate=90).axis("left")
+            p.colorbar(label="mean expression").size_key(title="fraction")
+
+        On the same band categories as a `dendrogram`, the circles line up
+        with its leaves. `size_key()` and `colorbar()` afterwards explain the
+        circles from the very area scale and ramp used. Other keywords style
+        the circles (default: an ink hairline outline). The node carries a
+        `dotplot` note with the top value, the full diameter and the missing
+        and empty cells.
+        """
+        from .dotplot import dotplot as _dotplot
+
+        clip = _clip_flag(style)
+        node, note = _dotplot(self, sizes, colors, x=x, y=y, top=top,
+                              diameter=diameter, ramp=ramp, scale=scale,
+                              center=center, color=color, **style)
+        self._sizes = note["sizes"]
+        if note["ramp"] is not None:
+            self._ramp = note["ramp"]
+            self._scale_domain = note["scale"]
+        return self.draw(node, clip=clip)
+
+    def size_key(self, source=None, *, side: str = "right",
+                 corner: str | None = None, values: Sequence[float] | None = None,
+                 count: int = 3, format=None, title: str | None = None,
+                 orient: str | None = None, pad: float | str | None = None,
+                 plate: bool = False, **style) -> "Panel":
+        """Reference circles with their values: the key to a size encoding.
+
+        Built from the `AreaScale` the last `dotplot` used, or `source=` for
+        a scatter sized by hand:
+
+            sizes = inklet.plot.area_scale(500, 3)
+            p.scatter(points, size=[sizes(v) for v in counts])
+            p.size_key(sizes, title="cells")
+
+        `side` and `corner` place it as `colorbar` places a bar: outside the
+        panel, clear of the furniture already there, or inside a corner of
+        the plot area (`plate=True` knocks out what it covers). `values`,
+        `count` and `format` choose and write the reference values. `orient`
+        is "v" (a column; default on the left and right) or "h" (a row;
+        default on the top and bottom). Other keywords go to
+        `inklet.plot.size_key`.
+        """
+        from .dotplot import size_key as _size_key
+
+        sizes = self._sizes if source is None else source
+        if sizes is None:
+            raise DiagramError(
+                "size_key() has no sizes to explain: call dotplot() first, or "
+                "pass source= an inklet.plot.area_scale")
+        if orient is None:
+            orient = "h" if side in ("top", "bottom") and corner is None else "v"
+        node = as_drawn(_size_key(sizes, values=values, count=count, format=format,
+                                  title=title, orient=orient, **style))
+        theme = active_theme()
+        gap = theme.gap("s") if pad is None else mm(pad)
+        if corner is None and pad is None:
+            gap = theme.gap("xs")
+        if plate:
+            node = _plated(node, theme, theme.gap("xs"))
+        if corner is None:
+            placed = self._beside(node, side, gap)
+        elif corner == "auto":
+            from ..layout.clear_space import place_in_clear_space
+            placed = place_in_clear_space(node, within=self.area,
+                                          avoid=(*self._content, *self._over), pad=gap)
+        else:
+            placed = _into_corner(node, self.area, corner, gap)
+        self._over.append(placed)
+        return self._touched()
+
+    def kaplan_meier(self, data, *, confidence: float = 0.95,
+                     band: str | None = "log-log", shade: bool = True,
+                     censors: bool = True, colors=None,
+                     pvalue: float | str | None = None,
+                     pvalue_corner: str = "sw", **style) -> "Panel":
+        """Kaplan-Meier survival curves, with censor ticks and confidence bands.
+
+        `data` is a mapping of group name to `(durations, events)`, or one
+        `(durations, events)` pair; `events` flags an observed event (truthy)
+        or a censored subject (falsy), and may be None when every event was
+        observed. A group may also be a `SurvivalEstimate` computed already.
+        The names go to `legend()` and to `at_risk()`.
+
+            p = inklet.panel(60, 40, x=(0, 36), y=(0, 1))
+            p.kaplan_meier({"placebo": (t0, e0), "drug": (t1, e1)}, pvalue=0.004)
+            p.axes(x="time / months", y="survival")
+            p.at_risk()
+
+        Each curve is a post step from 1 at time 0 to the last observed
+        time, with a short vertical tick at every censoring time
+        (`censors=False` leaves them out). `band` is the confidence band:
+        `"log-log"` (default), `"linear"` or None, at `confidence`;
+        `shade=False` computes it without drawing it. `colors=` sets one
+        colour per group (default: the ink for one group, the theme palette
+        for several). Other keywords style the curves.
+
+        There is no significance test: `pvalue=` writes a p-value computed
+        elsewhere, as "P = 0.004" with an italic P, in `pvalue_corner` of the
+        plot area. `inklet.plot.kaplan_meier` returns the estimate without
+        drawing. The last curve carries a `kaplan_meier` note with each
+        group's name, median survival and number of subjects.
+        """
+        from .survival import (band_edges, censor_ticks, curve_points,
+                               estimates, pvalue_text)
+
+        if isinstance(self.x, Band) or isinstance(self.y, Band):
+            raise DiagramError("kaplan_meier needs continuous x and y scales")
+        clip = _clip_flag(style)
+        groups = estimates(data, confidence=confidence, band=band)
+        theme = active_theme()
+        if colors is None:
+            inks = ((theme.ink,) if len(groups) == 1
+                    else tuple(theme.color(i) for i in range(len(groups))))
+        else:
+            inks = _marks.series_colors(colors, len(groups))
+        tick = _CENSOR_TICK_OF_TYPE * theme.font_size
+        drawn: list[Diagram] = []
+        for (name, estimate), ink in zip(groups, inks):
+            if shade and estimate.band is not None:
+                xs, lo, hi = band_edges(estimate)
+                if len(xs) >= 2:
+                    self.band(xs, lo, hi, name=name, color=ink, clip=clip)
+            self.step(curve_points(estimate), where="post", name=name,
+                      **{"stroke": ink, **style, "clip": clip})
+            drawn.append(self._content[-1])
+            if censors and estimate.censored:
+                width = style.get("stroke_width", theme.stroke)
+                self.draw(*censor_ticks(self, estimate, tick, stroke=ink,
+                                        stroke_width=width), clip=clip)
+            self._survival.append((name, estimate, ink))
+        if pvalue is not None:
+            label = as_drawn(pvalue_text(pvalue, theme.font_size_small))
+            self._over.append(_into_corner(label, self.area, pvalue_corner,
+                                           theme.gap("s")))
+        drawn[-1].notes["kaplan_meier"] = {
+            "groups": [name for name, _ in groups],
+            "medians": [estimate.median for _, estimate in groups],
+            "subjects": [len(estimate.durations) for _, estimate in groups],
+            "band": band, "confidence": confidence}
+        return self._touched()
+
+    def at_risk(self, *, ticks: Sequence | None = None, count: int = 5,
+                title: str | None = "Number at risk",
+                font_size: float | str | None = None,
+                pad: float | str | None = None, **kwargs) -> "Panel":
+        """The number-at-risk table under the x axis of a `kaplan_meier` plot.
+
+        Call it after `axes()`: like an outside legend it goes below
+        everything already built. One column per x tick, centred under it
+        (the ticks the axis draws, or `ticks=` and `count=` as `axis` takes
+        them), and one row per curve, named on the left and set in the
+        curve's colour (darkened where needed so the numbers read). The
+        number at a time is the subjects whose follow-up reaches it.
+        `title` goes above the rows; None leaves it out. The node carries an
+        `at_risk` note with the times and the counts.
+        """
+        from .survival import at_risk_table
+
+        if not self._survival:
+            raise DiagramError("at_risk() has no curves: call kaplan_meier() first")
+        theme = active_theme()
+        node, _ = at_risk_table(self, self._survival, ticks=ticks, count=count,
+                                title=title, font_size=font_size,
+                                readable=lambda c: _readable(c, theme.paper),
+                                **kwargs)
+        node = as_drawn(node)
+        box = _union_box(self._under + self._content + self._over) or self.area
+        gap = theme.gap("s") if pad is None else mm(pad)
+        self._over.append(node.translated(0.0, box.y1 + gap - node.bbox.y0))
+        return self._touched()
 
 def _volcano_triple(given, what: str) -> dict:
     """`colors=` or `names=` of `Panel.volcano` as a mapping by class."""

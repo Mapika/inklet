@@ -726,5 +726,19 @@
     "object": "doc",
     "image": "matrix-default-ramps.png",
     "alt": "Two heatmaps: magma for one-sided values, blue-white-red for values across zero"
+  },
+  {
+    "page": "matrices.md",
+    "block": 6,
+    "object": "fig",
+    "image": "plots-dotplot.png",
+    "alt": "Dot plots"
+  },
+  {
+    "page": "distributions.md",
+    "block": 8,
+    "object": "fig",
+    "image": "plots-survival.png",
+    "alt": "Survival curves"
   }
 ]

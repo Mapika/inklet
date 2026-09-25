@@ -44,6 +44,8 @@ These were checked and are not gaps:
 | 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Done: `Panel.dendrogram` |
 | 11 | UpSet plots | Matrix of dots plus bars, by hand | Done: `inklet.upset` |
 | 12 | Volcano plot helper | `scatter`, `hline`, `vline` and now `label_points` | Done: `Panel.volcano` |
+| 13 | Dot-plot matrix with a size key | `scatter` per row plus a hand-drawn key | Done: `Panel.dotplot`, `Panel.size_key` |
+| 14 | Kaplan-Meier curves with a number-at-risk table | Estimate by hand, `step`, `band` and `text` per cell | Done: `Panel.kaplan_meier`, `Panel.at_risk` |
 
 ## Implemented behaviour
 
@@ -153,6 +155,26 @@ a round tick, with at most as many ticks as fit without thinning. The
 narrow set-size axis ends at the largest set instead when the round tick
 would be more than 1.25 times that set. With value
 labels, the default column pitch widens to fit the widest label.
+
+**Dot plot.** Circle area is proportional to the size value: the diameter is
+`diameter * sqrt(v / top)`, with `top` the largest size and `diameter` 0.9 of
+the smaller band step by default. Colours use the `matrix` default ramps
+(sequential, or diverging when the values straddle `center`). A missing size
+or colour draws nothing; a size of 0 draws nothing and is listed as `empty`
+in the `dotplot` note. `size_key` reads the panel's last `dotplot`, or an
+`AreaScale` from `inklet.plot.area_scale` for a sized `scatter`; its default
+values are round ticks up to `top`. The key is placed like `colorbar`, beyond
+the ink already drawn.
+
+**Kaplan-Meier.** The product-limit estimate with Greenwood's variance; the
+default band is log-log (`S ** exp(±z se / log S)`), `band="linear"` clips
+`S ± z sd` to [0, 1]. A subject censored at an event time is at risk at that
+time. Where the estimate reaches 0 the variance and band are undefined and
+the band stops. The estimator matches R `survfit` and `scipy.stats.ecdf`.
+There is no log-rank test: `pvalue=` only formats and places a supplied
+value. `at_risk` counts subjects with duration at or after each x tick and
+draws one row per curve below everything drawn so far, with names in the
+curve colours; call it after `axes`.
 
 ## Layout limits found by the dense figure
 

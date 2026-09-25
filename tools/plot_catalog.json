@@ -455,5 +455,37 @@
     "requires": "Core only",
     "source": "polar-plots.md",
     "block": 5
+  },
+  {
+    "title": "Dot plots",
+    "description": "Circles on a category grid: area for one value, colour for another, with a size key.",
+    "category": "Matrices",
+    "page": "matrices/#dot-plots",
+    "image": "assets/guides/plots-dotplot.png",
+    "methods": [
+      "Panel.dotplot",
+      "Panel.size_key",
+      "Panel.colorbar",
+      "Panel.dendrogram"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 6
+  },
+  {
+    "title": "Survival curves",
+    "description": "Kaplan–Meier curves with censor ticks, confidence bands and a number-at-risk table.",
+    "category": "Distributions",
+    "page": "distributions/#survival-curves",
+    "image": "assets/guides/plots-survival.png",
+    "methods": [
+      "Panel.kaplan_meier",
+      "Panel.at_risk"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 8
   }
 ]

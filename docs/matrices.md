@@ -253,6 +253,60 @@ fig.save('dendrogram.svg', 'dendrogram.pdf')
 gives two coloured groups. The Gfap and Aqp4 merge, at 2.11, is above the
 threshold and is drawn in the ink.*
 
+## Dot plots
+
+`dotplot` draws one circle per cell, with two values per cell. The circle's
+area shows one value, such as the fraction of cells that express a gene. Its
+colour shows another, such as the mean expression. Both axes are band scales,
+and `sizes[r][c]` is drawn at the `r`th y category and the `c`th x category.
+Colours use the default matrix ramps, or `ramp=`, `scale=` and `center=` as
+`matrix` takes them. A cell whose value is `None` or NaN draws nothing.
+
+The largest value gets a circle 0.9 of the band step across by default. Set
+`top=` for the value drawn at full size and `diameter=` for its width. Area is
+proportional to value, so a circle for half of `top` has half the area.
+`colorbar()` explains the colours, and `size_key()` draws reference circles
+with their values. `inklet.plot.area_scale(top, diameter)` gives the same
+size mapping for a scatter: size the points with it and pass it to
+`size_key(source)`.
+
+A dendrogram on the same band categories lines up with the rows, as it does
+with a heatmap.
+
+```python
+import inklet as i
+import random
+
+genes = ['Cd3e', 'Cd4', 'Cd8a', 'Nkg7', 'Gzmb', 'Ms4a1', 'Cd79a', 'Lyz2', 'Csf1r']
+markers = {'CD4 T': {'Cd3e', 'Cd4'}, 'CD8 T': {'Cd3e', 'Cd8a', 'Gzmb'},
+           'NK': {'Nkg7', 'Gzmb'}, 'B': {'Ms4a1', 'Cd79a'},
+           'Mono': {'Lyz2', 'Csf1r'}, 'DC': {'Lyz2', 'Cd4'}}
+tree = ((('CD4 T', 'CD8 T'), 'NK'), ('B', ('Mono', 'DC')))
+order = list(i.plot.dendrogram_layout(tree).leaves)
+rng = random.Random(3)
+fraction = [[rng.uniform(.6, .95) if g in markers[c] else rng.uniform(0, .25)
+             for g in genes] for c in order]
+mean = [[rng.uniform(1.6, 3) if g in markers[c] else rng.uniform(0, .8)
+         for g in genes] for c in order]
+
+dots = i.panel(38, 26, x=genes, y=order)
+dots.dotplot(fraction, mean)
+dots.axis('bottom', rotate=90, spine=False).axis('right', spine=False)
+dots.colorbar(label='Mean expression', length=14)
+dots.size_key(title='Fraction', format='{:.0%}')
+side = i.panel(9, 26, x=(3, 0), y=order)
+side.dendrogram(tree, orient='h')
+fig = i.figure(width=90)
+fig.add(i.row([side, dots], gap=1))
+fig.save('dotplot.svg', 'dotplot.pdf')
+```
+
+![Dot plots: marker-gene fractions and mean expression per cluster, with a cluster dendrogram.](assets/guides/plots-dotplot.png)
+
+*Illustrative values. Each cluster has two or three marker genes with a high
+fraction and a high mean. The cluster tree is a nested sequence, so its merge
+heights are levels rather than distances.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),
