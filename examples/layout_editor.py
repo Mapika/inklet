@@ -2,7 +2,7 @@
 import argparse
 import threading
 from composition_recipes import make_reports
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 
 
 def main():

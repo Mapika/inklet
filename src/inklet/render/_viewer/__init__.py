@@ -1,4 +1,8 @@
-"""Offline execution of a native compiled scene with bounded GPU marker layers."""
+"""Offline execution of a native compiled scene with bounded GPU marker layers.
+
+Private: `RenderScene.to_html` and the linked browser's compiled renderer use
+this module and its JavaScript assets.
+"""
 import base64
 import html
 import json
@@ -8,7 +12,7 @@ import re
 
 from ...core import EllipsePrim, RectPrim, PathPrim
 from ...themes.color import parse_color
-from ...render.svg import _render_svg
+from ..svg import _render_svg
 
 
 def _simple_polygon(points):

@@ -21,7 +21,7 @@ def main():
     scene=i.compile_scene(figure.build()[0])
     page=scene.to_html(title=f'{args.count:,} simulated observations')
     if args.runtime:
-        import inklet.experimental.scene_viewer as viewer
+        import inklet.render._viewer as viewer
         current=(Path(viewer.__file__).parent/'runtime.js').read_text()
         assert page.count(current)==1
         page=page.replace(current,args.runtime.read_text())

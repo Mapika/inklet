@@ -5,7 +5,7 @@ import math
 from pathlib import Path
 import random
 
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 from inklet.experimental.browser import BrowserScatter, ScatterView
 
 

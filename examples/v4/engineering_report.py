@@ -7,7 +7,7 @@ import inklet as i
 from inklet.core import group
 from inklet.experimental.browser import BrowserFigure, DrawingItem, DrawingView, RevisionOption, SeriesView
 from inklet.experimental.engineering import BoxAssembly
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 FIXTURE=Path(__file__).with_name('fixtures')/'assembly.json'
 COLORS=dict(base='#dbe6e3',support='#8eb9ad',sensor='#85aaca')

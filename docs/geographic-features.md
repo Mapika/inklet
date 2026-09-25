@@ -25,7 +25,7 @@ This example needs only core Inklet:
 
 ```python
 from inklet.experimental.browser import BrowserFigure, GeoFeatures, MapView, BarView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 geo = GeoFeatures.from_geojson({
     'type': 'FeatureCollection',

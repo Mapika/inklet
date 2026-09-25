@@ -11,7 +11,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT/'src'), str(ROOT/'examples')]
 import inklet
-from inklet.experimental.project import FigureProject
+from inklet.project import FigureProject
 import project_workflow as recipe
 
 

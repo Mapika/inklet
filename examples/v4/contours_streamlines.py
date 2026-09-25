@@ -8,7 +8,7 @@ import inklet as i
 from inklet.experimental.grid import GridField
 from inklet.experimental.browser import (BrowserFigure, DrawingItem, DrawingView,
     GridFieldView, RevisionOption, ScatterView)
-from inklet.experimental.selection import SelectionState
+from inklet.selection import SelectionState
 
 REVISIONS=('original','reversed','masked','updated')
 CREDIT=('Simulated nodal scalar and XY vector fields by Mark Marosi · MIT. '

@@ -20,6 +20,20 @@
   `sections`, `slabs`, `regions`, `channels`, `contours`, `measurements` and
   `tiff` paths still work, return the same objects and do not warn. Report
   schema strings are unchanged. `import inklet` does not import the package.
+- Move the interaction core out of `inklet.experimental`: `inklet.selection`
+  (`KeyedTable`, `SelectionState`, `RebasedSelection`), `inklet.project`
+  (`Asset`, `AssetManifest`, `EntityMap`, `FigureProject`,
+  `ExportDriftWarning`) and `inklet.editor` (`LayoutEditor`). The compiled
+  scene viewer runtime moves to the private `inklet.render._viewer`.
+- The old `inklet.experimental.selection`, `.temporal`, `._table_adapters`,
+  `.project`, `.layout_editor` and `.scene_viewer` paths still work and
+  return the same objects, without a warning. Saved schemas are unchanged.
+- `FigureProject.open` now reopens a project whose reconstructed SVG differs
+  from the saved digest, emits `ExportDriftWarning` and records the result in
+  `project.open_report`. Pass `verify_export='strict'` for the previous
+  `ValueError`.
+- The layout editor's HTTP/JSON protocol and `snapshot()` payload are
+  documented as private; the class and saved layout overrides are the contract.
 
 ## 4.2.0 — 2026-09-25
 

@@ -4,8 +4,8 @@ import argparse
 import json
 
 import inklet as i
-from inklet.experimental.project import AssetManifest, EntityMap, FigureProject
-from inklet.experimental.selection import KeyedTable
+from inklet.project import AssetManifest, EntityMap, FigureProject
+from inklet.selection import KeyedTable
 from inklet.experimental.measurement import LabelImage
 from inklet.experimental.browser import BrowserFigure, ScatterView, DrawingView, DrawingItem, LabelImageView
 

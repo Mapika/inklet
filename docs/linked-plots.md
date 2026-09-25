@@ -68,7 +68,7 @@ the page's scroll position when keyboard focus moves to the plot.
 
 ```python
 from pathlib import Path
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 from inklet.experimental.browser import BrowserFigure, LineView, BarView
 
 table = KeyedTable("trial", {

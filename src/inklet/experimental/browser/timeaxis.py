@@ -5,7 +5,7 @@ from collections.abc import Mapping, Set
 
 from ...plot.timescale import Time, time_ticks, to_time
 from ...plot.scale import linear
-from ..temporal import time_value, time_seconds, time_milliseconds
+from ...selection._temporal import time_value, time_seconds, time_milliseconds
 
 _EPOCH = datetime(1970, 1, 1)
 

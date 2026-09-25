@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 import inklet as i
 from inklet.experimental.project import FigureProject
+from inklet.project import ExportDriftWarning
 
 spec=importlib.util.spec_from_file_location('project_recipe',Path(__file__).resolve().parents[1]/'examples/project_workflow.py')
 recipe=importlib.util.module_from_spec(spec);spec.loader.exec_module(recipe)
@@ -76,7 +77,39 @@ def test_wrong_recipe_is_detected_after_reconstruction(tmp_path):
     bundle=project.save(tmp_path/'bundle',asset_root=root)
     def wrong(root):
         result=recipe.recipe(root);result.configure(width=190);return result
-    with pytest.raises(ValueError,match='reconstructed figure differs'):FigureProject.open(bundle,wrong)
+    with pytest.raises(ValueError,match='reconstructed figure differs'):
+        FigureProject.open(bundle,wrong,verify_export='strict')
+
+
+def test_export_drift_reopens_with_a_warning_and_a_recorded_report(tmp_path):
+    root=recipe.write_inputs(tmp_path/'inputs');project=recipe.project(root)
+    project.editor.command('edit',{'path':'/diagram/a','placement':{'x':8}})
+    bundle=project.save(tmp_path/'bundle',asset_root=root)
+    def wrong(root):
+        result=recipe.recipe(root);result.configure(width=190);return result
+    with pytest.warns(ExportDriftWarning,match='reconstructed figure differs'):
+        reopened=FigureProject.open(bundle,wrong)
+    report=reopened.open_report
+    assert report['verify_export'] is True and report['export_drift'] is True
+    assert report['saved_svg_sha256']!=report['svg_sha256']
+    assert reopened.editor.overrides()==project.editor.overrides()
+    assert issubclass(ExportDriftWarning,UserWarning)
+
+
+def test_matching_and_unchecked_exports_are_recorded_without_warnings(tmp_path):
+    import warnings
+    root=recipe.write_inputs(tmp_path/'inputs');project=recipe.project(root)
+    assert project.open_report is None
+    bundle=project.save(tmp_path/'bundle',asset_root=root)
+    with warnings.catch_warnings():
+        warnings.simplefilter('error',ExportDriftWarning)
+        for mode in (True,'strict'):
+            report=FigureProject.open(bundle,recipe.recipe,verify_export=mode).open_report
+            assert report['export_drift'] is False and report['svg_sha256']==report['saved_svg_sha256']
+        report=FigureProject.open(bundle,recipe.recipe,verify_export=False).open_report
+    assert report['export_drift'] is None and report['svg_sha256'] is None
+    with pytest.raises(ValueError,match='verify_export'):
+        FigureProject.open(bundle,recipe.recipe,verify_export='warn')
 
 
 def test_joined_browser_picking_keyboard_selection_and_export(tmp_path):

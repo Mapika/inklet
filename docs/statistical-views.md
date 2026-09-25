@@ -21,7 +21,7 @@ Mark Marosi. The supplied ranges are illustrative, **not confidence intervals**.
 
 ```python
 from inklet.experimental.browser import BrowserFigure, ECDFView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable("observations", {
     "id": ["a", "b", "c", "d"],
@@ -61,7 +61,7 @@ them. Domains and reference populations stay fixed during page pan/zoom.
 
 ```python
 from inklet.experimental.browser import BrowserFigure, IntervalView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable("estimates", {
     "id": ["batch-1", "batch-2"],

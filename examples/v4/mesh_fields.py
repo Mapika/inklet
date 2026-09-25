@@ -8,7 +8,7 @@ import inklet as i
 from inklet.experimental.fields import MeshField
 from inklet.experimental.browser import (BrowserFigure, DrawingItem, DrawingView,
     MeshFieldView, RevisionOption, ScatterView)
-from inklet.experimental.selection import SelectionState
+from inklet.selection import SelectionState
 
 REVISIONS=('original','deformed','updated','removed')
 CREDIT=('Simulated triangular surface and supplied face fields by Mark Marosi · MIT. '

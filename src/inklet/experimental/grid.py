@@ -7,7 +7,7 @@ import math
 import re
 
 from .fields import _finite
-from .selection import KeyedTable
+from ..selection import KeyedTable
 
 
 def _array(value, name):

@@ -81,7 +81,7 @@ and hit boxes are **panel-local millimetres**, with X rightward and Y downward.
 ```python
 import inklet as i
 from inklet.experimental.browser import BrowserFigure, DrawingItem, DrawingView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 
 def draw_sensor(table, width, height):

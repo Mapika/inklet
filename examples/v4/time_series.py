@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from inklet.experimental.browser import BarView, BrowserFigure, LineView, RevisionOption, TimeAxis
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 CREDIT = ('Original simulated daily batches by Mark Marosi · MIT material. '
           'All counts and durations are invented. Collection times use explicit '
@@ -34,7 +34,7 @@ def make_table(*, revised=False, backend='native'):
                                       time_columns={'day':'date','collected':'utc'})
     if backend != 'native':
         raise ValueError('backend must be native, pandas or polars')
-    from inklet.experimental.temporal import time_value
+    from inklet.selection._temporal import time_value
     for column,mode in (('day','date'),('collected','utc')):
         columns[column] = [time_value(value,mode) for value in columns[column]]
     return KeyedTable('daily-batches',columns)

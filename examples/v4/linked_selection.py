@@ -13,7 +13,7 @@ from pathlib import Path
 import sys
 
 import inklet as i
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 HERE = Path(__file__).resolve().parent
 FILTERS = ('All regions', 'North', 'South', 'No regions')

@@ -23,7 +23,7 @@ sys.path[:0]=[str(ROOT/'src'),str(ROOT/'examples/v4'),str(ROOT/'tools')]
 from benchmark_project import check_budgets
 import inklet
 from inklet.experimental.browser import BrowserFigure, ScatterView
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 import regional_report, engineering_report, scientific_report
 
 CASES=('regional','engineering','scientific','dense-scatter')

@@ -6,7 +6,7 @@ from pathlib import Path
 from inklet.experimental.browser import (
     BarView, BrowserFigure, FacetView, LineView, RevisionOption,
 )
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 REGIONS = ('North', 'South', 'West')
