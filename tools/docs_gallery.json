@@ -116,7 +116,7 @@
     "description": "Real TIFF channels, persistent label IDs, measurements, region selection and reusable CSV tables.",
     "requires": "volume + render extras",
     "image": "gallery/label-intensities.png",
-    "version": "Experimental",
+    "version": "Stable",
     "page": "label-intensities/",
     "featured": true
   },
@@ -127,7 +127,7 @@
     "description": "Calibrated HeLa sections, annotated organelle surfaces and measurements from COSEM data.",
     "requires": "Blender + volume + render",
     "image": "gallery/real-biology.png",
-    "version": "Experimental",
+    "version": "Stable",
     "page": "real-biology/",
     "featured": false
   },

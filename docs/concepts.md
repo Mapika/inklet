@@ -136,7 +136,7 @@ identify editable marks and labels. Keep those names attached to the same
 meaning when replacing inputs. A displayed caption or a row's current position
 is not a durable identity.
 
-The experimental [figure project](project-workflows.md) connects local row,
+A [figure project](project-workflows.md) (`inklet.project`) connects local row,
 drawing and image/mesh IDs through explicit entity mappings. Its asset manifest
 records the files and provenance needed to reconstruct a study. Saved choices
 supplement your Python recipe; they do not serialize arbitrary Python code.

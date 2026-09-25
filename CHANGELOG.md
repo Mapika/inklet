@@ -2,39 +2,44 @@
 
 ## Unreleased
 
-- Add the released 4.2.0 API inventory (`tests/fixtures/compatibility/api-4.2.json`):
-  top-level `__all__` plus every public `inklet.experimental` module.
-  `tools/check_compatibility.py` now checks against both 3.1 and 4.2,
-  namespaces keys as `module:Name`, reports per-baseline results under
-  `baselines`, and gains `--capture PATH`; `--baseline` is repeatable.
-- Tests: released experimental names keep importing from their old paths
-  with unchanged call shapes; moved objects must be the same object at
-  their new home; `import inklet` stays free of numpy, pandas, polars, PIL,
-  scikit-image, SciPy, tifffile and `inklet.volume`; stable namespaces
-  define `__all__`.
-- The microscopy APIs move from `inklet.experimental` to the stable
-  `inklet.volume` package: `Volume`, `Slice`, `Plane`, `SampledSection`,
-  `reslice`, `Slab`, `SlabProjection`, `project_slab`, `BoxRegion`, `Channel`,
+4.3 moves microscopy volumes, keyed selections, figure projects and the layout
+editor out of `inklet.experimental` into stable packages. Nothing is removed.
+See the [migration notes](docs/migration.md#from-42-to-43).
+
+### Graduated APIs
+
+- `inklet.volume`: `Volume`, `Slice`, `Plane`, `SampledSection`, `reslice`,
+  `Slab`, `SlabProjection`, `project_slab`, `BoxRegion`, `Channel`,
   `Composite`, `LabelContour`, `LabelMeasurements`, `measure_labels`,
-  `TiffImage` and `read_tiff`. The old `inklet.experimental.volume`,
-  `sections`, `slabs`, `regions`, `channels`, `contours`, `measurements` and
-  `tiff` paths still work, return the same objects and do not warn. Report
-  schema strings are unchanged. `import inklet` does not import the package.
-- Move the interaction core out of `inklet.experimental`: `inklet.selection`
-  (`KeyedTable`, `SelectionState`, `RebasedSelection`), `inklet.project`
-  (`Asset`, `AssetManifest`, `EntityMap`, `FigureProject`,
-  `ExportDriftWarning`) and `inklet.editor` (`LayoutEditor`). The compiled
-  scene viewer runtime moves to the private `inklet.render._viewer`.
-- The old `inklet.experimental.selection`, `.temporal`, `._table_adapters`,
-  `.project`, `.layout_editor` and `.scene_viewer` paths still work and
-  return the same objects, without a warning. Saved schemas are unchanged.
-- `FigureProject.open` now reopens a project whose reconstructed SVG differs
-  from the saved digest, emits `ExportDriftWarning` and records the result in
-  `project.open_report`. Pass `verify_export='strict'` for the previous
-  `ValueError`.
-- The layout editor's HTTP/JSON protocol and `snapshot()` payload are
-  documented as private; the class and saved layout overrides are the contract.
-- Add `Panel.embedding(outline=)`: `"line"` draws a thin outline in each
+  `TiffImage` and `read_tiff`, from `inklet.experimental.volume`, `sections`,
+  `slabs`, `regions`, `channels`, `contours`, `measurements` and `tiff`.
+  `import inklet` does not import the package.
+- `inklet.selection` (`KeyedTable`, `SelectionState`, `RebasedSelection`),
+  from `inklet.experimental.selection`.
+- `inklet.project` (`Asset`, `AssetManifest`, `EntityMap`, `FigureProject`,
+  `ExportDriftWarning`), from `inklet.experimental.project`.
+- `inklet.editor` (`LayoutEditor`), from `inklet.experimental.layout_editor`.
+  The HTTP/JSON protocol and `snapshot()` payload are private; the class and
+  saved layout overrides are the contract.
+- The compiled scene viewer runtime moves to the private
+  `inklet.render._viewer`; `RenderScene.to_html()` is the entry point.
+- The old `inklet.experimental` paths (including `.temporal` and
+  `._table_adapters`) still work, return the same objects and do not warn.
+  A `DeprecationWarning` is planned for 4.4; removal no earlier than 5.0.
+  Saved-file schema identifiers are unchanged.
+- Still experimental: `browser`, `fields`, `grid`, `engineering`,
+  `measurement`, `figure_planner` and `planner_geometry`.
+
+### Changed behaviour
+
+- `FigureProject.open(verify_export=True)` now reopens a project whose
+  reconstructed SVG differs from the saved digest, emits
+  `ExportDriftWarning` and records the result in `project.open_report`.
+  Pass `verify_export='strict'` for the previous `ValueError`.
+
+### Added
+
+- `Panel.embedding(outline=)`: `"line"` draws a thin outline in each
   cluster's colour round its dense core, `"fill"` a light tint under the
   points. `outline_core` sets the share of points held (default 0.8); stray
   points do not enlarge the outline.
@@ -44,6 +49,31 @@
 - `PolarPanel.theta_axis` labels keep off a `breakout`'s connectors, bar and
   title: a label that touches one is nudged or dropped, and the `theta_axis`
   note (and `axis_labels` in the `pie_breakout` note) lists which.
+
+### Compatibility tooling
+
+- Add the released 4.2.0 API inventory
+  (`tests/fixtures/compatibility/api-4.2.json`): top-level `__all__` plus
+  every public `inklet.experimental` module. `tools/check_compatibility.py`
+  checks against both 3.1 and 4.2, namespaces keys as `module:Name`, reports
+  per-baseline results under `baselines`, and gains `--capture PATH`;
+  `--baseline` is repeatable.
+- Tests: old experimental paths keep importing with unchanged call shapes;
+  moved objects are the same object at their new home; `import inklet` stays
+  free of numpy, pandas, polars, PIL, scikit-image, SciPy, tifffile and
+  `inklet.volume`; stable namespaces define `__all__`.
+
+### Docs
+
+- The compatibility policy covers the four stable packages and states the
+  alias and deprecation plan; the experimental page lists what graduated.
+- New "Microscopy volumes" section for the volume guides and microscopy
+  examples; the layout editor, saved layouts and figure projects move under
+  "Export and review".
+- `docs/api.md` documents `inklet.volume`, `inklet.selection`,
+  `inklet.project` and `inklet.editor`.
+- Migration notes from 4.2 to 4.3 with an import table; installation and the
+  `volume` extra describe the stable `inklet.volume`.
 
 ## 4.2.0 — 2026-09-25
 

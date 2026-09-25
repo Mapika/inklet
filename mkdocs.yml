@@ -60,6 +60,12 @@ extra:
     3D and images:
       - scientific-scenes.md
       - open-anatomy.md
+    Microscopy volumes:
+      - real-biology.md
+      - oblique-biology.md
+      - slab-biology.md
+      - fluorescence-biology.md
+      - label-intensities.md
     Gallery:
       - general-plots.md
       - cohort-figure.md
@@ -85,16 +91,6 @@ extra:
       - scientific-report.md
       - mesh-fields.md
       - contours-streamlines.md
-      - oblique-sections.md
-      - slabs-and-regions.md
-      - channels-and-contours.md
-      - label-measurements.md
-      - microscopy-tiff.md
-      - real-biology.md
-      - oblique-biology.md
-      - slab-biology.md
-      - fluorescence-biology.md
-      - label-intensities.md
     Development:
       - history.md
       - development-preview.md
@@ -176,10 +172,21 @@ nav:
   - Vector paths in scenes: scene-paths.md
   - Scene templates: scene-templates.md
   - GPU rendering and jobs: render-jobs.md
+- Microscopy volumes:
+  - Overview: volumes.md
+  - Calibrated volumes: calibrated-volumes.md
+  - Oblique sections: oblique-sections.md
+  - Slabs and regions: slabs-and-regions.md
+  - Channels and contours: channels-and-contours.md
+  - Label measurements: label-measurements.md
+  - TIFF import: microscopy-tiff.md
 - Export and review:
   - Overview: export.md
   - Export, diagnostics and revisions: export-review.md
   - Figure viewer in HTML: compiled-viewer.md
+  - Local layout editor: layout-editor.md
+  - Save layout choices: layout-overrides.md
+  - Figure projects: project-workflows.md
 - Gallery:
   - Figure gallery: examples.md
   - Scientific figures: scientific-gallery.md
@@ -200,10 +207,6 @@ nav:
   - Category panels: linked-facets.md
   - Region maps: linked-maps.md
   - Replace source data: data-revisions.md
-  - Figure projects: project-workflows.md
-  - Save layout choices: layout-overrides.md
-  - Local layout editor: layout-editor.md
-  - Microscopy volumes: calibrated-volumes.md
   - Research preview: research-preview.md
 - Development:
   - Development notes: development.md
@@ -249,11 +252,6 @@ not_in_nav: |
   /scientific-report.md
   /mesh-fields.md
   /contours-streamlines.md
-  /oblique-sections.md
-  /slabs-and-regions.md
-  /channels-and-contours.md
-  /label-measurements.md
-  /microscopy-tiff.md
   /real-biology.md
   /oblique-biology.md
   /slab-biology.md

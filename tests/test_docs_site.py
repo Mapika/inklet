@@ -98,7 +98,10 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert {'plot-types/','axes-and-scales/','dense-data/'}.issubset(locations)
     assert not any(row['location']=='dense-data/#dense-data' for row in search['docs'])
     for location,section in [('axes-and-scales/','Plots'),('api/','Reference'),
-                             ('calibrated-volumes/','Experimental'),
+                             ('calibrated-volumes/','Microscopy volumes'),
+                             ('real-biology/','Microscopy volumes'),
+                             ('project-workflows/','Export and review'),
+                             ('layout-editor/','Export and review'),
                              ('visual-editing/','Experimental'),
                              ('history/','Development'),('recipes/helix/','Gallery')]:
         rows=[row for row in search['docs'] if row['location'].split('#')[0]==location]

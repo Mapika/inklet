@@ -27,7 +27,8 @@ a compiled export preserves.
 | Add images, meshes or Blender scenes | [3D and images](three-d.md) |
 | Check a figure and save SVG, PDF and PNG | [Export and review](export.md) |
 | See complete figures with source | [Figure gallery](examples.md) |
-| Build an offline interactive report or use microscopy volumes | [Experimental features](experimental.md) |
+| Plot calibrated microscopy volumes, sections and label measurements | [Microscopy volumes](volumes.md) |
+| Build an offline interactive report | [Experimental features](experimental.md) |
 
 ## Reference
 

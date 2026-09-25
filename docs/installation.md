@@ -31,9 +31,10 @@ python -m pip install "inklet==4.2.0"
 python -m pip install "inklet[render,pandas,polars]==4.2.0"
 ```
 
-An unpinned install selects stable 4.2.0. APIs under `inklet.experimental`
-remain opt-in and their schemas may change; retain an exact package pin and
-source recipe for archived projects. See [what is included in 4.0](development-preview.md)
+An unpinned install selects stable 4.2.0. From 4.3, `inklet.volume`,
+`inklet.selection`, `inklet.project` and `inklet.editor` are stable; APIs still
+under `inklet.experimental` remain opt-in and their schemas may change; retain
+an exact package pin and source recipe for archived projects. See [what is included in 4.0](development-preview.md)
 and [migration from 3.1](migration.md#from-31-to-40).
 
 ## Optional features
@@ -42,17 +43,20 @@ and [migration from 3.1](migration.md#from-31-to-40).
 |---|---|
 | `python -m pip install 'inklet[render]'` | Browser-free PNG, masks and raster layers |
 | `python -m pip install 'inklet[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
-| `python -m pip install 'inklet[volume]'` | Experimental calibrated microscopy, TIFF import and label measurements |
+| `python -m pip install 'inklet[volume]'` | NumPy, scikit-image, SciPy, Pillow and tifffile for `inklet.volume`: calibrated microscopy, TIFF import and label measurements |
 | `python -m pip install 'inklet[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
-| `python -m pip install 'inklet[pandas]'` | pandas adapter for experimental linked tables |
-| `python -m pip install 'inklet[polars]'` | Polars adapter for experimental linked tables |
+| `python -m pip install 'inklet[pandas]'` | pandas input for `inklet.selection.KeyedTable` |
+| `python -m pip install 'inklet[polars]'` | Polars input for `inklet.selection.KeyedTable` |
 
 Extras can be combined: `python -m pip install 'inklet[render,images,three]'`.
 The built-in 3D renderer works without the `three` extra or Blender. Optional
 cutout/tracing tools such as `rembg` and `potrace` are not included in `images`.
 
-The `volume` extra and APIs under `inklet.experimental` are opt-in research
-features. Their signatures and report schemas may change in future releases.
+`inklet.volume` (4.3 and later) is covered by the same
+[compatibility policy](compatibility.md#api-and-saved-file-policy) as top-level
+`inklet`; `import inklet` does not import it or its dependencies. APIs still
+under `inklet.experimental` are opt-in research features whose signatures and
+report schemas may change in future releases.
 
 ## From a checkout
 
@@ -86,7 +90,7 @@ Check the installed package with
 | `python -m pip install -e '.[render]'` | Browser-free PNG, masks and raster layers |
 | `python -m pip install -e '.[images]'` | Pillow and NumPy for image processing and numeric pass arrays |
 | `python -m pip install -e '.[three]'` | Trimesh and NumPy for additional mesh formats and optional repair |
-| `python -m pip install -e '.[volume]'` | Experimental calibrated microscopy, TIFF import and label measurements |
+| `python -m pip install -e '.[volume]'` | NumPy, scikit-image, SciPy, Pillow and tifffile for `inklet.volume`: calibrated microscopy, TIFF import and label measurements |
 | `python -m pip install -e '.[dev]'` | Pytest for development |
 | `python -m pip install -e '.[docs]'` | MkDocs for the searchable documentation site |
 

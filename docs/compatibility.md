@@ -29,15 +29,43 @@ wheel in an isolated environment.
 ## API and saved-file policy
 
 **4.0.0** released the supported scope below, frozen during RC1; 4.1.0 and 4.2.0 add
-plot types within it. The same acceptance, distribution and performance gates
-apply to later releases. Experimental namespaces retain their explicit opt-in status.
+plot types within it, and 4.3 moves four packages out of `inklet.experimental`.
+The same acceptance, distribution and performance gates apply to later releases.
 
 - The documented top-level `inklet` authoring/export API remains supported.
   Internal modules, names beginning with `_` and generated output bytes are not
   compatibility interfaces. Existing 3.1 recipes do not require a new API.
-- `inklet.experimental` remains opt-in, including selection, browser documents,
-  the local editor, measurements and figure projects. Keep an exact package pin
-  and source recipe for archived work. These APIs are not promoted by the stable package release.
+- From 4.3, the stable packages below are covered by the same policy as
+  top-level `inklet`. Their public names are those in each package's `__all__`,
+  listed in the [API reference](api.md#stable-subpackages). `import inklet`
+  does not import them; import each package you use.
+
+| Package | Contents | Earlier path |
+| --- | --- | --- |
+| `inklet.volume` | Calibrated volumes, sections, slabs, regions, channels, label contours and measurements, TIFF import | `inklet.experimental.volume`, `.sections`, `.slabs`, `.regions`, `.channels`, `.contours`, `.measurements`, `.tiff` |
+| `inklet.selection` | `KeyedTable`, `SelectionState`, `RebasedSelection` | `inklet.experimental.selection` |
+| `inklet.project` | `FigureProject`, `Asset`, `AssetManifest`, `EntityMap`, `ExportDriftWarning` | `inklet.experimental.project` (and `.assets`, `.identity`) |
+| `inklet.editor` | `LayoutEditor` and its saved layout overrides | `inklet.experimental.layout_editor` |
+
+- The earlier `inklet.experimental` paths stay as aliases through 4.x: they
+  return the same objects and do not warn in 4.3. A `DeprecationWarning` is
+  planned for 4.4, and they will not be removed before 5.0. The compiled scene
+  viewer runtime moved to the private `inklet.render._viewer`; use
+  `RenderScene.to_html()`. The layout editor's HTTP/JSON protocol and
+  `snapshot()` payload are private; the class and saved overrides are the contract.
+- The rest of `inklet.experimental` remains opt-in: browser documents
+  (`browser`), mesh and grid fields (`fields`, `grid`), engineering drawings
+  (`engineering`), image measurement (`measurement`) and the figure planner
+  (`figure_planner`, `planner_geometry`). Their signatures, report schemas and
+  saved formats may change; keep an exact package pin and source recipe for
+  archived work. See [experimental features](experimental.md).
+- `tools/check_compatibility.py` compares public call shapes with inventories
+  captured from the released 3.1.0 and 4.2.0 wheels. The 4.2 baseline includes
+  every public `inklet.experimental` module, so the aliases above are checked
+  too. It checks names, parameter kinds, positional order and required
+  arguments, not defaults or rendering.
+- Moving a package does not change its saved formats: schema identifiers such as
+  `inklet.selection/0.1` and `inklet.figure-project/0.1` are unchanged in 4.3.
 - Readers validate schema identifiers and reject unsupported versions. A future
   incompatible format needs a new schema identifier and migration guidance;
   changing the identifier by hand is not a migration.
@@ -75,7 +103,7 @@ See [migration](migration.md#from-31-to-40) for existing recipes and saved files
 | Raster images in PDF | Pillow, included in `render` and `images` |
 | Pass access with `value()` | Core package; no NumPy |
 | Pass arrays and `.npy` export | NumPy, included in `images` and `three` |
-| Experimental microscopy, TIFF and label tables | `volume` extra; APIs and schemas may change |
+| `inklet.volume`: microscopy, TIFF and label tables | `volume` extra (NumPy, SciPy, scikit-image, Pillow, tifffile) |
 | Additional mesh formats/repair | `three` extra |
 | `.blend` authoring/rendering | Separate Blender installation; `render` extra for figure exports |
 | Independent PDF preview | Poppler; optional with `compare_pdf=False` |
@@ -86,10 +114,11 @@ Blender. Scene creation and rendering run Blender in a separate process.
 
 ## Known boundaries
 
-### Experimental table adapters
+### Table adapters
 
-The [pandas and Polars adapters](table-inputs.md) are included in the experimental
-[4.0 release](development-preview.md); they were not part of 3.1.0. Their `pandas` and `polars` extras are separate
+The [pandas and Polars adapters](table-inputs.md) (`KeyedTable.from_pandas`,
+`from_polars`) arrived in the [4.0 release](development-preview.md) and are
+part of the stable `inklet.selection` from 4.3; they were not part of 3.1.0. Their `pandas` and `polars` extras are separate
 from core dependencies. The adapter CI jobs use Linux/Python 3.12 with pandas
 2.2.0 / Polars 1.0.0 and the versions pinned in `requirements-tables.txt`.
 Both paths check scalar/identity contracts and saved-state SVG reconstruction.

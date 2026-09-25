@@ -1,7 +1,7 @@
 ---
 layout: section
 title: Experimental features
-description: Opt-in APIs for interactive documents, layout editing, microscopy volumes and figure planning.
+description: Opt-in APIs for linked interactive documents, fields, engineering reports and figure planning.
 groups:
   - title: Interactive documents
     text: Offline HTML pages whose plots share selections, filters and saved views, reconstructable in Python.
@@ -68,83 +68,39 @@ groups:
         page: contours-streamlines.md
         image: assets/v4/contours-streamlines.png
         text: Scalar contours, streamlines and cell means linked to a scatter plot.
-  - title: Layout editing and projects
-    cards:
-      - title: Local layout editor
-        page: layout-editor.md
-        image: assets/guides/editor-studio.png
-        text: Move named objects, edit labels and styles, and set a camera, then review the recompiled figure.
-      - title: Save layout choices
-        page: layout-overrides.md
-        image: assets/guides/layout-restored.png
-        text: Store placement and size edits apart from the recipe and restore them after the data change.
-      - title: Figure projects
-        page: project-workflows.md
-        image: assets/guides/project-workflow.png
-        text: Keep input hashes, provenance, object IDs and editor choices together.
-  - title: Microscopy
-    text: Calibrated volumes keep voxel spacing and origin attached to image and segmentation arrays. Install the volume extra.
-    cards:
-      - title: Calibrated volumes
-        page: calibrated-volumes.md
-        image: assets/guides/calibrated-volumes-3.png
-        text: Crops, slices, scale bars, measured volumes and surfaces in physical coordinates.
-      - title: Oblique sections
-        page: oblique-sections.md
-        image: assets/guides/oblique-sections-2.png
-        text: Sample an arbitrarily oriented plane with its own scale bar and 3D outline.
-      - title: Slab projections and regions
-        page: slabs-and-regions.md
-        image: assets/guides/slabs-and-regions-1.png
-        text: Finite-thickness projections and one box region shared by every view.
-      - title: Channels and contours
-        page: channels-and-contours.md
-        image: assets/guides/channels-and-contours-1.png
-        text: Channel composites and exact vector contours of segmentation labels.
-  - title: Microscopy examples
-    text: Complete figures from public microscopy data.
-    cards:
-      - title: Real microscopy and organelles
-        page: real-biology.md
-        image: gallery/real-biology.png
-        text: FIB-SEM sections, organelle surfaces and volume charts from one HeLa crop.
-      - title: Shared oblique planes
-        page: oblique-biology.md
-        image: gallery/oblique-biology.png
-        text: Two physical planes shown in a 3D scene, as sections and as measurements.
-      - title: Linked slab regions
-        page: slab-biology.md
-        image: gallery/slab-biology.png
-        text: Slab projections and one region box across nine panels.
-      - title: Fluorescence channels
-        page: fluorescence-biology.md
-        image: gallery/fluorescence-biology.png
-        text: Two-channel fluorescence with composites, contours, profiles and areas.
-      - title: Labels to intensity plots
-        page: label-intensities.md
-        image: gallery/label-intensities.png
-        text: Segmentation labels, region zooms and per-label intensity statistics.
   - title: More previews
     cards:
       - title: Choose an interactive workflow
         page: interactive-documents.md
         text: Compare the viewer, the linked-plot documents and the editors, and what each one saves.
-      - title: Per-label intensities
-        page: label-measurements.md
-        text: measure_labels returns per-label intensity statistics from calibrated volumes.
-      - title: TIFF import
-        page: microscopy-tiff.md
-        text: Read microscopy TIFF files into calibrated Volume objects.
       - title: Research preview
         page: research-preview.md
         text: Choose scene views and label positions together, and keep an author's earlier choices during revision.
 ---
 # Experimental features
 
-These APIs are included in the stable package, mostly under
-`inklet.experimental`, but you opt in to each one. Their signatures, report
-schemas and saved-file formats may change between releases. See the
+These APIs are included in the stable package under `inklet.experimental`, but
+you opt in to each one. Their signatures, report schemas and saved-file formats
+may change between releases. See the
 [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
 before relying on a saved state format.
+
+Still experimental in 4.3: linked browser documents (`inklet.experimental.browser`),
+mesh and grid fields (`fields`, `grid`), engineering drawings (`engineering`),
+image measurement (`measurement`) and the figure planner (`figure_planner`,
+`planner_geometry`).
+
+Graduated in 4.3, and covered by the stable compatibility policy:
+
+| Now stable | Was | Guides |
+| --- | --- | --- |
+| `inklet.volume` | `inklet.experimental.volume`, `sections`, `slabs`, `regions`, `channels`, `contours`, `measurements`, `tiff` | [Microscopy volumes](volumes.md) |
+| `inklet.selection` | `inklet.experimental.selection` | [Live data and categories](data.md), [pandas and Polars inputs](table-inputs.md) |
+| `inklet.project` | `inklet.experimental.project` | [Figure projects](project-workflows.md) |
+| `inklet.editor` | `inklet.experimental.layout_editor` | [Local layout editor](layout-editor.md), [Save layout choices](layout-overrides.md) |
+
+The old paths still work and return the same objects; see
+[migration](migration.md#from-42-to-43). The compiled scene viewer runtime is
+now private; open it with `RenderScene.to_html()` ([figure viewer](compiled-viewer.md)).
 
 <!-- cards -->

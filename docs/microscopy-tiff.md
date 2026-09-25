@@ -67,7 +67,7 @@ require a separately installed codec package; decoder errors propagate.
 RGB photometric samples, unsupported axes, detected missing image pages, and
 OME references to other files are rejected. Multi-file OME acquisitions,
 pyramidal level selection, stage-position mapping and automatic metadata
-calibration are outside this preview. There is no missing-plane filling policy.
+calibration are not supported. There is no missing-plane filling policy.
 
 `image.channels` returns a fresh name-to-volume mapping. `image.report()` returns
 a fresh JSON-compatible record containing the file's basename and SHA-256,
