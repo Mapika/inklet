@@ -180,7 +180,7 @@ def barplot(panel, at: Sequence, data, *, estimator: str = "mean",
                     dots.append((_marks._point(orient, mid + offset, along),
                                  make_marker("circle", drawn, fill=ink,
                                              stroke=theme.paper,
-                                             stroke_width=theme.hairline * 0.8)))
+                                             stroke_width=theme.hairline)))
             if down > 0 or up > 0:
                 a, b = value.map(centre - down), value.map(centre + up)
                 reach = span * 0.22 if cap is None else mm(cap)

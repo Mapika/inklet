@@ -90,7 +90,7 @@ def mosaic(panel, at: Sequence, values, *, color=None, gap: float | str = 0.6,
              else _marks.series_colors(color, count))
     space = mm(gap)
     stroke = style.pop("stroke", theme.paper)
-    stroke_width = style.pop("stroke_width", theme.hairline * 2)
+    stroke_width = style.pop("stroke_width", theme.stroke)
     cells, written = [], []
     for column in columns:
         if column.total <= 0:

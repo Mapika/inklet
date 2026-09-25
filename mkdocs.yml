@@ -146,6 +146,7 @@ nav:
   - Uncertainty: uncertainty.md
   - Matrices and dendrograms: matrices.md
   - Polar, radar and pie: polar-plots.md
+  - Timelines and calendars: timelines-and-calendars.md
   - Axes, scales and text: axes-and-scales.md
   - Live data and categories: data.md
   - Dense data: dense-data.md

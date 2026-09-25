@@ -1,5 +1,40 @@
 # Changelog
 
+## Unreleased
+
+### Categorical, composition, comparison and time plots
+
+Each plot has its own module under `inklet.plot`, a `Panel` method,
+Nature-style defaults and a node note for diagnostics. Guides are in
+[bars and areas](docs/bars-and-areas.md), [lines and points](docs/lines-and-points.md)
+and the new [timelines and calendars](docs/timelines-and-calendars.md) page.
+
+- `Panel.waterfall`: signed changes floating from a running total, with
+  totals, dashed connectors and `+45` / `−38` labels (`waterfall_steps`).
+- `Panel.barplot`: bars of the mean or median, error bars (`sem`, `sd`,
+  `ci95`, `iqr` or a function) and every observation swarmed inside its bar,
+  grouped when given several series (`summary_stats`).
+- `Panel.diverging_bars` and `Panel.pyramid`: two quantities per category
+  back to back, stacked outward, with dashed reference lines and side titles;
+  `inklet.plot.unsigned` formats the axis as magnitudes.
+- `Panel.likert`: diverging stacked bars centred on the neutral response
+  (`likert_spans`, `likert_colors`).
+- `Panel.mosaic` (Marimekko, `mosaic_layout`) and `Panel.waffle`
+  (largest-remainder `waffle_cells`).
+- `Panel.streamgraph`: wiggle, silhouette, zero and expand offsets with
+  inside-out ordering (`stream_layers`).
+- `Panel.slope` and `Panel.bump`: end labels spread so they never overlap,
+  `highlight=` to grey the other series, and rank tables (`ranks`).
+- `Panel.stem`: stems from a baseline for sampled signals.
+- `Panel.parallel`: parallel coordinates with an axis per variable
+  (`parallel_ranges`).
+- `Panel.bullet`: a measure, a target and grey qualitative ranges.
+- `Panel.gantt` and `Panel.timeline`: tasks and milestones on a date axis,
+  and events staggered so their labels stay apart.
+- `Panel.calendar`: a calendar heatmap with a square per day, explained by
+  `colorbar()` (`calendar_weeks`).
+- `examples/categorical_plot_types.py` draws all of them on one page.
+
 ## 4.3.0 — 2026-09-25
 
 4.3 moves microscopy volumes, keyed selections, figure projects and the layout

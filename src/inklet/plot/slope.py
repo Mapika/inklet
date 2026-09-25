@@ -231,7 +231,7 @@ def bump(panel, values, *, at=None, ranked: bool = False, labels: str = "both",
     number_size = max(pt(5.5), 0.6 * dot)
     if numbers and size is None:
         dot = max(dot, 1.45 * number_size)
-    width = style.pop("stroke_width", theme.thick * 1.6)
+    width = style.pop("stroke_width", theme.thick)
     grey = mix(theme.ink, theme.paper, _BACKGROUND_TINT)
     order = sorted(range(len(series)),
                    key=lambda s: (highlight is not None and colors[s] != grey, s))

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime as dt
 import math
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -386,3 +387,14 @@ def test_errors_are_diagram_errors() -> None:
         p.likert(["a"], [[1, -2, 3]])
     with pytest.raises(DiagramError):
         p.gantt([("a", 1)])
+
+
+def test_the_example_page_lints_without_errors_or_warnings(tmp_path) -> None:
+    root = Path(__file__).parents[1]
+    (tmp_path/"examples").mkdir()
+    result = subprocess.run(
+        [sys.executable, str(root/"examples/categorical_plot_types.py")],
+        cwd=tmp_path, capture_output=True, text=True, check=True,
+        env={**os.environ, "PYTHONPATH": str(root/"src")})
+    assert "ERROR" not in result.stdout and "WARNING" not in result.stdout
+    assert (tmp_path/"examples/categorical_plot_types.svg").exists()

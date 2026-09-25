@@ -543,5 +543,229 @@
     "requires": "Core only",
     "source": "distributions.md",
     "block": 10
+  },
+  {
+    "title": "Waterfalls",
+    "description": "Signed changes floating from a running total, with totals.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#waterfalls",
+    "image": "assets/guides/plots-waterfall.png",
+    "methods": [
+      "Panel.waterfall"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 10
+  },
+  {
+    "title": "Bars with points",
+    "description": "Mean bars, error bars and every observation in one call.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#bars-with-points-and-error-bars",
+    "image": "assets/guides/plots-barplot.png",
+    "methods": [
+      "Panel.barplot"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 11
+  },
+  {
+    "title": "Diverging bars",
+    "description": "Two quantities per category back to back, with dashed reference lines.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#diverging-bars",
+    "image": "assets/guides/plots-diverging-bars.png",
+    "methods": [
+      "Panel.diverging_bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 12
+  },
+  {
+    "title": "Population pyramid",
+    "description": "Age groups with one population to each side of zero.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#population-pyramids",
+    "image": "assets/guides/plots-pyramid.png",
+    "methods": [
+      "Panel.pyramid"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 13
+  },
+  {
+    "title": "Likert scale",
+    "description": "Diverging stacked bars centred on the neutral response.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#likert-scales",
+    "image": "assets/guides/plots-likert.png",
+    "methods": [
+      "Panel.likert"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 14
+  },
+  {
+    "title": "Mosaic plot",
+    "description": "Columns as wide as their totals, cells as tall as their shares.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#mosaic-plots",
+    "image": "assets/guides/plots-mosaic.png",
+    "methods": [
+      "Panel.mosaic"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 15
+  },
+  {
+    "title": "Waffle chart",
+    "description": "Shares of a whole as whole cells of a grid.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#waffle-charts",
+    "image": "assets/guides/plots-waffle.png",
+    "methods": [
+      "Panel.waffle"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 16
+  },
+  {
+    "title": "Streamgraph",
+    "description": "Stacked areas around a moving baseline.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#streamgraphs",
+    "image": "assets/guides/plots-streamgraph.png",
+    "methods": [
+      "Panel.streamgraph"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 17
+  },
+  {
+    "title": "Bullet chart",
+    "description": "A measure against a target and grey qualitative ranges.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#bullet-charts",
+    "image": "assets/guides/plots-bullet.png",
+    "methods": [
+      "Panel.bullet"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 18
+  },
+  {
+    "title": "Slope chart",
+    "description": "Values at two positions joined, with spread end labels.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#slope-charts",
+    "image": "assets/guides/plots-slope.png",
+    "methods": [
+      "Panel.slope"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 10
+  },
+  {
+    "title": "Bump chart",
+    "description": "Ranks over time joined by smooth curves.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#bump-charts",
+    "image": "assets/guides/plots-bump.png",
+    "methods": [
+      "Panel.bump"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 11
+  },
+  {
+    "title": "Stem plot",
+    "description": "Stems from a baseline to each sample of a signal.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#stem-plots",
+    "image": "assets/guides/plots-stem.png",
+    "methods": [
+      "Panel.stem"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 12
+  },
+  {
+    "title": "Parallel coordinates",
+    "description": "An axis per variable and a line per record.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#parallel-coordinates",
+    "image": "assets/guides/plots-parallel.png",
+    "methods": [
+      "Panel.parallel"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 13
+  },
+  {
+    "title": "Gantt chart",
+    "description": "Tasks as bars from start to end, with milestones.",
+    "category": "Time",
+    "page": "timelines-and-calendars/#gantt-charts",
+    "image": "assets/guides/plots-gantt.png",
+    "methods": [
+      "Panel.gantt"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "timelines-and-calendars.md",
+    "block": 1
+  },
+  {
+    "title": "Event timeline",
+    "description": "Labelled events staggered off a date axis.",
+    "category": "Time",
+    "page": "timelines-and-calendars/#event-timelines",
+    "image": "assets/guides/plots-timeline.png",
+    "methods": [
+      "Panel.timeline"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "timelines-and-calendars.md",
+    "block": 2
+  },
+  {
+    "title": "Calendar heatmap",
+    "description": "A square per day, a column per week.",
+    "category": "Time",
+    "page": "timelines-and-calendars/#calendar-heatmaps",
+    "image": "assets/guides/plots-calendar.png",
+    "methods": [
+      "Panel.calendar"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "timelines-and-calendars.md",
+    "block": 3
   }
 ]

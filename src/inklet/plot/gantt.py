@@ -116,8 +116,10 @@ def timeline(panel, events: Sequence[Sequence], *, at: float | None = None,
     area = panel.area
     base = area.center.y if at is None else panel.y.map(at)
     xs = [panel.x.map(when) for when, _ in items]
-    nodes = [label_text(text) for _, text in items]
     gap = theme.gap("xs")
+    # A haloed label: where a longer stem has to pass one nearer the line,
+    # the stem stops at the letters instead of striking through them.
+    nodes = [label_text(text, halo=theme.stroke * 2.4) for _, text in items]
     pitch = max(n.bbox.height for n in nodes) + gap * 1.5
     first = pitch * 0.9
     chosen = list(levels) if levels is not None else _levels(xs, nodes, gap)

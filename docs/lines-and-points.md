@@ -308,6 +308,108 @@ doc.save('embedding.svg', 'embedding.pdf')
 *Simulated data. The points are one marker batch; `raster=True` embeds them
 as an image instead.*
 
+## Slope charts
+
+A slope chart joins each series' value at two (or a few) positions with a
+line, and names the series at the ends with its value. `highlight=` keeps the
+named series in colour and greys the rest. End labels are spread apart so
+that they never overlap.
+
+```python
+import inklet as i
+
+shares = {'Denmark': [42, 61], 'Spain': [30, 28], 'Italy': [33, 35],
+          'France': [45, 52], 'Poland': [25, 41]}
+p = i.plot_spec(x=['2015', '2025'], y=(20, 70), height=45, width=26)
+p.slope(shares, format='{:.0f}%', highlight=['Denmark', 'Poland'])
+p.axis('top', spine=False, tick_size=0)
+doc = i.document(width=70)
+doc.add('slope', p)
+doc.save('slope.svg', 'slope.pdf')
+```
+
+![Slope chart: renewable share in five countries in 2015 and 2025, with Denmark and Poland highlighted.](assets/guides/plots-slope.png)
+
+*Illustrative shares. The labels are placed outside the plot area.*
+
+## Bump charts
+
+A bump chart follows each series' rank over time. `bump` ranks the values at
+each position (largest first) and joins the ranks with smooth S-curves; give
+`ranked=True` if the values already are ranks. Use a y scale that runs from
+the lowest rank at the bottom to rank 1 at the top. `numbers=True` writes the
+rank in each dot.
+
+```python
+import inklet as i
+
+points = {'Lyon': [3, 5, 8, 9], 'Nice': [8, 6, 5, 3], 'Lens': [5, 9, 7, 8],
+          'Metz': [9, 3, 2, 1], 'Brest': [1, 2, 4, 6]}
+p = i.plot_spec(x=['2021', '2022', '2023', '2024'], y=(5.5, .5), height=34, width=50)
+p.bump(points, numbers=True)
+p.axis('top', spine=False, tick_size=0)
+doc = i.document(width=80)
+doc.add('bump', p)
+doc.save('bump.svg', 'bump.pdf')
+```
+
+![Bump chart: the ranks of five teams across four seasons.](assets/guides/plots-bump.png)
+
+*Illustrative scores. `inklet.plot.ranks` returns the rank table.*
+
+## Stem plots
+
+A stem plot draws a stem from a baseline to a dot at each sample, for a
+sampled signal on a continuous scale. For one value per category, use
+`lollipop`.
+
+```python
+import inklet as i
+import math
+
+response = [(n, math.exp(-n / 8) * math.cos(n / 2)) for n in range(32)]
+p = i.plot_spec(x=(-1, 32), y=(-.8, 1.1), height=34)
+p.stem(response)
+p.axes(x='Sample n', y='h[n]')
+doc = i.document(width=80)
+doc.add('stem', p)
+doc.save('stem.svg', 'stem.pdf')
+```
+
+![Stem plot: a decaying oscillating impulse response over 32 samples.](assets/guides/plots-stem.png)
+
+*A damped cosine. `rule=False` leaves out the baseline across the panel.*
+
+## Parallel coordinates
+
+Parallel coordinates give each variable its own vertical axis and draw each
+record as a line across them. Each axis is scaled to its variable's range.
+`groups=` colours the records by group.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(3)
+records, species = [], []
+for s, (length, scale) in enumerate([(5, 1.0), (6.5, 1.4), (8, 1.9)]):
+    for _ in range(12):
+        l = length + rng.gauss(0, .5)
+        records.append([l, l * .45 + rng.gauss(0, .3), 2 + s + rng.gauss(0, .4),
+                        scale * l * 10 + rng.gauss(0, 8)])
+        species.append(['setosa', 'versicolor', 'virginica'][s])
+p = i.plot_spec(x=['Length', 'Width', 'Depth', 'Mass'], height=38, width=62)
+p.parallel(records, groups=species)
+p.legend(side='right')
+doc = i.document(width=90)
+doc.add('parallel', p)
+doc.save('parallel.svg', 'parallel.pdf')
+```
+
+![Parallel coordinates: 36 specimens of three species across four measurements.](assets/guides/plots-parallel.png)
+
+*Simulated measurements. A missing value breaks the record's line.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

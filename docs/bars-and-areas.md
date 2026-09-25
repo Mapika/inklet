@@ -274,6 +274,246 @@ doc.save('upset.svg', 'upset.pdf')
 *Illustrative gene counts. The two intersections smaller than 5 are
 dropped; the set sizes at the left still count them.*
 
+## Waterfalls
+
+A waterfall shows how a starting value becomes a final one through signed
+changes. Each change floats from the running total; increases and decreases
+take different colours. Name the positions in `totals=` that are totals: a
+total given `None` shows the running total, and a total given a number resets
+it. `labels=True` writes each change past the end of its bar.
+
+```python
+import inklet as i
+
+steps = ['2023', 'Sales', 'Services', 'Costs', 'Tax', '2024']
+p = i.plot_spec(x=steps, y=(0, 220), height=42)
+p.grid(x=False, count=4)
+p.waterfall(steps, [120, 45, 22, -38, -14, None], totals=['2023', '2024'],
+            labels=True, names=['increase', 'decrease', 'total'])
+p.axes(y='Revenue / k€').legend(side='top')
+doc = i.document(width=80)
+doc.add('waterfall', p)
+doc.save('waterfall.svg', 'waterfall.pdf')
+```
+
+![Waterfall: revenue from 2023 to 2024 through two gains and two losses, with dashed connectors between the bars.](assets/guides/plots-waterfall.png)
+
+*Illustrative figures. Dashed connectors carry the running total from bar
+to bar; `connectors=False` leaves them out.*
+
+## Bars with points and error bars
+
+`barplot` draws, in one call, a bar at the mean of each sample, an error bar
+and every observation as a dot swarmed inside its bar at its exact value.
+`error=` is `"sem"` (default), `"sd"`, `"ci95"`, `"iqr"`, `None` or a
+function of the sample. Several series are dodged within each category.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(4)
+def sample(mean, sd, n=8):
+    return [rng.gauss(mean, sd) for _ in range(n)]
+
+conditions = ['Vehicle', 'Drug']
+data = [[sample(5, 1.2), sample(8, 1.5)], [sample(6, 1.0), sample(11, 1.3)]]
+p = i.plot_spec(x=conditions, y=(0, 14), height=42)
+p.barplot(conditions, data, names=['WT', 'KO'])
+p.axes(y='Response / a.u.').legend(side='top')
+doc = i.document(width=50)
+doc.add('barplot', p)
+doc.save('barplot.svg', 'barplot.pdf')
+```
+
+![Bars with points: mean response per genotype and condition, SEM error bars and eight dots per bar.](assets/guides/plots-barplot.png)
+
+*Simulated data, n = 8 per bar. The node's `barplot` note holds each bar's
+mean, error extent and n.*
+
+## Diverging bars
+
+`diverging_bars` puts two quantities per category back to back: the left one
+runs from zero to the left, the right one to the right. Each side may be
+several series, stacked outward from zero. `reference=` adds a dashed line on
+each side, such as the mean over all categories, and `titles=` names the two
+sides. Format the axis with `inklet.plot.unsigned` so both sides read as
+positive.
+
+```python
+import inklet as i
+
+types = ['DN1', 'DN2', 'DN3', 'DN4', 'DN5', 'DN6']
+female = [[12, 8, 4, 20, 6, 3], [5, 6, 2, 4, 3, 1]]
+male = [[10, 9, 7, 14, 9, 4], [4, 7, 3, 8, 2, 2]]
+p = i.plot_spec(x=(-30, 30), y=types, height=45)
+p.diverging_bars(types, female, male, names=['Sex-specific', 'Dimorphic'],
+                 reference=(8.1, 10.4), titles=('Female', 'Male'))
+p.axis('bottom', format=i.plot.unsigned, label='Output / %')
+p.axis('left', spine=False, tick_size=0)
+p.legend(side='top')
+doc = i.document(width=70)
+doc.add('diverging-bars', p)
+doc.save('diverging-bars.svg', 'diverging-bars.pdf')
+```
+
+![Diverging bars: female output to the left and male output to the right of zero for six neuron types, with dashed mean lines on each side.](assets/guides/plots-diverging-bars.png)
+
+*Illustrative percentages. The dashed lines are the means over all types.*
+
+## Population pyramids
+
+`pyramid` is `diverging_bars` with touching bars: age groups on the band y
+scale, one group to each side.
+
+```python
+import inklet as i
+
+ages = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+']
+female = [5.1, 5.3, 6.0, 6.6, 6.9, 7.1, 6.2, 4.4, 2.9]
+male = [5.4, 5.6, 6.3, 6.9, 7.0, 6.9, 5.8, 3.7, 1.8]
+p = i.plot_spec(x=(-8, 8), y=ages, height=45)
+p.pyramid(ages, female, male, titles=('Female', 'Male'))
+p.axes(x='Population / %', x_options={'format': i.plot.unsigned})
+doc = i.document(width=60)
+doc.add('pyramid', p)
+doc.save('pyramid.svg', 'pyramid.pdf')
+```
+
+![Population pyramid: share of the population by age group, female to the left and male to the right.](assets/guides/plots-pyramid.png)
+
+*Illustrative population shares.*
+
+## Likert scales
+
+`likert` draws survey responses as diverging stacked bars centred on the
+neutral level: disagreement to the left of zero, agreement to the right. Each
+row is normalised to percentages. Levels are ordered from the most negative to
+the most positive; the default colours run from red through a grey neutral to
+blue.
+
+```python
+import inklet as i
+
+levels = ['Strongly disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly agree']
+questions = ['Would recommend', 'Reliable', 'Fast', 'Easy to use']
+counts = [[20, 25, 25, 20, 10], [3, 7, 15, 45, 30],
+          [12, 18, 30, 25, 15], [5, 10, 20, 40, 25]]
+p = i.plot_spec(x=(-100, 100), y=questions, height=30)
+p.likert(questions, counts, names=levels)
+p.axis('bottom', format=i.plot.unsigned, label='Responses / %')
+p.axis('left', spine=False, tick_size=0)
+p.legend(side='top', columns=3)
+doc = i.document(width=80)
+doc.add('likert', p)
+doc.save('likert.svg', 'likert.pdf')
+```
+
+![Likert scale: four survey questions with responses from strongly disagree to strongly agree, centred on the neutral level.](assets/guides/plots-likert.png)
+
+*Illustrative responses. `inklet.plot.likert_spans` returns the segments
+without drawing them.*
+
+## Mosaic plots
+
+A mosaic (Marimekko) plot is a stacked bar chart whose column widths are the
+category totals, so every cell's area is its value. Columns run across the x
+domain and each column's cells stack up the y domain as shares of it.
+
+```python
+import inklet as i
+
+regions = ['North', 'South', 'East', 'West']
+p = i.plot_spec(x=(0, 100), y=(0, 100), height=40)
+p.mosaic(regions, [[30, 12, 8, 20], [20, 30, 10, 5], [10, 8, 12, 15]],
+         names=['Type A', 'Type B', 'Type C'], labels=True)
+p.axis('left', format='{:.0f}%', label='Share of region')
+p.legend(side='right')
+doc = i.document(width=80)
+doc.add('mosaic', p)
+doc.save('mosaic.svg', 'mosaic.pdf')
+```
+
+![Mosaic plot: four regions as columns of different widths, each split into three types by share.](assets/guides/plots-mosaic.png)
+
+*Illustrative counts. A column's width is its share of the grand total.*
+
+## Waffle charts
+
+A waffle shows shares of a whole as whole cells of a grid, 100 by default,
+rounded so the counts add up. `total=` larger than the sum leaves the
+remaining cells empty.
+
+```python
+import inklet as i
+
+p = i.plot_spec(height=30, width=30)
+p.waffle([46, 31, 15, 8], names=['Neurons', 'Glia', 'Vascular', 'Other'])
+p.legend(side='right')
+doc = i.document(width=60)
+doc.add('waffle', p)
+doc.save('waffle.svg', 'waffle.pdf')
+```
+
+![Waffle chart: 100 cells coloured by cell type share.](assets/guides/plots-waffle.png)
+
+*Illustrative composition. Each cell is one percent.*
+
+## Streamgraphs
+
+A streamgraph stacks areas around a moving baseline. `offset="wiggle"`
+(default) minimises the change in slope of the layers, `"silhouette"` centres
+the stack on zero, `"zero"` stacks from zero and `"expand"` normalises each x to
+a total of 1. Compute the extent with `stream_layers` to size the y scale.
+
+```python
+import inklet as i
+import math
+
+weeks = list(range(40))
+genres = ['Rock', 'Pop', 'Jazz', 'Folk', 'Hip-hop']
+counts = [[max(0.0, 3 + 2.5 * math.sin((w + 7 * g) / (4 + g)) + g * .3) for w in weeks]
+          for g in range(5)]
+layers = i.plot.stream_layers(counts, offset='wiggle')
+low = min(min(lower) for lower, _ in layers)
+high = max(max(upper) for _, upper in layers)
+p = i.plot_spec(x=(0, 39), y=(low, high), height=32)
+p.streamgraph(weeks, counts, names=genres)
+p.axis('bottom', label='Week')
+p.legend(side='right')
+doc = i.document(width=90)
+doc.add('streamgraph', p)
+doc.save('streamgraph.svg', 'streamgraph.pdf')
+```
+
+![Streamgraph: five genres over 40 weeks stacked around a wiggling baseline.](assets/guides/plots-streamgraph.png)
+
+*Illustrative plays per week. A wiggle stream has no meaningful zero, so
+the y axis is omitted.*
+
+## Bullet charts
+
+A bullet chart shows a measure as a narrow bar against a target rule and grey
+qualitative ranges behind it, darkest for the lowest range.
+
+```python
+import inklet as i
+
+rows = ['Profit', 'Revenue']
+p = i.plot_spec(x=(0, 300), y=rows, height=16)
+p.bullet(['Revenue', 'Profit'], [270, 180], targets=[250, 210],
+         ranges=[150, 225, 300])
+p.axes(x='k€')
+doc = i.document(width=80)
+doc.add('bullet', p)
+doc.save('bullet.svg', 'bullet.pdf')
+```
+
+![Bullet chart: revenue and profit bars against targets and three grey ranges.](assets/guides/plots-bullet.png)
+
+*Illustrative figures. Rows with different units belong in separate
+panels.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),
