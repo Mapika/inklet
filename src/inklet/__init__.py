@@ -53,6 +53,7 @@ from .plot import (
     histogram, inset, legend, linear, log, panel, ramp, ribbon, row, symlog, upset,
 )
 from .plot import forest
+from .plot import jointplot, pairplot
 from .plot import (
     PolarPanel, circular_histogram, circular_mean, polar, theta_ticks,
 )
@@ -471,6 +472,7 @@ __all__ = [
     "linear", "log", "symlog", "band", "grouped_band", "broken", "dates", "Scale",
     "ramp", "Ramp", "CategorySet", "categories",
     "inset", "ribbon", "facets", "histogram", "upset", "forest",
+    "pairplot", "jointplot",
     "polar", "PolarPanel", "theta_ticks",
     "circular_mean", "circular_histogram",
     "AnatomyView", "anatomy_view", "model", "solid", "scene", "axes", "cartoon",
