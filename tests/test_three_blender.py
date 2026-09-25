@@ -34,6 +34,7 @@ from inklet.three.blender import (
     place_layers, read_gpencil_svg,
 )
 from inklet.three.blender.discover import clear_discovery_cache
+from inklet.three.blender.lineart import THREADS, annotate
 from inklet.three.blender.svgread import strip_preamble
 from inklet.three.blender.tracing import chain_strokes, convex_hull
 from inklet.three.camera import PRESETS, Camera, as_camera
@@ -126,7 +127,7 @@ def test_the_metadata_comment_is_read_and_removed(cube):
 
 def test_metadata_survives_an_escaped_double_hyphen():
     """`--` is illegal inside an XML comment, and object names contain it. The
-    bake script escapes it; the reader has to put it back."""
+    report is escaped on the way in; the reader has to put it back."""
     text = CUBE_SVG.replace('"objects": ["cube"]',
                             '"objects": ["left-\\u002dhemisphere"]')
     payload = text.split("inklet-lineart ")[1].split("-->")[0]
@@ -147,6 +148,20 @@ def test_the_reader_is_deterministic(cube):
     assert [layer.name for layer in again.layers] == [
         layer.name for layer in cube.layers]
     assert again.layer(LINES_LAYER).polylines == cube.layer(LINES_LAYER).polylines
+
+
+# -- the bake report -----------------------------------------------------
+
+
+def test_the_report_is_appended_with_double_hyphens_escaped():
+    bare = "\n".join(line for line in CUBE_SVG.splitlines()
+                     if "inklet-lineart" not in line)
+    text = annotate(bare, {"objects": ["left--hemisphere"], "faces": 6})
+    payload = text.split("inklet-lineart ")[1].split("-->")[0]
+    assert "--" not in payload, "a double hyphen is illegal inside a comment"
+    assert text.rstrip().endswith("</svg>")
+    assert read_gpencil_svg(text).metadata == {
+        "faces": 6, "objects": ["left--hemisphere"]}
 
 
 # -- placement into millimetres --------------------------------------------
@@ -673,27 +688,54 @@ def test_the_bake_is_byte_identical_under_a_different_hash_seed(tmp_path):
     assert out[0] == out[1]
 
 
-@needs_blender
-def test_fresh_exports_preserve_every_baked_stroke(tmp_path):
-    """A dense bake must reach the SVG intact, including after scene updates."""
+def _bakes(mesh: Path, camera: str, tmp_path: Path,
+           allocations: list[int | None], **settings) -> list[bytes]:
+    """Bake `mesh` once per entry in `allocations` and return the SVG bytes.
+
+    An entry confines this process, and so the Blender it starts, to that many
+    CPUs, the way a CI runner does; None leaves the whole machine. Every bake
+    must also carry every stroke the report counted into the SVG. The timeout
+    is short on purpose: a bake that hangs should fail this suite in a minute,
+    not in the backend's five.
+    """
+    affinity = os.sched_getaffinity(0) if hasattr(os, "sched_getaffinity") else None
     exports = []
-    affinity = os.sched_getaffinity(0) if hasattr(os, 'sched_getaffinity') else None
     try:
-        for index in range(8):
-            # Child Blender processes inherit the allocation. Exercise the
-            # constrained CPU scheduling used by CI as well as the full host.
-            if affinity and index == 4:
-                os.sched_setaffinity(0, set(sorted(affinity)[:2]))
-            drawing = line_art(MESHES / "brain-lh.obj", width=60.0, camera="left",
-                               cache_dir=tmp_path / "cache", refresh=True)
-            assert len(drawing.polylines) == drawing.report["strokes"]["lines"]["strokes"]
+        for cores in allocations:
+            if affinity:
+                os.sched_setaffinity(
+                    0, set(sorted(affinity)[:cores]) if cores else affinity)
+            drawing = line_art(mesh, width=60.0, camera=camera, timeout=60.0,
+                               cache_dir=tmp_path / "cache", refresh=True,
+                               **settings)
             document = read_gpencil_svg(drawing.svg_path.read_text())
             for layer in document.layers:
-                assert len(layer.polylines) == drawing.report["strokes"][layer.name]["strokes"]
+                assert len(layer.polylines) == \
+                    drawing.report["strokes"][layer.name]["strokes"], cores
             exports.append(drawing.svg_path.read_bytes())
     finally:
         if affinity:
             os.sched_setaffinity(0, affinity)
+    return exports
+
+
+@needs_blender
+def test_the_bake_is_byte_identical_on_any_cpu_allocation(tmp_path):
+    """Line Art runs on one thread because more make it draw differently from
+    run to run. X-ray is where that showed most, so bake one."""
+    assert THREADS == 1
+    exports = _bakes(MESHES / "spot.obj", "three-quarter", tmp_path,
+                     [None, None, 2, 2], options=LineArtOptions(hidden=False))
+    assert all(svg == exports[0] for svg in exports[1:])
+
+
+@needs_blender
+def test_dense_bakes_finish_and_agree(tmp_path):
+    """The dense case. Single-thread bakes of the brain used to hang in about
+    half of all runs: Blender 4.2 corrupts its own Python heap while it
+    exports, and the bake script went on running Python afterwards."""
+    exports = _bakes(MESHES / "brain-lh.obj", "left", tmp_path,
+                     [None, None, None, 2])
     assert all(svg == exports[0] for svg in exports[1:])
 
 
@@ -723,8 +765,7 @@ def test_smooth_shading_suppresses_crease_lines(tmp_path):
     """The documented lever for scanned surfaces: with smooth normals the
     crease threshold stops mattering and only contours survive."""
     # This tests a shading invariant, not dense-mesh throughput. An 80-face
-    # curved mesh retains many hard edges at 10 degrees and renders in seconds;
-    # the 18,000-face brain can exceed the backend's 300-second bake limit.
+    # curved mesh retains many hard edges at 10 degrees and needs no more.
     from inklet.three.solids import sphere
     mesh = sphere(subdivisions=1)
     source = tmp_path / "curved.obj"

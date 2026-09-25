@@ -35,6 +35,15 @@
   No test is run.
 - Add guide sections for the four, catalog entries and
   `examples/study_plot_types.py`.
+- Fix Blender 4.2 line-art bakes that hung until their timeout, about half
+  of single-thread bakes of dense meshes. The SVG exporter can corrupt
+  Blender's Python heap, and the bake script went on to run Python. It now
+  writes its report before exporting and exits as soon as the export
+  returns; `bake_svg` appends the report and removes Blender's temp
+  directory. Output is unchanged. Bakes stay single-thread: multi-thread
+  Line Art changes stroke order, direction and chaining between runs.
+- The Blender tests bake `spot.obj` for determinism and `brain-lh.obj`
+  only where density is the subject, with a 60 s timeout.
 
 ## 4.1.0 — 2026-09-25
 
