@@ -26,7 +26,7 @@ from inklet.themes import Palette, palette, palette_names  # noqa: E402
 LABEL = 30.0        # label column, mm
 SQUARE = 5.0        # categorical swatch, mm
 STRIP = 96.0        # ramp strip length, mm
-SLICES = 192
+SLICES = 48        # gradient stops per strip
 VIEWS = (("deuteranopia", "deutan"), ("protanopia", "protan"),
          ("tritanopia", "tritan"), ("grey", "grey"))
 
@@ -49,12 +49,12 @@ def _squares(colors, size: float) -> Diagram:
 
 
 def _strip(p: Palette, height: float, length: float = STRIP) -> Diagram:
-    slices = max(24, int(SLICES * length / STRIP))
-    width = length / slices
-    # A hair of overlap so antialiased seams do not show as pale lines.
-    cells = [_rect(width * 1.5, height, p.ramp((k + 0.5) / slices, "oklab"))
-             for k in range(slices)]
-    return i.hstack(cells, gap=-width * 0.5)
+    """The ramp as one rectangle painted with a vector gradient. Its stops
+    are the ramp sampled in OKLab, dense enough that the renderer's sRGB
+    blend between neighbours is indistinguishable from the ramp itself."""
+    stops = [(k / (SLICES - 1), p.ramp(k / (SLICES - 1), "oklab"))
+             for k in range(SLICES)]
+    return i.paint(_rect(length, height, stops[0][1]), i.LinearGradient(stops))
 
 
 def _view(p: Palette, view: str) -> Palette:
@@ -63,7 +63,14 @@ def _view(p: Palette, view: str) -> Palette:
 
 def row(p: Palette, previews: bool = True) -> Diagram:
     title = _label(p.name, 2.6)
-    if p.is_ramp:
+    if p.notes.startswith("discrete"):
+        # Tol's rainbow: ordered, but not to be interpolated. Abutting
+        # swatches spanning the strip show it as the steps it is.
+        width = STRIP / len(p)
+        main = i.hstack([_rect(width, 5.0, c) for c in p.colors], gap=0)
+        extra = [i.hstack([_rect((STRIP - 3 * 2.4) / 4 / len(p), 1.6, c)
+                           for c in _view(p, v).colors], gap=0) for v, _ in VIEWS]
+    elif p.is_ramp:
         main = _strip(p, 5.0)
         extra = [_strip(_view(p, v), 1.6, (STRIP - 3 * 2.4) / 4) for v, _ in VIEWS]
     else:

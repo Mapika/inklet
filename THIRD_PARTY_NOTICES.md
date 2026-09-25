@@ -5,6 +5,114 @@ retain their own terms. They are example inputs, not dependencies of the core
 library. The wheel contains the library and license notices; the source
 distribution also includes the examples and their data.
 
+## Colour palette data
+
+Unlike the example material below, these values ship in the library itself,
+in `src/inklet/themes/palettes.py` and the generated
+`src/inklet/themes/_palette_data.py`. Every `Palette` also carries its source
+and licence in its `source` and `license` fields. The dense maps keep an evenly
+spaced subset of each published 256-entry table, converted to 8-bit hex; the
+subset reproduces the full table within CIEDE2000 1. `tools/gen_palette_data.py`
+fetches the pinned sources and checks their SHA-256 hashes.
+
+- **viridis, inferno, plasma, magma**: Nathaniel Smith and Stéfan van der
+  Walt, with Eric Firing for viridis. Dedicated to the public domain under
+  [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). The values
+  are taken from matplotlib 3.9.2, `lib/matplotlib/_cm_listed.py`.
+- **cividis**: Jamie R. Nuñez, Christopher R. Anderton and Ryan S. Renslow,
+  "Optimizing colormaps with consideration for color vision deficiency to
+  enable accurate interpretation of scientific data", *PLoS ONE* 13(7):
+  e0199239 (2018). The values are taken from the same matplotlib file. The
+  map comes from [pnnl/cmaputil](https://github.com/pnnl/cmaputil), under
+  this licence:
+
+  ```text
+  Copyright (c) 2017, Battelle Memorial Institute
+
+  1.  Battelle Memorial Institute (hereinafter Battelle) hereby grants
+  permission to any person or entity lawfully obtaining a copy of this software
+  and associated documentation files (hereinafter "the Software") to
+  redistribute and use the Software in source and binary forms, with or without
+  modification. Such person or entity may use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and may permit
+  others to do so, subject to the following conditions:
+
+  + Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimers.
+
+  + Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+  + Other than as used herein, neither the name Battelle Memorial Institute or
+  Battelle may be used in any form whatsoever without the express written
+  consent of Battelle.
+
+  2.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL BATTELLE OR CONTRIBUTORS BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  ```
+
+- **Scientific colour maps** (acton through vik, and the cyclic `…O` maps):
+  Fabio Crameri, *Scientific colour maps* version 8.0,
+  doi:[10.5281/zenodo.8035877](https://doi.org/10.5281/zenodo.8035877). The
+  tables are taken from cmcrameri 1.10. They are used under this licence:
+
+  ```text
+  MIT License
+
+  Copyright (c) 2020 Fabio Crameri
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  ```
+
+- **ColorBrewer** (set1 through ylorrd): Cynthia Brewer, Mark Harrower and
+  The Pennsylvania State University, [ColorBrewer 2.0](https://colorbrewer2.org).
+  Licensed under the Apache License, Version 2.0; the licence text is in
+  [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt). The values are taken
+  from `colorbrewer.json` in axismaps/colorbrewer at commit 7d135fc, keeping
+  the largest class of each scheme. They were converted from `rgb()` to hex
+  and are otherwise unmodified.
+- **Paul Tol's schemes** (`tol-*`): Paul Tol, *Colour Schemes*, technical
+  note SRON/EPS/TN/09-002, and <https://sronpersonalpages.nl/~pault/>. The
+  author states no licence and publishes the values for general use; each is
+  cited in `palettes.py`.
+- **Okabe-Ito**: Masataka Okabe and Kei Ito, *Color Universal Design*
+  (2002, revised 2008). The authors state no licence and publish the values
+  as a general recommendation.
+- **Machado CVD matrices** (`inklet.themes.color`): Gustavo M. Machado,
+  Manuel M. Oliveira and Leandro A. F. Fernandes, "A physiologically-based
+  model for simulation of color vision deficiency", *IEEE TVCG* 15(6),
+  1291–1298 (2009). The coefficients are transcribed from the authors'
+  supplementary page. They were cross-checked against colorspacious, which
+  is MIT-licensed.
+
+The `inklet*` palettes are Inklet's own work under its MIT licence. Sources
+and terms were checked on 2026-09-25.
+
 ## Spot mesh
 
 `stress/meshes/spot.obj` is adapted from Keenan Crane's Spot model, dedicated
