@@ -77,16 +77,16 @@
   "gallery/dense-figure.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-dense-figure-480-6f6a126eec.webp",
+        "path": "assets/thumbs/gallery-dense-figure-480-f50c4908f5.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-dense-figure-960-6f6a126eec.webp",
+        "path": "assets/thumbs/gallery-dense-figure-960-f50c4908f5.webp",
         "width": 960
       }
     ],
     "height": 2019,
-    "sha256": "6f6a126eeccc8a169c5860ed041cdc5de0bfd02be97b37bceb9cc50bd68cf3c8",
+    "sha256": "f50c4908f568041204d430c7a33d10bd92cd545bd72d0253e79fa2957588655a",
     "width": 2076
   },
   "gallery/diagram-review.png": {

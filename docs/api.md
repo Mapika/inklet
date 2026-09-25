@@ -602,7 +602,7 @@ A compact numeric/text table with measured, glyph-centered cells.
 
 A plot area of a fixed size, with scales fitted to it.
 
-#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = ()) -> None`
+#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = ()) -> None`
 
 A drawing region plus the scales that map data into it.
 

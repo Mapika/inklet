@@ -39,6 +39,11 @@ The colourbar describes the numeric ramp; explain the missing-value colour in
 the caption. Use the same ramp and scale for comparable panels instead of
 normalizing each matrix independently.
 
+On a panel with a matrix, an axis with no ticks (`ticks=[]`) or hidden ticks
+(`labels=False` with `tick_size=0`) draws no spine, since the cells' edge is
+already the boundary. The axis name is still drawn. Pass `spine=True` to keep
+the line.
+
 ## Row order and comparisons
 
 With explicit `y=` coordinates on `matrix()`, rows follow those coordinates

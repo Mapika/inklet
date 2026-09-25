@@ -10,6 +10,10 @@
   share band scales, so each bar stands over its matrix column. Add a guide
   section to `bars-and-areas.md`, a catalog entry and panel f of
   `examples/more_plot_types.py`.
+- On a panel with a `matrix`, an axis with no ticks (`ticks=[]`) or hidden
+  ticks (`labels=False`, `tick_size=0`) no longer draws a spine; `spine=True`
+  keeps it. Axes on other panels are unchanged. Panel e of
+  `examples/dense_figure.py` loses its two heatmap spines.
 - `PolarPanel.breakout` now turns the pie so the middle of the chosen
   slices faces the bar, first slice uppermost, when `inklet.polar` was given
   no `zero` or `winding`; explicit values are kept. `inklet.polar` defaults

@@ -105,6 +105,9 @@ class Panel:
     #: The ramp the last `matrix` coloured through, so `colorbar()` can explain
     #: the picture rather than a second ramp that agrees with it today.
     _ramp: object | None = field(default=None, repr=False, compare=False)
+    #: Whether `matrix` has drawn here, so an axis with no ticks on a heatmap
+    #: draws no spine along the cells' edge.
+    _matrix: bool = field(default=False, repr=False, compare=False)
     #: Brackets already drawn, so the next one asked to place itself clears
     #: them as well as the data. Two significance bars over overlapping spans
     #: is the ordinary case, and they have to stack.
@@ -319,6 +322,7 @@ class Panel:
         # The group carries the domain for tree inspection; build() also records
         # it on the panel, where diagnostics pair the field with its colorbar.
         self._scale_domain = scale
+        self._matrix = True
         return self.draw(group, clip=clip)
 
     def _centres(self, given: Sequence | None, count: int,
@@ -948,11 +952,22 @@ class Panel:
 
         Everything `plot.axis()` takes passes through -- `label`, `ticks`,
         `count`, `format`, `minor`, `rotate` for long category names.
+
+        On a panel with a `matrix`, an axis with no ticks (`ticks=[]`) or with
+        hidden ones (`labels=False` and `tick_size=0`) draws no spine unless
+        `spine=True` is passed: the cells' own edge is the boundary.
         """
         if side not in SIDES:
             raise ValueError(
                 f"unknown axis side {side!r}; expected one of {', '.join(SIDES)}"
             )
+        if self._matrix and "spine" not in kwargs:
+            ticks = kwargs.get("ticks")
+            size = kwargs.get("tick_size")
+            hidden = (kwargs.get("labels", True) is False and size is not None
+                      and mm(size) == 0)
+            if (ticks is not None and len(ticks) == 0) or hidden:
+                kwargs["spine"] = False
         node = as_drawn(axis(getattr(self, _AXIS_SCALE[side]), side=side, **kwargs))
         offset = self._edge(side) if at is None else self._crossing(side, at)
         self._over.append(node.translated(offset.x, offset.y))
