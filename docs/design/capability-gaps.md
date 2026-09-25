@@ -131,6 +131,28 @@ the matrix. `threshold=` colours the subtrees whose merges are all below it,
 one colour each from left to right, skipping palette colours too close to
 the ink.
 
+## Layout limits found by the dense figure
+
+`examples/dense_figure.py` worked around these library limits.
+
+| Limit | Workaround | Status |
+| --- | --- | --- |
+| `share_plot_margins=True` reserved the largest left and right furniture on every plot, which squeezed grids with mixed spans | Sharing turned off | Done: left and right margins are shared along vertical grid lines; `'all'` keeps the whole-grid rule |
+| A top or bottom legend, including an inside legend moved above the plot, could only be as wide as the data area | Panel B widened | Done: the key uses the whole panel width when that saves rows |
+
+**Grid-line sharing.** A plot's left edge is grid line `column` and its
+right edge is grid line `column + colspan`. The left margin of a plot is the
+largest measured left margin among plots on its left line, and the right
+margin the largest among plots on its right line. The dense figure still
+leaves sharing off: sharing also gives every plot the tallest data height,
+which would override the heights chosen per row.
+
+**Panel-wide keys.** The key is fitted to the data width first. If the
+panel, including the tick labels and axis name left of the data, is wider,
+the key is refitted to that width and kept when it has fewer rows. It is then
+centred on the data if it fits within the data width, and otherwise starts at
+the panel's left edge, next to the panel letter.
+
 ## Deferred work
 
 - UpSet plots.

@@ -48,6 +48,12 @@
   keeps the whole-grid rule, and facet figures use it. Top and bottom sharing
   is unchanged. `examples/general_plots.py` gains about 3 mm of data width in
   its left column; `gallery/general-plots.png` is regenerated.
+- Top and bottom legends with automatic columns may use the whole panel
+  width. A key that needs more rows at the data width than at the panel width,
+  including the axis furniture left of the data, is refitted to the panel
+  width and left-aligned with the panel's outer edge; a key that fits the data
+  width stays centred on it. This includes `legend_side='inside'` keys moved
+  above a crowded plot. Explicit `columns=` or `max_width=` are unchanged.
 - Add `examples/dense_figure.py`, a thirteen-panel 183 mm page with the
   `scientific.cell` preset, and its gallery image `gallery/dense-figure.png`.
 - Retighten `examples/general_plots.py`: the preset's 183 mm width, margin,
