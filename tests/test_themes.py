@@ -487,8 +487,11 @@ def test_vibrant_matches_bright_in_shape() -> None:
 
 def test_every_palette_is_lowercase_hex_and_unique() -> None:
     for name in palette_names():
-        colors = palette(name).colors
+        p = palette(name)
+        colors = p.colors
         assert all(c == c.lower() and len(c) == 7 and c[0] == "#" for c in colors)
+        if p.kind == "cyclic":  # a cyclic map may close on its first colour
+            colors = colors[:-1]
         assert len(set(colors)) == len(colors), f"{name} has a duplicate"
 
 
@@ -545,7 +548,7 @@ def test_ramp_clamps_out_of_range() -> None:
 
 def test_unknown_palette_raises() -> None:
     with pytest.raises(KeyError, match="unknown palette"):
-        palette("viridis")
+        palette("no-such-palette")
 
 
 # --- colour utilities --------------------------------------------------------

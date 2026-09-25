@@ -16,14 +16,19 @@ linter check contrast instead of guessing at it.
 from __future__ import annotations
 
 from .color import (
-    CVD_KINDS, RGB, ColorError, contrast_ratio, darken, delta_e, from_lab,
-    interpolate, interpolate_lab, lighten, mix, mix_lab, parse_color,
-    readable, relative_luminance, simulate_cvd, to_hex, to_lab,
+    CVD_KINDS, CVD_METHODS, RGB, ColorError, contrast_ratio, darken, delta_e,
+    delta_e_2000, delta_e_ok, from_lab, from_oklab, from_oklch, in_gamut_oklab,
+    interpolate, interpolate_lab, interpolate_oklab, lighten, mix, mix_lab,
+    mix_oklab, parse_color, readable, relative_luminance, simulate_cvd, to_hex,
+    to_lab, to_oklab, to_oklch,
 )
 from .palettes import (
-    MAGMA, OKABE_ITO, PALETTES, TOL_BRIGHT, TOL_BURD, TOL_HIGH_CONTRAST,
-    TOL_MUTED, TOL_SUNSET, TOL_VIBRANT, TOL_YLORBR, Palette, palette,
-    palette_names,
+    CIVIDIS, INFERNO, INKLET, INKLET_DUO, INKLET_MUTED, INKLET_PAIRS, KINDS,
+    MAGMA, OKABE_ITO, PALETTES, PLASMA, TOL_BRIGHT, TOL_BURD, TOL_DARK,
+    TOL_HIGH_CONTRAST, TOL_INCANDESCENT, TOL_IRIDESCENT, TOL_LIGHT,
+    TOL_MEDIUM_CONTRAST, TOL_MUTED, TOL_NIGHTFALL, TOL_PALE, TOL_PRGN,
+    TOL_RAINBOW, TOL_SUNSET, TOL_VIBRANT, TOL_WHORBR, TOL_YLORBR, VIRIDIS,
+    Palette, PaletteReport, palette, palette_names,
 )
 from .theme import (
     GAP_NAMES, HAIRLINE_FLOOR, NATURE, NOTEBOOK, ROLES, SLIDES, THEMES, Theme,
@@ -35,13 +40,19 @@ __all__ = [
     "Theme", "ThemeError", "THEMES", "ROLES", "GAP_NAMES", "HAIRLINE_FLOOR",
     "theme", "theme_names", "NATURE", "SLIDES", "NOTEBOOK",
     # palettes
-    "Palette", "PALETTES", "palette", "palette_names",
+    "Palette", "PaletteReport", "PALETTES", "KINDS", "palette", "palette_names",
     "OKABE_ITO", "TOL_BRIGHT", "TOL_MUTED", "TOL_VIBRANT", "TOL_HIGH_CONTRAST",
-    "TOL_YLORBR", "TOL_SUNSET", "TOL_BURD", "MAGMA",
+    "TOL_MEDIUM_CONTRAST", "TOL_LIGHT", "TOL_PALE", "TOL_DARK",
+    "TOL_YLORBR", "TOL_WHORBR", "TOL_IRIDESCENT", "TOL_INCANDESCENT",
+    "TOL_RAINBOW", "TOL_SUNSET", "TOL_NIGHTFALL", "TOL_BURD", "TOL_PRGN",
+    "VIRIDIS", "CIVIDIS", "INFERNO", "PLASMA", "MAGMA",
+    "INKLET", "INKLET_MUTED", "INKLET_PAIRS", "INKLET_DUO",
     # colour utilities
-    "RGB", "ColorError", "CVD_KINDS", "parse_color", "to_hex",
+    "RGB", "ColorError", "CVD_KINDS", "CVD_METHODS", "parse_color", "to_hex",
     "relative_luminance", "contrast_ratio", "mix", "lighten", "darken",
     "readable",
     "interpolate", "simulate_cvd", "to_lab", "from_lab", "delta_e",
     "mix_lab", "interpolate_lab",
+    "to_oklab", "from_oklab", "to_oklch", "from_oklch", "in_gamut_oklab",
+    "mix_oklab", "interpolate_oklab", "delta_e_2000", "delta_e_ok",
 ]
