@@ -69,8 +69,5 @@ def label_text(content: str, size: float | None = None, **style) -> Diagram:
 
 
 def on_fill(fill: str) -> str:
-    """The theme ink or paper, whichever reads better on `fill`."""
-    from ..themes import contrast_ratio
-    theme = active_theme()
-    return (theme.ink if contrast_ratio(theme.ink, fill) >= contrast_ratio(theme.paper, fill)
-            else theme.paper)
+    """The theme ink or paper, whichever reads on `fill` (`Theme.text_on`)."""
+    return active_theme().text_on(fill)

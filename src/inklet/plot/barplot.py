@@ -37,10 +37,6 @@ BARPLOT_ERRORS = ("sem", "sd", "ci95", "iqr", None)
 #: the darkest thing in the bar.
 _BAR_TINT = 0.55
 
-#: Palette entries for several series: blue, vermillion, bluish green,
-#: orange, purple, sky blue.
-_SERIES_ORDER = (5, 6, 3, 1, 7, 2)
-
 #: Dot diameter as a fraction of the type size.
 _DOT_OF_TYPE = 0.42
 
@@ -136,7 +132,7 @@ def barplot(panel, at: Sequence, data, *, estimator: str = "mean",
     per_bar = None
     if color is None:
         inks = (theme.ink,) if count == 1 else tuple(
-            theme.color(_SERIES_ORDER[i % len(_SERIES_ORDER)]) for i in range(count))
+            _marks.fill_color(theme, i) for i in range(count))
     elif (count == 1 and not isinstance(color, str) and len(places) > 1
           and len(tuple(color)) == len(places)):
         per_bar = tuple(color)

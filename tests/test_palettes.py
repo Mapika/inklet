@@ -335,7 +335,7 @@ def test_matrix_and_scatter_take_a_palette_name() -> None:
 def test_themes_pick_palettes_by_name() -> None:
     t = NATURE.with_palette("inklet")
     assert t.palette == palette("inklet").colors
-    assert t.color(1) == "#df913e" and NATURE.palette == palette("okabe-ito").colors
+    assert t.color(1) == "#df913e" and NATURE.palette == palette("inklet").colors
     assert NATURE.with_palette(palette("tol-muted")).palette == palette("tol-muted").colors
     assert NATURE.with_palette(["#111111", "#222222"]).palette == ("#111111", "#222222")
     with pytest.raises(ThemeError, match="resampled"):

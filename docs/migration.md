@@ -86,6 +86,31 @@ and `Length(metres=)` and `Length.between(metres_per_unit=)` in
 are also written into saved section and planner data, so renaming them waits
 for 5.0 and a new schema.
 
+The plots added in 4.4 (`treemap`, `network`, `waterfall`, `slope` and the
+rest) were never released with plural keywords, so they take `color=`,
+`name=` and `size=` directly and have no aliases. `network` and
+`arc_diagram` take node values as `size=` and their label font size as
+`label_size=`.
+
+### Default series colours
+
+The `nature` and `notebook` themes now colour series with the
+[`inklet` palette](palettes.md#default-series-colours) instead of Okabe-Ito
+(`nature`) and Tol's muted set (`notebook`). `slides` keeps Tol's bright set.
+Figures that relied on the automatic series colours change colour; explicit
+`color=` values, presets and the accent colour do not. To keep the 4.3
+colours, use the theme with its old palette:
+
+```python
+import inklet as i
+from inklet.themes import NATURE, NOTEBOOK
+
+nature_43 = NATURE.with_palette("okabe-ito")
+notebook_43 = NOTEBOOK.with_palette("tol-muted")
+i.use_theme(nature_43)                          # new panels use it
+fig = i.figure(width=89, theme=nature_43)       # and so does the figure
+```
+
 ### Experimental classes and saved files
 
 - `inklet.experimental.browser.BrowserScatter(table, views)` warns. Use

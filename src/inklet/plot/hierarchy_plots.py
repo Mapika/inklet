@@ -108,12 +108,7 @@ class _Paint:
 
 def _text_on(fill: str, theme) -> str:
     """Ink, or paper when the fill is too dark for ink to be read on it."""
-    ink, paper = contrast_ratio(theme.ink, fill), contrast_ratio(theme.paper, fill)
-    best = theme.ink if ink >= min(4.5, paper) else theme.paper
-    if max(ink, paper) >= 4.5:
-        return best
-    from ..themes import readable
-    return readable(best, fill, 4.5)
+    return theme.text_on(fill)
 
 
 def branch_colors(count: int, theme) -> list[str]:

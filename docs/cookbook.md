@@ -497,7 +497,7 @@ assert inklet.contrast_ratio(TH.ink, pale) > 4.5
 
 ## A series colour you can read
 
-A categorical palette is built for *area*. Okabe-Ito's yellow is 1.07:1 on
+A categorical palette is built for *area*. The inklet palette's yellow is 1.26:1 on
 white and its sky blue 1.9:1 -- fine as a bar, unreadable as the word that
 names the bar. `TH.text_color(i)` is the same colour darkened along its own
 hue until it clears 4.5:1, so it still matches the swatch beside it.
@@ -1059,7 +1059,7 @@ Build the panel on which you called `twin_y`, rather than the returned twin:
 the twin uses its parent's content. `color=` sets the second axis's spine,
 ticks and numbers. Match it to the associated series and identify the mapping
 in the legend or caption. Choose a colour with sufficient text contrast;
-`inklet.lint` checks tick labels, and the paler Okabe-Ito colours do not meet
+`inklet.lint` checks tick labels, and the paler palette colours do not meet
 4.5:1 contrast against white.
 
 `twin_x` is the same thing across the top -- wavelength above frequency, or a

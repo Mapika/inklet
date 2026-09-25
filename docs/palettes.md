@@ -10,6 +10,26 @@ dichromacies (simulated with Machado et al. 2009 at full severity) and in
 greyscale. Use them to check that the colours you rely on still separate
 for every reader.
 
+## Default series colours
+
+Since 4.4 the `nature` and `notebook` themes colour series with the `inklet`
+palette; `slides` keeps `tol-bright`, which holds up better on a projector.
+Before 4.4, `nature` used Okabe-Ito and `notebook` used `tol-muted`. To keep
+the old colours, give the theme its old palette:
+
+```python
+import inklet as i
+from inklet.themes import NATURE
+
+old = NATURE.with_palette("okabe-ito")       # the 4.3 nature colours
+i.use_theme(old)
+fig = i.figure(width=89, theme=old)
+```
+
+`NOTEBOOK.with_palette("tol-muted")` does the same for the notebook theme, and
+`preset(...).customize(palette=...)` for a preset. The presets set their own
+palettes and did not change.
+
 ## Inklet's own palettes
 
 These four were designed for Inklet in OKLCH. Each was optimised against the
@@ -51,8 +71,8 @@ two Tol sets are shown below them for comparison. In the table, the CVD columns 
 import inklet as i
 from inklet.themes import NATURE, palette
 
-theme = NATURE.with_palette("inklet")        # a theme with Inklet's colours
-print(theme.color(0), theme.color(1))        # #1d57a0 #df913e
+theme = NATURE.with_palette("inklet-muted")  # a theme with the muted set
+print(NATURE.color(0), NATURE.color(1))      # #1d57a0 #df913e, the default
 print(palette("inklet").report())
 ```
 

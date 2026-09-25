@@ -55,13 +55,13 @@ def gantt(panel, tasks: Sequence[Sequence], *, groups: Sequence | None = None,
         if isinstance(color, Mapping):
             palette = {g: color[g] for g in order}
         elif color is None or isinstance(color, str):
-            palette = {g: theme.color(i + 1) for i, g in enumerate(order)}
+            palette = {g: _marks.fill_color(theme, i) for i, g in enumerate(order)}
         else:
             given = list(color)
             palette = {g: given[i % len(given)] for i, g in enumerate(order)}
         fills = [palette[g] for g in groups]
     elif color is None or isinstance(color, str):
-        fills = [color or theme.color(5)] * len(rows)
+        fills = [color or _marks.fill_color(theme, 0)] * len(rows)
     else:
         fills = list(color)
         if len(fills) != len(rows):

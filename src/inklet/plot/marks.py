@@ -37,7 +37,7 @@ from ..draw.coords import active_theme
 from ..draw.path import polygon, polyline
 from ..draw.place import place as draw_place
 from ..draw.shapes import MARK_KIND, MARK_LINE_KIND, marker as make_marker
-from ..themes.color import mix
+from ..themes.color import contrast_ratio, mix, to_oklch
 from .scale import Band, Scale
 from .statistics import (
     BoxStats, _bandwidth, _bin_edges, _bin_of, box_stats, histogram, kde, quantile,
@@ -134,6 +134,41 @@ def default_area_fill() -> str:
     """
     theme = active_theme()
     return mix(theme.ink, theme.paper, _AREA_TINT)
+
+
+#: A palette entry below this OKLCH chroma is a black or a grey, not a hue.
+_HUELESS_CHROMA = 0.04
+
+#: A palette entry below this contrast on paper is too pale to carry a fill
+#: that has to be told from its neighbours (a CVD-safe set's yellow).
+_PALE_CONTRAST = 1.5
+
+
+def fill_palette(theme) -> tuple[str, ...]:
+    """The theme's palette entries that work as fills, in palette order.
+
+    Drops the entries that carry no hue (Okabe-Ito opens with black, Tol's
+    bright set ends in grey) and the ones too pale to see on paper, so a
+    default does not depend on where a palette happens to keep them."""
+    usable = tuple(c for c in theme.palette
+                   if to_oklch(c)[1] >= _HUELESS_CHROMA
+                   and contrast_ratio(c, theme.paper) >= _PALE_CONTRAST)
+    return usable or tuple(theme.palette)
+
+
+def fill_color(theme, index: int) -> str:
+    """Fill colour `index` of `fill_palette`, repeating past its end."""
+    usable = fill_palette(theme)
+    return usable[index % len(usable)]
+
+
+def hue_color(theme, degrees: float) -> str:
+    """The fill-palette entry nearest in OKLCH hue to `degrees`: a green for
+    "up" and a red for "down" in whatever palette the theme carries."""
+    def distance(c):
+        gap = abs(to_oklch(c)[2] - degrees) % 360
+        return min(gap, 360 - gap)
+    return min(fill_palette(theme), key=distance)
 
 
 def series_colors(colors, count: int) -> tuple[str, ...]:

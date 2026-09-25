@@ -56,6 +56,20 @@ a `DeprecationWarning` subclass that names the replacement. See the
 
 ### Changed
 
+- The `nature` and `notebook` themes use the `inklet` palette for series
+  colours (Okabe-Ito and `tol-muted` before); `slides` keeps `tol-bright`.
+  Figures that rely on the automatic series colours change colour. Use
+  `NATURE.with_palette("okabe-ito")` or `NOTEBOOK.with_palette("tol-muted")`
+  to keep the 4.3 look; see the
+  [migration notes](docs/migration.md#default-series-colours).
+  The plots new in 4.4 that pick their own fills (`barplot`,
+  `diverging_bars`, `gantt`, `waterfall`) skip a palette's black, grey and
+  pale yellow, and `waterfall` takes the palette's green for increases and
+  its red for decreases, so they read the same under any palette.
+- `Theme.text_on` walks the other of ink and paper when the nearer one is
+  already at the end of its lightness range and still falls short. White on
+  the `inklet` green is 4.496:1; near-black clears 4.5:1. Labels on filled
+  bars, slices, treemap tiles and network nodes use the same rule.
 - Roadmap: 5.0 is about dense journal figures (a placement engine, a broad plot
   catalogue and palettes) and removes the 4.x deprecations. Animation and
   presentation authoring move to the 5.x direction.
@@ -116,7 +130,8 @@ a `DeprecationWarning` subclass that names the replacement. See the
   - `inklet-pairs`: dark/light pairs;
   - `inklet-duo`: two conditions plus a reference.
 
-  Default palettes are unchanged.
+  `inklet` is now the default for the `nature` and `notebook` themes (see
+  Changed).
 - `Palette` gains:
   - `kind` (`categorical`, `sequential`, `diverging` or `cyclic`), plus
     `license` and `notes`;

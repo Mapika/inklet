@@ -120,16 +120,16 @@ def test_accent_clears_the_non_text_floor(theme_obj: Theme) -> None:
     assert contrast_ratio(theme_obj.accent, theme_obj.paper) >= 3.0
 
 
-# FINDING, not a workaround. Every shipped palette is a published CVD-safe set
-# designed for *area* fills; several of their lighter members fall under WCAG's
+# FINDING, not a workaround. Every shipped palette is a CVD-safe set designed
+# for *area* fills; several of their lighter members fall under WCAG's
 # 3:1 non-text floor on white paper and must not be used for strokes or text.
 # The palettes are shipped byte-exact anyway -- editing a standard to make a
 # test pass would be the actual bug -- and `Theme.ink_color` is the supported
 # way to get a line-safe version. Measured ratios, to 2dp:
 KNOWN_LOW_CONTRAST_ON_PAPER = {
-    "nature": {"#e69f00": 2.25, "#56b4e9": 2.31, "#f0e442": 1.32},
+    "nature": {"#df913e": 2.54, "#8bc4e5": 1.89, "#fbe673": 1.26},
     "slides": {"#ccbb44": 1.95, "#66ccee": 1.84, "#bbbbbb": 1.92},
-    "notebook": {"#ddcc77": 1.58, "#88ccee": 1.72, "#44aa99": 2.74, "#999933": 2.94},
+    "notebook": {"#df913e": 2.48, "#8bc4e5": 1.84, "#fbe673": 1.23},
 }
 
 
@@ -158,7 +158,7 @@ def test_ink_color_lifts_every_palette_entry_over_the_floor(theme_obj: Theme) ->
 
 def test_ink_color_leaves_already_safe_colours_untouched() -> None:
     nature = theme("nature")
-    assert nature.ink_color(5) == nature.color(5) == "#0072b2"
+    assert nature.ink_color(5) == nature.color(5) == "#56254c"
 
 
 def test_ink_color_honours_a_stricter_ratio() -> None:
@@ -203,7 +203,7 @@ def test_text_color_is_darker_and_never_lighter_on_a_light_paper() -> None:
 
 def test_text_color_leaves_a_colour_that_already_passes_exactly_alone() -> None:
     nature = theme("nature")
-    assert nature.text_color(5) == nature.color(5) == "#0072b2"
+    assert nature.text_color(5) == nature.color(5) == "#56254c"
 
 
 def test_text_color_beats_ink_color_at_keeping_the_hue() -> None:

@@ -3401,8 +3401,8 @@ class Panel:
                         [120, 45, -30, -12, None], totals=["Start", "End"])
 
         `color=` is one colour, three colours (increase, decrease, total) or
-        a mapping with those keys; the default is Okabe-Ito bluish green for
-        increases, vermillion for decreases and a grey for totals.
+        a mapping with those keys; the default is the theme palette's green for
+        increases, its red for decreases and a grey for totals.
         `connectors=True` draws a dashed hairline from each bar's end to the
         next bar's start. `labels=True` writes each change (`+45`, `-30`) past
         the end it moved to, and each total's value; a format string or a
@@ -3912,7 +3912,8 @@ class Panel:
         width, both in millimetres.
 
         One series is drawn as light grey bars with ink dots; several take
-        blue, vermillion, green, ... as dark dots on tinted bars. `color=`
+        the theme's palette colours in order, skipping any black, grey or
+        pale yellow, as dark dots on tinted bars. `color=`
         is one colour per series, or for a single series one per category.
         `name=` names the series for `legend()`. The node's `barplot` note
         holds each bar's `(centre, down, up, n)`;

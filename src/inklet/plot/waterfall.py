@@ -93,8 +93,13 @@ def waterfall_steps(values: Sequence, totals: Sequence[int] = (), *,
     return steps
 
 
+#: OKLCH hues the default increase and decrease colours are chosen near.
+_GREEN, _RED = 150.0, 30.0
+
+
 def _colors(color, theme) -> dict[str, str]:
-    default = {"increase": theme.color(3), "decrease": theme.color(6),
+    default = {"increase": _marks.hue_color(theme, _GREEN),
+               "decrease": _marks.hue_color(theme, _RED),
                "total": mix(theme.ink, theme.paper, _TOTAL_TINT)}
     if color is None:
         return default

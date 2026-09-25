@@ -113,7 +113,7 @@ def test_bars_name_their_series() -> None:
 
 def test_a_mismatch_between_names_and_series_is_refused() -> None:
     p = panel(40, 30, x=["a", "b"], y=(0, 3))
-    with pytest.raises(DiagramError, match="names="):
+    with pytest.raises(DiagramError, match="name="):
         p.bars(["a", "b"], [[1, 2], [2, 1]], name=["only one"])
 
 

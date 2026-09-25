@@ -59,8 +59,8 @@ PEAK = max(range(WEEKS), key=CHLORO.__getitem__)
 # --- the surface series, two scales, one legend ------------------------------
 
 top = inklet.panel(W, 20, x=SPAN, y=(0, 22))
-top.line(list(zip(DATES, CHLORO)), name="surface", stroke=TH.ink_color(3))
-top.line(list(zip(DATES, DEEP)), name="6 m", stroke=TH.ink_color(5),
+top.line(list(zip(DATES, CHLORO)), name="surface", stroke=TH.ink_color(2))
+top.line(list(zip(DATES, DEEP)), name="6 m", stroke=TH.ink_color(0),
          stroke_dash=(1.2, 0.8))
 top.annotate(DATES[PEAK], CHLORO[PEAK],
              f"spring bloom\n**{CHLORO[PEAK]:.0f}** µg L^{{-1}}",
@@ -69,8 +69,8 @@ top.annotate(DATES[PEAK], CHLORO[PEAK],
 # colour, so it needs no legend row of its own -- which leaves the key
 # describing exactly the two series the panel drew, and `legend()` builds it
 # from what they were named.
-warm = top.twin_y((0, 30), label="surface T / °C", color=TH.color(6))
-warm.line(list(zip(DATES, TEMP)), stroke=TH.ink_color(6),
+warm = top.twin_y((0, 30), label="surface T / °C", color=TH.color(3))
+warm.line(list(zip(DATES, TEMP)), stroke=TH.ink_color(3),
           stroke_width=TH.hairline)
 top.axis("left", label="chl //a// / µg L^{-1}")
 top.legend(side="top", columns=2)

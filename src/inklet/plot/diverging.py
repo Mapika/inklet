@@ -37,10 +37,6 @@ from .scale import format_number
 __all__ = ["likert", "likert_spans", "likert_colors", "diverging_bars",
            "unsigned"]
 
-#: Palette entries for stacked series on both sides: blue, orange, green,
-#: vermillion, purple, sky blue -- distinct in hue and in lightness.
-_STACK_ORDER = (5, 1, 3, 6, 7, 2)
-
 #: The neutral level of a Likert bar, as a blend of the ink towards paper.
 _NEUTRAL_TINT = 0.8
 
@@ -224,7 +220,7 @@ def diverging_bars(panel, at: Sequence, left, right, *, orient: str = "h",
                 f"diverging_bars {what} has {len(rows[0])} values for {len(places)} positions")
     theme = active_theme()
     if len(lefts) == 1 and len(rights) == 1:
-        pair = ((theme.color(1), theme.color(5)) if color is None
+        pair = ((_marks.fill_color(theme, 1), _marks.fill_color(theme, 0)) if color is None
                 else _marks.series_colors(color, 2))
         left_fills, right_fills = (pair[0],), (pair[1],)
     else:
@@ -232,8 +228,8 @@ def diverging_bars(panel, at: Sequence, left, right, *, orient: str = "h",
             raise DiagramError(
                 "stacked diverging bars need the same series on both sides; "
                 f"got {len(lefts)} left and {len(rights)} right")
-        fills = (tuple(theme.color(_STACK_ORDER[i % len(_STACK_ORDER)])
-                       for i in range(len(lefts))) if color is None
+        fills = (tuple(_marks.fill_color(theme, i) for i in range(len(lefts)))
+                 if color is None
                  else _marks.series_colors(color, len(lefts)))
         left_fills = right_fills = fills
     stroke = style.pop("stroke", None)

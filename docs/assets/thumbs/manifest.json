@@ -617,16 +617,16 @@
   "gallery/part.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-part-480-b7af066841.webp",
+        "path": "assets/thumbs/gallery-part-480-db7184f348.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-part-960-b7af066841.webp",
+        "path": "assets/thumbs/gallery-part-960-db7184f348.webp",
         "width": 960
       }
     ],
     "height": 747,
-    "sha256": "b7af066841c435fb59a0095ee3c132e70dc3d129c1fd22c7b2f8181a26515adc",
+    "sha256": "db7184f348bf3acc134efd9a75edf1c65c62867abbdc342caf175f7be36333b5",
     "width": 1008
   },
   "gallery/plot-engine-review.png": {
@@ -647,16 +647,16 @@
   "gallery/polar.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-polar-480-944aff7cb6.webp",
+        "path": "assets/thumbs/gallery-polar-480-85c95dacb0.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-polar-960-944aff7cb6.webp",
+        "path": "assets/thumbs/gallery-polar-960-85c95dacb0.webp",
         "width": 960
       }
     ],
-    "height": 787,
-    "sha256": "944aff7cb69b1982d3e602e43ef1cabd34f72f0ebfe1391648ef105161373d78",
+    "height": 776,
+    "sha256": "85c95dacb05046877a808c477597b2ee2beff7da36e7f58932796a67f644bba4",
     "width": 1542
   },
   "gallery/presets.png": {
@@ -707,16 +707,16 @@
   "gallery/season.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-season-480-37566b0c7d.webp",
+        "path": "assets/thumbs/gallery-season-480-34acda2238.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-season-960-37566b0c7d.webp",
+        "path": "assets/thumbs/gallery-season-960-34acda2238.webp",
         "width": 960
       }
     ],
-    "height": 810,
-    "sha256": "37566b0c7d6b0610a67f6d6e5df3649035b2c7c53877d2dc5d3e92929a4d5289",
+    "height": 795,
+    "sha256": "34acda2238a2ceb63617b44932d6ab4c989283715896fcf25b39b3aa77beb176",
     "width": 1008
   },
   "gallery/showcase-architecture.png": {

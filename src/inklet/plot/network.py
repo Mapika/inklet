@@ -32,7 +32,6 @@ from ..draw.coords import active_theme
 from ..draw.path import encoded, path, polygon, polyline
 from ..draw.place import place as draw_place
 from ..draw.shapes import MARK_KIND, MARK_LINE_KIND
-from ..themes import contrast_ratio, readable
 from ..themes.color import mix
 from .axis import text_node, tick_texts
 from .dotplot import AreaScale
@@ -534,11 +533,7 @@ def network(panel, nodes, edges, *, layout: str = "circular", order=None,
             continue
         text, inside = lab
         if inside:
-            ink = theme.ink if contrast_ratio(theme.ink, fill) >= contrast_ratio(theme.paper, fill) \
-                else theme.paper
-            if contrast_ratio(ink, fill) < 4.5:
-                ink = readable(ink, fill, 4.5)
-            text = text.styled(text_fill=ink)
+            text = text.styled(text_fill=theme.text_on(fill))
             text_items.append((at[k], text))
         else:
             out = at[k] - centre
