@@ -3288,6 +3288,7 @@ from .path_rules import (rule_path_crosses,                         # noqa: E402
 from .plot_rules import rule_off_panel                              # noqa: E402
 from .break_rules import rule_break_distorts                       # noqa: E402
 from .three_rules import rule_depth_order                           # noqa: E402
+from .label_rules import rule_label_unplaced                       # noqa: E402
 
 RULES: dict[str, Rule] = {
     "TEXT_OVERFLOW": rule_text_overflow,
@@ -3304,6 +3305,7 @@ RULES: dict[str, Rule] = {
     "OVERLAP": rule_overlap,
     "INCONSISTENT_STROKE": rule_inconsistent_stroke,
     "CROWDING": rule_crowding,
+    "LABEL_UNPLACED": rule_label_unplaced,
     "LINK_CROSSES": rule_link_crosses,
     "LINK_CROSSES_LINK": rule_link_crosses_link,
     "PATH_CROSSES": rule_path_crosses,

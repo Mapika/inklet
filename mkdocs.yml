@@ -159,6 +159,7 @@ nav:
 - Figures and layout:
   - Overview: figures.md
   - Dense figure pages: dense-figures.md
+  - Label placement and direct labelling: label-placement.md
   - Rebuild a journal figure: journal-figure.md
   - Panel layout in millimetres: layout.md
   - Presets and journal styles: presets.md

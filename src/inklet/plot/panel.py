@@ -40,6 +40,7 @@ from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
                         plated as _plated)
 from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
                   legend as make_legend)
+from .line_labels import tag_series
 from .matrix import (_RASTER_ABOVE_CELLS, matrix_centers, matrix_layer,
                      prepare_matrix, default_coloring)
 from .scale import Band, Linear, Log, Scale, linear
@@ -385,10 +386,10 @@ class Panel:
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
         mapped = self.map(data)
         if smooth > 0:
-            return self.draw(draw_curve(mapped, smooth=smooth, closed=closed,
-                                        **style), clip=clip)
+            return self.draw(tag_series(draw_curve(
+                mapped, smooth=smooth, closed=closed, **style), name), clip=clip)
         reduced = simplify_points(mapped,tolerance) if tolerance else mapped
-        node = polyline(reduced, closed=closed, **style)
+        node = tag_series(polyline(reduced, closed=closed, **style), name)
         if tolerance:
             node.note('line_simplification',dict(tolerance_mm=tolerance,
                       input_points=len(mapped),output_points=len(reduced)))
@@ -793,8 +794,8 @@ class Panel:
             style["stroke"] = stroke
         self._note(name, "line", color=style.get("stroke"),
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
-        return self.draw(_marks.step(self, points, where=where, **style),
-                         clip=clip)
+        return self.draw(tag_series(_marks.step(self, points, where=where,
+                                                **style), name), clip=clip)
 
     @renamed_keywords(colors="color")
     def boxplot(self, groups, *, at=None, width: float = 0.6,
@@ -1202,6 +1203,9 @@ class Panel:
 
         `corner="auto"` searches clear plot space against existing marks and
         raises if no sampled position fits; it never shrinks the key.
+        `corner="best"` puts it in the emptiest spot inside the plot area
+        (corners preferred among equally empty ones) and, when every spot
+        would cover data, beside the plot on the right instead.
         Fixed `corner` puts it inside the plot area on a knocked-out plate; `side`
         ("right", "left", "top", "bottom") puts it outside, clear of whatever
         furniture is already there, and then no plate is needed. `entries=`
@@ -1257,6 +1261,13 @@ class Panel:
             plate = True
         if plate:
             node = _plated(node, theme, theme.gap("xs"))
+        if corner == 'best':
+            from .key_place import best_spot
+            placed = best_spot(self, node, gap)
+            if placed is None:          # nowhere clear inside: beside it
+                placed = self._beside(build(max_width), 'right', beside_gap)
+            self._over.append(placed)
+            return self._touched()
         if corner == 'auto':
             from ..layout.clear_space import place_in_clear_space
             node = place_in_clear_space(node, within=self.area,
@@ -1778,7 +1789,8 @@ class Panel:
             style["stroke"] = stroke
         self._note(name, "line", color=style.get("stroke"),
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
-        return self.draw(polyline(self.map(points), **style), clip=clip)
+        return self.draw(tag_series(polyline(self.map(points), **style), name),
+                         clip=clip)
 
     @renamed_keywords(colors="color")
     def ridgeline(self, groups, *, at=None, overlap: float = 1.5,
@@ -1906,6 +1918,32 @@ class Panel:
         self._deferred[id(holder)] = place
         self._over.append(holder)
         return self._touched()
+
+    def label_lines(self, names: Sequence[str] | None = None,
+                    **kwargs) -> "Panel":
+        """Name curves at the curves themselves instead of in a legend.
+
+        Every `line`, `step` or `ecdf` drawn with `name=` (or those in
+        `names`) gets its name in its own colour. `where="end"` (default)
+        sets the names in a column just right of the curve ends, pushed
+        apart when they would collide, with a hairline leader from a name
+        moved off its end; `where="inside"` puts each name just above or
+        below the last stretch of its own curve, chosen jointly so no name
+        collides with another, is crossed by a curve or sits nearer a
+        different curve.
+
+            for g in groups:
+                p.line(curves[g], name=g)
+            p.label_lines()
+
+        Keywords: `size`, `gap` (curve end to name, mm), `leader=False`,
+        `color=False` (names in ink), `markup`, `leader_style=` and any text
+        style. Placed at `build()`, like `label_points`; names that collide
+        anyway are listed under `unresolved` in the `line_labels` note and
+        reported by lint. See `plot.line_labels`.
+        """
+        from .line_labels import defer
+        return defer(self, names, **kwargs)
 
     def _placed_over(self) -> list[Diagram]:
         """`_over` with each deferred `label_points` call placed.

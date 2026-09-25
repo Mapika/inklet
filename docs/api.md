@@ -563,15 +563,15 @@ Every `annotate` request recorded anywhere in `node`, in call order.
 
 Place measured label Diagrams beside points without vertical overlap.
 
-#### `place_labels(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float]' = (1.0, 2.4), weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None) -> 'Diagram'`
+#### `place_labels(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float] | None' = None, weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None, method: 'str' = 'greedy') -> 'Diagram'`
 
 Re-place every `annotate` label in `art`, deciding all of them at once.
 
-#### `label_plan(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float]' = (1.0, 2.4), weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None) -> 'tuple[LabelChoice, ...]'`
+#### `label_plan(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float] | None' = None, weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None, method: 'str' = 'greedy') -> 'tuple[LabelChoice, ...]'`
 
 What `place_labels` would do, without doing it.
 
-#### `class LabelChoice(target: 'str', side: 'str', clear: 'float', score: 'float', asked: 'str', overlap: 'float' = 0.0, crossings: 'int' = 0, length: 'float' = 0.0) -> None`
+#### `class LabelChoice(target: 'str', side: 'str', clear: 'float', score: 'float', asked: 'str', overlap: 'float' = 0.0, crossings: 'int' = 0, length: 'float' = 0.0, unresolved: 'bool' = False) -> None`
 
 Where one label ended up, and what it cost.
 
@@ -662,6 +662,7 @@ A drawing region plus the scales that map data into it.
 * `ridgeline(groups, *, at=None, overlap: 'float' = 1.5, bandwidth: 'float | None' = None, samples: 'int' = 96, scale: 'str' = 'shared', fit: 'bool' = True, color=None, colors=<deprecated: use color=>, **style) -> "'Panel'"` -- Overlapping kernel densities, one per category: a ridgeline plot.
 * `raincloud(groups, *, at=None, orient: 'str' = 'h', width: 'float' = 0.9, bandwidth: 'float | None' = None, samples: 'int' = 64, cut: 'float' = 2.0, whisker: 'float' = 1.5, points: 'str | None' = 'jitter', size: 'float | str | None' = None, seed: 'int' = 0, box: 'bool' = True, color=None, colors=<deprecated: use color=>, **style) -> "'Panel'"` -- A half violin, a narrow box and the observations, per group.
 * `label_points(points: 'Iterable[Sequence]', labels: 'Sequence[str]', **kwargs) -> "'Panel'"` -- Label many data points at once, clear of the marks and each other.
+* `label_lines(names: 'Sequence[str] | None' = None, **kwargs) -> "'Panel'"` -- Name curves at the curves themselves instead of in a legend.
 * `dendrogram(tree, *, labels: 'Sequence | None' = None, orient: 'str' = 'v', threshold: 'float | None' = None, color=None, colors=<deprecated: use color=>, **style) -> "'Panel'"` -- The merge tree of a hierarchical clustering, drawn as elbows.
 * `clusters(groups: 'Sequence', *, color: 'str | None' = None, highlight=None, highlight_color: 'str | None' = None, width: 'float | str | None' = None, labels: 'bool' = False, size: 'float | str | None' = None, min_size: 'int' = 1, **style) -> "'Panel'"` -- Boxes on the diagonal of a matrix, one per cluster.
 * `correlogram(r, names: 'Sequence[str] | None' = None, *, triangle: 'str' = 'lower', shape: 'str' = 'circle', ramp=None, values=False, labels: 'bool' = True, size: 'float | str | None' = None, **style) -> "'Panel'"` -- A correlation matrix as a triangle of glyphs sized and coloured by r.
@@ -1605,6 +1606,10 @@ A link's own label plate drawn over its own elbow.
 #### `LABEL_OFF_LINK`
 
 A link label that found no room beside its link and was moved away.
+
+#### `LABEL_UNPLACED`
+
+Labels a placer reported it could not place without a collision.
 
 #### `LARGE_TEXT`
 

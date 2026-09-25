@@ -9,24 +9,25 @@ placed by a deterministic search:
    `reach` millimetres. Boxes straight above, below or beside the point are
    also tried slid along that side, so an end of the label rather than its
    middle lines up with the point.
+   Past `reach` further rings (sixteen directions) run out to
+   `_FURTHER * reach`, for a label with no room near its point; each extra
+   millimetre there costs more than the last.
 2. A candidate is rejected if its box leaves the plot area. Otherwise it is
-   scored by how much it overlaps drawn marks (kept a quarter of the theme's
-   small gap away), other labelled points and labels already placed (kept
-   the whole gap away), how many line segments and leaders it crosses, and
-   (when it needs a leader) whether that leader crosses a label, a leader
-   or another labelled point. Needing a leader costs a fixed amount on top
-   of the distance.
-3. The first free candidate on the first ring wins. Otherwise every
-   candidate is scored with its distance from the point added, and the
-   lowest total wins.
+   scored against an obstacle field of everything drawn
+   (`layout.label_search.ObstacleField`): markers, bars and text by their
+   boxes, stroked lines by their segments, bands and areas by their
+   outlines, and the other labelled points. A candidate off the first ring
+   needs a leader, scored for the marks, lines and labelled points it runs
+   through. Distance from the point is added.
+3. The best `_KEEP` candidates per label go to `layout.label_search.solve`,
+   which chooses one per label jointly -- greedy, best response, seeded
+   annealing and pair repair -- so that labels do not overlap one another or
+   labelled points, and leaders neither cross nor pass through labels.
 
-Points are labelled most crowded first. A repair pass then lifts each label
-that ended on a leader or in conflict, together with the labels near its
-point, places it first and puts the others back, keeping the result when it
-has fewer conflicts or a lower total. A label placed off the first ring gets
-a hairline leader back to its point. A label that still covers a labelled
-point or another label, or whose leader crosses something, is listed as
-unresolved in the node's `point_labels` note.
+A label placed off the first ring gets a hairline leader back to its point.
+A label still in conflict is listed as unresolved in the node's
+`point_labels` note (and reported by lint as `LABEL_UNPLACED`); one that
+sits on a background mark is listed under `covering_marks`.
 
 `Panel.label_points` defers the placement to `Panel.build`, so the labels
 avoid every mark on the panel, including marks drawn after the call. Labels
@@ -44,6 +45,8 @@ from ..core import (Diagram, DiagramError, MarkerBatchPrim, PathPrim, Rect,
 from ..draw.coords import active_theme
 from ..draw.path import polyline
 from ..draw.place import place as draw_place
+from ..layout.label_search import (Candidate, ObstacleField, Weights, seed_of,
+                                   solve)
 from .axis import text_node
 
 __all__ = ["POINT_LABEL_KIND", "LEADER_KIND", "PENDING_KIND", "label_points"]
@@ -77,29 +80,23 @@ _CARDINAL = (-90.0, 90.0, 0.0, 180.0)
 #: target radius, so it does not touch the marker.
 _STANDOFF = 1.15
 
-#: Clear space kept between a label and marks that are not labelled points,
-#: as a fraction of the gap kept from labels and labelled points.
-_MARK_PAD_OF_GAP = 0.25
+#: What a candidate costs -- covering marks, labelled points and labels,
+#: lines through it, leaders through marks or other labels, distance -- is
+#: `layout.label_search.Weights`, shared with `label_lines` and
+#: `place_labels(method="joint")`.
 
-#: Scores. Covering a mark, a labelled point or another label, or coming
-#: within `spacing` of a labelled point or a label, counts `_OVERLAP_WEIGHT`
-#: per square millimetre; reaching into the small pad kept round other marks
-#: counts `_PAD_WEIGHT` per square millimetre. A stroked line through a label
-#: counts `_CROSSING_WEIGHT`. A leader that crosses another leader, or
-#: passes through a label or a labelled point, counts
-#: `_LEADER_CROSSING_WEIGHT`, as does a leader passing through this label.
-#: Each millimetre from the point counts `_DISTANCE_WEIGHT`, and needing a
-#: leader at all counts `_LEADER_WEIGHT`, so a label next to its point that
-#: grazes a pad wins over a free one out on a leader.
-_OVERLAP_WEIGHT = 10.0
-_PAD_WEIGHT = 1.0
-_CROSSING_WEIGHT = 2.0
-_LEADER_CROSSING_WEIGHT = 6.0
-_DISTANCE_WEIGHT = 0.3
-_LEADER_WEIGHT = 2.0
+#: Candidates kept per label for the joint search, cheapest first.
+_KEEP = 64
 
-#: How many times the repair pass runs over the labels at most.
-_REPAIR_ROUNDS = 3
+#: How far past `reach` the outer rings go, as a multiple of it, for a label
+#: that has no room near its point.
+_FURTHER = 2.5
+
+#: Cost per square millimetre a candidate lies past `reach`.
+_STRETCH = 0.02
+
+#: Cost per step down the first ring's order of preference.
+_PREFERENCE = 0.02
 
 
 def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
@@ -131,177 +128,84 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
     anchors = [panel.point(*p) for p in data]
     if marks is None:
         marks = [*panel._content, *panel._over]
-    boxes, segments = _obstacles([*marks, *avoid])
+    boxes, segments, polygons, flags = _obstacles([*marks, *avoid], split=True)
+    field = ObstacleField(cell=max(ring * 2, 1.0))
+    for box, flag in zip(boxes, flags):
+        field.add_box((box.x0, box.y0, box.x1, box.y1), mark=flag)
+    for a, b in segments:
+        field.add_segment((a.x, a.y, b.x, b.y))
+    for poly in polygons:
+        field.add_area(poly)
     index_of = _Grid(boxes, max(ring * 2, 1.0))
     # The markers drawn at each labelled point (there may be two: a grey
     # cloud and a highlight drawn over it).
-    own_marker: dict[int, set[int]] = {}
+    own_marker: dict[int, list[int]] = {}
     radii: list[float] = []
+    number_of = {id(box): n for n, box in enumerate(boxes)}
     for number, a in enumerate(anchors):
         mine = [other for other in index_of.near(Rect(a.x, a.y, a.x, a.y))
                 if abs(other.center.x - a.x) < 1e-6
                 and abs(other.center.y - a.y) < 1e-6
                 and other.width <= 2.5 * target]
-        own_marker[number] = {id(other) for other in mine}
+        own_marker[number] = sorted(number_of[id(other)] for other in mine)
         # A point with a marker of its own is kept clear by that marker's
         # radius; a point with none by the default zone.
         radii.append(max((other.width / 2 for other in mine), default=target))
-    targets = [Rect(a.x - r, a.y - r, a.x + r, a.y + r)
-               for a, r in zip(anchors, radii)]
+    for a, r in zip(anchors, radii):
+        field.add_target((a.x - r, a.y - r, a.x + r, a.y + r))
     nodes = [text_node(str(name), font, POINT_LABEL_KIND, markup=markup, **style)
              for name in names]
-    order = sorted(range(len(data)),
-                   key=lambda i: (-_crowding(i, anchors, index_of, far), i))
-    placed: dict[int, Rect] = {}
-    leaders: dict[int, tuple[Vec2, Vec2]] = {}
-    chosen: dict[int, tuple] = {}
-
-    def evaluate(index: int, box: Rect, distance: float,
-                 first: bool) -> tuple:
-        """`(total, box, leader, conflicts, distance, first, soft)` for one
-        label at one position, against everything drawn and every other label
-        now placed.
-
-        `conflicts` is non-zero when the label covers a labelled point or
-        another label, a stroked line crosses it, or a leader crosses it or
-        is crossed. `soft` is the rest of the score: background marks
-        covered or crowded, and labels or labelled points closer than
-        `spacing`.
-        """
-        score = 0.0
-        soft = 0.0
-        # Everything except the point's own marker is kept `spacing` away;
-        # the own marker only must not be covered, since the first ring
-        # already sits `clear` from it.
-        spaced = _grown(box, spacing)
-        padded = _grown(box, _MARK_PAD_OF_GAP * spacing)
-        # Leaders pass labels with half the gap to spare.
-        passed = _grown(box, spacing / 2)
-        for other in index_of.near(spaced):
-            if id(other) in own_marker[index]:
-                continue
-            # Labelled points' markers are in `targets` below, kept the full
-            # gap away; other marks only a small pad, so a label can still
-            # sit in a gap in a dense cloud.
-            soft += _OVERLAP_WEIGHT * _overlap(box, other)
-            soft += _PAD_WEIGHT * _overlap(padded, other)
-        # Covering a labelled point or another label is a conflict; coming
-        # closer than `spacing` to one is not, but is scored as heavily, so
-        # the gap is kept whenever there is room for it.
-        for number, other in enumerate(targets):
-            score += _OVERLAP_WEIGHT * _overlap(box, other)
-            if number != index:
-                soft += _OVERLAP_WEIGHT * (_overlap(spaced, other)
-                                           - _overlap(box, other))
-        for number, other in placed.items():
-            if number != index:
-                score += _OVERLAP_WEIGHT * _overlap(box, other)
-                soft += _OVERLAP_WEIGHT * (_overlap(spaced, other)
-                                           - _overlap(box, other))
-        score += _CROSSING_WEIGHT * sum(
-            1 for a, b in segments if _segment_hits(a, b, box))
-        score += _LEADER_CROSSING_WEIGHT * sum(
-            1 for number, (a, b) in leaders.items()
-            if number != index and _segment_hits(a, b, passed))
-        line = None
-        if not first and leader:
-            line = _leader(anchors[index], box, radii[index] * _STANDOFF)
-            if line is not None:
-                score += _LEADER_CROSSING_WEIGHT * sum(
-                    1 for number, other in placed.items()
-                    if number != index
-                    and _segment_hits(line[0], line[1],
-                                      _grown(other, spacing / 2)))
-                score += _LEADER_CROSSING_WEIGHT * sum(
-                    1 for number, (a, b) in leaders.items()
-                    if number != index
-                    and _segments_cross(line[0], line[1], a, b))
-                score += _LEADER_CROSSING_WEIGHT * sum(
-                    1 for number, other in enumerate(targets)
-                    if number != index
-                    and _segment_hits(line[0], line[1], other))
-        total = score + soft + _DISTANCE_WEIGHT * distance
-        if line is not None:
-            total += _LEADER_WEIGHT
-        return total, box, line, score, distance, first, soft
-
-    def search(index: int) -> tuple:
-        """The best position for one label, as `evaluate` reports it."""
+    weights = Weights()
+    options: list[list[Candidate]] = []
+    for index, anchor in enumerate(anchors):
         width, height = nodes[index].bbox.width, nodes[index].bbox.height
-        best = None
-        for distance, angle, slide, first in _candidates(
-                gap + radii[index], ring, far):
-            box = _box_at(anchors[index], angle, distance, width, height, slide)
+        own = (index,)
+        found: list[tuple[float, int, Candidate]] = []
+        for rank, (distance, angle, slide, first) in enumerate(_candidates(
+                gap + radii[index], ring, far, further=_FURTHER * far)):
+            box = _box_at(anchor, angle, distance, width, height, slide)
             if not _within(box, area):
                 continue
-            here = evaluate(index, box, distance, first)
-            if best is None or here[0] < best[0]:
-                best = here
-            if first and here[3] == 0.0 and here[6] == 0.0:
-                break
-        if best is None:
+            b = (box.x0, box.y0, box.x1, box.y1)
+            cost, conflicts, covered = field.cost(
+                b, spacing=spacing, weights=weights, own=own,
+                own_boxes=own_marker[index])
+            line = None
+            if not first and leader:
+                line = _leader(anchor, box, radii[index] * _STANDOFF)
+            seg = None
+            if line is not None:
+                seg = (line[0].x, line[0].y, line[1].x, line[1].y)
+                lc, lk = field.leader_cost(seg, weights=weights, own=own)
+                cost += lc + weights.leader
+                conflicts += lk
+            cost += weights.distance * distance
+            # Past `reach` a leader costs more for every extra millimetre,
+            # so a far label is the last resort, not a cheap escape.
+            cost += _STRETCH * max(0.0, distance - far) ** 2
+            if first:
+                # The first ring's order is a preference: east, then round.
+                cost += _PREFERENCE * rank
+            found.append((cost, rank, Candidate(b, seg, cost, conflicts,
+                                                (box, line), covered)))
+        if not found:
             raise DiagramError(
                 f"label {names[index]!r} does not fit inside the plot area; "
                 "enlarge the panel or shorten the label")
-        return best
-
-    def put(index: int, best: tuple) -> None:
-        chosen[index] = best
-        placed[index] = best[1]
-        leaders.pop(index, None)
-        if best[2] is not None:
-            leaders[index] = best[2]
-
-    def take(index: int) -> None:
-        del chosen[index]
-        del placed[index]
-        leaders.pop(index, None)
-
-    for index in order:
-        put(index, search(index))
-
-    # Repair: a label that ended on a leader or in conflict may have lost its
-    # place next to the point to a neighbour placed before it. Lift it and
-    # the labels near its point, place it first, put the others back, and
-    # keep the result if the group has fewer conflicts, or as many and a
-    # lower summed cost (each label scored against all the others). Rounds
-    # repeat while something improves, up to `_REPAIR_ROUNDS`.
-    def standing(group: Sequence[int]) -> tuple[int, float]:
-        scored = [evaluate(i, chosen[i][1], chosen[i][4], chosen[i][5])
-                  for i in group]
-        return sum(1 for s in scored if s[3] > 0), sum(s[0] for s in scored)
-
-    for _ in range(_REPAIR_ROUNDS):
-        improved = False
-        seeds = [i for i in chosen if i in leaders or chosen[i][3] > 0]
-        for index in sorted(seeds, key=lambda i: (-chosen[i][0], i)):
-            here = anchors[index]
-            reach_box = Rect(here.x - far, here.y - far,
-                             here.x + far, here.y + far)
-            group = [index, *sorted((i for i in chosen if i != index
-                                     and _overlap(placed[i], reach_box) > 0),
-                                    key=order.index)]
-            before = {i: chosen[i] for i in group}
-            conflicts, total = standing(group)
-            for i in group:
-                take(i)
-            for i in group:
-                put(i, search(i))
-            new_conflicts, new_total = standing(group)
-            if (new_conflicts, new_total) < (conflicts, total - 1e-9):
-                improved = True
-                continue
-            for i in group:
-                take(i)
-            for i in group:
-                put(i, before[i])
-        if not improved:
-            break
-
-    # Scored again now that every label is down: a label placed early did not
-    # see the ones placed after it.
-    unresolved = [i for i in range(len(data))
-                  if evaluate(i, chosen[i][1], chosen[i][4], chosen[i][5])[3] > 0]
+        found.sort(key=lambda item: (item[0], item[1]))
+        options.append([c for _, _, c in found[:_KEEP]])
+    order = sorted(range(len(data)),
+                   key=lambda i: (-_crowding(i, anchors, index_of, far), i))
+    solution = solve(options, spacing=spacing, order=order, weights=weights,
+                     seed=seed_of(tuple(names),
+                                  tuple((round(a.x, 4), round(a.y, 4))
+                                        for a in anchors)))
+    placed = {i: options[i][c].data[0] for i, c in enumerate(solution.chosen)}
+    leaders = {i: options[i][c].data[1] for i, c in enumerate(solution.chosen)
+               if options[i][c].data[1] is not None}
+    unresolved = sorted(solution.conflicted)
+    covering = [i for i, c in enumerate(solution.chosen)
+                if options[i][c].covered and i not in solution.conflicted]
     ink = style.get("text_fill", theme.ink)
     line_style = {"stroke": ink, "stroke_width": theme.hairline}
     line_style.update(leader_style or {})
@@ -317,7 +221,8 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
     node.notes["point_labels"] = {
         "count": len(data),
         "leaders": sorted(leaders),
-        "unresolved": [names[i] for i in sorted(unresolved)],
+        "unresolved": [names[i] for i in unresolved],
+        "covering_marks": [names[i] for i in covering],
     }
     return node
 
@@ -335,8 +240,13 @@ def checked(points: Sequence[Sequence], labels: Sequence[str]) -> tuple[list, li
     return data, names
 
 
-def _candidates(start: float, ring: float, far: float):
+def _candidates(start: float, ring: float, far: float,
+                further: float | None = None):
     """`(distance, page angle, slide, first ring?)` in search order.
+
+    With `further`, rings continue past `far` out to `further`, two rings'
+    spacing apart and with sixteen directions, so a label with no room near
+    its point can still reach free space on a longer leader.
 
     `slide` moves a box placed straight above, below or beside the point
     along that side, so one of its ends lines up with the point instead of
@@ -357,6 +267,13 @@ def _candidates(start: float, ring: float, far: float):
             for slide in (1, -1):
                 yield distance, angle, slide, False
         distance += ring
+    if further is None:
+        return
+    while distance <= further + 1e-9:
+        for step in range(16):
+            angle = _FIRST[step % 8] if step < 8 else _FIRST[step % 8] + 22.5
+            yield distance, angle, 0, False
+        distance += 2 * ring
 
 
 def _box_at(anchor: Vec2, angle: float, distance: float, width: float,
@@ -444,15 +361,24 @@ def _segment_hits(a: Vec2, b: Vec2, box: Rect) -> bool:
     return True
 
 
-def _obstacles(nodes: Sequence[Diagram]) -> tuple[list[Rect], list[tuple[Vec2, Vec2]]]:
+def _obstacles(nodes: Sequence[Diagram], split: bool = False):
     """Boxes of filled shapes and text, and segments of stroked paths.
 
     A stroked line is represented by its segments rather than its bounding
     box: a fitted line across the whole panel would otherwise block every
     candidate.
+
+    With `split=True` two more lists are returned: filled polygons that are
+    neither rectangles nor small (a confidence band, a shaded area, a
+    violin), as `(x, y)` tuples, measured on their outline rather than their
+    box -- a band's box covers most of a panel it only crosses -- and one
+    flag per box, true for a data marker (a batch record or a marker-sized
+    shape) and false for text, bars and plates.
     """
     boxes: list[Rect] = []
+    flags: list[bool] = []
     segments: list[tuple[Vec2, Vec2]] = []
+    polygons: list[tuple[tuple[float, float], ...]] = []
     for art in nodes:
         for placed in resolve(art).values():
             node = placed.diagram
@@ -466,7 +392,12 @@ def _obstacles(nodes: Sequence[Diagram]) -> tuple[list[Rect], list[tuple[Vec2, V
                     if not pts:
                         continue
                     if filled:
-                        boxes.append(Rect.hull(pts))
+                        hull = Rect.hull(pts)
+                        if split and not _boxlike(pts, hull):
+                            polygons.append(tuple((v.x, v.y) for v in pts))
+                        else:
+                            boxes.append(hull)
+                            flags.append(_small(hull))
                     else:
                         segments.extend(zip(pts, pts[1:]))
                         if sub.closed:
@@ -478,11 +409,35 @@ def _obstacles(nodes: Sequence[Diagram]) -> tuple[list[Rect], list[tuple[Vec2, V
                     half = size * scale / 2
                     boxes.append(Rect(at.x - half, at.y - half,
                                       at.x + half, at.y + half))
+                    flags.append(True)
             elif type(node.prim).__name__.startswith("Image"):
                 continue                # a raster layer covers the whole area
             elif placed.bbox is not None:
                 boxes.append(placed.bbox)
+                flags.append(type(node.prim).__name__ != "TextPrim"
+                             and _small(placed.bbox))
+    if split:
+        return boxes, segments, polygons, flags
     return boxes, segments
+
+
+def _small(box: Rect) -> bool:
+    return box.width <= _SMALL_POLYGON and box.height <= _SMALL_POLYGON
+
+
+#: A filled polygon no larger than this (mm, either side) is a marker-sized
+#: shape and is kept clear of by its box.
+_SMALL_POLYGON = 3.0
+
+
+def _boxlike(pts: Sequence[Vec2], hull: Rect) -> bool:
+    """Whether a filled outline is an axis-aligned rectangle or marker-small."""
+    if hull.width <= _SMALL_POLYGON and hull.height <= _SMALL_POLYGON:
+        return True
+    eps = 1e-6
+    return all((abs(v.x - hull.x0) < eps or abs(v.x - hull.x1) < eps)
+               and (abs(v.y - hull.y0) < eps or abs(v.y - hull.y1) < eps)
+               for v in pts)
 
 
 class _Grid:
