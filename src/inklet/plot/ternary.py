@@ -79,7 +79,7 @@ def ternary_frame(panel, *, labels: Sequence[str] = ("A", "B", "C"), ticks: int 
     # Room: tick labels stick out sideways on the slanted edges and below
     # the base; the vertex names sit above A and below B and C.
     side_room = tw + off + gap
-    top_room = names[0].bbox.height + gap
+    top_room = names[0].bbox.height + off
     bottom_room = th + off + gap + max(names[1].bbox.height, names[2].bbox.height) + gap
     side = min(area.width - 2 * side_room,
                (area.height - top_room - bottom_room) * 2 / _ROOT3)
@@ -121,7 +121,7 @@ def ternary_frame(panel, *, labels: Sequence[str] = ("A", "B", "C"), ticks: int 
             items.append(draw_place([(at + n * push, text)], origin=(0, 0)))
     # Vertex names.
     na, nb, nc = names
-    items.append(draw_place([(A + Vec2(0.0, -(gap + na.bbox.height / 2)), na)], origin=(0, 0)))
+    items.append(draw_place([(A + Vec2(0.0, -(off + na.bbox.height / 2)), na)], origin=(0, 0)))
     below = th + off + gap
     items.append(draw_place([(B + Vec2(0.0, below + nb.bbox.height / 2), nb)], origin=(0, 0)))
     items.append(draw_place([(C + Vec2(0.0, below + nc.bbox.height / 2), nc)], origin=(0, 0)))

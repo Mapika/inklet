@@ -2236,7 +2236,15 @@ class Panel:
         if plate:
             node = _plated(node, theme, theme.gap("xs"))
         if corner is None:
-            placed = self._beside(node, side, gap)
+            # Beside the plot area as well as the drawing: a ring of nodes
+            # leaves the area's corners empty, and a key tucked into one
+            # would straddle the frame.
+            box = _union_box(self._under + self._content + self._over) or self.area
+            box = Rect(min(box.x0, self.area.x0), min(box.y0, self.area.y0),
+                       max(box.x1, self.area.x1), max(box.y1, self.area.y1))
+            if side not in SIDES:
+                raise ValueError(f"unknown side {side!r}; expected one of {', '.join(SIDES)}")
+            placed = beside(node, box, side, gap, Vec2(0.0, 0.0))
         else:
             placed = _into_corner(node, self.area, corner, gap)
         self._over.append(placed)

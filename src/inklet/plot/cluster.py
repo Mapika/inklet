@@ -294,7 +294,7 @@ def clusters(panel, groups, *, color: str | None = None, highlight=None,
             gap = theme.gap("xs")
             # Outside the matrix on the right, level with the box's middle,
             # where it reads as the name of those rows.
-            items.append(draw_place([(Vec2(area.x1 + gap + b.width / 2, (y0 + y1) / 2), t)],
+            items.append(draw_place([(Vec2(area.x1 + gap + stroke + b.width / 2, (y0 + y1) / 2), t)],
                                     origin=(0, 0)))
     node = draw_place(items, origin=(0, 0), kind=abutting("clusters"))
     note = {"blocks": [(s, e, lab) for s, e, lab in runs], "highlighted": sorted(map(str, lit)),
