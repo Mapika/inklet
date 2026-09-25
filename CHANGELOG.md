@@ -137,6 +137,35 @@ a `DeprecationWarning` subclass that names the replacement. See the
     output does not change.
   - `palette("viridis")` used to raise `KeyError`; it now returns the map.
 
+### Added
+
+- Hierarchies: `Panel.treemap` (squarified, with group plates),
+  `Panel.icicle` (clustering levels with fans, a highlighted lineage, level
+  numbers and counts) and `Panel.sunburst`. `inklet.plot.hierarchy` reads
+  nested mappings, `(name, children)` tuples or `(name, parent, value)`
+  tables; `partition_layout`, `treemap_layout` and `squarify` return the
+  geometry. See [Networks and hierarchies](docs/networks-and-hierarchies.md).
+- Networks: `Panel.network` (circular, force, layered or tree layouts; node
+  area by value, edge width by weight, groups, edge categories, arrows),
+  `Panel.chord` (undirected or directed ribbons, `chord_layout`),
+  `Panel.arc_diagram`, and `Panel.width_key` to explain edge widths
+  (`inklet.plot.width_scale`).
+- Clustered matrices: `inklet.plot.linkage` (single, complete, average,
+  weighted and Ward; SciPy's output format, no SciPy needed), `cut`,
+  `correlation` and `distance_matrix`; `Panel.clusters` boxes clusters on a
+  matrix diagonal; `Panel.correlogram` draws a correlation triangle; and
+  `inklet.clustermap` builds a clustered heatmap with dendrograms,
+  annotation strips and a colorbar.
+- `Panel.inset(..., connector={...})` styles the zoom connector lines
+  separately from the inset window.
+- Genomics: `inklet.manhattan` (natural chromosome order, significance lines,
+  lead-hit labels, `manhattan_layout`) and `Panel.ma`. See
+  [Genomics and ternary plots](docs/genomics-plots.md).
+- `Panel.ternary` plots three-part compositions in a triangle
+  (`inklet.plot.ternary_frame`, `TernaryFrame`).
+- `examples/network_hierarchy_plot_types.py` shows every plot above in one
+  180 mm figure.
+
 ## 4.3.0 — 2026-09-25
 
 4.3 moves microscopy volumes, keyed selections, figure projects and the layout

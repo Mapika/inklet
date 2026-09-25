@@ -42,7 +42,7 @@ def inset(panel, sub, *, corner: str = "ne", width: float | None = 0.35,
           pad: float | str | None = None, side: str | None = None,
           align: str = "center",
           zoom: Sequence[float] | None = None, plate: bool = True,
-          connect: bool = True, **style):
+          connect: bool = True, connector: dict | None = None, **style):
     """Put `sub` inside `panel`'s plot area, on a plate, and return `panel`.
 
     `side="right"` (or left/top/bottom) places it outside the complete
@@ -60,6 +60,10 @@ def inset(panel, sub, *, corner: str = "ne", width: float | None = 0.35,
     *parent's* data coordinates, and joins its two outer corners to the inset's
     with connector lines. Give it whenever the inset is a magnification: it is
     the difference between a second plot and a zoom.
+
+    Other keywords style the window and the connectors alike (`stroke=` for a
+    coloured window); `connector=` holds keywords for the connectors alone,
+    such as `connector={"stroke_dash": (1, 0.6)}` for dashed ones.
     """
     if side is not None and side not in ("left", "right", "top", "bottom"):
         raise ValueError("inset side must be left, right, top or bottom")
@@ -74,7 +78,7 @@ def inset(panel, sub, *, corner: str = "ne", width: float | None = 0.35,
             _window(panel, zoom)  # Validate data coordinates at registration.
         panel._insets.append(ExternalInset(sub, dict(width=width, pad=gap, side=side,
             align=align, zoom=None if zoom is None else tuple(zoom), plate=plate,
-            connect=connect, style=dict(style))))
+            connect=connect, style=dict(style), connector=dict(connector or {}))))
         return panel._touched()
     node = sub.build() if hasattr(sub, "build") else sub
     if width is not None:
@@ -89,7 +93,7 @@ def inset(panel, sub, *, corner: str = "ne", width: float | None = 0.35,
         parts.insert(0, polyline(window.corners, closed=True,
                                  kind=INDICATOR_KIND, **style))
         if connect:
-            parts[1:1] = _connectors(window, node.bbox, style)
+            parts[1:1] = _connectors(window, node.bbox, {**style, **(connector or {})})
     panel.over(*parts, clip=False)
     return panel
 
@@ -107,7 +111,7 @@ def _contains_panel(sub, parent):
 
 
 def external_parts(panel, node, furniture, *, width, pad, side, align,
-                   zoom, plate, connect, style):
+                   zoom, plate, connect, style, connector=None):
     """Resolve one external inset in the parent's original drawing frame."""
     if width is not None:
         node = _scaled_to(node, panel.width*width)
@@ -128,7 +132,8 @@ def external_parts(panel, node, furniture, *, width, pad, side, align,
         window = _window(panel, zoom)
         parts.append(polyline(window.corners, closed=True, kind=INDICATOR_KIND, **style))
         if connect:
-            parts.extend(_connectors(window, plot_area(node) or node.bbox, style))
+            parts.extend(_connectors(window, plot_area(node) or node.bbox,
+                                     {**style, **(connector or {})}))
     return [as_drawn(part) for part in parts] + [node]
 
 

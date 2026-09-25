@@ -132,6 +132,10 @@ class Panel:
     #: The area scale the last `dotplot` sized its circles with, for
     #: `size_key()`.
     _sizes: object | None = field(default=None, repr=False, compare=False)
+    #: The width scale the last `network` drew its edges with, for
+    #: `width_key()`.
+    _widths: object | None = field(default=None, repr=False, compare=False)
+    _ternary: object | None = field(default=None, repr=False, compare=False)
     #: `(name, estimate, colour)` per curve `kaplan_meier` drew, for
     #: `at_risk()`.
     _survival: list = field(default_factory=list, repr=False, compare=False)
@@ -1555,7 +1559,9 @@ class Panel:
         """Put a smaller panel in a corner of this one. See `plot.inset`.
 
         `zoom=(x0, x1, y0, y1)` in this panel's data coordinates also draws the
-        window the inset magnifies and joins it to the inset.
+        window the inset magnifies and joins it to the inset. Style keywords
+        (`stroke=`, `stroke_width=`) paint the window and connectors;
+        `connector={"stroke_dash": (1, 0.6)}` styles the connectors alone.
         """
         from .inset import inset as _inset
 
@@ -1968,6 +1974,426 @@ class Panel:
                                  threshold=threshold, colors=color, **style)
         return self.draw(node, clip=clip)
 
+    # -- clustered matrices (plot/cluster.py, plot/correlogram.py) -----------
+
+    def clusters(self, groups: Sequence, *, color: str | None = None, highlight=None,
+                 highlight_color: str | None = None, width: float | str | None = None,
+                 labels: bool = False, size: float | str | None = None,
+                 min_size: int = 1, **style) -> "Panel":
+        """Boxes on the diagonal of a matrix, one per cluster.
+
+        `groups` is one cluster label per matrix row, in the order the rows
+        are drawn (top first), so each cluster is a run of equal labels;
+        `inklet.plot.cut(link, k)` numbered in leaf order gives exactly that
+        once the matrix is reordered by the dendrogram:
+
+            link = inklet.plot.linkage(r, metric="precomputed")
+            order = inklet.plot.dendrogram_layout(link).order
+            groups = [inklet.plot.cut(link, 4)[i] for i in order]
+            p.matrix([[r[i][j] for j in order] for i in order]).clusters(groups, highlight=2)
+
+        Boxes span whole cells of an n x n matrix filling the plot area,
+        drawn `width` mm thick (default the theme's thick stroke) in `color`
+        (ink); `highlight=` clusters are drawn over the others in
+        `highlight_color` (red). `labels=True` names each cluster outside
+        the matrix on the right, level with its box. Runs shorter than `min_size` rows get no box,
+        and a `None` label is never boxed. Other keywords style the boxes.
+        The node carries a `clusters` note with each box's row span.
+        """
+        from .cluster import clusters as _clusters
+
+        node, _ = _clusters(self, groups, color=color, highlight=highlight,
+                            highlight_color=highlight_color, width=width, labels=labels,
+                            size=size, min_size=min_size, **style)
+        return self.over(node, clip=False)
+
+    def correlogram(self, r, names: Sequence[str] | None = None, *,
+                    triangle: str = "lower", shape: str = "circle", ramp=None,
+                    values=False, labels: bool = True,
+                    size: float | str | None = None, **style) -> "Panel":
+        """A correlation matrix as a triangle of glyphs sized and coloured by r.
+
+        `r` is a square matrix of correlations (`inklet.plot.correlation`
+        computes one); `names` label its rows. Each glyph's area is
+        proportional to |r| (a full cell less a margin at |r| = 1) and its
+        colour is r on the diverging ramp from -1 (blue) to 1 (red), so
+        `colorbar()` afterwards shows the fixed -1..1 scale.
+
+            p = inklet.panel(40, 40)
+            p.correlogram(inklet.plot.correlation(table), genes).colorbar(label="r")
+
+        `triangle="lower"` (default) or `"upper"` draws each pair once and
+        leaves out the diagonal; `"full"` draws everything. `shape` is
+        "circle", "square" or "tile" (whole cells, the classic heatmap).
+        `values=True` or a format such as `"{:.1f}"` writes r in each glyph.
+        Names go outside the grid, left and below (above for "upper"),
+        turned when they do not fit a column. Missing values (None or NaN)
+        are left empty. The node carries a `correlogram` note.
+        """
+        from .correlogram import correlogram as _correlogram
+
+        clip = _clip_flag(style)
+        node, note = _correlogram(self, r, names, triangle=triangle, shape=shape,
+                                  ramp=ramp, values=values, labels=labels, size=size,
+                                  **style)
+        self._ramp = note["ramp"]
+        self._scale_domain = note["scale"]
+        return self.draw(node, clip=clip)
+
+    def ternary(self, points: Iterable[Sequence[float]], *, labels: Sequence[str] | None = None,
+                ticks: int = 5, grid: bool = True, total: float = 100, format=None,
+                color=None, size=None, marker: str = "circle", name: str | None = None,
+                **style) -> "Panel":
+        """Compositions of three parts as points in a triangle.
+
+        `points` are `(a, b, c)` triples in any units; each is normalised to
+        fractions of its sum. The first call draws the triangle, fitted into
+        the plot area with component `labels[0]` at the top vertex,
+        `labels[1]` bottom left and `labels[2]` bottom right, with `ticks`
+        divisions whose inner gridlines are labelled as parts of `total`
+        (100, so percentages; `format=` a function to write them) and a pale grid (`grid=False` to omit).
+        Later calls on the same panel add points to the same triangle.
+
+            p = inklet.panel(50, 45)
+            p.ternary(soils, labels=("clay", "sand", "silt"), name="site 1")
+            p.ternary(more, name="site 2").legend()
+
+        The points are an ordinary `scatter`, so `color`, `size`, `marker`,
+        `name` and other style keywords mean what they mean there (a
+        sequence of colours or a ramp included). The triangle carries a
+        `ternary` note with its vertices; `inklet.plot.ternary_frame` gives
+        the geometry for drawing anything else in it.
+        """
+        from .ternary import ternary_frame
+
+        if isinstance(self.x, Band) or isinstance(self.y, Band):
+            raise DiagramError("ternary needs continuous x and y scales")
+        if self._ternary is None:
+            node, frame = ternary_frame(self, labels=labels or ("A", "B", "C"), ticks=ticks,
+                                        grid=grid, total=total, format=format)
+            self._ternary = frame
+            self.under(node)
+        elif labels is not None:
+            raise DiagramError("this panel's ternary triangle is already drawn with its labels")
+        frame = self._ternary
+        at = [frame.point(*triple) for triple in points]
+        data = [(self.x.invert(p.x), self.y.invert(p.y)) for p in at]
+        return self.scatter(data, color=color, size=size, marker=marker, name=name,
+                            clip=False, **style)
+
+    # -- hierarchies (plot/hierarchy_plots.py) ------------------------------
+
+    def treemap(self, data, *, colors=None, highlight=None,
+                highlight_color: str | None = None,
+                padding: float | str | None = None, header: bool | None = None,
+                labels: bool = True, values=None, sort: bool = True,
+                size: float | str | None = None, **style) -> "Panel":
+        """A squarified treemap: each leaf a rectangle with area proportional
+        to its value, filling the plot area.
+
+        `data` is any input of `inklet.plot.hierarchy`: a nested mapping
+        (`{"L5": {"ET": 40, "IT": 65}, "L6": 80}`), `(name, children)`
+        tuples, or a `(name, parent[, value])` table. Nested groups are
+        drawn as pale plates `padding` mm inside their parent (default about
+        0.6 mm when the tree is more than one level deep) with the group's
+        name in a header strip (`header=`). Siblings are laid out largest
+        first unless `sort=False`.
+
+        Colours follow the branch (child of the root): the theme's
+        categorical palette, `colors=` a list per branch, a mapping of node
+        name to colour (inherited by descendants) or one colour. `highlight=`
+        names or paths get `highlight_color` (a red by default) and every
+        other node a pale fill. Leaves are named in their top-left corner
+        when the name fits (`labels=False` to omit); `values=True` or a
+        format string such as `"{:.0f}"` adds the value on a second line.
+        The panel's scales are not used. The node carries a `treemap` note
+        with each cell's path and area in mm².
+        """
+        from .hierarchy_plots import treemap as _treemap
+
+        clip = _clip_flag(style)
+        node, _ = _treemap(self, data, colors=colors, highlight=highlight,
+                           highlight_color=highlight_color, padding=padding,
+                           header=header, labels=labels, values=values,
+                           sort=sort, size=size, **style)
+        return self.draw(node, clip=clip)
+
+    def icicle(self, data, *, orient: str = "h", root: bool | None = None,
+               gap: float | str | None = None, spacing: float | str | None = None,
+               links: bool | None = None, colors=None, highlight=None,
+               highlight_color: str | None = None, labels="fit",
+               levels: bool = False, counts: bool = False, sort: bool = False,
+               size: float | str | None = None, **style) -> "Panel":
+        """An icicle (partition) chart: one band per level of a hierarchy,
+        each node spanning its share of its parent.
+
+        `data` is any input of `inklet.plot.hierarchy`. With `orient="h"`
+        (default) the levels are columns from left to right and the nodes
+        stack down each column; `"v"` puts the levels in rows from the top.
+        The root is drawn as the first level when it has a name (`root=`
+        overrides).
+
+        `gap=` (mm) separates the levels and, by default, fills the gap with
+        pale fans joining each node to its parent (`links=`); `spacing=` is
+        the space between neighbouring nodes in a level, shrunk where a
+        level has too many nodes to afford it. This is the "clustering
+        levels" figure: with `highlight=` a set of node names or paths, those
+        nodes are drawn in `highlight_color` and the rest pale,
+        `labels="highlight"` names them beyond the last level with leader
+        ticks, `levels=True` numbers the levels from 0 above them and
+        `counts=True` writes the number of nodes per level beneath (the
+        highlighted count above it, in the highlight colour).
+
+        `labels="fit"` (default) writes a name inside every node where it
+        fits; a list of names labels those nodes outside, like
+        `"highlight"`; `False` writes none. Colours are as for `treemap`,
+        blended towards paper one step per level. The node carries an
+        `icicle` note with the node counts and highlighted counts per level
+        and every node's span in mm.
+        """
+        from .hierarchy_plots import icicle as _icicle
+
+        clip = _clip_flag(style)
+        node, _ = _icicle(self, data, orient=orient, root=root, gap=gap,
+                          spacing=spacing, links=links, colors=colors,
+                          highlight=highlight, highlight_color=highlight_color,
+                          labels=labels, levels=levels, counts=counts, sort=sort,
+                          size=size, **style)
+        return self.draw(node, clip=clip)
+
+    def sunburst(self, data, *, inner: float = 0.3, start: float = -90.0,
+                 colors=None, highlight=None, highlight_color: str | None = None,
+                 labels: bool = True, center: str | None = None, sort: bool = False,
+                 size: float | str | None = None, **style) -> "Panel":
+        """A sunburst: an icicle chart bent into rings about the centre of
+        the plot area, the first level innermost.
+
+        `data` is any input of `inklet.plot.hierarchy`. The rings fill the
+        largest circle in the area; `inner` is the radius of the central hole
+        as a fraction of it, where `center=` (default: the root's name)
+        is written. Angles run clockwise from `start` degrees (-90 is twelve
+        o'clock), each node spanning its share of 360. A name is written in
+        its segment only when its whole box fits inside. Colours and
+        `highlight=` are as for `icicle`. The node carries a `sunburst` note
+        with the radii and every node's angle.
+        """
+        from .hierarchy_plots import sunburst as _sunburst
+
+        clip = _clip_flag(style)
+        node, _ = _sunburst(self, data, inner=inner, start=start, colors=colors,
+                            highlight=highlight, highlight_color=highlight_color,
+                            labels=labels, center=center, sort=sort, size=size,
+                            **style)
+        return self.draw(node, clip=clip)
+
+    # -- networks (plot/network.py, plot/chord.py) ---------------------------
+
+    def network(self, nodes, edges, *, layout: str = "circular", order=None,
+                sizes=None, top: float | None = None,
+                diameter: float | str | None = None, floor: float | str | None = None,
+                shape: str = "circle", shapes=None, groups=None, colors=None,
+                color: str | None = None, labels="auto", size: float | str | None = None,
+                weights=None, width: float | str | None = None,
+                width_floor: float | str | None = None, edge_color: str | None = None,
+                edge_colors=None, bend: float | None = None, arrows: bool = False,
+                opacity: float = 0.85, gap: float | str | None = None,
+                iterations: int = 300, **style) -> "Panel":
+        """A weighted network: node area from a value, edge width from a
+        weight, colours from categories, fitted into the plot area.
+
+        `nodes` is a list of names, or a mapping of name to value. `edges`
+        are `(source, target)`, `(source, target, weight)` or
+        `(source, target, weight, category)` rows.
+
+            p = inklet.panel(50, 50)
+            p.network({"102": 36, "79": 12, "81": 9},
+                      [("102", "79", 5e4, "dimorphic"), ("81", "102", 900, "isomorphic")],
+                      shape="square", groups={"102": "enriched"}, arrows=True)
+            p.width_key(title="synapses").legend(side="bottom")
+
+        `layout="circular"` (default) puts the nodes on one ring, in input
+        order or `order=`, starting at twelve o'clock, and bows every edge
+        towards the centre by `bend` times its length (default 0.25).
+        `"force"`, `"layered"` and `"tree"` take their positions from the
+        solvers `inklet.graph` uses (`gap=` and `iterations=` pass through),
+        stretched to fill the area, with straight edges unless `bend` is
+        given. Two opposite directed edges bow to opposite sides.
+
+        Node values (or `sizes=`, a mapping or one per node) set the area of
+        each node: `top` is drawn `diameter` mm across (default: the largest
+        value, 4 mm) and nothing is smaller than `floor` (1.2 mm). `shape` is
+        "circle" or "square" (rounded), per node with `shapes=`. `groups=`
+        maps nodes to categories coloured from the palette and named in
+        `legend()`; `colors=` maps node or group names to colours, and
+        `color` is the fill of ungrouped nodes. `labels="auto"` writes a name
+        inside its node when it fits and outside (away from the centre)
+        otherwise; "inside", "outside" or False force the choice.
+
+        Edge widths are proportional to weight: the heaviest edge is `width`
+        mm (default 1.6), and nothing is thinner than `width_floor` (a
+        hairline); pass `weights=inklet.plot.width_scale(top, width)` to share
+        a scale between panels. Edge categories are coloured from the palette
+        (after the node groups) or by `edge_colors=` and named in `legend()`.
+        Lighter edges are drawn first. `arrows=True` puts a head on each edge
+        at its target. Other keywords style the edges. `width_key()` and
+        `size_key()` explain the widths and areas actually used. The node
+        carries a `network` note with positions, diameters and the number of
+        edges drawn at the width floor.
+        """
+        from .network import network as _network
+        from .series import SeriesKey
+
+        clip = _clip_flag(style)
+        node, note = _network(self, nodes, edges, layout=layout, order=order,
+                              sizes=sizes, top=top, diameter=diameter, floor=floor,
+                              shape=shape, shapes=shapes, groups=groups, colors=colors,
+                              color=color, labels=labels, size=size, weights=weights,
+                              width=width, width_floor=width_floor,
+                              edge_color=edge_color, edge_colors=edge_colors, bend=bend,
+                              arrows=arrows, opacity=opacity, gap=gap,
+                              iterations=iterations, **style)
+        self._widths = note["widths"]
+        if note["sizes"] is not None:
+            self._sizes = note["sizes"]
+        for name, fill, kind in note["node_keys"]:
+            self._keys.append(SeriesKey(name=name, forms=frozenset(("marker",)),
+                                        color=fill, marker=kind))
+        for name, ink in note["edge_keys"]:
+            self._note(name, "line", color=ink, width=active_theme().thick)
+        return self.draw(node, clip=clip)
+
+    def width_key(self, source=None, *, side: str = "right", corner: str | None = None,
+                  values: Sequence[float] | None = None, count: int = 3, format=None,
+                  title: str | None = None, color: str | None = None,
+                  length: float | str | None = None, pad: float | str | None = None,
+                  plate: bool = False) -> "Panel":
+        """Reference lines with their weights: the key to an edge-width
+        encoding.
+
+        Built from the `WidthScale` the last `network`, `chord` or
+        `arc_diagram` call used, or `source=` (`inklet.plot.width_scale`).
+        Placed like `size_key`: outside on `side`, or inside a `corner` of
+        the plot area. `values`, `count` and `format` choose and write the
+        reference weights, `length` is the line length in mm and `color`
+        its ink.
+        """
+        from .network import width_key as _width_key
+
+        scale = getattr(self, "_widths", None) if source is None else source
+        if scale is None:
+            raise DiagramError(
+                "width_key() has no widths to explain: call network() first, or "
+                "pass source= an inklet.plot.width_scale")
+        node = as_drawn(_width_key(scale, values=values, count=count, format=format,
+                                   title=title, color=color, length=length))
+        theme = active_theme()
+        gap = theme.gap("xs") if pad is None else mm(pad)
+        if plate:
+            node = _plated(node, theme, theme.gap("xs"))
+        if corner is None:
+            # Beside the plot area as well as the drawing: a ring of nodes
+            # leaves the area's corners empty, and a key tucked into one
+            # would straddle the frame.
+            box = _union_box(self._under + self._content + self._over) or self.area
+            box = Rect(min(box.x0, self.area.x0), min(box.y0, self.area.y0),
+                       max(box.x1, self.area.x1), max(box.y1, self.area.y1))
+            if side not in SIDES:
+                raise ValueError(f"unknown side {side!r}; expected one of {', '.join(SIDES)}")
+            placed = beside(node, box, side, gap, Vec2(0.0, 0.0))
+        else:
+            placed = _into_corner(node, self.area, corner, gap)
+        self._over.append(placed)
+        return self._touched()
+
+    def chord(self, matrix, names: Sequence[str] | None = None, *, colors=None,
+              gap: float = 2.0, start: float = -90.0, directed: bool = False,
+              sort: bool = False, thickness: float | str | None = None,
+              pad: float | str | None = None, labels: bool = True,
+              opacity: float = 0.72, color_by: str = "source",
+              size: float | str | None = None, **style) -> "Panel":
+        """A chord diagram: groups as arcs around a ring, flows between them
+        as ribbons through the middle, fitted into the plot area.
+
+        `matrix[i][j]` is the flow from group i to group j (a list of rows
+        or a 2-D array; zeros draw nothing).
+
+            p = inklet.panel(50, 50)
+            p.chord([[0, 5, 3], [5, 0, 2], [3, 2, 1]], ["V1", "LM", "AL"])
+
+        Undirected (the default), a group's arc is its row sum and the ribbon
+        between i and j is `matrix[i][j]` wide at i and `matrix[j][i]` wide
+        at j. `directed=True` gives each group its row plus column sum,
+        outgoing flows first, and points each ribbon at its target. `gap` is
+        the angle between groups in degrees; `start` is where the first
+        group begins (-90, twelve o'clock); `sort=True` orders each group's
+        flows largest first. `colors` is one colour, a list, or a mapping of
+        group name to colour (default: the palette); ribbons take the colour
+        of their source (`color_by="source"`), target, or larger end, at
+        `opacity`. `thickness` is the ring's radial width in mm, and group
+        names go outside the ring, `pad` mm clear of it. Other keywords style
+        the ribbons. The node carries a `chord` note with the group angles
+        and values and the ring radius.
+        """
+        from .chord import chord as _chord
+
+        clip = _clip_flag(style)
+        node, _ = _chord(self, matrix, names, colors=colors, gap=gap, start=start,
+                         directed=directed, sort=sort, thickness=thickness, pad=pad,
+                         labels=labels, opacity=opacity, color_by=color_by, size=size,
+                         **style)
+        return self.draw(node, clip=clip)
+
+    def arc_diagram(self, nodes, edges, *, sizes=None, top: float | None = None,
+                    diameter: float | str | None = None, floor: float | str | None = None,
+                    shape: str = "circle", shapes=None, groups=None, colors=None,
+                    color: str | None = None, labels: bool = True,
+                    rotate: float | None = None, weights=None,
+                    width: float | str | None = None,
+                    width_floor: float | str | None = None,
+                    edge_color: str | None = None, edge_colors=None,
+                    directed: bool = False, opacity: float = 0.8,
+                    size: float | str | None = None, **style) -> "Panel":
+        """An arc diagram: nodes in a row, each edge a half-ellipse arc
+        above them whose width is the edge weight.
+
+        `nodes` and `edges` read as in `network()` (names or a mapping of
+        name to value; `(source, target[, weight[, category]])` rows), and
+        node sizes, shapes, group colours, edge widths and edge categories
+        are encoded the same way, so `size_key()`, `width_key()` and
+        `legend()` work after it.
+
+            p = inklet.panel(80, 30)
+            p.arc_diagram(["a", "b", "c", "d"], [("a", "c", 4), ("b", "d", 1)])
+
+        Nodes keep their input order, evenly spaced across the plot area,
+        with names below them (turned by `rotate` degrees; by default 90
+        when they would collide). Arcs are as tall as half their span, all
+        scaled down together to fit. `directed=True` draws edges running
+        right to left below the row instead, so direction reads as side.
+        Lighter edges are drawn first; other keywords style the arcs. The
+        node carries an `arc_diagram` note with the node x positions.
+        """
+        from .chord import arc_diagram as _arc_diagram
+        from .series import SeriesKey
+
+        clip = _clip_flag(style)
+        node, note = _arc_diagram(self, nodes, edges, sizes=sizes, top=top,
+                                  diameter=diameter, floor=floor, shape=shape,
+                                  shapes=shapes, groups=groups, colors=colors,
+                                  color=color, labels=labels, rotate=rotate,
+                                  weights=weights, width=width, width_floor=width_floor,
+                                  edge_color=edge_color, edge_colors=edge_colors,
+                                  directed=directed, opacity=opacity, size=size, **style)
+        self._widths = note["widths"]
+        if note["sizes"] is not None:
+            self._sizes = note["sizes"]
+        for name, fill, kind in note["node_keys"]:
+            self._keys.append(SeriesKey(name=name, forms=frozenset(("marker",)),
+                                        color=fill, marker=kind))
+        for name, ink in note["edge_keys"]:
+            self._note(name, "line", color=ink, width=active_theme().thick)
+        return self.draw(node, clip=clip)
+
     @renamed_keywords(colors="color", names="name")
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
                 labels: Sequence[str] | None = None, top: int = 10,
@@ -2061,6 +2487,44 @@ class Panel:
                 "skipped": result["skipped"]}
         if last is not None:
             last.notes["volcano"] = note
+        return self
+
+    def ma(self, mean: Sequence[float], fold: Sequence[float],
+           p: Sequence[float] | None = None, *, labels: Sequence[str] | None = None,
+           top: int = 10, fold_threshold: float = 1.0, p_threshold: float = 0.05,
+           colors=None, names=None, size: float | None = None, log: bool = True,
+           zero: bool = True, **style) -> "Panel":
+        """An MA plot: mean expression on x against log2 fold change on y.
+
+        `mean` is each feature's mean expression (normalised counts), drawn
+        as log2(mean + 1) unless `log=False` says it is already on the axis
+        scale; `fold` are log2 fold changes and `p` the (adjusted) p-values.
+        Points are classed exactly as `volcano` classes them -- "up" and
+        "down" need p below `p_threshold` and |fold| of at least
+        `fold_threshold` -- and without `p` by fold change alone. The "ns"
+        points are pale grey and drawn first.
+
+            p = inklet.panel(60, 45, x=(0, 16), y=(-6, 6))
+            p.ma(base_mean, log2fc, padj, labels=genes, top=6)
+            p.axes(x="log2 mean expression", y="log2 fold change")
+
+        `zero=True` draws a hairline at a fold change of 0. `labels=` names
+        the `top` significant points with the smallest p (or the largest
+        |fold| without `p`) with `label_points`. `colors=` and `names=` take
+        the same shapes as in `volcano`; `size` is the dot diameter (0.9 mm) and
+        other keywords style the points. The last layer carries an `ma` note
+        with the classes and labelled indices.
+        """
+        from .genomics import ma as _ma
+
+        if isinstance(self.x, Band) or isinstance(self.y, Band):
+            raise DiagramError("ma needs continuous x and y scales")
+        note = _ma(self, mean, fold, p, labels=labels, top=top,
+                   fold_threshold=fold_threshold, p_threshold=p_threshold, colors=colors,
+                   names=names, size=size, log=log, zero=zero, **style)
+        last = (self._over or self._content)[-1] if (self._over or self._content) else None
+        if last is not None:
+            last.notes["ma"] = note
         return self
 
     @renamed_keywords(sizes="size", colors="color")

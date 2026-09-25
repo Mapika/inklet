@@ -729,5 +729,155 @@
     "requires": "Core only",
     "source": "distributions.md",
     "block": 15
+  },
+  {
+    "title": "Treemaps and sunbursts",
+    "description": "Nested groups as tiled rectangles or rings, area or angle proportional to value.",
+    "category": "Hierarchies and networks",
+    "page": "networks-and-hierarchies/#treemaps-and-sunbursts",
+    "image": "assets/guides/plots-treemap.png",
+    "methods": [
+      "Panel.treemap",
+      "Panel.sunburst"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "networks-and-hierarchies.md",
+    "block": 1
+  },
+  {
+    "title": "Clustering levels",
+    "description": "An icicle of cluster splits across resolutions, with a highlighted lineage and level counts.",
+    "category": "Hierarchies and networks",
+    "page": "networks-and-hierarchies/#clustering-levels",
+    "image": "assets/guides/plots-icicle.png",
+    "methods": [
+      "Panel.icicle"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "networks-and-hierarchies.md",
+    "block": 2
+  },
+  {
+    "title": "Weighted networks",
+    "description": "Nodes sized by value and edges widened by weight, on a ring or a solved layout, with a width key.",
+    "category": "Hierarchies and networks",
+    "page": "networks-and-hierarchies/#weighted-networks",
+    "image": "assets/guides/plots-network.png",
+    "methods": [
+      "Panel.network",
+      "Panel.width_key",
+      "Panel.legend"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "networks-and-hierarchies.md",
+    "block": 3
+  },
+  {
+    "title": "Chord and arc diagrams",
+    "description": "Flows between groups as ribbons around a ring, or weighted arcs over a row of nodes.",
+    "category": "Hierarchies and networks",
+    "page": "networks-and-hierarchies/#chord-and-arc-diagrams",
+    "image": "assets/guides/plots-chord.png",
+    "methods": [
+      "Panel.chord",
+      "Panel.arc_diagram",
+      "Panel.width_key"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "networks-and-hierarchies.md",
+    "block": 4
+  },
+  {
+    "title": "Clustered matrices",
+    "description": "A matrix reordered by clustering, with diagonal cluster boxes and a zoomed inset.",
+    "category": "Matrices",
+    "page": "matrices/#clustered-matrices",
+    "image": "assets/guides/plots-clusters.png",
+    "methods": [
+      "Panel.matrix",
+      "Panel.clusters",
+      "Panel.inset"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 7
+  },
+  {
+    "title": "Clustermaps",
+    "description": "A clustered heatmap with row and column dendrograms, annotation strips and a colorbar.",
+    "category": "Matrices",
+    "page": "matrices/#clustermaps",
+    "image": "assets/guides/plots-clustermap.png",
+    "methods": [
+      "clustermap"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 8
+  },
+  {
+    "title": "Correlograms",
+    "description": "A correlation triangle of glyphs sized by |r| and coloured by r.",
+    "category": "Matrices",
+    "page": "matrices/#correlograms",
+    "image": "assets/guides/plots-correlogram.png",
+    "methods": [
+      "Panel.correlogram",
+      "Panel.colorbar"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 9
+  },
+  {
+    "title": "Manhattan plots",
+    "description": "Genome-wide association results by chromosome, with significance lines and lead hits.",
+    "category": "Genomics",
+    "page": "genomics-plots/#manhattan-plots",
+    "image": "assets/guides/plots-manhattan.png",
+    "methods": [
+      "manhattan"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "genomics-plots.md",
+    "block": 1
+  },
+  {
+    "title": "MA plots",
+    "description": "Log fold change against mean expression, with regulated genes coloured and labelled.",
+    "category": "Genomics",
+    "page": "genomics-plots/#ma-plots",
+    "image": "assets/guides/plots-ma.png",
+    "methods": [
+      "Panel.ma",
+      "Panel.axes"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "genomics-plots.md",
+    "block": 2
+  },
+  {
+    "title": "Ternary plots",
+    "description": "Three-part compositions as points in a triangle.",
+    "category": "Genomics",
+    "page": "genomics-plots/#ternary-plots",
+    "image": "assets/guides/plots-ternary.png",
+    "methods": [
+      "Panel.ternary",
+      "Panel.legend"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "genomics-plots.md",
+    "block": 3
   }
 ]

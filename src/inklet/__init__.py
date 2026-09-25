@@ -54,6 +54,7 @@ from .plot import (
 )
 from .plot import forest
 from .plot import jointplot, pairplot
+from .plot import clustermap, manhattan
 from .plot import (
     PolarPanel, circular_histogram, circular_mean, polar, theta_ticks,
 )
@@ -473,6 +474,7 @@ __all__ = [
     "ramp", "Ramp", "CategorySet", "categories",
     "inset", "ribbon", "facets", "histogram", "upset", "forest",
     "pairplot", "jointplot",
+    "clustermap", "manhattan",
     "polar", "PolarPanel", "theta_ticks",
     "circular_mean", "circular_histogram",
     "AnatomyView", "anatomy_view", "model", "solid", "scene", "axes", "cartoon",
