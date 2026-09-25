@@ -150,7 +150,7 @@ class RenderScene:
         return to_png(self, **options)
 
     def to_html(self, *, title='Inklet figure', backend='auto', **options):
-        """Offline experimental viewer; WebGL2 filled markers, Canvas fallback, SVG art.
+        """Offline HTML viewer; WebGL2 filled markers, Canvas fallback, SVG art.
 
         The viewer consumes this snapshot and retains native SVG export. It
         does not provide the keyed-row operations of experimental BrowserFigure.
