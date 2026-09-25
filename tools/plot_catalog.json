@@ -892,7 +892,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 10
+    "block": 11
   },
   {
     "title": "Bars with points",
@@ -906,7 +906,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 11
+    "block": 12
   },
   {
     "title": "Diverging bars",
@@ -920,7 +920,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 12
+    "block": 13
   },
   {
     "title": "Population pyramid",
@@ -934,7 +934,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 13
+    "block": 14
   },
   {
     "title": "Likert scale",
@@ -948,7 +948,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 14
+    "block": 15
   },
   {
     "title": "Mosaic plot",
@@ -962,7 +962,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 15
+    "block": 16
   },
   {
     "title": "Waffle chart",
@@ -976,7 +976,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 16
+    "block": 17
   },
   {
     "title": "Streamgraph",
@@ -990,7 +990,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 17
+    "block": 18
   },
   {
     "title": "Bullet chart",
@@ -1004,7 +1004,7 @@
     "version": "Core",
     "requires": "Core only",
     "source": "bars-and-areas.md",
-    "block": 18
+    "block": 19
   },
   {
     "title": "Slope chart",

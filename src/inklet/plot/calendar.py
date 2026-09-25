@@ -72,7 +72,7 @@ def calendar(panel, values: Mapping, *, start=None, end=None, ramp=None,
 
     Returns `(node, note)`; the note holds the `ramp` and `scale` used.
     """
-    from .matrix import default_colouring
+    from .matrix import default_coloring
 
     if not isinstance(values, Mapping):
         raise DiagramError("calendar() takes a mapping of date to value")
@@ -91,7 +91,7 @@ def calendar(panel, values: Mapping, *, start=None, end=None, ramp=None,
     present = [v for d, v in days.items() if first_day <= d <= last_day and not is_missing(v)]
     if not present:
         raise DiagramError("calendar() has no values between its start and end")
-    ramp, scale = default_colouring([present], ramp, scale, center)
+    ramp, scale = default_coloring([present], ramp, scale, center)
     unit = None if scale is None else scale.with_range(0.0, 1.0)
     theme = active_theme()
     area = panel.area

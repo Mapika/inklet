@@ -953,63 +953,63 @@
   },
   {
     "page": "bars-and-areas.md",
-    "block": 10,
+    "block": 11,
     "object": "doc",
     "image": "plots-waterfall.png",
     "alt": "Waterfalls"
   },
   {
     "page": "bars-and-areas.md",
-    "block": 11,
+    "block": 12,
     "object": "doc",
     "image": "plots-barplot.png",
     "alt": "Bars with points"
   },
   {
     "page": "bars-and-areas.md",
-    "block": 12,
+    "block": 13,
     "object": "doc",
     "image": "plots-diverging-bars.png",
     "alt": "Diverging bars"
   },
   {
     "page": "bars-and-areas.md",
-    "block": 13,
+    "block": 14,
     "object": "doc",
     "image": "plots-pyramid.png",
     "alt": "Population pyramid"
   },
   {
     "page": "bars-and-areas.md",
-    "block": 14,
+    "block": 15,
     "object": "doc",
     "image": "plots-likert.png",
     "alt": "Likert scale"
   },
   {
     "page": "bars-and-areas.md",
-    "block": 15,
+    "block": 16,
     "object": "doc",
     "image": "plots-mosaic.png",
     "alt": "Mosaic plot"
   },
   {
     "page": "bars-and-areas.md",
-    "block": 16,
+    "block": 17,
     "object": "doc",
     "image": "plots-waffle.png",
     "alt": "Waffle chart"
   },
   {
     "page": "bars-and-areas.md",
-    "block": 17,
+    "block": 18,
     "object": "doc",
     "image": "plots-streamgraph.png",
     "alt": "Streamgraph"
   },
   {
     "page": "bars-and-areas.md",
-    "block": 18,
+    "block": 19,
     "object": "doc",
     "image": "plots-bullet.png",
     "alt": "Bullet chart"
