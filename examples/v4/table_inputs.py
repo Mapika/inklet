@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from inklet.experimental.browser import BrowserFigure, BarView, FacetView, LineView, RevisionOption
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 CREDIT = ('Original simulated workshop observations by Mark Marosi · MIT material. '

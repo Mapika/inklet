@@ -155,7 +155,7 @@ class RenderScene:
         The viewer consumes this snapshot and retains native SVG export. It
         does not provide the keyed-row operations of experimental BrowserFigure.
         """
-        from ..experimental.scene_viewer import to_html
+        from ._viewer import to_html
         return to_html(self, title=title, backend=backend, **options)
 
     def damage_bounds(self, previous: RenderScene):

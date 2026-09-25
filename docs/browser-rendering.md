@@ -65,7 +65,7 @@ Changed revisions are rejected rather than silently applied to different rows.
 A minimal scene can be built without the optional raster or numerical packages:
 
 ```python
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 from inklet.experimental.browser import BrowserScatter, ScatterView
 
 table = KeyedTable("measurements", {

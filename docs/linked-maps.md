@@ -97,7 +97,7 @@ remain future work. Page zoom changes the viewport, not the geographic extent.
 ```python
 from pathlib import Path
 from inklet.experimental.browser import BrowserFigure, GeoRegions, RegionView, ScatterView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 # Use IDs present in your GeoJSON file.
 table = KeyedTable("regions", {

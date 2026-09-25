@@ -25,7 +25,7 @@ segment; its value remains available in the table. Apply **Restored** under
 
 ```python
 from inklet.experimental.browser import BrowserFigure, BarView, TimeAxis
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable("daily", {
     "id": ["feb-28", "feb-29", "mar-01"],
@@ -54,7 +54,7 @@ can use temporal x, y or both axes. Reversed domains are supported.
 
 ```python
 from inklet.experimental.browser import BrowserFigure, LineView, TimeAxis
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable("readings", {
     "id": ["first", "second", "third"],

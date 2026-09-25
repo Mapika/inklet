@@ -81,7 +81,7 @@ country polygons or assigning observation IDs to country boundaries.
 
 ```python
 from inklet.experimental.browser import BrowserFigure, SeriesView, TimeAxis
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable("countries", {
     "id": ["HUN", "AUT"],

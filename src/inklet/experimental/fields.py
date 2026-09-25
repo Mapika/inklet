@@ -4,7 +4,7 @@ import hashlib
 import json
 import math
 
-from .selection import KeyedTable
+from ..selection import KeyedTable
 from ..three.mesh import Mesh
 from ..three.linalg import Vec3
 

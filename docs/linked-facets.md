@@ -40,7 +40,7 @@ The [linked plot guide](linked-plots.md) documents picking and filtering details
 
 ```python
 from inklet.experimental.browser import BrowserFigure, FacetView, LineView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 table = KeyedTable("observations", {
     "id": ["n1", "s1", "n2", "s2"],

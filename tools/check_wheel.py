@@ -19,7 +19,7 @@ assert Path(i.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
 assert find_spec("PIL") is None and find_spec("numpy") is None
 assert find_spec("resvg_py") is None
 from inklet.experimental.browser import GeoFeatures, MapView, BrowserFigure
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 geography = GeoFeatures((('route','LineString',((0,0),(1,1))),('stop','Point',(1,1))), attribution='Original smoke fixture')
 geographic = BrowserFigure(KeyedTable('assets',dict(id=['route','stop'])),[MapView('map',geography,(-1,-1,2,2))])
 assert [mark['kind'] for mark in geographic.payload()['layers'][0]['marks']] == ['line','circle']
@@ -48,7 +48,10 @@ viewer = i.compile_scene(packed.build()).to_html()
 assert 'class CompiledSceneViewer' in viewer and 'drawArraysInstanced' in viewer
 assert 'class MarkerIndex' in viewer and 'texelFetch' in viewer
 assert 'inklet.compiled-viewer/1' in viewer and '/*SCENE*/' not in viewer
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
+# The pre-4.3 experimental paths re-export the same objects.
+import inklet.experimental.selection as old_selection
+assert old_selection.KeyedTable is KeyedTable
 assert find_spec("pandas") is None and find_spec("polars") is None
 for adapter, extra in ((KeyedTable.from_pandas, 'pandas'), (KeyedTable.from_polars, 'polars')):
     try:
@@ -185,7 +188,10 @@ def make_document():
     layout_state = json.loads(json.dumps(edited_art.layout_overrides(art)))
     art, layout_report = art.with_layout_overrides(layout_state)
     assert not layout_report["orphaned_targets"]
-    from inklet.experimental.layout_editor import LayoutEditor
+    from inklet.editor import LayoutEditor
+    from importlib.resources import files
+    assert all(files('inklet.editor').joinpath(name).is_file() for name in ('page.html','workspace.css','workspace.js','gestures.js'))
+    assert all(files('inklet.render._viewer').joinpath(name).is_file() for name in ('page.html','runtime.js','spatial.js','controls.js'))
     with LayoutEditor(art) as editor:
         editor.command("edit", {"path":"/input", "placement":{"x":5}})
         editor.command("gesture", {"path":"/input", "dx":1, "dy":1, "factor":1.1, "corner":"se"})
@@ -254,7 +260,7 @@ if __name__ == "__main__":
     i.review_figure(annotated,rules=['TINY_TEXT']).save('scientific-review')
     assert Path('scientific-review.json').exists()
     # Project bundling and cross-content IDs remain usable with core only.
-    from inklet.experimental.project import AssetManifest, EntityMap, FigureProject
+    from inklet.project import AssetManifest, EntityMap, FigureProject
     Path('project-data.json').write_text('[2, 4]')
     inventory=AssetManifest.capture(Path.cwd(),[dict(id='data',path='project-data.json',source='Simulated wheel fixture',license='MIT')])
     def project_recipe(root):
@@ -266,7 +272,8 @@ if __name__ == "__main__":
     project=FigureProject('Wheel project',project_recipe(Path.cwd()),assets=inventory,identities=identities)
     project.select('rows',['row-7'])
     bundle=project.save('project-bundle',asset_root=Path.cwd())
-    reopened=FigureProject.open(bundle,project_recipe)
+    reopened=FigureProject.open(bundle,project_recipe,verify_export='strict')
+    assert reopened.open_report['export_drift'] is False
     assert reopened.selected==('sample',) and reopened.editor.figure.to_svg()==project.editor.figure.to_svg()
     print("Installed wheel API passed", i.__version__)
 '''

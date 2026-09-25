@@ -5,7 +5,7 @@ from pathlib import Path
 
 from inklet.experimental.browser import BrowserFigure, GeoRegions, RegionView
 
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 
 def make_scene():

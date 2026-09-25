@@ -107,7 +107,7 @@ public-domain attribution and geographic limitations as the original example.
 from pathlib import Path
 import json
 from inklet.experimental.browser import BrowserFigure, ScatterView
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 original = KeyedTable("observations", {
     "id": ["a", "b", "c"], "x": [0, 1, 2], "y": [1, 2, 3],

@@ -46,6 +46,9 @@ scene = i.compile_scene(f.build()[0])
 Path("figure.html").write_text(scene.to_html(), encoding="utf-8")
 ```
 
+The viewer runtime lives in the private `inklet.render._viewer` module; the old
+`inklet.experimental.scene_viewer` path still works. Call `RenderScene.to_html()`.
+
 A compiled document already supplies `compiled.scene`. The HTML contains its
 runtime, marker buffers, outlined text and image resources; no server, CDN or
 JavaScript package installation is required. Native SVG, PDF and PNG export

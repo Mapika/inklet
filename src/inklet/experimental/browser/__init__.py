@@ -16,7 +16,7 @@ import re
 from xml.etree import ElementTree as ET
 
 from ...core import resolve
-from ..selection import KeyedTable, SelectionState
+from ...selection import KeyedTable, SelectionState
 from .regions import GeoRegions
 from .geography import GeoFeatures, MapView, _map_projection, _validate_map_style, _map_legend
 from .timeaxis import TimeAxis
@@ -26,7 +26,7 @@ from .images import LabelImageView
 from .fields import MeshFieldView
 from .grid import GridFieldView
 from .mapped import MappedView
-from ..temporal import time_milliseconds
+from ...selection._temporal import time_milliseconds
 
 SCHEMA = 'inklet.browser-scatter/0.1'
 STATE_SCHEMA = 'inklet.browser-view/0.1'
@@ -716,7 +716,8 @@ class BrowserFigure:
             template = template.replace('Removed state IDs<select', 'Removed IDs or visual targets<select')
             template = template.replace('Drop removed IDs</option>', 'Drop removed IDs and overrides</option>')
         if renderer == 'compiled':
-            directory = Path(__file__).parent.parent/'scene_viewer'
+            from ...render import _viewer
+            directory = Path(_viewer.__file__).parent
             shared = '\n'.join((directory/name).read_text(encoding='utf-8') for name in ('spatial.js', 'runtime.js'))
             adapter = Path(__file__).with_name('compiled.js').read_text(encoding='utf-8')
             script = shared + '\n' + script.replace('/*RENDERER_ADAPTER*/', adapter)

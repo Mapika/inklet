@@ -166,7 +166,14 @@ for machine-learning, engineering and business tables.
 
 ## DataFrames for linked figures
 
-Inklet 4.0 includes experimental pandas and Polars adapters for immutable,
-keyed scalar tables. See [pandas and Polars inputs](table-inputs.md) for the
-illustrated import, revision and export workflow. These adapters feed experimental
-linked figures; the existing `Dataset` authoring API above retains its contract.
+`inklet.selection.KeyedTable` (4.3; the old `inklet.experimental.selection`
+path still works) is a different object from `Dataset`. A `Dataset` is the live,
+editable source of a static plot's columns. A `KeyedTable` is an immutable
+snapshot of JSON scalar columns with a required string row key and a content
+digest; linked views, `SelectionState` and figure projects use it to name rows
+by ID across revisions. Build one from the same values with
+`KeyedTable(name, columns, key='id')`, or from pandas and Polars with
+`KeyedTable.from_pandas()` and `KeyedTable.from_polars()`. See
+[pandas and Polars inputs](table-inputs.md) for the illustrated import,
+revision and export workflow. The `Dataset` authoring API above keeps its
+contract.

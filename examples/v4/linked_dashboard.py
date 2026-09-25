@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from inklet.experimental.browser import BrowserFigure, ScatterView, LineView, BarView
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 
 def make_scene():

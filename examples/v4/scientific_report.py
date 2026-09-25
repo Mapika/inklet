@@ -6,7 +6,7 @@ from pathlib import Path
 
 from inklet.experimental.browser import BrowserFigure,IntervalView,LabelImageView,RevisionOption,ScatterView
 from inklet.experimental.measurement import LabelImage
-from inklet.experimental.selection import SelectionState
+from inklet.selection import SelectionState
 
 REVISIONS=('original','calibrated','updated','relabeled')
 CREDIT=('Original simulated intensity image and labels by Mark Marosi · MIT material. '
