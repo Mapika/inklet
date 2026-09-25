@@ -563,15 +563,15 @@ Every `annotate` request recorded anywhere in `node`, in call order.
 
 Place measured label Diagrams beside points without vertical overlap.
 
-#### `place_labels(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float]' = (1.0, 2.4), weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None) -> 'Diagram'`
+#### `place_labels(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float] | None' = None, weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None, method: 'str' = 'greedy') -> 'Diagram'`
 
 Re-place every `annotate` label in `art`, deciding all of them at once.
 
-#### `label_plan(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float]' = (1.0, 2.4), weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None) -> 'tuple[LabelChoice, ...]'`
+#### `label_plan(art: 'Diagram', *, sides: 'Sequence[str]' = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'), radii: 'Sequence[float] | None' = None, weights: 'LabelWeights | None' = None, clearance: 'float | str | None' = None, method: 'str' = 'greedy') -> 'tuple[LabelChoice, ...]'`
 
 What `place_labels` would do, without doing it.
 
-#### `class LabelChoice(target: 'str', side: 'str', clear: 'float', score: 'float', asked: 'str', overlap: 'float' = 0.0, crossings: 'int' = 0, length: 'float' = 0.0) -> None`
+#### `class LabelChoice(target: 'str', side: 'str', clear: 'float', score: 'float', asked: 'str', overlap: 'float' = 0.0, crossings: 'int' = 0, length: 'float' = 0.0, unresolved: 'bool' = False) -> None`
 
 Where one label ended up, and what it cost.
 
@@ -662,6 +662,7 @@ A drawing region plus the scales that map data into it.
 * `ridgeline(groups, *, at=None, overlap: 'float' = 1.5, bandwidth: 'float | None' = None, samples: 'int' = 96, scale: 'str' = 'shared', fit: 'bool' = True, colors=None, **style) -> "'Panel'"` -- Overlapping kernel densities, one per category: a ridgeline plot.
 * `raincloud(groups, *, at=None, orient: 'str' = 'h', width: 'float' = 0.9, bandwidth: 'float | None' = None, samples: 'int' = 64, cut: 'float' = 2.0, whisker: 'float' = 1.5, points: 'str | None' = 'jitter', size: 'float | str | None' = None, seed: 'int' = 0, box: 'bool' = True, colors=None, **style) -> "'Panel'"` -- A half violin, a narrow box and the observations, per group.
 * `label_points(points: 'Iterable[Sequence]', labels: 'Sequence[str]', **kwargs) -> "'Panel'"` -- Label many data points at once, clear of the marks and each other.
+* `label_lines(names: 'Sequence[str] | None' = None, **kwargs) -> "'Panel'"` -- Name curves at the curves themselves instead of in a legend.
 * `dendrogram(tree, *, labels: 'Sequence | None' = None, orient: 'str' = 'v', threshold: 'float | None' = None, colors=None, **style) -> "'Panel'"` -- The merge tree of a hierarchical clustering, drawn as elbows.
 * `volcano(fold: 'Sequence[float]', p: 'Sequence[float]', *, labels: 'Sequence[str] | None' = None, top: 'int' = 10, fold_threshold: 'float' = 1.0, p_threshold: 'float' = 0.05, colors=None, names=None, size: 'float | None' = None, thresholds: 'bool' = True, label_options: 'dict | None' = None, **style) -> "'Panel'"` -- A volcano plot: log2 fold change on x against -log10 p on y.
 * `dotplot(sizes: 'Sequence[Sequence[float]]', colors=None, *, x: 'Sequence | None' = None, y: 'Sequence | None' = None, top: 'float | None' = None, diameter: 'float | str | None' = None, ramp=None, scale: 'Scale | None' = None, center: 'float | None' = None, color: 'str | None' = None, **style) -> "'Panel'"` -- A dot plot: a circle per cell, its area one value, its colour another.
@@ -1548,6 +1549,10 @@ A link's own label plate drawn over its own elbow.
 #### `LABEL_OFF_LINK`
 
 A link label that found no room beside its link and was moved away.
+
+#### `LABEL_UNPLACED`
+
+Labels a placer reported it could not place without a collision.
 
 #### `LARGE_TEXT`
 

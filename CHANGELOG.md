@@ -1,5 +1,44 @@
 # Changelog
 
+## Unreleased
+
+### Label placement
+
+- `Panel.label_points` (and so `volcano(labels=...)` and the embedding
+  scatters) now places labels with a joint, deterministic search
+  (`inklet.layout.label_search`). It uses greedy placement, best response,
+  heat-bath annealing seeded from a hash of the labels' content, and a final
+  pass that re-places colliding pairs together. Labels avoid markers, stroked
+  lines, error bars, bars, bands and areas (measured by their outline), text,
+  legends and other labels. Leaders no longer cross each other or run through
+  labels. Labels with no room nearby can move further out on a leader. On the
+  60-label clustered-scatter benchmark, placement time drops from 101 s to
+  about 2.3 s. Leader crossings drop from 14 to 0 and unresolved labels from
+  25 to 0. Placements differ from 4.3.0; the visual reference tests do not
+  use `label_points` and are unchanged.
+- `point_labels` notes gain a `covering_marks` list: labels that sit on a
+  background mark.
+- New `Panel.label_lines(names=None, where="end" | "inside")` puts direct
+  curve labels on named `line`, `step` and `ecdf` series. With `"end"`, the
+  names go in a column past the curve ends. Colliding names are stacked apart
+  by the smallest total movement that keeps them in order, and a name that
+  moves gets a hairline leader. With `"inside"`, each name goes beside the
+  last stretch of its own curve, and all names are chosen together. Names use
+  the series colour, darkened just enough to be readable.
+- New `legend(corner="best")` puts the key in the emptiest spot in the plot
+  area, and beside the plot when every spot would cover data.
+- New `place_labels(..., method="joint")` and `label_plan(..., method=)`
+  decide annotate callouts together, at more distances (`JOINT_RADII`). The
+  default `"greedy"` method is unchanged. `LabelChoice` gains `unresolved`.
+  Each rebuilt chain carries a `place_labels` note (`count`, `method`,
+  `unresolved`).
+- New lint rule `LABEL_UNPLACED` (warning) reports the labels a placer listed
+  as unresolved, by name.
+- New `tools/benchmark_labels.py`: a dense label-placement benchmark that
+  reports overlaps, labels on marks, leader crossings, displacement, lint and
+  runtime. New guide: [Label placement and direct
+  labelling](docs/label-placement.md).
+
 ## 4.3.0 — 2026-09-25
 
 4.3 moves microscopy volumes, keyed selections, figure projects and the layout
