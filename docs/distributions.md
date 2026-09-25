@@ -31,7 +31,7 @@ values = [rng.gauss(3.0, .62) for _ in range(96)]
 from inklet.plot import histogram
 edges, counts = histogram(values, bins=[n / 2 for n in range(13)])
 p = i.plot_spec(x=(0, 6), y=(0, max(counts) + 4), height=44)
-p.hist(values, bins=edges, colors='#24698c', stroke='white', stroke_width=.15)
+p.hist(values, bins=edges, color='#24698c', stroke='white', stroke_width=.15)
 p.grid(x=False, y=True, count=5, stroke='#e1e7e4', stroke_width=.15)
 p.axes(x='Duration / s', y='Count')
 doc = i.document(width=110)
@@ -59,7 +59,7 @@ rng = random.Random(402)
 samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
            'Treated': [rng.gauss(4.65, .78) for _ in range(72)]}
 p = i.plot_spec(x=['Control', 'Treated'], y=(1, 8), height=44)
-p.boxplot(samples, colors=['#24698c', '#288675'])
+p.boxplot(samples, color=['#24698c', '#288675'])
 p.grid(x=False, y=True, count=5, stroke='#e1e7e4', stroke_width=.15)
 p.axes(y='Measurement / a.u.')
 doc = i.document(width=110)
@@ -89,7 +89,7 @@ rng = random.Random(402)
 samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
            'Treated': [rng.gauss(4.65, .78) for _ in range(72)]}
 p = i.plot_spec(x=['Control', 'Treated'], y=(1, 8), height=44)
-p.violin(samples, colors=['#24698c', '#288675'], cut=1.5)
+p.violin(samples, color=['#24698c', '#288675'], cut=1.5)
 p.grid(x=False, y=True, count=5, stroke='#e1e7e4', stroke_width=.15)
 p.axes(y='Measurement / a.u.')
 doc = i.document(width=110)
@@ -116,7 +116,7 @@ rng = random.Random(402)
 samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
            'Treated': [rng.gauss(4.65, .78) for _ in range(72)]}
 p = i.plot_spec(x=['Control', 'Treated'], y=(1, 8), height=44)
-p.swarm(samples, size=1.0, colors=['#24698c', '#288675'])
+p.swarm(samples, size=1.0, color=['#24698c', '#288675'])
 p.grid(x=False, y=True, count=5, stroke='#e1e7e4', stroke_width=.15)
 p.axes(y='Measurement / a.u.')
 doc = i.document(width=110)
@@ -185,7 +185,7 @@ onsets = {s: [rng.gauss(2 + k * .9, .9 - .08 * k) for _ in range(80)]
           for k, s in enumerate(stages)}
 p = i.plot_spec(x=(0, 10), y=stages[::-1], height=48)
 p.ridgeline(onsets, overlap=1.8,
-            colors=['#24698c', '#2d7d8a', '#3a9083', '#5aa374', '#8bb35f', '#c2bf52'],
+            color=['#24698c', '#2d7d8a', '#3a9083', '#5aa374', '#8bb35f', '#c2bf52'],
             stroke='white', stroke_width=.3)
 p.axes(x='Onset time / h')
 doc = i.document(width=90)
@@ -227,7 +227,7 @@ samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
            'Treated': [rng.gauss(4.65, .78) for _ in range(52)]
            + [rng.gauss(6.2, .3) for _ in range(20)]}
 p = i.plot_spec(x=(1, 8), y=['Treated', 'Control'], height=44)
-p.raincloud(samples, colors=['#24698c', '#288675'], size=.9)
+p.raincloud(samples, color=['#24698c', '#288675'], size=.9)
 p.axes(x='Measurement / a.u.')
 doc = i.document(width=90)
 doc.add('raincloud', p)
@@ -274,7 +274,7 @@ def arm(rate, n=60):
 
 p = i.panel(62, 38, x=(0, 36), y=(0, 1))
 p.kaplan_meier({'Control': arm(1 / 14), 'Treated': arm(1 / 30)},
-               colors=['#262626', '#24698c'], pvalue=0.003)
+               color=['#262626', '#24698c'], pvalue=0.003)
 p.axes(x='Time / months', y='Survival probability',
        x_options={'ticks': [0, 6, 12, 18, 24, 30, 36]})
 p.legend(corner='ne')
@@ -298,7 +298,7 @@ half is the `violin` kernel density with the same bandwidth rule, `cut` and
 `samples`. By default both halves of a category share one width scale, so
 their areas are equal; `scale='each'` gives each half the full width.
 `median=True` (default) draws each half's median as a solid line and
-`quartiles=True` its quartiles as dashed lines. `names=` puts both
+`quartiles=True` its quartiles as dashed lines. `name=` puts both
 conditions in the legend.
 
 ```python
@@ -311,8 +311,8 @@ control = {r: [rng.gauss(4 + 1.2 * k, .9) for _ in range(80)] for k, r in enumer
 treated = {r: [rng.gauss(4.6 + .8 * k, 1.1) for _ in range(60)]
            + [rng.gauss(9, .5) for _ in range(12 + 6 * k)] for k, r in enumerate(regions)}
 p = i.plot_spec(x=regions, y=(0, 12), height=44)
-p.split_violin(control, treated, names=['Control', 'Treated'], quartiles=True,
-               colors=['#e6b93f', '#9cc3d5'])
+p.split_violin(control, treated, name=['Control', 'Treated'], quartiles=True,
+               color=['#e6b93f', '#9cc3d5'])
 p.axes(y='Firing rate / Hz').legend(side='top')
 doc = i.document(width=90)
 doc.add('split-violin', p)
@@ -347,7 +347,7 @@ response = {g: [rng.gauss(m, .45) for _ in range(10)]
             for g, m in zip(genotypes, (3.0, 3.4, 5.0, 3.6))}
 p = i.plot_spec(x=genotypes, y=(0, 10), height=44)
 p.boxplot(response, outliers=False)
-p.swarm(response, colors=['#24698c'] * 4)
+p.swarm(response, color=['#24698c'] * 4)
 p.brackets([('wt', 'het', .21), ('wt', 'ko', 2e-5), ('het', 'ko', .004),
             ('ko', 'rescue', 7e-4), ('wt', 'rescue', .031)])
 p.axes(y='Response / a.u.')

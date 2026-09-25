@@ -2437,7 +2437,7 @@ show both distribution and summary statistics:
 ```python
 both = inklet.panel(40, 34, x=list(scores), y=(55, 105))
 both.boxplot(scores, width=0.5, outliers=False)
-both.swarm(scores, size=0.8, max_width=7.0, colors=[inklet.theme().muted] * 2)
+both.swarm(scores, size=0.8, max_width=7.0, color=[inklet.theme().muted] * 2)
 both.axes(y="session 8 correct (%)")
 
 page = inklet.figure(width="60mm")

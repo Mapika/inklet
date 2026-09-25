@@ -113,11 +113,11 @@ outside the rim when it does not. `labels=` takes `'percent'` (default),
 import inklet as i
 pie = i.polar(14, zero='up', winding='cw')
 pie.pie([54, 28, 12, 4, 2],
-        colors=['#24698c', '#288675', '#b86443', '#e6b93f', '#b9b8b4'],
-        names=['Neurons', 'Glia', 'Vascular', 'Immune', 'Other'])
+        color=['#24698c', '#288675', '#b86443', '#e6b93f', '#b9b8b4'],
+        name=['Neurons', 'Glia', 'Vascular', 'Immune', 'Other'])
 pie.legend(side='right')
 donut = i.polar(14, hole=7, zero='up', winding='cw')
-donut.pie([61, 39], colors=['#668fb8', '#e6b93f'])
+donut.pie([61, 39], color=['#668fb8', '#e6b93f'])
 fig = i.figure(width=120)
 fig.add(i.row([pie.build(), donut.build()]))
 fig.save('pie.svg', 'pie.pdf')
@@ -139,7 +139,7 @@ stacked bar beside the disc. Two connector lines run from the rim at the
 slices' outer edges to the top and bottom of the bar. Without `parts`, the
 bar shows the chosen slices as shares of their sum, in their own colours.
 With `parts`, it shows the composition of the slice: those values, in
-`colors=` or in shades of the slice colour. Each part is labelled with its
+`color=` or in shades of the slice colour. Each part is labelled with its
 share of the bar; labels that would overlap are moved apart.
 
 Call `breakout` after `pie`. The pie turns so the middle of the chosen
@@ -165,14 +165,14 @@ note.
 import inklet as i
 ink, yellow, grey = '#262626', '#e6b93f', '#e4e4e4'
 share = i.polar(11)
-share.pie([24.8, 1.5, 73.7], colors=[ink, yellow, grey],
+share.pie([24.8, 1.5, 73.7], color=[ink, yellow, grey],
           labels=['24.8%', None, '73.7%'],
-          names=['Isomorphic', 'Dimorphic', 'Noise'])
+          name=['Isomorphic', 'Dimorphic', 'Noise'])
 share.breakout([0, 1], labels='{share:.1%}', title='Without noise')
 share.legend(side='bottom')
 parts = i.polar(11, hole=5.5)
-parts.pie([31, 44, 25], colors=['#24698c', '#b9b8b4', '#d9d8d4'])
-parts.breakout(0, [58, 27, 10, 5], names=['Type 1', 'Type 2', 'Type 3', 'Type 4'])
+parts.pie([31, 44, 25], color=['#24698c', '#b9b8b4', '#d9d8d4'])
+parts.breakout(0, [58, 27, 10, 5], name=['Type 1', 'Type 2', 'Type 3', 'Type 4'])
 parts.legend(side='bottom')
 fig = i.figure(width=120)
 fig.add(i.row([share.build(), parts.build()], gap=8, align='top'))

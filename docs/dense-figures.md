@@ -46,7 +46,7 @@ blue, amber, magenta, grey, green, ink = style.theme.palette
 types = ['DA1', 'VA1v', 'VA1d', 'DL3']
 pairs = i.plot_spec(height=26, x=(0, 14), y=types[::-1])
 pairs.dumbbell(types, [[9.1, 6.2, 5.4, 3.3], [12.6, 8.9, 4.7, 5.1]], orient='h',
-               names=['female', 'male'], colors=[magenta, green])
+               name=['female', 'male'], color=[magenta, green])
 pairs.axes(x='synapses / 10³')
 pairs.legend()
 

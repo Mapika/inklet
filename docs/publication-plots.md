@@ -59,7 +59,7 @@ Rasterization requires `inklet[images]` (Pillow). Only the requested scatter lay
 ```python
 p = inklet.panel(60, 40, x=(0, 2), y=(0, 5))
 p.stackarea([0, 1, 2], [[1, 2, 1], [2, 1, 2]], baseline=.5,
-            colors=["#0053d6", "#55caf9"], names=["A", "B"], stroke="none")
+            color=["#0053d6", "#55caf9"], name=["A", "B"], stroke="none")
 p.axes()
 p.legend()
 ```

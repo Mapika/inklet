@@ -50,8 +50,8 @@ days = ['Mon', 'Tue', 'Wed', 'Thu']
 p = i.plot_spec(x=days, y=(0, 80), height=45)
 p.grid(x=False, count=4, stroke='#e1e7e4', stroke_width=.15)
 p.bars(days, [[32, 40, 36, 46], [45, 54, 51, 65]], grouped=True,
-       width=.7, gap=.18, colors=['#24698c', '#288675'],
-       names=['Control', 'Treated'], stroke='none')
+       width=.7, gap=.18, color=['#24698c', '#288675'],
+       name=['Control', 'Treated'], stroke='none')
 p.axes(y='Yield / mg').legend(side='bottom')
 doc = i.document(width=110)
 doc.add('grouped-bars', p)
@@ -75,8 +75,8 @@ periods = ['Q1', 'Q2', 'Q3', 'Q4']
 p = i.plot_spec(x=periods, y=(0, 110), height=45)
 p.grid(x=False, count=4, stroke='#e1e7e4', stroke_width=.15)
 p.bars(periods, [[38, 30, 20, 15], [24, 22, 28, 32], [18, 26, 36, 45]],
-       stacked=True, width=.6, colors=['#24698c', '#288675', '#b86443'],
-       names=['Grid', 'Wind', 'Solar'], stroke='none')
+       stacked=True, width=.6, color=['#24698c', '#288675', '#b86443'],
+       name=['Grid', 'Wind', 'Solar'], stroke='none')
 p.axes(y='Energy / kWh').legend(side='bottom')
 doc = i.document(width=110)
 doc.add('stacked-bars', p)
@@ -186,8 +186,8 @@ solar = [4 * max(0, math.sin(math.pi * (t - 6) / 12)) if 6 < t < 18 else 0
 p = i.plot_spec(x=(0, 24), y=(0, 10), height=45)
 p.grid(x=False, count=4, stroke='#e1e7e4', stroke_width=.15)
 p.stackarea(hours, [grid, wind, solar],
-            colors=['#24698c', '#288675', '#b86443'],
-            names=['Grid', 'Wind', 'Solar'], stroke='none')
+            color=['#24698c', '#288675', '#b86443'],
+            name=['Grid', 'Wind', 'Solar'], stroke='none')
 p.axes(x='Time / h', y='Power / kW', x_options={'ticks': [0, 6, 12, 18, 24]})
 p.legend(side='bottom')
 doc = i.document(width=110)
@@ -221,8 +221,8 @@ shared = [0, 7, 1, 6, 7, 3]
 common = [0, 1, 0, 3, 3, 1]
 p = i.plot_spec(x=(0, 70), y=cells, height=44)
 p.bars(cells, [specific, shared, common], stacked=True, orient='h',
-       width=.7, colors=['#668fb8', '#e6b93f', '#b9b8b4'],
-       names=['Specific', 'Shared', 'Common'], labels=True, stroke='none')
+       width=.7, color=['#668fb8', '#e6b93f', '#b9b8b4'],
+       name=['Specific', 'Shared', 'Common'], labels=True, stroke='none')
 p.axes(x='Cell types', y='Neuron class').legend(side='top')
 doc = i.document(width=110)
 doc.add('bar-labels', p)

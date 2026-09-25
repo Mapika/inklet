@@ -77,7 +77,31 @@ prerelease does not automatically publish or designate a stable release.
 
 ## After 4.0
 
+### 4.4: deprecations
+
+4.4 is the last 4.x feature release. It keeps every 4.x name working, but old
+spellings, moved import paths, `inklet.experimental.engineering`,
+`BrowserScatter` and composition layout schemas 0.1–0.4 now raise a
+`DeprecationWarning` that names the replacement
+([migration](migration.md#from-43-to-44)).
+
+### 5.0: dense journal figures
+
+5.0 is about dense, multi-panel journal figures that are right the first time:
+
+- **Placement engine.** Labels, keys, insets and annotations are placed jointly
+  across a whole figure, so a crowded panel stays readable without hand offsets.
+- **Broad plot catalogue.** Covers the statistical, categorical, compositional,
+  hierarchical, network and genomics plots that journal figures use, with
+  consistent `color=` / `name=` / `size=` keywords.
+- **Palettes.** A curated palette library, including colour-vision-safe and
+  journal house palettes, that works with themes and asset harmonization.
+- **Removal of the 4.x deprecations.** Every name, keyword, import path and
+  saved-schema version that warns in 4.4 is removed.
+
+### 5.x direction
+
 Animation, timelines, transitions, camera paths, video/GIF and presentation
-authoring remain the **5.0 direction**. Existing presentation styling presets
-continue to work. Earlier proposals and measurements are preserved in
+authoring move to the **5.x direction**, after the 5.0 figure work. Existing
+presentation styling presets continue to work. Earlier proposals and measurements are preserved in
 [development history](development.md#earlier-releases-and-studies); they are not additional release checklists.

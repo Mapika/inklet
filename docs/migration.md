@@ -2,13 +2,106 @@
 
 <span id="migrating-to-inklet-31"></span>
 
+## From 4.3 to 4.4
+
+4.4 is the deprecation release before 5.0. Nothing is removed and every 4.3
+recipe still runs. Each old spelling now raises
+`inklet._compat.InkletDeprecationWarning`, a `DeprecationWarning` subclass.
+The warning points at your line and names the replacement. Everything in the
+table below goes in 5.0.
+
+To find every deprecated spelling in a project, run it or its tests with the
+warning turned into an error:
+
+```text
+python -W error::DeprecationWarning my_figure.py
+pytest -W error::inklet._compat.InkletDeprecationWarning
+```
+
+To silence only Inklet's warnings while you migrate, filter on that class:
+`warnings.filterwarnings("ignore", category=InkletDeprecationWarning)` after
+`from inklet._compat import InkletDeprecationWarning`.
+
+### Import paths
+
+| Old (warns) | New |
+| --- | --- |
+| `inklet.experimental.volume`, `.sections`, `.slabs`, `.regions`, `.channels`, `.contours`, `.measurements`, `.tiff` | `inklet.volume` |
+| `inklet.experimental.selection` | `inklet.selection` |
+| `inklet.experimental.temporal` | none. `KeyedTable` converts dates itself; `inklet.experimental.browser.timeaxis` still exports `time_value`, `time_seconds` and `time_milliseconds` |
+| `inklet.experimental._table_adapters` | `KeyedTable.from_pandas()` / `KeyedTable.from_polars()` |
+| `inklet.experimental.project`, `.project.assets`, `.project.identity` | `inklet.project`, `inklet.project.assets`, `inklet.project.identity` |
+| `inklet.experimental.layout_editor` | `inklet.editor` |
+| `inklet.experimental.scene_viewer` | `RenderScene.to_html()` |
+| `inklet.experimental.engineering` (`BoxComponent`, `BoxAssembly`) | none. Removed in 5.0; pin `inklet<5` for recipes that use it |
+
+The old modules now re-export only Inklet's own names. The standard-library
+names they used to expose, such as `json` or `dataclass`, are gone. These were
+never part of a released `__all__`.
+
+### American spelling and one keyword per idea
+
+Public names now use American spelling. Panel keywords follow one rule:
+
+- `color=` sets the colour. It takes one colour, or a sequence or mapping with
+  one colour per series or group.
+- `name=` sets the legend name. It takes one string for a single series, or a
+  sequence with one name per series.
+- `size=` sets the mark size.
+- `**style` collects the extra keywords of methods that take `Style` fields,
+  such as `stroke=` or `fill=`.
+
+A handful of methods (`annotate`, `axes`, `axis`, `bracket`, `brackets`,
+`colorbar`, `inset`, `label_points`, `ribbon`, `at_risk`, `twin_x`, `twin_y`)
+pass their extra keywords on to another helper as options. Those keep
+`**kwargs`. Renaming a `**` parameter would break released call shapes, so no
+rename was made there. `label=` is text drawn on the figure and never names a
+series.
+
+| Old (warns) | New |
+| --- | --- |
+| `Panel.bars(colors=, names=)` | `Panel.bars(color=, name=)` |
+| `Panel.stackarea / dumbbell / volcano / split_violin(colors=, names=)` | `(color=, name=)` |
+| `Panel.hist / boxplot / violin / swarm / ridgeline / raincloud / dendrogram / kaplan_meier(colors=)` | `(color=)` |
+| `Panel.embedding(colors=, centre=)` | `Panel.embedding(color=, center=)` |
+| `Panel.dotplot(sizes=, colors=)` as keywords | `Panel.dotplot(size=, color=)`. Positional calls are unchanged and do not warn. A string `color=` paints every dot, as before |
+| `PolarPanel.pie / breakout(colors=, names=)` | `(color=, name=)` |
+| `PolarPanel.centre` | `PolarPanel.center` |
+| `inklet.text_on_arc(centre=)`, `inklet.typeset.onpath.text_on_arc / baseline_arc(centre=)`, `inklet.draw.shapes.arc_cubics(centre=)` | `center=`. `baseline_arc`'s positional fourth argument is unchanged |
+| `inklet.plot.raster.uniform_pitch(centres=)` | `centers=` |
+| `inklet.plot.cluster_centres` | `inklet.plot.cluster_centers` |
+| `inklet.plot.embedding.CENTRE_METHODS` | `CENTER_METHODS` |
+| `inklet.plot.matrix.matrix_centres`, `default_colouring` | `matrix_centers`, `default_coloring` |
+| `inklet.diagnostics.image.average_colour` | `average_color` |
+| `inklet.assets.Harmonise` | `inklet.assets.Harmonize` |
+| `inklet.assets.harmonise.as_harmonise`, `harmonise` | `as_harmonize`, `harmonize` |
+
+Giving an old keyword and its new spelling in the same call raises `TypeError`.
+Option values keep their spelling: `anchor="centre"`, the `"grey"` CSS colours
+and the saved `"harmonised"` asset metadata are data, not API names.
+
+Some names stay as they are for 4.x. `Plane(centre_xyz=)` in `inklet.volume`,
+and `Length(metres=)` and `Length.between(metres_per_unit=)` in
+`inklet.experimental.figure_planner`, are positional dataclass fields. They
+are also written into saved section and planner data, so renaming them waits
+for 5.0 and a new schema.
+
+### Experimental classes and saved files
+
+- `inklet.experimental.browser.BrowserScatter(table, views)` warns. Use
+  `BrowserFigure(table, views, columns=len(views))`, which it already returned.
+- Composition layout files written with schema `inklet.composition-layout/0.1`
+  to `0.4` still load, but warn. Re-save them to write `0.5`:
+  `composition.layout_overrides(base)` does this, and so does saving from the
+  layout editor. Inklet 5.0 may not read the older versions.
+
 ## From 4.2 to 4.3
 
 4.3 moves the microscopy, selection, project and editor APIs out of
 `inklet.experimental` into stable packages. Nothing is removed: the old import
-paths still work, return the same objects and do not warn in 4.3. A
-`DeprecationWarning` is planned for 4.4; the old paths will not be removed
-before 5.0. Saved-file schema identifiers are unchanged, so existing selections,
+paths still work and return the same objects. They do not warn in 4.3, and
+they warn from 4.4 ([above](#from-43-to-44)). They will not be removed before
+5.0. Saved-file schema identifiers are unchanged, so existing selections,
 asset inventories and project bundles load as before.
 
 | Old import (still works) | New import |

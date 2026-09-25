@@ -50,7 +50,7 @@ From 4.3, microscopy volumes (`inklet.volume`), keyed selections
 (`inklet.editor`) are stable; the rest of `inklet.experimental` stays opt-in. The supported controls,
 saved-file policy and deferred features are listed in the
 [compatibility guide](https://inklet.readthedocs.io/en/latest/compatibility/).
-Animation and presentation authoring remain in the 5.0 direction.
+Inklet 5.0 focuses on dense journal figures; animation and presentation authoring move to the 5.x direction.
 
 ## Install
 

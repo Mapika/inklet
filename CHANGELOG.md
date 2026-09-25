@@ -1,5 +1,54 @@
 # Changelog
 
+## Unreleased
+
+4.4 is the deprecation release before 5.0. Nothing is removed. Old spellings
+and paths keep working and warn with `inklet._compat.InkletDeprecationWarning`,
+a `DeprecationWarning` subclass that names the replacement. See the
+[migration notes](docs/migration.md#from-43-to-44).
+
+### Deprecated
+
+- The 4.3 compatibility import paths now warn once on import:
+  `inklet.experimental.volume`, `sections`, `slabs`, `regions`, `channels`,
+  `contours`, `measurements`, `tiff`, `selection`, `temporal`,
+  `_table_adapters`, `layout_editor`, `scene_viewer` and `project` (with
+  `.assets` and `.identity`). They re-export only Inklet names; standard-library
+  names are no longer re-exported.
+- `inklet.experimental.engineering` warns on import and will be removed in 5.0
+  with no replacement.
+- `inklet.experimental.browser.BrowserScatter` warns; use
+  `BrowserFigure(table, views, columns=len(views))`.
+- Reading composition layout overrides saved with schema 0.1–0.4 warns; re-save
+  them to write `inklet.composition-layout/0.5`.
+- Public names use American spelling, and Panel keywords are harmonised on
+  `color=`, `name=` and `size=`:
+  - `colors=` becomes `color=` and `names=` becomes `name=` on the bars,
+    stackarea, dumbbell, volcano, split_violin, hist, boxplot, violin, swarm,
+    ridgeline, raincloud, dendrogram, kaplan_meier and embedding methods, and
+    on `PolarPanel.pie` and `breakout`.
+  - `Panel.dotplot(sizes=, colors=)` keywords become `size=` and `color=`.
+  - `centre=` becomes `center=` on `embedding`, `text_on_arc`, `baseline_arc`
+    and `arc_cubics`, and `centres=` becomes `centers=` on `uniform_pitch`.
+  - Renamed functions and names: `cluster_centers`, `CENTER_METHODS`,
+    `matrix_centers`, `default_coloring`, `average_color`, `PolarPanel.center`,
+    `inklet.assets.Harmonize`, `as_harmonize` and `harmonize`.
+
+### Added
+
+- `name=` on multi-series marks accepts a single string for one series.
+- `Panel.dotplot(size=, color=)` keywords beside the positional slots. A string
+  `color=` still paints every dot.
+- `tests/test_deprecations.py` checks every alias: same result, exactly one
+  warning, and no warning from the new spelling. The test suite turns
+  `InkletDeprecationWarning` into an error.
+
+### Changed
+
+- Roadmap: 5.0 is about dense journal figures (a placement engine, a broad plot
+  catalogue and palettes) and removes the 4.x deprecations. Animation and
+  presentation authoring move to the 5.x direction.
+
 ## 4.3.0 — 2026-09-25
 
 4.3 moves microscopy volumes, keyed selections, figure projects and the layout

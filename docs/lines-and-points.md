@@ -142,8 +142,8 @@ before = [2.1, 3.4, 1.2, 4.0, 2.6, 0.8]
 after = [3.9, 2.0, 1.9, 5.2, 3.4, 0.9]
 p = i.plot_spec(x=(0, 6), y=genes, height=44)
 p.grid(y=False, count=4, stroke='#e1e7e4', stroke_width=.15)
-p.dumbbell(genes, [before, after], orient='h', names=['Before', 'After'],
-           colors=['#24698c', '#b86443'])
+p.dumbbell(genes, [before, after], orient='h', name=['Before', 'After'],
+           color=['#24698c', '#b86443'])
 p.axes(x='Expression / log CPM').legend(side='top')
 doc = i.document(width=100)
 doc.add('dumbbell', p)
@@ -221,7 +221,7 @@ three thresholds; `thresholds=False` leaves them out.
 
 With `labels=` (one name per feature), the `top` significant points with the
 smallest p-values are named with `label_points`. Points outside the plot area
-are not labelled. `names=` gives legend names for the classes, in the order
+are not labelled. `name=` gives legend names for the classes, in the order
 down, ns, up; `None` leaves a class out of the legend. A p-value of 0 is
 drawn at the smallest positive p-value in the data.
 `inklet.plot.volcano_points` returns the classes and the ranking without
@@ -240,7 +240,7 @@ for _ in range(1500):
     pvalues.append(math.erfc(abs(effect * 1.3 + rng.gauss(0, 1)) / math.sqrt(2)))
 genes = [f'G{k}' for k in range(1500)]
 p = i.plot_spec(x=(-6, 6), y=(0, 16), height=50)
-p.volcano(fold, pvalues, labels=genes, top=10, names=('Down', None, 'Up'), size=.8)
+p.volcano(fold, pvalues, labels=genes, top=10, name=('Down', None, 'Up'), size=.8)
 p.axes(x='log2 fold change', y='-log10 p').legend(side='right')
 doc = i.document(width=90)
 doc.add('volcano', p)
@@ -261,8 +261,8 @@ not cover the others; `shuffle=False` keeps the input order.
 
 Each cluster's name is written at its centre on a paper halo. The centre lies
 on the data: the member point nearest the cluster's median, which stays on a
-curved cluster where the mean would not. `centre='medoid'` or `'mean'` choose
-another rule, and `inklet.plot.cluster_centres` returns the centres without
+curved cluster where the mean would not. `center='medoid'` or `'mean'` choose
+another rule, and `inklet.plot.cluster_centers` returns the centers without
 drawing. A name that would overlap a name already placed, or the points of
 another cluster, moves to the nearest free spot. A name may cover its own
 cluster. Names that could not clear another cluster's points are listed under
