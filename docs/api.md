@@ -765,6 +765,10 @@ A grid of panels with one set of axes between them.
 
 Bin edges and the height of each bin: `(edges, heights)`.
 
+#### `upset(data, *, sets: 'Sequence[str] | None' = None, sort: 'str' = 'size', sort_sets: 'bool' = True, min_size: 'float' = 1, max_intersections: 'int | None' = None, empty: 'bool' = False, set_sizes: 'bool' = True, width: 'float | str | None' = None, height: 'float | str' = 26, matrix_height: 'float | str | None' = None, set_width: 'float | str' = 16, color: 'str | None' = None, labels=None, stripes: 'bool' = True, bar_label: 'str | None' = 'intersection size', set_label: 'str | None' = 'set size', gap: 'float | str | None' = None, count: 'int' = 4) -> 'Diagram'`
+
+An UpSet plot: intersection sizes as bars over a membership matrix.
+
 #### `polar(radius: 'float | str' = 30.0, *, r=None, theta=None, zero: 'float | str' = 'east', winding: 'str' = 'ccw', unit: 'str' = 'deg', hole: 'float | str' = 0.0, clip: 'bool' = False, nice: 'bool' = False) -> 'PolarPanel'`
 
 A polar plot area of a given rim radius.

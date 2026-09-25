@@ -234,6 +234,46 @@ doc.save('bar-labels.svg', 'bar-labels.pdf')
 *Illustrative counts. Segments too short for their count carry no label;
 the last segment of each bar may place its label past the bar end.*
 
+## Set intersections (UpSet)
+
+`i.upset` draws an UpSet plot. Each column is one exclusive intersection:
+the elements that are in exactly the marked sets. The bar above a column is
+the size of that intersection. In the matrix below, a dark dot marks a set
+in the intersection and a pale dot a set outside it, and a line joins the
+dark dots. The bars at the left are the set sizes, counted over all the data.
+
+Pass a mapping of set name to members, `{'RNA-seq': genes_a, 'ATAC-seq':
+genes_b}`, or a list of `(members, count)` records as below. `sort='size'`
+(default) puts the largest intersection first; `sort='degree'` puts the
+intersections of fewer sets first. `min_size=` drops smaller intersections
+and `max_intersections=` keeps only the first ones after sorting. The dropped
+intersections are listed in the diagram's `upset` note, and
+`inklet.plot.upset_layout` returns the same counts without drawing.
+
+The result is one diagram built from three panels on shared band scales, so
+each bar stands over its matrix column. Add it to a figure or a document like
+a panel.
+
+```python
+import inklet as i
+
+hits = [(('RNA-seq',), 412), (('RNA-seq', 'ATAC-seq'), 236), (('ATAC-seq',), 198),
+        (('RNA-seq', 'ATAC-seq', 'ChIP-seq'), 121), (('ChIP-seq',), 94),
+        (('RNA-seq', 'ChIP-seq'), 77), (('ATAC-seq', 'ChIP-seq'), 52),
+        (('proteomics',), 31), (('RNA-seq', 'proteomics'), 29),
+        (('RNA-seq', 'ATAC-seq', 'proteomics'), 12), (('ChIP-seq', 'proteomics'), 4),
+        (('ATAC-seq', 'proteomics'), 3)]
+plot = i.upset(hits, min_size=5, labels=True)
+doc = i.document(width=110)
+doc.add('upset', plot)
+doc.save('upset.svg', 'upset.pdf')
+```
+
+![UpSet plot: intersection sizes over a set-membership matrix, with set sizes at the left.](assets/guides/plots-upset.png)
+
+*Illustrative gene counts. The two intersections smaller than 5 are
+dropped; the set sizes at the left still count them.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

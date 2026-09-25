@@ -42,7 +42,7 @@ These were checked and are not gaps:
 | 8 | Ridgeline (stacked density curves) | `fill` per group with offsets | Done: `Panel.ridgeline` |
 | 9 | Raincloud (half violin, box and points) | `violin` plus `swarm` with offsets | Done: `Panel.raincloud` |
 | 10 | Dendrogram beside a heatmap | Hand-drawn elbows | Done: `Panel.dendrogram` |
-| 11 | UpSet plots | Matrix of dots plus bars, by hand | Deferred |
+| 11 | UpSet plots | Matrix of dots plus bars, by hand | Done: `inklet.upset` |
 | 12 | Volcano plot helper | `scatter`, `hline`, `vline` and now `label_points` | Done: `Panel.volcano` |
 
 ## Implemented behaviour
@@ -131,9 +131,19 @@ the matrix. `threshold=` colours the subtrees whose merges are all below it,
 one colour each from left to right, skipping palette colours too close to
 the ink.
 
+**UpSet.** Intersections are exclusive: an element of a mapping is counted
+once, in the intersection of exactly the sets that contain it. Set sizes
+count all the data, including intersections removed by `min_size` or
+`max_intersections`. `upset` builds three `Panel`s (intersection bars,
+matrix, set bars) on the same band scales and lays them out with `row` and
+`column`, which line up plot areas; it returns one `Diagram`, not a panel,
+so further drawing into the three panels is not possible. Size axes end on
+a round tick for the intersection bars and at the largest set for the set
+bars, with at most as many ticks as fit without thinning. With value
+labels, the default column pitch widens to fit the widest label.
+
 ## Deferred work
 
-- UpSet plots.
 - Breakout bars do not rotate the pie to face the bar; set `zero` and
   `winding` so the chosen slices face it.
 - Leaders for pie labels placed outside the rim.

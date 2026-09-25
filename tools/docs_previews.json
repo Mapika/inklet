@@ -560,6 +560,13 @@
     "alt": "Bar value labels"
   },
   {
+    "page": "bars-and-areas.md",
+    "block": 9,
+    "object": "doc",
+    "image": "plots-upset.png",
+    "alt": "UpSet plot"
+  },
+  {
     "page": "distributions.md",
     "block": 1,
     "object": "doc",

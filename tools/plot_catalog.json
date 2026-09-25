@@ -198,6 +198,20 @@
     "block": 8
   },
   {
+    "title": "UpSet plots",
+    "description": "Set-intersection sizes as bars over a membership matrix, with set sizes at the left.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#set-intersections-upset",
+    "image": "assets/guides/plots-upset.png",
+    "methods": [
+      "upset"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 9
+  },
+  {
     "title": "Histograms",
     "description": "Ninety-six durations in explicit half-second bins.",
     "category": "Distributions",

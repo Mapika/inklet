@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add `inklet.upset` and `inklet.plot.upset_layout` for UpSet plots:
+  intersection sizes as bars over a set-membership dot matrix, with optional
+  set-size bars at the left. Input is a mapping of set name to members or a
+  list of `(members, count)` records. `sort='size'` or `'degree'`,
+  `min_size=` and `max_intersections=` choose the columns. The three panels
+  share band scales, so each bar stands over its matrix column. Add a guide
+  section to `bars-and-areas.md`, a catalog entry and panel f of
+  `examples/more_plot_types.py`.
 - Add `PolarPanel.breakout`, which expands one or more adjacent pie slices
   into a stacked bar beside the disc, with connector lines from the rim and
   a share label per part. The `pie_labels` note now also records each

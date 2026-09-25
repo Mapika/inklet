@@ -1,4 +1,4 @@
-"""Pie breakout bars, ridgelines, rainclouds, volcano plots and dendrograms.
+"""Pie breakouts, ridgelines, rainclouds, volcano, dendrogram and UpSet plots.
 
 One journal-width figure with a panel for each plot type added in the second
 round of capability-gap work (see docs/design/capability-gaps.md):
@@ -8,6 +8,7 @@ round of capability-gap work (see docs/design/capability-gaps.md):
     c  rainclouds: half violin, box and jittered observations per group
     d  a volcano plot with threshold rules and the top hits named
     e  a clustered heatmap with gene and sample dendrograms
+    f  an UpSet plot of the genes each assay detects
 
 All data are simulated or illustrative. Writes examples/more_plot_types.svg,
 .pdf and .png, and prints the lint report.
@@ -62,9 +63,9 @@ for _ in range(1200):
     fold.append(effect)
     pvalues.append(math.erfc(abs(effect * 1.3 + rng.gauss(0, 1)) / math.sqrt(2)))
 genes = [f"G{k}" for k in range(len(fold))]
-volcano = inklet.panel(56, 44, x=(-6, 6), y=(0, 16))
-volcano.volcano(fold, pvalues, labels=genes, top=8, names=("down", None, "up"), size=0.7)
-volcano.axes(x="log2 fold change", y="-log10 p").legend(side="right")
+volcano = inklet.panel(42, 40, x=(-6, 6), y=(0, 16))
+volcano.volcano(fold, pvalues, labels=genes, top=6, names=("down", None, "up"), size=0.7)
+volcano.axes(x="log2 fold change", y="-log10 p").legend(side="top")
 
 # -- e: clustered heatmap ----------------------------------------------------
 
@@ -84,21 +85,31 @@ run_tree = [[4, 5, 1.57, 2], [0, 1, 1.7, 2], [2, 3, 2.3, 2], [6, 7, 3.82, 4],
 rows = list(dendrogram_layout(gene_tree, labels=markers).leaves)
 cols = list(dendrogram_layout(run_tree, labels=runs).leaves)
 cells = [[values[markers.index(g)][runs.index(s)] for s in cols] for g in rows]
-heat = inklet.panel(30, 40, x=cols, y=rows)
+heat = inklet.panel(27, 36, x=cols, y=rows)
 heat.matrix(cells, x=cols, y=rows, ramp=inklet.ramp("tol-sunset"),
             scale=inklet.linear((-2, 2)), raster=False)
 heat.axis("bottom", spine=False).axis("right", spine=False)
 heat.colorbar(label="z-score", side="bottom")
-gene_side = inklet.panel(10, 40, x=(4.06, 0), y=rows)
+gene_side = inklet.panel(9, 36, x=(4.06, 0), y=rows)
 gene_side.dendrogram(gene_tree, labels=markers, orient="h", threshold=2)
-run_side = inklet.panel(30, 7, x=cols, y=(0, 5.51))
+run_side = inklet.panel(27, 6, x=cols, y=(0, 5.51))
 run_side.dendrogram(run_tree, labels=runs)
 clustered = inklet.column([run_side, inklet.row([gene_side, heat], gap=1)],
                           gap=1, align="right")
 
+# -- f: UpSet plot -----------------------------------------------------------
+
+pool = [f"g{k}" for k in range(600)]
+assays = {"RNA-seq": {g for g in pool if rng.random() < 0.5},
+          "ATAC-seq": {g for g in pool if rng.random() < 0.3},
+          "ChIP-seq": {g for g in pool if rng.random() < 0.18},
+          "proteomics": {g for g in pool if rng.random() < 0.1}}
+overlap = inklet.upset(assays, max_intersections=8, height=22, set_width=11)
+
 fig = inklet.figure(width=180, theme="nature")
 top = inklet.row(inklet.letters([share.build(), ridges, rain]), gap=10, align="top")
-bottom = inklet.row(inklet.letters([volcano, clustered], start="d"), gap=14, align="top")
+bottom = inklet.row(inklet.letters([volcano, clustered, overlap], start="d"), gap=8,
+                    align="top")
 fig.add(inklet.column([top, bottom], gap=8))
 fig.save("examples/more_plot_types.svg")
 fig.save("examples/more_plot_types.pdf")
