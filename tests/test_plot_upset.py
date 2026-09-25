@@ -13,7 +13,7 @@ from inklet.diagnostics import lint
 from inklet.draw.coords import plot_area
 from inklet.draw.shapes import MARK_KIND, MARK_LINE_KIND
 from inklet.plot import upset_layout
-from inklet.plot.axis import TICK_LABEL_KIND
+from inklet.plot.axis import SPINE_KIND, TICK_LABEL_KIND
 
 
 @pytest.fixture(autouse=True)
@@ -149,3 +149,45 @@ def test_axis_ends_on_a_tick() -> None:
               if getattr(x.diagram.prim, "text", None)}
     assert "100" in labels
     assert "120" not in labels and "150" not in labels
+
+
+GUIDE_HITS = [(("RNA-seq",), 412), (("RNA-seq", "ATAC-seq"), 236), (("ATAC-seq",), 198),
+              (("RNA-seq", "ATAC-seq", "ChIP-seq"), 121), (("ChIP-seq",), 94),
+              (("RNA-seq", "ChIP-seq"), 77), (("ATAC-seq", "ChIP-seq"), 52),
+              (("proteomics",), 31), (("RNA-seq", "proteomics"), 29),
+              (("RNA-seq", "ATAC-seq", "proteomics"), 12),
+              (("ChIP-seq", "proteomics"), 4), (("ATAC-seq", "proteomics"), 3)]
+
+
+def _set_axis(node):
+    """The set-size spine, bars and tick labels: the leftmost spine, and the
+    marks and labels left of the matrix."""
+    spines = [x for x in placements(node, SPINE_KIND) if x.bbox.height < 1e-6]
+    spine = min(spines, key=lambda s: s.bbox.x0)
+    bars = [x for x in placements(node, MARK_KIND) if x.bbox.x1 <= spine.bbox.x1 + 1e-6]
+    labels = [x for x in placements(node, TICK_LABEL_KIND)
+              if getattr(x.diagram.prim, "text", None)
+              and x.bbox.y0 > spine.bbox.y0 and x.bbox.x1 < spine.bbox.x1 + 3]
+    return spine, bars, labels
+
+
+def test_set_axis_ends_on_a_labelled_tick_past_the_longest_bar() -> None:
+    # The guide's data: RNA-seq holds 887, so the axis runs to 1000.
+    node = inklet.upset(GUIDE_HITS, min_size=5, labels=True)
+    spine, bars, labels = _set_axis(node)
+    assert len(bars) == 4
+    outer = [x for x in labels if x.diagram.prim.text == "1000"]
+    assert outer, [x.diagram.prim.text for x in labels]
+    # The outer label sits at the far end of the spine.
+    assert abs(outer[0].bbox.center.x - spine.bbox.x0) < 0.1
+    # Every bar lies within the spine's extent, the longest short of its end.
+    assert all(b.bbox.x0 >= spine.bbox.x0 - 1e-6 for b in bars)
+    assert min(b.bbox.x0 for b in bars) > spine.bbox.x0 + 0.5
+
+
+def test_set_axis_stops_at_the_largest_set_when_a_round_end_is_far() -> None:
+    # 260 would round up to 400 or 500 on a narrow axis: it ends at 260.
+    node = inklet.upset({"a": set(range(260)), "b": set(range(40))}, set_width=11)
+    spine, bars, _ = _set_axis(node)
+    assert len(bars) == 2
+    assert abs(min(b.bbox.x0 for b in bars) - spine.bbox.x0) < 1e-6

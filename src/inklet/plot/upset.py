@@ -56,6 +56,10 @@ _DOT_OF_PITCH = 0.56
 #: Bar width as a fraction of the column or row pitch.
 _BAR_OF_PITCH = 0.62
 
+#: How far past the largest set the set-size axis may run to end on a
+#: labelled tick, as a multiple of that set's size.
+_SET_OVERSHOOT = 1.25
+
 #: Non-member dots and the row stripes, as blends of the muted colour towards
 #: paper. The dots stay visible on the stripes.
 _EMPTY_TINT = 0.68
@@ -397,8 +401,12 @@ def upset(data, *, sets: Sequence[str] | None = None, sort: str = "size",
     if set_sizes:
         biggest = max(layout.set_sizes) or 1.0
         wide = (0.62 * len(f"{biggest:g}") + 1.6) * small
-        high, marks = _ticks(biggest, 3, int(mm(set_width) // wide) + 1,
-                             end=False)
+        most = int(mm(set_width) // wide) + 1
+        # End on a labelled tick unless that runs the narrow axis well past
+        # the largest set; then end at the largest set.
+        high, marks = _ticks(biggest, 3, most)
+        if high > _SET_OVERSHOOT * biggest:
+            high, marks = _ticks(biggest, 3, most, end=False)
         side = panel(mm(set_width), h_matrix, x=linear((high, 0.0)), y=y)
         side.bars(list(layout.sets), list(layout.set_sizes), orient="h",
                   width=_BAR_OF_PITCH, colors=[ink], stroke="none")

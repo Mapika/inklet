@@ -145,8 +145,9 @@ count all the data, including intersections removed by `min_size` or
 matrix, set bars) on the same band scales and lays them out with `row` and
 `column`, which line up plot areas; it returns one `Diagram`, not a panel,
 so further drawing into the three panels is not possible. Size axes end on
-a round tick for the intersection bars and at the largest set for the set
-bars, with at most as many ticks as fit without thinning. With value
+a round tick, with at most as many ticks as fit without thinning. The
+narrow set-size axis ends at the largest set instead when the round tick
+would be more than 1.25 times that set. With value
 labels, the default column pitch widens to fit the widest label.
 
 ## Layout limits found by the dense figure
