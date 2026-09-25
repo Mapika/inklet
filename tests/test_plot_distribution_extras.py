@@ -99,7 +99,7 @@ def test_normalized_bars_stack_to_100_with_percent_labels():
     at = ["S1", "S2", "S3"]
     heights = [[12, 30, 5], [20, 10, 15], [8, 12, 30]]
     p = inklet.panel(40, 30, x=at, y=(0, 100))
-    p.bars(at, heights, normalize=True, labels=True, names=["a", "b", "c"])
+    p.bars(at, heights, normalize=True, labels=True, name=["a", "b", "c"])
     p.axis("bottom").axis("left")
     node = p.build()
     assert lint(node) == []

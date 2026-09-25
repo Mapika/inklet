@@ -290,8 +290,8 @@ samples = ['S1', 'S2', 'S3', 'S4']
 cells = [[412, 530, 96, 210], [220, 180, 305, 60], [118, 210, 640, 190]]
 p = i.plot_spec(x=samples, y=(0, 100), height=45)
 p.bars(samples, cells, normalize=True, labels=True, width=.7,
-       colors=['#24698c', '#e3a33b', '#8fbfdc'],
-       names=['T cells', 'B cells', 'Myeloid'], stroke='none')
+       color=['#24698c', '#e3a33b', '#8fbfdc'],
+       name=['T cells', 'B cells', 'Myeloid'], stroke='none')
 p.axes(y='Share of cells / %').legend(side='right')
 doc = i.document(width=100)
 doc.add('bars-percent', p)
