@@ -107,16 +107,16 @@
   "gallery/general-plots.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-general-plots-480-6fdf4424ca.webp",
+        "path": "assets/thumbs/gallery-general-plots-480-d74d600233.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-general-plots-960-6fdf4424ca.webp",
+        "path": "assets/thumbs/gallery-general-plots-960-d74d600233.webp",
         "width": 960
       }
     ],
     "height": 1311,
-    "sha256": "6fdf4424ca076a5999aacf059e187c21d7561ccfaa68162014002bd605c9911a",
+    "sha256": "d74d600233a3ea2c8dee19321aef724f8fbec3c44732c5a0d10c3fa4bee40dc0",
     "width": 1369
   },
   "gallery/label-intensities.png": {

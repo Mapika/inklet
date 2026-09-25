@@ -254,7 +254,7 @@ A label-sized module. Port coordinates are fractions of its box.
 
 Create a measured module with fractional ports.
 
-#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool' = False, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
+#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool | str' = False, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
 
 A physical page containing named, live figure definitions.
 

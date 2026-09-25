@@ -26,7 +26,7 @@ class LayoutRequest:
     row_gap: float
     letters: Mapping
     links: tuple
-    share_plot_margins: bool
+    share_plot_margins: bool | str
 
 
 class LayoutResult(NamedTuple):
@@ -143,7 +143,7 @@ def _measure_cells(request, context, boxes, margins, decorate):
 
 
 def _share_margins(request, measured, margins, per_row=False):
-    columns, rows = {}, {}
+    columns, rows, lefts, rights = {}, {}, {}, {}
     plots = [cell for cell in request.cells if isinstance(cell.item, PlotSpec)]
     for cell in plots:
         left, right, top, bottom = measured[cell.name]
@@ -151,18 +151,27 @@ def _share_margins(request, measured, margins, per_row=False):
         columns[cell.column, cell.colspan] = max(a, left), max(b, right)
         a, b = rows.get((cell.row, cell.rowspan), (0., 0.))
         rows[cell.row, cell.rowspan] = max(a, top), max(b, bottom)
+        # Keyed by grid line: a cell's left edge is line `column`, its right
+        # edge is line `column+colspan`, whatever its span.
+        lefts[cell.column] = max(lefts.get(cell.column, 0.), left)
+        end = cell.column+cell.colspan
+        rights[end] = max(rights.get(end, 0.), right)
     shared = (tuple(max((measured[c.name][n] for c in plots), default=0.) for n in range(4))
               if request.share_plot_margins else None)
     for cell in plots:
         if shared is None:
             values = (*columns[cell.column, cell.colspan], *rows[cell.row, cell.rowspan])
-        elif per_row:
-            # Equal data areas need equal left/right furniture everywhere, but
-            # only equal top/bottom furniture along a row: each automatic row
-            # track grows by its own furniture around the common data height.
-            values = (*shared[:2], *rows[cell.row, cell.rowspan])
         else:
-            values = shared
+            # Left and right furniture is shared by the cells that start or end
+            # on the same vertical grid line, so their data edges line up there;
+            # a wide label never squeezes a cell that shares neither line.
+            # 'all' shares them across the grid for one physical x scale.
+            sides = (shared[:2] if request.share_plot_margins == 'all' else
+                     (lefts[cell.column], rights[cell.column+cell.colspan]))
+            # Top and bottom furniture is shared along a row for automatic
+            # heights: each row track grows by its own furniture around the
+            # common data height. A fixed height shares it across the grid.
+            values = (*sides, *(rows[cell.row, cell.rowspan] if per_row else shared[2:]))
         # Monotonic margins prevent tick-thinning oscillations.
         measured[cell.name] = tuple(max(a, b) for a, b in zip(values, margins[cell.name]))
 

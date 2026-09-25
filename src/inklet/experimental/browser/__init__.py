@@ -343,8 +343,8 @@ class BrowserFigure:
         columns=min(2,len(views)) if columns is None else columns
         if type(columns) is not int or not 1<=columns<=4: raise ValueError('columns must be from 1 to 4')
         doc=i.document(width=width,columns=columns,gap=9,margin=6,
-                       share_plot_margins=bool(facet_groups) or any(isinstance(v,(MeshFieldView,GridFieldView)) or
-                           isinstance(v,MappedView) and isinstance(v.view,(MeshFieldView,GridFieldView)) for v in views)).letters()
+                       share_plot_margins='all' if facet_groups or any(isinstance(v,(MeshFieldView,GridFieldView)) or
+                           isinstance(v,MappedView) and isinstance(v.view,(MeshFieldView,GridFieldView)) for v in views) else False).letters()
         coordinates={};statistics={};ecdf_curves={}
         for index,view in enumerate(views):
             if isinstance(view,(DrawingView,LabelImageView,MeshFieldView,GridFieldView,MapView,MappedView)):

@@ -38,6 +38,16 @@
   Previously the axis came from the centre-to-centre direction, so a target
   mostly above or below the source was reached by a run along its own side
   face with the arrowhead inside the box.
+- `share_plot_margins=True` shares left and right plot furniture along
+  vertical grid lines instead of across the whole grid. Plots whose cells
+  start on the same grid line share the largest left margin among them, and
+  plots whose cells end on the same grid line share the largest right margin,
+  so their data edges line up there. A wide label no longer narrows plots in
+  other columns or with other spans. Plots in different columns can now have
+  different data widths when their labels differ; `share_plot_margins='all'`
+  keeps the whole-grid rule, and facet figures use it. Top and bottom sharing
+  is unchanged. `examples/general_plots.py` gains about 3 mm of data width in
+  its left column; `gallery/general-plots.png` is regenerated.
 - Add `examples/dense_figure.py`, a thirteen-panel 183 mm page with the
   `scientific.cell` preset, and its gallery image `gallery/dense-figure.png`.
 - Retighten `examples/general_plots.py`: the preset's 183 mm width, margin,

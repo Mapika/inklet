@@ -43,8 +43,14 @@ With no explicit page height, rows grow to meet their measured content and
 minimum heights. A fixed `height` distributes the available space. Plot areas
 resize; text and strokes retain their physical dimensions. Set
 `share_plot_margins=True` to align plot areas by sharing relevant axis and
-legend margins within a grid. This is opt-in; equal cell sizes alone do not
-guarantee equal data-area sizes when labels take different amounts of space.
+legend margins within a grid. Left and right margins are shared along vertical
+grid lines: plots that start on the same grid line get the same left margin,
+and plots that end on the same grid line get the same right margin. A plot
+that shares neither line with a wide label is not narrowed by it.
+`share_plot_margins='all'` shares the largest left and right margins across
+the whole grid instead, so equal columns give equal data widths. This is
+opt-in; equal cell sizes alone do not guarantee equal data-area sizes when
+labels take different amounts of space.
 
 ## Align fixed artwork
 
