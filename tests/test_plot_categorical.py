@@ -77,7 +77,7 @@ def test_waterfall_bars_span_the_running_total() -> None:
 def test_waterfall_names_give_three_legend_entries() -> None:
     p = panel(40, 30, x=["a", "b", "t"], y=(0, 10))
     p.waterfall(["a", "b", "t"], [5, -2, None], totals=["t"],
-                names=["up", "down", "total"])
+                name=["up", "down", "total"])
     assert [k.name for k in p.keys] == ["up", "down", "total"]
 
 
@@ -139,7 +139,7 @@ def test_likert_spans_centre_the_neutral_level() -> None:
 def test_likert_draws_a_segment_per_nonzero_level() -> None:
     qs = ["q1", "q2"]
     p = panel(50, 20, x=(-100, 100), y=qs)
-    p.likert(qs, [[1, 1, 2, 4, 2], [0, 5, 5, 0, 0]], names=list("abcde"))
+    p.likert(qs, [[1, 1, 2, 4, 2], [0, 5, 5, 0, 0]], name=list("abcde"))
     assert len(placed(p, MARK_KIND)) == 7
     assert [k.name for k in p.keys] == list("abcde")
 
@@ -221,7 +221,7 @@ def test_stream_layers_stack_without_gaps() -> None:
 
 def test_streamgraph_legend_and_note() -> None:
     p = panel(50, 20, x=(0, 2), y=(-6, 6))
-    p.streamgraph([0, 1, 2], [[1, 2, 3], [2, 2, 2]], names=["a", "b"])
+    p.streamgraph([0, 1, 2], [[1, 2, 3], [2, 2, 2]], name=["a", "b"])
     assert [k.name for k in p.keys] == ["a", "b"]
     assert note(p, "streamgraph")["offset"] == "wiggle"
     with pytest.raises(DiagramError):
@@ -320,7 +320,7 @@ def test_summary_stats() -> None:
 def test_barplot_bar_heights_points_and_error_bars() -> None:
     at = ["a", "b"]
     p = panel(30, 30, x=at, y=(0, 10))
-    p.barplot(at, [[[2, 4, 6], [5, 5]], [[1, 3], [7, 8, 9]]], names=["s", "t"])
+    p.barplot(at, [[[2, 4, 6], [5, 5]], [[1, 3], [7, 8, 9]]], name=["s", "t"])
     marks = placed(p, MARK_KIND)
     assert len(marks) == 4 + 10
     bars = sorted((m for m in marks if m.bbox.width > 2), key=lambda m: m.bbox.center.x)

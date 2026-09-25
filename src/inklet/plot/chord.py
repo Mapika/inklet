@@ -76,7 +76,7 @@ def _matrix(matrix) -> list[list[float]]:
     return out
 
 
-def chord_layout(matrix, names: Sequence[str] | None = None, *, gap: float = 2.0,
+def chord_layout(matrix, name: Sequence[str] | None = None, *, gap: float = 2.0,
                  start: float = -90.0, directed: bool = False,
                  sort: bool = False) -> ChordLayout:
     """Angles of the groups and ribbons of a chord diagram, without drawing.
@@ -93,7 +93,7 @@ def chord_layout(matrix, names: Sequence[str] | None = None, *, gap: float = 2.0
     """
     m = _matrix(matrix)
     n = len(m)
-    labels = [str(i) for i in range(n)] if names is None else [str(v) for v in names]
+    labels = [str(i) for i in range(n)] if name is None else [str(v) for v in name]
     if len(labels) != n:
         raise DiagramError(f"chord needs {n} names, got {len(labels)}")
     if directed:
@@ -202,7 +202,7 @@ def _outside(text: Diagram, centre: Vec2, r: float, angle: float) -> Vec2:
     return centre + u * push
 
 
-def chord(panel, matrix, names=None, *, colors=None, gap: float = 2.0,
+def chord(panel, matrix, name=None, *, color=None, gap: float = 2.0,
           start: float = -90.0, directed: bool = False, sort: bool = False,
           thickness: float | str | None = None, pad: float | str | None = None,
           labels: bool = True, opacity: float = 0.72, color_by: str = "source",
@@ -211,21 +211,21 @@ def chord(panel, matrix, names=None, *, colors=None, gap: float = 2.0,
     if color_by not in ("source", "target", "larger"):
         raise DiagramError(f'chord color_by is "source", "target" or "larger", not {color_by!r}')
     theme = active_theme()
-    layout = chord_layout(matrix, names, gap=gap, start=start, directed=directed, sort=sort)
+    layout = chord_layout(matrix, name, gap=gap, start=start, directed=directed, sort=sort)
     n = len(layout.groups)
     font = theme.font_size_small if size is None else mm(size)
     from .hierarchy_plots import branch_colors
-    if colors is None:
+    if color is None:
         fills = branch_colors(n, theme)
-    elif isinstance(colors, str):
-        fills = [colors] * n
-    elif isinstance(colors, Mapping):
+    elif isinstance(color, str):
+        fills = [color] * n
+    elif isinstance(color, Mapping):
         auto = branch_colors(n, theme)
-        fills = [str(colors.get(g.name, auto[k])) for k, g in enumerate(layout.groups)]
+        fills = [str(color.get(g.name, auto[k])) for k, g in enumerate(layout.groups)]
     else:
-        fills = [str(c) for c in colors]
+        fills = [str(c) for c in color]
         if len(fills) < n:
-            raise DiagramError(f"chord colors= has {len(fills)} colours for {n} groups")
+            raise DiagramError(f"chord color= has {len(fills)} colours for {n} groups")
     area = panel.area
     centre = area.center
     texts = [text_node(g.name, font, LABEL_KIND, markup=False) if labels and g.value > 0 else None
@@ -285,32 +285,27 @@ def chord(panel, matrix, names=None, *, colors=None, gap: float = 2.0,
 # -- arc diagram -----------------------------------------------------------------
 
 
-def arc_diagram(panel, nodes, edges, *, sizes=None, top=None, diameter=None, floor=None,
-                shape: str = "circle", shapes=None, groups=None, colors=None,
-                color: str | None = None, labels: bool = True, rotate: float | None = None,
+def arc_diagram(panel, nodes, edges, *, size=None, top=None, diameter=None, floor=None,
+                shape: str = "circle", shapes=None, groups=None, color=None,
+                labels: bool = True, rotate: float | None = None,
                 weights=None, width=None, width_floor=None, edge_color=None,
-                edge_colors=None, directed: bool = False, opacity: float = 0.8,
-                size: float | str | None = None, **style) -> tuple[Diagram, dict]:
+                directed: bool = False, opacity: float = 0.8,
+                label_size: float | str | None = None, **style) -> tuple[Diagram, dict]:
     """An arc diagram in `panel`'s plot area. See `Panel.arc_diagram`."""
-    from .network import _node_values, encode, read_edges
+    from .network import _node_values, encode, node_values, read_edges
     theme = active_theme()
     names, given = _node_values(nodes)
     if len(names) < 2:
         raise DiagramError("an arc diagram needs at least two nodes")
     if len(set(names)) != len(names):
         raise DiagramError("arc diagram node names repeat")
-    values = dict(given)
-    if sizes is not None:
-        if not isinstance(sizes, Mapping):
-            sizes = dict(zip(names, sizes))
-        values.update({str(k): float(v) for k, v in sizes.items()})
+    values = node_values(names, given, size, "arc_diagram")
     pairs = read_edges(edges, names)
     enc = encode(names, pairs, values=values, top=top, diameter=diameter, floor=floor,
-                 shape=shape, shapes=shapes, groups=groups, colors=colors, color=color,
+                 shape=shape, shapes=shapes, groups=groups, color=color,
                  weights=weights, width=width, width_floor=width_floor,
-                 edge_color=edge_color, edge_colors=edge_colors,
-                 default_diameter=2.4 if values else 1.6)
-    font = theme.font_size_small if size is None else mm(size)
+                 edge_color=edge_color, default_diameter=2.4 if values else 1.6)
+    font = theme.font_size_small if label_size is None else mm(label_size)
     area = panel.area
     n = len(names)
     biggest = max(enc.diam)

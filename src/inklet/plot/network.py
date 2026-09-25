@@ -11,7 +11,7 @@ distinguishable from the rim.
 
     p = inklet.panel(50, 50)
     p.network(["a", "b", "c"], [("a", "b", 120), ("b", "c", 40, "inhibitory")],
-              sizes={"a": 3, "b": 8, "c": 5})
+              size={"a": 3, "b": 8, "c": 5})
     p.width_key(title="synapses").legend(side="bottom")
 
 `WidthScale` is the weight-to-width mapping and `width_key` its key: lines
@@ -273,13 +273,23 @@ class Encoding:
 
 
 def encode(names, pairs, *, values, top=None, diameter=None, floor=None, shape="circle",
-           shapes=None, groups=None, colors=None, color=None, weights=None, width=None,
-           width_floor=None, edge_color=None, edge_colors=None,
-           default_diameter: float | None = None) -> Encoding:
+           shapes=None, groups=None, color=None, weights=None, width=None,
+           width_floor=None, edge_color=None, default_diameter: float | None = None) -> Encoding:
     """Node diameters (area proportional to value, with a floor), node
     shapes and fills, and edge widths and category colours, shared by
-    `network` and `arc_diagram`."""
+    `network` and `arc_diagram`.
+
+    `color` is one colour (the fill of ungrouped nodes) or a mapping of node
+    or group names to colours; `edge_color` is one colour (uncategorised
+    edges), a mapping of edge categories to colours, or a sequence of
+    colours taken by the categories in order."""
     theme = active_theme()
+    if color is not None and not isinstance(color, (str, Mapping)):
+        raise DiagramError(f"network color= is one colour or a mapping, not {color!r}")
+    colors = color if isinstance(color, Mapping) else None
+    color = color if isinstance(color, str) else None
+    edge_colors = None if edge_color is None or isinstance(edge_color, str) else edge_color
+    edge_color = edge_color if isinstance(edge_color, str) else None
     # Node diameters: area proportional to value, with a floor.
     dmax = ((4.0 if values else 2.2) if default_diameter is None else default_diameter) \
         if diameter is None else mm(diameter)
@@ -323,7 +333,7 @@ def encode(names, pairs, *, values, top=None, diameter=None, floor=None, shape="
     kinds = []
     for name in names:
         default = group_color.get(group_of.get(name), base)
-        fills.append(pick(colors, name, default) if not isinstance(colors, str) else colors)
+        fills.append(pick(colors, name, default))
         kinds.append(pick(shapes, name, shape))
     for k in kinds:
         if k not in NODE_SHAPES:
@@ -353,14 +363,30 @@ def encode(names, pairs, *, values, top=None, diameter=None, floor=None, shape="
                     weights, edge_ink, categories, cat_color)
 
 
+def node_values(names, given, size, who: str) -> dict:
+    """Node values from the `nodes` mapping, overridden by `size=` (a
+    mapping by node name, one value per node, or one value for every node)."""
+    values = dict(given)
+    if size is None:
+        return values
+    if isinstance(size, Real):
+        return {name: float(size) for name in names}
+    if not isinstance(size, Mapping):
+        size = dict(zip(names, size))
+    for k, v in size.items():
+        if str(k) not in names:
+            raise DiagramError(f"{who} size= names unknown node {k!r}")
+        values[str(k)] = float(v)
+    return values
+
+
 def network(panel, nodes, edges, *, layout: str = "circular", order=None,
-            sizes=None, top: float | None = None, diameter: float | str | None = None,
+            size=None, top: float | None = None, diameter: float | str | None = None,
             floor: float | str | None = None, shape: str = "circle", shapes=None,
-            groups=None, colors=None, color: str | None = None,
-            labels="auto", size: float | str | None = None,
+            groups=None, color=None, labels="auto",
+            label_size: float | str | None = None,
             weights: WidthScale | None = None, width: float | str | None = None,
-            width_floor: float | str | None = None, edge_color: str | None = None,
-            edge_colors=None, bend: float | None = None, arrows: bool = False,
+            width_floor: float | str | None = None, edge_color=None, bend: float | None = None, arrows: bool = False,
             opacity: float = 0.85, gap: float | str | None = None,
             iterations: int = 300, **style) -> tuple[Diagram, dict]:
     """A weighted network in `panel`'s plot area. See `Panel.network`."""
@@ -372,21 +398,14 @@ def network(panel, nodes, edges, *, layout: str = "circular", order=None,
         raise DiagramError("a network needs at least one node")
     if len(set(names)) != len(names):
         raise DiagramError("network node names repeat")
-    values = dict(given)
-    if sizes is not None:
-        if not isinstance(sizes, Mapping):
-            sizes = dict(zip(names, sizes))
-        for k, v in sizes.items():
-            if str(k) not in names:
-                raise DiagramError(f"network sizes= names unknown node {k!r}")
-            values[str(k)] = float(v)
+    values = node_values(names, given, size, "network")
     pairs = read_edges(edges, names)
-    font = theme.font_size_small if size is None else mm(size)
+    font = theme.font_size_small if label_size is None else mm(label_size)
 
     enc = encode(names, pairs, values=values, top=top, diameter=diameter, floor=floor,
-                 shape=shape, shapes=shapes, groups=groups, colors=colors, color=color,
+                 shape=shape, shapes=shapes, groups=groups, color=color,
                  weights=weights, width=width, width_floor=width_floor,
-                 edge_color=edge_color, edge_colors=edge_colors)
+                 edge_color=edge_color)
     diam, area, kinds, fills = enc.diam, enc.area, enc.kinds, enc.fills
     group_names, group_color, group_of = enc.group_names, enc.group_color, enc.group_of
     weights, edge_ink, categories, cat_color = enc.weights, enc.edge_ink, enc.categories, enc.cat_color
@@ -540,8 +559,7 @@ def network(panel, nodes, edges, *, layout: str = "circular", order=None,
             "categories": dict(cat_color), "groups": dict(group_color),
             "sizes": area}
     group.notes["network"] = {k: v for k, v in note.items() if k not in ("widths", "sizes")}
-    keys = ([(g, group_color[g], _shape_of(g, names, group_of, kinds))
-             for g in group_names] if colors is None or isinstance(colors, Mapping) else [])
+    keys = [(g, group_color[g], _shape_of(g, names, group_of, kinds)) for g in group_names]
     note["node_keys"] = keys
     note["edge_keys"] = [(c, cat_color[c]) for c in categories]
     return group, note

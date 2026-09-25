@@ -19,28 +19,28 @@ from .axis import text_node
 __all__ = ["spread", "label_text", "on_fill"]
 
 
-def spread(centres: Sequence[float], sizes: Sequence[float], gap: float = 0.0,
+def spread(centers: Sequence[float], sizes: Sequence[float], gap: float = 0.0,
            lo: float | None = None, hi: float | None = None) -> list[float]:
-    """New centres, in input order, no two of which overlap.
+    """New centers, in input order, no two of which overlap.
 
     `sizes` is the extent of each label along the line. `lo` and `hi`, when
     given, bound the whole run; a run longer than the bounds is centred on
     them rather than refused, since a label that overlaps its neighbour a
     little is still better than one that is missing.
     """
-    count = len(centres)
+    count = len(centers)
     if count != len(sizes):
         raise ValueError("spread() needs one size per centre")
     if count == 0:
         return []
-    order = sorted(range(count), key=lambda k: (centres[k], k))
+    order = sorted(range(count), key=lambda k: (centers[k], k))
     heights = [float(sizes[k]) for k in order]
     offsets = [0.0]
     for a, b in zip(heights, heights[1:]):
         offsets.append(offsets[-1] + (a + b) / 2 + gap)
     blocks: list[list[float]] = []
     for j, k in enumerate(order):
-        blocks.append([centres[k] - offsets[j], 1.0])
+        blocks.append([centers[k] - offsets[j], 1.0])
         while len(blocks) > 1 and (blocks[-2][0] / blocks[-2][1]
                                    > blocks[-1][0] / blocks[-1][1]):
             total, weight = blocks.pop()

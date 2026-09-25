@@ -34,7 +34,7 @@ p.axes()
 
 *Rendered from the code above.*
 
-`bar_colors` colours individual bars in a single series. A mapping preserves category colours when the input is reordered or filtered; a sequence follows input order. `colors` continues to colour multiple series. Use a separate categorical legend when each bar has its own colour. `grouped_band` takes ordered groups or a mapping of group names to categories. `gap` is extra spacing in units of a category step. Group names specify organization; they do not automatically add heading labels.
+`bar_colors` colours individual bars in a single series. A mapping preserves category colours when the input is reordered or filtered; a sequence follows input order. `color` continues to colour multiple series. Use a separate categorical legend when each bar has its own colour. `grouped_band` takes ordered groups or a mapping of group names to categories. `gap` is extra spacing in units of a category step. Group names specify organization; they do not automatically add heading labels.
 
 ```python
 p = inklet.panel(70, 50, x=(0, 100), y=(0, 100), clip=True)

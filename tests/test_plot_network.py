@@ -130,3 +130,21 @@ def test_arc_diagram_positions_and_directed_arcs() -> None:
     assert lint(node) == []
     directed = inklet.panel(60, 30).arc_diagram(list(NODES), EDGES, directed=True).build()
     assert lint(directed) == []
+
+
+def test_network_takes_canonical_keywords_only() -> None:
+    # New in 4.4: size=, color=, edge_color= and label_size=, with no plural aliases.
+    p = inklet.panel(50, 50)
+    p.network(["a", "b", "c"], [("a", "b", 3, "x"), ("b", "c", 1)],
+              size={"a": 1, "b": 8, "c": 4}, groups={"a": "g"},
+              color={"g": "#ff0000"}, edge_color={"x": "#00ff00"}, label_size=2)
+    keys = {k.name: k.color for k in p.keys}
+    assert keys == {"g": "#ff0000", "x": "#00ff00"}
+    diameters = _note(p.build(), "network")["diameters"]
+    assert diameters["b"] > diameters["c"] > diameters["a"]
+    one = inklet.panel(50, 50).network(["a", "b"], [("a", "b")], size=[1, 4],
+                                       color="#123456", edge_color="#654321")
+    assert "#123456" in _svg(one.build())
+    for old in ({"sizes": [1, 2]}, {"colors": {"a": "#f00"}}, {"edge_colors": ["#f00"]}):
+        with pytest.raises(TypeError):
+            inklet.panel(40, 40).arc_diagram(["a", "b"], [("a", "b")], **old)

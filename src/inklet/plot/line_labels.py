@@ -93,10 +93,12 @@ def curves(marks: Sequence[Diagram]) -> dict[str, list[Vec2]]:
     return found
 
 
-def defer(panel, names: Sequence[str] | None, **kwargs):
+def defer(panel, name: str | Sequence[str] | None, **kwargs):
     """`Panel.label_lines`: hold the call's place until the panel is built."""
     from .point_labels import PENDING_KIND
+    from .series import series_names
 
+    names = series_names(name)
     if names is not None:
         names = [str(n) for n in names]
     theme = active_theme()
@@ -147,7 +149,7 @@ def _nearest(p: Vec2, pts: Sequence[Vec2]) -> float:
     return min(_distance(p, a, b) for a, b in zip(pts, pts[1:]))
 
 
-def label_lines(panel, names: Sequence[str] | None = None, *,
+def label_lines(panel, name: str | Sequence[str] | None = None, *,
                 where: str = "end", size: float | str | None = None,
                 gap: float | str | None = None, leader: bool = True,
                 color: bool = True, markup: bool = True,
@@ -167,6 +169,7 @@ def label_lines(panel, names: Sequence[str] | None = None, *,
     if marks is None:
         marks = [*panel._content, *panel._over]
     found = curves(marks)
+    names = [name] if isinstance(name, str) else name
     if names is None:
         names = list(found)
         if not names:

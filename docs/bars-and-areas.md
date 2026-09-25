@@ -16,7 +16,7 @@ more clearly.
 ## Categorical bars
 
 Compare values across named categories.
-`bar_colors` maps colours to individual bars; `colors` maps colours to series
+`bar_colors` maps colours to individual bars; `color` maps colours to series
 in grouped or stacked bars. Declare a suitable baseline explicitly.
 
 ```python
@@ -318,7 +318,7 @@ steps = ['2023', 'Sales', 'Services', 'Costs', 'Tax', '2024']
 p = i.plot_spec(x=steps, y=(0, 220), height=42)
 p.grid(x=False, count=4)
 p.waterfall(steps, [120, 45, 22, -38, -14, None], totals=['2023', '2024'],
-            labels=True, names=['increase', 'decrease', 'total'])
+            labels=True, name=['increase', 'decrease', 'total'])
 p.axes(y='Revenue / k€').legend(side='top')
 doc = i.document(width=80)
 doc.add('waterfall', p)
@@ -348,7 +348,7 @@ def sample(mean, sd, n=8):
 conditions = ['Vehicle', 'Drug']
 data = [[sample(5, 1.2), sample(8, 1.5)], [sample(6, 1.0), sample(11, 1.3)]]
 p = i.plot_spec(x=conditions, y=(0, 14), height=42)
-p.barplot(conditions, data, names=['WT', 'KO'])
+p.barplot(conditions, data, name=['WT', 'KO'])
 p.axes(y='Response / a.u.').legend(side='top')
 doc = i.document(width=50)
 doc.add('barplot', p)
@@ -376,7 +376,7 @@ types = ['DN1', 'DN2', 'DN3', 'DN4', 'DN5', 'DN6']
 female = [[12, 8, 4, 20, 6, 3], [5, 6, 2, 4, 3, 1]]
 male = [[10, 9, 7, 14, 9, 4], [4, 7, 3, 8, 2, 2]]
 p = i.plot_spec(x=(-30, 30), y=types, height=45)
-p.diverging_bars(types, female, male, names=['Sex-specific', 'Dimorphic'],
+p.diverging_bars(types, female, male, name=['Sex-specific', 'Dimorphic'],
                  reference=(8.1, 10.4), titles=('Female', 'Male'))
 p.axis('bottom', format=i.plot.unsigned, label='Output / %')
 p.axis('left', spine=False, tick_size=0)
@@ -429,7 +429,7 @@ questions = ['Would recommend', 'Reliable', 'Fast', 'Easy to use']
 counts = [[20, 25, 25, 20, 10], [3, 7, 15, 45, 30],
           [12, 18, 30, 25, 15], [5, 10, 20, 40, 25]]
 p = i.plot_spec(x=(-100, 100), y=questions, height=30)
-p.likert(questions, counts, names=levels)
+p.likert(questions, counts, name=levels)
 p.axis('bottom', format=i.plot.unsigned, label='Responses / %')
 p.axis('left', spine=False, tick_size=0)
 p.legend(side='top', columns=3)
@@ -455,7 +455,7 @@ import inklet as i
 regions = ['North', 'South', 'East', 'West']
 p = i.plot_spec(x=(0, 100), y=(0, 100), height=40)
 p.mosaic(regions, [[30, 12, 8, 20], [20, 30, 10, 5], [10, 8, 12, 15]],
-         names=['Type A', 'Type B', 'Type C'], labels=True)
+         name=['Type A', 'Type B', 'Type C'], labels=True)
 p.axis('left', format='{:.0f}%', label='Share of region')
 p.legend(side='right')
 doc = i.document(width=80)
@@ -477,7 +477,7 @@ remaining cells empty.
 import inklet as i
 
 p = i.plot_spec(height=30, width=30)
-p.waffle([46, 31, 15, 8], names=['Neurons', 'Glia', 'Vascular', 'Other'])
+p.waffle([46, 31, 15, 8], name=['Neurons', 'Glia', 'Vascular', 'Other'])
 p.legend(side='right')
 doc = i.document(width=60)
 doc.add('waffle', p)
@@ -507,7 +507,7 @@ layers = i.plot.stream_layers(counts, offset='wiggle')
 low = min(min(lower) for lower, _ in layers)
 high = max(max(upper) for _, upper in layers)
 p = i.plot_spec(x=(0, 39), y=(low, high), height=32)
-p.streamgraph(weeks, counts, names=genres)
+p.streamgraph(weeks, counts, name=genres)
 p.axis('bottom', label='Week')
 p.legend(side='right')
 doc = i.document(width=90)

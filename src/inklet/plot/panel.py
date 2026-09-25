@@ -1163,7 +1163,7 @@ class Panel:
                      colors: Sequence[str]) -> "Panel":
         if len(names) != len(colors):
             raise DiagramError(
-                f"names= has {len(names)} names for {len(colors)} series"
+                f"name= has {len(names)} names for {len(colors)} series"
             )
         for name, color in zip(names, colors):
             self._note(name, "area", fill=color, color=color)
@@ -1919,12 +1919,12 @@ class Panel:
         self._over.append(holder)
         return self._touched()
 
-    def label_lines(self, names: Sequence[str] | None = None,
+    def label_lines(self, name: str | Sequence[str] | None = None,
                     **kwargs) -> "Panel":
         """Name curves at the curves themselves instead of in a legend.
 
-        Every `line`, `step` or `ecdf` drawn with `name=` (or those in
-        `names`) gets its name in its own colour. `where="end"` (default)
+        Every `line`, `step` or `ecdf` drawn with `name=` (or those named
+        by this call's `name`, one or a list) gets its name in its own colour. `where="end"` (default)
         sets the names in a column just right of the curve ends, pushed
         apart when they would collide, with a hairline leader from a name
         moved off its end; `where="inside"` puts each name just above or
@@ -1943,7 +1943,7 @@ class Panel:
         reported by lint. See `plot.line_labels`.
         """
         from .line_labels import defer
-        return defer(self, names, **kwargs)
+        return defer(self, name, **kwargs)
 
     def _placed_over(self) -> list[Diagram]:
         """`_over` with each deferred `label_points` call placed.
@@ -2045,14 +2045,14 @@ class Panel:
                             size=size, min_size=min_size, **style)
         return self.over(node, clip=False)
 
-    def correlogram(self, r, names: Sequence[str] | None = None, *,
+    def correlogram(self, r, name: Sequence[str] | None = None, *,
                     triangle: str = "lower", shape: str = "circle", ramp=None,
                     values=False, labels: bool = True,
                     size: float | str | None = None, **style) -> "Panel":
         """A correlation matrix as a triangle of glyphs sized and coloured by r.
 
         `r` is a square matrix of correlations (`inklet.plot.correlation`
-        computes one); `names` label its rows. Each glyph's area is
+        computes one); `name` labels its rows. Each glyph's area is
         proportional to |r| (a full cell less a margin at |r| = 1) and its
         colour is r on the diverging ramp from -1 (blue) to 1 (red), so
         `colorbar()` afterwards shows the fixed -1..1 scale.
@@ -2071,7 +2071,7 @@ class Panel:
         from .correlogram import correlogram as _correlogram
 
         clip = _clip_flag(style)
-        node, note = _correlogram(self, r, names, triangle=triangle, shape=shape,
+        node, note = _correlogram(self, r, name, triangle=triangle, shape=shape,
                                   ramp=ramp, values=values, labels=labels, size=size,
                                   **style)
         self._ramp = note["ramp"]
@@ -2121,7 +2121,7 @@ class Panel:
 
     # -- hierarchies (plot/hierarchy_plots.py) ------------------------------
 
-    def treemap(self, data, *, colors=None, highlight=None,
+    def treemap(self, data, *, color=None, highlight=None,
                 highlight_color: str | None = None,
                 padding: float | str | None = None, header: bool | None = None,
                 labels: bool = True, values=None, sort: bool = True,
@@ -2138,7 +2138,7 @@ class Panel:
         first unless `sort=False`.
 
         Colours follow the branch (child of the root): the theme's
-        categorical palette, `colors=` a list per branch, a mapping of node
+        categorical palette, `color=` a list per branch, a mapping of node
         name to colour (inherited by descendants) or one colour. `highlight=`
         names or paths get `highlight_color` (a red by default) and every
         other node a pale fill. Leaves are named in their top-left corner
@@ -2150,7 +2150,7 @@ class Panel:
         from .hierarchy_plots import treemap as _treemap
 
         clip = _clip_flag(style)
-        node, _ = _treemap(self, data, colors=colors, highlight=highlight,
+        node, _ = _treemap(self, data, color=color, highlight=highlight,
                            highlight_color=highlight_color, padding=padding,
                            header=header, labels=labels, values=values,
                            sort=sort, size=size, **style)
@@ -2158,7 +2158,7 @@ class Panel:
 
     def icicle(self, data, *, orient: str = "h", root: bool | None = None,
                gap: float | str | None = None, spacing: float | str | None = None,
-               links: bool | None = None, colors=None, highlight=None,
+               links: bool | None = None, color=None, highlight=None,
                highlight_color: str | None = None, labels="fit",
                levels: bool = False, counts: bool = False, sort: bool = False,
                size: float | str | None = None, **style) -> "Panel":
@@ -2193,14 +2193,14 @@ class Panel:
 
         clip = _clip_flag(style)
         node, _ = _icicle(self, data, orient=orient, root=root, gap=gap,
-                          spacing=spacing, links=links, colors=colors,
+                          spacing=spacing, links=links, color=color,
                           highlight=highlight, highlight_color=highlight_color,
                           labels=labels, levels=levels, counts=counts, sort=sort,
                           size=size, **style)
         return self.draw(node, clip=clip)
 
     def sunburst(self, data, *, inner: float = 0.3, start: float = -90.0,
-                 colors=None, highlight=None, highlight_color: str | None = None,
+                 color=None, highlight=None, highlight_color: str | None = None,
                  labels: bool = True, center: str | None = None, sort: bool = False,
                  size: float | str | None = None, **style) -> "Panel":
         """A sunburst: an icicle chart bent into rings about the centre of
@@ -2218,7 +2218,7 @@ class Panel:
         from .hierarchy_plots import sunburst as _sunburst
 
         clip = _clip_flag(style)
-        node, _ = _sunburst(self, data, inner=inner, start=start, colors=colors,
+        node, _ = _sunburst(self, data, inner=inner, start=start, color=color,
                             highlight=highlight, highlight_color=highlight_color,
                             labels=labels, center=center, sort=sort, size=size,
                             **style)
@@ -2227,13 +2227,12 @@ class Panel:
     # -- networks (plot/network.py, plot/chord.py) ---------------------------
 
     def network(self, nodes, edges, *, layout: str = "circular", order=None,
-                sizes=None, top: float | None = None,
+                size=None, top: float | None = None,
                 diameter: float | str | None = None, floor: float | str | None = None,
-                shape: str = "circle", shapes=None, groups=None, colors=None,
-                color: str | None = None, labels="auto", size: float | str | None = None,
+                shape: str = "circle", shapes=None, groups=None, color=None,
+                labels="auto", label_size: float | str | None = None,
                 weights=None, width: float | str | None = None,
-                width_floor: float | str | None = None, edge_color: str | None = None,
-                edge_colors=None, bend: float | None = None, arrows: bool = False,
+                width_floor: float | str | None = None, edge_color=None, bend: float | None = None, arrows: bool = False,
                 opacity: float = 0.85, gap: float | str | None = None,
                 iterations: int = 300, **style) -> "Panel":
         """A weighted network: node area from a value, edge width from a
@@ -2257,21 +2256,24 @@ class Panel:
         stretched to fill the area, with straight edges unless `bend` is
         given. Two opposite directed edges bow to opposite sides.
 
-        Node values (or `sizes=`, a mapping or one per node) set the area of
+        Node values (or `size=`, a mapping or one per node) set the area of
         each node: `top` is drawn `diameter` mm across (default: the largest
         value, 4 mm) and nothing is smaller than `floor` (1.2 mm). `shape` is
         "circle" or "square" (rounded), per node with `shapes=`. `groups=`
         maps nodes to categories coloured from the palette and named in
-        `legend()`; `colors=` maps node or group names to colours, and
-        `color` is the fill of ungrouped nodes. `labels="auto"` writes a name
+        `legend()`; `color=` is the fill of ungrouped nodes, or a mapping of
+        node or group names to colours. `labels="auto"` writes a name
         inside its node when it fits and outside (away from the centre)
-        otherwise; "inside", "outside" or False force the choice.
+        otherwise; "inside", "outside" or False force the choice, and
+        `label_size` sets their font size.
 
         Edge widths are proportional to weight: the heaviest edge is `width`
         mm (default 1.6), and nothing is thinner than `width_floor` (a
         hairline); pass `weights=inklet.plot.width_scale(top, width)` to share
         a scale between panels. Edge categories are coloured from the palette
-        (after the node groups) or by `edge_colors=` and named in `legend()`.
+        (after the node groups) or by `edge_color=` (a mapping of category to
+        colour, or a list) and named in `legend()`; a single `edge_color`
+        paints the uncategorised edges.
         Lighter edges are drawn first. `arrows=True` puts a head on each edge
         at its target. Other keywords style the edges. `width_key()` and
         `size_key()` explain the widths and areas actually used. The node
@@ -2283,11 +2285,11 @@ class Panel:
 
         clip = _clip_flag(style)
         node, note = _network(self, nodes, edges, layout=layout, order=order,
-                              sizes=sizes, top=top, diameter=diameter, floor=floor,
-                              shape=shape, shapes=shapes, groups=groups, colors=colors,
-                              color=color, labels=labels, size=size, weights=weights,
+                              size=size, top=top, diameter=diameter, floor=floor,
+                              shape=shape, shapes=shapes, groups=groups, color=color,
+                              labels=labels, label_size=label_size, weights=weights,
                               width=width, width_floor=width_floor,
-                              edge_color=edge_color, edge_colors=edge_colors, bend=bend,
+                              edge_color=edge_color, bend=bend,
                               arrows=arrows, opacity=opacity, gap=gap,
                               iterations=iterations, **style)
         self._widths = note["widths"]
@@ -2343,7 +2345,7 @@ class Panel:
         self._over.append(placed)
         return self._touched()
 
-    def chord(self, matrix, names: Sequence[str] | None = None, *, colors=None,
+    def chord(self, matrix, name: Sequence[str] | None = None, *, color=None,
               gap: float = 2.0, start: float = -90.0, directed: bool = False,
               sort: bool = False, thickness: float | str | None = None,
               pad: float | str | None = None, labels: bool = True,
@@ -2364,7 +2366,8 @@ class Panel:
         outgoing flows first, and points each ribbon at its target. `gap` is
         the angle between groups in degrees; `start` is where the first
         group begins (-90, twelve o'clock); `sort=True` orders each group's
-        flows largest first. `colors` is one colour, a list, or a mapping of
+        flows largest first. `name` (the second positional argument) names
+        the groups. `color` is one colour, a list, or a mapping of
         group name to colour (default: the palette); ribbons take the colour
         of their source (`color_by="source"`), target, or larger end, at
         `opacity`. `thickness` is the ring's radial width in mm, and group
@@ -2375,29 +2378,27 @@ class Panel:
         from .chord import chord as _chord
 
         clip = _clip_flag(style)
-        node, _ = _chord(self, matrix, names, colors=colors, gap=gap, start=start,
+        node, _ = _chord(self, matrix, name, color=color, gap=gap, start=start,
                          directed=directed, sort=sort, thickness=thickness, pad=pad,
                          labels=labels, opacity=opacity, color_by=color_by, size=size,
                          **style)
         return self.draw(node, clip=clip)
 
-    def arc_diagram(self, nodes, edges, *, sizes=None, top: float | None = None,
+    def arc_diagram(self, nodes, edges, *, size=None, top: float | None = None,
                     diameter: float | str | None = None, floor: float | str | None = None,
-                    shape: str = "circle", shapes=None, groups=None, colors=None,
-                    color: str | None = None, labels: bool = True,
-                    rotate: float | None = None, weights=None,
+                    shape: str = "circle", shapes=None, groups=None, color=None,
+                    labels: bool = True, rotate: float | None = None, weights=None,
                     width: float | str | None = None,
-                    width_floor: float | str | None = None,
-                    edge_color: str | None = None, edge_colors=None,
+                    width_floor: float | str | None = None, edge_color=None,
                     directed: bool = False, opacity: float = 0.8,
-                    size: float | str | None = None, **style) -> "Panel":
+                    label_size: float | str | None = None, **style) -> "Panel":
         """An arc diagram: nodes in a row, each edge a half-ellipse arc
         above them whose width is the edge weight.
 
         `nodes` and `edges` read as in `network()` (names or a mapping of
         name to value; `(source, target[, weight[, category]])` rows), and
-        node sizes, shapes, group colours, edge widths and edge categories
-        are encoded the same way, so `size_key()`, `width_key()` and
+        node sizes (`size=`), shapes, colours (`color=`), edge widths and
+        edge categories (`edge_color=`) are encoded the same way, so `size_key()`, `width_key()` and
         `legend()` work after it.
 
             p = inklet.panel(80, 30)
@@ -2415,13 +2416,13 @@ class Panel:
         from .series import SeriesKey
 
         clip = _clip_flag(style)
-        node, note = _arc_diagram(self, nodes, edges, sizes=sizes, top=top,
+        node, note = _arc_diagram(self, nodes, edges, size=size, top=top,
                                   diameter=diameter, floor=floor, shape=shape,
-                                  shapes=shapes, groups=groups, colors=colors,
-                                  color=color, labels=labels, rotate=rotate,
+                                  shapes=shapes, groups=groups, color=color,
+                                  labels=labels, rotate=rotate,
                                   weights=weights, width=width, width_floor=width_floor,
-                                  edge_color=edge_color, edge_colors=edge_colors,
-                                  directed=directed, opacity=opacity, size=size, **style)
+                                  edge_color=edge_color, directed=directed,
+                                  opacity=opacity, label_size=label_size, **style)
         self._widths = note["widths"]
         if note["sizes"] is not None:
             self._sizes = note["sizes"]
@@ -2530,7 +2531,7 @@ class Panel:
     def ma(self, mean: Sequence[float], fold: Sequence[float],
            p: Sequence[float] | None = None, *, labels: Sequence[str] | None = None,
            top: int = 10, fold_threshold: float = 1.0, p_threshold: float = 0.05,
-           colors=None, names=None, size: float | None = None, log: bool = True,
+           color=None, name=None, size: float | None = None, log: bool = True,
            zero: bool = True, **style) -> "Panel":
         """An MA plot: mean expression on x against log2 fold change on y.
 
@@ -2548,7 +2549,7 @@ class Panel:
 
         `zero=True` draws a hairline at a fold change of 0. `labels=` names
         the `top` significant points with the smallest p (or the largest
-        |fold| without `p`) with `label_points`. `colors=` and `names=` take
+        |fold| without `p`) with `label_points`. `color=` and `name=` take
         the same shapes as in `volcano`; `size` is the dot diameter (0.9 mm) and
         other keywords style the points. The last layer carries an `ma` note
         with the classes and labelled indices.
@@ -2558,8 +2559,8 @@ class Panel:
         if isinstance(self.x, Band) or isinstance(self.y, Band):
             raise DiagramError("ma needs continuous x and y scales")
         note = _ma(self, mean, fold, p, labels=labels, top=top,
-                   fold_threshold=fold_threshold, p_threshold=p_threshold, colors=colors,
-                   names=names, size=size, log=log, zero=zero, **style)
+                   fold_threshold=fold_threshold, p_threshold=p_threshold, color=color,
+                   name=name, size=size, log=log, zero=zero, **style)
         last = (self._over or self._content)[-1] if (self._over or self._content) else None
         if last is not None:
             last.notes["ma"] = note
@@ -3386,7 +3387,7 @@ class Panel:
     def waterfall(self, at: Sequence, values: Sequence, *, totals=(),
                   baseline: float = 0.0, orient: str = "v", width: float = 0.6,
                   color=None, connectors: bool = True, labels=None,
-                  names: Sequence[str] | None = None, **style) -> "Panel":
+                  name: Sequence[str] | None = None, **style) -> "Panel":
         """A waterfall chart: signed changes as bars floating on a running total.
 
         `values` are the changes, one per position in `at`. Each bar runs
@@ -3405,7 +3406,7 @@ class Panel:
         `connectors=True` draws a dashed hairline from each bar's end to the
         next bar's start. `labels=True` writes each change (`+45`, `-30`) past
         the end it moved to, and each total's value; a format string or a
-        callable writes something else. `names=` gives `legend()` one entry
+        callable writes something else. `name=` gives `legend()` one entry
         per kind, as (increase, decrease, total) names. `inklet.plot.waterfall_steps`
         returns the running totals without drawing, for choosing the y range.
         The node carries a `waterfall` note with every bar's start, end and kind.
@@ -3417,18 +3418,19 @@ class Panel:
                                     baseline=baseline, orient=orient, width=width,
                                     color=color, connectors=connectors,
                                     labels=labels, **style)
+        names = series_names(name)
         if names is not None:
             if len(names) != 3:
                 raise DiagramError(
-                    "waterfall names= is three names: (increase, decrease, total)")
-            for kind, name in zip(WATERFALL_KINDS, names):
-                if name is not None:
-                    self._note(name, "area", fill=fills[kind], color=fills[kind])
+                    "waterfall name= is three names: (increase, decrease, total)")
+            for kind, label in zip(WATERFALL_KINDS, names):
+                if label is not None:
+                    self._note(label, "area", fill=fills[kind], color=fills[kind])
         return self.draw(node, clip=clip)
 
     def slope(self, values: Mapping[str, Sequence[float]], *, at: Sequence | None = None,
               labels: str = "both", format=None, color=None, highlight=None,
-              size: float | str | None = None, names: bool = True,
+              size: float | str | None = None, name: bool = True,
               **style) -> "Panel":
         """A slope chart: each series' values at a few time points, joined.
 
@@ -3438,7 +3440,7 @@ class Panel:
         writes the name and value at both ends (`"left"`, `"right"` or
         `"none"` for fewer), moved apart vertically just enough not to
         overlap. `format` writes the values (a format string such as
-        `"{:.0f}%"` or a callable); `names=False` writes the values alone.
+        `"{:.0f}%"` or a callable); `name=False` writes the values alone.
 
             p = inklet.panel(30, 40, x=["2015", "2025"], y=(0, 80))
             p.slope({"Denmark": [42, 61], "Spain": [30, 28]}, format="{:.0f}%")
@@ -3453,7 +3455,7 @@ class Panel:
         clip = _clip_flag(style)
         node, _ = _slope(self, values, at=at, labels=labels, format=format,
                          color=color, highlight=highlight, size=size,
-                         names=names, **style)
+                         name=name, **style)
         return self.draw(node, clip=clip)
 
     def bump(self, values: Mapping[str, Sequence[float]], *, at: Sequence | None = None,
@@ -3517,7 +3519,7 @@ class Panel:
     def likert(self, at: Sequence, counts: Sequence[Sequence[float]], *,
                neutral: int | None = None, normalize: bool = True,
                orient: str = "h", width: float = 0.7, color=None,
-               names: Sequence[str] | None = None, labels=None,
+               name: str | Sequence[str] | None = None, labels=None,
                zero: bool = True, **style) -> "Panel":
         """Diverging stacked bars for Likert-scale responses, centred on neutral.
 
@@ -3532,12 +3534,12 @@ class Panel:
             levels = ["Strongly disagree", "Disagree", "Neutral", "Agree",
                       "Strongly agree"]
             p = inklet.panel(60, 30, x=(-100, 100), y=questions)
-            p.likert(questions, counts, names=levels)
+            p.likert(questions, counts, name=levels)
             p.axis("bottom", format=inklet.plot.unsigned).legend(side="top")
 
         The default colours run from vermillion through a light grey neutral
         to blue (`inklet.plot.likert_colors`); `color=` sets one per level.
-        `names=` gives `legend()` one entry per level. `labels=True` writes
+        `name=` gives `legend()` one entry per level. `labels=True` writes
         each segment's percentage inside it where it fits. `zero=True`
         draws the zero line. `inklet.plot.likert_spans` returns the segments
         without drawing; the node's `likert` note holds them too.
@@ -3548,13 +3550,14 @@ class Panel:
         node, fills, _ = _likert(self, at, counts, neutral=neutral,
                                  normalize=normalize, orient=orient, width=width,
                                  color=color, labels=labels, zero=zero, **style)
+        names = series_names(name)
         if names is not None:
             self._note_series(names, fills)
         return self.draw(node, clip=clip)
 
     def diverging_bars(self, at: Sequence, left, right, *, orient: str = "h",
                        width: float = 0.7, color=None,
-                       names: Sequence[str] | None = None, reference=None,
+                       name: str | Sequence[str] | None = None, reference=None,
                        titles: Sequence[str] | None = None, zero: bool = True,
                        **style) -> "Panel":
         """Two quantities per category, back to back: left of zero and right.
@@ -3570,12 +3573,12 @@ class Panel:
             p = inklet.panel(50, 45, x=(-30, 60), y=types)
             p.diverging_bars(types, [f_specific, f_dimorphic],
                              [m_specific, m_dimorphic],
-                             names=["sex-specific", "dimorphic"],
+                             name=["sex-specific", "dimorphic"],
                              reference=(6.1, 8.4), titles=("♀", "♂"))
             p.axis("bottom", format=inklet.plot.unsigned, label="% output")
 
         `color=` is one colour per series; with a single series per side it
-        is the pair (left, right). `names=` names the series (or the two
+        is the pair (left, right). `name=` names the series (or the two
         sides) for `legend()`. `reference=` draws dashed reference lines at
         a value on each side -- one number for both, or a `(left, right)`
         pair, such as the means over all categories. `titles=` writes a
@@ -3590,6 +3593,7 @@ class Panel:
         node, left_fills, right_fills = _diverging(
             self, at, left, right, orient=orient, width=width, color=color,
             reference=reference, titles=titles, zero=zero, **style)
+        names = series_names(name)
         if names is not None:
             fills = (left_fills + right_fills if left_fills != right_fills
                      else left_fills)
@@ -3615,7 +3619,7 @@ class Panel:
 
     def waffle(self, values: Sequence[float], *, rows: int = 10, columns: int = 10,
                total: float | None = None, color=None,
-               names: Sequence[str] | None = None, gap: float = 0.18,
+               name: str | Sequence[str] | None = None, gap: float = 0.18,
                order: str = "column", **style) -> "Panel":
         """A waffle chart: shares of a whole as cells of a grid.
 
@@ -3628,10 +3632,10 @@ class Panel:
         `gap` is the air between cells as a fraction of a cell.
 
             p = inklet.panel(30, 30)
-            p.waffle([46, 31, 15, 8], names=["neurons", "glia", "vascular", "other"])
+            p.waffle([46, 31, 15, 8], name=["neurons", "glia", "vascular", "other"])
             p.legend(side="right")
 
-        `names=` gives `legend()` one entry per value. The node carries a
+        `name=` gives `legend()` one entry per value. The node carries a
         `waffle` note with the cell counts; `inklet.plot.waffle_cells`
         computes them without drawing.
         """
@@ -3641,12 +3645,13 @@ class Panel:
         node, fills, _ = _waffle(self, values, rows=rows, columns=columns,
                                  total=total, color=color, gap=gap, order=order,
                                  **style)
+        names = series_names(name)
         if names is not None:
             self._note_series(names, fills)
         return self.draw(node, clip=clip)
 
     def mosaic(self, at: Sequence, values, *, color=None,
-               names: Sequence[str] | None = None, gap: float | str = 0.6,
+               name: str | Sequence[str] | None = None, gap: float | str = 0.6,
                labels=None, categories: bool = True, **style) -> "Panel":
         """A mosaic (Marimekko) chart: stacked bars as wide as their totals.
 
@@ -3657,13 +3662,13 @@ class Panel:
         across the panel's x domain and cells up its y domain:
 
             p = inklet.panel(60, 40, x=(0, 100), y=(0, 100))
-            p.mosaic(regions, [[30, 12, 8], [20, 30, 10]], names=["A", "B"])
+            p.mosaic(regions, [[30, 12, 8], [20, 30, 10]], name=["A", "B"])
             p.axis("left", format="%").legend(side="right")
 
         `gap` is the space between columns in millimetres. `labels=True`
         writes each cell's share of its column where it fits (or a format
         string or callable of the share). `categories=True` writes the
-        category names under the columns as a bottom axis. `names=` names
+        category names under the columns as a bottom axis. `name=` names
         the series for `legend()`. `inklet.plot.mosaic_layout` returns the
         geometry without drawing.
         """
@@ -3672,6 +3677,7 @@ class Panel:
         clip = _clip_flag(style)
         node, fills, columns = _mosaic(self, at, values, color=color, gap=gap,
                                        labels=labels, **style)
+        names = series_names(name)
         if names is not None:
             self._note_series(names, fills)
         self.draw(node, clip=clip)
@@ -3689,7 +3695,7 @@ class Panel:
 
     def streamgraph(self, x: Sequence, values, *, offset: str = "wiggle",
                     order: str = "input", color=None,
-                    names: Sequence[str] | None = None, smooth: float = 0.5,
+                    name: str | Sequence[str] | None = None, smooth: float = 0.5,
                     **style) -> "Panel":
         """A streamgraph: stacked areas around a moving baseline.
 
@@ -3706,11 +3712,11 @@ class Panel:
             low = min(min(lo) for lo, _ in layers)
             high = max(max(hi) for _, hi in layers)
             p = inklet.panel(80, 30, x=(0, 52), y=(low, high))
-            p.streamgraph(weeks, counts, names=genres).legend(side="right")
+            p.streamgraph(weeks, counts, name=genres).legend(side="right")
 
         Use the same `offset` and `order` for `stream_layers` and the plot.
         The y axis of a wiggle or silhouette stream has no meaningful zero;
-        label thickness with a scale bar or leave the axis out. `names=`
+        label thickness with a scale bar or leave the axis out. `name=`
         names the series for `legend()`.
         """
         from .stream import streamgraph as _streamgraph
@@ -3718,6 +3724,7 @@ class Panel:
         clip = _clip_flag(style)
         node, fills, _ = _streamgraph(self, x, values, offset=offset, order=order,
                                       color=color, smooth=smooth, **style)
+        names = series_names(name)
         if names is not None:
             self._note_series(names, fills)
         return self.draw(node, clip=clip)
@@ -3882,7 +3889,7 @@ class Panel:
     def barplot(self, at: Sequence, data, *, estimator: str = "mean",
                 error="sem", points: bool = True, width: float = 0.8,
                 gap: float = 0.12, orient: str = "v", color=None,
-                names: Sequence[str] | None = None,
+                name: str | Sequence[str] | None = None,
                 size: float | str | None = None, cap: float | str | None = None,
                 baseline: float = 0.0, **style) -> "Panel":
         """Bars of the mean with error bars and every observation as a dot.
@@ -3893,7 +3900,7 @@ class Panel:
 
             p = inklet.panel(40, 35, x=["ctrl", "drug"], y=(0, 12))
             p.barplot(["ctrl", "drug"], [[wt_ctrl, wt_drug], [ko_ctrl, ko_drug]],
-                      names=["WT", "KO"])
+                      name=["WT", "KO"])
             p.axes(y="response").legend(side="top")
 
         Each bar is the `estimator` ("mean" or "median") of its sample. The
@@ -3907,7 +3914,7 @@ class Panel:
         One series is drawn as light grey bars with ink dots; several take
         blue, vermillion, green, ... as dark dots on tinted bars. `color=`
         is one colour per series, or for a single series one per category.
-        `names=` names the series for `legend()`. The node's `barplot` note
+        `name=` names the series for `legend()`. The node's `barplot` note
         holds each bar's `(centre, down, up, n)`;
         `inklet.plot.summary_stats` computes one without drawing.
         """
@@ -3918,18 +3925,19 @@ class Panel:
                                  points=points, width=width, gap=gap,
                                  orient=orient, color=color, size=size, cap=cap,
                                  baseline=baseline, **style)
+        names = series_names(name)
         if names is not None:
             from ..themes.color import mix as _mix
             theme = active_theme()
             if len(names) != len(inks):
-                raise DiagramError(f"names= has {len(names)} names for {len(inks)} series")
-            for name, ink in zip(names, inks):
-                self._note(name, "area", fill=_mix(ink, theme.paper, 0.55), color=ink)
+                raise DiagramError(f"name= has {len(names)} names for {len(inks)} series")
+            for label, ink in zip(names, inks):
+                self._note(label, "area", fill=_mix(ink, theme.paper, 0.55), color=ink)
         return self.draw(node, clip=clip)
 
 
 def _volcano_triple(given, what: str) -> dict:
-    """`colors=` or `names=` of `Panel.volcano` as a mapping by class."""
+    """`color=` or `name=` of `Panel.volcano` or `Panel.ma` as a mapping by class."""
     if given is None:
         return {}
     if isinstance(given, Mapping):

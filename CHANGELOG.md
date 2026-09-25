@@ -37,6 +37,17 @@ a `DeprecationWarning` subclass that names the replacement. See the
 ### Added
 
 - `name=` on multi-series marks accepts a single string for one series.
+- The plots new in 4.4 use `color=`, `name=` and `size=` from the start and
+  have no plural aliases: `color=` on `treemap`, `icicle`, `sunburst`,
+  `chord`, `ma` and `inklet.manhattan`; `name=` on `waterfall`, `barplot`,
+  `diverging_bars`, `likert`, `mosaic`, `waffle`, `streamgraph`, `ma`,
+  `label_lines`, `chord`, `correlogram` and `chord_layout`. `network` and
+  `arc_diagram` take node values as `size=`, fills as `color=` (one colour
+  or a mapping), edge colours as `edge_color=` (one colour, a mapping or a
+  list) and the label font size as `label_size=`. `slope(name=False)` writes
+  the values without the series names. `inklet.clustermap` takes
+  `row_color=` and `col_color=` annotation strips, and `ManhattanLayout`
+  has `centers`.
 - `Panel.dotplot(size=, color=)` keywords beside the positional slots. A string
   `color=` still paints every dot.
 - `tests/test_deprecations.py` checks every alias: same result, exactly one
@@ -215,7 +226,7 @@ and the new [timelines and calendars](docs/timelines-and-calendars.md) page.
   use `label_points` and are unchanged.
 - `point_labels` notes gain a `covering_marks` list: labels that sit on a
   background mark.
-- New `Panel.label_lines(names=None, where="end" | "inside")` puts direct
+- New `Panel.label_lines(name=None, where="end" | "inside")` puts direct
   curve labels on named `line`, `step` and `ecdf` series. With `"end"`, the
   names go in a column past the curve ends. Colliding names are stacked apart
   by the smallest total movement that keeps them in order, and a name that

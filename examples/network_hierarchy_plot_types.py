@@ -63,8 +63,8 @@ command = {n: "command" for n in ("AVA", "AVB", "AVD", "AVE", "PVC")}
 net = inklet.panel(40, 40)
 net.network(neurons, synapses, shape="square", diameter=5, arrows=True,
             groups={n: command.get(n, "other") for n in neurons},
-            colors={"command": "#c0392b", "other": "#bdbdbd"},
-            edge_colors={"chemical": "#4d4d4d", "gap junction": "#e69f00"})
+            color={"command": "#c0392b", "other": "#bdbdbd"},
+            edge_color={"chemical": "#4d4d4d", "gap junction": "#e69f00"})
 net.width_key(title="synapses", values=[5000, 2000, 500], format="{:,.0f}")
 net.legend(side="bottom")
 
@@ -130,7 +130,7 @@ signal = {"ctrl": 8, "KA": 0, "LPS": 4}
 expression = [[rng.gauss(2.5 if signal[c] <= g < signal[c] + 4 else 0, 0.8)
                for c in condition] for g in range(12)]
 heat = inklet.clustermap(expression, rows=response, columns=samples, standardize="rows",
-                         k=3, col_colors={"condition": condition}, label="z-score", width=26)
+                         k=3, col_color={"condition": condition}, label="z-score", width=26)
 
 # -- l: Manhattan plot -------------------------------------------------------
 
@@ -166,7 +166,7 @@ fold = [rng.gauss(0, 0.5) + (rng.random() < 0.05) * rng.choice([-1, 1]) * rng.un
 padj = [min(1.0, 2 * math.exp(-abs(f) * 4 * rng.uniform(0.2, 1.5))) for f in fold]
 ma = inklet.panel(36, 34, x=(0, 16), y=(-6, 6))
 ma.ma(mean, fold, padj, labels=[f"Gene{k}" for k in range(800)], top=4,
-      names=["down", None, "up"])
+      name=["down", None, "up"])
 ma.axes(x="log_{2} mean expression", y="log_{2} fold change").legend(side="bottom")
 
 # -- k: ternary plot ---------------------------------------------------------

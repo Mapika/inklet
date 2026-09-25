@@ -48,9 +48,9 @@ class _Paint:
     """Fill colours for nodes.
 
     Highlighted nodes (`highlight=` names or paths) get `highlight_color`.
-    Otherwise `colors=` decides: a single colour for every node; a mapping of
+    Otherwise `color=` decides: a single colour for every node; a mapping of
     node name to colour, inherited by the node's descendants; or a sequence
-    of colours, one per branch (child of the root). Without `colors`, each
+    of colours, one per branch (child of the root). Without `color`, each
     branch takes the theme's categorical colour and deeper levels are blended
     towards paper, except when a highlight is given: then every other node is
     one pale colour, so the highlighted ones are the only thing that stands
@@ -96,7 +96,7 @@ class _Paint:
         if colors is not None:
             palette = list(colors)
             if not palette:
-                raise DiagramError("colors= is empty")
+                raise DiagramError("color= is empty")
             base = str(palette[k % len(palette)])
         else:
             base = self.palette[k % len(self.palette)]
@@ -155,7 +155,7 @@ def _format(values, value: float) -> str | None:
 # -- treemap -------------------------------------------------------------------
 
 
-def treemap(panel, data, *, colors=None, highlight=None, highlight_color=None,
+def treemap(panel, data, *, color=None, highlight=None, highlight_color=None,
             padding: float | str | None = None, header: bool | None = None,
             labels: bool = True, values=None, sort: bool = True,
             size: float | str | None = None, **style) -> tuple[Diagram, dict]:
@@ -168,7 +168,7 @@ def treemap(panel, data, *, colors=None, highlight=None, highlight_color=None,
     head = (tree.height > 1) if header is None else bool(header)
     head_h = font * 1.35 if head else 0.0
     cells = treemap_layout(tree, area, padding=pad, header=head_h, sort=sort)
-    paint = _Paint(tree, colors, highlight, highlight_color, depth_tint=False)
+    paint = _Paint(tree, color, highlight, highlight_color, depth_tint=False)
     edge = {"stroke": theme.paper, "stroke_width": max(theme.stroke, 0.25),
             "stroke_linejoin": "miter"}
     edge.update(style)
@@ -259,7 +259,7 @@ def _spread(wanted: list[float], height: float, lo: float, hi: float) -> list[fl
 
 def icicle(panel, data, *, orient: str = "h", root: bool | None = None,
            gap: float | str | None = None, spacing: float | str | None = None,
-           links: bool | None = None, colors=None, highlight=None,
+           links: bool | None = None, color=None, highlight=None,
            highlight_color=None, labels="fit", levels: bool = False,
            counts: bool = False, sort: bool = False, size: float | str | None = None,
            **style) -> tuple[Diagram, dict]:
@@ -304,7 +304,7 @@ def icicle(panel, data, *, orient: str = "h", root: bool | None = None,
             spans[id(c.node)] = (at, at + length)
             if length > 0:
                 at += length + space
-    paint = _Paint(tree, colors, highlight, highlight_color, depth_tint=True)
+    paint = _Paint(tree, color, highlight, highlight_color, depth_tint=True)
 
     def box(depth: int, lo: float, hi: float) -> Rect:
         d0 = (depth - first) * (band + between)
@@ -381,11 +381,11 @@ def icicle(panel, data, *, orient: str = "h", root: bool | None = None,
         for (n, m), at, t in zip(items, centres, texts_out):
             deep = box(n.depth, *spans[id(n)])
             start = deep.x1 if orient == "h" else deep.y1
-            color = t.style.text_fill if t.style and t.style.text_fill else theme.ink
+            ink = t.style.text_fill if t.style and t.style.text_fill else theme.ink
             if orient == "h":
                 tick = [(start, area.y0 + m), (far + clear * 0.6, area.y0 + m),
                         (far + clear * 1.6, area.y0 + at)]
-                outside.append(path(tick, kind="mark-line", stroke=color,
+                outside.append(path(tick, kind="mark-line", stroke=ink,
                                     stroke_width=theme.hairline, fill="none"))
                 b = t.bbox
                 outside.append(draw_place([(Vec2(far + clear * 2 + b.width / 2, area.y0 + at), t)],
@@ -475,7 +475,7 @@ def _inside_annulus(point: Vec2, centre: Vec2, r0: float, r1: float,
 
 
 def sunburst(panel, data, *, inner: float = 0.3, start: float = -90.0,
-             colors=None, highlight=None, highlight_color=None, labels: bool = True,
+             color=None, highlight=None, highlight_color=None, labels: bool = True,
              center: str | None = None, sort: bool = False,
              size: float | str | None = None, **style) -> tuple[Diagram, dict]:
     """A sunburst in `panel`'s plot area. See `Panel.sunburst`."""
@@ -489,7 +489,7 @@ def sunburst(panel, data, *, inner: float = 0.3, start: float = -90.0,
     hole = inner * radius
     ring = (radius - hole) / max(1, tree.height)
     font = theme.font_size_small if size is None else mm(size)
-    paint = _Paint(tree, colors, highlight, highlight_color, depth_tint=True)
+    paint = _Paint(tree, color, highlight, highlight_color, depth_tint=True)
     edge = {"stroke": theme.paper, "stroke_width": max(theme.stroke, 0.25),
             "stroke_linejoin": "round"}
     edge.update(style)

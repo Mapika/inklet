@@ -56,7 +56,7 @@ def sample(mean, sd, n=8):
 conditions = ["vehicle", "drug"]
 bars = inklet.panel(22, 30, x=conditions, y=(0, 14))
 bars.barplot(conditions, [[sample(5, 1.2), sample(8, 1.5)],
-                          [sample(6, 1.0), sample(11, 1.3)]], names=["WT", "KO"])
+                          [sample(6, 1.0), sample(11, 1.3)]], name=["WT", "KO"])
 bars.axes(y="response / a.u.").legend(side="top")
 
 # -- c: diverging bars -------------------------------------------------------
@@ -65,7 +65,7 @@ types = ["DN1", "DN2", "DN3", "DN4", "DN5", "DN6"]
 diverging = inklet.panel(30, 30, x=(-30, 30), y=types)
 diverging.diverging_bars(types, [[12, 8, 4, 20, 6, 3], [5, 6, 2, 4, 3, 1]],
                          [[10, 9, 7, 14, 9, 4], [4, 7, 3, 8, 2, 2]],
-                         names=["sex-specific", "dimorphic"], reference=(8.1, 10.4),
+                         name=["sex-specific", "dimorphic"], reference=(8.1, 10.4),
                          titles=("female", "male"))
 diverging.axis("bottom", format=unsigned, label="% output")
 diverging.axis("left", spine=False, tick_size=0)
@@ -85,7 +85,7 @@ levels = ["strongly disagree", "disagree", "neutral", "agree", "strongly agree"]
 questions = ["recommend", "reliable", "fast", "easy"]
 likert = inklet.panel(46, 20, x=(-100, 100), y=questions)
 likert.likert(questions, [[20, 25, 25, 20, 10], [3, 7, 15, 45, 30],
-                          [12, 18, 30, 25, 15], [5, 10, 20, 40, 25]], names=levels)
+                          [12, 18, 30, 25, 15], [5, 10, 20, 40, 25]], name=levels)
 likert.axis("bottom", format=unsigned, label="responses / %")
 likert.axis("left", spine=False, tick_size=0)
 likert.legend(side="top", columns=3)
@@ -94,13 +94,13 @@ likert.legend(side="top", columns=3)
 
 mosaic = inklet.panel(32, 30, x=(0, 100), y=(0, 100))
 mosaic.mosaic(["N", "S", "E", "W"], [[30, 12, 8, 20], [20, 30, 10, 5], [10, 8, 12, 15]],
-              names=["A", "B", "C"], labels=True)
+              name=["A", "B", "C"], labels=True)
 mosaic.axis("left", format="{:.0f}%").legend(side="right")
 
 # -- g: waffle ---------------------------------------------------------------
 
 waffle = inklet.panel(24, 24)
-waffle.waffle([46, 31, 15, 8], names=["neurons", "glia", "vascular", "other"])
+waffle.waffle([46, 31, 15, 8], name=["neurons", "glia", "vascular", "other"])
 waffle.legend(side="right")
 
 # -- h: slope ----------------------------------------------------------------
@@ -152,7 +152,7 @@ plays = [[max(0.0, 3 + 2.5 * math.sin((w + 7 * g) / (4 + g)) + g * 0.3) for w in
 layers = stream_layers(plays)
 stream = inklet.panel(50, 24, x=(0, 39), y=(min(min(lo) for lo, _ in layers),
                                             max(max(hi) for _, hi in layers)))
-stream.streamgraph(weeks, plays, names=["rock", "pop", "jazz", "folk", "hip-hop"])
+stream.streamgraph(weeks, plays, name=["rock", "pop", "jazz", "folk", "hip-hop"])
 stream.axis("bottom", label="week").legend(side="right")
 
 # -- n: Gantt ----------------------------------------------------------------

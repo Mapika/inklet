@@ -669,11 +669,11 @@ def _energy(live: _Live, n: int) -> float:
 
 
 
-def stack(centres: Sequence[float], heights: Sequence[float], *, gap: float,
+def stack(centers: Sequence[float], heights: Sequence[float], *, gap: float,
           top: float, bottom: float) -> list[float]:
     """Centres for boxes stacked in a column without overlap, moved least.
 
-    `centres` are where each box would like its centre, `heights` its
+    `centers` are where each box would like its centre, `heights` its
     height; boxes keep their order (ties by index), stay `gap` apart and
     inside `[top, bottom]`, and the summed squared shift is the smallest
     possible (bounded isotonic regression by pooling adjacent violators).
@@ -681,10 +681,10 @@ def stack(centres: Sequence[float], heights: Sequence[float], *, gap: float,
     widened evenly about their middle -- the column overflows rather than
     overlapping. Returns one centre per box, in input order.
     """
-    n = len(centres)
+    n = len(centers)
     if n == 0:
         return []
-    order = sorted(range(n), key=lambda k: (centres[k], k))
+    order = sorted(range(n), key=lambda k: (centers[k], k))
     hs = [heights[k] for k in order]
     offsets = [0.0]
     for a, b in zip(hs, hs[1:]):
@@ -695,7 +695,7 @@ def stack(centres: Sequence[float], heights: Sequence[float], *, gap: float,
         top, bottom = middle - need / 2, middle + need / 2
     blocks: list[list[float]] = []
     for j, k in enumerate(order):
-        blocks.append([centres[k] - offsets[j], 1])
+        blocks.append([centers[k] - offsets[j], 1])
         while (len(blocks) > 1 and blocks[-2][0] / blocks[-2][1]
                > blocks[-1][0] / blocks[-1][1]):
             total, count = blocks.pop()

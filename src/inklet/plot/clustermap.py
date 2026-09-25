@@ -69,8 +69,8 @@ def clustermap(values, *, rows: Sequence[str] | None = None,
                columns: Sequence[str] | None = None, method: str = "average",
                metric="euclidean", row_cluster: bool = True, col_cluster: bool = True,
                row_linkage=None, col_linkage=None, standardize: str | None = None,
-               k: int | None = None, highlight=None, row_colors: Mapping | None = None,
-               col_colors: Mapping | None = None, ramp=None, scale=None,
+               k: int | None = None, highlight=None, row_color: Mapping | None = None,
+               col_color: Mapping | None = None, ramp=None, scale=None,
                center: float | None = None, width: float | str = 50,
                height: float | str | None = None, tree: float | str = 8,
                strip: float | str = 2.0, label: str | None = None,
@@ -81,7 +81,7 @@ def clustermap(values, *, rows: Sequence[str] | None = None,
 
         inklet.clustermap(expression, rows=genes, columns=samples,
                           metric="correlation", standardize="rows",
-                          col_colors={"condition": conditions}, label="z-score")
+                          col_color={"condition": conditions}, label="z-score")
 
     `values[r][c]` is a table (lists or a 2-D array). Rows and columns are
     clustered with `inklet.plot.linkage(method=, metric=)`, or taken from
@@ -96,7 +96,7 @@ def clustermap(values, *, rows: Sequence[str] | None = None,
     (`highlight=` cluster numbers are boxed in red); otherwise thin paper
     rules separate them.
 
-    `row_colors=` and `col_colors=` map a track name to one value per row
+    `row_color=` and `col_color=` map a track name to one value per row
     (column): a colour, or a category coloured from the palette and named in
     a legend below. `width` and `height` are the matrix size in mm (height
     defaults to keep square cells), `tree` the dendrograms' depth and
@@ -199,8 +199,8 @@ def clustermap(values, *, rows: Sequence[str] | None = None,
             out.append((str(name), p))
         return out
 
-    rstrips = strips(row_colors, nr, rorder, along_x=False)
-    cstrips = strips(col_colors, nc, corder, along_x=True)
+    rstrips = strips(row_color, nr, rorder, along_x=False)
+    cstrips = strips(col_color, nc, corder, along_x=True)
     # Track names: beside a column strip on the left, under a row strip.
     from .axis import text_node
     for name, p in cstrips:

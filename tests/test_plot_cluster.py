@@ -112,7 +112,7 @@ def test_clustermap_orders_and_lints() -> None:
 
     def build():
         return inklet.clustermap(table, rows=names, standardize="rows", k=3,
-                                 col_colors={"batch": ["a", "a", "b", "b", "c", "c"]},
+                                 col_color={"batch": ["a", "a", "b", "b", "c", "c"]},
                                  width=30)
     node = build()
     note = node.notes["clustermap"]

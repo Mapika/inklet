@@ -80,7 +80,7 @@ fold = [rng.gauss(0, 0.5) + (rng.random() < 0.05) * rng.choice([-1, 1]) * rng.un
 padj = [min(1.0, 2 * math.exp(-abs(f) * 4 * rng.uniform(0.2, 1.5))) for f in fold]
 genes = [f'Gene{k}' for k in range(1500)]
 ma = i.panel(55, 40, x=(0, 16), y=(-6, 6))
-ma.ma(mean, fold, padj, labels=genes, top=5, names=['down', None, 'up'])
+ma.ma(mean, fold, padj, labels=genes, top=5, name=['down', None, 'up'])
 ma.axes(x='log_{2} mean expression', y='log_{2} fold change').legend(side='right')
 fig = i.figure(width=89)
 fig.add(ma.build())

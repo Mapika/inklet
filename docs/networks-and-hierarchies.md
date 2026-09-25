@@ -30,7 +30,7 @@ close to square. Groups become pale plates with their name in a header strip.
 one ring further out, and each node's angle proportional to its value.
 
 Colours follow the branch: each child of the root gets a colour from the
-theme's palette, lightened for deeper levels. `colors=` takes a list per
+theme's palette, lightened for deeper levels. `color=` takes a list per
 branch, a mapping of names to colours, or one colour. `highlight=` draws the
 named nodes in red and everything else pale. Labels are written only where
 they fit inside their cell.
@@ -98,16 +98,20 @@ mapping of name to value; edges are `(source, target)`,
   centre. `"force"`, `"layered"` and `"tree"` use the solvers of
   `inklet.graph`, stretched to fill the area, with straight edges.
 - **Nodes.** A node's area is proportional to its value, with a floor so
-  small nodes stay visible. `shape="square"` draws rounded squares. `groups=`
-  colours nodes by category, and `legend()` names the groups.
+  small nodes stay visible; `size=` (a mapping or one value per node) gives
+  the values when `nodes` is a list. `shape="square"` draws rounded squares.
+  `groups=` colours nodes by category, and `legend()` names the groups.
+  `color=` is the fill of ungrouped nodes, or a mapping of node or group
+  names to colours.
 - **Edges.** Width is proportional to weight, from a hairline floor up to
   `width` (1.6 mm). Lighter edges are drawn first. Edge categories get their
-  own colours and legend entries. `arrows=True` adds heads, and two opposite
+  own colours and legend entries; `edge_color=` maps categories to colours.
+  `arrows=True` adds heads, and two opposite
   edges bow to opposite sides.
 
 `width_key()` explains the edge widths with reference lines, and
 `size_key()` the node areas. Names are written inside a node when they fit
-and outside it otherwise.
+and outside it otherwise, at `label_size`.
 
 ```python
 import inklet as i
@@ -124,8 +128,8 @@ command = {n: 'command' for n in ('AVA', 'AVB', 'AVD', 'AVE', 'PVC')}
 p = i.panel(55, 55)
 p.network(neurons, synapses, shape='square', diameter=6, arrows=True,
           groups={n: command.get(n, 'other') for n in neurons},
-          colors={'command': '#c0392b', 'other': '#bdbdbd'},
-          edge_colors={'chemical': '#4d4d4d', 'gap junction': '#e69f00'})
+          color={'command': '#c0392b', 'other': '#bdbdbd'},
+          edge_color={'chemical': '#4d4d4d', 'gap junction': '#e69f00'})
 p.width_key(title='synapses', values=[5000, 2000, 500], format='{:,.0f}')
 p.legend(side='bottom')
 fig = i.figure(width=89)

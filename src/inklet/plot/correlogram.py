@@ -47,7 +47,7 @@ def _read(r) -> list[list[float | None]]:
     return out
 
 
-def correlogram(panel, r, names: Sequence[str] | None = None, *,
+def correlogram(panel, r, name: Sequence[str] | None = None, *,
                 triangle: str = "lower", shape: str = "circle", ramp=None,
                 values=False, labels: bool = True, size: float | str | None = None,
                 **style) -> tuple[Diagram, dict]:
@@ -62,7 +62,7 @@ def correlogram(panel, r, names: Sequence[str] | None = None, *,
     theme = active_theme()
     m = _read(r)
     n = len(m)
-    names = [str(i + 1) for i in range(n)] if names is None else [str(v) for v in names]
+    names = [str(i + 1) for i in range(n)] if name is None else [str(v) for v in name]
     if len(names) != n:
         raise DiagramError(f"correlogram needs {n} names, got {len(names)}")
     if triangle == "lower":

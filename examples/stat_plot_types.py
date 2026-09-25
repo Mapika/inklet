@@ -93,7 +93,7 @@ samples = ["S1", "S2", "S3", "S4"]
 counts = [[310, 420, 55, 260], [160, 150, 170, 75], [90, 170, 360, 230]]
 share = inklet.panel(32, 32, x=samples, y=(0, 100))
 share.bars(samples, counts, normalize=True, labels=True, width=0.7,
-           names=["T cells", "B cells", "Myeloid"], stroke="none")
+           name=["T cells", "B cells", "Myeloid"], stroke="none")
 share.axes(y="Share of cells / %").legend(side="right")
 
 fig = inklet.figure(width=180, theme="nature")

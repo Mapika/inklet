@@ -258,7 +258,7 @@ threshold and is drawn in the ink.*
 `dotplot` draws one circle per cell, with two values per cell. The circle's
 area shows one value, such as the fraction of cells that express a gene. Its
 colour shows another, such as the mean expression. Both axes are band scales,
-and `sizes[r][c]` is drawn at the `r`th y category and the `c`th x category.
+and `size[r][c]` is drawn at the `r`th y category and the `c`th x category.
 Colours use the default matrix ramps, or `ramp=`, `scale=` and `center=` as
 `matrix` takes them. A cell whose value is `None` or NaN draws nothing.
 
@@ -374,7 +374,7 @@ room for them. `standardize="rows"` z-scores each row first. `k=` cuts the
 row tree into clusters, colours the tree by cluster, and separates the
 clusters with rules. When the matrix is square with the same order on both
 axes, such as a correlation matrix, the clusters are boxed on the diagonal
-instead. `row_colors=` and `col_colors=` map a track name to one value per
+instead. `row_color=` and `col_color=` map a track name to one value per
 row or column: colours, or categories that are coloured from the palette and
 named in a legend.
 
@@ -391,7 +391,7 @@ signal = {'ctrl': 8, 'KA': 0, 'LPS': 4}
 expression = [[rng.gauss(2.5 if signal[c] <= g < signal[c] + 4 else 0, 0.8)
                for c in condition] for g in range(12)]
 cm = i.clustermap(expression, rows=genes, columns=samples, standardize='rows', k=3,
-                  col_colors={'condition': condition}, label='z-score', width=36)
+                  col_color={'condition': condition}, label='z-score', width=36)
 fig = i.figure(width=100)
 fig.add(cm)
 fig.save('clustermap.svg', 'clustermap.pdf')
@@ -404,7 +404,7 @@ the row tree is coloured by the three clusters `k=3` cuts.*
 
 ## Correlograms
 
-`correlogram(r, names)` draws a correlation matrix as a triangle of glyphs.
+`correlogram(r, name)` draws a correlation matrix as a triangle of glyphs.
 Each glyph's area is proportional to |r| and its colour is r on a diverging
 ramp fixed from -1 to 1, so `colorbar()` shows the full scale.
 `inklet.plot.correlation(table)` computes Pearson r between rows, or columns

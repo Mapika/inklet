@@ -134,7 +134,7 @@ def _end_labels(panel, items, side: str, gap: float) -> list:
 
 def slope(panel, values, *, at=None, labels: str = "both", format=None,
           color=None, highlight=None, size: float | str | None = None,
-          names: bool = True, **style) -> tuple[Diagram, list[str]]:
+          name: bool = True, **style) -> tuple[Diagram, list[str]]:
     """Draw a slope chart on `panel`. See `Panel.slope`.
 
     Returns `(node, colours)`, one colour per series.
@@ -166,15 +166,15 @@ def slope(panel, values, *, at=None, labels: str = "both", format=None,
         last = next((i for i in range(len(row) - 1, -1, -1) if row[i] is not None), None)
         if first is None:
             continue
-        name = series[s]
+        called = series[s]
         if labels in ("both", "left"):
             text = _written(row[first], format)
             left.append((xs[first], panel.y.map(row[first]),
-                         f"{name}  {text}" if names else text, colors[s]))
+                         f"{called}  {text}" if name else text, colors[s]))
         if labels in ("both", "right"):
             text = _written(row[last], format)
             right.append((xs[last], panel.y.map(row[last]),
-                          f"{text}  {name}" if names else text, colors[s]))
+                          f"{text}  {called}" if name else text, colors[s]))
     if not dots:
         raise DiagramError("slope() had nothing to draw: every value is missing")
     gap = dot / 2 + theme.gap("xs")

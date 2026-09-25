@@ -55,7 +55,7 @@ p.label_lines(where="inside")     # names beside the last stretch of each curve
 ```
 
 `label_lines()` names each `line`, `step` or `ecdf` that was drawn with
-`name=`. Pass `names=[...]` to label only some of them. Each name is set in
+`name=`. Pass `name=[...]` to label only some of them. Each name is set in
 its series' colour, darkened only as much as it needs to be readable on the
 paper, so a yellow curve gets an ochre name that passes `LOW_CONTRAST`.
 Pass `color=False` to set the names in ink.

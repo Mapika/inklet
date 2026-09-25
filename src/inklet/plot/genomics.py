@@ -42,14 +42,14 @@ def chromosome_key(name) -> tuple:
 @dataclass(frozen=True)
 class ManhattanLayout:
     """`x` and `y` per input point (None where skipped), the chromosome
-    `order`, each chromosome's `spans` `(start, end)` and `centres` on the
+    `order`, each chromosome's `spans` `(start, end)` and `centers` on the
     genome axis, the axis `length`, the `leads` (indices of the lead hits,
     smallest p first) and the `skipped` indices."""
     x: tuple
     y: tuple
     order: tuple[str, ...]
     spans: dict
-    centres: dict
+    centers: dict
     length: float
     leads: tuple[int, ...]
     skipped: tuple[int, ...]
@@ -103,11 +103,11 @@ def manhattan_layout(chromosome: Sequence, position: Sequence[float], p: Sequenc
             size[c] = max(size[c], float(position[i]))
     total = sum(size.values()) or 1.0
     step = gap * total
-    spans, centres = {}, {}
+    spans, centers = {}, {}
     at = 0.0
     for c in names:
         spans[c] = (at, at + size[c])
-        centres[c] = at + size[c] / 2
+        centers[c] = at + size[c] / 2
         at += size[c] + step
     length = at - step
     positive = [float(v) for i, v in enumerate(p) if i not in bad and float(v) > 0]
@@ -127,7 +127,7 @@ def manhattan_layout(chromosome: Sequence, position: Sequence[float], p: Sequenc
         c, x = str(chromosome[i]), float(position[i])
         if all(str(chromosome[j]) != c or abs(float(position[j]) - x) > window for j in leads):
             leads.append(i)
-    return ManhattanLayout(tuple(xs), tuple(ys), tuple(names), spans, centres, length,
+    return ManhattanLayout(tuple(xs), tuple(ys), tuple(names), spans, centers, length,
                            tuple(leads), tuple(skipped))
 
 
@@ -135,7 +135,7 @@ def manhattan(chromosome: Sequence, position: Sequence[float], p: Sequence[float
               labels: Sequence[str] | None = None, top: int = 5,
               threshold: float | None = 5e-8, suggestive: float | None = 1e-5,
               window: float = 1e6, order: Sequence[str] | None = None,
-              colors: Sequence[str] | None = None, highlight=None,
+              color: str | Sequence[str] | None = None, highlight=None,
               highlight_color: str | None = None, bands: bool = False,
               width: float | str = 120, height: float | str = 40,
               ymax: float | None = None, size: float | None = None,
@@ -148,7 +148,7 @@ def manhattan(chromosome: Sequence, position: Sequence[float], p: Sequence[float
     `chromosome`, `position` (bp) and `p` are one per variant; chromosomes
     run in natural order (1..22, X, Y, MT; "chr" prefixes are fine) or
     `order=`. Points alternate between two shades per chromosome
-    (`colors=` for others; `bands=True` also shades every other
+    (`color=` for others: one colour or a list to cycle through; `bands=True` also shades every other
     chromosome's span). `threshold` draws the genome-wide significance line
     (5e-8) and `suggestive` a fainter one (1e-5); either may be None.
 
@@ -176,12 +176,12 @@ def manhattan(chromosome: Sequence, position: Sequence[float], p: Sequence[float
         ymax = ticks[-1] if ticks[-1] >= high else high * 1.05
     pan = make_panel(width, height, x=linear((-layout.length * 0.005, layout.length * 1.005)),
                      y=linear((0.0, float(ymax))))
-    if colors is None:
+    if color is None:
         dark = theme.accent
-        colors = (dark, mix(dark, theme.paper, 0.55))
-    colors = list(colors)
+        color = (dark, mix(dark, theme.paper, 0.55))
+    colors = [color] if isinstance(color, str) else list(color)
     if not colors:
-        raise DiagramError("manhattan colors= is empty")
+        raise DiagramError("manhattan color= is empty")
     if bands:
         tint = mix(theme.muted, theme.paper, 0.9)
         for k, c in enumerate(layout.order):
@@ -223,10 +223,10 @@ def manhattan(chromosome: Sequence, position: Sequence[float], p: Sequence[float
         if labelled:
             pan.label_points([(layout.x[i], layout.y[i]) for i in labelled],
                              [labels[i] for i in labelled])
-    centres = [layout.centres[c] for c in layout.order]
-    names = {layout.centres[c]: re.sub(r"^chr", "", c, flags=re.IGNORECASE)
+    centers = [layout.centers[c] for c in layout.order]
+    names = {layout.centers[c]: re.sub(r"^chr", "", c, flags=re.IGNORECASE)
              for c in layout.order}
-    pan.axis("bottom", ticks=centres, format=lambda v: names.get(v, ""), tick_size=0,
+    pan.axis("bottom", ticks=centers, format=lambda v: names.get(v, ""), tick_size=0,
              label="chromosome", thin=True)
     pan.axis("left", label="−log_{10} //P//")
     last = pan._content[-1] if pan._content else None
@@ -239,7 +239,7 @@ def manhattan(chromosome: Sequence, position: Sequence[float], p: Sequence[float
 
 def ma(panel, mean: Sequence[float], fold: Sequence[float], p: Sequence[float] | None = None, *,
        labels: Sequence[str] | None = None, top: int = 10, fold_threshold: float = 1.0,
-       p_threshold: float = 0.05, colors=None, names=None, size: float | None = None,
+       p_threshold: float = 0.05, color=None, name=None, size: float | None = None,
        log: bool = True, zero: bool = True, **style):
     """An MA plot on `panel`. See `Panel.ma`."""
     from ..themes.palettes import palette as _palette
@@ -264,12 +264,9 @@ def ma(panel, mean: Sequence[float], fold: Sequence[float], p: Sequence[float] |
         xs.append(m)
     sunset = _palette("tol-sunset").colors
     paint = {"down": sunset[1], "ns": mix(theme.muted, theme.paper, 0.55), "up": sunset[9]}
-    if isinstance(colors, dict):
-        paint.update(colors)
-    elif colors is not None:
-        paint.update(zip(("down", "ns", "up"), colors))
-    named = dict(names) if isinstance(names, dict) else (
-        dict(zip(("down", "ns", "up"), names)) if names is not None else {})
+    from .panel import _volcano_triple
+    paint.update(_volcano_triple(color, "color"))
+    named = _volcano_triple(name, "name")
     if zero:
         panel.hline(0, stroke=theme.muted, stroke_width=theme.hairline)
     dot = {"size": 0.9 if size is None else size}
