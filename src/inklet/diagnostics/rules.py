@@ -504,7 +504,17 @@ class LintContext:
             return self.page_fill, None
         if isinstance(best.prim, ImagePrim):
             return average_colour(best.prim, best.world, item.bbox), best
-        return str(best.style.fill), best
+        fill = str(best.style.fill)
+        alpha = best.style.fill_opacity
+        if alpha is not None and alpha < 1.0 and self.page_fill:
+            # A translucent fill shows the page through it: measure against
+            # the blend, not the fill at full strength.
+            from ..themes.color import mix
+            try:
+                fill = mix(fill, self.page_fill, 1.0 - float(alpha))
+            except (TypeError, ValueError):
+                return None, best
+        return fill, best
 
 
 Rule = Callable[[LintContext], list[Diagnostic]]
@@ -1168,6 +1178,11 @@ def rule_low_contrast(ctx: LintContext) -> list[Diagnostic]:
             continue
         foreground = item.style.text_fill or item.node.style.fill or "#000000"
         background, source = ctx.background_of(item)
+        if item.style.halo:
+            # The glyphs sit on their own halo, painted in the page colour
+            # unless the text names another.
+            background = item.style.halo_color or ctx.page_fill or background
+            source = None
         ratio = contrast_ratio(foreground, background)
         if ratio is None:
             continue  # unknown or translucent colour: say nothing rather than guess

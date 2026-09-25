@@ -10,6 +10,10 @@ groups:
         page: dense-figures.md
         image: gallery/dense-figure.png
         text: Thirteen panels on one 183 mm page with the scientific.cell preset, and the calls behind each panel.
+      - title: Rebuild a journal figure
+        page: journal-figure.md
+        image: gallery/journal-figure.png
+        text: A published Cell figure page rebuilt step by step, from the grid and preset to lint and export.
       - title: Panel layout in millimetres
         page: layout.md
         image: assets/guides/layout-3.png

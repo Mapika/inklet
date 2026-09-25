@@ -93,6 +93,13 @@ fig.save('radar.svg', 'radar.pdf')
 
 *Illustrative scores between 0 and 1. The rings are at 0.2 steps.*
 
+`radar_grid(values=True)` writes ring values up one gap between two spokes,
+on a paper halo. They are placed when the panel is built, in the gap where
+the most values keep clear of every series' lines and dots; a value that
+would touch the data is left out. On a crowded chart only one or two values
+may fit, so they are off by default; the caption can state the ring steps
+instead.
+
 ## Pie and donut charts
 
 `pie` divides the turn in proportion to the values, starting at the start
@@ -120,6 +127,11 @@ fig.save('pie.svg', 'pie.pdf')
 
 *Illustrative shares. The two smallest slices are labelled outside the rim.*
 
+An outside label that would overlap another moves out or round the rim to
+the nearest clear spot. A label that ends up away from its slice gets a
+hairline leader back to the rim; the `pie_labels` note lists those slices
+under `leaders`.
+
 ## Pie breakout bars
 
 `breakout` expands one slice, or several adjacent slices, of the pie into a
@@ -137,8 +149,8 @@ the pie as given; then put the chosen slices on the side that faces the bar,
 or the connectors cross the pie. The pie turns only when nothing else is
 drawn on the panel before `breakout`.
 
-Pie labels set outside the rim move within their slice, or further out, to
-keep clear of the connectors and the bar. A label that cannot is listed under
+Pie labels set outside the rim move out or round the rim, on a leader when
+they leave their slice, to keep clear of the connectors and the bar. A label that cannot is listed under
 `crossing` in the pie's `pie_labels` note; leave it out (`labels=` with
 `None` for that slice) or pass `zero=`.
 

@@ -107,7 +107,7 @@ class BuildSpec:
 
 
 # Marks first, then axes and outside furniture. Each phase preserves call order.
-_PHASE = {'axis': 1, 'axes': 1, 'legend': 2, 'colorbar': 2,
+_PHASE = {'axis': 1, 'axes': 1, 'legend': 2, 'colorbar': 2, 'size_key': 2, 'at_risk': 2,
           'group_labels': 3, 'inset': 3, 'bracket': 4, 'annotate': 5, 'title': 6,
           'brackets': 4}
 

@@ -370,3 +370,128 @@ def test_breakout_connectors_clear_outside_pie_labels() -> None:
     node = p.build()
     assert lint(node) == []
     assert _ink_outside(node) == []
+
+
+def _pie_note(p):
+    return next(item.notes["pie_labels"] for item in p._content
+                if "pie_labels" in item.notes)
+
+
+def _leaders(p):
+    theme = active_theme()
+    return [x for x in placements(p, MARK_LINE_KIND)
+            if x.diagram.style.stroke == theme.ink]
+
+
+def _boxes_overlap(a, b) -> bool:
+    return a.x0 < b.x1 and b.x0 < a.x1 and a.y0 < b.y1 and b.y0 < a.y1
+
+
+def test_pie_labels_by_their_slice_need_no_leader() -> None:
+    p = polar(14, zero="up", winding="cw")
+    p.pie([54, 28, 12, 4, 2])
+    note = _pie_note(p)
+    assert note["outside"] == [3, 4]
+    assert note["leaders"] == [] and _leaders(p) == []
+
+
+def test_crowded_outside_pie_labels_get_leaders_back_to_their_slice() -> None:
+    p = polar(12)
+    p.pie([70, 12, 8, 5, 2, 1.5, 1, 0.5])
+    note = _pie_note(p)
+    assert note["leaders"] and note["crossing"] == []
+    leaders = _leaders(p)
+    assert len(leaders) == len(note["leaders"])
+    for line in leaders:
+        start, end = (line.world.apply(v)
+                      for v in line.diagram.prim.subpaths[0].points)
+        # From the rim outward.
+        assert math.isclose(math.hypot(start.x, start.y), 12, abs_tol=1e-6)
+        assert math.hypot(end.x, end.y) > 12
+    labels = [x.bbox for x in placements(p, TICK_LABEL_KIND)]
+    for k, a in enumerate(labels):
+        for b in labels[k + 1:]:
+            assert not _boxes_overlap(a, b)
+
+
+def test_breakout_pie_leaders_keep_clear_of_the_connectors() -> None:
+    from inklet.plot.point_labels import _segments_cross
+
+    p = polar(11)
+    p.pie([3, 2, 88, 2, 5])
+    p.breakout([0, 1], labels="{share:.1%}")
+    note = _pie_note(p)
+    assert note["crossing"] == [] and note["leaders"]
+    muted = active_theme().muted
+    lines = placements(p, MARK_LINE_KIND)
+    links = [[x.world.apply(v) for v in x.diagram.prim.subpaths[0].points]
+             for x in lines if x.diagram.style.stroke == muted]
+    for line in _leaders(p):
+        a, b = (line.world.apply(v) for v in line.diagram.prim.subpaths[0].points)
+        for c, d in links:
+            assert not _segments_cross(a, b, c, d)
+    assert lint(p.build()) == []
+
+
+def test_breakout_title_keeps_the_pie_labels_off() -> None:
+    from inklet.plot.wheel import breakout_title_box
+
+    p = polar(7)
+    p.pie([24.8, 1.5, 73.7], labels=["24.8%", "1.5%", "73.7%"])
+    p.breakout([0, 1], labels="{share:.1%}", gap=4, title="without noise")
+    heading = breakout_title_box(p, "without noise", gap=4)
+    labels = [x for k, x in texts(p).items() if k in ("24.8%", "1.5%", "73.7%")]
+    assert len(labels) == 3
+    for label in labels:
+        box = label.bbox
+        assert (box.x1 <= heading.x0 or box.x0 >= heading.x1
+                or box.y1 <= heading.y0 or box.y0 >= heading.y1)
+    assert [d for d in lint(p.build()) if d.severity != "info"] == []
+
+
+def test_radar_ring_values_keep_clear_of_the_data() -> None:
+    p = polar(16, r=(0, 1), zero="up", winding="cw")
+    p.radar_grid(list("ABCDEF"), values=True)
+    p.radar([0.8, 0.7, 0.9, 0.6, 0.75, 0.85], name="a")
+    p.radar([0.5, 0.95, 0.6, 0.9, 0.55, 0.7], name="b", fill=False)
+    node = p.build()
+    note = next(x.notes["radar_rings"] for x in node.children
+                if "radar_rings" in x.notes)
+    assert note["values"] and note["clearance"] > 0.5
+    # The first gap has the second series' vertex on its outer ring, so
+    # another gap is chosen.
+    assert note["gap"] != 0
+    # Only the two series' own vertices crowd each other.
+    assert [d for d in lint(node) if d.severity != "info"] == []
+
+
+def test_radar_ring_values_follow_the_first_spoke_without_data() -> None:
+    p = polar(16, r=(0, 1), zero="up", winding="cw")
+    p.radar_grid(list("ABCDE"), values=True)
+    note = next(x.notes["radar_rings"] for x in p.build().children
+                if "radar_rings" in x.notes)
+    assert note["gap"] == 0 and note["clearance"] is None
+    assert 1.0 in note["values"]
+    q = polar(16, r=(0, 1))
+    q.radar_grid(list("ABCDE"))
+    assert not any("radar_rings" in x.notes for x in q.build().children)
+
+
+def test_contrast_lint_reads_a_halo_and_a_translucent_fill() -> None:
+    from inklet.draw.path import polyline
+    from inklet.draw.place import place
+    from inklet.core import Vec2
+
+    square = [Vec2(0, 0), Vec2(10, 0), Vec2(10, 10), Vec2(0, 10)]
+    shade = polyline(square, closed=True, filled=True, fill="#000000",
+                     fill_opacity=0.16, stroke="none")
+    label = inklet.text("0.5", size=2, text_fill="#1a1a1a")
+    node = place([shade, (Vec2(5, 5), label)], origin=(0, 0))
+    assert [d.code for d in lint(node)] == []
+    solid = polyline(square, closed=True, filled=True, fill="#000000",
+                     stroke="none")
+    dark = place([solid, (Vec2(5, 5), label)], origin=(0, 0))
+    assert "LOW_CONTRAST" in [d.code for d in lint(dark)]
+    haloed = inklet.text("0.5", size=2, text_fill="#1a1a1a", halo=0.5)
+    ringed = place([solid, (Vec2(5, 5), haloed)], origin=(0, 0))
+    assert "LOW_CONTRAST" not in [d.code for d in lint(ringed)]

@@ -768,5 +768,26 @@
     "object": "doc",
     "image": "plots-brackets.png",
     "alt": "Significance brackets"
+  },
+  {
+    "page": "journal-figure.md",
+    "block": 5,
+    "object": "row_one",
+    "image": "journal-figure-1.png",
+    "alt": "Row one of the rebuilt page: cumulative counts on log axes, a decision flowchart and stacked fractions"
+  },
+  {
+    "page": "journal-figure.md",
+    "block": 9,
+    "object": "row_two",
+    "image": "journal-figure-2.png",
+    "alt": "Row two of the rebuilt page: a log-log weight scatter, cumulative distributions and two pies with breakout bars"
+  },
+  {
+    "page": "journal-figure.md",
+    "block": 12,
+    "object": "doc",
+    "image": "journal-figure-3.png",
+    "alt": "The finished eight-panel page with panel letters"
   }
 ]

@@ -44,6 +44,25 @@
   Line Art changes stroke order, direction and chaining between runs.
 - The Blender tests bake `spot.obj` for determinism and `brain-lh.obj`
   only where density is the subject, with a 60 s timeout.
+- Pie labels outside the rim search nearby spots, outward and round the
+  rim, and get a hairline leader to their slice when they leave it. Leaders
+  keep clear of labels, other leaders and breakout connectors; the
+  `pie_labels` note lists them under `leaders`. Outside labels also keep
+  clear of the breakout title.
+- `radar_grid(values=True)` places ring values when the panel is built, on
+  the spoke gap where most values stay clear of every series, with a paper
+  halo; values that cannot keep clear are left out. A `radar_rings` note
+  records the choice. Values stay off by default.
+- The `LOW_CONTRAST` lint reads text on a halo against the halo colour, and a
+  translucent fill as mixed with the page.
+- In a document, `at_risk` and `size_key` on a plot spec are replayed after
+  the axes, so the number-at-risk table goes under the tick labels.
+- Add the docs page "Rebuild a journal figure" and
+  `examples/journal_figure.py`, which rebuild a Cell figure page step by
+  step; add `examples/cohort_figure.py`, a page of the plot types added
+  after 4.1.0, with gallery images for both. The plot-type gallery and home
+  page link the new plot types.
+- Fix the release links and wording in `roadmap.md` and `compatibility.md`.
 
 ## 4.1.0 — 2026-09-25
 

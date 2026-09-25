@@ -222,4 +222,14 @@ def test_estimates_can_be_passed_in_and_documents_build() -> None:
     spec.at_risk()
     doc = inklet.document(width=80)
     doc.add("km", spec)
-    assert "<path" in doc.compile().to_svg()
+    figure = doc.compile()
+    assert "<path" in figure.to_svg()
+    # The spec replays axes after the marks; the table must still go under
+    # the axis, not over its tick labels.
+    spec = inklet.plot_spec(height=32, x=(0, 36), y=(0, 1))
+    spec.kaplan_meier({"Placebo": (PLACEBO, None), "6-MP": (MP, MP_EVENTS)})
+    spec.axes(x="Time / weeks", y="Remission", x_options={"ticks": [0, 12, 24, 36]})
+    spec.at_risk(ticks=[0, 12, 24, 36])
+    doc = inklet.preset("scientific.cell").document(columns=12)
+    doc.add("km", spec, row=0, column=0, colspan=5)
+    assert [d for d in doc.compile().lint() if d.severity == "error"] == []
