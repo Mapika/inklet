@@ -487,5 +487,61 @@
     "requires": "Core only",
     "source": "distributions.md",
     "block": 8
+  },
+  {
+    "title": "Forest plots",
+    "description": "Odds ratios by subgroup with weighted squares, summary diamonds and aligned text columns.",
+    "category": "Uncertainty",
+    "page": "uncertainty/#forest-plots",
+    "image": "assets/guides/plots-forest.png",
+    "methods": [
+      "forest"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "uncertainty.md",
+    "block": 5
+  },
+  {
+    "title": "Embedding scatters",
+    "description": "Sixteen thousand cells coloured and named by cluster, with UMAP corner arrows.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#embedding-scatters",
+    "image": "assets/guides/plots-embedding.png",
+    "methods": [
+      "Panel.embedding"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 9
+  },
+  {
+    "title": "Split violins",
+    "description": "Two conditions per category as the halves of one violin, with quartile lines.",
+    "category": "Distributions",
+    "page": "distributions/#split-violins",
+    "image": "assets/guides/plots-split-violin.png",
+    "methods": [
+      "Panel.split_violin"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 9
+  },
+  {
+    "title": "Significance brackets",
+    "description": "Five pairwise comparisons stacked by span, with p-values as stars.",
+    "category": "Distributions",
+    "page": "distributions/#significance-brackets",
+    "image": "assets/guides/plots-brackets.png",
+    "methods": [
+      "Panel.brackets"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 10
   }
 ]

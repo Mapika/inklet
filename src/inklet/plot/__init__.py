@@ -30,6 +30,9 @@ from .dendrogram import DendrogramLayout, DendrogramLink, dendrogram_layout
 from .upset import Intersection, UpSetLayout, upset, upset_layout
 from .dotplot import AreaScale, area_scale, size_key
 from .survival import SurvivalEstimate, kaplan_meier
+from .forest import ForestLayout, ForestRow, forest, forest_layout
+from .embedding import cluster_centres
+from .significance import format_p
 from .inset import INDICATOR_KIND, INSET_KIND, inset, panel_bracket
 from .panel import Panel, column, panel, row
 from .polar import (
@@ -69,6 +72,8 @@ __all__ = [
     "volcano_points", "dendrogram_layout", "DendrogramLayout", "DendrogramLink",
     "upset", "upset_layout", "UpSetLayout", "Intersection",
     "area_scale", "AreaScale", "size_key", "kaplan_meier", "SurvivalEstimate",
+    "forest", "forest_layout", "ForestLayout", "ForestRow",
+    "cluster_centres", "format_p",
     "inset", "panel_bracket", "INSET_KIND", "INDICATOR_KIND",
     "ribbon", "ribbon_between", "ribbon_cubics", "eased_cubic",
     "panel_ribbon", "RIBBON_EASE",

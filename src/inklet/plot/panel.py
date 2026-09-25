@@ -2200,6 +2200,137 @@ class Panel:
         gap = theme.gap("s") if pad is None else mm(pad)
         self._over.append(node.translated(0.0, box.y1 + gap - node.bbox.y0))
         return self._touched()
+    def split_violin(self, first, second, *, at=None, orient: str = "v",
+                     width: float = 0.8, bandwidth: float | None = None,
+                     samples: int = 64, cut: float = 2.0, scale: str = "shared",
+                     median: bool = True, quartiles: bool = False, colors=None,
+                     names: Sequence[str] | None = None, **style) -> "Panel":
+        """Two conditions per category as the two halves of one violin.
+
+        `first` and `second` are spelled as `violin` groups: mappings of
+        category to samples, or sequences in the order of the band scale.
+        The first condition is the left half (with `orient="h"`, the upper
+        half) and the second the right (lower) half.
+
+            p = inklet.panel(50, 36, x=["CA1", "CA3", "DG"], y=(0, 12))
+            p.split_violin(control, treated, names=["control", "treated"],
+                           quartiles=True)
+
+        Each half is the `violin` kernel density, with the same bandwidth
+        rule, `bandwidth`, `samples` and `cut`. `scale="shared"` (default)
+        scales both halves of a category by the larger of their peaks, so
+        their areas are equal; `scale="each"` gives each half the full
+        width. `median=True` draws each half's median as a solid line and
+        `quartiles=True` its quartiles as dashed lines, from the centre to
+        the outline. A half with fewer than two values is left out and listed
+        under `empty` in the node's `split_violin` note.
+
+        `colors=` gives the two fills; the default is two pale theme
+        colours. `names=` (two names) adds both to `legend()`.
+        """
+        from .split_violin import split_violin as _split
+
+        clip = _clip_flag(style)
+        node, fills, _ = _split(self, first, second, at=at, orient=orient,
+                                width=width, bandwidth=bandwidth, samples=samples,
+                                cut=cut, scale=scale, median=median,
+                                quartiles=quartiles, colors=colors, **style)
+        if names is not None:
+            if len(names) != 2:
+                raise DiagramError(f"split_violin names= takes two names, got {names!r}")
+            self._note_series(list(names), list(fills))
+        return self.draw(node, clip=clip)
+
+    def embedding(self, points: Iterable[Sequence], clusters: Sequence, *,
+                  colors=None, size=None, labels: bool = True,
+                  centre: str = "median", label_size: float | str | None = None,
+                  arrows=None, shuffle: bool = True, seed: int = 0,
+                  raster: bool = False, **style) -> "Panel":
+        """A UMAP or t-SNE style scatter, coloured and named by cluster.
+
+        `points` are `(x, y)` pairs and `clusters` one cluster name per
+        point. The points are drawn with one `scatter` call (a packed marker
+        batch from 256 points up, or a raster layer with `raster=True`), in a
+        random order seeded by `seed` so no cluster hides another because it
+        came later in the table; `shuffle=False` keeps the input order.
+
+            p = inklet.panel(50, 50, x=(-8, 8), y=(-8, 8))
+            p.embedding(umap, cell_types, arrows="UMAP", size=0.5)
+
+        `labels=True` writes each cluster's name at its centre, on a paper
+        halo. The centre is on the data: by default the member point nearest
+        the cluster's median (`centre="median"`), or `"medoid"` or `"mean"`;
+        see `inklet.plot.cluster_centres`. A name that would overlap one
+        already placed moves to the nearest free spot around its centre.
+
+        `arrows="UMAP"` draws two short arrows in the lower-left corner,
+        labelled UMAP1 and UMAP2, instead of axes; a pair of names sets both
+        labels. Do not also call `axes`.
+
+        `colors=` is a mapping of cluster to colour, or a sequence in cluster
+        order (first seen, or ascending for numbers). The default is Paul
+        Tol's muted, bright and vibrant colours. Each cluster is recorded
+        for `legend()`. `size` is the dot diameter in mm; other keywords
+        style the points. The last layer carries an `embedding` note with
+        the clusters, colours, centres and label positions.
+        """
+        from .embedding import embedding as _embedding
+
+        note = _embedding(self, points, clusters, colors=colors, size=size,
+                          labels=labels, centre=centre, label_size=label_size,
+                          arrows=arrows, shuffle=shuffle, seed=seed,
+                          raster=raster, **style)
+        last = (self._over or self._content)[-1]
+        last.notes["embedding"] = note
+        return self
+
+    def brackets(self, comparisons: Sequence, *, format="stars",
+                 hide_ns: bool = False, stars=None, ns: str = "ns",
+                 **kwargs) -> "Panel":
+        """Significance brackets for many pairs of groups, stacked clear of
+        each other.
+
+        `comparisons` is a list of `(group_a, group_b, value)`, where value
+        is a p-value or the text to write. The brackets are drawn with
+        `bracket`, shortest span first. Each clears the data between its
+        ends by `clear` and the brackets already drawn there by `clear` plus
+        the tick length, so nested spans stack upward, ticks at a shared end
+        never touch, and a short span sits just over its own data.
+
+            p.brackets([("wt", "het", 0.21), ("wt", "ko", 3e-4),
+                        ("het", "ko", 0.004)])
+
+        `format="stars"` (default) writes `****`, `***`, `**`, `*` or `ns`
+        for p below 0.0001, 0.001, 0.01, 0.05 and above; `format="p"` writes
+        "P = 0.004" or "P < 0.001"; a function of p writes what it returns.
+        `stars=` replaces the star bounds, as `(bound, text)` pairs from the
+        most significant, and `ns` the text above them. `hide_ns=True` leaves
+        out comparisons whose p is at or above the largest star bound (0.05)
+        and those whose text is `ns`. No test is run here: the p-values
+        are the author's. Other keywords go to `bracket` (`side`, `tick`,
+        `clear`, `size`, ...). `inklet.plot.format_p` formats one p-value.
+        """
+        from .significance import STARS, comparisons_in_order, label_of, level
+
+        side = kwargs.get("side", "n")
+        clear = active_theme().gap("xs") if kwargs.get("clear") is None \
+            else mm(kwargs["clear"])
+        tick = mm(kwargs.get("tick", 1.0))
+        options = {"stars": STARS if stars is None else tuple(stars), "ns": ns}
+        drawn = []
+        for a, b, value in comparisons_in_order(self, comparisons, side):
+            text = label_of(value, format, **options)
+            numeric = not isinstance(value, (str, Diagram))
+            if hide_ns and (text == ns or (numeric and float(value) >= max(
+                    bound for bound, _ in options["stars"]))):
+                continue
+            self.bracket(a, b, level(self, a, b, side, clear, tick), text=text,
+                         **kwargs)
+            drawn.append((a, b, text if isinstance(text, str) else None))
+        if drawn:
+            self._over[-1].notes["brackets"] = drawn
+        return self
+
 
 def _volcano_triple(given, what: str) -> dict:
     """`colors=` or `names=` of `Panel.volcano` as a mapping by class."""

@@ -251,6 +251,51 @@ doc.save('volcano.svg', 'volcano.pdf')
 
 *Simulated data. The dashed rules are at a fold change of ±1 and at p = 0.05.*
 
+## Embedding scatters
+
+`embedding` draws a UMAP or t-SNE style scatter coloured by cluster. It takes
+`(x, y)` points and one cluster name per point, and draws them with one
+`scatter` call, so from 256 points up they are a single packed marker batch.
+The points are drawn in a seeded random order, so a cluster listed last does
+not cover the others; `shuffle=False` keeps the input order.
+
+Each cluster's name is written at its centre on a paper halo. The centre lies
+on the data: the member point nearest the cluster's median, which stays on a
+curved cluster where the mean would not. `centre='medoid'` or `'mean'` choose
+another rule, and `inklet.plot.cluster_centres` returns the centres without
+drawing. A name that would overlap one already placed moves to the nearest
+free spot. `arrows='UMAP'` draws two short arrows labelled UMAP1 and UMAP2 in
+the lower-left corner instead of axes. The default colours are Paul Tol's
+qualitative palettes, and every cluster is recorded for `legend()`.
+
+```python
+import inklet as i
+import math
+import random
+
+rng = random.Random(5)
+centres = {'T cells': (-4.2, 2.6), 'NK': (-1.4, 4.6), 'B cells': (-4.8, -2.6),
+           'Monocytes': (2.8, 1.8), 'DC': (4.9, 4.6), 'pDC': (5.8, -.4),
+           'Erythroid': (.2, -4.4), 'Platelets': (4.6, -4.4)}
+points, clusters = [], []
+for name, (cx, cy) in centres.items():
+    for _ in range(rng.randint(900, 3200)):
+        turn = rng.uniform(0, 2 * math.pi)
+        points.append((cx + .55 * math.cos(turn) + rng.gauss(0, .6),
+                       cy + .35 * math.sin(turn) + rng.gauss(0, .45)))
+        clusters.append(name)
+p = i.plot_spec(x=(-8, 8.5), y=(-7, 7), width=60, height=56)
+p.embedding(points, clusters, arrows='UMAP', size=.35)
+doc = i.document(width=76)
+doc.add('embedding', p)
+doc.save('embedding.svg', 'embedding.pdf')
+```
+
+![Embedding scatters: 16,000 simulated cells in eight clusters, named at their centres.](assets/guides/plots-embedding.png)
+
+*Simulated data. The points are one marker batch; `raster=True` embeds them
+as an image instead.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

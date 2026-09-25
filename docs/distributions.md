@@ -289,6 +289,77 @@ fig.save('survival.svg', 'survival.pdf')
 *Rendered from the code above with simulated follow-up of 60 subjects per
 group. The p-value is illustrative and was not computed from these data.*
 
+## Split violins
+
+`split_violin` compares two conditions per category: the first is the left
+half of each violin and the second the right half (with `orient='h'`, the
+upper and lower halves). The groups are spelled as for `violin`, and each
+half is the `violin` kernel density with the same bandwidth rule, `cut` and
+`samples`. By default both halves of a category share one width scale, so
+their areas are equal; `scale='each'` gives each half the full width.
+`median=True` (default) draws each half's median as a solid line and
+`quartiles=True` its quartiles as dashed lines. `names=` puts both
+conditions in the legend.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(404)
+regions = ['CA1', 'CA3', 'DG']
+control = {r: [rng.gauss(4 + 1.2 * k, .9) for _ in range(80)] for k, r in enumerate(regions)}
+treated = {r: [rng.gauss(4.6 + .8 * k, 1.1) for _ in range(60)]
+           + [rng.gauss(9, .5) for _ in range(12 + 6 * k)] for k, r in enumerate(regions)}
+p = i.plot_spec(x=regions, y=(0, 12), height=44)
+p.split_violin(control, treated, names=['Control', 'Treated'], quartiles=True,
+               colors=['#e6b93f', '#9cc3d5'])
+p.axes(y='Firing rate / Hz').legend(side='top')
+doc = i.document(width=90)
+doc.add('split-violin', p)
+doc.save('split-violin.svg', 'split-violin.pdf')
+```
+
+![Split violins: control and treated firing rates as the two halves of each violin.](assets/guides/plots-split-violin.png)
+
+*Simulated data. The treated half shows a second mode near 9 Hz.*
+
+## Significance brackets
+
+`brackets` draws many significance brackets in one call. It takes a list of
+`(group_a, group_b, value)`, where the value is a p-value or the text to
+write, and draws them with `bracket`, shortest span first. Each bracket
+clears the data between its ends and the brackets already drawn there, so
+nested comparisons stack upward and a short one sits just over its own data.
+
+`format='stars'` (default) writes `****`, `***`, `**` or `*` for p below
+0.0001, 0.001, 0.01 and 0.05, and `ns` otherwise; `format='p'` writes
+"P = 0.004" or "P < 0.001". `hide_ns=True` leaves out comparisons that are
+not significant. No test is run: the p-values are yours.
+`inklet.plot.format_p` formats one p-value.
+
+```python
+import inklet as i
+import random
+
+rng = random.Random(405)
+genotypes = ['wt', 'het', 'ko', 'rescue']
+response = {g: [rng.gauss(m, .45) for _ in range(10)]
+            for g, m in zip(genotypes, (3.0, 3.4, 5.0, 3.6))}
+p = i.plot_spec(x=genotypes, y=(0, 10), height=44)
+p.boxplot(response, outliers=False)
+p.swarm(response, colors=['#24698c'] * 4)
+p.brackets([('wt', 'het', .21), ('wt', 'ko', 2e-5), ('het', 'ko', .004),
+            ('ko', 'rescue', 7e-4), ('wt', 'rescue', .031)])
+p.axes(y='Response / a.u.')
+doc = i.document(width=80)
+doc.add('brackets', p)
+doc.save('brackets.svg', 'brackets.pdf')
+```
+
+![Significance brackets: five comparisons between four genotypes, stacked by span.](assets/guides/plots-brackets.png)
+
+*Simulated data with made-up p-values.*
+
 ## Next steps
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),

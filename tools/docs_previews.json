@@ -740,5 +740,33 @@
     "object": "fig",
     "image": "plots-survival.png",
     "alt": "Survival curves"
+  },
+  {
+    "page": "uncertainty.md",
+    "block": 5,
+    "object": "doc",
+    "image": "plots-forest.png",
+    "alt": "Forest plot"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 9,
+    "object": "doc",
+    "image": "plots-embedding.png",
+    "alt": "Embedding scatter"
+  },
+  {
+    "page": "distributions.md",
+    "block": 9,
+    "object": "doc",
+    "image": "plots-split-violin.png",
+    "alt": "Split violins"
+  },
+  {
+    "page": "distributions.md",
+    "block": 10,
+    "object": "doc",
+    "image": "plots-brackets.png",
+    "alt": "Significance brackets"
   }
 ]
