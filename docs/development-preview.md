@@ -56,4 +56,4 @@ editor requires a local Python session. Native camera controls do not imply
 standalone 3D orbiting, depth-aware picking or Blender camera editing.
 
 See the [4.0 release checklist](roadmap.md) for the support scope and release gates and the
-[historical studies](history.md) for earlier prototypes.
+[historical studies](development.md#earlier-releases-and-studies) for earlier prototypes.

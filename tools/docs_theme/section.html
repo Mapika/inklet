@@ -1,0 +1,24 @@
+{#- A section overview: the page's Markdown up to <!-- cards -->, then the card
+    groups from its front matter, then the rest of the Markdown. The hook
+    (tools/docs_site.py) resolves each card's page and checks its image. -#}
+{% from 'thumb.html' import preview with context %}
+{%- set parts = page.content.split('<!-- cards -->', 1) -%}
+<div class="section-page">
+  <div class="page-intro prose">{{ parts[0] }}</div>
+  {% for group in page.meta.groups %}
+  <section class="section-group" aria-labelledby="{{ group.id }}">
+    <div class="section-group-head"><h2 id="{{ group.id }}">{{ group.title }}</h2>{% if group.text %}<p>{{ group.text }}</p>{% endif %}</div>
+    <div class="gallery-grid section-grid{% if not group.images %} section-grid-text{% endif %}">
+      {% for card in group.cards %}
+      <article class="gallery-card section-card{% if not card.image %} section-card-text{% endif %}">
+        <a class="card-link" href="{{ card.url|url }}">
+          {% if card.image %}<span class="card-image plate-paper">{{ preview(card.image, '(max-width: 640px) calc(100vw - 32px), 420px', 'alt="" loading="lazy" decoding="async"') }}</span>{% endif %}
+          <span class="card-copy"><strong class="card-title">{{ card.title }}</strong><span class="card-text">{{ card.text }}</span>{% if card.tag %}<span class="card-meta"><span class="tag">{{ card.tag }}</span></span>{% endif %}</span>
+        </a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+  {% if parts|length > 1 and parts[1].strip() %}<div class="prose section-notes">{{ parts[1] }}</div>{% endif %}
+</div>

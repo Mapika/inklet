@@ -41,7 +41,25 @@ def images():
     gallery = json.loads((ROOT/'tools/docs_gallery.json').read_text())
     wanted = {entry['image']: CARD_WIDTHS for entry in gallery}
     wanted[HERO] = HERO_WIDTHS
+    wanted.update({image: CARD_WIDTHS for image in section_card_images()})
     return wanted
+
+
+def section_card_images():
+    """Card images on section overview pages (front matter ``layout: section``)."""
+    import yaml
+
+    found = []
+    for page in sorted(DOCS.rglob('*.md')):
+        text = page.read_text()
+        if not text.startswith('---\n'):
+            continue
+        meta = yaml.safe_load(text[4:text.index('\n---', 4)]) or {}
+        if meta.get('layout') != 'section':
+            continue
+        found += [card['image'] for group in meta.get('groups', [])
+                  for card in group['cards'] if card.get('image')]
+    return found
 
 
 def main():

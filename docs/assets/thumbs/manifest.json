@@ -1,4 +1,34 @@
 {
+  "assets/guides/calibrated-volumes-3.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-calibrated-volumes-3-480-2ab8547fe7.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-calibrated-volumes-3-661-2ab8547fe7.webp",
+        "width": 661
+      }
+    ],
+    "height": 566,
+    "sha256": "2ab8547fe7e83c75ba420555cc4835e15e235c5c32f0fadcba12983faefcd5bc",
+    "width": 661
+  },
+  "assets/guides/channels-and-contours-1.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-channels-and-contours-1-480-18ad0b1918.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-channels-and-contours-1-756-18ad0b1918.webp",
+        "width": 756
+      }
+    ],
+    "height": 774,
+    "sha256": "18ad0b1918ea6934bfb2164521f12c3590ad833f381e90b4d23229268c12d493",
+    "width": 756
+  },
   "assets/guides/composition-recipes.png": {
     "files": [
       {
@@ -13,6 +43,156 @@
     "height": 650,
     "sha256": "f8173b5a19f91d29dc898158b268ad5dbd4243d0a8a764bff6224c2db5dd0c1e",
     "width": 1063
+  },
+  "assets/guides/diagram-components-1.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-diagram-components-1-480-a0909d2f16.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-diagram-components-1-630-a0909d2f16.webp",
+        "width": 630
+      }
+    ],
+    "height": 129,
+    "sha256": "a0909d2f163b42678b1772b42bc752946b47034a284ce1b38ff56cff77ff5941",
+    "width": 630
+  },
+  "assets/guides/diagrams-1.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-diagrams-1-480-30962a919c.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-diagrams-1-960-30962a919c.webp",
+        "width": 960
+      }
+    ],
+    "height": 346,
+    "sha256": "30962a919cad66f8e52cfedf7f6f0da7d3088d38bc1653a9e16a7db20fc2809a",
+    "width": 1008
+  },
+  "assets/guides/editor-studio.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-editor-studio-480-2e40f87cc4.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-editor-studio-960-2e40f87cc4.webp",
+        "width": 960
+      }
+    ],
+    "height": 1000,
+    "sha256": "2e40f87cc467929e2bf01a0ba7f1060f08a73216f37e764965f2d9d186484bd7",
+    "width": 1600
+  },
+  "assets/guides/layout-3.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-layout-3-480-e08fd1c65c.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-layout-3-960-e08fd1c65c.webp",
+        "width": 960
+      }
+    ],
+    "height": 365,
+    "sha256": "e08fd1c65c22e59c476f1ad9adbfc1cd63e4753e14961433dee282c83edac1fc",
+    "width": 1153
+  },
+  "assets/guides/layout-restored.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-layout-restored-480-26f40dd040.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-layout-restored-960-26f40dd040.webp",
+        "width": 960
+      }
+    ],
+    "height": 650,
+    "sha256": "26f40dd040e6f49f7a0f038a7bc927ef5e8ba29b2d1715184251497a0c832677",
+    "width": 1063
+  },
+  "assets/guides/oblique-sections-2.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-oblique-sections-2-480-249420f678.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-oblique-sections-2-661-249420f678.webp",
+        "width": 661
+      }
+    ],
+    "height": 453,
+    "sha256": "249420f6784fd134b19bad59dcc55bb7cd939cfb0470682572fdca5d0f2b77f7",
+    "width": 661
+  },
+  "assets/guides/project-workflow.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-project-workflow-480-443d1674c4.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-project-workflow-945-443d1674c4.webp",
+        "width": 945
+      }
+    ],
+    "height": 620,
+    "sha256": "443d1674c4c9a6639d61d87d92ab837e534200c3d33e518c707a9a57830eb0ae",
+    "width": 945
+  },
+  "assets/guides/slabs-and-regions-1.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-slabs-and-regions-1-480-0f1538823b.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-slabs-and-regions-1-756-0f1538823b.webp",
+        "width": 756
+      }
+    ],
+    "height": 698,
+    "sha256": "0f1538823bbbfe53dc72ab30a646812a34ad5a06b1f5ce247dd350e335d7c0c4",
+    "width": 756
+  },
+  "assets/guides/three-images-2.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-guides-three-images-2-480-ffcee9b0e5.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-guides-three-images-2-630-ffcee9b0e5.webp",
+        "width": 630
+      }
+    ],
+    "height": 397,
+    "sha256": "ffcee9b0e5f16007e0708ebb8a3048a5b85ac5c0b5f48473247944c07d76cf27",
+    "width": 630
+  },
+  "assets/scenes/open-anatomy.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-scenes-open-anatomy-480-c087224ef9.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-scenes-open-anatomy-960-c087224ef9.webp",
+        "width": 960
+      }
+    ],
+    "height": 1269,
+    "sha256": "c087224ef9a4073dd78ca22e1a5b21fdd76e456a776c7c141e9975732a904426",
+    "width": 1512
   },
   "assets/scenes/synapse.png": {
     "files": [
@@ -59,6 +239,231 @@
     "sha256": "46811a499b28b2a9958f24fccc0d8f4f772caaef7e8dbca58be91013b8a01894",
     "width": 2079
   },
+  "assets/v4/contours-streamlines.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-contours-streamlines-480-107fc7d3d3.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-contours-streamlines-960-107fc7d3d3.webp",
+        "width": 960
+      }
+    ],
+    "height": 969,
+    "sha256": "107fc7d3d383bc9f48cc25050e3446810e72bed71a43df3b5de42483a674883d",
+    "width": 1240
+  },
+  "assets/v4/engineering-report.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-engineering-report-480-6b575855d9.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-engineering-report-960-6b575855d9.webp",
+        "width": 960
+      }
+    ],
+    "height": 912,
+    "sha256": "6b575855d928f28933f3707285ec062bf08f3b7a2d3740090a28d5ad383c4632",
+    "width": 1240
+  },
+  "assets/v4/faceted-operations.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-faceted-operations-480-b532f97f5f.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-faceted-operations-960-b532f97f5f.webp",
+        "width": 960
+      }
+    ],
+    "height": 1205,
+    "sha256": "b532f97f5ff6ce4976d0db0366eb8b9bec6384c4d9af81483cac5f4abba51536",
+    "width": 1701
+  },
+  "assets/v4/linked-dashboard.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-linked-dashboard-480-c557538b87.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-linked-dashboard-960-c557538b87.webp",
+        "width": 960
+      }
+    ],
+    "height": 969,
+    "sha256": "c557538b8748eed07e7af06cb963736b51d8f493160ba367233851d96d796fe6",
+    "width": 1122
+  },
+  "assets/v4/mesh-fields.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-mesh-fields-480-ed556e112d.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-mesh-fields-960-ed556e112d.webp",
+        "width": 960
+      }
+    ],
+    "height": 969,
+    "sha256": "ed556e112d55f3122232af835c3ce95fe2e4f29d7994fa69a85a3073c5f55de6",
+    "width": 1240
+  },
+  "assets/v4/regional-report.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-regional-report-480-f992c0458d.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-regional-report-960-f992c0458d.webp",
+        "width": 960
+      }
+    ],
+    "height": 1497,
+    "sha256": "f992c0458d4d6cc1f981e025b6db0ff5fb51377e073b0d011c943564c0b2cd49",
+    "width": 1240
+  },
+  "assets/v4/scientific-report.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-scientific-report-480-e0a1fd14cf.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-scientific-report-960-e0a1fd14cf.webp",
+        "width": 960
+      }
+    ],
+    "height": 912,
+    "sha256": "e0a1fd14cf90c26c48a1acc6c1b0ccec4ed16f5878fea635893728105b4ad9f8",
+    "width": 1240
+  },
+  "assets/v4/statistical-views.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-statistical-views-480-712c424b8a.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-statistical-views-960-712c424b8a.webp",
+        "width": 960
+      }
+    ],
+    "height": 1205,
+    "sha256": "712c424b8a4c93cbc9f497e75b01cab10df1b6c85a24950716948a1ced7e2bd4",
+    "width": 1488
+  },
+  "assets/v4/table-inputs.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-table-inputs-480-0ace746d40.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-table-inputs-960-0ace746d40.webp",
+        "width": 960
+      }
+    ],
+    "height": 1205,
+    "sha256": "0ace746d40e6d8fbd8e66d464b89aed692c305540c2582eb9b9964203ede23de",
+    "width": 1276
+  },
+  "assets/v4/time-series.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-time-series-480-1ff4ae9e80.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-time-series-960-1ff4ae9e80.webp",
+        "width": 960
+      }
+    ],
+    "height": 592,
+    "sha256": "1ff4ae9e800f43bced0ef80466f5e78b653a8d0d1a5b5d968ee1129775a3b8dd",
+    "width": 1488
+  },
+  "assets/v4/transport-map.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-transport-map-480-ef42cdd982.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-transport-map-960-ef42cdd982.webp",
+        "width": 960
+      }
+    ],
+    "height": 964,
+    "sha256": "ef42cdd98221190995d82458317bffc17c42bb16f1dc1a6cc7c37a5a514b58e3",
+    "width": 1240
+  },
+  "assets/v4/visual-overrides.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-visual-overrides-480-5a1debdbe1.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-visual-overrides-960-5a1debdbe1.webp",
+        "width": 960
+      }
+    ],
+    "height": 295,
+    "sha256": "5a1debdbe1068775c83f814b891d0a6c690f506de1084537ae7e1158a7813c96",
+    "width": 1112
+  },
+  "assets/v4/world-population-2019.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-world-population-2019-480-a9c8629468.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-world-population-2019-960-a9c8629468.webp",
+        "width": 960
+      }
+    ],
+    "height": 585,
+    "sha256": "a9c8629468ff1eec0011a7db431821a3d90d7c1b9caa140d06f9cd1c21b33403",
+    "width": 1346
+  },
+  "assets/v4/world-population-revisions.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-world-population-revisions-480-8c75c0fcbb.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-world-population-revisions-960-8c75c0fcbb.webp",
+        "width": 960
+      }
+    ],
+    "height": 958,
+    "sha256": "8c75c0fcbbdbe1f65927bb5d4a579a0fe7e8a0a3efb0eb62d388166ce675ddd9",
+    "width": 1122
+  },
+  "assets/v4/world-population.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/assets-v4-world-population-480-04a037a486.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/assets-v4-world-population-960-04a037a486.webp",
+        "width": 960
+      }
+    ],
+    "height": 488,
+    "sha256": "04a037a48629dddf8e9dc9b5b3efb969b09cc34b9c2d470a20477a672cf75302",
+    "width": 1122
+  },
   "gallery/biology-panels.png": {
     "files": [
       {
@@ -73,6 +478,21 @@
     "height": 1731,
     "sha256": "61b7210781609dda3a8665d0dea1b4e6e17bd1dbd1a0afb0b231e91392208cf7",
     "width": 2445
+  },
+  "gallery/compiled-scene-viewer.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-compiled-scene-viewer-480-05a75f4975.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-compiled-scene-viewer-960-05a75f4975.webp",
+        "width": 960
+      }
+    ],
+    "height": 1000,
+    "sha256": "05a75f49758160a0b45263a71b4481edae6dd792e182872792a3c777f0b79cee",
+    "width": 1440
   },
   "gallery/dense-figure.png": {
     "files": [
@@ -104,6 +524,21 @@
     "sha256": "41ebf11512a34d1129fc69df477417871f71a2d4af8463e5824bea0dcdde245a",
     "width": 1181
   },
+  "gallery/fluorescence-biology.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-fluorescence-biology-480-8227505324.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-fluorescence-biology-960-8227505324.webp",
+        "width": 960
+      }
+    ],
+    "height": 3021,
+    "sha256": "822750532496895096c696a7401b635feb651c2b0502d2eca5e97fbb26d3684e",
+    "width": 2244
+  },
   "gallery/general-plots.png": {
     "files": [
       {
@@ -134,6 +569,21 @@
     "sha256": "56f074ae666bd44444cb8deb17e7d5a8459ee92087d481010399aee14d0c80f2",
     "width": 2244
   },
+  "gallery/oblique-biology.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-oblique-biology-480-4cec9b2769.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-oblique-biology-960-4cec9b2769.webp",
+        "width": 960
+      }
+    ],
+    "height": 4300,
+    "sha256": "4cec9b2769c329da0f76808e421407e855856d5399ac95dc747e17a1c51a7f54",
+    "width": 2008
+  },
   "gallery/part.png": {
     "files": [
       {
@@ -149,6 +599,21 @@
     "sha256": "b7af066841c435fb59a0095ee3c132e70dc3d129c1fd22c7b2f8181a26515adc",
     "width": 1008
   },
+  "gallery/plot-engine-review.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-plot-engine-review-480-0de28ab2d3.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-plot-engine-review-960-0de28ab2d3.webp",
+        "width": 960
+      }
+    ],
+    "height": 876,
+    "sha256": "0de28ab2d3aea41a4ba03f1ea4e63ba87b780f48e141f54cabae303d766fdcf6",
+    "width": 1181
+  },
   "gallery/polar.png": {
     "files": [
       {
@@ -163,6 +628,21 @@
     "height": 787,
     "sha256": "944aff7cb69b1982d3e602e43ef1cabd34f72f0ebfe1391648ef105161373d78",
     "width": 1542
+  },
+  "gallery/presets.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-presets-480-c5a41a5a80.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-presets-960-c5a41a5a80.webp",
+        "width": 960
+      }
+    ],
+    "height": 2560,
+    "sha256": "c5a41a5a80ff01b500c25657dfdf8bfaa6b4981dcec415fce3bea4d608a43674",
+    "width": 1860
   },
   "gallery/process.png": {
     "files": [
@@ -314,6 +794,36 @@
     "sha256": "705631fd5a81d2f207c71408650065e3a6cee835504581ace6d10a76185ad6a3",
     "width": 2244
   },
+  "gallery/slab-biology.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-slab-biology-480-31836f03ce.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-slab-biology-960-31836f03ce.webp",
+        "width": 960
+      }
+    ],
+    "height": 5236,
+    "sha256": "31836f03ce48db04e162771761ff7c45932da0a7ab28737830cc72955dce7506",
+    "width": 2008
+  },
+  "gallery/stress20.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-stress20-480-f691121212.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-stress20-960-f691121212.webp",
+        "width": 960
+      }
+    ],
+    "height": 2598,
+    "sha256": "f691121212a90b45a9583b41ab421440c3950cc9eafc20e433b81e31d15e7cd1",
+    "width": 2126
+  },
   "gallery/v3-complex-scene.png": {
     "files": [
       {
@@ -328,5 +838,80 @@
     "height": 3158,
     "sha256": "732e2e2b115029c6cdc919e9f034b359613710fa06ada516de315075476d94f5",
     "width": 3071
+  },
+  "gallery/v3-render-jobs.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-v3-render-jobs-480-eca370fb4f.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-v3-render-jobs-960-eca370fb4f.webp",
+        "width": 960
+      }
+    ],
+    "height": 3680,
+    "sha256": "eca370fb4f62ff934c2b2f954d9170047347918f8a45102987e3c28b869beeed",
+    "width": 2362
+  },
+  "gallery/v3-scene-annotations.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-v3-scene-annotations-480-1a51465947.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-v3-scene-annotations-960-1a51465947.webp",
+        "width": 960
+      }
+    ],
+    "height": 3024,
+    "sha256": "1a51465947995210a1b79d407fe0c0bb28fc2785bc1ac84a6d30aafe046e4610",
+    "width": 2598
+  },
+  "gallery/v3-scene-passes.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-v3-scene-passes-480-d27cb34b41.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-v3-scene-passes-960-d27cb34b41.webp",
+        "width": 960
+      }
+    ],
+    "height": 2238,
+    "sha256": "d27cb34b4149f629fc9e92806d7036690465253aaca05f2967bd0922ebf61932",
+    "width": 2894
+  },
+  "gallery/v3-scene-paths.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-v3-scene-paths-480-b607e68fc8.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-v3-scene-paths-960-b607e68fc8.webp",
+        "width": 960
+      }
+    ],
+    "height": 2882,
+    "sha256": "b607e68fc8398e6946d31fb6333005b439335fdf88672bfaaa5554ff768526eb",
+    "width": 2362
+  },
+  "gallery/v3-scene-templates.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-v3-scene-templates-480-76b72bcf1b.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-v3-scene-templates-960-76b72bcf1b.webp",
+        "width": 960
+      }
+    ],
+    "height": 3783,
+    "sha256": "76b72bcf1be1ea7786cf97e9e0e0d3287dee7748780dde5ff42311e753c0f053",
+    "width": 2480
   }
 }

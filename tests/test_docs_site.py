@@ -98,8 +98,9 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert {'plot-types/','axes-and-scales/','dense-data/'}.issubset(locations)
     assert not any(row['location']=='dense-data/#dense-data' for row in search['docs'])
     for location,section in [('axes-and-scales/','Plots'),('api/','Reference'),
-                             ('calibrated-volumes/','Microscopy (preview)'),
-                             ('visual-editing/','Interactive documents (experimental)')]:
+                             ('calibrated-volumes/','Experimental'),
+                             ('visual-editing/','Experimental'),
+                             ('history/','Development'),('recipes/helix/','Gallery')]:
         rows=[row for row in search['docs'] if row['location'].split('#')[0]==location]
         assert rows and all(row['section']==section and row['page_title'] for row in rows)
     axis_page=site/'axes-and-scales/index.html'
@@ -213,6 +214,32 @@ def test_gallery_previews_match_their_source_images():
             f'{image} changed; run python tools/docs_thumbnails.py')
         for item in entry['files']:
             assert (ROOT/'docs'/item['path']).stat().st_size > 100
+    sys.path.insert(0, str(ROOT/'tools'))
+    try:
+        from docs_thumbnails import section_card_images
+    finally:
+        sys.path.remove(str(ROOT/'tools'))
+    for image in section_card_images():
+        assert image in manifest, f'{image} has no preview; run python tools/docs_thumbnails.py'
     written = {path.name for path in (ROOT/'docs/assets/thumbs').glob('*.webp')}
     listed = {item['path'].rsplit('/', 1)[1] for entry in manifest.values() for item in entry['files']}
     assert written == listed
+
+
+def test_unlisted_pages_stay_out_of_the_sidebar_and_exist():
+    """Every page in extra.unlisted is also in not_in_nav and belongs to a nav section."""
+    import yaml
+
+    class Loader(yaml.SafeLoader):
+        pass
+
+    Loader.add_constructor('!ENV', lambda loader, node: None)
+    config = yaml.load((ROOT/'mkdocs.yml').read_text(), Loader=Loader)
+    hidden = {line.strip().lstrip('/') for line in config['not_in_nav'].splitlines()
+              if line.strip() and not line.strip().startswith('#')}
+    sections = {key for item in config['nav'] if isinstance(item, dict) for key in item}
+    for section, pages in config['extra']['unlisted'].items():
+        assert section in sections, section
+        for page in pages:
+            assert page in hidden, page
+            assert (ROOT/'docs'/page).is_file(), page

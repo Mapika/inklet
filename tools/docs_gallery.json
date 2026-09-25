@@ -29,7 +29,7 @@
     "requires": "Core; render for previews",
     "image": "gallery/dense-figure.png",
     "version": "Stable",
-    "page": "presets/#dense-pages",
+    "page": "dense-figures/",
     "featured": false
   },
   {

@@ -130,6 +130,10 @@
         card.hidden = (category !== 'all' && card.dataset.category !== category) || !terms.every(term => card.dataset.title.toLowerCase().includes(term));
         if (!card.hidden) count++;
       });
+      // The plot gallery groups cards by family; hide a family with no matches.
+      document.querySelectorAll('.gallery-group').forEach(group => {
+        group.hidden = !group.querySelector('.gallery-card:not([hidden])');
+      });
       filters.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === category)));
       document.querySelector('.gallery-count').textContent = `${count} ${count === 1 ? 'example' : 'examples'}`;
       document.querySelector('.gallery-empty').hidden = count > 0;

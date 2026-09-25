@@ -4,7 +4,7 @@
   <h1 id="hero-title">Scientific figures in Python, laid out in millimetres.</h1>
   <div class="hero-side">
     <p class="hero-lead">Inklet places plots, diagrams, images and 3D scenes on a page with physical dimensions. It measures labels, ticks and legends before fitting the data, then writes SVG, PDF and PNG from the same geometry.</p>
-    <div class="hero-actions"><a class="button primary" href="{{ 'quickstart/'|url }}">Make your first figure</a><a class="button" href="{{ 'examples/'|url }}">Browse the gallery</a></div>
+    <div class="hero-actions"><a class="button primary" href="{{ 'quickstart/'|url }}">Make your first figure</a><a class="button" href="{{ 'plot-types/'|url }}">Plot types</a><a class="button" href="{{ 'examples/'|url }}">Figure gallery</a></div>
     <div class="install-command"><span aria-hidden="true">$</span><code>pip install inklet</code><button type="button" data-copy="pip install inklet" aria-label="Copy installation command">Copy</button></div>
     <p class="install-note">Requires Python 3.11 or later. See <a href="{{ 'installation/'|url }}">installation options</a> for rendering extras.</p>
   </div>
@@ -14,6 +14,40 @@
     <a class="plate-paper" href="{{ 'scientific-gallery/'|url }}">{{ preview('assets/scientific/olfactory-detail.png', '(max-width: 1023px) 100vw, 1180px', 'alt="Detail of an Inklet figure: fly-brain anatomy, neuron projection routes, local arbors and a weighted receptor-to-target network" width="1920" height="928" fetchpriority="high"') }}</a>
     <figcaption>Detail of a fly-brain plate built with Inklet: anatomy renders, projection routes, local arbors and a weighted connectivity network. <a href="{{ 'scientific-gallery/'|url }}">Full figure and source</a></figcaption>
   </figure>
+</section>
+
+<section class="home-band home-dense" aria-labelledby="dense-title">
+  <div class="dense-grid">
+    <div class="dense-copy">
+      <div class="section-head">
+        <h2 id="dense-title">A full journal page from one script</h2>
+        <p>Thirteen panels on a 183 mm page with the <code>scientific.cell</code> preset: 6 pt text, 0.25 pt hairlines and legends placed in empty data space. Each panel is a plot or diagram in a 12-column document.</p>
+      </div>
+      <ol class="dense-panels">
+        <li><strong>a</strong> Circuit diagram with routed links</li>
+        <li><strong>b, j</strong> Stacked and diverging bars with value labels</li>
+        <li><strong>c, g</strong> Dumbbells across 7 and 36 categories</li>
+        <li><strong>d</strong> Scatter with labelled points</li>
+        <li><strong>e, l</strong> Heatmap with zoom inset, correlation matrix</li>
+        <li><strong>f, k</strong> Cumulative distributions, log–log counts</li>
+        <li><strong>h, i, m</strong> Radar, donut and violins</li>
+      </ol>
+      <p class="dense-links"><a class="button primary" href="{{ 'dense-figures/'|url }}">How the page is built</a><a class="button" href="{{ 'presets/'|url }}#dense-pages">Preset settings</a></p>
+    </div>
+    <figure class="plate plate-dense">
+      <div class="dim dim-x" aria-hidden="true"><span>183 mm</span></div>
+      <a class="plate-paper" href="{{ 'dense-figures/'|url }}">{{ preview('gallery/dense-figure.png', '(max-width: 1100px) 100vw, 640px', 'alt="A thirteen-panel figure page with a circuit diagram, bars, dumbbells, a labelled scatter, heatmaps, cumulative distributions, a dot plot, radar, donut, diverging bars, a log-log plot, a correlation matrix and violins" width="2076" height="2019" loading="lazy"') }}</a>
+      <figcaption>Output of <code>examples/dense_figure.py</code>. All data are simulated.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="home-band home-plots" aria-labelledby="plots-title">
+  <div class="section-head section-head-row"><h2 id="plots-title">Plot types</h2><a href="{{ 'plot-types/'|url }}">All {{ docs_plots|length }} plot types</a></div>
+  <p class="band-lead">Besides lines, bars, histograms and heatmaps, each of these is one method on a plot.</p>
+  <div class="plot-strip">{% for title in config.extra.home_plots %}{% for entry in docs_plots if entry.title == title %}
+    <a class="plot-chip" href="{{ entry.page|url }}"><span class="plate-paper"><img src="{{ entry.image|url }}" alt="" loading="lazy" decoding="async"></span><strong>{{ entry.title }}</strong>{%- set own = entry.methods|reject('in', ['Panel.scatter', 'Panel.matrix', 'PolarPanel.pie', 'PolarPanel.radar_grid'])|list -%}<code>{{ (own or entry.methods)|first }}</code></a>{% endfor %}{% endfor %}
+  </div>
 </section>
 
 <section class="home-band home-example" aria-labelledby="example-title">
@@ -31,8 +65,8 @@
   </div>
   <ul class="facts">
     <li><h3>Physical page sizes</h3><p>Presets such as single-column (89 mm) and double-column (183 mm) set the page width and type size. Type and strokes keep their size when the page changes.</p></li>
-    <li><h3>Measured layout</h3><p>Axis labels, tick labels and legends are measured with the embedded fonts before the data region is placed.</p></li>
-    <li><h3>Vector exports</h3><p>SVG and PDF are written from one resolved geometry with embedded fonts. Lines, ticks and labels remain vector content.</p></li>
+    <li><h3>Measured layout</h3><p>Axis labels, tick labels and legends are measured with the embedded fonts before the data region is placed, so panels in a row keep aligned data areas. See <a href="{{ 'figures/'|url }}">figures and layout</a>.</p></li>
+    <li><h3>Vector exports and lint</h3><p>SVG and PDF are written from one resolved geometry, with text embedded as editable text. <code>lint()</code> reports small text, thin strokes and overlaps. See <a href="{{ 'export/'|url }}">export and review</a>.</p></li>
     <li><h3>Revisable data</h3><p>Update a dataset and compile again. Earlier snapshots stay unchanged, and each revision is recorded in the metadata.</p></li>
   </ul>
 </section>
@@ -45,12 +79,16 @@
 </section>
 
 <section class="home-band home-paths" id="follow-a-complete-workflow" aria-labelledby="workflow-title">
-  <div class="section-head"><h2 id="workflow-title">Tutorials</h2><p>Each tutorial builds one complete figure or document from start to export.</p></div>
+  <div class="section-head"><h2 id="workflow-title">Find your way around</h2><p>Each section starts with an overview page of examples.</p></div>
   <div class="path-grid">
-    <a href="{{ 'quickstart/'|url }}"><strong>Publication figure</strong><span>Plot data, add panels and export SVG and PDF.</span></a>
-    <a href="{{ 'scientific-authoring/'|url }}"><strong>Scientific plate</strong><span>Combine anatomy, plots and annotations.</span></a>
-    <a href="{{ 'regional-report/'|url }}"><strong>Interactive report <em class="tag">Experimental</em></strong><span>Link selections across views in an offline page.</span></a>
-    <a href="{{ 'project-workflows/'|url }}"><strong>Reusable project <em class="tag">Experimental</em></strong><span>Save inputs and layout edits, then revise the data.</span></a>
+    <a href="{{ 'quickstart/'|url }}"><strong>Get started</strong><span>Install, make a two-panel figure, revise its data and export it.</span></a>
+    <a href="{{ 'plot-types/'|url }}"><strong>Plots</strong><span>Every plot type grouped by family, each with runnable code.</span></a>
+    <a href="{{ 'figures/'|url }}"><strong>Figures and layout</strong><span>Pages in millimetres, presets, dense multi-panel figures and compositions.</span></a>
+    <a href="{{ 'diagrams-overview/'|url }}"><strong>Diagrams</strong><span>Measured modules and routed links, on the same page as plots.</span></a>
+    <a href="{{ 'three-d/'|url }}"><strong>3D and images</strong><span>Vector solids and meshes, Blender scenes with vector labels, image panels.</span></a>
+    <a href="{{ 'export/'|url }}"><strong>Export and review</strong><span>SVG, PDF and PNG from one geometry, lint diagnostics and review bundles.</span></a>
+    <a href="{{ 'examples/'|url }}"><strong>Gallery</strong><span>Complete figures with their source scripts and requirements.</span></a>
+    <a href="{{ 'experimental/'|url }}"><strong>Experimental <em class="tag">Opt-in</em></strong><span>Interactive documents, the layout editor and microscopy volumes.</span></a>
   </div>
 </section>
 
