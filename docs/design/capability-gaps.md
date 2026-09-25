@@ -86,8 +86,21 @@ On a log axis, points that cannot be mapped are dropped.
 **Radar and pie.** Both require a whole-turn polar panel and follow its
 `zero` and `winding`. Radar rings are polygons by default. Pie labels go
 inside a slice when the label box fits within the annular sector with a
-margin, otherwise outside the rim, moved outward to avoid other outside
-labels.
+margin, otherwise outside the rim on the slice's middle angle. A label that
+meets another label or its leader searches nearby spots, a third of the type
+size apart, outward and round the rim, nearest first. Labels are placed in
+slice order; when one cannot clear, the reverse and middle-out orders are
+tried too, and the order that clears most labels, then moves them least, is
+kept. A label that ends up away from its own slice gets a
+hairline leader from the rim at its slice to the nearest point of its box,
+never crossing another label, leader or connector; the indices are listed
+under `leaders` in the `pie_labels` note. Radar ring values
+(`radar_grid(values=True)`) are placed when the panel is built: on the
+bisector of the spoke gap where the most values stay a quarter of the type
+size clear of every series' edges and vertices, with a paper halo. Values
+that cannot keep clear are left out; the `radar_rings` note records the gap,
+the values and the clearance. They stay off by default: on a busy chart only
+a few values fit.
 
 **Pie breakout bar.** `breakout` reads the slice angles and values that
 `pie` records in its `pie_labels` note, so it must follow a `pie` call on the
@@ -108,7 +121,7 @@ and an earlier `breakout` is not repeated; either keeps the pie as it is. Outsid
 pie labels that meet a connector or the bar try spots turned within their
 slice and up to two type sizes further out, and take the smallest change
 that clears; the ones that cannot are listed under `crossing` in the
-`pie_labels` note.
+`pie_labels` note. The breakout title is kept clear the same way.
 
 **Ridgeline.** Needs a band y scale and a continuous x scale. Each ridge's
 baseline is the lower edge of its category's step, and the density is
@@ -237,12 +250,13 @@ the bracket below. `format_p` uses strict bounds: p = 0.001 is `**`.
 
 ## Deferred work
 
-- Leaders for pie labels placed outside the rim.
+- Done (4.2): leaders for pie labels placed outside the rim, drawn only
+  for labels moved away from their slice.
 - Done (4.2): a pie drawn with other content on its panel is turned by
   `breakout`; the other content is drawn again with it.
-- Ring values on radar charts sit inside the data region and collide with
-  most polygons; `radar_grid(values=True)` draws them, and they are off by
-  default.
+- Done (4.2): radar ring values are placed at build time in the spoke gap
+  with the most room, clear of every series and on a paper halo. They stay
+  off by default, since a busy chart leaves room for only a few.
 - Done (4.2): `label_points` is placed when the panel is built, so it avoids
   marks drawn after the call. Several calls are placed in call order.
 - Per-cluster outlines (hulls or density contours) for `Panel.embedding`.

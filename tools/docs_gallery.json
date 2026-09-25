@@ -33,6 +33,28 @@
     "featured": false
   },
   {
+    "id": "journal-figure",
+    "title": "Rebuilt journal figure",
+    "category": "Plots",
+    "description": "A Cell figure page rebuilt step by step: log-axis counts, a flowchart, stacked bars, pies with breakout bars and proportion bars.",
+    "requires": "Core; render for previews",
+    "image": "gallery/journal-figure.png",
+    "version": "Stable",
+    "page": "journal-figure/",
+    "featured": false
+  },
+  {
+    "id": "cohort-figure",
+    "title": "Cohort study figure",
+    "category": "Plots",
+    "description": "Six panels on one page: an embedding, a dot plot, split violins, significance brackets, survival with numbers at risk and a forest plot.",
+    "requires": "Core; render for previews",
+    "image": "gallery/cohort-figure.png",
+    "version": "Stable",
+    "page": "cohort-figure/",
+    "featured": false
+  },
+  {
     "id": "wave-packets",
     "title": "Travelling wave packets",
     "category": "Plots",

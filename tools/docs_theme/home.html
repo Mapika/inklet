@@ -32,7 +32,7 @@
         <li><strong>f, k</strong> Cumulative distributions, log–log counts</li>
         <li><strong>h, i, m</strong> Radar, donut and violins</li>
       </ol>
-      <p class="dense-links"><a class="button primary" href="{{ 'dense-figures/'|url }}">How the page is built</a><a class="button" href="{{ 'presets/'|url }}#dense-pages">Preset settings</a></p>
+      <p class="dense-links"><a class="button primary" href="{{ 'dense-figures/'|url }}">How the page is built</a><a class="button" href="{{ 'journal-figure/'|url }}">Rebuild a journal figure</a><a class="button" href="{{ 'presets/'|url }}#dense-pages">Preset settings</a></p>
     </div>
     <figure class="plate plate-dense">
       <div class="dim dim-x" aria-hidden="true"><span>183 mm</span></div>
@@ -73,7 +73,7 @@
 
 <section class="home-band home-showcase" aria-labelledby="showcase-title">
   <div class="section-head section-head-row"><h2 id="showcase-title">Figures built with Inklet</h2><a href="{{ 'examples/'|url }}">All {{ docs_gallery|length }} figures in the gallery</a></div>
-  <div class="showcase-grid">{% for id in ['biology-panels', 'complex-scene', 'wave-packets', 'scientific-blender', 'label-intensities', 'process'] %}{% for entry in docs_gallery if entry.id == id %}
+  <div class="showcase-grid">{% for id in ['biology-panels', 'complex-scene', 'wave-packets', 'scientific-blender', 'label-intensities', 'journal-figure'] %}{% for entry in docs_gallery if entry.id == id %}
     <a class="showcase-item" href="{{ entry.page|url }}"><span class="plate-paper">{{ preview(entry.image, '(max-width: 640px) 50vw, 380px', 'alt="" loading="lazy" decoding="async" width="640" height="480"') }}</span><span class="showcase-copy"><strong>{{ entry.title }}</strong><span>{{ entry.category }}</span></span></a>{% endfor %}{% endfor %}
   </div>
 </section>

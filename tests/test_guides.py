@@ -15,7 +15,7 @@ PAGES = ('README.md', 'docs/quickstart.md', 'docs/csv-figure.md', 'docs/concepts
          'docs/three-images.md', 'docs/export-review.md', 'docs/cli.md', 'docs/presets.md', 'docs/v3.md',
          'docs/migration.md', 'docs/lines-and-points.md', 'docs/bars-and-areas.md',
          'docs/distributions.md', 'docs/uncertainty.md', 'docs/matrices.md', 'docs/polar-plots.md', 'docs/geographic-features.md', 'docs/plot-recipes.md', 'docs/composition-recipes.md', 'docs/layout-overrides.md', 'docs/layout-editor.md', 'docs/project-workflows.md',
-         'docs/dense-figures.md')
+         'docs/dense-figures.md', 'docs/journal-figure.md')
 BLOCK = re.compile(r'(?:(<!-- Requires preview renderers\. -->)\n\n)?^```python\n(.*?)^```',re.MULTILINE | re.DOTALL)
 
 

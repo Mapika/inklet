@@ -17,7 +17,9 @@ under the data, and writes the category names outside the rim.
 spanning its share of the turn, separated by thin paper-coloured lines.
 Labels are written inside a slice when their box fits in it with a margin,
 in ink or paper by contrast with the slice; otherwise outside the rim in the
-theme ink, pushed further out if they would overlap another outside label.
+theme ink. An outside label that would overlap another label, a leader or
+a breakout connector moves out or round the rim to the nearest clear spot,
+and gets a hairline leader back to its slice when it ends up away from it.
 A donut is `inklet.polar(radius, hole=...)`.
 
 **Breakout bar.** `breakout` expands one or more adjacent slices of the pie
@@ -46,7 +48,8 @@ from .bar_labels import _ink_on
 from .furniture import GRID_KIND
 from .scale import format_number
 
-__all__ = ["RING_SHAPES", "radar_spokes", "radar", "radar_grid", "pie",
+__all__ = ["RING_SHAPES", "radar_spokes", "radar", "radar_grid",
+           "ring_value_items", "pie",
            "pie_label_texts", "breakout", "breakout_frame",
            "breakout_connectors", "breakout_turn", "BREAKOUT_SIDES"]
 
@@ -109,10 +112,15 @@ def radar(panel, values: Sequence[float], *, color: str | None = None,
 
 def radar_grid(panel, categories: Sequence[str], *, rings=None,
                shape: str = "polygon", labels: bool = True,
-               values: bool = False, **style) -> tuple[list[Diagram], Diagram | None, list]:
+               values: bool = False, levels_out: list | None = None,
+               **style) -> tuple[list[Diagram], Diagram | None, list]:
     """Rings, spokes and category names for a radar chart.
 
-    Returns `(grid lines, label node or None, [(page angle, box)])`.
+    Returns `(grid lines, label node or None, [(page angle, box)])`. With
+    `values=True` the label node also holds each ring's value, on the gap
+    after the first spoke; `PolarPanel.radar_grid` instead records the rings
+    and places their values with `ring_values` when the panel is built, once
+    the data is known.
     """
     _full(panel, "radar_grid")
     if shape not in RING_SHAPES:
@@ -121,7 +129,7 @@ def radar_grid(panel, categories: Sequence[str], *, rings=None,
     names = [str(c) for c in categories]
     spokes = radar_spokes(panel, len(names))
     if rings is None:
-            levels = list(panel.r.ticks(4))
+        levels = list(panel.r.ticks(4))
     elif isinstance(rings, int):
         levels = list(panel.r.ticks(rings))
     else:
@@ -142,6 +150,8 @@ def radar_grid(panel, categories: Sequence[str], *, rings=None,
                     for a in (2 * math.pi * k / 96 for k in range(96))]
         lines.append(polyline(ring, closed=True, kind=GRID_KIND, **style))
         drawn.append(value)
+    if levels_out is not None:
+        levels_out.extend(drawn)
     for t in spokes:
         lines.append(polyline((_along(panel, t, panel.hole),
                                _along(panel, t, panel.radius)),
@@ -155,17 +165,7 @@ def radar_grid(panel, categories: Sequence[str], *, rings=None,
     items: list = []
     ring_boxes: list = []
     if values:
-        # Each ring's value, just clockwise of the first spoke on the page.
-        first = panel.angle(spokes[0])
-        side = first + 90.0
-        pad = _PAD_OF_TYPE * theme.font_size
-        for value in drawn:
-            text = format_number(value)
-            node = text_node(text, theme.font_size_small, TICK_LABEL_KIND,
-                             markup=False)
-            base = _along(panel, spokes[0], panel.r.map(value))
-            shift = _outward_centre(node.bbox, pad, side)
-            items.append((base + shift, node))
+        items.extend(ring_value_items(panel, drawn, len(names), shape, ())[0])
     for t, name in zip(spokes, names if labels else ()):
         node = text_node(name, theme.font_size_small, TICK_LABEL_KIND, markup=False)
         angle = panel.angle(t)
@@ -176,6 +176,114 @@ def radar_grid(panel, categories: Sequence[str], *, rings=None,
                                        box.x1 + centre.x, box.y1 + centre.y)))
     node = draw_place(items, origin=(0, 0), kind=AXIS_KIND)
     return lines, node, ring_boxes
+
+
+#: The paper halo round a ring value, as a fraction of the type size: the
+#: stroke painted under the glyphs, half of it outside them.
+_RING_HALO_OF_TYPE = 0.3
+
+#: The clear space a ring value keeps from the data's lines and dots, as a
+#: fraction of the type size.
+_RING_CLEAR_OF_TYPE = 0.25
+
+
+def ring_value_items(panel, levels: Sequence[float], count: int, shape: str,
+                     data: Sequence[Sequence[Vec2]]) -> tuple[list, dict]:
+    """Ring values of a radar grid of `count` spokes, as `(items, note)`.
+
+    The values go up one gap between two spokes, each where its ring crosses
+    the gap's bisector, in the theme ink on a paper halo. From the outermost
+    ring inward, a value is left out when it would touch the value above it,
+    or come within `_RING_CLEAR_OF_TYPE` of a line or vertex dot of the
+    closed polygons in `data` (panel millimetres). The gap that writes the
+    most values wins, then the one whose values keep furthest from the data,
+    then the one that follows the first spoke. `note` records the gap (its
+    index: 0 follows the first spoke), the values written and the smallest
+    clearance to the data in millimetres (None without data)."""
+    theme = active_theme()
+    spokes = radar_spokes(panel, count)
+    step = (panel.theta.domain[1] - panel.theta.domain[0]) / count
+    size = theme.font_size_small
+    halo = _RING_HALO_OF_TYPE * size
+    clear = theme.gap("xs") * 0.5
+    need = _RING_CLEAR_OF_TYPE * size
+    # A vertex dot's radius and half a data stroke, which the clearance is
+    # measured beyond.
+    dot = _VERTEX_OF_TYPE * theme.font_size / 2
+    line = theme.stroke / 2
+    nodes = [(value, text_node(format_number(value), size, TICK_LABEL_KIND,
+                               markup=False, halo=halo, text_fill=theme.ink))
+             for value in sorted(levels, reverse=True)]
+    squeeze = math.cos(math.pi / count) if shape == "polygon" else 1.0
+    points = [p for series in data for p in series]
+    edges = [(a, b) for series in data
+             for a, b in zip(series, list(series[1:]) + list(series[:1]))]
+
+    def room(box: Rect) -> float | None:
+        if not edges:
+            return None
+        near = min(_box_segment_distance(box, a, b) for a, b in edges) - line
+        for p in points:
+            dx = max(box.x0 - p.x, 0.0, p.x - box.x1)
+            dy = max(box.y0 - p.y, 0.0, p.y - box.y1)
+            near = min(near, math.hypot(dx, dy) - dot)
+        return max(near, 0.0)
+
+    best = None
+    for gap in range(count):
+        radians = math.radians(panel.angle(spokes[gap] + step / 2))
+        ux, uy = math.cos(radians), math.sin(radians)
+        items: list = []
+        kept: list[Rect] = []
+        written: list[float] = []
+        rooms: list[float] = []
+        for value, node in nodes:
+            distance = panel.r.map(value) * squeeze
+            if distance <= max(panel.hole, 1e-6) + 1e-9:
+                continue
+            at = Vec2(ux * distance, uy * distance) - node.bbox.center
+            box = _moved(node.bbox, at)
+            if any(_touch(box, other, clear) for other in kept):
+                continue
+            space = room(box)
+            if space is not None and space < need:
+                continue
+            kept.append(box)
+            written.append(value)
+            items.append((at, node))
+            if space is not None:
+                rooms.append(space)
+        least = min(rooms) if rooms else None
+        score = (len(written), least if least is not None else 0.0, -gap)
+        if best is None or score > best[0]:
+            best = (score, items, {"gap": gap, "values": written,
+                                   "clearance": least})
+        if not edges:
+            break
+    return best[1], best[2]
+
+
+def _box_segment_distance(box: Rect, a: Vec2, b: Vec2) -> float:
+    """The shortest distance between a box and the segment a-b (0 when they
+    meet)."""
+    if _segment_hits(box, a, b):
+        return 0.0
+    corners = [Vec2(box.x0, box.y0), Vec2(box.x1, box.y0),
+               Vec2(box.x1, box.y1), Vec2(box.x0, box.y1)]
+    best = min(_point_segment_distance(c, a, b) for c in corners)
+    for p in (a, b):
+        dx = max(box.x0 - p.x, 0.0, p.x - box.x1)
+        dy = max(box.y0 - p.y, 0.0, p.y - box.y1)
+        best = min(best, math.hypot(dx, dy))
+    return best
+
+
+def _point_segment_distance(p: Vec2, a: Vec2, b: Vec2) -> float:
+    dx, dy = b.x - a.x, b.y - a.y
+    length = dx * dx + dy * dy
+    t = 0.0 if length < 1e-18 else max(0.0, min(1.0, ((p.x - a.x) * dx
+                                                    + (p.y - a.y) * dy) / length))
+    return math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy)
 
 
 def _along(panel, theta: float, distance: float) -> Vec2:
@@ -314,21 +422,62 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
             else:
                 outside.append((index, mid, node, a0, a1))
         start = end
-    placed_boxes: list[Rect] = []
-    labels_out: list = []
     gap = _PAD_OF_TYPE * theme.font_size
     clear = theme.gap("xs") * 0.5
-    for index, mid, node, a0, a1 in outside:
-        at, box, crossing = _outside_spot(node, mid, a0, a1, outer, gap, size,
-                                          placed_boxes, clear, avoid, avoid_boxes,
-                                          [w.bbox for w in wedges])
+    slice_boxes = [w.bbox for w in wedges]
+
+    def place(order):
+        """Outside labels placed one by one in `order`, with a score: the
+        labels that could not clear, then the total displacement."""
+        placed_boxes: list[Rect] = []
+        placed_leaders: list[tuple[Vec2, Vec2]] = []
+        spots = {}
+        failed = 0.0
+        moved = 0.0
+        for k in order:
+            index, mid, node, a0, a1 = outside[k]
+            at, box, crossing, leader = _outside_spot(
+                node, mid, a0, a1, outer, gap, size, placed_boxes, clear,
+                avoid, avoid_boxes, slice_boxes, placed_leaders)
+            if crossing:
+                clash = any(_touch(box, other, 0.0) for other in placed_boxes)
+                failed += 2 if clash else 1
+            placed_boxes.append(box)
+            if leader is not None:
+                placed_leaders.append(leader)
+            first = _outward_centre(node.bbox, outer + gap, mid)
+            moved += math.hypot(at.x - first.x, at.y - first.y)
+            spots[k] = (at, crossing, leader)
+        return (failed, moved), spots
+
+    # Round the rim in slice order first; a run of small slices can box its
+    # last labels in, so the reverse and middle-out orders are tried when a
+    # label does not clear, and the order that clears most labels is kept.
+    count = len(outside)
+    score, spots = place(range(count))
+    if score[0] > 0 and count > 1:
+        middle = sorted(range(count), key=lambda k: (abs(k - (count - 1) / 2), k))
+        for order in (range(count - 1, -1, -1), middle):
+            other = place(order)
+            if other[0] < score:
+                score, spots = other
+    labels_out: list = []
+    leader_lines: list = []
+    note["leaders"] = []
+    ink = options.get("fill") or theme.ink
+    for k, (index, mid, node, a0, a1) in enumerate(outside):
+        at, crossing, leader = spots[k]
         if crossing:
             note["crossing"].append(index)
-        placed_boxes.append(box)
-        ink = options.get("fill") or theme.ink
+        if leader is not None:
+            note["leaders"].append(index)
+            leader_lines.append(polyline(leader, kind=MARK_LINE_KIND,
+                                         stroke=ink, stroke_width=theme.hairline))
         labels_out.append((at, node.styled(text_fill=ink)))
         note["outside"].append(index)
     parts = [draw_place(wedges, origin=(0, 0), kind="pie")]
+    if leader_lines:
+        parts.append(draw_place(leader_lines, origin=(0, 0), kind="pie-leaders"))
     if inside or labels_out:
         parts.append(draw_place(inside + labels_out, origin=(0, 0),
                                 kind=AXIS_KIND))
@@ -337,29 +486,53 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
     return node, tuple(fills), note
 
 
+#: An outside pie label farther than this from its slice, beyond the usual
+#: rim gap, gets a leader line back to the slice, as a fraction of the label
+#: size. Nearer labels read as belonging to the slice they face.
+_LEADER_AFTER_OF_TYPE = 0.45
+
+#: Extra cost of a spot that needs a leader, in label sizes of displacement:
+#: a label next to its slice beats one out on a leader unless that one is
+#: much closer to where the label wanted to be.
+_LEADER_COST_OF_TYPE = 1.5
+
+#: How far a label may move from its first spot, in label sizes: radially
+#: and along the rim.
+_OUT_REACH_OF_TYPE = 4.0
+_AROUND_REACH_OF_TYPE = 6.0
+
+
 def _outside_spot(node: Diagram, mid: float, a0: float, a1: float,
                   outer: float, gap: float, size: float, placed: Sequence[Rect],
                   clear: float, avoid: Sequence[tuple[Vec2, Vec2]],
-                  avoid_boxes: Sequence[Rect],
-                  slices: Sequence[Rect]) -> tuple[Vec2, Rect, bool]:
-    """Where an outside pie label goes, as `(offset, box, crossing)`.
+                  avoid_boxes: Sequence[Rect], slices: Sequence[Rect],
+                  leaders: Sequence[tuple[Vec2, Vec2]] = (),
+                  ) -> tuple[Vec2, Rect, bool, tuple[Vec2, Vec2] | None]:
+    """Where an outside pie label goes, as `(offset, box, crossing, leader)`.
 
-    The label sits `gap` beyond the rim `outer` on the slice's middle angle,
-    pushed further out until it clears the labels already `placed`. If that
-    spot meets a segment of `avoid` or a box of `avoid_boxes`, the label may
-    turn within its slice's angles `a0`..`a1` and move out by up to two type
-    sizes; the smallest change that keeps the lint's minimum clearance from
-    `avoid` and from the rim wins. The lint measures a slice by its box
-    (`slices`), so a moved label also either keeps that clearance from each
-    box or overlaps it. If nothing clears, the first spot is kept and
-    `crossing` is True."""
-    def free_of_labels(box: Rect) -> bool:
-        return not any(_touch(box, other, clear) for other in placed)
-
+    The label first tries `gap` beyond the rim `outer` on the slice's middle
+    angle. If that spot meets a label already `placed`, a leader, a segment
+    of `avoid` or a box of `avoid_boxes`, spots further out (up to three type
+    sizes) and round the rim (up to four type sizes of arc) are tried, and
+    the one nearest the first spot that clears everything wins; a spot that
+    needs a leader counts one and a half type sizes more. A label placed
+    away from its slice (outside its angles, or more than about half a type
+    size beyond the usual gap) gets `leader`, a segment from the slice's rim
+    to the nearest point of the label, which must itself cross no label,
+    leader, `avoid` segment or box and must leave the rim outward. The lint
+    measures a slice by its box (`slices`), so a moved label also either
+    keeps the lint's clearance from each box or overlaps it. If nothing
+    clears, the first spot is kept without a leader and `crossing` is
+    True."""
     from ..diagnostics.rules import DEFAULT_MIN_CLEARANCE_MM as keep
 
+    def free_of_labels(box: Rect) -> bool:
+        return (not any(_touch(box, other, clear) for other in placed)
+                and not any(_segment_hits(_grown(box, clear), a, b)
+                            for a, b in leaders))
+
     def free_of_avoid(box: Rect) -> bool:
-        grown = Rect(box.x0 - keep, box.y0 - keep, box.x1 + keep, box.y1 + keep)
+        grown = _grown(box, keep)
         return (not any(_segment_hits(grown, a, b) for a, b in avoid)
                 and not any(_touch(box, other, keep) for other in avoid_boxes))
 
@@ -370,25 +543,119 @@ def _outside_spot(node: Diagram, mid: float, a0: float, a1: float,
                 and not any(_touch(box, other, keep) and not _touch(box, other, 0.0)
                             for other in slices))
 
+    def leader_for(box: Rect) -> tuple[Vec2, Vec2] | None:
+        """The leader a label at `box` needs, or None when it sits by its
+        slice. Returns False-like `()` when a leader is needed but cannot be
+        drawn cleanly."""
+        centre = box.center
+        bearing = math.degrees(math.atan2(centre.y, centre.x))
+        while bearing < a0 - 180:
+            bearing += 360
+        while bearing > a0 + 180:
+            bearing -= 360
+        inside = a0 <= bearing <= a1
+        anchor_angle = math.radians(min(max(bearing, a0), a1))
+        ux, uy = math.cos(anchor_angle), math.sin(anchor_angle)
+        anchor = Vec2(ux * outer, uy * outer)
+        near = Vec2(min(max(anchor.x, box.x0), box.x1),
+                    min(max(anchor.y, box.y0), box.y1))
+        dx, dy = near.x - anchor.x, near.y - anchor.y
+        length = math.hypot(dx, dy)
+        if inside and length <= gap + _LEADER_AFTER_OF_TYPE * size:
+            return None
+        if length < 1e-9 or (dx * ux + dy * uy) / length < 0.35:
+            return ()
+        segment = (anchor, near)
+        for other in placed:
+            if _segment_hits(_grown(other, clear * 0.5), anchor, near):
+                return ()
+        for a, b in leaders:
+            if _segments_cross(anchor, near, a, b):
+                return ()
+        for a, b in avoid:
+            if _segments_cross(anchor, near, a, b):
+                return ()
+        for other in avoid_boxes:
+            if _segment_hits(_grown(other, keep * 0.5), anchor, near):
+                return ()
+        return segment
+
+    at = _outward_centre(node.bbox, outer + gap, mid)
+    box = _moved(node.bbox, at)
+    first = box.center
+    if free_of_labels(box) and ((not avoid and not avoid_boxes) or free_of_avoid(box)):
+        return at, box, False, None
     reach = outer + gap
+
+    def candidates(scale: float):
+        radial = int(round(_OUT_REACH_OF_TYPE * 3 * scale))
+        around = int(round(_AROUND_REACH_OF_TYPE * 3 * scale))
+        scored = []
+        for step in range(radial + 1):
+            distance = reach + step * size / 3
+            for turn in range(-around, around + 1):
+                if step == 0 and turn == 0:
+                    continue
+                degrees = mid + math.degrees(turn * size / 3 / distance)
+                spot = _outward_centre(node.bbox, distance, degrees)
+                moved = _moved(node.bbox, spot)
+                centre = moved.center
+                scored.append((math.hypot(centre.x - first.x, centre.y - first.y),
+                               spot, moved))
+        scored.sort(key=lambda item: item[0])
+        return scored
+
+    def search(scored, strict: bool):
+        best = None
+        for cost, spot, moved in scored:
+            if best is not None and cost >= best[0]:
+                break
+            if not (free_of_labels(moved) and free_of_rim(moved)
+                    and (not strict or free_of_avoid(moved))):
+                continue
+            line = leader_for(moved)
+            if line == ():
+                continue
+            total = cost + (_LEADER_COST_OF_TYPE * size if line else 0.0)
+            if best is None or total < best[0]:
+                best = (total, spot, moved, line)
+        return best
+
+    near = candidates(1.0)
+    best = search(near, True)
+    if best is None:
+        far = candidates(2.0)
+        best = search(far, True)
+        if best is None:
+            # Nothing clears the connectors: keep the label clear of the
+            # other labels at least, and report it.
+            best = search(far, False)
+            if best is not None:
+                return best[1], best[2], True, best[3]
+    if best is not None:
+        return best[1], best[2], False, best[3]
+    # Out along the slice's middle until clear of the other labels.
     for _ in range(40):
         at = _outward_centre(node.bbox, reach, mid)
         box = _moved(node.bbox, at)
-        if free_of_labels(box):
+        if not any(_touch(box, other, clear) for other in placed):
             break
         reach += 0.3 * size
-    if (not avoid and not avoid_boxes) or free_of_avoid(box):
-        return at, box, False
-    half = (a1 - a0) / 2
-    tries = sorted((step / 3 + abs(turn) / 6, step, turn)
-                   for step in range(7) for turn in range(-6, 7))
-    for _, step, turn in tries:
-        spot = _outward_centre(node.bbox, reach + step * size / 3,
-                               mid + half * turn / 6)
-        moved = _moved(node.bbox, spot)
-        if free_of_labels(moved) and free_of_avoid(moved) and free_of_rim(moved):
-            return spot, moved, False
-    return at, box, True
+    line = leader_for(box)
+    return at, box, True, (line or None)
+
+
+def _grown(box: Rect, pad: float) -> Rect:
+    return Rect(box.x0 - pad, box.y0 - pad, box.x1 + pad, box.y1 + pad)
+
+
+def _segments_cross(a: Vec2, b: Vec2, c: Vec2, d: Vec2) -> bool:
+    """Whether segments a-b and c-d cross (touching ends do not count)."""
+    def side(p, q, r):
+        return (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
+    d1, d2 = side(c, d, a), side(c, d, b)
+    d3, d4 = side(a, b, c), side(a, b, d)
+    return d1 * d2 < 0 and d3 * d4 < 0
 
 
 def _segment_hits(box: Rect, a: Vec2, b: Vec2) -> bool:
@@ -562,16 +829,43 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
         if abs(centre - middle) > 1e-6:
             note["moved"].append(index)
     if title:
-        node = text_node(title, size, TICK_LABEL_KIND, markup=False)
-        node = node.styled(text_fill=theme.ink)
-        box = node.bbox
-        items.append((Vec2((x0 + x1) / 2 - box.center.x, top - pad - box.y1),
-                      node))
+        node, at = _breakout_title(panel, title, size, top, x0, x1)
+        items.append((at, node))
     if items:
         layers.append(draw_place(items, origin=(0, 0), kind=AXIS_KIND))
     node = draw_place(layers, origin=(0, 0), kind="breakout")
     node.notes["pie_breakout"] = note
     return node, tuple(colours), note
+
+
+def _breakout_title(panel, title: str, size: float, top: float, x0: float,
+                    x1: float) -> tuple[Diagram, Vec2]:
+    """The breakout title's node and offset: centred over the bar."""
+    theme = active_theme()
+    pad = max(_PAD_OF_TYPE * theme.font_size, theme.gap("s"))
+    node = text_node(title, size, TICK_LABEL_KIND, markup=False)
+    node = node.styled(text_fill=theme.ink)
+    box = node.bbox
+    return node, Vec2((x0 + x1) / 2 - box.center.x, top - pad - box.y1)
+
+
+def breakout_title_box(panel, title: str | None, *, side: str = "right",
+                       width: float | str | None = None,
+                       height: float | str | None = None,
+                       gap: float | str | None = None,
+                       label_options: Mapping | None = None) -> Rect | None:
+    """The panel-mm box a breakout's title takes, or None without one."""
+    if not title:
+        return None
+    theme = active_theme()
+    options = dict(label_options or {})
+    size = (theme.font_size_small if options.get("size") is None
+            else mm(options["size"]))
+    _, top, _, x0, x1 = breakout_frame(panel, side=side, width=width,
+                                       height=height, gap=gap)
+    node, at = _breakout_title(panel, title, size, top, x0, x1)
+    box = node.bbox
+    return Rect(box.x0 + at.x, box.y0 + at.y, box.x1 + at.x, box.y1 + at.y)
 
 
 def breakout_frame(panel, *, side: str = "right", width: float | str | None = None,

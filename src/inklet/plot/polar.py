@@ -474,6 +474,11 @@ class PolarPanel:
     #: `theta`: not so after content already in panel coordinates, or an
     #: argument that was an iterator and has been used up.
     _replayable: bool = field(default=True, repr=False, compare=False)
+    #: `(ring values, spoke count, ring shape)` when `radar_grid(values=True)`
+    #: asked for ring values: they are placed at build time, clear of the
+    #: radar polygons in `_radar_data` (their vertices, panel millimetres).
+    _ring_values: tuple | None = field(default=None, repr=False, compare=False)
+    _radar_data: list = field(default_factory=list, repr=False, compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -1143,6 +1148,9 @@ class PolarPanel:
         color = self._series_color(name, color)
         node = _radar(self, values, color=color, fill=fill, markers=markers,
                       size=size, **style)
+        from .wheel import radar_spokes
+        self._radar_data.append([self.point(t, float(v)) for t, v in zip(
+            radar_spokes(self, len(values)), values)])
         ink = color or active_theme().ink
         self._note(name, "line", color=ink)
         if markers:
@@ -1159,23 +1167,29 @@ class PolarPanel:
         the end of the r domain, as polygons by default so that they run
         parallel to the data's edges; `shape="circle"` draws circles. The
         category names are written outside the rim, each pushed out along its
-        own spoke. `values=True` writes each ring's r value beside the first
-        spoke. Those numbers sit inside the data region, so they collide
-        with the polygons of most data; they are off by default, and the
-        scale is better stated in the legend or the axis note (for example
-        "rings at 0.2 steps").
+        own spoke. `values=True` writes each ring's r value up the middle of
+        one gap between two spokes, on a paper halo. The values are placed
+        when the panel is built, so they see every `radar` series: the gap
+        chosen is the one where the most values keep clear of the data's
+        lines and dots, and a value that would touch the data or the value
+        above it is left out. The node's `radar_rings` note records the gap,
+        the values written and their clearance. They are off by default: on
+        crowded charts few values fit, and the scale may read better from
+        the legend or a note (for example "rings at 0.2 steps").
         """
         from .wheel import radar_grid as _radar_grid
 
+        drawn: list[float] = []
         lines, node, ring = _radar_grid(self, categories, rings=rings,
-                                        shape=shape, labels=labels, values=values,
-                                        **style)
+                                        shape=shape, labels=labels, values=False,
+                                        levels_out=drawn, **style)
         self._under.extend(as_drawn(line) for line in lines)
         from .wheel import radar_spokes
         self._spokes = [self.angle(t) for t in radar_spokes(self, len(categories))]
         if node is not None:
             self._over.append(as_drawn(node))
             self._ring = ring
+        self._ring_values = (drawn, len(categories), shape) if values else None
         return self._touched()
 
     def pie(self, values: Sequence[float], *, names: Sequence[str] | None = None,
@@ -1195,9 +1209,12 @@ class PolarPanel:
         as `"{share:.1%}"` (the value is `{}`, its fraction is `share`), a
         callable taking `(value, share)`, or one string per slice. A label is
         set inside its slice when it fits with a margin, in ink or paper
-        against the slice colour; otherwise it goes outside the rim. The
-        node's `pie_labels` note lists which went where. `label_options`
-        takes `size`, `fill`, `markup` and `font_weight`.
+        against the slice colour; otherwise it goes outside the rim. An
+        outside label that meets another moves out or round the rim to the
+        nearest clear spot; one that ends up away from its slice gets a
+        hairline leader back to the rim. The node's `pie_labels` note lists
+        which went where, and which have leaders under `"leaders"`.
+        `label_options` takes `size`, `fill`, `markup` and `font_weight`.
 
         `colors=` gives one colour per slice (default: the theme palette).
         `separator=True` draws a thin paper-coloured line between slices.
@@ -1271,14 +1288,16 @@ class PolarPanel:
         drawn again with it under the turned angles; content handed to
         `draw`, `under` or `over` in panel coordinates cannot be, and keeps
         the pie where it is, as does an earlier `breakout`. Pie labels
-        set outside the rim move within their slice, or further out, to
-        keep clear of the connectors and the bar; the pie's `pie_labels`
-        note lists any that could not under `"crossing"`. The node's
+        set outside the rim move out or round the rim, on a leader when
+        they leave their slice, to keep clear of the connectors and the
+        bar; a leader does not cross a connector. The pie's `pie_labels`
+        note lists any label that could not clear under `"crossing"`. The node's
         `pie_breakout` note records the `zero` and `winding` used and
         whether the pie was `"turned"`.
         """
         from .wheel import breakout as _breakout
-        from .wheel import breakout_connectors, breakout_frame, breakout_turn
+        from .wheel import (breakout_connectors, breakout_frame,
+                            breakout_title_box, breakout_turn)
         from .wheel import pie as _pie
 
         if self._pie is None:
@@ -1324,8 +1343,13 @@ class PolarPanel:
                       _slice_bounds(self.theta.domain, note["values"])]
             angles = [tuple(sorted(pair)) for pair in angles]
             links = breakout_connectors(self, angles, ordered, **frame)
+            boxes = [Rect(x0, top, x1, top + tall)]
+            heading = breakout_title_box(self, title, label_options=label_options,
+                                         **frame)
+            if heading is not None:
+                boxes.append(heading)
             node, fills, note = _pie(self, redraw["values"], avoid=links,
-                                     avoid_boxes=[Rect(x0, top, x1, top + tall)],
+                                     avoid_boxes=boxes,
                                      **redraw["options"])
             drawn = self._to_area([as_drawn(node)], redraw["clip"])[0]
             self._content[held[0]] = drawn
@@ -1352,6 +1376,7 @@ class PolarPanel:
         self._under, self._content, self._over = [], [], []
         self._title, self._pie, self._built = None, None, None
         self._keys, self._spokes, self._ring = [], [], []
+        self._ring_values, self._radar_data = None, []
         self.theta = theta
         for name, args, kwargs in journal:
             getattr(self, name)(*args, **dict(kwargs))
@@ -1525,6 +1550,15 @@ class PolarPanel:
         if self._built is not None:
             return self._built
         children = list(self._under) + list(self._content) + list(self._over)
+        if self._ring_values is not None:
+            from .wheel import ring_value_items
+            levels, count, shape = self._ring_values
+            items, note = ring_value_items(self, levels, count, shape,
+                                           self._radar_data)
+            if items:
+                node = as_drawn(draw_place(items, origin=(0, 0), kind=AXIS_KIND))
+                node.notes["radar_rings"] = note
+                children.append(node)
         if self._title is not None:
             children.append(self._titled(children))
         self._built = drawn_group(children, PANEL_KIND)

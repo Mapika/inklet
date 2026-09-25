@@ -479,6 +479,21 @@
     "sha256": "61b7210781609dda3a8665d0dea1b4e6e17bd1dbd1a0afb0b231e91392208cf7",
     "width": 2445
   },
+  "gallery/cohort-figure.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-cohort-figure-480-7825728c66.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-cohort-figure-960-7825728c66.webp",
+        "width": 960
+      }
+    ],
+    "height": 1327,
+    "sha256": "7825728c66b28c224c7390f11a4ee8291782ebca1a34ebae1a400b42684f140e",
+    "width": 2161
+  },
   "gallery/compiled-scene-viewer.png": {
     "files": [
       {
@@ -553,6 +568,21 @@
     "height": 1311,
     "sha256": "d74d600233a3ea2c8dee19321aef724f8fbec3c44732c5a0d10c3fa4bee40dc0",
     "width": 1369
+  },
+  "gallery/journal-figure.png": {
+    "files": [
+      {
+        "path": "assets/thumbs/gallery-journal-figure-480-6966aea64a.webp",
+        "width": 480
+      },
+      {
+        "path": "assets/thumbs/gallery-journal-figure-960-6966aea64a.webp",
+        "width": 960
+      }
+    ],
+    "height": 1853,
+    "sha256": "6966aea64ad970056c1632f834e83fb905b46477edab93b22f56ad2c201deaed",
+    "width": 2161
   },
   "gallery/label-intensities.png": {
     "files": [

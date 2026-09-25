@@ -28,9 +28,9 @@ wheel in an isolated environment.
 
 ## API and saved-file policy
 
-**4.1.0** releases the supported scope below, frozen during RC1.
-The same acceptance, distribution and performance gates apply to maintenance
-releases. Experimental namespaces retain their explicit opt-in status.
+**4.0.0** released the supported scope below, frozen during RC1; 4.1.0 adds
+plot types within it. The same acceptance, distribution and performance gates
+apply to later releases. Experimental namespaces retain their explicit opt-in status.
 
 - The documented top-level `inklet` authoring/export API remains supported.
   Internal modules, names beginning with `_` and generated output bytes are not

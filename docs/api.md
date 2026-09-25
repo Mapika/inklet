@@ -784,7 +784,7 @@ A forest plot: one estimate and confidence interval per row, with aligned text c
 
 A polar plot area of a given rim radius.
 
-#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None, _free: 'tuple[bool, bool]' = (False, False), _journal: 'list' = <factory>, _depth: 'int' = 0, _replayable: 'bool' = True) -> None`
+#### `class PolarPanel(radius: 'float', r: 'Scale', theta: 'Theta', hole: 'float' = 0.0, clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, float] | None' = None, _built: 'Diagram | None' = None, _keys: 'list[SeriesKey]' = <factory>, _spokes: 'list[float]' = <factory>, _ring: 'list[tuple[float, Rect]]' = <factory>, _pie: 'tuple | None' = None, _free: 'tuple[bool, bool]' = (False, False), _journal: 'list' = <factory>, _depth: 'int' = 0, _replayable: 'bool' = True, _ring_values: 'tuple | None' = None, _radar_data: 'list' = <factory>) -> None`
 
 A disc, or a fan of one, plus the scales that map data into it.
 
