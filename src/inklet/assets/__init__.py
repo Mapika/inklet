@@ -25,7 +25,7 @@ from .asset import ASSET_KIND, DEFAULT_WIDTH, SILHOUETTE_KIND, asset
 from .cache import PIPELINE_VERSION, cache_root, content_hash
 from .cutout import Cutout, cutout_backends, register_cutout
 from .deps import AssetError, MissingDependency
-from .harmonise import Harmonise
+from .harmonise import Harmonize
 from .lineart import LineArt, potrace_available
 from .provenance import Provenance, credit_lines, credits, provenance_of
 from .sidecar import Sidecar, load_sidecar, sidecar_path
@@ -33,10 +33,16 @@ from .silhouette import Silhouette
 
 __all__ = [
     "asset", "DEFAULT_WIDTH", "ASSET_KIND", "SILHOUETTE_KIND",
-    "Cutout", "LineArt", "Harmonise", "Silhouette",
+    "Cutout", "LineArt", "Harmonize", "Silhouette",
     "register_cutout", "cutout_backends", "potrace_available",
     "Provenance", "credits", "credit_lines", "provenance_of",
     "Sidecar", "load_sidecar", "sidecar_path",
     "AssetError", "MissingDependency",
     "cache_root", "content_hash", "PIPELINE_VERSION",
 ]
+
+from .._compat import module_getattr as _module_getattr
+from . import harmonise as _harmonise
+
+#: `Harmonise` is the deprecated spelling of `Harmonize`, removed in 5.0.
+__getattr__ = _module_getattr(__name__, {"Harmonise": ("inklet.assets.Harmonize", _harmonise.Harmonize)})

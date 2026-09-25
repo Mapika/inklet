@@ -20,7 +20,8 @@ OLD_PATHS = {
 }
 
 # Names other code imported from the old modules, including private helpers
-# and names the 4.2 modules merely imported.
+# and names the 4.2 modules merely imported. From 4.4 the shims keep the Inklet
+# names only; the standard-library ones (STDLIB) are no longer re-exported.
 OLD_EXTRAS = {
     'volume': ['_numpy', '_positive', '_UNITS', '_vector', 'ImagePrim', 'i', 'io', 'math', 'dataclass'],
     'sections': ['Volume', '_numpy', '_positive', '_UNITS', '_snapshot', '_vector', 'ImagePrim'],
@@ -31,6 +32,9 @@ OLD_EXTRAS = {
     'measurements': ['Volume', 'SampledSection', 'BoxRegion', '_region', 'Mapping', 'csv', 'json'],
     'tiff': ['Volume', '_numpy', 'ET', 'Path', 'hashlib', 'json'],
 }
+
+STDLIB = {'io', 'math', 'dataclass', 'replace', 'itertools', 'field', 'Mapping', 'csv',
+          'json', 'ET', 'Path', 'hashlib'}
 
 
 def test_all_lists_every_moved_public_name():
@@ -44,14 +48,19 @@ def test_all_lists_every_moved_public_name():
 
 @pytest.mark.parametrize('module', sorted(OLD_PATHS))
 def test_old_paths_return_the_same_objects(module):
-    with warnings.catch_warnings():
-        warnings.simplefilter('error')
+    from inklet._compat import InkletDeprecationWarning
+    sys.modules.pop(f'inklet.experimental.{module}', None)
+    with pytest.warns(InkletDeprecationWarning, match='import from inklet.volume') as caught:
         old = importlib.import_module(f'inklet.experimental.{module}')
+    assert len(caught) == 1
     new = importlib.import_module(f'inklet.volume._{module}')
     for name in OLD_PATHS[module]:
         assert getattr(old, name) is getattr(volume, name)
     for name in OLD_EXTRAS[module]:
-        assert getattr(old, name) is getattr(new, name)
+        if name in STDLIB:
+            assert not hasattr(old, name)
+        else:
+            assert getattr(old, name) is getattr(new, name)
     assert 'inklet.volume' in old.__doc__
 
 

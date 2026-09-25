@@ -65,7 +65,7 @@ def arm(rate: float, n: int = 60) -> tuple[list[float], list[bool]]:
 months = [0, 12, 24, 36]
 survival = inklet.panel(38, 30, x=(0, 36), y=(0, 1))
 survival.kaplan_meier({"control": arm(1 / 14), "treated": arm(1 / 30)},
-                      colors=[INK, BLUE], pvalue=0.003)
+                      color=[INK, BLUE], pvalue=0.003)
 survival.axes(x="time / months", y="survival", x_options={"ticks": months})
 survival.legend(corner="ne")
 survival.at_risk(ticks=months)

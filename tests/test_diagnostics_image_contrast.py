@@ -100,7 +100,7 @@ def test_a_file_that_is_not_an_image_is_read_once_and_forgotten(tmp_path):
     broken.write_bytes(b"\x89PNG\r\n\x1a\n not really")
     di.clear_cache()
 
-    assert di.average_colour(
+    assert di.average_color(
         ImagePrim(source=str(broken), width=10.0, height=10.0,
                   pixel_size=(10, 10)),
         Affine(), Rect(-5.0, -5.0, 5.0, 5.0)) is None
@@ -115,4 +115,4 @@ def test_a_caption_smaller_than_a_few_pixels_is_not_averaged(half_and_half):
                      pixel_size=PIXELS)
     sliver = Rect(0.0, 0.0, 0.05, 0.05)
 
-    assert di.average_colour(prim, Affine(), sliver) is None
+    assert di.average_color(prim, Affine(), sliver) is None

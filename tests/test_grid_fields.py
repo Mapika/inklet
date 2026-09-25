@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from inklet.experimental.grid import GridField,Streamline
 from inklet.experimental.browser import BrowserFigure,GridFieldView,RevisionOption
-from inklet.experimental.selection import KeyedTable,SelectionState
+from inklet.selection import KeyedTable,SelectionState
 
 RECIPE=Path(__file__).resolve().parents[1]/'examples/v4/contours_streamlines.py'
 spec=importlib.util.spec_from_file_location('contours_streamlines',RECIPE)

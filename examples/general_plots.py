@@ -69,14 +69,14 @@ def make_document(*,legacy=False):
     doc.add('response',p,row=1,column=0)
     p=i.plot_spec(height=34,x=(-.12,.12),y=(0,45))
     p.hist(sensor.column('residual'),bins=[n*.02 for n in range(-6,7)],
-           colors='#24698c',stroke='white',stroke_width=style.theme.hairline)
+           color='#24698c',stroke='white',stroke_width=style.theme.hairline)
     p.vline(0,stroke='#b86443',stroke_width=style.theme.hairline,stroke_dash=(1,1),front=True)
     axes(p,x='Response residual',y='Observations')
     doc.add('residuals',p,row=1,column=1)
     revenue=tables['revenue'];products=['Subscriptions','Services','Licensing']
     p=i.plot_spec(height=34,x=revenue.columns['quarter'],y=(0,210))
     p.bars(revenue.column('quarter'),tuple(revenue.column(name.lower()) for name in products),
-           names=products,width=.72,gap=.18,colors=list(colors.values()),stroke='none')
+           name=products,width=.72,gap=.18,color=list(colors.values()),stroke='none')
     axes(p,x='Quarter',y='Revenue / kEUR');legend(p,side='top')
     doc.add('revenue',p,row=2,column=0)
     shares=i.derive(lambda *columns: tuple(tuple(100*v/sum(period) for v,period in zip(column,zip(*columns))) for column in columns),

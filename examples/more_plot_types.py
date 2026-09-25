@@ -31,8 +31,8 @@ BLUE, GREEN, INK, YELLOW, GREY = "#24698c", "#288675", "#262626", "#e6b93f", "#e
 
 # The pie turns so the broken-out slices face the bar.
 share = inklet.polar(10)
-share.pie([24.8, 1.5, 73.7], colors=[INK, YELLOW, GREY], labels=["24.8%", None, "73.7%"],
-          names=["isomorphic", "dimorphic", "noise"])
+share.pie([24.8, 1.5, 73.7], color=[INK, YELLOW, GREY], labels=["24.8%", None, "73.7%"],
+          name=["isomorphic", "dimorphic", "noise"])
 share.breakout([0, 1], labels="{share:.1%}", title="without noise")
 share.legend(side="bottom")
 
@@ -44,7 +44,7 @@ onsets = {s: [rng.gauss(2 + k * 0.9, 0.9 - 0.08 * k) for _ in range(80)]
           for k, s in enumerate(stages)}
 ridges = inklet.panel(34, 34, x=(0, 10), y=stages[::-1])
 ridges.ridgeline(onsets, overlap=1.8, stroke="white",
-                 colors=["#24698c", "#2d7d8a", "#3a9083", "#5aa374", "#8bb35f", "#c2bf52"])
+                 color=["#24698c", "#2d7d8a", "#3a9083", "#5aa374", "#8bb35f", "#c2bf52"])
 ridges.axes(x="onset time / h")
 
 # -- c: rainclouds -----------------------------------------------------------
@@ -53,7 +53,7 @@ samples = {"control": [rng.gauss(4.1, 0.62) for _ in range(60)],
            "treated": [rng.gauss(4.65, 0.78) for _ in range(40)]
            + [rng.gauss(6.2, 0.3) for _ in range(20)]}
 rain = inklet.panel(38, 34, x=(1, 8), y=["treated", "control"])
-rain.raincloud(samples, colors=[BLUE, GREEN], size=0.7)
+rain.raincloud(samples, color=[BLUE, GREEN], size=0.7)
 rain.axes(x="measurement / a.u.")
 
 # -- d: volcano --------------------------------------------------------------
@@ -65,7 +65,7 @@ for _ in range(1200):
     pvalues.append(math.erfc(abs(effect * 1.3 + rng.gauss(0, 1)) / math.sqrt(2)))
 genes = [f"G{k}" for k in range(len(fold))]
 volcano = inklet.panel(42, 40, x=(-6, 6), y=(0, 16))
-volcano.volcano(fold, pvalues, labels=genes, top=6, names=("down", None, "up"), size=0.7)
+volcano.volcano(fold, pvalues, labels=genes, top=6, name=("down", None, "up"), size=0.7)
 volcano.axes(x="log2 fold change", y="-log10 p").legend(side="top")
 
 # -- e: clustered heatmap ----------------------------------------------------

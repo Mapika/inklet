@@ -71,8 +71,8 @@ female = {g: [rng.gauss(2.2 + .5 * k, .6) for _ in range(90)] for k, g in enumer
 male = {g: [rng.gauss(2.0 + .2 * k, .7) for _ in range(80)]
         + [rng.gauss(4.6, .3) for _ in range(8 + 6 * k)] for k, g in enumerate(groups)}
 violins = i.plot_spec(height=32, x=groups, y=(0, 6))
-violins.split_violin(female, male, names=['female', 'male'], quartiles=True,
-                     colors=[magenta, green])
+violins.split_violin(female, male, name=['female', 'male'], quartiles=True,
+                     color=[magenta, green])
 violins.axes(y='expression / log CPM').legend(side='top')
 
 # -- d: brackets --------------------------------------------------------------------
@@ -81,7 +81,7 @@ doses = ['vehicle', 'low', 'mid', 'high']
 response = {d: [rng.gauss(m, .45) for _ in range(10)]
             for d, m in zip(doses, (3.0, 3.3, 4.6, 5.2))}
 signif = i.plot_spec(height=32, x=doses, y=(0, 11))
-signif.boxplot(response, outliers=False).swarm(response, colors=[blue] * 4)
+signif.boxplot(response, outliers=False).swarm(response, color=[blue] * 4)
 signif.brackets([('vehicle', 'low', .31), ('vehicle', 'mid', 3e-4),
                  ('vehicle', 'high', 2e-6), ('low', 'high', 8e-5),
                  ('mid', 'high', .042)], hide_ns=True)
@@ -102,7 +102,7 @@ def arm(rate, n=70):
 months = [0, 12, 24, 36]
 survival = i.plot_spec(height=32, x=(0, 36), y=(0, 1))
 survival.kaplan_meier({'placebo': arm(1 / 16), 'treated': arm(1 / 34)},
-                      colors=[ink, blue], pvalue=.002)
+                      color=[ink, blue], pvalue=.002)
 survival.axes(x='time / months', y='survival', x_options={'ticks': months})
 survival.legend(corner='ne')
 survival.at_risk(ticks=months)

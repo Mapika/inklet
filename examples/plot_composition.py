@@ -29,13 +29,13 @@ def make_document(width=180):
 
     bars=i.plot_spec(x=['Control','Treatment','Recovery'],y=(0,8),height=34)
     bars.bars(['Control','Treatment','Recovery'],[[3,5,4],[4,6.5,5]],
-              colors=['#527da8','#b96932'],names=['Before','After'],grouped=True)
+              color=['#527da8','#b96932'],name=['Before','After'],grouped=True)
     bars.axes(y='Response / a.u.',x_options={'rotate':20,'tick_font_size':i.pt(7)},y_options={'count':4})
     bars.legend(side='bottom')
 
     samples={'A':[1.8,2,2,2.4,2.8,3.2,4.1], 'B':[2.5,3,3,3.4,4,4.4,5.2]}
-    boxes=i.plot_spec().boxplot(samples,colors=['#c6d6df','#e0c7b7'],key='summary')
-    points=i.plot_spec().swarm(samples,size=1.3,colors=['#355a75','#965329'],key='observations')
+    boxes=i.plot_spec().boxplot(samples,color=['#c6d6df','#e0c7b7'],key='summary')
+    points=i.plot_spec().swarm(samples,size=1.3,color=['#355a75','#965329'],key='observations')
     distribution=i.plot_spec(x=['A','B'],y=(0,6),height=34).extend(boxes).extend(points)
     distribution.axes(y='Measurement / a.u.',x_options={'tick_font_size':i.pt(9)},y_options={'count':4})
 

@@ -42,6 +42,7 @@ import math
 from dataclasses import dataclass
 from typing import Iterable, Sequence
 
+from .._compat import renamed_keywords, resolve_renamed
 from ..core.diagram import Diagram
 from ..core.geom import IDENTITY, ORIGIN, Affine, Vec2
 from ..core.prims import PathPrim, Subpath, TextLine, TextPrim
@@ -223,12 +224,17 @@ def baseline(source: object = (), *, curves: Sequence[Sequence[object]] | None =
     return _from_points([_vec(p) for p in source], closed)   # type: ignore[arg-type]
 
 
+@renamed_keywords(centre="center")
 def baseline_arc(radius: float, start: float, end: float,
-                 centre: object = ORIGIN) -> Baseline:
+                 centre: object = None, *, center: object = None) -> Baseline:
     """The circular arc from bearing `start` to bearing `end`, exactly.
 
+    `center` is the circle's centre point (default: the origin). The fourth
+    positional slot keeps its 4.x name `centre`; passing `centre=` as a
+    keyword is deprecated.
+
     Degrees, and clockwise-positive like everything else here: `start=0` is due
-    east of `centre` and `end` greater than `start` sweeps clockwise on the
+    east of `center` and `end` greater than `start` sweeps clockwise on the
     page. Sampled from the circle itself rather than from cubics, so the
     stations are the true arclength and the tangents are exact -- which at a
     5mm radius is the difference between a letter sitting on the curve and one
@@ -236,7 +242,7 @@ def baseline_arc(radius: float, start: float, end: float,
     """
     if radius <= 0:
         raise ValueError(f"a baseline arc needs a positive radius, got {radius!r}")
-    hub = _vec(centre)
+    hub = _vec(resolve_renamed("baseline_arc", "center", center, "centre", centre, ORIGIN))
     sweep = math.radians(end - start)
     if abs(sweep) <= _EPS:
         raise ValueError(f"an arc from {start} to {end} degrees has no length")
@@ -557,8 +563,9 @@ def text_on_path(content: object, along: object, *, align: str = "center",
     return group.note(TEXT_NOTE, prim.text)
 
 
+@renamed_keywords(centre="center")
 def text_on_arc(content: object, radius: float, angle: float, *,
-                side: str = "outside", gap: float = 0.0, centre: object = ORIGIN,
+                side: str = "outside", gap: float = 0.0, center: object = ORIGIN,
                 sweep: str = "cw", flip: bool = True, spacing: float = 0.0,
                 pivot: float | None = None,
                 kind: str = ONPATH_KIND) -> Diagram:
@@ -566,7 +573,7 @@ def text_on_arc(content: object, radius: float, angle: float, *,
 
     The convenience the polar plots wanted, and the one call where `side` is
     named for the circle rather than for the direction of travel: `"outside"`
-    keeps the block's ink clear of `radius` on the far side from `centre` and
+    keeps the block's ink clear of `radius` on the far side from `center` and
     `"inside"` keeps it clear on the near side, in both cases by `gap`
     millimetres. The baseline circle is worked out from the block's own ascent
     and descent, so a ring of labels sits on one line whether or not a
@@ -602,8 +609,8 @@ def text_on_arc(content: object, radius: float, angle: float, *,
             f"gap={gap} needs a baseline at r={r:.2f}mm, which is not a circle")
     # Half a turn either side of the bearing: more curve than a label can use,
     # and centred so that `align="center"` lands the run's middle on `angle`.
-    curve = (baseline_arc(r, angle + 180.0, angle - 180.0, centre) if ccw else
-             baseline_arc(r, angle - 180.0, angle + 180.0, centre))
+    curve = (baseline_arc(r, angle + 180.0, angle - 180.0, center=center) if ccw else
+             baseline_arc(r, angle - 180.0, angle + 180.0, center=center))
     return text_on_path(content, curve, align="center", side="above",
                         flip=False, spacing=spacing, pivot=pivot, kind=kind)
 

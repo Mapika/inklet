@@ -18,6 +18,7 @@ from typing import Sequence
 from ..core import (
     Diagram, EllipsePrim, ORIGIN, PathPrim, Rect, RectPrim, Subpath, Vec2, mm,
 )
+from .._compat import renamed_keywords
 from .coords import Point, active_theme, drawn, to_point
 from .path import Cubic, EPS, path, straight_cubic
 
@@ -98,7 +99,8 @@ def sector(radius: float | str, start: float, end: float, *,
     return path(curves=tuple(chain), closed=True, kind=kind, **style)
 
 
-def arc_cubics(centre: Vec2, radius: float, start: float, end: float,
+@renamed_keywords(centre="center")
+def arc_cubics(center: Vec2, radius: float, start: float, end: float,
                max_span: float = _MAX_ARC_SPAN) -> tuple[Cubic, ...]:
     """Split a sweep into cubics of at most `max_span` degrees.
 
@@ -117,8 +119,8 @@ def arc_cubics(centre: Vec2, radius: float, start: float, end: float,
     for i in range(count):
         a0 = math.radians(start + step * i)
         a1 = math.radians(start + step * (i + 1))
-        p0 = centre + Vec2(math.cos(a0), math.sin(a0)) * radius
-        p3 = centre + Vec2(math.cos(a1), math.sin(a1)) * radius
+        p0 = center + Vec2(math.cos(a0), math.sin(a0)) * radius
+        p3 = center + Vec2(math.cos(a1), math.sin(a1)) * radius
         chain.append((
             p0,
             p0 + Vec2(-math.sin(a0), math.cos(a0)) * k,

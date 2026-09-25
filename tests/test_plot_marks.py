@@ -243,7 +243,7 @@ def test_one_series_of_bars_is_a_tint_and_several_take_the_palette() -> None:
 
 def test_bars_take_the_colours_they_are_given() -> None:
     p = panel(60, 40, x=CATS, y=(0, 10))
-    p.bars(CATS, [[1, 1, 1], [2, 2, 2]], colors=["#ff0000", "#00ff00"])
+    p.bars(CATS, [[1, 1, 1], [2, 2, 2]], color=["#ff0000", "#00ff00"])
 
     assert set(fills(p)) == {"#ff0000", "#00ff00"}
 

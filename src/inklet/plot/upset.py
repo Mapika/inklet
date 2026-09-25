@@ -354,7 +354,7 @@ def upset(data, *, sets: Sequence[str] | None = None, sort: str = "size",
     sizes = [i.size for i in layout.intersections]
     bar_options = {} if labels is None else {"labels": labels,
                                              "label_position": "end"}
-    bars.bars(keys, sizes, width=_BAR_OF_PITCH, colors=[ink], stroke="none",
+    bars.bars(keys, sizes, width=_BAR_OF_PITCH, color=[ink], stroke="none",
               **bar_options)
     bars.axis("left", label=bar_label, ticks=marks)
 
@@ -409,7 +409,7 @@ def upset(data, *, sets: Sequence[str] | None = None, sort: str = "size",
             high, marks = _ticks(biggest, 3, most, end=False)
         side = panel(mm(set_width), h_matrix, x=linear((high, 0.0)), y=y)
         side.bars(list(layout.sets), list(layout.set_sizes), orient="h",
-                  width=_BAR_OF_PITCH, colors=[ink], stroke="none")
+                  width=_BAR_OF_PITCH, color=[ink], stroke="none")
         side.axis("bottom", label=set_label, ticks=marks)
         lower = row([side, grid], gap=space)
     else:

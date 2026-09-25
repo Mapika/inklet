@@ -8,12 +8,18 @@ from pathlib import Path
 import pytest
 import inklet as i
 from inklet.experimental.browser import BrowserFigure,DrawingItem,DrawingView,RevisionOption
-from inklet.experimental.engineering import BoxAssembly,BoxComponent
-from inklet.experimental.selection import KeyedTable,SelectionState
+from inklet.selection import KeyedTable,SelectionState
+from inklet._compat import InkletDeprecationWarning
 
 RECIPE=Path(__file__).resolve().parents[1]/'examples/v4/engineering_report.py'
 spec=importlib.util.spec_from_file_location('engineering_report',RECIPE)
-recipe=importlib.util.module_from_spec(spec);spec.loader.exec_module(recipe)
+recipe=importlib.util.module_from_spec(spec)
+# inklet.experimental.engineering is removed in 5.0 and warns on import.
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore',InkletDeprecationWarning)
+    from inklet.experimental.engineering import BoxAssembly,BoxComponent
+    spec.loader.exec_module(recipe)
 
 
 def test_box_measurements_closed_sections_and_snapshot():

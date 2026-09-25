@@ -52,9 +52,9 @@ from .cross import declared_crossings
 from .color import contrast_ratio
 # Reading a raster's pixels is the one thing in here that is not pure geometry.
 # It is quarantined in its own module, is optional, and says so: with no Pillow
-# installed `average_colour` returns None and the contrast rule stays silent
+# installed `average_color` returns None and the contrast rule stays silent
 # rather than judging a caption against a page it is nowhere near.
-from .image import average_colour
+from .image import average_color
 
 __all__ = [
     "Diagnostic", "Item", "LintContext", "Rule", "RULES", "SEVERITIES",
@@ -503,7 +503,7 @@ class LintContext:
         if best is None:
             return self.page_fill, None
         if isinstance(best.prim, ImagePrim):
-            return average_colour(best.prim, best.world, item.bbox), best
+            return average_color(best.prim, best.world, item.bbox), best
         fill = str(best.style.fill)
         alpha = best.style.fill_opacity
         if alpha is not None and alpha < 1.0 and self.page_fill:

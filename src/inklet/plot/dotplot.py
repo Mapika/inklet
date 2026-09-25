@@ -207,7 +207,7 @@ def dotplot(panel, sizes, colors=None, *, x: Sequence | None = None,
     Returns `(node, note)`; the note's `sizes` is the `AreaScale` used and
     `ramp` and `scale` the colouring (None without `colors`).
     """
-    from .matrix import default_colouring
+    from .matrix import default_coloring
 
     rows = [list(r) for r in sizes]
     if not rows or not rows[0]:
@@ -240,7 +240,7 @@ def dotplot(panel, sizes, colors=None, *, x: Sequence | None = None,
     theme = active_theme()
     unit = None
     if shades is not None:
-        ramp, scale = default_colouring(shades, ramp, scale, center)
+        ramp, scale = default_coloring(shades, ramp, scale, center)
         unit = None if scale is None else scale.with_range(0.0, 1.0)
     fill = _marks.series_colors(None, 1)[0] if color is None else color
     paint = {"stroke": theme.ink, "stroke_width": theme.hairline}

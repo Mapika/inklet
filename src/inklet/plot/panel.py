@@ -39,11 +39,12 @@ from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
                         plated as _plated)
 from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
                   legend as make_legend)
-from .matrix import (_RASTER_ABOVE_CELLS, matrix_centres, matrix_layer,
-                     prepare_matrix, default_colouring)
+from .matrix import (_RASTER_ABOVE_CELLS, matrix_centers, matrix_layer,
+                     prepare_matrix, default_coloring)
 from .scale import Band, Linear, Log, Scale, linear
 from .metadata import declare_domain as _declare_domain
-from .series import SeriesKey, merge_keys, series_color, swatch_for
+from .series import SeriesKey, merge_keys, series_color, series_names, swatch_for
+from .._compat import renamed_keywords, resolve_renamed
 from .timescale import dates, is_time_like
 
 __all__ = ["Panel", "column", "panel", "row"]
@@ -321,7 +322,7 @@ class Panel:
         rows, raster, overlap, clip = prepare_matrix(
             values, vector=vector, interpolation=interpolation, raster=raster,
             overlap=overlap, style=style)
-        ramp, scale = default_colouring(rows, ramp, scale, center)
+        ramp, scale = default_coloring(rows, ramp, scale, center)
         centres_x = self._centres(x, len(rows[0]), self.x, self.width)
         centres_y = self._centres(y, len(rows), self.y, self.height)
         unit = None if scale is None else scale.with_range(0.0, 1.0)
@@ -340,7 +341,7 @@ class Panel:
 
     def _centres(self, given: Sequence | None, count: int,
                  scale: Scale, extent: float) -> list[float]:
-        return matrix_centres(given, count, scale, extent)
+        return matrix_centers(given, count, scale, extent)
 
     def line(self, points: Iterable[Sequence], *, smooth: float = 0.0,
              closed: bool = False, name: str | None = None, err=None,
@@ -532,10 +533,11 @@ class Panel:
         self._scale_domain = scale
         return [ramp(unit.map(v)) for v in numbers], scale
 
+    @renamed_keywords(colors="color", names="name")
     def bars(self, at: Sequence, heights, *, width: float = 0.8,
              baseline: float = 0.0, orient: str = "v",
              stacked: bool | None = None, grouped: bool | None = None,
-             gap: float = 0.12, colors=None, bar_colors=None, names: Sequence[str] | None = None,
+             gap: float = 0.12, color=None, bar_colors=None, name: str | Sequence[str] | None = None,
              labels=None, label_position: str = "auto",
              label_options: dict | None = None,
              **style) -> "Panel":
@@ -548,7 +550,7 @@ class Panel:
         something worth reading and so is never the default.
 
             p.bars(["ctrl", "drug"], [12, 31])
-            p.bars(days, [morning, evening], colors=["#888", TH.accent])
+            p.bars(days, [morning, evening], color=["#888", TH.accent])
 
         `orient="h"` lays the bars down: `at` is then a position on y and the
         heights run along x, which is the layout to use the moment the category
@@ -559,12 +561,15 @@ class Panel:
         a fraction of their sub-slot. One series is drawn as a tint of the ink
         with a hairline edge; several take the theme's palette in order.
 
-        `bar_colors=` assigns one colour per category, as a sequence or a
-        mapping keyed by the values in `at`. It requires one series. A mapping
-        from `inklet.categories()` also supplies category legend entries.
+        `color=` is one colour for every series or a sequence of one colour per
+        *series*. `bar_colors=` assigns one colour per *category* instead, as a
+        sequence or a mapping keyed by the values in `at`; it requires one
+        series. A mapping from `inklet.categories()` also supplies category
+        legend entries.
 
-        `names=` is one name per *series*, not per bar -- the bars are named by
-        the axis -- and gives `legend()` a swatch in each series' own colour.
+        `name=` is one name per *series* (a string for a single series), not
+        per bar -- the bars are named by the axis -- and gives `legend()` a
+        swatch in each series' own colour.
         Unstacked values equal to the baseline draw no rectangle; stacked
         contributions of zero also draw nothing. If every bar has zero length,
         the series remains valid and retains axes and requested legend entries.
@@ -583,28 +588,29 @@ class Panel:
                    orient="h", labels=True)
         """
         clip = _clip_flag(style)
+        names = series_names(name)
         if names is not None and bar_colors is not None:
-            raise DiagramError("a per-category colour set cannot have one series legend; omit names")
+            raise DiagramError("a per-category colour set cannot have one series legend; omit name")
         if names is not None:
             self._note_series(
                 names, _marks.series_colors(
-                    style.get("fill") if colors is None else colors,
+                    style.get("fill") if color is None else color,
                     _marks.series_count(heights)))
         from .categories import CategorySet
         at = tuple(at)
         node = _marks.bars(
             self, at, heights, width=width, baseline=baseline, orient=orient,
-            stacked=stacked, grouped=grouped, gap=gap, colors=colors, bar_colors=bar_colors,
+            stacked=stacked, grouped=grouped, gap=gap, colors=color, bar_colors=bar_colors,
             **style)
         if isinstance(bar_colors, CategorySet):
-            for label, color in bar_colors.subset(at).legend_entries:
-                self._note(label, "area", fill=color, color=color)
+            for label, entry in bar_colors.subset(at).legend_entries:
+                self._note(label, "area", fill=entry, color=entry)
         self.draw(*(() if node is None else (node,)), clip=clip)
         if labels is not None and labels is not False:
             from .bar_labels import bar_labels
             count = _marks.series_count(heights)
             fills = _marks.series_colors(
-                style.get("fill") if colors is None else colors, count)
+                style.get("fill") if color is None else color, count)
             per_bar = None
             if bar_colors is not None:
                 per_bar = ([bar_colors[a] for a in at]
@@ -620,9 +626,10 @@ class Panel:
                 self.over(written, clip=False)
         return self
 
+    @renamed_keywords(colors="color")
     def hist(self, values: Sequence[float], bins: int | Sequence[float] = 10, *,
              range: tuple[float, float] | None = None, density: bool = False,
-             baseline: float = 0.0, orient: str = "v", colors=None,
+             baseline: float = 0.0, orient: str = "v", color=None,
              name: str | None = None, **style) -> "Panel":
         """Binned counts as touching rectangles.
 
@@ -638,13 +645,15 @@ class Panel:
             edges, counts = inklet.plot.histogram(latencies, 12)
             p = inklet.panel(60, 34, x=(edges[0], edges[-1]), y=(0, max(counts)))
             p.hist(latencies, 12)
+
+        `color=` is the bar colour and `name=` the legend entry.
         """
         clip = _clip_flag(style)
         self._note(name, "area", fill=_marks.series_colors(
-            style.get("fill") if colors is None else colors, 1)[0])
+            style.get("fill") if color is None else color, 1)[0])
         return self.draw(_marks.hist(
             self, values, bins, range=range, density=density,
-            baseline=baseline, orient=orient, colors=colors, **style),
+            baseline=baseline, orient=orient, colors=color, **style),
             clip=clip)
 
     def errorbars(self, points: Iterable[Sequence], *, yerr=None, xerr=None,
@@ -697,12 +706,14 @@ class Panel:
         return self.draw(_marks.fill_between(self, x, y0, y1, **style),
                          clip=clip)
 
-    def stackarea(self, x: Sequence, values, *, baseline=0.0, colors=None,
-                  names: Sequence[str] | None = None, **style) -> "Panel":
+    @renamed_keywords(colors="color", names="name")
+    def stackarea(self, x: Sequence, values, *, baseline=0.0, color=None,
+                  name: str | Sequence[str] | None = None, **style) -> "Panel":
         """Stack non-negative series over shared x values, in supplied order.
 
         `values` is series-major. `baseline` is a scalar or one value per x;
-        `names` creates legend entries. Use `fill_between` for already
+        `color=` is one colour or one per series, and `name=` (one name per
+        series) creates legend entries. Use `fill_between` for already
         cumulative boundaries. Returns this panel for chaining.
         """
         import math
@@ -715,9 +726,10 @@ class Panel:
         lower = _marks._values(baseline, len(xs), "baseline")
         if any(not math.isfinite(v) for v in lower):
             raise DiagramError("stackarea baseline must be finite")
+        names = series_names(name)
         if names is not None and len(names) != len(rows):
             raise DiagramError("stackarea needs one name per series")
-        fills = _marks.series_colors(colors, len(rows))
+        fills = _marks.series_colors(color, len(rows))
         for i, row in enumerate(rows):
             upper = tuple(a+b for a,b in zip(lower,row))
             paint = dict(style, fill=fills[i])
@@ -746,9 +758,10 @@ class Panel:
         return self.draw(_marks.step(self, points, where=where, **style),
                          clip=clip)
 
+    @renamed_keywords(colors="color")
     def boxplot(self, groups, *, at=None, width: float = 0.6,
                 orient: str = "v", whisker: float = 1.5,
-                outliers: bool = True, colors=None, **style) -> "Panel":
+                outliers: bool = True, color=None, **style) -> "Panel":
         """Quartile boxes with Tukey whiskers, one per group.
 
         `groups` is a mapping of position to samples -- the spelling that
@@ -761,17 +774,19 @@ class Panel:
         the interquartile range; everything beyond is drawn as its own point.
         The box is unfilled by default, so the median is the only heavy line in
         it. `inklet.plot.box_stats(sample)` returns the same five numbers if you
-        want them in the caption.
+        want them in the caption. `color=` fills the boxes: one colour, or one
+        per group.
         """
         clip = _clip_flag(style)
         return self.draw(_marks.boxplot(
             self, groups, at=at, width=width, orient=orient, whisker=whisker,
-            outliers=outliers, colors=colors, **style), clip=clip)
+            outliers=outliers, colors=color, **style), clip=clip)
 
+    @renamed_keywords(colors="color")
     def violin(self, groups, *, at=None, width: float = 0.8,
                orient: str = "v", bandwidth: float | None = None,
                samples: int = 64, cut: float = 2.0, median: bool = True,
-               colors=None, **style) -> "Panel":
+               color=None, **style) -> "Panel":
         """Mirrored kernel densities, one per group.
 
         The shape a box plot cannot draw: two samples with the same quartiles
@@ -782,13 +797,13 @@ class Panel:
 
         A violin claims the density is smooth, so it needs enough data to
         support the claim -- under about twenty points per group, draw the
-        points.
+        points. `color=` fills the violins: one colour, or one per group.
         """
         clip = _clip_flag(style)
         return self.draw(_marks.violin(
             self, groups, at=at, width=width, orient=orient,
             bandwidth=bandwidth, samples=samples, cut=cut, median=median,
-            colors=colors, **style), clip=clip)
+            colors=color, **style), clip=clip)
 
     # -- reference lines, in data coordinates ------------------------------
 
@@ -1569,11 +1584,12 @@ class Panel:
 
         return break_marks(self)
 
+    @renamed_keywords(colors="color")
     def swarm(self, groups, *, at=None, width: float = 0.8,
               max_width: float | str | None = None, orient: str = "v",
               size: float | str | None = None,
               gap: float | str | None = None, marker: str = "circle",
-              hollow: bool = False, colors=None, **style) -> "Panel":
+              hollow: bool = False, color=None, **style) -> "Panel":
         """Every observation as its own dot, nudged sideways until none hides
         another.
 
@@ -1593,7 +1609,7 @@ class Panel:
         `size` is the dot's diameter in millimetres and defaults to the box
         plot's outlier dot, `gap` the air between two neighbours. `hollow=True`
         draws them as rings on paper, which is worth it up to a dozen or so
-        points and a thicket beyond that. `colors=` takes one colour per group.
+        points and a thicket beyond that. `color=` takes one colour, or one per group.
 
         **Width.** `width=` is the slot, as a fraction of the band step, the
         same as every other categorical mark; `max_width=` is an absolute
@@ -1608,11 +1624,12 @@ class Panel:
         return self.draw(_marks.swarm(
             self, groups, at=at, width=width, max_width=max_width,
             orient=orient, size=size, gap=gap, marker=marker, hollow=hollow,
-            colors=colors, **style), clip=clip)
+            colors=color, **style), clip=clip)
 
+    @renamed_keywords(colors="color", names="name")
     def dumbbell(self, at: Sequence, values, *, orient: str = "v",
-                 size: float | str | None = None, colors=None,
-                 names: Sequence[str] | None = None, marker: str = "circle",
+                 size: float | str | None = None, color=None,
+                 name: str | Sequence[str] | None = None, marker: str = "circle",
                  connector: dict | None = None, **style) -> "Panel":
         """Two or more dots per category joined by a line: a dumbbell plot.
 
@@ -1623,27 +1640,28 @@ class Panel:
         a missing value: that dot is not drawn, and a category with only one
         value has no line.
 
-            p.dumbbell(genes, [before, after], names=["before", "after"],
+            p.dumbbell(genes, [before, after], name=["before", "after"],
                        orient="h")
 
         `size` is the dot diameter in millimetres (default: the scatter
-        marker). `colors=` sets one colour per series; the default is the
-        theme palette. `connector=` overrides the line's style, which by
-        default is a light grey at the theme's thick stroke. `names=` adds one
-        marker entry per series to `legend()`.
+        marker). `color=` sets one colour, or one per series; the default is
+        the theme palette. `connector=` overrides the line's style, which by
+        default is a light grey at the theme's thick stroke. `name=` (one name
+        per series) adds one marker entry per series to `legend()`.
         """
         from .paired import dumbbell as _dumbbell
 
         clip = _clip_flag(style)
         node, fills = _dumbbell(self, at, values, orient=orient, size=size,
-                                colors=colors, marker=marker,
+                                colors=color, marker=marker,
                                 connector=connector, **style)
+        names = series_names(name)
         if names is not None:
             if len(names) != len(fills):
                 raise DiagramError(
-                    f"names= has {len(names)} names for {len(fills)} series")
-            for name, fill in zip(names, fills):
-                self._note(name, "marker", color=fill, marker=marker)
+                    f"name= has {len(names)} names for {len(fills)} series")
+            for entry, fill in zip(names, fills):
+                self._note(entry, "marker", color=fill, marker=marker)
         return self.draw(node, clip=clip)
 
     def lollipop(self, at: Sequence, values: Sequence, *, baseline: float = 0.0,
@@ -1722,9 +1740,10 @@ class Panel:
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
         return self.draw(polyline(self.map(points), **style), clip=clip)
 
+    @renamed_keywords(colors="color")
     def ridgeline(self, groups, *, at=None, overlap: float = 1.5,
                   bandwidth: float | None = None, samples: int = 96,
-                  scale: str = "shared", fit: bool = True, colors=None,
+                  scale: str = "shared", fit: bool = True, color=None,
                   **style) -> "Panel":
         """Overlapping kernel densities, one per category: a ridgeline plot.
 
@@ -1746,7 +1765,7 @@ class Panel:
         a narrow sample has a tall peak; `scale="each"` gives every ridge the
         same peak height. `bandwidth` defaults to Silverman's robust rule per
         group, as for `violin`, and `samples` is the number of points along
-        x. `colors=` sets one fill per group (default: one tint for all);
+        x. `color=` sets one fill, or one per group (default: one tint for all);
         other keywords style the outline.
 
         `fit=True` (default) scales every ridge down by one common factor
@@ -1760,14 +1779,15 @@ class Panel:
         clip = _clip_flag(style)
         node, _, _ = _ridgeline(self, groups, at=at, overlap=overlap,
                                 bandwidth=bandwidth, samples=samples,
-                                scale=scale, fit=fit, colors=colors, **style)
+                                scale=scale, fit=fit, colors=color, **style)
         return self.draw(node, clip=clip)
 
+    @renamed_keywords(colors="color")
     def raincloud(self, groups, *, at=None, orient: str = "h",
                   width: float = 0.9, bandwidth: float | None = None,
                   samples: int = 64, cut: float = 2.0, whisker: float = 1.5,
                   points: str | None = "jitter", size: float | str | None = None,
-                  seed: int = 0, box: bool = True, colors=None,
+                  seed: int = 0, box: bool = True, color=None,
                   **style) -> "Panel":
         """A half violin, a narrow box and the observations, per group.
 
@@ -1791,7 +1811,7 @@ class Panel:
         `points="swarm"` packs them as `swarm` does; `None` leaves them out.
         `size` is the dot diameter in mm. `box=False` omits the box.
 
-        `colors=` sets one colour per group: the points use it and the half
+        `color=` sets one colour, or one per group: the points use it and the half
         violin a paler blend of it. The default is the ink for one group and
         the theme's ink palette for several. Other keywords style the points.
         """
@@ -1801,7 +1821,7 @@ class Panel:
         node, _, _ = _raincloud(self, groups, at=at, orient=orient, width=width,
                                 bandwidth=bandwidth, samples=samples, cut=cut,
                                 whisker=whisker, points=points, size=size,
-                                seed=seed, box=box, colors=colors, **style)
+                                seed=seed, box=box, colors=color, **style)
         return self.draw(node, clip=clip)
 
     def label_points(self, points: Iterable[Sequence], labels: Sequence[str],
@@ -1873,9 +1893,10 @@ class Panel:
             over[n] = node
         return over
 
+    @renamed_keywords(colors="color")
     def dendrogram(self, tree, *, labels: Sequence | None = None,
                    orient: str = "v", threshold: float | None = None,
-                   colors=None, **style) -> "Panel":
+                   color=None, **style) -> "Panel":
         """The merge tree of a hierarchical clustering, drawn as elbows.
 
         `tree` is a SciPy linkage matrix (rows `[a, b, distance, count]`) or
@@ -1901,7 +1922,7 @@ class Panel:
             tree.dendrogram(link, labels=genes, orient="h")
 
         `threshold=` colours each subtree whose merges are all below that
-        height in its own colour from the theme's ink palette (or `colors=`)
+        height in its own colour from the theme's ink palette (or `color=`)
         and draws the merges above it in the ink. Other keywords style the
         lines. The node carries a `dendrogram` note with the leaf order, the
         root height and the leaves of each coloured cluster.
@@ -1910,13 +1931,14 @@ class Panel:
 
         clip = _clip_flag(style)
         node, _, _ = _dendrogram(self, tree, labels=labels, orient=orient,
-                                 threshold=threshold, colors=colors, **style)
+                                 threshold=threshold, colors=color, **style)
         return self.draw(node, clip=clip)
 
+    @renamed_keywords(colors="color", names="name")
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
                 labels: Sequence[str] | None = None, top: int = 10,
                 fold_threshold: float = 1.0, p_threshold: float = 0.05,
-                colors=None, names=None, size: float | None = None,
+                color=None, name=None, size: float | None = None,
                 thresholds: bool = True, label_options: dict | None = None,
                 **style) -> "Panel":
         """A volcano plot: log2 fold change on x against -log10 p on y.
@@ -1939,9 +1961,9 @@ class Panel:
         `label_options=` passes keywords to `label_points`. A p-value of 0
         is drawn at the smallest positive p-value in the data.
 
-        `colors=` is a mapping with keys "up", "down" and "ns", or three
+        `color=` is a mapping with keys "up", "down" and "ns", or three
         colours in the order down, ns, up. The default is red for up and blue
-        for down, from the Tol sunset diverging palette. `names=` (the same
+        for down, from the Tol sunset diverging palette. `name=` (the same
         shapes) names the classes in `legend()`; a class with no name has no
         legend row. `size` is the dot diameter in mm; other keywords style
         the points. The last layer drawn carries a `volcano` note with the
@@ -1964,8 +1986,8 @@ class Panel:
         sunset = _palette("tol-sunset").colors
         paint = {"down": sunset[1], "ns": mix(theme.muted, theme.paper, 0.55),
                  "up": sunset[9]}
-        paint.update(_volcano_triple(colors, "colors"))
-        named = _volcano_triple(names, "names")
+        paint.update(_volcano_triple(color, "color"))
+        named = _volcano_triple(name, "name")
         if thresholds:
             rule = {"stroke": theme.muted, "stroke_width": theme.hairline,
                     "stroke_dash": (1.0, 0.8)}
@@ -2007,24 +2029,31 @@ class Panel:
             last.notes["volcano"] = note
         return self
 
-    def dotplot(self, sizes: Sequence[Sequence[float]], colors=None, *,
+    @renamed_keywords(sizes="size", colors="color")
+    def dotplot(self, sizes: Sequence[Sequence[float]] | None = None, colors=None, *,
                 x: Sequence | None = None, y: Sequence | None = None,
                 top: float | None = None, diameter: float | str | None = None,
                 ramp=None, scale: Scale | None = None,
-                center: float | None = None, color: str | None = None,
+                center: float | None = None, color=None,
+                size: Sequence[Sequence[float]] | None = None,
                 **style) -> "Panel":
         """A dot plot: a circle per cell, its area one value, its colour another.
 
-        `sizes` is row-major like `matrix`: `sizes[r][c]` is drawn at the
-        `r`th y category and the `c`th x category, both band scales (or
-        `x=` and `y=` naming a position per column and row). A circle's area
-        is proportional to its value; `top` is the value drawn at the full
-        `diameter` (defaults: the largest value, and 0.9 of the smaller band
-        step). `colors`, the same shape, colours each circle through the
-        default matrix ramps, or `ramp=`, `scale=` and `center=` exactly as
-        `matrix` takes them; without it every circle is `color` (default: a
-        grey). A cell whose size or colour is missing (None or NaN) draws
-        nothing, and so does a size of 0.
+        `size` (the first positional argument) is row-major like `matrix`:
+        `size[r][c]` is drawn at the `r`th y category and the `c`th x
+        category, both band scales (or `x=` and `y=` naming a position per
+        column and row). A circle's area is proportional to its value; `top`
+        is the value drawn at the full `diameter` (defaults: the largest
+        value, and 0.9 of the smaller band step). `color` (the second
+        positional argument) is either one colour for every circle (default:
+        a grey) or values of the same shape, which colour each circle through
+        the default matrix ramps, or `ramp=`, `scale=` and `center=` exactly
+        as `matrix` takes them -- the same rule as `scatter(color=)`. A cell
+        whose size or colour is missing (None or NaN) draws nothing, and so
+        does a size of 0.
+
+        The positional slots keep their 4.x names `sizes` and `colors`;
+        passing those names as keywords is deprecated.
 
             p = inklet.panel(40, 30, x=genes, y=clusters)
             p.dotplot(fraction, mean_expression)
@@ -2041,9 +2070,19 @@ class Panel:
         from .dotplot import dotplot as _dotplot
 
         clip = _clip_flag(style)
-        node, note = _dotplot(self, sizes, colors, x=x, y=y, top=top,
+        values = resolve_renamed("Panel.dotplot", "size", size, "sizes", sizes)
+        if values is None:
+            raise TypeError("Panel.dotplot() missing the size values")
+        # A colour string paints every circle; anything else is data for a ramp.
+        # 4.x callers could pass both, and the data won.
+        shades, paint = colors, None
+        if isinstance(color, str):
+            paint = color
+        elif color is not None:
+            shades = resolve_renamed("Panel.dotplot", "color", color, "colors", colors)
+        node, note = _dotplot(self, values, shades, x=x, y=y, top=top,
                               diameter=diameter, ramp=ramp, scale=scale,
-                              center=center, color=color, **style)
+                              center=center, color=paint, **style)
         self._sizes = note["sizes"]
         if note["ramp"] is not None:
             self._ramp = note["ramp"]
@@ -2100,9 +2139,10 @@ class Panel:
         self._over.append(placed)
         return self._touched()
 
+    @renamed_keywords(colors="color")
     def kaplan_meier(self, data, *, confidence: float = 0.95,
                      band: str | None = "log-log", shade: bool = True,
-                     censors: bool = True, colors=None,
+                     censors: bool = True, color=None,
                      pvalue: float | str | None = None,
                      pvalue_corner: str = "sw", **style) -> "Panel":
         """Kaplan-Meier survival curves, with censor ticks and confidence bands.
@@ -2122,9 +2162,9 @@ class Panel:
         time, with a short vertical tick at every censoring time
         (`censors=False` leaves them out). `band` is the confidence band:
         `"log-log"` (default), `"linear"` or None, at `confidence`;
-        `shade=False` computes it without drawing it. `colors=` sets one
-        colour per group (default: the ink for one group, the theme palette
-        for several). Other keywords style the curves.
+        `shade=False` computes it without drawing it. `color=` sets one
+        colour, or one per group (default: the ink for one group, the theme
+        palette for several). Other keywords style the curves.
 
         There is no significance test: `pvalue=` writes a p-value computed
         elsewhere, as "P = 0.004" with an italic P, in `pvalue_corner` of the
@@ -2140,11 +2180,11 @@ class Panel:
         clip = _clip_flag(style)
         groups = estimates(data, confidence=confidence, band=band)
         theme = active_theme()
-        if colors is None:
+        if color is None:
             inks = ((theme.ink,) if len(groups) == 1
                     else tuple(theme.color(i) for i in range(len(groups))))
         else:
-            inks = _marks.series_colors(colors, len(groups))
+            inks = _marks.series_colors(color, len(groups))
         tick = _CENSOR_TICK_OF_TYPE * theme.font_size
         drawn: list[Diagram] = []
         for (name, estimate), ink in zip(groups, inks):
@@ -2200,11 +2240,12 @@ class Panel:
         gap = theme.gap("s") if pad is None else mm(pad)
         self._over.append(node.translated(0.0, box.y1 + gap - node.bbox.y0))
         return self._touched()
+    @renamed_keywords(colors="color", names="name")
     def split_violin(self, first, second, *, at=None, orient: str = "v",
                      width: float = 0.8, bandwidth: float | None = None,
                      samples: int = 64, cut: float = 2.0, scale: str = "shared",
-                     median: bool = True, quartiles: bool = False, colors=None,
-                     names: Sequence[str] | None = None, **style) -> "Panel":
+                     median: bool = True, quartiles: bool = False, color=None,
+                     name: Sequence[str] | None = None, **style) -> "Panel":
         """Two conditions per category as the two halves of one violin.
 
         `first` and `second` are spelled as `violin` groups: mappings of
@@ -2213,7 +2254,7 @@ class Panel:
         half) and the second the right (lower) half.
 
             p = inklet.panel(50, 36, x=["CA1", "CA3", "DG"], y=(0, 12))
-            p.split_violin(control, treated, names=["control", "treated"],
+            p.split_violin(control, treated, name=["control", "treated"],
                            quartiles=True)
 
         Each half is the `violin` kernel density, with the same bandwidth
@@ -2225,8 +2266,8 @@ class Panel:
         the outline. A half with fewer than two values is left out and listed
         under `empty` in the node's `split_violin` note.
 
-        `colors=` gives the two fills; the default is two pale theme
-        colours. `names=` (two names) adds both to `legend()`.
+        `color=` gives the two fills; the default is two pale theme
+        colours. `name=` (two names) adds both to `legend()`.
         """
         from .split_violin import split_violin as _split
 
@@ -2234,16 +2275,17 @@ class Panel:
         node, fills, _ = _split(self, first, second, at=at, orient=orient,
                                 width=width, bandwidth=bandwidth, samples=samples,
                                 cut=cut, scale=scale, median=median,
-                                quartiles=quartiles, colors=colors, **style)
-        if names is not None:
-            if len(names) != 2:
-                raise DiagramError(f"split_violin names= takes two names, got {names!r}")
-            self._note_series(list(names), list(fills))
+                                quartiles=quartiles, colors=color, **style)
+        if name is not None:
+            if isinstance(name, str) or len(name) != 2:
+                raise DiagramError(f"split_violin name= takes two names, got {name!r}")
+            self._note_series(list(name), list(fills))
         return self.draw(node, clip=clip)
 
+    @renamed_keywords(colors="color", centre="center")
     def embedding(self, points: Iterable[Sequence], clusters: Sequence, *,
-                  colors=None, size=None, labels: bool = True,
-                  centre: str = "median", label_size: float | str | None = None,
+                  color=None, size=None, labels: bool = True,
+                  center: str = "median", label_size: float | str | None = None,
                   arrows=None, shuffle: bool = True, seed: int = 0,
                   raster: bool = False, outline=None,
                   outline_core: float = 0.8, **style) -> "Panel":
@@ -2260,8 +2302,8 @@ class Panel:
 
         `labels=True` writes each cluster's name at its centre, on a paper
         halo. The centre is on the data: by default the member point nearest
-        the cluster's median (`centre="median"`), or `"medoid"` or `"mean"`;
-        see `inklet.plot.cluster_centres`. A name that would overlap one
+        the cluster's median (`center="median"`), or `"medoid"` or `"mean"`;
+        see `inklet.plot.cluster_centers`. A name that would overlap one
         already placed, or the points of another cluster, moves to the
         nearest free spot around its centre. It may cover its own cluster.
         Names that could not clear other clusters' points are listed under
@@ -2280,7 +2322,7 @@ class Panel:
         labelled UMAP1 and UMAP2, instead of axes; a pair of names sets both
         labels. Do not also call `axes`.
 
-        `colors=` is a mapping of cluster to colour, or a sequence in cluster
+        `color=` is a mapping of cluster to colour, or a sequence in cluster
         order (first seen, or ascending for numbers). The default is Paul
         Tol's muted, bright and vibrant colours. Each cluster is recorded
         for `legend()`. `size` is the dot diameter in mm; other keywords
@@ -2289,8 +2331,8 @@ class Panel:
         """
         from .embedding import embedding as _embedding
 
-        note = _embedding(self, points, clusters, colors=colors, size=size,
-                          labels=labels, centre=centre, label_size=label_size,
+        note = _embedding(self, points, clusters, colors=color, size=size,
+                          labels=labels, centre=center, label_size=label_size,
                           arrows=arrows, shuffle=shuffle, seed=seed,
                           raster=raster, outline=outline,
                           outline_core=outline_core, **style)

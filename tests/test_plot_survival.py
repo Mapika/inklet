@@ -143,7 +143,7 @@ def test_pvalue_text() -> None:
 def _km() -> inklet.plot.Panel:
     p = panel(60, 40, x=(0, 36), y=(0, 1))
     p.kaplan_meier({"Placebo": (PLACEBO, None), "6-MP": (MP, MP_EVENTS)},
-                   colors=["#262626", "#24698c"], pvalue=0.00004)
+                   color=["#262626", "#24698c"], pvalue=0.00004)
     p.axes(x="Time / weeks", y="Remission")
     return p
 

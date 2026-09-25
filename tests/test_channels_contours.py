@@ -11,10 +11,10 @@ pytest.importorskip('scipy')
 from PIL import Image
 import inklet as i
 from inklet.core import PathPrim, flatten
-from inklet.experimental.volume import Volume
-from inklet.experimental.sections import Plane,SampledSection
-from inklet.experimental.slabs import Slab
-from inklet.experimental.channels import Channel,Composite
+from inklet.volume import Volume
+from inklet.volume import Plane,SampledSection
+from inklet.volume import Slab
+from inklet.volume import Channel,Composite
 
 
 def section(data, *, valid=None,kind='intensity',spacing=(1,1),centre=(0,0,0)):

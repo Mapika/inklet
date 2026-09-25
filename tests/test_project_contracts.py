@@ -4,8 +4,8 @@ from dataclasses import FrozenInstanceError
 from pathlib import Path
 
 import pytest
-from inklet.experimental.project import AssetManifest, EntityMap
-from inklet.experimental.selection import KeyedTable
+from inklet.project import AssetManifest, EntityMap
+from inklet.selection import KeyedTable
 
 
 def manifest(root):

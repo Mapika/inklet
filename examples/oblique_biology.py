@@ -89,7 +89,7 @@ def make_figure(raw,masks,record,rendered):
     keys = ['nucleus','mito','er'];names = ['Nucleus','Mito','ER']
     areas = [[e['foreground'][k]['area'] for k in keys] for e in evidence]
     p = i.panel(110,55,x=names,y=(0,max(max(a) for a in areas)*1.18))
-    p.bars(names,areas,names=['Plane A','Plane B'],colors=PLANE_COLORS)
+    p.bars(names,areas,name=['Plane A','Plane B'],color=PLANE_COLORS)
     p.axes(y='Sampled mask area / µm²',count=4).legend(side='top',columns=2,font_size=i.pt(8))
     doc.add('areas-title',i.text('f  Cross-sectional areas on the output grid',size=i.pt(10)),row=9,column=0)
     doc.add('areas',p.build(),row=10,column=0)

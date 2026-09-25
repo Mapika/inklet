@@ -10,8 +10,8 @@ import pytest
 np = pytest.importorskip('numpy')
 pytest.importorskip('scipy')
 from PIL import Image
-from inklet.experimental.volume import Volume
-from inklet.experimental.sections import Plane
+from inklet.volume import Volume
+from inklet.volume import Plane
 
 
 def test_oblique_interpolation_reproduces_an_affine_world_field():

@@ -26,9 +26,11 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from ..themes.color import to_lab
+from .._compat import module_getattr, renamed_function
 from .deps import AssetError, numpy
 
-__all__ = ["Harmonise", "as_harmonise", "harmonise", "palette_colors"]
+__all__ = ["Harmonize", "as_harmonize", "harmonize", "palette_colors",
+           "as_harmonise", "harmonise"]
 
 _D65 = (0.95047, 1.00000, 1.08883)
 
@@ -53,7 +55,7 @@ _DELTA = 6 / 29
 
 
 @dataclass(frozen=True)
-class Harmonise:
+class Harmonize:
     """How far to pull an asset's hues toward the figure's.
 
     `colors` empty means the active theme's palette. `neutral_chroma` is the
@@ -71,28 +73,28 @@ class Harmonise:
                 "neutral_chroma": self.neutral_chroma}
 
 
-def as_harmonise(spec: Harmonise | Sequence[str] | float | bool | None,
-                 strength: float | None = None) -> Harmonise | None:
+def as_harmonize(spec: Harmonize | Sequence[str] | float | bool | None,
+                 strength: float | None = None) -> Harmonize | None:
     """Coerce the `palette=` argument. None/False mean "leave the colours alone"."""
     if spec is None or spec is False:
         return None
     if spec is True:
-        base = Harmonise()
-    elif isinstance(spec, Harmonise):
+        base = Harmonize()
+    elif isinstance(spec, Harmonize):
         base = spec
     elif isinstance(spec, (int, float)):
-        base = Harmonise(strength=float(spec))
+        base = Harmonize(strength=float(spec))
     elif isinstance(spec, Sequence) and not isinstance(spec, str):
-        base = Harmonise(colors=tuple(spec))
+        base = Harmonize(colors=tuple(spec))
     else:
         raise AssetError(
             f"palette must be True, a strength, a list of colours or a "
-            f"Harmonise, not {spec!r}"
+            f"Harmonize, not {spec!r}"
         )
     return base if strength is None else replace(base, strength=strength)
 
 
-def palette_colors(spec: Harmonise) -> tuple[str, ...]:
+def palette_colors(spec: Harmonize) -> tuple[str, ...]:
     """Resolve the target hues, defaulting to the theme in force at build time."""
     if spec.colors:
         return tuple(spec.colors)
@@ -101,7 +103,7 @@ def palette_colors(spec: Harmonise) -> tuple[str, ...]:
     return tuple(current_theme().palette)
 
 
-def harmonise(rgba: Any, spec: Harmonise, colors: Sequence[str]) -> Any:
+def harmonize(rgba: Any, spec: Harmonize, colors: Sequence[str]) -> Any:
     """Rotate each pixel's hue onto the nearest palette hue, keeping L* and C*."""
     np = numpy()
     if not colors or spec.strength <= 0.0:
@@ -189,3 +191,9 @@ def _to_rgb(lab: Any) -> Any:
     # in the near-blacks on a strength=0 round trip.
     return np.where(linear <= _LINEAR_KNEE, linear * 12.92,
                     1.055 * np.maximum(linear, 0.0) ** (1 / 2.4) - 0.055)
+
+
+#: Deprecated spellings, removed in 5.0.
+as_harmonise = renamed_function("as_harmonise", as_harmonize, owner="inklet.assets.harmonise")
+harmonise = renamed_function("harmonise", harmonize, owner="inklet.assets.harmonise")
+__getattr__ = module_getattr(__name__, {"Harmonise": ("inklet.assets.Harmonize", Harmonize)})

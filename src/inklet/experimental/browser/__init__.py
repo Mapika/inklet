@@ -773,10 +773,17 @@ class FigureRevision:
 
 
 class BrowserScatter(BrowserFigure):
-    """Compatibility entry point for the original single-row scatter study."""
+    """Compatibility entry point for the original single-row scatter study.
+
+    Deprecated from 4.4, removed in 5.0: `BrowserFigure(table, views,
+    columns=len(views))` draws the same scatter views and accepts mixed marks.
+    """
     _schema = SCHEMA
 
     def __init__(self, table, views, *, width=190):
+        from inklet._compat import REMOVAL, warn
+        warn(f'BrowserScatter is deprecated and will be removed in Inklet {REMOVAL}; '
+             'use BrowserFigure(table, views, columns=len(views)) instead.', stacklevel=2)
         views=tuple(views)
         if any(type(v) is not ScatterView for v in views):
             raise ValueError('BrowserScatter accepts only ScatterView; use BrowserFigure for mixed marks')

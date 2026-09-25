@@ -13,7 +13,7 @@ from xml.etree import ElementTree as ET
 import pytest
 
 from inklet.experimental.browser import BrowserFigure, BrowserScatter, LineView, ScatterView
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -85,6 +85,7 @@ def test_replacement_rejects_wrong_source_key_table_and_invalid_views():
     assert scene.payload()==snapshot and scene.state()==state
 
 
+@pytest.mark.filterwarnings('ignore:BrowserScatter is deprecated')
 def test_schema_and_json_type_changes_are_reported_and_legacy_entry_point_works():
     table=KeyedTable('series',dict(id=['a'],x=[1],y=[2],flag=[True]))
     scene=BrowserScatter(table,[ScatterView('p','x','y',(0,2),(0,4))])

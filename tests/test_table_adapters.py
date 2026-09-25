@@ -7,7 +7,7 @@ import sys
 
 import pytest
 
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 @pytest.fixture(params=['pandas', 'polars'])
@@ -25,7 +25,7 @@ def guarded(name, *args, **kwargs):
         raise ImportError('optional dependency deliberately unavailable: ' + name)
     return original(name, *args, **kwargs)
 builtins.__import__ = guarded
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 assert KeyedTable('rows', {'id': ['a'], 'value': [1]}).row_ids == ('a',)
 for method in (KeyedTable.from_pandas, KeyedTable.from_polars):
     try:

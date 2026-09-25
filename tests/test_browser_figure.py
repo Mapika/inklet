@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from inklet.experimental.browser import BrowserFigure, BarView, LineView, ScatterView
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 def scene(reverse=False):

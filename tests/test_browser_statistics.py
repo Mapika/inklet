@@ -13,7 +13,7 @@ from browser_support import svg_geometry
 from inklet.experimental.browser import (
     BrowserFigure, ECDFView, FacetView, IntervalView, RevisionOption, TimeAxis,
 )
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 def observations():

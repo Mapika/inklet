@@ -27,7 +27,7 @@ Image = pytest.importorskip("PIL.Image", reason="the image pipeline needs inklet
 
 import inklet
 from inklet.assets import (
-    AssetError, Cutout, Harmonise, LineArt, asset, credit_lines, credits,
+    AssetError, Cutout, Harmonize, LineArt, asset, credit_lines, credits,
     cutout_backends, potrace_available, provenance_of, register_cutout,
     sidecar_path,
 )
@@ -648,7 +648,7 @@ def test_harmonisation_moves_hue_and_keeps_lightness(disc, cache):
 
 def test_strength_zero_changes_nothing(disc, cache):
     plain = asset(disc, width=20, cache_dir=cache)
-    tuned = asset(disc, width=20, palette=Harmonise(strength=0.0), cache_dir=cache)
+    tuned = asset(disc, width=20, palette=Harmonize(strength=0.0), cache_dir=cache)
     before = np.asarray(Image.open(plain.prim.source).convert("RGBA"))
     after = np.asarray(Image.open(tuned.prim.source).convert("RGBA"))
     assert (before == after).all()

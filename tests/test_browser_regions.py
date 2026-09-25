@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from inklet.experimental.browser import BrowserFigure, GeoRegions, RegionView
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 FIXTURE=Path(__file__).resolve().parents[1]/'examples/v4/fixtures/region-shapes.geojson'
 

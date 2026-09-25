@@ -34,7 +34,7 @@ from ..core.units import mm
 from .cache import cache_path, cache_root, cached_file, content_hash, derive_key
 from .cutout import SOLID, Cutout, as_cutout, run_cutout
 from .deps import AssetError, numpy
-from .harmonise import Harmonise, as_harmonise, harmonise, palette_colors
+from .harmonise import Harmonize, as_harmonize, harmonize, palette_colors
 from .lineart import (
     LineArt, as_lineart, parse_potrace_svg, potrace_available, potrace_svg,
     render_lineart,
@@ -63,7 +63,7 @@ def asset(path: str | Path, *,
           cutout: Cutout | str | bool | None = "auto",
           cutout_tolerance: float | None = None,
           lineart: LineArt | str | bool | None = False,
-          palette: Harmonise | Sequence[str] | float | bool | None = None,
+          palette: Harmonize | Sequence[str] | float | bool | None = None,
           palette_strength: float | None = None,
           anchors: Mapping[str, Sequence[float]] | None = None,
           outline: bool = True,
@@ -94,7 +94,7 @@ def asset(path: str | Path, *,
     card = load_sidecar(file) if sidecar else Sidecar()
 
     cut_spec = as_cutout(cutout, tolerance=cutout_tolerance)
-    tone_spec = as_harmonise(palette, palette_strength)
+    tone_spec = as_harmonize(palette, palette_strength)
     tone_colors = tuple(palette_colors(tone_spec)) if tone_spec else ()
     line_spec = as_lineart(lineart)
 
@@ -123,7 +123,7 @@ class _Size:
 
 
 def _subject(file: Path, source_hash: str, root: Path, cut: Cutout,
-             tone: Harmonise | None, tone_colors: tuple[str, ...]) -> dict[str, Any]:
+             tone: Harmonize | None, tone_colors: tuple[str, ...]) -> dict[str, Any]:
     """The cropped, keyed, harmonised subject. Independent of the placed size,
     so changing a figure's dimensions does not re-run the expensive half."""
     key = derive_key(source_hash, "subject", cut.key(),
@@ -143,7 +143,7 @@ def _subject(file: Path, source_hash: str, root: Path, cut: Cutout,
     return subject
 
 
-def _make_subject(file: Path, cut: Cutout, tone: Harmonise | None,
+def _make_subject(file: Path, cut: Cutout, tone: Harmonize | None,
                   tone_colors: tuple[str, ...]) -> dict[str, Any]:
     np = numpy()
     rgba = load_rgba(file)
@@ -166,7 +166,7 @@ def _make_subject(file: Path, cut: Cutout, tone: Harmonise | None,
     crop[:, :, 3] = np.where(clean[y0:y1 + 1, x0:x1 + 1],
                              keyed.alpha[y0:y1 + 1, x0:x1 + 1], 0)
     if tone is not None:
-        crop = harmonise(crop, tone, tone_colors)
+        crop = harmonize(crop, tone, tone_colors)
 
     return {
         "_rgba": crop,

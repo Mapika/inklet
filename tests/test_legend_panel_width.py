@@ -10,7 +10,7 @@ NAMES = ['specific', 'dimorphic', 'isomorphic']
 def _panel(width=38, names=NAMES):
     p = i.panel(width, 20, x=(0, 60), y=['102', '79', '81', '116'])
     p.bars(['102', '79', '81', '116'], [[51, 43, 18, 40], [1, 0, 7, 6], [0, 0, 1, 3]],
-           stacked=True, orient='h', names=names)
+           stacked=True, orient='h', name=names)
     p.axes(x='cell types', y='cluster identifier')
     return p
 

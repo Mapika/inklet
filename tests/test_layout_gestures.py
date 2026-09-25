@@ -2,7 +2,7 @@
 import json
 import pytest
 import inklet as i
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 from inklet.document.layout_overrides import SCHEMA
 
 
@@ -85,6 +85,7 @@ def test_scale_keeps_ports_and_downstream_links_attached():
     assert '<path' in editor.figure.to_svg()
 
 
+@pytest.mark.filterwarnings('ignore:composition layout schema')
 def test_legacy_layouts_load_but_scale_requires_new_schema():
     root=source()
     legacy={'schema':'inklet.composition-layout/0.1','targets':{'/plot':{'placement':{'x':22}}}}

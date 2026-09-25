@@ -54,7 +54,7 @@ DIMORPHIC = [1, 0, 7, 6, 3, 7, 6, 6]
 ISOMORPHIC = [0, 0, 1, 3, 1, 3, 2, 4]
 b = i.plot_spec(height=26, x=(0, 60), y=CLUSTERS[::-1])
 b.bars(CLUSTERS, [SPECIFIC, DIMORPHIC, ISOMORPHIC], stacked=True, orient='h', width=.78,
-       colors=[BLUE, AMBER, GREY], names=['specific', 'dimorphic', 'isomorphic'],
+       color=[BLUE, AMBER, GREY], name=['specific', 'dimorphic', 'isomorphic'],
        labels=True, stroke='none')
 b.axes(x='cell types', y='cluster')
 b.legend()
@@ -65,7 +65,7 @@ TYPES = ['DA1', 'VA1v', 'VA1d', 'DL3', 'VL2a', 'DC3', 'VM4']
 FEMALE = [9.1, 6.2, 5.4, 3.3, 2.8, 2.2, 1.1]
 MALE = [12.6, 8.9, 4.7, 5.1, 2.3, 3.0, 1.4]
 c = i.plot_spec(height=26, x=(0, 14), y=TYPES[::-1])
-c.dumbbell(TYPES, [FEMALE, MALE], orient='h', names=['female', 'male'], colors=[MAGENTA, GREEN])
+c.dumbbell(TYPES, [FEMALE, MALE], orient='h', name=['female', 'male'], color=[MAGENTA, GREEN])
 c.axes(x='synapses / 10³')
 c.legend()
 
@@ -119,7 +119,7 @@ male = [v * rng.uniform(.9, 1.15) for v in base]
 female = [v * rng.uniform(.75, 1.02) for v in base]
 female[:3] = [128, 98, 102]
 g = i.plot_spec(height=22, x=GLOMERULI, y=(0, 200))
-g.dumbbell(GLOMERULI, [male, female], names=['male CNS', 'FAFB'], colors=[GREEN, MAGENTA],
+g.dumbbell(GLOMERULI, [male, female], name=['male CNS', 'FAFB'], color=[GREEN, MAGENTA],
            size=1.2)
 g.axes(y='neurons', x='glomerulus', x_options={'rotate': 90})
 g.legend(corner='ne', columns=2)
@@ -138,7 +138,7 @@ def radar():
 
 def donut():
     p = i.polar(8, hole=4, zero='up', winding='cw')
-    p.pie([73.7, 24.8, 1.5], colors=[PALE, INK, AMBER], names=['noise', 'isomorphic', 'dimorphic'])
+    p.pie([73.7, 24.8, 1.5], color=[PALE, INK, AMBER], name=['noise', 'isomorphic', 'dimorphic'])
     p.legend(side='bottom')
     return p.build()
 
@@ -149,8 +149,8 @@ PNS = ['VA1v_vPN', 'M_lvPNm45', 'MZ_lv2PN', 'M_vPNml67', 'VA1d_vPN', 'M_vPNml76'
 SPEC = [52, 40, 35, 32, 28, 27, 24, 19, 14, 12, 10, 8]
 DIMO = [-33, -8, -4, -3, -9, -2, -14, -18, -3, -2, -1, -4]
 j = i.plot_spec(height=30, x=(-40, 60), y=PNS[::-1])
-j.bars(PNS, SPEC, orient='h', width=.72, fill=BLUE, names=['sex-specific'], stroke='none')
-j.bars(PNS, DIMO, orient='h', width=.72, fill=AMBER, names=['dimorphic'], stroke='none')
+j.bars(PNS, SPEC, orient='h', width=.72, fill=BLUE, name=['sex-specific'], stroke='none')
+j.bars(PNS, DIMO, orient='h', width=.72, fill=AMBER, name=['dimorphic'], stroke='none')
 j.vline(0, stroke=INK, stroke_width=STYLE.theme.stroke, front=True)
 j.vline(9, stroke=INK, stroke_dash=(.6, .5), stroke_width=STYLE.theme.hairline, front=True)
 j.axes(x='% output')
@@ -189,7 +189,7 @@ GROUPS = {'fru+': [rng.betavariate(5, 2) for _ in range(60)],
           'both': [rng.betavariate(6, 1.6) for _ in range(60)],
           'none': [rng.betavariate(1.4, 5) for _ in range(60)]}
 m = i.plot_spec(height=30, x=list(GROUPS), y=(0, 1))
-m.violin(GROUPS, colors=[i.mix(color, '#ffffff', .45) for color in (BLUE, MAGENTA, AMBER, GREY)])
+m.violin(GROUPS, color=[i.mix(color, '#ffffff', .45) for color in (BLUE, MAGENTA, AMBER, GREY)])
 m.axes(y='fraction dimorphic')
 
 

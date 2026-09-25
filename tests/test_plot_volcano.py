@@ -79,7 +79,7 @@ def test_volcano_draws_rules_points_and_top_labels() -> None:
 def test_volcano_colours_names_and_no_thresholds() -> None:
     fold, p, _ = data()
     v = panel(60, 50, x=(-6, 6), y=(0, 16))
-    v.volcano(fold, p, colors={"up": "#aa0000"}, names=("Down", None, "Up"),
+    v.volcano(fold, p, color={"up": "#aa0000"}, name=("Down", None, "Up"),
               thresholds=False)
     assert v._under == []
     svg = inklet.to_svg(v.build())
@@ -88,9 +88,9 @@ def test_volcano_colours_names_and_no_thresholds() -> None:
     text = inklet.to_svg(v.build())
     assert "Down" in text and "Up" in text
     with pytest.raises(DiagramError):
-        v.volcano(fold, p, colors=("#000", "#111"))
+        v.volcano(fold, p, color=("#000", "#111"))
     with pytest.raises(DiagramError):
-        v.volcano(fold, p, names={"sig": "x"})
+        v.volcano(fold, p, name={"sig": "x"})
     with pytest.raises(DiagramError):
         v.volcano(fold, p, labels=["a"])
     with pytest.raises(DiagramError):
@@ -123,7 +123,7 @@ def _ink_outside(node, margin: float = 2.0, dpi: int = 600) -> list[str]:
 
 
 def test_volcano_lints_clean_exports_and_ink_stays_measured() -> None:
-    v = volcano_panel(top=8, names=("Down", None, "Up"), size=0.8)
+    v = volcano_panel(top=8, name=("Down", None, "Up"), size=0.8)
     v.axes(x="log2 fold change", y="-log10 p").legend(side="right")
     node = v.build()
     # Labels in a dense cloud may sit closer than 1 mm to an unlabelled point

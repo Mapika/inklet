@@ -78,7 +78,7 @@ def flowchart():
 groups = ['in ♂', 'in ♀', 'out ♂', 'out ♀']
 fractions = i.plot_spec(height=30, x=groups, y=(0, 1))
 fractions.bars(groups, [[.99, .99, .52, .72], [.01, .01, .48, .28]], stacked=True,
-               colors=[ink, amber], names=['isomorphic', 'dimorphic'], width=.7)
+               color=[ink, amber], name=['isomorphic', 'dimorphic'], width=.7)
 fractions.axes(y='fraction of synapses', x_options={'rotate': 90})
 fractions.legend(side='top')
 
@@ -112,9 +112,9 @@ def pies():
     rows = []
     for sex, iso, dimo, noise in [('♂', 24.8, 1.5, 73.7), ('♀', 24.8, .3, 74.9)]:
         p = i.polar(8)
-        p.pie([iso, dimo, noise], colors=[ink, amber, pale],
+        p.pie([iso, dimo, noise], color=[ink, amber, pale],
               labels=[f'{iso}%', f'{dimo}%', f'{noise}%'],
-              names=['isomorphic', 'dimorphic', 'noise'] if sex == '♀' else None)
+              name=['isomorphic', 'dimorphic', 'noise'] if sex == '♀' else None)
         p.breakout([0, 1], labels='{share:.1%}', gap=4,
                    title='without noise' if sex == '♂' else None)
         p.title(sex)
@@ -132,7 +132,7 @@ dimorphic_types = [1, 0, 7, 6, 3, 7, 6, 6, 3, 8]
 isomorphic = [0, 0, 1, 3, 1, 3, 2, 4, 9, 18]
 counts = i.plot_spec(height=30, x=(0, 60), y=clusters[::-1])
 counts.bars(clusters, [specific, dimorphic_types, isomorphic], stacked=True, orient='h',
-            width=.78, colors=[blue, amber, grey], names=['specific', 'dimorphic', 'isomorphic'],
+            width=.78, color=[blue, amber, grey], name=['specific', 'dimorphic', 'isomorphic'],
             labels=True, stroke='none')
 counts.axes(x='cell types', y='enriched cluster')
 counts.legend()
@@ -142,8 +142,8 @@ counts.legend()
 kinds = ['fru+/dsx-', 'fru-/dsx+', 'fru+/dsx+', 'fru-/dsx-']
 proportion = i.plot_spec(height=14, x=(0, 1), y=['enriched', 'non-enriched'])
 proportion.bars(['non-enriched', 'enriched'], [[.29, .55], [.01, .07], [0, .1], [.7, .28]],
-                stacked=True, orient='h', width=.45, colors=[blue, magenta, amber, pale],
-                names=kinds, stroke='none')
+                stacked=True, orient='h', width=.45, color=[blue, magenta, amber, pale],
+                name=kinds, stroke='none')
 proportion.axes(x='proportion of non-isomorphic types')
 proportion.legend(side='bottom', columns=4)
 

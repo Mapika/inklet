@@ -87,7 +87,7 @@ def test_sequences_names_and_missing_halves() -> None:
     first, second = conditions()
     p = panel(50, 36, x=CATS, y=(0, 12))
     p.split_violin([first[c] for c in CATS], [second[c] for c in CATS],
-                   names=["control", "treated"], colors=["#e6b93f", "#24698c"])
+                   name=["control", "treated"], color=["#e6b93f", "#24698c"])
     assert [k.name for k in p.keys] == ["control", "treated"]
     assert p.keys[0].fill == "#e6b93f"
     q = panel(50, 36, x=CATS, y=(0, 12))
@@ -100,7 +100,7 @@ def test_sequences_names_and_missing_halves() -> None:
     with pytest.raises(DiagramError):
         split_violin(q, first, second, scale="width")
     with pytest.raises(DiagramError):
-        q.split_violin(first, second, names=["one"])
+        q.split_violin(first, second, name=["one"])
     with pytest.raises(DiagramError):
         split_violin(q, {"CA1": [1.0]}, {"CA1": [2.0]})
 
@@ -108,7 +108,7 @@ def test_sequences_names_and_missing_halves() -> None:
 def test_split_violin_lints_clean() -> None:
     first, second = conditions()
     p = panel(50, 36, x=CATS, y=(0, 12))
-    p.split_violin(first, second, names=["control", "treated"], quartiles=True)
+    p.split_violin(first, second, name=["control", "treated"], quartiles=True)
     p.axes(y="rate / Hz").legend(side="top")
     node = p.build()
     assert lint(node) == []

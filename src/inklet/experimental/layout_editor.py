@@ -1,27 +1,18 @@
 """The layout editor; moved to `inklet.editor` in 4.3.
 
-This path keeps working and re-exports the same objects. New code should
-import from `inklet.editor`.
+Deprecated: importing this path warns from Inklet 4.4 and the path is removed
+in 5.0. Import from `inklet.editor` instead; the objects are the same.
 """
+from inklet._compat import moved_module as _moved_module
 from inklet.editor import (  # noqa: F401
-    BaseHTTPRequestHandler,
     Composition,
-    ET,
     LayoutEditor,
-    Path,
     SCHEMA,
-    ThreadingHTTPServer,
     _EDITORS,
     _expression,
     _placement,
     _targets,
-    annotations,
-    copy,
     document,
-    json,
-    math,
-    parse_qs,
-    secrets,
-    threading,
-    urlsplit,
 )
+
+_moved_module(__name__, 'inklet.editor')

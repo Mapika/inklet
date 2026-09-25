@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import pytest
 import inklet as i
-from inklet.experimental.project import FigureProject
+from inklet.project import FigureProject
 from inklet.project import ExportDriftWarning
 
 spec=importlib.util.spec_from_file_location('project_recipe',Path(__file__).resolve().parents[1]/'examples/project_workflow.py')

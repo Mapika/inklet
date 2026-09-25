@@ -11,7 +11,7 @@ import pytest
 from browser_support import browser_result
 
 from inklet.experimental.browser import BrowserFigure, FacetView, SeriesView, TimeAxis
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 def table():

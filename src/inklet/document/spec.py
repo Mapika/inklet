@@ -6,10 +6,12 @@ from dataclasses import dataclass, field
 import inspect
 import hashlib
 import sys
+import warnings
 from copy import deepcopy
 import math
 from collections.abc import Mapping
 
+from .._compat import InkletDeprecationWarning, warn_renamed
 from ..core import Diagram, DiagramError, mm
 from ..plot import Panel, PolarPanel
 
@@ -139,6 +141,7 @@ class PlotSpec(BuildSpec):
             raise AttributeError(name)
         def record(*args, key=None, **kwargs):
             inspect.signature(method).bind(None, *args, **kwargs)
+            warn_renamed(method, kwargs, stacklevel=2)
             return self._record(name, args, kwargs, key)
         return record
 
@@ -306,7 +309,10 @@ class PlotSpec(BuildSpec):
             elif method == 'series':
                 args[0].draw(panel, **kwargs)
             else:
-                getattr(panel, method)(*args, **kwargs)
+                with warnings.catch_warnings():
+                    # A deprecated keyword warned when the call was recorded.
+                    warnings.simplefilter('ignore', InkletDeprecationWarning)
+                    getattr(panel, method)(*args, **kwargs)
 
 
 def _inside_legend(panel, options):

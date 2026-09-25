@@ -5,7 +5,7 @@ import json
 import pytest
 import inklet as i
 from inklet.document.layout_overrides import SCHEMA
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 from inklet.three.camera import Camera
 from inklet.three.linalg import Vec3
 
@@ -88,6 +88,7 @@ def test_shared_model_camera_conflicts_and_editor_aliases():
     editor.command('reset','/other');assert not editor.overrides()['targets']
 
 
+@pytest.mark.filterwarnings('ignore:composition layout schema')
 def test_capture_records_camera_diff_and_legacy_style_schema_still_loads():
     root=source();changed=root.copy();changed['model'].kwargs['view']=Camera.named('three-quarter').turned(azimuth=10)
     saved=changed.layout_overrides(root)

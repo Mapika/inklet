@@ -10,7 +10,7 @@ import pytest
 np=pytest.importorskip('numpy')
 pytest.importorskip('skimage')
 from PIL import Image
-from inklet.experimental.volume import Volume, Slice
+from inklet.volume import Volume, Slice
 
 
 def volume(data=None):

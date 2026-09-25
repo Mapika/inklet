@@ -13,7 +13,7 @@ import pytest
 from inklet.experimental.browser import (
     BarView, BrowserFigure, FacetView, LineView, RevisionOption, ScatterView, TimeAxis,
 )
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 def data(times, values=None, **columns):
