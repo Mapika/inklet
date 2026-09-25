@@ -112,7 +112,7 @@ def test_horizontal_dendrogram_aligns_with_a_band_and_checks_its_order() -> None
 
 def test_threshold_colours_clusters_below_it() -> None:
     p = panel(40, 30, x=(-0.5, 4.5), y=(0, 3))
-    p.dendrogram(LINK, labels=NAMES, threshold=2.0, colors=["#aa0000", "#0000aa"])
+    p.dendrogram(LINK, labels=NAMES, threshold=2.0, color=["#aa0000", "#0000aa"])
     note = p._content[-1].notes["dendrogram"]
     assert note["clusters"] == [["a", "b", "d"], ["c", "e"]]
     svg = inklet.to_svg(p.build())

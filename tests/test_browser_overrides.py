@@ -11,7 +11,7 @@ import pytest
 
 from inklet.experimental.browser import BrowserFigure, ScatterView, LineView, FacetView, RevisionOption
 from inklet.experimental.browser.overrides import rebase_overrides
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 from test_browser_switching import mark_geometry
 
 

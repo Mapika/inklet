@@ -1,6 +1,6 @@
 """Embedding scatters (UMAP, t-SNE): points coloured by cluster, named in place.
 
-`cluster_centres` finds where each cluster's name goes and draws nothing.
+`cluster_centers` finds where each cluster's name goes and draws nothing.
 The centre is a robust one that lies on the data: by default the member
 point nearest the coordinate-wise median of its cluster, so a curved or
 elongated cluster is named over its own points rather than over the gap its
@@ -31,16 +31,17 @@ from ..draw.path import polygon, polyline
 from ..draw.place import place as draw_place
 from ..draw.shapes import MARK_KIND, MARK_LINE_KIND
 from ..themes.color import mix
+from .._compat import module_getattr, renamed_function
 from .axis import text_node
 from .outlines import core_outline
 from .point_labels import (POINT_LABEL_KIND, _box_at, _candidates, _overlap,
                            _within)
 
-__all__ = ["cluster_centres", "cluster_colors", "CENTRE_METHODS",
-           "OUTLINE_STYLES"]
+__all__ = ["cluster_centers", "cluster_colors", "CENTER_METHODS",
+           "OUTLINE_STYLES", "cluster_centres"]
 
-#: Accepted values of `cluster_centres(method=)`.
-CENTRE_METHODS = ("median", "medoid", "mean")
+#: Accepted values of `cluster_centers(method=)`.
+CENTER_METHODS = ("median", "medoid", "mean")
 
 #: At most this many members enter the medoid search.
 _MEDOID_SAMPLE = 400
@@ -80,7 +81,7 @@ def _order(clusters: Sequence) -> list:
     return seen
 
 
-def cluster_centres(points: Sequence[Sequence[float]], clusters: Sequence, *,
+def cluster_centers(points: Sequence[Sequence[float]], clusters: Sequence, *,
                     method: str = "median") -> dict:
     """Where to write each cluster's name, in data coordinates.
 
@@ -89,9 +90,9 @@ def cluster_centres(points: Sequence[Sequence[float]], clusters: Sequence, *,
     or ascending when every name is a number). See the module docstring for
     `method`.
     """
-    if method not in CENTRE_METHODS:
+    if method not in CENTER_METHODS:
         raise DiagramError(
-            f"cluster_centres method is one of {', '.join(CENTRE_METHODS)}, not {method!r}")
+            f"cluster_centers method is one of {', '.join(CENTER_METHODS)}, not {method!r}")
     data = [(float(p[0]), float(p[1])) for p in points]
     names = list(clusters)
     if len(data) != len(names):
@@ -125,6 +126,11 @@ def cluster_centres(points: Sequence[Sequence[float]], clusters: Sequence, *,
         out[name] = min(group, key=lambda p: (((p[0] - mx) / sx) ** 2
                                               + ((p[1] - my) / sy) ** 2, p))
     return out
+
+
+#: Deprecated spellings, removed in 5.0.
+cluster_centres = renamed_function("cluster_centres", cluster_centers, owner="inklet.plot")
+__getattr__ = module_getattr(__name__, {"CENTRE_METHODS": ("CENTER_METHODS", CENTER_METHODS)})
 
 
 def _median(values: list[float]) -> float:
@@ -221,7 +227,7 @@ def embedding(panel, points, clusters, *, colors=None, size=None,
         panel.draw(*_outline_nodes(rings, paint, outline), clip=True)
     for name in order:
         panel._note(str(name), "marker", color=paint[name], marker="circle")
-    centres = cluster_centres(data, names, method=centre)
+    centres = cluster_centers(data, names, method=centre)
     placed: dict = {}
     covering: list = []
     if labels:

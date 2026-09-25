@@ -789,5 +789,278 @@
     "object": "doc",
     "image": "journal-figure-3.png",
     "alt": "The finished eight-panel page with panel letters"
+  },
+  {
+    "page": "distributions.md",
+    "block": 11,
+    "object": "doc",
+    "image": "plots-hist-groups.png",
+    "alt": "Overlaid histograms and cumulative fractions"
+  },
+  {
+    "page": "distributions.md",
+    "block": 12,
+    "object": "doc",
+    "image": "plots-kde.png",
+    "alt": "Kernel density curves"
+  },
+  {
+    "page": "distributions.md",
+    "block": 13,
+    "object": "doc",
+    "image": "plots-boxen.png",
+    "alt": "Letter-value plots"
+  },
+  {
+    "page": "distributions.md",
+    "block": 14,
+    "object": "doc",
+    "image": "plots-strip-sina.png",
+    "alt": "Strip and sina plots"
+  },
+  {
+    "page": "distributions.md",
+    "block": 15,
+    "object": "doc",
+    "image": "plots-qq.png",
+    "alt": "QQ and PP plots"
+  },
+  {
+    "page": "relationships.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-hexbin.png",
+    "alt": "Hexbin and 2D histogram"
+  },
+  {
+    "page": "relationships.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plots-density-scatter.png",
+    "alt": "Density-coloured scatter"
+  },
+  {
+    "page": "relationships.md",
+    "block": 3,
+    "object": "doc",
+    "image": "plots-kde2d.png",
+    "alt": "2D density contours"
+  },
+  {
+    "page": "relationships.md",
+    "block": 4,
+    "object": "doc",
+    "image": "plots-regression.png",
+    "alt": "Regression and residuals"
+  },
+  {
+    "page": "relationships.md",
+    "block": 5,
+    "object": "doc",
+    "image": "plots-bland-altman.png",
+    "alt": "Bland-Altman plot"
+  },
+  {
+    "page": "relationships.md",
+    "block": 6,
+    "object": "doc",
+    "image": "plots-pairplot.png",
+    "alt": "Pair plot"
+  },
+  {
+    "page": "relationships.md",
+    "block": 7,
+    "object": "doc",
+    "image": "plots-jointplot.png",
+    "alt": "Joint plot"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 10,
+    "object": "doc",
+    "image": "plots-bars-percent.png",
+    "alt": "100% stacked bars"
+  },
+  {
+    "page": "networks-and-hierarchies.md",
+    "block": 1,
+    "object": "fig",
+    "image": "plots-treemap.png",
+    "alt": "A treemap and a sunburst of cortical cell types"
+  },
+  {
+    "page": "networks-and-hierarchies.md",
+    "block": 2,
+    "object": "fig",
+    "image": "plots-icicle.png",
+    "alt": "Clustering levels drawn as an icicle with a highlighted lineage"
+  },
+  {
+    "page": "networks-and-hierarchies.md",
+    "block": 3,
+    "object": "fig",
+    "image": "plots-network.png",
+    "alt": "A circular weighted network with a width key"
+  },
+  {
+    "page": "networks-and-hierarchies.md",
+    "block": 4,
+    "object": "fig",
+    "image": "plots-chord.png",
+    "alt": "A chord diagram and an arc diagram"
+  },
+  {
+    "page": "matrices.md",
+    "block": 7,
+    "object": "fig",
+    "image": "plots-clusters.png",
+    "alt": "A clustered adjacency matrix with cluster boxes and a zoomed inset"
+  },
+  {
+    "page": "matrices.md",
+    "block": 8,
+    "object": "fig",
+    "image": "plots-clustermap.png",
+    "alt": "A clustermap with dendrograms and an annotation strip"
+  },
+  {
+    "page": "matrices.md",
+    "block": 9,
+    "object": "fig",
+    "image": "plots-correlogram.png",
+    "alt": "Two correlograms of one correlation matrix"
+  },
+  {
+    "page": "genomics-plots.md",
+    "block": 1,
+    "object": "fig",
+    "image": "plots-manhattan.png",
+    "alt": "A Manhattan plot with labelled lead hits"
+  },
+  {
+    "page": "genomics-plots.md",
+    "block": 2,
+    "object": "fig",
+    "image": "plots-ma.png",
+    "alt": "An MA plot with regulated genes coloured"
+  },
+  {
+    "page": "genomics-plots.md",
+    "block": 3,
+    "object": "fig",
+    "image": "plots-ternary.png",
+    "alt": "A ternary plot of soil texture"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 11,
+    "object": "doc",
+    "image": "plots-waterfall.png",
+    "alt": "Waterfalls"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 12,
+    "object": "doc",
+    "image": "plots-barplot.png",
+    "alt": "Bars with points"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 13,
+    "object": "doc",
+    "image": "plots-diverging-bars.png",
+    "alt": "Diverging bars"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 14,
+    "object": "doc",
+    "image": "plots-pyramid.png",
+    "alt": "Population pyramid"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 15,
+    "object": "doc",
+    "image": "plots-likert.png",
+    "alt": "Likert scale"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 16,
+    "object": "doc",
+    "image": "plots-mosaic.png",
+    "alt": "Mosaic plot"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 17,
+    "object": "doc",
+    "image": "plots-waffle.png",
+    "alt": "Waffle chart"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 18,
+    "object": "doc",
+    "image": "plots-streamgraph.png",
+    "alt": "Streamgraph"
+  },
+  {
+    "page": "bars-and-areas.md",
+    "block": 19,
+    "object": "doc",
+    "image": "plots-bullet.png",
+    "alt": "Bullet chart"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 10,
+    "object": "doc",
+    "image": "plots-slope.png",
+    "alt": "Slope chart"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 11,
+    "object": "doc",
+    "image": "plots-bump.png",
+    "alt": "Bump chart"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 12,
+    "object": "doc",
+    "image": "plots-stem.png",
+    "alt": "Stem plot"
+  },
+  {
+    "page": "lines-and-points.md",
+    "block": 13,
+    "object": "doc",
+    "image": "plots-parallel.png",
+    "alt": "Parallel coordinates"
+  },
+  {
+    "page": "timelines-and-calendars.md",
+    "block": 1,
+    "object": "doc",
+    "image": "plots-gantt.png",
+    "alt": "Gantt chart"
+  },
+  {
+    "page": "timelines-and-calendars.md",
+    "block": 2,
+    "object": "doc",
+    "image": "plots-timeline.png",
+    "alt": "Event timeline"
+  },
+  {
+    "page": "timelines-and-calendars.md",
+    "block": 3,
+    "object": "doc",
+    "image": "plots-calendar.png",
+    "alt": "Calendar heatmap"
   }
 ]

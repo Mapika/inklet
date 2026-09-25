@@ -5,7 +5,7 @@ import urllib.error
 
 import pytest
 import inklet as i
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 
 
 def source():

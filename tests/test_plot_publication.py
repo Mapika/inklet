@@ -61,7 +61,7 @@ def test_grouped_categories_keep_equal_bar_widths_and_explicit_gaps():
 
 def test_stackarea_preserves_nonzero_baseline_and_builds_legend():
     p=inklet.panel(40,30,x=(2,0),y=(0,10))
-    p.stackarea([2,1,0],[[1,2,3],[2,2,2]],baseline=[1,1,1],colors=['red','blue'],names=['one','two'])
+    p.stackarea([2,1,0],[[1,2,3],[2,2,2]],baseline=[1,1,1],color=['red','blue'],name=['one','two'])
     marks=leaves(p.build(),'mark')
     assert len(marks)==2
     assert marks[0].bbox.y1==pytest.approx(p.point(0,1).y)

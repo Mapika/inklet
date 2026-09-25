@@ -112,7 +112,7 @@ def panel_e(width: float, height: float = 30.0) -> inklet.Diagram:
     # numbers the dots stand for.
     p.swarm({group: scores[group] for group in data.GROUPS}, size=0.85,
             hollow=True, max_width=6.0,
-            colors=[colour[group] for group in data.GROUPS])
+            color=[colour[group] for group in data.GROUPS])
     for group in data.GROUPS:
         values = scores[group]
         centre = p.x.map(group)

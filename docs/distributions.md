@@ -31,7 +31,7 @@ values = [rng.gauss(3.0, .62) for _ in range(96)]
 from inklet.plot import histogram
 edges, counts = histogram(values, bins=[n / 2 for n in range(13)])
 p = i.plot_spec(x=(0, 6), y=(0, max(counts) + 4), height=44)
-p.hist(values, bins=edges, colors='#24698c', stroke='white', stroke_width=.15)
+p.hist(values, bins=edges, color='#24698c', stroke='white', stroke_width=.15)
 p.grid(x=False, y=True, count=5, stroke='#e1e7e4', stroke_width=.15)
 p.axes(x='Duration / s', y='Count')
 doc = i.document(width=110)
@@ -59,7 +59,7 @@ rng = random.Random(402)
 samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
            'Treated': [rng.gauss(4.65, .78) for _ in range(72)]}
 p = i.plot_spec(x=['Control', 'Treated'], y=(1, 8), height=44)
-p.boxplot(samples, colors=['#24698c', '#288675'])
+p.boxplot(samples, color=['#24698c', '#288675'])
 p.grid(x=False, y=True, count=5, stroke='#e1e7e4', stroke_width=.15)
 p.axes(y='Measurement / a.u.')
 doc = i.document(width=110)
@@ -89,7 +89,7 @@ rng = random.Random(402)
 samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
            'Treated': [rng.gauss(4.65, .78) for _ in range(72)]}
 p = i.plot_spec(x=['Control', 'Treated'], y=(1, 8), height=44)
-p.violin(samples, colors=['#24698c', '#288675'], cut=1.5)
+p.violin(samples, color=['#24698c', '#288675'], cut=1.5)
 p.grid(x=False, y=True, count=5, stroke='#e1e7e4', stroke_width=.15)
 p.axes(y='Measurement / a.u.')
 doc = i.document(width=110)
@@ -116,7 +116,7 @@ rng = random.Random(402)
 samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
            'Treated': [rng.gauss(4.65, .78) for _ in range(72)]}
 p = i.plot_spec(x=['Control', 'Treated'], y=(1, 8), height=44)
-p.swarm(samples, size=1.0, colors=['#24698c', '#288675'])
+p.swarm(samples, size=1.0, color=['#24698c', '#288675'])
 p.grid(x=False, y=True, count=5, stroke='#e1e7e4', stroke_width=.15)
 p.axes(y='Measurement / a.u.')
 doc = i.document(width=110)
@@ -185,7 +185,7 @@ onsets = {s: [rng.gauss(2 + k * .9, .9 - .08 * k) for _ in range(80)]
           for k, s in enumerate(stages)}
 p = i.plot_spec(x=(0, 10), y=stages[::-1], height=48)
 p.ridgeline(onsets, overlap=1.8,
-            colors=['#24698c', '#2d7d8a', '#3a9083', '#5aa374', '#8bb35f', '#c2bf52'],
+            color=['#24698c', '#2d7d8a', '#3a9083', '#5aa374', '#8bb35f', '#c2bf52'],
             stroke='white', stroke_width=.3)
 p.axes(x='Onset time / h')
 doc = i.document(width=90)
@@ -227,7 +227,7 @@ samples = {'Control': [rng.gauss(4.1, .62) for _ in range(72)],
            'Treated': [rng.gauss(4.65, .78) for _ in range(52)]
            + [rng.gauss(6.2, .3) for _ in range(20)]}
 p = i.plot_spec(x=(1, 8), y=['Treated', 'Control'], height=44)
-p.raincloud(samples, colors=['#24698c', '#288675'], size=.9)
+p.raincloud(samples, color=['#24698c', '#288675'], size=.9)
 p.axes(x='Measurement / a.u.')
 doc = i.document(width=90)
 doc.add('raincloud', p)
@@ -274,7 +274,7 @@ def arm(rate, n=60):
 
 p = i.panel(62, 38, x=(0, 36), y=(0, 1))
 p.kaplan_meier({'Control': arm(1 / 14), 'Treated': arm(1 / 30)},
-               colors=['#262626', '#24698c'], pvalue=0.003)
+               color=['#262626', '#24698c'], pvalue=0.003)
 p.axes(x='Time / months', y='Survival probability',
        x_options={'ticks': [0, 6, 12, 18, 24, 30, 36]})
 p.legend(corner='ne')
@@ -298,7 +298,7 @@ half is the `violin` kernel density with the same bandwidth rule, `cut` and
 `samples`. By default both halves of a category share one width scale, so
 their areas are equal; `scale='each'` gives each half the full width.
 `median=True` (default) draws each half's median as a solid line and
-`quartiles=True` its quartiles as dashed lines. `names=` puts both
+`quartiles=True` its quartiles as dashed lines. `name=` puts both
 conditions in the legend.
 
 ```python
@@ -311,8 +311,8 @@ control = {r: [rng.gauss(4 + 1.2 * k, .9) for _ in range(80)] for k, r in enumer
 treated = {r: [rng.gauss(4.6 + .8 * k, 1.1) for _ in range(60)]
            + [rng.gauss(9, .5) for _ in range(12 + 6 * k)] for k, r in enumerate(regions)}
 p = i.plot_spec(x=regions, y=(0, 12), height=44)
-p.split_violin(control, treated, names=['Control', 'Treated'], quartiles=True,
-               colors=['#e6b93f', '#9cc3d5'])
+p.split_violin(control, treated, name=['Control', 'Treated'], quartiles=True,
+               color=['#e6b93f', '#9cc3d5'])
 p.axes(y='Firing rate / Hz').legend(side='top')
 doc = i.document(width=90)
 doc.add('split-violin', p)
@@ -347,7 +347,7 @@ response = {g: [rng.gauss(m, .45) for _ in range(10)]
             for g, m in zip(genotypes, (3.0, 3.4, 5.0, 3.6))}
 p = i.plot_spec(x=genotypes, y=(0, 10), height=44)
 p.boxplot(response, outliers=False)
-p.swarm(response, colors=['#24698c'] * 4)
+p.swarm(response, color=['#24698c'] * 4)
 p.brackets([('wt', 'het', .21), ('wt', 'ko', 2e-5), ('het', 'ko', .004),
             ('ko', 'rescue', 7e-4), ('wt', 'rescue', .031)])
 p.axes(y='Response / a.u.')
@@ -360,7 +360,179 @@ doc.save('brackets.svg', 'brackets.pdf')
 
 *Simulated data with made-up p-values.*
 
+## Histogram outlines, groups and cumulative counts
+
+`hist` takes a mapping of group name to values and bins every group on the
+same edges, taken from all the groups together, so the bars line up and the
+heights compare. Groups are drawn as translucent filled outlines in the ink
+palette and named for `legend()`. `histtype='step'` draws the outline alone,
+`'stepfilled'` fills it without edges between bins, and the default for one
+sample stays touching bars. `cumulative=True` draws running totals; with
+`density=True` they end at one, the empirical distribution function on the
+bins' upper edges.
+
+```python
+import inklet as i
+import random
+rng = random.Random(406)
+groups = {'Control': [rng.gauss(4.0, .8) for _ in range(240)],
+          'Treated': [rng.gauss(5.1, 1.1) for _ in range(180)]}
+counts = i.plot_spec(x=(0, 9), y=(0, 60), height=40)
+counts.hist(groups, 24)
+counts.axes(x='Response / a.u.', y='Count')
+counts.legend(corner='ne')
+running = i.plot_spec(x=(0, 9), y=(0, 1), height=40)
+running.hist(groups, 40, density=True, cumulative=True, histtype='step')
+running.axes(x='Response / a.u.', y='Cumulative fraction')
+doc = i.document(width=120, columns=[1, 1], gap=8)
+doc.add('counts', counts, row=0, column=0)
+doc.add('running', running, row=0, column=1)
+doc.save('hist-groups.svg', 'hist-groups.pdf')
+```
+
+![Histogram groups: two overlaid filled outlines on shared bins, and their cumulative fractions.](assets/guides/plots-hist-groups.png)
+
+*Rendered from the code above. Both groups share one set of bin edges; the
+right panel shows the fraction of each group at or below each bin's upper
+edge.*
+
+## Kernel density curves
+
+`kde` draws a Gaussian kernel density of one sample or of each group in a
+mapping, in stdlib Python. `bandwidth='scott'` (default) is R's `bw.nrd`,
+`1.06 min(sd, IQR/1.34) n^-1/5`; `'silverman'` is `bw.nrd0`, with 0.9 in
+place of 1.06; a number sets it in data units, and `adjust` scales any of
+them. `fill=True` shades under each curve at 25% opacity so groups stay
+visible through each other. `stat='count'` multiplies by the sample size,
+so the areas compare group sizes. On a log axis the density is estimated in
+log units. `inklet.plot.kde_curve` returns the curve without drawing it.
+The bandwidth is a smoothing choice; report it with the figure.
+
+```python
+import inklet as i
+import random
+rng = random.Random(407)
+groups = {'Control': [rng.gauss(4.0, .8) for _ in range(240)],
+          'Treated': [rng.gauss(5.1, 1.1) for _ in range(180)]}
+p = i.plot_spec(x=(0, 9), y=(0, .55), height=40)
+p.kde(groups, fill=True)
+p.axes(x='Response / a.u.', y='Density')
+p.legend(corner='ne')
+doc = i.document(width=80)
+doc.add('kde', p)
+doc.save('kde.svg', 'kde.pdf')
+```
+
+![Kernel densities: two filled, overlapping density curves with a legend.](assets/guides/plots-kde.png)
+
+*Rendered from the code above, with Scott's rule chosen separately for each
+group.*
+
+## Letter-value plots
+
+A box plot of 5,000 observations marks hundreds of ordinary tail values as
+outliers. `boxen` (a letter-value plot) keeps going out into the tails: the
+inner box spans the quartiles, the next the eighths, then the sixteenths,
+each narrower and paler than the one inside. `depth='tukey'` (default) draws
+`floor(log2 n) - 3` boxes; `'trustworthy'` draws as many as have
+non-overlapping 95% intervals. The median is a paper-coloured line. Values
+beyond the outermost box are dots. `inklet.plot.letter_values` returns the
+boxes.
+
+```python
+import inklet as i
+import random
+rng = random.Random(408)
+samples = {'Normal': [rng.gauss(0, 1) for _ in range(5000)],
+           'Wide': [rng.gauss(.5, 1.6) for _ in range(5000)],
+           'Skewed': [rng.expovariate(1) - 1 for _ in range(5000)]}
+p = i.plot_spec(x=list(samples), y=(-7, 9), height=44)
+p.boxen(samples)
+p.axes(y='Value / a.u.')
+doc = i.document(width=80)
+doc.add('boxen', p)
+doc.save('boxen.svg', 'boxen.pdf')
+```
+
+![Letter-value plots: nested boxes for three large samples.](assets/guides/plots-boxen.png)
+
+*Rendered from the code above: 5,000 simulated values per group, seven
+letter values each.*
+
+## Strip and sina plots
+
+`strip` draws every observation, jittered across its group's slot by a
+seeded random generator: the same call draws the same figure, and `seed=`
+changes the draw. Over `boxplot(..., outliers=False)` it shows the summary and
+the points together. `sina` spreads each point by at most the group's kernel
+density at its value, so the points take a violin's outline and every value
+stays visible. Only the sideways position is random; values are exact.
+
+```python
+import inklet as i
+import random
+rng = random.Random(409)
+small = {'wt': [rng.gauss(3.0, .5) for _ in range(40)],
+         'ko': [rng.gauss(4.2, .8) for _ in range(40)]}
+large = {'wt': [rng.gauss(3.0, .5) for _ in range(400)],
+         'ko': [rng.gauss(4.2, .8) + (1.2 if rng.random() < .3 else 0)
+                for _ in range(400)]}
+strip = i.plot_spec(x=['wt', 'ko'], y=(0, 8), height=44)
+strip.boxplot(small, outliers=False)
+strip.strip(small, size=.8)
+strip.axes(y='Response / a.u.')
+sina = i.plot_spec(x=['wt', 'ko'], y=(0, 8), height=44)
+sina.sina(large, size=.6)
+sina.axes(y='Response / a.u.')
+doc = i.document(width=100, columns=[1, 1], gap=8)
+doc.add('strip', strip, row=0, column=0)
+doc.add('sina', sina, row=0, column=1)
+doc.save('strip-sina.svg', 'strip-sina.pdf')
+```
+
+![Strip and sina plots: jittered points over boxes, and density-shaped point clouds.](assets/guides/plots-strip-sina.png)
+
+*Rendered from the code above. Left, 40 observations per group over their
+boxes; right, 400 per group spread by their densities.*
+
+## Quantile-quantile and probability plots
+
+`qq` plots each sorted value against the standard normal quantile at its
+plotting position (R's `ppoints`), with a reference line through the first
+and third quartiles, as R's `qqline` draws. A normal sample follows the line;
+heavy tails bend away from it at both ends. `line='fit'` uses the mean and
+standard deviation instead. `pp` plots the fitted normal CDF against the
+empirical probabilities, with the diagonal. A PP plot is most sensitive in the
+middle of the distribution, a QQ plot in the tails. `dist=` takes another
+`statistics.NormalDist` or any quantile function (for `pp`, any CDF).
+
+```python
+import inklet as i
+import random
+rng = random.Random(410)
+heavy = [rng.gauss(0, 1) / max(.25, abs(rng.gauss(0, 1))) ** .5
+         for _ in range(150)]
+qq = i.plot_spec(x=(-3, 3), y=(-6, 6), height=40)
+qq.qq(heavy)
+qq.axes(x='Normal quantile', y='Sample quantile')
+pp = i.plot_spec(x=(0, 1), y=(0, 1), height=40)
+pp.pp(heavy)
+pp.axes(x='Normal probability', y='Empirical probability')
+doc = i.document(width=100, columns=[1, 1], gap=8)
+doc.add('qq', qq, row=0, column=0)
+doc.add('pp', pp, row=0, column=1)
+doc.save('qq.svg', 'qq.pdf')
+```
+
+![QQ and PP plots: a heavy-tailed sample against the normal, with reference lines.](assets/guides/plots-qq.png)
+
+*Rendered from the code above. The sample is heavy-tailed by construction, so
+its extreme values bend away from the QQ reference line.*
+
 ## Next steps
+
+[Relationships between variables](relationships.md) covers 2D densities,
+regression, agreement plots and pair plots.
 
 [Compare plot types](plot-types.md), configure [axes and scales](axes-and-scales.md),
 or [arrange several panels](layout.md). For exact options, see the [API](api.md).

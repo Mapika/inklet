@@ -28,10 +28,20 @@ from .cumulative import ecdf
 from .volcano import volcano_points
 from .dendrogram import DendrogramLayout, DendrogramLink, dendrogram_layout
 from .upset import Intersection, UpSetLayout, upset, upset_layout
+from .hierarchy import (
+    Hierarchy, HierarchyNode, PartitionCell, hierarchy, partition_layout, squarify,
+    treemap_layout,
+)
+from .network import WidthScale, width_scale
+from .chord import ChordGroup, ChordLayout, ChordRibbon, chord_layout
+from .cluster import correlation, cut, distance_matrix, linkage
+from .clustermap import clustermap
+from .genomics import ManhattanLayout, chromosome_key, manhattan, manhattan_layout
+from .ternary import TernaryFrame, ternary_frame
 from .dotplot import AreaScale, area_scale, size_key
 from .survival import SurvivalEstimate, kaplan_meier
 from .forest import ForestLayout, ForestRow, forest, forest_layout
-from .embedding import cluster_centres
+from .embedding import cluster_centers, cluster_centres
 from .significance import format_p
 from .inset import INDICATOR_KIND, INSET_KIND, inset, panel_bracket
 from .panel import Panel, column, panel, row
@@ -53,6 +63,16 @@ from .scale import (
 )
 from .series import SeriesKey, swatch_for
 from .timescale import Time, TimeStep, dates, time_ticks, to_time
+from .kernel_density import BANDWIDTH_RULES, Density2D, kde2d, kde_curve, mass_levels
+from .kernel_density import bandwidth as kde_bandwidth
+from .density import histogram2d, point_density
+from .regression import LinearFit, linear_fit, lowess, t_cdf, t_quantile
+from .probability import plotting_positions, pp_points, qq_line, qq_points
+from .agreement import Agreement, bland_altman
+from .letter_values import LetterValues, letter_values
+from .histograms import HISTTYPES, cumulate
+from .percent import percent_of_totals
+from .pairs import MARGINAL_KINDS, PAIR_KINDS, jointplot, pairplot
 
 __all__ = [
     # scales
@@ -71,9 +91,22 @@ __all__ = [
     "histogram", "box_stats", "BoxStats", "kde", "quantile", "ecdf",
     "volcano_points", "dendrogram_layout", "DendrogramLayout", "DendrogramLink",
     "upset", "upset_layout", "UpSetLayout", "Intersection",
+    "hierarchy", "Hierarchy", "HierarchyNode", "squarify", "treemap_layout",
+    "partition_layout", "PartitionCell", "width_scale", "WidthScale",
+    "chord_layout", "ChordLayout", "ChordGroup", "ChordRibbon",
+    "linkage", "cut", "correlation", "distance_matrix", "clustermap",
+    "manhattan", "manhattan_layout", "ManhattanLayout", "chromosome_key",
+    "ternary_frame", "TernaryFrame",
     "area_scale", "AreaScale", "size_key", "kaplan_meier", "SurvivalEstimate",
     "forest", "forest_layout", "ForestLayout", "ForestRow",
-    "cluster_centres", "format_p",
+    "cluster_centers", "cluster_centres", "format_p",
+    # statistical plots
+    "kde_curve", "kde_bandwidth", "BANDWIDTH_RULES", "kde2d", "Density2D",
+    "mass_levels", "histogram2d", "point_density", "linear_fit", "LinearFit",
+    "lowess", "t_cdf", "t_quantile", "qq_points", "qq_line", "pp_points",
+    "plotting_positions", "bland_altman", "Agreement", "letter_values",
+    "LetterValues", "HISTTYPES", "cumulate", "percent_of_totals",
+    "pairplot", "jointplot", "PAIR_KINDS", "MARGINAL_KINDS",
     "inset", "panel_bracket", "INSET_KIND", "INDICATOR_KIND",
     "ribbon", "ribbon_between", "ribbon_cubics", "eased_cubic",
     "panel_ribbon", "RIBBON_EASE",
@@ -84,4 +117,23 @@ __all__ = [
     # colour
     "Ramp", "ramp", "colorbar", "legend", "BANDS", "SWATCH_OF_TYPE",
     "raster_matrix", "MATRIX_KIND", "LEVELS",
+]
+
+# categorical, composition, comparison and time plots
+from .waterfall import WaterfallStep, waterfall_steps
+from .slope import ranks
+from .diverging import likert_colors, likert_spans, unsigned
+from .waffle import waffle_cells
+from .mosaic import MosaicColumn, mosaic_layout
+from .stream import STREAM_OFFSETS, STREAM_ORDERS, stream_layers
+from .parallel import parallel_ranges
+from .bullet import bullet_shades
+from .calendar import WEEKDAYS, calendar_weeks
+from .barplot import summary_stats
+
+__all__ += [
+    "WaterfallStep", "waterfall_steps", "ranks", "likert_colors", "likert_spans",
+    "unsigned", "waffle_cells", "MosaicColumn", "mosaic_layout", "STREAM_OFFSETS",
+    "STREAM_ORDERS", "stream_layers", "parallel_ranges", "bullet_shades",
+    "WEEKDAYS", "calendar_weeks", "summary_stats",
 ]

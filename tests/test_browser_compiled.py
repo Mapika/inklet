@@ -12,7 +12,7 @@ import pytest
 from inklet.core.batch import RECORD
 from inklet.experimental.browser import BrowserFigure, LineView, ScatterView
 from inklet.experimental.browser.compiled import compiled_marks
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 
 def figure():
@@ -111,7 +111,7 @@ def test_filtering_reuses_records_and_intersects_spatial_candidates(tmp_path, ba
 @pytest.mark.parametrize('edited', [False, True])
 def test_complete_regional_display_matches_classic_svg(tmp_path, backend, dpr, edited):
     from test_regional_report import recipe
-    from inklet.experimental.selection import SelectionState
+    from inklet.selection import SelectionState
     Image = pytest.importorskip('PIL.Image')
     ImageChops = pytest.importorskip('PIL.ImageChops')
     ImageStat = pytest.importorskip('PIL.ImageStat')

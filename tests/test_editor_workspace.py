@@ -7,7 +7,7 @@ import subprocess
 
 import pytest
 import inklet as i
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 
 
 def test_workspace_navigation_drafts_zoom_pan_and_keyboard(tmp_path):

@@ -80,7 +80,7 @@ def make_document(rows):
 
     values = {name:[r['expression'][0] for r in group] for name,group in zip(STATES,groups)}
     p = panel(x=STATES,y=(0,4),clip=True)
-    p.violin(values,colors=COLORS,cut=0,median=True).boxplot(values,width=.17,outliers=False,stroke='#243848')
+    p.violin(values,color=COLORS,cut=0,median=True).boxplot(values,width=.17,outliers=False,stroke='#243848')
     p.axes(y='G01 expression / a.u.',count=4)
     add('distribution','d  Same cells / G01 distribution',p)
 

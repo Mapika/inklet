@@ -12,7 +12,7 @@ import pytest
 from inklet.experimental.browser import (
     BarView, BrowserFigure, FacetView, GeoRegions, LineView, RegionView, RevisionOption, ScatterView,
 )
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 def table():

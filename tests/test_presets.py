@@ -209,7 +209,7 @@ def test_live_data_and_snapshots_survive_a_preset_change():
 
 def test_bar_defaults_follow_brand_and_keep_explicit_colours_and_matching_keys():
     doc = i.preset('marketing.report', accent='#552299').document(columns=2)
-    auto = i.plot_spec(x=i.band(['A', 'B']), y=(0, 5)).bars(['A', 'B'], [2, 3], names=['Values']).axes().legend()
+    auto = i.plot_spec(x=i.band(['A', 'B']), y=(0, 5)).bars(['A', 'B'], [2, 3], name=['Values']).axes().legend()
     explicit = i.plot_spec(x=i.band(['A', 'B']), y=(0, 5)).bars(['A', 'B'], [2, 3], fill='#a12b35').axes()
     doc.add('auto', auto, row=0, column=0)
     doc.add('explicit', explicit, row=0, column=1)
@@ -252,7 +252,7 @@ def test_inside_legends_use_clear_data_space_or_move_above():
     box, area = _legend_and_area(sparse)
     assert area.x0 <= box.x0 and box.x1 <= area.x1 and area.y0 <= box.y0 and box.y1 <= area.y1
     full = i.panel(20, 8, x=(0, 1), y=(0, 1)).bars(
-        [.1, .3, .5, .7, .9], [1] * 5, width=.2, names=['filled'])
+        [.1, .3, .5, .7, .9], [1] * 5, width=.2, name=['filled'])
     box, area = _legend_and_area(full)
     assert box.y1 <= area.y0 + 1e-6
 

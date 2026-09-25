@@ -20,6 +20,7 @@ panels whose y labels are different widths.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Iterable, Mapping, Sequence
 
@@ -39,11 +40,13 @@ from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
                         plated as _plated)
 from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
                   legend as make_legend)
-from .matrix import (_RASTER_ABOVE_CELLS, matrix_centres, matrix_layer,
-                     prepare_matrix, default_colouring)
+from .line_labels import tag_series
+from .matrix import (_RASTER_ABOVE_CELLS, matrix_centers, matrix_layer,
+                     prepare_matrix, default_coloring)
 from .scale import Band, Linear, Log, Scale, linear
 from .metadata import declare_domain as _declare_domain
-from .series import SeriesKey, merge_keys, series_color, swatch_for
+from .series import SeriesKey, merge_keys, series_color, series_names, swatch_for
+from .._compat import renamed_keywords, resolve_renamed
 from .timescale import dates, is_time_like
 
 __all__ = ["Panel", "column", "panel", "row"]
@@ -130,6 +133,10 @@ class Panel:
     #: The area scale the last `dotplot` sized its circles with, for
     #: `size_key()`.
     _sizes: object | None = field(default=None, repr=False, compare=False)
+    #: The width scale the last `network` drew its edges with, for
+    #: `width_key()`.
+    _widths: object | None = field(default=None, repr=False, compare=False)
+    _ternary: object | None = field(default=None, repr=False, compare=False)
     #: `(name, estimate, colour)` per curve `kaplan_meier` drew, for
     #: `at_risk()`.
     _survival: list = field(default_factory=list, repr=False, compare=False)
@@ -321,7 +328,7 @@ class Panel:
         rows, raster, overlap, clip = prepare_matrix(
             values, vector=vector, interpolation=interpolation, raster=raster,
             overlap=overlap, style=style)
-        ramp, scale = default_colouring(rows, ramp, scale, center)
+        ramp, scale = default_coloring(rows, ramp, scale, center)
         centres_x = self._centres(x, len(rows[0]), self.x, self.width)
         centres_y = self._centres(y, len(rows), self.y, self.height)
         unit = None if scale is None else scale.with_range(0.0, 1.0)
@@ -340,7 +347,7 @@ class Panel:
 
     def _centres(self, given: Sequence | None, count: int,
                  scale: Scale, extent: float) -> list[float]:
-        return matrix_centres(given, count, scale, extent)
+        return matrix_centers(given, count, scale, extent)
 
     def line(self, points: Iterable[Sequence], *, smooth: float = 0.0,
              closed: bool = False, name: str | None = None, err=None,
@@ -379,10 +386,10 @@ class Panel:
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
         mapped = self.map(data)
         if smooth > 0:
-            return self.draw(draw_curve(mapped, smooth=smooth, closed=closed,
-                                        **style), clip=clip)
+            return self.draw(tag_series(draw_curve(
+                mapped, smooth=smooth, closed=closed, **style), name), clip=clip)
         reduced = simplify_points(mapped,tolerance) if tolerance else mapped
-        node = polyline(reduced, closed=closed, **style)
+        node = tag_series(polyline(reduced, closed=closed, **style), name)
         if tolerance:
             node.note('line_simplification',dict(tolerance_mm=tolerance,
                       input_points=len(mapped),output_points=len(reduced)))
@@ -523,6 +530,8 @@ class Panel:
                 "scatter(ramp=) colours by a value per point: pass color= a "
                 "sequence of numbers the length of the data"
             )
+        from .ramp import as_ramp
+        ramp = as_ramp(ramp)  # a palette name such as "viridis" works too
         numbers = [float(v) for v in values]
         if scale is None:
             low, high = min(numbers), max(numbers)
@@ -532,12 +541,13 @@ class Panel:
         self._scale_domain = scale
         return [ramp(unit.map(v)) for v in numbers], scale
 
+    @renamed_keywords(colors="color", names="name")
     def bars(self, at: Sequence, heights, *, width: float = 0.8,
              baseline: float = 0.0, orient: str = "v",
              stacked: bool | None = None, grouped: bool | None = None,
-             gap: float = 0.12, colors=None, bar_colors=None, names: Sequence[str] | None = None,
+             gap: float = 0.12, color=None, bar_colors=None, name: str | Sequence[str] | None = None,
              labels=None, label_position: str = "auto",
-             label_options: dict | None = None,
+             label_options: dict | None = None, normalize: bool = False,
              **style) -> "Panel":
         """A rectangle per value, standing on a baseline.
 
@@ -548,7 +558,7 @@ class Panel:
         something worth reading and so is never the default.
 
             p.bars(["ctrl", "drug"], [12, 31])
-            p.bars(days, [morning, evening], colors=["#888", TH.accent])
+            p.bars(days, [morning, evening], color=["#888", TH.accent])
 
         `orient="h"` lays the bars down: `at` is then a position on y and the
         heights run along x, which is the layout to use the moment the category
@@ -559,12 +569,15 @@ class Panel:
         a fraction of their sub-slot. One series is drawn as a tint of the ink
         with a hairline edge; several take the theme's palette in order.
 
-        `bar_colors=` assigns one colour per category, as a sequence or a
-        mapping keyed by the values in `at`. It requires one series. A mapping
-        from `inklet.categories()` also supplies category legend entries.
+        `color=` is one colour for every series or a sequence of one colour per
+        *series*. `bar_colors=` assigns one colour per *category* instead, as a
+        sequence or a mapping keyed by the values in `at`; it requires one
+        series. A mapping from `inklet.categories()` also supplies category
+        legend entries.
 
-        `names=` is one name per *series*, not per bar -- the bars are named by
-        the axis -- and gives `legend()` a swatch in each series' own colour.
+        `name=` is one name per *series* (a string for a single series), not
+        per bar -- the bars are named by the axis -- and gives `legend()` a
+        swatch in each series' own colour.
         Unstacked values equal to the baseline draw no rectangle; stacked
         contributions of zero also draw nothing. If every bar has zero length,
         the series remains valid and retains axes and requested legend entries.
@@ -581,30 +594,41 @@ class Panel:
 
             p.bars(ids, [specific, dimorphic, isomorphic], stacked=True,
                    orient="h", labels=True)
+
+        `normalize=True` draws 100% bars: each position's series become
+        percentages of its total and are stacked, so the value axis runs 0
+        to 100, and `labels=True` writes each share as `"{:.0f}%"`.
         """
         clip = _clip_flag(style)
+        names = series_names(name)
+        if normalize:
+            from .percent import PERCENT_LABEL, percent_of_totals
+            heights = percent_of_totals(heights)
+            stacked = True if stacked is None else stacked
+            if labels is True:
+                labels = PERCENT_LABEL
         if names is not None and bar_colors is not None:
-            raise DiagramError("a per-category colour set cannot have one series legend; omit names")
+            raise DiagramError("a per-category colour set cannot have one series legend; omit name")
         if names is not None:
             self._note_series(
                 names, _marks.series_colors(
-                    style.get("fill") if colors is None else colors,
+                    style.get("fill") if color is None else color,
                     _marks.series_count(heights)))
         from .categories import CategorySet
         at = tuple(at)
         node = _marks.bars(
             self, at, heights, width=width, baseline=baseline, orient=orient,
-            stacked=stacked, grouped=grouped, gap=gap, colors=colors, bar_colors=bar_colors,
+            stacked=stacked, grouped=grouped, gap=gap, colors=color, bar_colors=bar_colors,
             **style)
         if isinstance(bar_colors, CategorySet):
-            for label, color in bar_colors.subset(at).legend_entries:
-                self._note(label, "area", fill=color, color=color)
+            for label, entry in bar_colors.subset(at).legend_entries:
+                self._note(label, "area", fill=entry, color=entry)
         self.draw(*(() if node is None else (node,)), clip=clip)
         if labels is not None and labels is not False:
             from .bar_labels import bar_labels
             count = _marks.series_count(heights)
             fills = _marks.series_colors(
-                style.get("fill") if colors is None else colors, count)
+                style.get("fill") if color is None else color, count)
             per_bar = None
             if bar_colors is not None:
                 per_bar = ([bar_colors[a] for a in at]
@@ -620,10 +644,12 @@ class Panel:
                 self.over(written, clip=False)
         return self
 
+    @renamed_keywords(colors="color")
     def hist(self, values: Sequence[float], bins: int | Sequence[float] = 10, *,
              range: tuple[float, float] | None = None, density: bool = False,
-             baseline: float = 0.0, orient: str = "v", colors=None,
-             name: str | None = None, **style) -> "Panel":
+             baseline: float = 0.0, orient: str = "v", color=None,
+             name: str | None = None, histtype: str | None = None,
+             cumulative: bool = False, **style) -> "Panel":
         """Binned counts as touching rectangles.
 
         `bins` is a count -- the edges then land on round numbers and you get
@@ -638,13 +664,35 @@ class Panel:
             edges, counts = inklet.plot.histogram(latencies, 12)
             p = inklet.panel(60, 34, x=(edges[0], edges[-1]), y=(0, max(counts)))
             p.hist(latencies, 12)
+
+        `color=` is the bar colour and `name=` the legend entry.
+
+        `histtype="step"` draws the outline alone, `"stepfilled"` a filled
+        outline with no edges between bins. `cumulative=True` draws running
+        totals (with `density=True`, the fraction of observations up to
+        each bin's upper edge). `values` may be a mapping of group name to
+        values: every group is binned on the same edges, drawn as a
+        translucent filled outline in its own colour (`color=` one per
+        group) and named for `legend()`. `inklet.plot.cumulate` gives the
+        running totals of `histogram`'s heights.
         """
         clip = _clip_flag(style)
+        if (isinstance(values, Mapping) or cumulative
+                or histtype not in (None, "bar")):
+            from .histograms import hist_layer
+            node, keys = hist_layer(self, values, bins, range=range,
+                                    density=density, cumulative=cumulative,
+                                    histtype=histtype, baseline=baseline,
+                                    orient=orient, colors=color, **style)
+            for group, (form, ink, fill) in keys:
+                self._note(group if group is not None else name, form,
+                           color=ink, fill=fill)
+            return self.draw(node, clip=clip)
         self._note(name, "area", fill=_marks.series_colors(
-            style.get("fill") if colors is None else colors, 1)[0])
+            style.get("fill") if color is None else color, 1)[0])
         return self.draw(_marks.hist(
             self, values, bins, range=range, density=density,
-            baseline=baseline, orient=orient, colors=colors, **style),
+            baseline=baseline, orient=orient, colors=color, **style),
             clip=clip)
 
     def errorbars(self, points: Iterable[Sequence], *, yerr=None, xerr=None,
@@ -697,12 +745,14 @@ class Panel:
         return self.draw(_marks.fill_between(self, x, y0, y1, **style),
                          clip=clip)
 
-    def stackarea(self, x: Sequence, values, *, baseline=0.0, colors=None,
-                  names: Sequence[str] | None = None, **style) -> "Panel":
+    @renamed_keywords(colors="color", names="name")
+    def stackarea(self, x: Sequence, values, *, baseline=0.0, color=None,
+                  name: str | Sequence[str] | None = None, **style) -> "Panel":
         """Stack non-negative series over shared x values, in supplied order.
 
         `values` is series-major. `baseline` is a scalar or one value per x;
-        `names` creates legend entries. Use `fill_between` for already
+        `color=` is one colour or one per series, and `name=` (one name per
+        series) creates legend entries. Use `fill_between` for already
         cumulative boundaries. Returns this panel for chaining.
         """
         import math
@@ -715,9 +765,10 @@ class Panel:
         lower = _marks._values(baseline, len(xs), "baseline")
         if any(not math.isfinite(v) for v in lower):
             raise DiagramError("stackarea baseline must be finite")
+        names = series_names(name)
         if names is not None and len(names) != len(rows):
             raise DiagramError("stackarea needs one name per series")
-        fills = _marks.series_colors(colors, len(rows))
+        fills = _marks.series_colors(color, len(rows))
         for i, row in enumerate(rows):
             upper = tuple(a+b for a,b in zip(lower,row))
             paint = dict(style, fill=fills[i])
@@ -743,12 +794,13 @@ class Panel:
             style["stroke"] = stroke
         self._note(name, "line", color=style.get("stroke"),
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
-        return self.draw(_marks.step(self, points, where=where, **style),
-                         clip=clip)
+        return self.draw(tag_series(_marks.step(self, points, where=where,
+                                                **style), name), clip=clip)
 
+    @renamed_keywords(colors="color")
     def boxplot(self, groups, *, at=None, width: float = 0.6,
                 orient: str = "v", whisker: float = 1.5,
-                outliers: bool = True, colors=None, **style) -> "Panel":
+                outliers: bool = True, color=None, **style) -> "Panel":
         """Quartile boxes with Tukey whiskers, one per group.
 
         `groups` is a mapping of position to samples -- the spelling that
@@ -761,17 +813,19 @@ class Panel:
         the interquartile range; everything beyond is drawn as its own point.
         The box is unfilled by default, so the median is the only heavy line in
         it. `inklet.plot.box_stats(sample)` returns the same five numbers if you
-        want them in the caption.
+        want them in the caption. `color=` fills the boxes: one colour, or one
+        per group.
         """
         clip = _clip_flag(style)
         return self.draw(_marks.boxplot(
             self, groups, at=at, width=width, orient=orient, whisker=whisker,
-            outliers=outliers, colors=colors, **style), clip=clip)
+            outliers=outliers, colors=color, **style), clip=clip)
 
+    @renamed_keywords(colors="color")
     def violin(self, groups, *, at=None, width: float = 0.8,
                orient: str = "v", bandwidth: float | None = None,
                samples: int = 64, cut: float = 2.0, median: bool = True,
-               colors=None, **style) -> "Panel":
+               color=None, **style) -> "Panel":
         """Mirrored kernel densities, one per group.
 
         The shape a box plot cannot draw: two samples with the same quartiles
@@ -782,13 +836,13 @@ class Panel:
 
         A violin claims the density is smooth, so it needs enough data to
         support the claim -- under about twenty points per group, draw the
-        points.
+        points. `color=` fills the violins: one colour, or one per group.
         """
         clip = _clip_flag(style)
         return self.draw(_marks.violin(
             self, groups, at=at, width=width, orient=orient,
             bandwidth=bandwidth, samples=samples, cut=cut, median=median,
-            colors=colors, **style), clip=clip)
+            colors=color, **style), clip=clip)
 
     # -- reference lines, in data coordinates ------------------------------
 
@@ -1109,7 +1163,7 @@ class Panel:
                      colors: Sequence[str]) -> "Panel":
         if len(names) != len(colors):
             raise DiagramError(
-                f"names= has {len(names)} names for {len(colors)} series"
+                f"name= has {len(names)} names for {len(colors)} series"
             )
         for name, color in zip(names, colors):
             self._note(name, "area", fill=color, color=color)
@@ -1149,6 +1203,9 @@ class Panel:
 
         `corner="auto"` searches clear plot space against existing marks and
         raises if no sampled position fits; it never shrinks the key.
+        `corner="best"` puts it in the emptiest spot inside the plot area
+        (corners preferred among equally empty ones) and, when every spot
+        would cover data, beside the plot on the right instead.
         Fixed `corner` puts it inside the plot area on a knocked-out plate; `side`
         ("right", "left", "top", "bottom") puts it outside, clear of whatever
         furniture is already there, and then no plate is needed. `entries=`
@@ -1204,6 +1261,13 @@ class Panel:
             plate = True
         if plate:
             node = _plated(node, theme, theme.gap("xs"))
+        if corner == 'best':
+            from .key_place import best_spot
+            placed = best_spot(self, node, gap)
+            if placed is None:          # nowhere clear inside: beside it
+                placed = self._beside(build(max_width), 'right', beside_gap)
+            self._over.append(placed)
+            return self._touched()
         if corner == 'auto':
             from ..layout.clear_space import place_in_clear_space
             node = place_in_clear_space(node, within=self.area,
@@ -1506,7 +1570,9 @@ class Panel:
         """Put a smaller panel in a corner of this one. See `plot.inset`.
 
         `zoom=(x0, x1, y0, y1)` in this panel's data coordinates also draws the
-        window the inset magnifies and joins it to the inset.
+        window the inset magnifies and joins it to the inset. Style keywords
+        (`stroke=`, `stroke_width=`) paint the window and connectors;
+        `connector={"stroke_dash": (1, 0.6)}` styles the connectors alone.
         """
         from .inset import inset as _inset
 
@@ -1569,11 +1635,12 @@ class Panel:
 
         return break_marks(self)
 
+    @renamed_keywords(colors="color")
     def swarm(self, groups, *, at=None, width: float = 0.8,
               max_width: float | str | None = None, orient: str = "v",
               size: float | str | None = None,
               gap: float | str | None = None, marker: str = "circle",
-              hollow: bool = False, colors=None, **style) -> "Panel":
+              hollow: bool = False, color=None, **style) -> "Panel":
         """Every observation as its own dot, nudged sideways until none hides
         another.
 
@@ -1593,7 +1660,7 @@ class Panel:
         `size` is the dot's diameter in millimetres and defaults to the box
         plot's outlier dot, `gap` the air between two neighbours. `hollow=True`
         draws them as rings on paper, which is worth it up to a dozen or so
-        points and a thicket beyond that. `colors=` takes one colour per group.
+        points and a thicket beyond that. `color=` takes one colour, or one per group.
 
         **Width.** `width=` is the slot, as a fraction of the band step, the
         same as every other categorical mark; `max_width=` is an absolute
@@ -1608,11 +1675,12 @@ class Panel:
         return self.draw(_marks.swarm(
             self, groups, at=at, width=width, max_width=max_width,
             orient=orient, size=size, gap=gap, marker=marker, hollow=hollow,
-            colors=colors, **style), clip=clip)
+            colors=color, **style), clip=clip)
 
+    @renamed_keywords(colors="color", names="name")
     def dumbbell(self, at: Sequence, values, *, orient: str = "v",
-                 size: float | str | None = None, colors=None,
-                 names: Sequence[str] | None = None, marker: str = "circle",
+                 size: float | str | None = None, color=None,
+                 name: str | Sequence[str] | None = None, marker: str = "circle",
                  connector: dict | None = None, **style) -> "Panel":
         """Two or more dots per category joined by a line: a dumbbell plot.
 
@@ -1623,27 +1691,28 @@ class Panel:
         a missing value: that dot is not drawn, and a category with only one
         value has no line.
 
-            p.dumbbell(genes, [before, after], names=["before", "after"],
+            p.dumbbell(genes, [before, after], name=["before", "after"],
                        orient="h")
 
         `size` is the dot diameter in millimetres (default: the scatter
-        marker). `colors=` sets one colour per series; the default is the
-        theme palette. `connector=` overrides the line's style, which by
-        default is a light grey at the theme's thick stroke. `names=` adds one
-        marker entry per series to `legend()`.
+        marker). `color=` sets one colour, or one per series; the default is
+        the theme palette. `connector=` overrides the line's style, which by
+        default is a light grey at the theme's thick stroke. `name=` (one name
+        per series) adds one marker entry per series to `legend()`.
         """
         from .paired import dumbbell as _dumbbell
 
         clip = _clip_flag(style)
         node, fills = _dumbbell(self, at, values, orient=orient, size=size,
-                                colors=colors, marker=marker,
+                                colors=color, marker=marker,
                                 connector=connector, **style)
+        names = series_names(name)
         if names is not None:
             if len(names) != len(fills):
                 raise DiagramError(
-                    f"names= has {len(names)} names for {len(fills)} series")
-            for name, fill in zip(names, fills):
-                self._note(name, "marker", color=fill, marker=marker)
+                    f"name= has {len(names)} names for {len(fills)} series")
+            for entry, fill in zip(names, fills):
+                self._note(entry, "marker", color=fill, marker=marker)
         return self.draw(node, clip=clip)
 
     def lollipop(self, at: Sequence, values: Sequence, *, baseline: float = 0.0,
@@ -1720,11 +1789,13 @@ class Panel:
             style["stroke"] = stroke
         self._note(name, "line", color=style.get("stroke"),
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
-        return self.draw(polyline(self.map(points), **style), clip=clip)
+        return self.draw(tag_series(polyline(self.map(points), **style), name),
+                         clip=clip)
 
+    @renamed_keywords(colors="color")
     def ridgeline(self, groups, *, at=None, overlap: float = 1.5,
                   bandwidth: float | None = None, samples: int = 96,
-                  scale: str = "shared", fit: bool = True, colors=None,
+                  scale: str = "shared", fit: bool = True, color=None,
                   **style) -> "Panel":
         """Overlapping kernel densities, one per category: a ridgeline plot.
 
@@ -1746,7 +1817,7 @@ class Panel:
         a narrow sample has a tall peak; `scale="each"` gives every ridge the
         same peak height. `bandwidth` defaults to Silverman's robust rule per
         group, as for `violin`, and `samples` is the number of points along
-        x. `colors=` sets one fill per group (default: one tint for all);
+        x. `color=` sets one fill, or one per group (default: one tint for all);
         other keywords style the outline.
 
         `fit=True` (default) scales every ridge down by one common factor
@@ -1760,14 +1831,15 @@ class Panel:
         clip = _clip_flag(style)
         node, _, _ = _ridgeline(self, groups, at=at, overlap=overlap,
                                 bandwidth=bandwidth, samples=samples,
-                                scale=scale, fit=fit, colors=colors, **style)
+                                scale=scale, fit=fit, colors=color, **style)
         return self.draw(node, clip=clip)
 
+    @renamed_keywords(colors="color")
     def raincloud(self, groups, *, at=None, orient: str = "h",
                   width: float = 0.9, bandwidth: float | None = None,
                   samples: int = 64, cut: float = 2.0, whisker: float = 1.5,
                   points: str | None = "jitter", size: float | str | None = None,
-                  seed: int = 0, box: bool = True, colors=None,
+                  seed: int = 0, box: bool = True, color=None,
                   **style) -> "Panel":
         """A half violin, a narrow box and the observations, per group.
 
@@ -1791,7 +1863,7 @@ class Panel:
         `points="swarm"` packs them as `swarm` does; `None` leaves them out.
         `size` is the dot diameter in mm. `box=False` omits the box.
 
-        `colors=` sets one colour per group: the points use it and the half
+        `color=` sets one colour, or one per group: the points use it and the half
         violin a paler blend of it. The default is the ink for one group and
         the theme's ink palette for several. Other keywords style the points.
         """
@@ -1801,7 +1873,7 @@ class Panel:
         node, _, _ = _raincloud(self, groups, at=at, orient=orient, width=width,
                                 bandwidth=bandwidth, samples=samples, cut=cut,
                                 whisker=whisker, points=points, size=size,
-                                seed=seed, box=box, colors=colors, **style)
+                                seed=seed, box=box, colors=color, **style)
         return self.draw(node, clip=clip)
 
     def label_points(self, points: Iterable[Sequence], labels: Sequence[str],
@@ -1847,6 +1919,32 @@ class Panel:
         self._over.append(holder)
         return self._touched()
 
+    def label_lines(self, name: str | Sequence[str] | None = None,
+                    **kwargs) -> "Panel":
+        """Name curves at the curves themselves instead of in a legend.
+
+        Every `line`, `step` or `ecdf` drawn with `name=` (or those named
+        by this call's `name`, one or a list) gets its name in its own colour. `where="end"` (default)
+        sets the names in a column just right of the curve ends, pushed
+        apart when they would collide, with a hairline leader from a name
+        moved off its end; `where="inside"` puts each name just above or
+        below the last stretch of its own curve, chosen jointly so no name
+        collides with another, is crossed by a curve or sits nearer a
+        different curve.
+
+            for g in groups:
+                p.line(curves[g], name=g)
+            p.label_lines()
+
+        Keywords: `size`, `gap` (curve end to name, mm), `leader=False`,
+        `color=False` (names in ink), `markup`, `leader_style=` and any text
+        style. Placed at `build()`, like `label_points`; names that collide
+        anyway are listed under `unresolved` in the `line_labels` note and
+        reported by lint. See `plot.line_labels`.
+        """
+        from .line_labels import defer
+        return defer(self, name, **kwargs)
+
     def _placed_over(self) -> list[Diagram]:
         """`_over` with each deferred `label_points` call placed.
 
@@ -1873,9 +1971,10 @@ class Panel:
             over[n] = node
         return over
 
+    @renamed_keywords(colors="color")
     def dendrogram(self, tree, *, labels: Sequence | None = None,
                    orient: str = "v", threshold: float | None = None,
-                   colors=None, **style) -> "Panel":
+                   color=None, **style) -> "Panel":
         """The merge tree of a hierarchical clustering, drawn as elbows.
 
         `tree` is a SciPy linkage matrix (rows `[a, b, distance, count]`) or
@@ -1901,7 +2000,7 @@ class Panel:
             tree.dendrogram(link, labels=genes, orient="h")
 
         `threshold=` colours each subtree whose merges are all below that
-        height in its own colour from the theme's ink palette (or `colors=`)
+        height in its own colour from the theme's ink palette (or `color=`)
         and draws the merges above it in the ink. Other keywords style the
         lines. The node carries a `dendrogram` note with the leaf order, the
         root height and the leaves of each coloured cluster.
@@ -1910,13 +2009,435 @@ class Panel:
 
         clip = _clip_flag(style)
         node, _, _ = _dendrogram(self, tree, labels=labels, orient=orient,
-                                 threshold=threshold, colors=colors, **style)
+                                 threshold=threshold, colors=color, **style)
         return self.draw(node, clip=clip)
 
+    # -- clustered matrices (plot/cluster.py, plot/correlogram.py) -----------
+
+    def clusters(self, groups: Sequence, *, color: str | None = None, highlight=None,
+                 highlight_color: str | None = None, width: float | str | None = None,
+                 labels: bool = False, size: float | str | None = None,
+                 min_size: int = 1, **style) -> "Panel":
+        """Boxes on the diagonal of a matrix, one per cluster.
+
+        `groups` is one cluster label per matrix row, in the order the rows
+        are drawn (top first), so each cluster is a run of equal labels;
+        `inklet.plot.cut(link, k)` numbered in leaf order gives exactly that
+        once the matrix is reordered by the dendrogram:
+
+            link = inklet.plot.linkage(r, metric="precomputed")
+            order = inklet.plot.dendrogram_layout(link).order
+            groups = [inklet.plot.cut(link, 4)[i] for i in order]
+            p.matrix([[r[i][j] for j in order] for i in order]).clusters(groups, highlight=2)
+
+        Boxes span whole cells of an n x n matrix filling the plot area,
+        drawn `width` mm thick (default the theme's thick stroke) in `color`
+        (ink); `highlight=` clusters are drawn over the others in
+        `highlight_color` (red). `labels=True` names each cluster outside
+        the matrix on the right, level with its box. Runs shorter than `min_size` rows get no box,
+        and a `None` label is never boxed. Other keywords style the boxes.
+        The node carries a `clusters` note with each box's row span.
+        """
+        from .cluster import clusters as _clusters
+
+        node, _ = _clusters(self, groups, color=color, highlight=highlight,
+                            highlight_color=highlight_color, width=width, labels=labels,
+                            size=size, min_size=min_size, **style)
+        return self.over(node, clip=False)
+
+    def correlogram(self, r, name: Sequence[str] | None = None, *,
+                    triangle: str = "lower", shape: str = "circle", ramp=None,
+                    values=False, labels: bool = True,
+                    size: float | str | None = None, **style) -> "Panel":
+        """A correlation matrix as a triangle of glyphs sized and coloured by r.
+
+        `r` is a square matrix of correlations (`inklet.plot.correlation`
+        computes one); `name` labels its rows. Each glyph's area is
+        proportional to |r| (a full cell less a margin at |r| = 1) and its
+        colour is r on the diverging ramp from -1 (blue) to 1 (red), so
+        `colorbar()` afterwards shows the fixed -1..1 scale.
+
+            p = inklet.panel(40, 40)
+            p.correlogram(inklet.plot.correlation(table), genes).colorbar(label="r")
+
+        `triangle="lower"` (default) or `"upper"` draws each pair once and
+        leaves out the diagonal; `"full"` draws everything. `shape` is
+        "circle", "square" or "tile" (whole cells, the classic heatmap).
+        `values=True` or a format such as `"{:.1f}"` writes r in each glyph.
+        Names go outside the grid, left and below (above for "upper"),
+        turned when they do not fit a column. Missing values (None or NaN)
+        are left empty. The node carries a `correlogram` note.
+        """
+        from .correlogram import correlogram as _correlogram
+
+        clip = _clip_flag(style)
+        node, note = _correlogram(self, r, name, triangle=triangle, shape=shape,
+                                  ramp=ramp, values=values, labels=labels, size=size,
+                                  **style)
+        self._ramp = note["ramp"]
+        self._scale_domain = note["scale"]
+        return self.draw(node, clip=clip)
+
+    def ternary(self, points: Iterable[Sequence[float]], *, labels: Sequence[str] | None = None,
+                ticks: int = 5, grid: bool = True, total: float = 100, format=None,
+                color=None, size=None, marker: str = "circle", name: str | None = None,
+                **style) -> "Panel":
+        """Compositions of three parts as points in a triangle.
+
+        `points` are `(a, b, c)` triples in any units; each is normalised to
+        fractions of its sum. The first call draws the triangle, fitted into
+        the plot area with component `labels[0]` at the top vertex,
+        `labels[1]` bottom left and `labels[2]` bottom right, with `ticks`
+        divisions whose inner gridlines are labelled as parts of `total`
+        (100, so percentages; `format=` a function to write them) and a pale grid (`grid=False` to omit).
+        Later calls on the same panel add points to the same triangle.
+
+            p = inklet.panel(50, 45)
+            p.ternary(soils, labels=("clay", "sand", "silt"), name="site 1")
+            p.ternary(more, name="site 2").legend()
+
+        The points are an ordinary `scatter`, so `color`, `size`, `marker`,
+        `name` and other style keywords mean what they mean there (a
+        sequence of colours or a ramp included). The triangle carries a
+        `ternary` note with its vertices; `inklet.plot.ternary_frame` gives
+        the geometry for drawing anything else in it.
+        """
+        from .ternary import ternary_frame
+
+        if isinstance(self.x, Band) or isinstance(self.y, Band):
+            raise DiagramError("ternary needs continuous x and y scales")
+        if self._ternary is None:
+            node, frame = ternary_frame(self, labels=labels or ("A", "B", "C"), ticks=ticks,
+                                        grid=grid, total=total, format=format)
+            self._ternary = frame
+            self.under(node)
+        elif labels is not None:
+            raise DiagramError("this panel's ternary triangle is already drawn with its labels")
+        frame = self._ternary
+        at = [frame.point(*triple) for triple in points]
+        data = [(self.x.invert(p.x), self.y.invert(p.y)) for p in at]
+        return self.scatter(data, color=color, size=size, marker=marker, name=name,
+                            clip=False, **style)
+
+    # -- hierarchies (plot/hierarchy_plots.py) ------------------------------
+
+    def treemap(self, data, *, color=None, highlight=None,
+                highlight_color: str | None = None,
+                padding: float | str | None = None, header: bool | None = None,
+                labels: bool = True, values=None, sort: bool = True,
+                size: float | str | None = None, **style) -> "Panel":
+        """A squarified treemap: each leaf a rectangle with area proportional
+        to its value, filling the plot area.
+
+        `data` is any input of `inklet.plot.hierarchy`: a nested mapping
+        (`{"L5": {"ET": 40, "IT": 65}, "L6": 80}`), `(name, children)`
+        tuples, or a `(name, parent[, value])` table. Nested groups are
+        drawn as pale plates `padding` mm inside their parent (default about
+        0.6 mm when the tree is more than one level deep) with the group's
+        name in a header strip (`header=`). Siblings are laid out largest
+        first unless `sort=False`.
+
+        Colours follow the branch (child of the root): the theme's
+        categorical palette, `color=` a list per branch, a mapping of node
+        name to colour (inherited by descendants) or one colour. `highlight=`
+        names or paths get `highlight_color` (a red by default) and every
+        other node a pale fill. Leaves are named in their top-left corner
+        when the name fits (`labels=False` to omit); `values=True` or a
+        format string such as `"{:.0f}"` adds the value on a second line.
+        The panel's scales are not used. The node carries a `treemap` note
+        with each cell's path and area in mm².
+        """
+        from .hierarchy_plots import treemap as _treemap
+
+        clip = _clip_flag(style)
+        node, _ = _treemap(self, data, color=color, highlight=highlight,
+                           highlight_color=highlight_color, padding=padding,
+                           header=header, labels=labels, values=values,
+                           sort=sort, size=size, **style)
+        return self.draw(node, clip=clip)
+
+    def icicle(self, data, *, orient: str = "h", root: bool | None = None,
+               gap: float | str | None = None, spacing: float | str | None = None,
+               links: bool | None = None, color=None, highlight=None,
+               highlight_color: str | None = None, labels="fit",
+               levels: bool = False, counts: bool = False, sort: bool = False,
+               size: float | str | None = None, **style) -> "Panel":
+        """An icicle (partition) chart: one band per level of a hierarchy,
+        each node spanning its share of its parent.
+
+        `data` is any input of `inklet.plot.hierarchy`. With `orient="h"`
+        (default) the levels are columns from left to right and the nodes
+        stack down each column; `"v"` puts the levels in rows from the top.
+        The root is drawn as the first level when it has a name (`root=`
+        overrides).
+
+        `gap=` (mm) separates the levels and, by default, fills the gap with
+        pale fans joining each node to its parent (`links=`); `spacing=` is
+        the space between neighbouring nodes in a level, shrunk where a
+        level has too many nodes to afford it. This is the "clustering
+        levels" figure: with `highlight=` a set of node names or paths, those
+        nodes are drawn in `highlight_color` and the rest pale,
+        `labels="highlight"` names them beyond the last level with leader
+        ticks, `levels=True` numbers the levels from 0 above them and
+        `counts=True` writes the number of nodes per level beneath (the
+        highlighted count above it, in the highlight colour).
+
+        `labels="fit"` (default) writes a name inside every node where it
+        fits; a list of names labels those nodes outside, like
+        `"highlight"`; `False` writes none. Colours are as for `treemap`,
+        blended towards paper one step per level. The node carries an
+        `icicle` note with the node counts and highlighted counts per level
+        and every node's span in mm.
+        """
+        from .hierarchy_plots import icicle as _icicle
+
+        clip = _clip_flag(style)
+        node, _ = _icicle(self, data, orient=orient, root=root, gap=gap,
+                          spacing=spacing, links=links, color=color,
+                          highlight=highlight, highlight_color=highlight_color,
+                          labels=labels, levels=levels, counts=counts, sort=sort,
+                          size=size, **style)
+        return self.draw(node, clip=clip)
+
+    def sunburst(self, data, *, inner: float = 0.3, start: float = -90.0,
+                 color=None, highlight=None, highlight_color: str | None = None,
+                 labels: bool = True, center: str | None = None, sort: bool = False,
+                 size: float | str | None = None, **style) -> "Panel":
+        """A sunburst: an icicle chart bent into rings about the centre of
+        the plot area, the first level innermost.
+
+        `data` is any input of `inklet.plot.hierarchy`. The rings fill the
+        largest circle in the area; `inner` is the radius of the central hole
+        as a fraction of it, where `center=` (default: the root's name)
+        is written. Angles run clockwise from `start` degrees (-90 is twelve
+        o'clock), each node spanning its share of 360. A name is written in
+        its segment only when its whole box fits inside. Colours and
+        `highlight=` are as for `icicle`. The node carries a `sunburst` note
+        with the radii and every node's angle.
+        """
+        from .hierarchy_plots import sunburst as _sunburst
+
+        clip = _clip_flag(style)
+        node, _ = _sunburst(self, data, inner=inner, start=start, color=color,
+                            highlight=highlight, highlight_color=highlight_color,
+                            labels=labels, center=center, sort=sort, size=size,
+                            **style)
+        return self.draw(node, clip=clip)
+
+    # -- networks (plot/network.py, plot/chord.py) ---------------------------
+
+    def network(self, nodes, edges, *, layout: str = "circular", order=None,
+                size=None, top: float | None = None,
+                diameter: float | str | None = None, floor: float | str | None = None,
+                shape: str = "circle", shapes=None, groups=None, color=None,
+                labels="auto", label_size: float | str | None = None,
+                weights=None, width: float | str | None = None,
+                width_floor: float | str | None = None, edge_color=None, bend: float | None = None, arrows: bool = False,
+                opacity: float = 0.85, gap: float | str | None = None,
+                iterations: int = 300, **style) -> "Panel":
+        """A weighted network: node area from a value, edge width from a
+        weight, colours from categories, fitted into the plot area.
+
+        `nodes` is a list of names, or a mapping of name to value. `edges`
+        are `(source, target)`, `(source, target, weight)` or
+        `(source, target, weight, category)` rows.
+
+            p = inklet.panel(50, 50)
+            p.network({"102": 36, "79": 12, "81": 9},
+                      [("102", "79", 5e4, "dimorphic"), ("81", "102", 900, "isomorphic")],
+                      shape="square", groups={"102": "enriched"}, arrows=True)
+            p.width_key(title="synapses").legend(side="bottom")
+
+        `layout="circular"` (default) puts the nodes on one ring, in input
+        order or `order=`, starting at twelve o'clock, and bows every edge
+        towards the centre by `bend` times its length (default 0.25).
+        `"force"`, `"layered"` and `"tree"` take their positions from the
+        solvers `inklet.graph` uses (`gap=` and `iterations=` pass through),
+        stretched to fill the area, with straight edges unless `bend` is
+        given. Two opposite directed edges bow to opposite sides.
+
+        Node values (or `size=`, a mapping or one per node) set the area of
+        each node: `top` is drawn `diameter` mm across (default: the largest
+        value, 4 mm) and nothing is smaller than `floor` (1.2 mm). `shape` is
+        "circle" or "square" (rounded), per node with `shapes=`. `groups=`
+        maps nodes to categories coloured from the palette and named in
+        `legend()`; `color=` is the fill of ungrouped nodes, or a mapping of
+        node or group names to colours. `labels="auto"` writes a name
+        inside its node when it fits and outside (away from the centre)
+        otherwise; "inside", "outside" or False force the choice, and
+        `label_size` sets their font size.
+
+        Edge widths are proportional to weight: the heaviest edge is `width`
+        mm (default 1.6), and nothing is thinner than `width_floor` (a
+        hairline); pass `weights=inklet.plot.width_scale(top, width)` to share
+        a scale between panels. Edge categories are coloured from the palette
+        (after the node groups) or by `edge_color=` (a mapping of category to
+        colour, or a list) and named in `legend()`; a single `edge_color`
+        paints the uncategorised edges.
+        Lighter edges are drawn first. `arrows=True` puts a head on each edge
+        at its target. Other keywords style the edges. `width_key()` and
+        `size_key()` explain the widths and areas actually used. The node
+        carries a `network` note with positions, diameters and the number of
+        edges drawn at the width floor.
+        """
+        from .network import network as _network
+        from .series import SeriesKey
+
+        clip = _clip_flag(style)
+        node, note = _network(self, nodes, edges, layout=layout, order=order,
+                              size=size, top=top, diameter=diameter, floor=floor,
+                              shape=shape, shapes=shapes, groups=groups, color=color,
+                              labels=labels, label_size=label_size, weights=weights,
+                              width=width, width_floor=width_floor,
+                              edge_color=edge_color, bend=bend,
+                              arrows=arrows, opacity=opacity, gap=gap,
+                              iterations=iterations, **style)
+        self._widths = note["widths"]
+        if note["sizes"] is not None:
+            self._sizes = note["sizes"]
+        for name, fill, kind in note["node_keys"]:
+            self._keys.append(SeriesKey(name=name, forms=frozenset(("marker",)),
+                                        color=fill, marker=kind))
+        for name, ink in note["edge_keys"]:
+            self._note(name, "line", color=ink, width=active_theme().thick)
+        return self.draw(node, clip=clip)
+
+    def width_key(self, source=None, *, side: str = "right", corner: str | None = None,
+                  values: Sequence[float] | None = None, count: int = 3, format=None,
+                  title: str | None = None, color: str | None = None,
+                  length: float | str | None = None, pad: float | str | None = None,
+                  plate: bool = False) -> "Panel":
+        """Reference lines with their weights: the key to an edge-width
+        encoding.
+
+        Built from the `WidthScale` the last `network`, `chord` or
+        `arc_diagram` call used, or `source=` (`inklet.plot.width_scale`).
+        Placed like `size_key`: outside on `side`, or inside a `corner` of
+        the plot area. `values`, `count` and `format` choose and write the
+        reference weights, `length` is the line length in mm and `color`
+        its ink.
+        """
+        from .network import width_key as _width_key
+
+        scale = getattr(self, "_widths", None) if source is None else source
+        if scale is None:
+            raise DiagramError(
+                "width_key() has no widths to explain: call network() first, or "
+                "pass source= an inklet.plot.width_scale")
+        node = as_drawn(_width_key(scale, values=values, count=count, format=format,
+                                   title=title, color=color, length=length))
+        theme = active_theme()
+        gap = theme.gap("xs") if pad is None else mm(pad)
+        if plate:
+            node = _plated(node, theme, theme.gap("xs"))
+        if corner is None:
+            # Beside the plot area as well as the drawing: a ring of nodes
+            # leaves the area's corners empty, and a key tucked into one
+            # would straddle the frame.
+            box = _union_box(self._under + self._content + self._over) or self.area
+            box = Rect(min(box.x0, self.area.x0), min(box.y0, self.area.y0),
+                       max(box.x1, self.area.x1), max(box.y1, self.area.y1))
+            if side not in SIDES:
+                raise ValueError(f"unknown side {side!r}; expected one of {', '.join(SIDES)}")
+            placed = beside(node, box, side, gap, Vec2(0.0, 0.0))
+        else:
+            placed = _into_corner(node, self.area, corner, gap)
+        self._over.append(placed)
+        return self._touched()
+
+    def chord(self, matrix, name: Sequence[str] | None = None, *, color=None,
+              gap: float = 2.0, start: float = -90.0, directed: bool = False,
+              sort: bool = False, thickness: float | str | None = None,
+              pad: float | str | None = None, labels: bool = True,
+              opacity: float = 0.72, color_by: str = "source",
+              size: float | str | None = None, **style) -> "Panel":
+        """A chord diagram: groups as arcs around a ring, flows between them
+        as ribbons through the middle, fitted into the plot area.
+
+        `matrix[i][j]` is the flow from group i to group j (a list of rows
+        or a 2-D array; zeros draw nothing).
+
+            p = inklet.panel(50, 50)
+            p.chord([[0, 5, 3], [5, 0, 2], [3, 2, 1]], ["V1", "LM", "AL"])
+
+        Undirected (the default), a group's arc is its row sum and the ribbon
+        between i and j is `matrix[i][j]` wide at i and `matrix[j][i]` wide
+        at j. `directed=True` gives each group its row plus column sum,
+        outgoing flows first, and points each ribbon at its target. `gap` is
+        the angle between groups in degrees; `start` is where the first
+        group begins (-90, twelve o'clock); `sort=True` orders each group's
+        flows largest first. `name` (the second positional argument) names
+        the groups. `color` is one colour, a list, or a mapping of
+        group name to colour (default: the palette); ribbons take the colour
+        of their source (`color_by="source"`), target, or larger end, at
+        `opacity`. `thickness` is the ring's radial width in mm, and group
+        names go outside the ring, `pad` mm clear of it. Other keywords style
+        the ribbons. The node carries a `chord` note with the group angles
+        and values and the ring radius.
+        """
+        from .chord import chord as _chord
+
+        clip = _clip_flag(style)
+        node, _ = _chord(self, matrix, name, color=color, gap=gap, start=start,
+                         directed=directed, sort=sort, thickness=thickness, pad=pad,
+                         labels=labels, opacity=opacity, color_by=color_by, size=size,
+                         **style)
+        return self.draw(node, clip=clip)
+
+    def arc_diagram(self, nodes, edges, *, size=None, top: float | None = None,
+                    diameter: float | str | None = None, floor: float | str | None = None,
+                    shape: str = "circle", shapes=None, groups=None, color=None,
+                    labels: bool = True, rotate: float | None = None, weights=None,
+                    width: float | str | None = None,
+                    width_floor: float | str | None = None, edge_color=None,
+                    directed: bool = False, opacity: float = 0.8,
+                    label_size: float | str | None = None, **style) -> "Panel":
+        """An arc diagram: nodes in a row, each edge a half-ellipse arc
+        above them whose width is the edge weight.
+
+        `nodes` and `edges` read as in `network()` (names or a mapping of
+        name to value; `(source, target[, weight[, category]])` rows), and
+        node sizes (`size=`), shapes, colours (`color=`), edge widths and
+        edge categories (`edge_color=`) are encoded the same way, so `size_key()`, `width_key()` and
+        `legend()` work after it.
+
+            p = inklet.panel(80, 30)
+            p.arc_diagram(["a", "b", "c", "d"], [("a", "c", 4), ("b", "d", 1)])
+
+        Nodes keep their input order, evenly spaced across the plot area,
+        with names below them (turned by `rotate` degrees; by default 90
+        when they would collide). Arcs are as tall as half their span, all
+        scaled down together to fit. `directed=True` draws edges running
+        right to left below the row instead, so direction reads as side.
+        Lighter edges are drawn first; other keywords style the arcs. The
+        node carries an `arc_diagram` note with the node x positions.
+        """
+        from .chord import arc_diagram as _arc_diagram
+        from .series import SeriesKey
+
+        clip = _clip_flag(style)
+        node, note = _arc_diagram(self, nodes, edges, size=size, top=top,
+                                  diameter=diameter, floor=floor, shape=shape,
+                                  shapes=shapes, groups=groups, color=color,
+                                  labels=labels, rotate=rotate,
+                                  weights=weights, width=width, width_floor=width_floor,
+                                  edge_color=edge_color, directed=directed,
+                                  opacity=opacity, label_size=label_size, **style)
+        self._widths = note["widths"]
+        if note["sizes"] is not None:
+            self._sizes = note["sizes"]
+        for name, fill, kind in note["node_keys"]:
+            self._keys.append(SeriesKey(name=name, forms=frozenset(("marker",)),
+                                        color=fill, marker=kind))
+        for name, ink in note["edge_keys"]:
+            self._note(name, "line", color=ink, width=active_theme().thick)
+        return self.draw(node, clip=clip)
+
+    @renamed_keywords(colors="color", names="name")
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
                 labels: Sequence[str] | None = None, top: int = 10,
                 fold_threshold: float = 1.0, p_threshold: float = 0.05,
-                colors=None, names=None, size: float | None = None,
+                color=None, name=None, size: float | None = None,
                 thresholds: bool = True, label_options: dict | None = None,
                 **style) -> "Panel":
         """A volcano plot: log2 fold change on x against -log10 p on y.
@@ -1939,9 +2460,9 @@ class Panel:
         `label_options=` passes keywords to `label_points`. A p-value of 0
         is drawn at the smallest positive p-value in the data.
 
-        `colors=` is a mapping with keys "up", "down" and "ns", or three
+        `color=` is a mapping with keys "up", "down" and "ns", or three
         colours in the order down, ns, up. The default is red for up and blue
-        for down, from the Tol sunset diverging palette. `names=` (the same
+        for down, from the Tol sunset diverging palette. `name=` (the same
         shapes) names the classes in `legend()`; a class with no name has no
         legend row. `size` is the dot diameter in mm; other keywords style
         the points. The last layer drawn carries a `volcano` note with the
@@ -1964,8 +2485,8 @@ class Panel:
         sunset = _palette("tol-sunset").colors
         paint = {"down": sunset[1], "ns": mix(theme.muted, theme.paper, 0.55),
                  "up": sunset[9]}
-        paint.update(_volcano_triple(colors, "colors"))
-        named = _volcano_triple(names, "names")
+        paint.update(_volcano_triple(color, "color"))
+        named = _volcano_triple(name, "name")
         if thresholds:
             rule = {"stroke": theme.muted, "stroke_width": theme.hairline,
                     "stroke_dash": (1.0, 0.8)}
@@ -2007,24 +2528,69 @@ class Panel:
             last.notes["volcano"] = note
         return self
 
-    def dotplot(self, sizes: Sequence[Sequence[float]], colors=None, *,
+    def ma(self, mean: Sequence[float], fold: Sequence[float],
+           p: Sequence[float] | None = None, *, labels: Sequence[str] | None = None,
+           top: int = 10, fold_threshold: float = 1.0, p_threshold: float = 0.05,
+           color=None, name=None, size: float | None = None, log: bool = True,
+           zero: bool = True, **style) -> "Panel":
+        """An MA plot: mean expression on x against log2 fold change on y.
+
+        `mean` is each feature's mean expression (normalised counts), drawn
+        as log2(mean + 1) unless `log=False` says it is already on the axis
+        scale; `fold` are log2 fold changes and `p` the (adjusted) p-values.
+        Points are classed exactly as `volcano` classes them -- "up" and
+        "down" need p below `p_threshold` and |fold| of at least
+        `fold_threshold` -- and without `p` by fold change alone. The "ns"
+        points are pale grey and drawn first.
+
+            p = inklet.panel(60, 45, x=(0, 16), y=(-6, 6))
+            p.ma(base_mean, log2fc, padj, labels=genes, top=6)
+            p.axes(x="log2 mean expression", y="log2 fold change")
+
+        `zero=True` draws a hairline at a fold change of 0. `labels=` names
+        the `top` significant points with the smallest p (or the largest
+        |fold| without `p`) with `label_points`. `color=` and `name=` take
+        the same shapes as in `volcano`; `size` is the dot diameter (0.9 mm) and
+        other keywords style the points. The last layer carries an `ma` note
+        with the classes and labelled indices.
+        """
+        from .genomics import ma as _ma
+
+        if isinstance(self.x, Band) or isinstance(self.y, Band):
+            raise DiagramError("ma needs continuous x and y scales")
+        note = _ma(self, mean, fold, p, labels=labels, top=top,
+                   fold_threshold=fold_threshold, p_threshold=p_threshold, color=color,
+                   name=name, size=size, log=log, zero=zero, **style)
+        last = (self._over or self._content)[-1] if (self._over or self._content) else None
+        if last is not None:
+            last.notes["ma"] = note
+        return self
+
+    @renamed_keywords(sizes="size", colors="color")
+    def dotplot(self, sizes: Sequence[Sequence[float]] | None = None, colors=None, *,
                 x: Sequence | None = None, y: Sequence | None = None,
                 top: float | None = None, diameter: float | str | None = None,
                 ramp=None, scale: Scale | None = None,
-                center: float | None = None, color: str | None = None,
+                center: float | None = None, color=None,
+                size: Sequence[Sequence[float]] | None = None,
                 **style) -> "Panel":
         """A dot plot: a circle per cell, its area one value, its colour another.
 
-        `sizes` is row-major like `matrix`: `sizes[r][c]` is drawn at the
-        `r`th y category and the `c`th x category, both band scales (or
-        `x=` and `y=` naming a position per column and row). A circle's area
-        is proportional to its value; `top` is the value drawn at the full
-        `diameter` (defaults: the largest value, and 0.9 of the smaller band
-        step). `colors`, the same shape, colours each circle through the
-        default matrix ramps, or `ramp=`, `scale=` and `center=` exactly as
-        `matrix` takes them; without it every circle is `color` (default: a
-        grey). A cell whose size or colour is missing (None or NaN) draws
-        nothing, and so does a size of 0.
+        `size` (the first positional argument) is row-major like `matrix`:
+        `size[r][c]` is drawn at the `r`th y category and the `c`th x
+        category, both band scales (or `x=` and `y=` naming a position per
+        column and row). A circle's area is proportional to its value; `top`
+        is the value drawn at the full `diameter` (defaults: the largest
+        value, and 0.9 of the smaller band step). `color` (the second
+        positional argument) is either one colour for every circle (default:
+        a grey) or values of the same shape, which colour each circle through
+        the default matrix ramps, or `ramp=`, `scale=` and `center=` exactly
+        as `matrix` takes them -- the same rule as `scatter(color=)`. A cell
+        whose size or colour is missing (None or NaN) draws nothing, and so
+        does a size of 0.
+
+        The positional slots keep their 4.x names `sizes` and `colors`;
+        passing those names as keywords is deprecated.
 
             p = inklet.panel(40, 30, x=genes, y=clusters)
             p.dotplot(fraction, mean_expression)
@@ -2041,9 +2607,19 @@ class Panel:
         from .dotplot import dotplot as _dotplot
 
         clip = _clip_flag(style)
-        node, note = _dotplot(self, sizes, colors, x=x, y=y, top=top,
+        values = resolve_renamed("Panel.dotplot", "size", size, "sizes", sizes)
+        if values is None:
+            raise TypeError("Panel.dotplot() missing the size values")
+        # A colour string paints every circle; anything else is data for a ramp.
+        # 4.x callers could pass both, and the data won.
+        shades, paint = colors, None
+        if isinstance(color, str):
+            paint = color
+        elif color is not None:
+            shades = resolve_renamed("Panel.dotplot", "color", color, "colors", colors)
+        node, note = _dotplot(self, values, shades, x=x, y=y, top=top,
                               diameter=diameter, ramp=ramp, scale=scale,
-                              center=center, color=color, **style)
+                              center=center, color=paint, **style)
         self._sizes = note["sizes"]
         if note["ramp"] is not None:
             self._ramp = note["ramp"]
@@ -2100,9 +2676,10 @@ class Panel:
         self._over.append(placed)
         return self._touched()
 
+    @renamed_keywords(colors="color")
     def kaplan_meier(self, data, *, confidence: float = 0.95,
                      band: str | None = "log-log", shade: bool = True,
-                     censors: bool = True, colors=None,
+                     censors: bool = True, color=None,
                      pvalue: float | str | None = None,
                      pvalue_corner: str = "sw", **style) -> "Panel":
         """Kaplan-Meier survival curves, with censor ticks and confidence bands.
@@ -2122,9 +2699,9 @@ class Panel:
         time, with a short vertical tick at every censoring time
         (`censors=False` leaves them out). `band` is the confidence band:
         `"log-log"` (default), `"linear"` or None, at `confidence`;
-        `shade=False` computes it without drawing it. `colors=` sets one
-        colour per group (default: the ink for one group, the theme palette
-        for several). Other keywords style the curves.
+        `shade=False` computes it without drawing it. `color=` sets one
+        colour, or one per group (default: the ink for one group, the theme
+        palette for several). Other keywords style the curves.
 
         There is no significance test: `pvalue=` writes a p-value computed
         elsewhere, as "P = 0.004" with an italic P, in `pvalue_corner` of the
@@ -2140,11 +2717,11 @@ class Panel:
         clip = _clip_flag(style)
         groups = estimates(data, confidence=confidence, band=band)
         theme = active_theme()
-        if colors is None:
+        if color is None:
             inks = ((theme.ink,) if len(groups) == 1
                     else tuple(theme.color(i) for i in range(len(groups))))
         else:
-            inks = _marks.series_colors(colors, len(groups))
+            inks = _marks.series_colors(color, len(groups))
         tick = _CENSOR_TICK_OF_TYPE * theme.font_size
         drawn: list[Diagram] = []
         for (name, estimate), ink in zip(groups, inks):
@@ -2200,11 +2777,12 @@ class Panel:
         gap = theme.gap("s") if pad is None else mm(pad)
         self._over.append(node.translated(0.0, box.y1 + gap - node.bbox.y0))
         return self._touched()
+    @renamed_keywords(colors="color", names="name")
     def split_violin(self, first, second, *, at=None, orient: str = "v",
                      width: float = 0.8, bandwidth: float | None = None,
                      samples: int = 64, cut: float = 2.0, scale: str = "shared",
-                     median: bool = True, quartiles: bool = False, colors=None,
-                     names: Sequence[str] | None = None, **style) -> "Panel":
+                     median: bool = True, quartiles: bool = False, color=None,
+                     name: Sequence[str] | None = None, **style) -> "Panel":
         """Two conditions per category as the two halves of one violin.
 
         `first` and `second` are spelled as `violin` groups: mappings of
@@ -2213,7 +2791,7 @@ class Panel:
         half) and the second the right (lower) half.
 
             p = inklet.panel(50, 36, x=["CA1", "CA3", "DG"], y=(0, 12))
-            p.split_violin(control, treated, names=["control", "treated"],
+            p.split_violin(control, treated, name=["control", "treated"],
                            quartiles=True)
 
         Each half is the `violin` kernel density, with the same bandwidth
@@ -2225,8 +2803,8 @@ class Panel:
         the outline. A half with fewer than two values is left out and listed
         under `empty` in the node's `split_violin` note.
 
-        `colors=` gives the two fills; the default is two pale theme
-        colours. `names=` (two names) adds both to `legend()`.
+        `color=` gives the two fills; the default is two pale theme
+        colours. `name=` (two names) adds both to `legend()`.
         """
         from .split_violin import split_violin as _split
 
@@ -2234,16 +2812,17 @@ class Panel:
         node, fills, _ = _split(self, first, second, at=at, orient=orient,
                                 width=width, bandwidth=bandwidth, samples=samples,
                                 cut=cut, scale=scale, median=median,
-                                quartiles=quartiles, colors=colors, **style)
-        if names is not None:
-            if len(names) != 2:
-                raise DiagramError(f"split_violin names= takes two names, got {names!r}")
-            self._note_series(list(names), list(fills))
+                                quartiles=quartiles, colors=color, **style)
+        if name is not None:
+            if isinstance(name, str) or len(name) != 2:
+                raise DiagramError(f"split_violin name= takes two names, got {name!r}")
+            self._note_series(list(name), list(fills))
         return self.draw(node, clip=clip)
 
+    @renamed_keywords(colors="color", centre="center")
     def embedding(self, points: Iterable[Sequence], clusters: Sequence, *,
-                  colors=None, size=None, labels: bool = True,
-                  centre: str = "median", label_size: float | str | None = None,
+                  color=None, size=None, labels: bool = True,
+                  center: str = "median", label_size: float | str | None = None,
                   arrows=None, shuffle: bool = True, seed: int = 0,
                   raster: bool = False, outline=None,
                   outline_core: float = 0.8, **style) -> "Panel":
@@ -2260,8 +2839,8 @@ class Panel:
 
         `labels=True` writes each cluster's name at its centre, on a paper
         halo. The centre is on the data: by default the member point nearest
-        the cluster's median (`centre="median"`), or `"medoid"` or `"mean"`;
-        see `inklet.plot.cluster_centres`. A name that would overlap one
+        the cluster's median (`center="median"`), or `"medoid"` or `"mean"`;
+        see `inklet.plot.cluster_centers`. A name that would overlap one
         already placed, or the points of another cluster, moves to the
         nearest free spot around its centre. It may cover its own cluster.
         Names that could not clear other clusters' points are listed under
@@ -2280,7 +2859,7 @@ class Panel:
         labelled UMAP1 and UMAP2, instead of axes; a pair of names sets both
         labels. Do not also call `axes`.
 
-        `colors=` is a mapping of cluster to colour, or a sequence in cluster
+        `color=` is a mapping of cluster to colour, or a sequence in cluster
         order (first seen, or ascending for numbers). The default is Paul
         Tol's muted, bright and vibrant colours. Each cluster is recorded
         for `legend()`. `size` is the dot diameter in mm; other keywords
@@ -2289,8 +2868,8 @@ class Panel:
         """
         from .embedding import embedding as _embedding
 
-        note = _embedding(self, points, clusters, colors=colors, size=size,
-                          labels=labels, centre=centre, label_size=label_size,
+        note = _embedding(self, points, clusters, colors=color, size=size,
+                          labels=labels, centre=center, label_size=label_size,
                           arrows=arrows, shuffle=shuffle, seed=seed,
                           raster=raster, outline=outline,
                           outline_core=outline_core, **style)
@@ -2345,9 +2924,1021 @@ class Panel:
             self._over[-1].notes["brackets"] = drawn
         return self
 
+    # -- statistical plots: density, regression, probability, agreement ----
+    #
+    # Thin wrappers. The arithmetic and geometry live in plot/kernel_density.py,
+    # density.py, regression.py, probability.py, agreement.py,
+    # letter_values.py and strip.py.
+
+    def kde(self, values, *, bandwidth="scott", adjust: float = 1.0,
+            cut: float = 3.0, samples: int = 200, fill: bool = False,
+            stat: str = "density", orient: str = "v", color=None,
+            name: str | None = None, baseline: float = 0.0,
+            **style) -> "Panel":
+        """A kernel density curve, or one per group.
+
+        `values` is one sample, or a mapping of group name to samples; each
+        group gets its own curve, colour (the theme's ink palette, or
+        `color=` one colour or a sequence) and legend entry. Values run
+        along x and density up y; `orient="h"` swaps them.
+
+            grid, density = inklet.plot.kde_curve(control)
+            p = inklet.panel(50, 30, x=(0, 10), y=(0, 0.5))
+            p.kde({"control": control, "treated": treated}, fill=True)
+
+        `bandwidth` is `"scott"` (R's `bw.nrd`, the default), `"silverman"`
+        (R's `bw.nrd0`) or a number in data units, times `adjust`. The curve
+        runs `cut` bandwidths past the extreme values, stopping at the axis
+        domain, in `samples` points. `fill=True` shades under each curve at
+        25% opacity so overlapping groups stay visible. `stat="count"`
+        multiplies each density by its sample size, so the areas compare
+        group sizes. On a log value axis the density is estimated in
+        ``log10`` units, so it is per decade and a log-normal sample is a
+        symmetric bump. A single named curve takes the next series colour,
+        so repeated calls stay apart. Other keywords style the lines. The
+        node carries a
+        `kde` note with each group's bandwidth and peak;
+        `inklet.plot.kde_curve` computes a curve without drawing it.
+        """
+        from .kernel_density import kde_layer
+
+        clip = _clip_flag(style)
+        if color is None and not isinstance(values, Mapping):
+            color = self._series_color(name, None)
+        node, drawn, _ = kde_layer(self, values, bandwidth=bandwidth,
+                                   adjust=adjust, cut=cut, samples=samples,
+                                   fill=fill, stat=stat, orient=orient,
+                                   color=color, baseline=baseline, **style)
+        for group, ink in drawn:
+            label = group if group is not None else name
+            if fill:
+                self._note(label, "area", color=ink,
+                           fill=mix(ink, active_theme().paper, 0.75))
+            self._note(label, "line", color=ink)
+        return self.draw(node, clip=clip)
+
+    def kde2d(self, points: Iterable[Sequence], *, levels=5, fill: bool = False,
+              bandwidth="scott", adjust: float = 1.0, gridsize: int = 96,
+              color=None, ramp=None, name: str | None = None,
+              **style) -> "Panel":
+        """Contours of a 2D kernel density: lines, or filled levels.
+
+        Each contour encloses a share of the estimated probability mass:
+        `levels=5` (default) draws five, holding 19%, 38%, 57%, 76% and 95%;
+        a sequence such as `levels=(0.5, 0.95)` gives the shares directly.
+        `fill=True` fills the regions between them, palest outside, from
+        the density ramp or tints of `color=`; lines are `color` (default:
+        the ink) or a colour per level, outermost first.
+
+            p = inklet.panel(50, 50, x=(-3, 3), y=(-3, 3))
+            p.scatter(points, size=0.5, color="#bbbbbb")
+            p.kde2d(points, levels=(0.5, 0.8, 0.95))
+
+        The density uses a Gaussian product kernel with `bandwidth` per axis
+        (`"scott"`: ``sd * n ** (-1/6)``; a number or an `(x, y)` pair in
+        data units), times `adjust`, estimated on a lattice of at least
+        `gridsize` points a side. On a log axis it is estimated in log
+        units. Contours are cut to the plot area unless `clip=False`. The
+        node carries a `kde2d` note with the masses, their
+        density thresholds and the bandwidth; `inklet.plot.kde2d` returns
+        the lattice without drawing it.
+        """
+        from .kernel_density import kde2d_layer
+
+        clip = _clip_flag(style)
+        node, note = kde2d_layer(self, points, levels=levels, fill=fill,
+                                 bandwidth=bandwidth, adjust=adjust,
+                                 gridsize=gridsize, color=color, ramp=ramp,
+                                 **style)
+        if name is not None:
+            ink = color if isinstance(color, str) else active_theme().ink
+            self._note(name, "line", color=ink)
+        return self.draw(node, clip=True if clip is None else clip)
+
+    def hexbin(self, points: Iterable[Sequence], *, gridsize: int = 24,
+               min_count: int = 1, ramp=None, scale: Scale | None = None,
+               log: bool = False, **style) -> "Panel":
+        """Points counted in hexagons, each coloured by its count.
+
+        `gridsize` hexagons span the plot area's width; they are regular on
+        the page whatever the axes, log axes included. Hexagons with fewer
+        than `min_count` points are left empty. The colour runs through
+        `ramp` (default: magma without its palest end, so a hexagon of one
+        point still shows) over `scale`, by default 0 to the largest count,
+        or a log scale from the smallest with `log=True`. `colorbar()`
+        afterwards explains the colours:
+
+            p.hexbin(points, gridsize=30).colorbar(label="points")
+
+        Hexagons at the edge are cut to the plot area unless `clip=False`.
+        The node carries a `hexbin` note with the hexagon diameter in mm and
+        the largest count.
+        """
+        from .density import hexbin_layer
+
+        clip = _clip_flag(style)
+        node, ramp, scale, _ = hexbin_layer(self, points, gridsize=gridsize,
+                                            min_count=min_count, ramp=ramp,
+                                            scale=scale, log=log, **style)
+        self._ramp, self._scale_domain = ramp, scale
+        return self.draw(node, clip=True if clip is None else clip)
+
+    def hist2d(self, points: Iterable[Sequence], bins=20, *, range=None,
+               density: bool = False, min_count: float = 1, ramp=None,
+               scale: Scale | None = None, log: bool = False,
+               **style) -> "Panel":
+        """A 2D histogram: points counted in rectangular bins on continuous
+        axes, each bin coloured by its count.
+
+        `bins` is a count or a list of edges, for both axes or as an
+        `(x, y)` pair. A count gives round edges over the data or, with
+        `range=((x0, x1), (y0, y1))`, even ones over that range; on a log
+        axis the bins have equal ratios. Bins with fewer than `min_count`
+        points are left empty. `density=True` colours by count per unit
+        area over the total. `ramp`, `scale` and `log` choose the colours
+        as for `hexbin`, and `colorbar()` explains them. Bins at the edge
+        are cut to the plot area unless `clip=False`.
+        `inklet.plot.histogram2d` returns the edges and counts.
+        """
+        from .density import hist2d_layer
+
+        clip = _clip_flag(style)
+        node, ramp, scale, _ = hist2d_layer(self, points, bins=bins, range=range,
+                                            density=density, min_count=min_count,
+                                            ramp=ramp, scale=scale, log=log,
+                                            **style)
+        self._ramp, self._scale_domain = ramp, scale
+        return self.draw(node, clip=True if clip is None else clip)
+
+    def density_scatter(self, points: Iterable[Sequence], *,
+                        bandwidth: float | None = None, ramp=None,
+                        size=None, sort: bool = True, raster: bool = False,
+                        dpi: float = 300, marker: str = "circle",
+                        **style) -> "Panel":
+        """A scatter coloured by how crowded each point's neighbourhood is.
+
+        The density is estimated on the page: points are smoothed with a
+        Gaussian of `bandwidth` millimetres (default: a normal-reference
+        rule on the page coordinates), so it works the same on log axes
+        and shows where marks actually overlap. Colours run through `ramp`
+        (default: magma without its palest end) from 0 to the densest
+        point, and `sort=True` draws the densest points last so they are
+        not buried. `raster=True` embeds the markers as one image, which
+        keeps 100,000 points small; `colorbar(label="relative density")`
+        explains the colours. Markers have no outline unless `stroke=` is
+        given. `inklet.plot.point_density` returns the densities.
+        """
+        from .density import DENSITY_RAMP, point_density
+
+        kept, density, h = point_density(self, points, bandwidth=bandwidth)
+        order = (sorted(range(len(kept)), key=lambda k: (density[k], k))
+                 if sort else list(range(len(kept))))
+        style.setdefault("stroke", "none")
+        self.scatter([kept[k] for k in order], color=[density[k] for k in order],
+                     ramp=DENSITY_RAMP if ramp is None else ramp,
+                     scale=linear((0.0, 1.0)), size=size, marker=marker,
+                     raster=raster, dpi=dpi, **style)
+        last = self._content[-1]
+        last.notes["density_scatter"] = {"bandwidth_mm": h, "points": len(kept)}
+        return self
+
+    def regression(self, points: Iterable[Sequence], *, method: str = "linear",
+                   confidence: float | None = 0.95, prediction: bool = False,
+                   scatter: bool = True, frac: float = 2 / 3,
+                   iterations: int = 3, span: tuple | None = None,
+                   color: str | None = None, size=None, name: str | None = None,
+                   **style) -> "Panel":
+        """Points with a fitted line and its confidence band.
+
+        `method="linear"` fits y on x by least squares and shades the
+        `confidence` band for the mean response (Student's t on n - 2
+        degrees of freedom); `prediction=True` shades the wider interval for
+        a new observation instead, and `confidence=None` draws no band.
+        The line spans the data's x range, or `span=(x0, x1)`. On a log x
+        axis the fit is of y on ``log10(x)``, so the line is straight on
+        the page and the slope is per decade.
+        `method="lowess"` draws R's `lowess()` smoother with `frac` and
+        `iterations`, without a band.
+
+            p.regression(points, color="#24698c", name="wild type")
+
+        The line and band are cut to the plot area unless `clip=False`.
+        `scatter=False` leaves the points out. The points are a pale tint of
+        `color` (default: the ink), `size` their diameter in mm; the line is
+        `color` and the band a paler tint. Other keywords style the line.
+        The line's node carries a `regression` note with the slope,
+        intercept, r2, p-value and n; `inklet.plot.linear_fit` and
+        `inklet.plot.lowess` compute them without drawing.
+        """
+        from .regression import regression_curve
+
+        clip = _clip_flag(style)
+        clip = True if clip is None else clip
+        theme = active_theme()
+        data = [tuple(p) for p in points]
+        ink = self._series_color(name, color) or theme.ink
+        curve = regression_curve(data, method=method, confidence=confidence,
+                                 prediction=prediction, span=span, frac=frac,
+                                 iterations=iterations,
+                                 log_x=isinstance(self.x, Log))
+        if scatter:
+            from .strip import _dots
+            dots = {"color": mix(ink, theme.paper, 0.45), "size": _dots(theme, size)}
+            self.scatter([p for p in data if len(p) >= 2 and _mappable(self.x, p[0])
+                          and _mappable(self.y, p[1])], **dots)
+        if curve["band"] is not None:
+            grid, lo, hi = curve["band"]
+            self.band(grid, lo, hi, color=ink, name=name, clip=clip)
+        line = {"stroke": ink, "stroke_width": theme.thick * 0.7, "clip": clip}
+        line.update(style)
+        self.line(curve["line"], name=name, **line)
+        fit = curve["fit"]
+        note = {"method": method, "confidence": confidence,
+                "prediction": prediction}
+        if fit is not None:
+            note.update(slope=fit.slope, intercept=fit.intercept, r2=fit.r2,
+                        p=fit.p, n=fit.n)
+        self._content[-1].notes["regression"] = note
+        return self
+
+    def residuals(self, points: Iterable[Sequence], *, method: str = "linear",
+                  frac: float = 2 / 3, iterations: int = 3,
+                  smooth: bool = False, color: str | None = None, size=None,
+                  name: str | None = None, **style) -> "Panel":
+        """The residuals of a fit against x, with a zero line.
+
+        The companion to `regression`: the same `method`, `frac` and
+        `iterations` fit the points, and each point is drawn at
+        `(x, y - fitted)`. Structure left in the residuals -- a curve, a
+        funnel -- is what the fit missed. `smooth=True` adds a LOWESS line
+        through the residuals to make a trend visible. Find the y domain
+        first with `inklet.plot.linear_fit(points).residuals(points)`.
+        Other keywords style the points.
+        """
+        from .regression import linear_fit, lowess
+
+        theme = active_theme()
+        data = [tuple(p) for p in points]
+        if method == "linear":
+            fitted = linear_fit(data).residuals(
+                [p for p in data if p[0] is not None and p[1] is not None])
+        elif method == "lowess":
+            smooth_line = dict(lowess(data, frac=frac, iterations=iterations))
+            fitted = [(float(p[0]), float(p[1]) - smooth_line[float(p[0])])
+                      for p in data if p[0] is not None and p[1] is not None
+                      and float(p[0]) in smooth_line]
+        else:
+            raise DiagramError(f'residuals method is "linear" or "lowess", not {method!r}')
+        fitted = [p for p in fitted if math.isfinite(p[0]) and math.isfinite(p[1])]
+        self.hline(0, stroke=theme.muted, stroke_width=theme.hairline,
+                   stroke_dash=(1.0, 0.8))
+        ink = self._series_color(name, color) or theme.ink
+        from .strip import _dots
+        dots = {"color": ink, "size": _dots(theme, size)}
+        dots.update(style)
+        self.scatter(fitted, name=name, **dots)
+        self._content[-1].notes["residuals"] = {"method": method, "n": len(fitted)}
+        if smooth and len(fitted) >= 3:
+            self.line(lowess(fitted, frac=frac, iterations=iterations),
+                      stroke=theme.accent, stroke_width=theme.stroke)
+        return self
+
+    def qq(self, values: Sequence[float], *, dist="normal",
+           line: str | None = "quartiles", color: str | None = None,
+           size=None, name: str | None = None, **style) -> "Panel":
+        """A normal quantile-quantile plot: sample against theoretical
+        quantiles, with a reference line.
+
+        Each sorted value is drawn against the standard normal quantile at
+        its plotting position (R's `ppoints`), so a normal sample lies on a
+        straight line and heavy tails bend away from it at the ends.
+        `dist=` takes a `statistics.NormalDist` or any quantile function
+        instead. `line="quartiles"` (default) passes through the first and
+        third quartiles, as R's `qqline` does; `"fit"` uses the sample mean
+        and standard deviation, `"identity"` is ``y = x``, and `None` omits
+        it. `inklet.plot.qq_points` returns the points without drawing.
+        """
+        from .probability import qq_line, qq_points
+
+        theme = active_theme()
+        pts = qq_points(values, dist)
+        if line is not None:
+            intercept, slope = qq_line(values, dist, line)
+            xs = [pts[0][0], pts[-1][0]]
+            domain = getattr(self.x, "domain", None)
+            if domain is not None and not isinstance(self.x, Band):
+                xs = [min(domain), max(domain)]
+            self.line([(x, intercept + slope * x) for x in xs], stroke=theme.accent,
+                      stroke_width=theme.stroke, clip=True)
+        ink = self._series_color(name, color) or theme.ink
+        from .strip import _dots
+        dots = {"color": ink, "size": _dots(theme, size)}
+        dots.update(style)
+        self.scatter(pts, name=name, **dots)
+        self._content[-1].notes["qq"] = {"line": line, "n": len(pts)}
+        return self
+
+    def pp(self, values: Sequence[float], *, dist="normal",
+           color: str | None = None, size=None, name: str | None = None,
+           **style) -> "Panel":
+        """A probability-probability plot against a fitted normal.
+
+        Each sorted value is drawn at (the normal CDF at that value, its
+        empirical probability), with the diagonal ``y = x`` a perfect fit
+        would follow. The normal takes the sample's mean and standard
+        deviation unless `dist=` gives a `statistics.NormalDist` or any
+        CDF. A PP plot is most sensitive in the middle of the distribution,
+        a QQ plot in the tails. Draw it on `x=(0, 1), y=(0, 1)`.
+        """
+        from .probability import pp_points
+
+        theme = active_theme()
+        self.line([(0.0, 0.0), (1.0, 1.0)], stroke=theme.accent,
+                  stroke_width=theme.stroke)
+        pts = pp_points(values, dist)
+        ink = self._series_color(name, color) or theme.ink
+        from .strip import _dots
+        dots = {"color": ink, "size": _dots(theme, size)}
+        dots.update(style)
+        self.scatter(pts, name=name, **dots)
+        self._content[-1].notes["pp"] = {"n": len(pts)}
+        return self
+
+    def bland_altman(self, a: Sequence[float], b: Sequence[float], *,
+                     z: float = 1.96, percent: bool = False,
+                     confidence: float | None = None, labels: bool = True,
+                     format: str = "{:.2f}", color: str | None = None,
+                     size=None, name: str | None = None, **style) -> "Panel":
+        """A Bland-Altman (mean-difference) plot of two methods' agreement.
+
+        Each pair of measurements is drawn at (their mean, `a - b`) -- or
+        the difference as a percentage of the mean with `percent=True` --
+        with a solid line at the bias (the mean difference) and dashed lines
+        at the limits of agreement, `bias ± z × sd`. `labels=True` names
+        each line and its value just outside the plot area on the right,
+        formatted with `format`, so the labels never sit on the data.
+        `confidence=0.95` also shades the confidence interval of the bias
+        and of each limit. Find the y domain first with
+        `inklet.plot.bland_altman(a, b)`, which returns the same numbers;
+        the points' node carries them as a `bland_altman` note.
+        """
+        from .agreement import bland_altman as _agreement
+        from .strip import _dots
+
+        theme = active_theme()
+        result = _agreement(a, b, z=z, percent=percent, confidence=confidence)
+        if confidence is not None:
+            tint = mix(theme.ink, theme.paper, 0.9)
+            for low, high in (result.lower_ci, result.bias_ci, result.upper_ci):
+                self.hspan(low, high, fill=tint, stroke="none")
+        self.hline(result.bias, stroke=theme.ink, stroke_width=theme.stroke)
+        rule = {"stroke": theme.muted, "stroke_width": theme.stroke,
+                "stroke_dash": (1.2, 0.8)}
+        self.hline(result.upper, **rule)
+        self.hline(result.lower, **rule)
+        ink = self._series_color(name, color) or mix(theme.ink, theme.paper, 0.3)
+        dots = {"color": ink, "size": _dots(theme, size)}
+        dots.update(style)
+        self.scatter(result.points, name=name, **dots)
+        self._content[-1].notes["bland_altman"] = {
+            "bias": result.bias, "sd": result.sd, "lower": result.lower,
+            "upper": result.upper, "n": result.n, "bias_ci": result.bias_ci,
+            "lower_ci": result.lower_ci, "upper_ci": result.upper_ci}
+        if labels:
+            from .agreement import margin_labels
+            unit = "%" if percent else ""
+
+            def format(value, spec=format):
+                return spec.format(value).replace("-", "\u2212")
+            words = [(result.upper, f"+{z:g} SD", format(result.upper) + unit),
+                     (result.bias, "Mean", format(result.bias) + unit),
+                     (result.lower, f"\u2212{z:g} SD", format(result.lower) + unit)]
+            self.over(margin_labels(self, words), clip=False)
+        return self
+
+    def boxen(self, groups, *, at=None, width: float = 0.8, orient: str = "v",
+              depth="tukey", outliers: bool = True, color=None, size=None,
+              **style) -> "Panel":
+        """Letter-value (boxen) plots: nested boxes out into the tails.
+
+        For large samples, where a box plot's whiskers leave hundreds of
+        ordinary tail values drawn as "outliers". The inner box spans the
+        quartiles, the next the eighths (the middle 75%), then the
+        sixteenths, and so on; each is narrower and paler than the one
+        inside it, and the median is a paper-coloured line. `depth="tukey"`
+        (default) draws ``floor(log2 n) - 3`` boxes, `"trustworthy"` as many
+        as have non-overlapping 95% confidence intervals, or give a number.
+        Values beyond the outermost box are drawn as dots when `outliers`.
+        `groups` is spelled as for `boxplot`; `color=` is one colour or one
+        per group. `inklet.plot.letter_values` returns the boxes.
+        """
+        from .letter_values import boxen_layer
+
+        clip = _clip_flag(style)
+        node, _ = boxen_layer(self, groups, at=at, width=width, orient=orient,
+                              depth=depth, outliers=outliers, color=color,
+                              size=size, **style)
+        return self.draw(node, clip=clip)
+
+    def strip(self, groups, *, at=None, width: float = 0.8, jitter: float = 0.5,
+              orient: str = "v", size=None, seed: int = 0, color=None,
+              marker: str = "circle", **style) -> "Panel":
+        """A strip plot: each group's observations, jittered across its slot.
+
+        The points spread uniformly over `jitter` of the slot (`width` of
+        the band step), using a random generator seeded by `seed`, so the
+        same call draws the same figure every time; `jitter=0` puts them on
+        the centre line. `groups` is spelled as for `boxplot`, and a strip
+        drawn after `boxplot(..., outliers=False)` shows the points over the
+        summary. `size` is the dot diameter in mm; `color=` one colour or
+        one per group (default: the ink, or the ink palette).
+        """
+        from .strip import strip_layer
+
+        clip = _clip_flag(style)
+        node, _ = strip_layer(self, groups, at=at, width=width, jitter=jitter,
+                              orient=orient, size=size, seed=seed, color=color,
+                              marker=marker, **style)
+        return self.draw(node, clip=clip)
+
+    def sina(self, groups, *, at=None, width: float = 0.8, orient: str = "v",
+             bandwidth="scott", adjust: float = 1.0, size=None, seed: int = 0,
+             color=None, marker: str = "circle", **style) -> "Panel":
+        """A sina plot: points jittered within their group's density.
+
+        Each point moves sideways by a seeded random share of the group's
+        kernel density at its own value, scaled so the densest value spans
+        the slot, so the points take the outline of a violin while every
+        observation stays visible. `bandwidth` and `adjust` are as for
+        `kde`; the other arguments as for `strip`.
+        """
+        from .strip import sina_layer
+
+        clip = _clip_flag(style)
+        node, _ = sina_layer(self, groups, at=at, width=width, orient=orient,
+                             bandwidth=bandwidth, adjust=adjust, size=size,
+                             seed=seed, color=color, marker=marker, **style)
+        return self.draw(node, clip=clip)
+
+    # -- categorical, composition, comparison and time plots ----------------
+    #
+    # Thin wrappers: the drawing lives in one module per plot family.
+
+    def waterfall(self, at: Sequence, values: Sequence, *, totals=(),
+                  baseline: float = 0.0, orient: str = "v", width: float = 0.6,
+                  color=None, connectors: bool = True, labels=None,
+                  name: Sequence[str] | None = None, **style) -> "Panel":
+        """A waterfall chart: signed changes as bars floating on a running total.
+
+        `values` are the changes, one per position in `at`. Each bar runs
+        from the total before it to the total after it and is coloured by
+        its direction. `totals` names the positions (values in `at`, or
+        indices) that are totals instead: the bar stands on `baseline` at the
+        running total. A total given None shows the running total; a total
+        given a number resets the running total to that number.
+
+            p.waterfall(["Start", "Sales", "Costs", "Tax", "End"],
+                        [120, 45, -30, -12, None], totals=["Start", "End"])
+
+        `color=` is one colour, three colours (increase, decrease, total) or
+        a mapping with those keys; the default is the theme palette's green for
+        increases, its red for decreases and a grey for totals.
+        `connectors=True` draws a dashed hairline from each bar's end to the
+        next bar's start. `labels=True` writes each change (`+45`, `-30`) past
+        the end it moved to, and each total's value; a format string or a
+        callable writes something else. `name=` gives `legend()` one entry
+        per kind, as (increase, decrease, total) names. `inklet.plot.waterfall_steps`
+        returns the running totals without drawing, for choosing the y range.
+        The node carries a `waterfall` note with every bar's start, end and kind.
+        """
+        from .waterfall import WATERFALL_KINDS, waterfall as _waterfall
+
+        clip = _clip_flag(style)
+        node, _, fills = _waterfall(self, at, values, totals=totals,
+                                    baseline=baseline, orient=orient, width=width,
+                                    color=color, connectors=connectors,
+                                    labels=labels, **style)
+        names = series_names(name)
+        if names is not None:
+            if len(names) != 3:
+                raise DiagramError(
+                    "waterfall name= is three names: (increase, decrease, total)")
+            for kind, label in zip(WATERFALL_KINDS, names):
+                if label is not None:
+                    self._note(label, "area", fill=fills[kind], color=fills[kind])
+        return self.draw(node, clip=clip)
+
+    def slope(self, values: Mapping[str, Sequence[float]], *, at: Sequence | None = None,
+              labels: str = "both", format=None, color=None, highlight=None,
+              size: float | str | None = None, name: bool = True,
+              **style) -> "Panel":
+        """A slope chart: each series' values at a few time points, joined.
+
+        `values` maps a series name to one value per time point. The time
+        points are `at` (x positions), or the categories of a band x scale.
+        Each series is a straight line with a dot per value; `labels="both"`
+        writes the name and value at both ends (`"left"`, `"right"` or
+        `"none"` for fewer), moved apart vertically just enough not to
+        overlap. `format` writes the values (a format string such as
+        `"{:.0f}%"` or a callable); `name=False` writes the values alone.
+
+            p = inklet.panel(30, 40, x=["2015", "2025"], y=(0, 80))
+            p.slope({"Denmark": [42, 61], "Spain": [30, 28]}, format="{:.0f}%")
+
+        `highlight=` names the series to emphasise: they take the palette in
+        order and every other series is drawn in light grey underneath.
+        `color=` is one colour, one per series or a mapping by name. A slope
+        chart usually has no y axis; the end labels carry the values.
+        """
+        from .slope import slope as _slope
+
+        clip = _clip_flag(style)
+        node, _ = _slope(self, values, at=at, labels=labels, format=format,
+                         color=color, highlight=highlight, size=size,
+                         name=name, **style)
+        return self.draw(node, clip=clip)
+
+    def bump(self, values: Mapping[str, Sequence[float]], *, at: Sequence | None = None,
+             ranked: bool = False, labels: str = "both", color=None,
+             highlight=None, size: float | str | None = None,
+             numbers: bool = False, **style) -> "Panel":
+        """A bump chart: the rank of each series at each time point.
+
+        `values` maps a series name to one value per time point; each time
+        point is ranked, 1 for the largest value (`inklet.plot.ranks`).
+        Pass `ranked=True` when the values are ranks already. Ranks are
+        joined by S-shaped curves with a dot at every rank, and the names are
+        written at both ends (`labels=` as for `slope`). Make the y scale run
+        from the last rank down to 1 so rank 1 is at the top:
+
+            p = inklet.panel(50, 30, x=years, y=(len(teams) + 0.5, 0.5))
+            p.bump(points_by_team, highlight=["Lyon"])
+
+        `numbers=True` writes the rank inside each dot. `highlight=` and
+        `color=` work as for `slope`. A missing value (None) breaks the line.
+        The node carries a `bump` note with the ranks drawn.
+        """
+        from .slope import bump as _bump
+
+        clip = _clip_flag(style)
+        node, _, _ = _bump(self, values, at=at, ranked=ranked, labels=labels,
+                           color=color, highlight=highlight, size=size,
+                           numbers=numbers, **style)
+        return self.draw(node, clip=clip)
+
+    def stem(self, points: Iterable[Sequence], *, baseline: float = 0.0,
+             orient: str = "v", color: str | None = None, marker: str = "circle",
+             size: float | str | None = None, hollow: bool = False,
+             rule: bool = True, name: str | None = None, **style) -> "Panel":
+        """A stem plot: a stem from `baseline` to a dot at each `(x, y)`.
+
+        For a sampled signal on a continuous scale -- an impulse response,
+        a sequence, a line spectrum. `rule=True` draws the baseline across
+        the plot area. `size` is the dot diameter in millimetres (0 for bare
+        stems) and `hollow=True` draws rings. `orient="h"` swaps the axes:
+        points are then `(value, position)`. Missing values (None, NaN) are
+        skipped. Other stroke keywords style the stems.
+
+            p.stem([(n, h[n]) for n in range(32)], color=TH.color(5))
+
+        For one value per category use `lollipop`. `name=` adds a marker
+        entry to `legend()`.
+        """
+        from .stem import stem as _stem
+
+        clip = _clip_flag(style)
+        color = self._series_color(name, color)
+        if orient == "h":
+            points = [(b, a) for a, b in points]
+        node, ink = _stem(self, points, baseline=baseline, orient=orient,
+                          color=color, marker=marker, size=size, hollow=hollow,
+                          rule=rule, **style)
+        self._note(name, "marker", color=ink, marker=marker)
+        return self.draw(node, clip=clip)
+
+    def likert(self, at: Sequence, counts: Sequence[Sequence[float]], *,
+               neutral: int | None = None, normalize: bool = True,
+               orient: str = "h", width: float = 0.7, color=None,
+               name: str | Sequence[str] | None = None, labels=None,
+               zero: bool = True, **style) -> "Panel":
+        """Diverging stacked bars for Likert-scale responses, centred on neutral.
+
+        `counts[r]` holds the count of each response level for the question
+        at `at[r]`, ordered from the most negative level to the most
+        positive. Each row is normalised to percentages (`normalize=False`
+        keeps the counts) and placed so that the negative levels lie left of
+        zero, the positive ones right, and the neutral level straddles zero.
+        `neutral` is the neutral level's index (default: the middle of an
+        odd number of levels; none for an even number).
+
+            levels = ["Strongly disagree", "Disagree", "Neutral", "Agree",
+                      "Strongly agree"]
+            p = inklet.panel(60, 30, x=(-100, 100), y=questions)
+            p.likert(questions, counts, name=levels)
+            p.axis("bottom", format=inklet.plot.unsigned).legend(side="top")
+
+        The default colours run from vermillion through a light grey neutral
+        to blue (`inklet.plot.likert_colors`); `color=` sets one per level.
+        `name=` gives `legend()` one entry per level. `labels=True` writes
+        each segment's percentage inside it where it fits. `zero=True`
+        draws the zero line. `inklet.plot.likert_spans` returns the segments
+        without drawing; the node's `likert` note holds them too.
+        """
+        from .diverging import likert as _likert
+
+        clip = _clip_flag(style)
+        node, fills, _ = _likert(self, at, counts, neutral=neutral,
+                                 normalize=normalize, orient=orient, width=width,
+                                 color=color, labels=labels, zero=zero, **style)
+        names = series_names(name)
+        if names is not None:
+            self._note_series(names, fills)
+        return self.draw(node, clip=clip)
+
+    def diverging_bars(self, at: Sequence, left, right, *, orient: str = "h",
+                       width: float = 0.7, color=None,
+                       name: str | Sequence[str] | None = None, reference=None,
+                       titles: Sequence[str] | None = None, zero: bool = True,
+                       **style) -> "Panel":
+        """Two quantities per category, back to back: left of zero and right.
+
+        `left` and `right` hold positive values, one per position in `at`:
+        the left bar runs from zero towards negative x and the right bar
+        towards positive x, so two groups (female and male, before and
+        after, input and output) are compared on one category axis. Either
+        side may be several series (series-major, as `bars` takes them),
+        stacked outward from zero in order, with the same series on both
+        sides sharing a colour:
+
+            p = inklet.panel(50, 45, x=(-30, 60), y=types)
+            p.diverging_bars(types, [f_specific, f_dimorphic],
+                             [m_specific, m_dimorphic],
+                             name=["sex-specific", "dimorphic"],
+                             reference=(6.1, 8.4), titles=("♀", "♂"))
+            p.axis("bottom", format=inklet.plot.unsigned, label="% output")
+
+        `color=` is one colour per series; with a single series per side it
+        is the pair (left, right). `name=` names the series (or the two
+        sides) for `legend()`. `reference=` draws dashed reference lines at
+        a value on each side -- one number for both, or a `(left, right)`
+        pair, such as the means over all categories. `titles=` writes a
+        heading above each side, next to the zero line. The axis shows
+        negative numbers on the left unless formatted with
+        `inklet.plot.unsigned`. `orient="v"` stands the bars up, with the
+        left side below zero.
+        """
+        from .diverging import diverging_bars as _diverging
+
+        clip = _clip_flag(style)
+        node, left_fills, right_fills = _diverging(
+            self, at, left, right, orient=orient, width=width, color=color,
+            reference=reference, titles=titles, zero=zero, **style)
+        names = series_names(name)
+        if names is not None:
+            fills = (left_fills + right_fills if left_fills != right_fills
+                     else left_fills)
+            self._note_series(names, fills)
+        return self.draw(node, clip=clip)
+
+    def pyramid(self, at: Sequence, left, right, *, titles: Sequence[str] | None = None,
+                color=None, width: float = 0.92, **kwargs) -> "Panel":
+        """A population pyramid: `diverging_bars` with touching bars.
+
+        `at` is the age groups on a band y scale (the first at the bottom),
+        `left` and `right` the counts or percentages of the two groups.
+        `titles=("Female", "Male")` writes the group names over the two
+        halves. Everything else passes to `diverging_bars`.
+
+            ages = ["0-9", "10-19", "20-29", ...]
+            p = inklet.panel(50, 40, x=(-8, 8), y=ages)
+            p.pyramid(ages, female, male, titles=("Female", "Male"))
+            p.axes(x="population / %", x_options={"format": inklet.plot.unsigned})
+        """
+        return self.diverging_bars(at, left, right, titles=titles, color=color,
+                                   width=width, **kwargs)
+
+    def waffle(self, values: Sequence[float], *, rows: int = 10, columns: int = 10,
+               total: float | None = None, color=None,
+               name: str | Sequence[str] | None = None, gap: float = 0.18,
+               order: str = "column", **style) -> "Panel":
+        """A waffle chart: shares of a whole as cells of a grid.
+
+        Each value gets a whole number of the `rows` x `columns` cells in
+        proportion to its share of the sum (or of `total`, which leaves the
+        remaining cells empty and pale), rounded by the largest-remainder
+        method so the counts add up. Cells are filled column by column from
+        the bottom left (`order="row"` fills rows instead). The grid is
+        centred in the plot area with square cells, whatever the scales;
+        `gap` is the air between cells as a fraction of a cell.
+
+            p = inklet.panel(30, 30)
+            p.waffle([46, 31, 15, 8], name=["neurons", "glia", "vascular", "other"])
+            p.legend(side="right")
+
+        `name=` gives `legend()` one entry per value. The node carries a
+        `waffle` note with the cell counts; `inklet.plot.waffle_cells`
+        computes them without drawing.
+        """
+        from .waffle import waffle as _waffle
+
+        clip = _clip_flag(style)
+        node, fills, _ = _waffle(self, values, rows=rows, columns=columns,
+                                 total=total, color=color, gap=gap, order=order,
+                                 **style)
+        names = series_names(name)
+        if names is not None:
+            self._note_series(names, fills)
+        return self.draw(node, clip=clip)
+
+    def mosaic(self, at: Sequence, values, *, color=None,
+               name: str | Sequence[str] | None = None, gap: float | str = 0.6,
+               labels=None, categories: bool = True, **style) -> "Panel":
+        """A mosaic (Marimekko) chart: stacked bars as wide as their totals.
+
+        `values` is series-major, like `bars`: `values[s][c]` is series `s`
+        in category `at[c]`. Each category is a column whose width is its
+        share of the grand total, split from the bottom up into each series'
+        share of the column, so every cell's area is its value. Columns run
+        across the panel's x domain and cells up its y domain:
+
+            p = inklet.panel(60, 40, x=(0, 100), y=(0, 100))
+            p.mosaic(regions, [[30, 12, 8], [20, 30, 10]], name=["A", "B"])
+            p.axis("left", format="%").legend(side="right")
+
+        `gap` is the space between columns in millimetres. `labels=True`
+        writes each cell's share of its column where it fits (or a format
+        string or callable of the share). `categories=True` writes the
+        category names under the columns as a bottom axis. `name=` names
+        the series for `legend()`. `inklet.plot.mosaic_layout` returns the
+        geometry without drawing.
+        """
+        from .mosaic import mosaic as _mosaic
+
+        clip = _clip_flag(style)
+        node, fills, columns = _mosaic(self, at, values, color=color, gap=gap,
+                                       labels=labels, **style)
+        names = series_names(name)
+        if names is not None:
+            self._note_series(names, fills)
+        self.draw(node, clip=clip)
+        if categories:
+            lo, hi = self.x.domain[0], self.x.domain[-1]
+            centres = [lo + (hi - lo) * c.centre for c in columns if c.total > 0]
+            named = [c.category for c in columns if c.total > 0]
+
+            def written(value, _c=centres, _n=named):
+                return str(_n[min(range(len(_c)), key=lambda i: abs(_c[i] - value))])
+
+            self.axis("bottom", ticks=centres, format=written, thin=False,
+                      spine=False, tick_size=0, markup=False)
+        return self
+
+    def streamgraph(self, x: Sequence, values, *, offset: str = "wiggle",
+                    order: str = "input", color=None,
+                    name: str | Sequence[str] | None = None, smooth: float = 0.5,
+                    **style) -> "Panel":
+        """A streamgraph: stacked areas around a moving baseline.
+
+        `values` is series-major with one value (0 or more) per `x`.
+        `offset` places the stack: `"wiggle"` (default) minimises the
+        layers' change in slope, `"silhouette"` centres the stack on zero,
+        `"zero"` stacks from zero like `stackarea` and `"expand"` scales every
+        x to a total of 1. `order="inside-out"` puts the series that peak
+        earliest in the middle. `smooth` is the curve tension (0 draws
+        straight segments between samples). Layers are separated by a paper
+        hairline.
+
+            layers = inklet.plot.stream_layers(counts, offset="wiggle")
+            low = min(min(lo) for lo, _ in layers)
+            high = max(max(hi) for _, hi in layers)
+            p = inklet.panel(80, 30, x=(0, 52), y=(low, high))
+            p.streamgraph(weeks, counts, name=genres).legend(side="right")
+
+        Use the same `offset` and `order` for `stream_layers` and the plot.
+        The y axis of a wiggle or silhouette stream has no meaningful zero;
+        label thickness with a scale bar or leave the axis out. `name=`
+        names the series for `legend()`.
+        """
+        from .stream import streamgraph as _streamgraph
+
+        clip = _clip_flag(style)
+        node, fills, _ = _streamgraph(self, x, values, offset=offset, order=order,
+                                      color=color, smooth=smooth, **style)
+        names = series_names(name)
+        if names is not None:
+            self._note_series(names, fills)
+        return self.draw(node, clip=clip)
+
+    def parallel(self, rows, *, dimensions: Sequence | None = None, ranges=None,
+                 color=None, groups: Sequence | None = None, count: int = 4,
+                 format=None, labels: bool = True, **style) -> "Panel":
+        """Parallel coordinates: an axis per variable and a line per record.
+
+        The variables are the categories of a band x scale (or `dimensions=`
+        naming positions on x); each `rows` record has one value per
+        variable, as a sequence or a mapping in variable order. Every
+        variable gets its own vertical axis over the full plot height, with
+        round ticks over `ranges` (default: the data's extent widened to
+        round numbers; a mapping by variable sets some of them, and a
+        reversed pair flips an axis). Records are polylines; a missing value
+        (None) breaks the line.
+
+            dims = ["length", "width", "depth", "mass"]
+            p = inklet.panel(70, 35, x=dims)
+            p.parallel(records, groups=species)
+            p.legend(side="right")
+
+        `groups=` colours records by group, with one `legend()` entry per
+        group; `color=` is one colour, one per record, or with `groups` one
+        per group. `count` and `format` shape the ticks (`format` may be one
+        per axis). `labels=True` writes the variable names under the axes,
+        so the panel needs no bottom axis. The node carries a `parallel`
+        note with the ranges used.
+        """
+        from .parallel import parallel as _parallel
+
+        clip = _clip_flag(style)
+        node, palette = _parallel(self, rows, dimensions=dimensions, ranges=ranges,
+                                  color=color, groups=groups, count=count,
+                                  format=format, labels=labels, **style)
+        for group, ink in palette.items():
+            self._note(str(group), "line", color=ink)
+        return self.draw(node, clip=clip)
+
+    def bullet(self, at: Sequence, values: Sequence[float], *, targets=None,
+               ranges=None, baseline: float = 0.0, orient: str = "h",
+               width: float = 0.7, color: str | None = None, **style) -> "Panel":
+        """Bullet charts: a measure bar against a target and qualitative ranges.
+
+        One row per position in `at`. `values` are the measures, drawn as a
+        narrow bar from `baseline`; `targets` (one number or one per row)
+        are short thick rules across it; `ranges` are the upper bounds of
+        the qualitative bands behind it, in grey, darkest for the lowest --
+        one list shared by every row or one list per row.
+
+            p = inklet.panel(60, 18, x=(0, 300), y=["Revenue", "Profit"])
+            p.bullet(["Revenue", "Profit"], [270, 22], targets=[250, 26],
+                     ranges=[[150, 225, 300], [20, 25, 30]])
+
+        Rows with different units belong on panels of their own. `color=`
+        colours the measure and the target (default: the ink).
+        """
+        from .bullet import bullet as _bullet
+
+        clip = _clip_flag(style)
+        return self.draw(_bullet(self, at, values, targets=targets, ranges=ranges,
+                                 baseline=baseline, orient=orient, width=width,
+                                 color=color, **style), clip=clip)
+
+    def gantt(self, tasks: Sequence[Sequence], *, groups: Sequence | None = None,
+              color=None, width: float = 0.6, labels: bool = False,
+              **style) -> "Panel":
+        """A Gantt chart: a bar per task from its start to its end.
+
+        Each task is `(row, start, end)` or `(row, start, end, text)`: `row`
+        is a category of the band y scale (several tasks may share one) and
+        `start` and `end` are values of the x scale -- dates, datetimes or
+        ISO strings on a date axis, numbers on a linear one. A task that
+        ends where it starts is a milestone, drawn as a diamond.
+
+            p = inklet.panel(80, 30, x=("2025-01-01", "2025-07-01"), y=rows)
+            p.gantt([("Design", "2025-01-06", "2025-02-14"),
+                     ("Build", "2025-02-10", "2025-05-02"),
+                     ("Review", "2025-05-05", "2025-05-05")])
+            p.axes()
+
+        `groups=` gives each task a group; tasks are coloured by group and
+        `legend()` gets one entry per group. `color=` is one colour, one per
+        task, or with `groups` one per group or a mapping. `labels=True`
+        writes each task's `text` inside its bar when it fits and after the
+        bar when it does not. List the rows of the y scale in reverse to read
+        the first task at the top.
+        """
+        from .gantt import gantt as _gantt
+
+        clip = _clip_flag(style)
+        node, palette = _gantt(self, tasks, groups=groups, color=color,
+                               width=width, labels=labels, **style)
+        for group, fill in palette.items():
+            self._note(str(group), "area", fill=fill, color=fill)
+        return self.draw(node, clip=clip)
+
+    def timeline(self, events: Sequence[Sequence], *, at: float | None = None,
+                 color: str | None = None, size: float | str | None = None,
+                 levels: Sequence[int] | None = None, line: bool = True,
+                 **style) -> "Panel":
+        """An event timeline: labelled stems off a base line.
+
+        Each event is `(when, label)`, with `when` a value of the x scale
+        (a date on a date axis). Stems alternate above and below the base
+        line and step outward only as far as needed to keep neighbouring
+        labels apart; `levels=` sets them instead (+1, +2, ... above; -1,
+        -2, ... below). The base line runs through the middle of the plot
+        area, or at the y value `at`. The y scale is otherwise unused, so
+        size the panel's height for the levels the events need.
+
+            p = inklet.panel(90, 30, x=("2020-01-01", "2025-01-01"))
+            p.timeline([("2020-03-11", "pandemic declared"),
+                        ("2020-12-08", "first vaccine"), ...])
+            p.axis("bottom")
+
+        `line=False` leaves out the base line, for an axis drawn through it
+        with `p.axis("bottom", at=...)`. The node's `timeline` note records
+        the levels used.
+        """
+        from .gantt import timeline as _timeline
+
+        clip = _clip_flag(style)
+        node, _ = _timeline(self, events, at=at, color=color, size=size,
+                            levels=levels, line=line, **style)
+        return self.draw(node, clip=clip)
+
+    def calendar(self, values: Mapping, *, start=None, end=None, ramp=None,
+                 scale: Scale | None = None, center: float | None = None,
+                 week_start: str | int = "monday", gap: float | str = 0.25,
+                 labels: bool = True, **style) -> "Panel":
+        """A calendar heatmap: a square per day, a column per week.
+
+        `values` maps days (dates, datetimes or ISO strings) to numbers.
+        The calendar runs from `start` to `end` (default: the first and last
+        day given), with one row per weekday starting at `week_start` and
+        one column per week. Days in the range without a value are pale;
+        the colour of the others comes from the matrix ramps, or `ramp=`,
+        `scale=` and `center=` as `matrix` takes them, so `colorbar()`
+        explains it afterwards.
+
+            weeks = inklet.plot.calendar_weeks("2025-01-01", "2025-12-31")
+            p = inklet.panel(weeks * 2.2, 7 * 2.2)
+            p.calendar(steps_per_day, start="2025-01-01", end="2025-12-31")
+            p.colorbar(side="bottom", label="steps")
+
+        The grid fills the plot area from its top-left corner with square
+        cells; `gap` is the space between cells in millimetres. `labels=True`
+        writes the month names above and every other weekday at the left.
+        """
+        from .calendar import calendar as _calendar
+
+        clip = _clip_flag(style)
+        node, note = _calendar(self, values, start=start, end=end, ramp=ramp,
+                               scale=scale, center=center, week_start=week_start,
+                               gap=gap, labels=labels, **style)
+        self._ramp = note["ramp"]
+        self._scale_domain = note["scale"]
+        return self.draw(node, clip=clip)
+
+    def barplot(self, at: Sequence, data, *, estimator: str = "mean",
+                error="sem", points: bool = True, width: float = 0.8,
+                gap: float = 0.12, orient: str = "v", color=None,
+                name: str | Sequence[str] | None = None,
+                size: float | str | None = None, cap: float | str | None = None,
+                baseline: float = 0.0, **style) -> "Panel":
+        """Bars of the mean with error bars and every observation as a dot.
+
+        `data` holds one sample (a list of observations) per position in
+        `at`; for grouped bars, a list of such series, dodged within each
+        category like `bars(grouped=True)`:
+
+            p = inklet.panel(40, 35, x=["ctrl", "drug"], y=(0, 12))
+            p.barplot(["ctrl", "drug"], [[wt_ctrl, wt_drug], [ko_ctrl, ko_drug]],
+                      name=["WT", "KO"])
+            p.axes(y="response").legend(side="top")
+
+        Each bar is the `estimator` ("mean" or "median") of its sample. The
+        error bar is `error`: "sem" (default), "sd", "ci95" (1.96 standard
+        errors, a normal approximation), "iqr", None, or a function of the
+        sample returning a half-width or `(down, up)`. With `points=True`
+        each observation is a dot swarmed inside its bar at its exact
+        value. `size` is the dot diameter and `cap` the error-bar cap's half
+        width, both in millimetres.
+
+        One series is drawn as light grey bars with ink dots; several take
+        the theme's palette colours in order, skipping any black, grey or
+        pale yellow, as dark dots on tinted bars. `color=`
+        is one colour per series, or for a single series one per category.
+        `name=` names the series for `legend()`. The node's `barplot` note
+        holds each bar's `(centre, down, up, n)`;
+        `inklet.plot.summary_stats` computes one without drawing.
+        """
+        from .barplot import barplot as _barplot
+
+        clip = _clip_flag(style)
+        node, inks, _ = _barplot(self, at, data, estimator=estimator, error=error,
+                                 points=points, width=width, gap=gap,
+                                 orient=orient, color=color, size=size, cap=cap,
+                                 baseline=baseline, **style)
+        names = series_names(name)
+        if names is not None:
+            from ..themes.color import mix as _mix
+            theme = active_theme()
+            if len(names) != len(inks):
+                raise DiagramError(f"name= has {len(names)} names for {len(inks)} series")
+            for label, ink in zip(names, inks):
+                self._note(label, "area", fill=_mix(ink, theme.paper, 0.55), color=ink)
+        return self.draw(node, clip=clip)
+
 
 def _volcano_triple(given, what: str) -> dict:
-    """`colors=` or `names=` of `Panel.volcano` as a mapping by class."""
+    """`color=` or `name=` of `Panel.volcano` or `Panel.ma` as a mapping by class."""
     if given is None:
         return {}
     if isinstance(given, Mapping):

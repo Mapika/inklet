@@ -16,7 +16,8 @@ from dataclasses import dataclass, replace
 from ..core.style import Style
 from ..core.units import pt
 from .color import contrast_ratio, mix, readable
-from .palettes import OKABE_ITO, TOL_BRIGHT, TOL_MUTED
+from .palettes import INKLET, TOL_BRIGHT, Palette, palette as _palette
+
 
 __all__ = [
     "Theme", "ThemeError", "THEMES", "ROLES", "GAP_NAMES", "HAIRLINE_FLOOR",
@@ -26,6 +27,22 @@ __all__ = [
 
 class ThemeError(ValueError):
     """An unknown theme, role or spacing step."""
+
+
+def _resolve_palette(value: "str | Palette") -> tuple[str, ...]:
+    """Series colours from a palette name or object. A name must be a
+    categorical palette: fifty viridis stops are not eight series colours,
+    and `palette("viridis").resampled(6)` says how many were meant."""
+    if isinstance(value, str):
+        found = _palette(value)
+        if found.kind != "categorical":
+            raise ThemeError(
+                f"theme palette {value!r} is a {found.kind} map, not a set of "
+                f"series colours; pass palette({value!r}).resampled(n) for n "
+                "colours sampled from it"
+            )
+        value = found
+    return value.colors
 
 
 # 0.25pt. Below this a line either drops out of the plate on press or fills in
@@ -64,7 +81,10 @@ class Theme:
     accent: str         # the one colour that means "look here"
     grid: str           # rules and guides, meant to sit under everything
 
-    palette: tuple[str, ...]   # categorical series, colour-vision-deficiency safe
+    #: Categorical series colours, colour-vision-deficiency safe. A palette
+    #: name ("inklet", "tol-bright") or a `Palette` is accepted and stored as
+    #: its colours.
+    palette: tuple[str, ...]
 
     # -- type -------------------------------------------------------------
     font_family: str
@@ -82,6 +102,17 @@ class Theme:
     space: tuple[float, ...]   # spacing scale, small to large
     arrow_size: float          # arrowhead length
     link_radius: float = 0.0   # elbow rounding on a connector; 0 is square
+
+    def __post_init__(self) -> None:
+        if isinstance(self.palette, (str, Palette)):
+            object.__setattr__(self, "palette", _resolve_palette(self.palette))
+
+    def with_palette(self, palette: "str | Palette | tuple[str, ...]") -> "Theme":
+        """This theme with other series colours, given by name, as a `Palette`
+        or as a sequence of colours: `NATURE.with_palette("inklet")`."""
+        if not isinstance(palette, (str, Palette)):
+            palette = tuple(palette)
+        return replace(self, palette=palette)
 
     # -- roles ------------------------------------------------------------
 
@@ -238,8 +269,10 @@ class Theme:
         nearer of the two is walked along its own lightness by `readable` until
         it clears -- the same routine `inklet.plot` uses for a number written on a
         matrix cell, so a caption on a swatch and a label in a heatmap answer to
-        one rule. Only this last case moves; both early returns are the old
-        behaviour exactly.
+        one rule. If the nearer one is already at its end of the lightness range
+        -- paper that is pure white on a green just under 4.5:1 -- the other is
+        walked instead. Only this last case moves; both early returns are the
+        old behaviour exactly.
         """
         here = contrast_ratio(self.ink, background)
         if here >= min_ratio:
@@ -247,8 +280,12 @@ class Theme:
         there = contrast_ratio(self.paper, background)
         if there >= min_ratio:
             return self.paper
-        return readable(self.ink if here >= there else self.paper,
-                        background, min_ratio)
+        nearer, other = ((self.ink, self.paper) if here >= there
+                         else (self.paper, self.ink))
+        walked = readable(nearer, background, min_ratio)
+        if contrast_ratio(walked, background) >= min_ratio:
+            return walked
+        return readable(other, background, min_ratio)
 
     def ink_color(self, index: int, min_ratio: float = 3.0) -> str:
         """`color(index)`, darkened towards `ink` until it clears `min_ratio`
@@ -332,14 +369,16 @@ class Theme:
 # Nature's figure spec: Helvetica, 5-7pt, built for an 89mm single column.
 # Type here is 7pt with 6pt labels, which leaves headroom under the 5pt floor
 # even if the figure is reduced on the page. Strokes are 0.25pt-family weights.
+# Series colours are the `inklet` palette (4.4; Okabe-Ito before): eight hues
+# that stay apart under all three dichromacies and in greyscale.
 NATURE = Theme(
     name="nature",
     ink="#1a1a1a",       # 17.4:1 on white; pure black on coated stock reads as a hole
     paper="#ffffff",
     muted="#5f6b7a",     # 5.4:1, clears WCAG AA for small text
-    accent="#0072b2",    # Okabe-Ito blue, so the accent is also series colour 5
+    accent="#0072b2",    # Okabe-Ito blue, the accent since 4.0
     grid="#e4e4e7",
-    palette=OKABE_ITO.colors,
+    palette=INKLET.colors,
     font_family="Helvetica Neue, Helvetica, Arial, sans-serif",
     font_mono="SF Mono, Menlo, Consolas, monospace",
     font_size=pt(7),
@@ -379,17 +418,17 @@ SLIDES = Theme(
     arrow_size=3.6,
 )
 
-# Screen-first: warm paper instead of clinical white, roomier leading, softer
-# corners, and Tol's muted set, which brings nine hues instead of eight and
-# reads as less severe than the print default.
+# Screen-first: warm paper instead of clinical white, roomier leading and
+# softer corners, with the same `inklet` series colours as the print default
+# (4.4; Tol's muted set before).
 NOTEBOOK = Theme(
     name="notebook",
     ink="#1f2328",       # 15.4:1 on this paper
     paper="#fcfcfa",     # off-white; pure white glares on a backlit display
     muted="#57606a",     # 6.2:1
-    accent="#332288",    # Tol muted indigo, the palette's own lead colour
+    accent="#332288",    # Tol muted indigo, the accent since 4.0
     grid="#e6e4e0",      # warm, to match the paper rather than fight it
-    palette=TOL_MUTED.colors,
+    palette=INKLET.colors,
     font_family="Inter, Segoe UI, Roboto, Helvetica, sans-serif",
     font_mono="JetBrains Mono, SF Mono, Menlo, monospace",
     font_size=pt(9),

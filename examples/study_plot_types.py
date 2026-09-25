@@ -67,8 +67,8 @@ control = {r: [rng.gauss(4 + 1.2 * k, 0.9) for _ in range(80)] for k, r in enume
 treated = {r: [rng.gauss(4.6 + 0.8 * k, 1.1) for _ in range(60)]
            + [rng.gauss(9, 0.5) for _ in range(12 + 6 * k)] for k, r in enumerate(regions)}
 violins = inklet.panel(52, 38, x=regions, y=(0, 12))
-violins.split_violin(control, treated, names=["control", "treated"], quartiles=True,
-                     colors=[YELLOW, "#9cc3d5"])
+violins.split_violin(control, treated, name=["control", "treated"], quartiles=True,
+                     color=[YELLOW, "#9cc3d5"])
 violins.axes(y="firing rate / Hz").legend(side="top")
 
 # -- d: stacked brackets -----------------------------------------------------------
@@ -77,7 +77,7 @@ genotypes = ["wt", "het", "ko", "rescue"]
 response = {g: [rng.gauss(m, 0.45) for _ in range(10)]
             for g, m in zip(genotypes, (3.0, 3.4, 5.0, 3.6))}
 signif = inklet.panel(50, 38, x=genotypes, y=(0, 10))
-signif.boxplot(response, outliers=False).swarm(response, colors=[BLUE] * 4)
+signif.boxplot(response, outliers=False).swarm(response, color=[BLUE] * 4)
 signif.brackets([("wt", "het", 0.21), ("wt", "ko", 2e-5), ("het", "ko", 0.004),
                  ("ko", "rescue", 7e-4), ("wt", "rescue", 0.031),
                  ("het", "rescue", 0.46)], hide_ns=True)

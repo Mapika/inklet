@@ -106,15 +106,15 @@ def test_marks_records_the_shape_it_was_handed() -> None:
 
 def test_bars_name_their_series() -> None:
     p = panel(40, 30, x=["a", "b"], y=(0, 3))
-    p.bars(["a", "b"], [[1, 2], [2, 1]], names=["ctrl", "drug"])
+    p.bars(["a", "b"], [[1, 2], [2, 1]], name=["ctrl", "drug"])
     assert [e.name for e in p.keys] == ["ctrl", "drug"]
     assert all(e.fill is not None for e in p.keys)
 
 
 def test_a_mismatch_between_names_and_series_is_refused() -> None:
     p = panel(40, 30, x=["a", "b"], y=(0, 3))
-    with pytest.raises(DiagramError, match="names="):
-        p.bars(["a", "b"], [[1, 2], [2, 1]], names=["only one"])
+    with pytest.raises(DiagramError, match="name="):
+        p.bars(["a", "b"], [[1, 2], [2, 1]], name=["only one"])
 
 
 def test_a_twin_axis_shares_the_key() -> None:

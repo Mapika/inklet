@@ -18,7 +18,7 @@ report for the page.
 | a | Circuit schematic | `composition()`, `module()`, `link(route='orthogonal')`; see [diagrams](diagrams.md) |
 | b | Stacked horizontal bars with counts | `bars(stacked=True, orient='h', labels=True)`; see [bar value labels](bars-and-areas.md#bar-value-labels) |
 | c | Two groups per category | `dumbbell()`; see [dumbbells](lines-and-points.md#dumbbells) |
-| d | Scatter with named points | `scatter()`, `label_points()`; see [labelled points](lines-and-points.md#labelled-points) |
+| d | Scatter with named points | `scatter()`, `label_points()`; see [labelled points](lines-and-points.md#labelled-points) and [label placement](label-placement.md) |
 | e | Heatmap, colour bar and zoom inset | `matrix()`, `colorbar()`, `inset(zoom=...)`; see [heatmaps](matrices.md#heatmaps) |
 | f | Cumulative distributions | `ecdf()`; see [cumulative distributions](distributions.md#cumulative-distributions) |
 | g | Dot plot over 36 categories | `dumbbell()` with rotated tick labels |
@@ -46,7 +46,7 @@ blue, amber, magenta, grey, green, ink = style.theme.palette
 types = ['DA1', 'VA1v', 'VA1d', 'DL3']
 pairs = i.plot_spec(height=26, x=(0, 14), y=types[::-1])
 pairs.dumbbell(types, [[9.1, 6.2, 5.4, 3.3], [12.6, 8.9, 4.7, 5.1]], orient='h',
-               names=['female', 'male'], colors=[magenta, green])
+               name=['female', 'male'], color=[magenta, green])
 pairs.axes(x='synapses / 10³')
 pairs.legend()
 

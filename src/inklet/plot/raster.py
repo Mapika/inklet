@@ -36,6 +36,7 @@ from __future__ import annotations
 
 from typing import Sequence
 
+from .._compat import renamed_keywords
 from ..core import Affine, Diagram, DiagramError, ImagePrim, Vec2
 from ..themes.color import parse_color
 from .png import encode_png
@@ -97,16 +98,17 @@ def interpolate_matrix(rows, xs, ys, samples, *, single_x=None, single_y=None):
     return out,centres(xs,px),centres(ys,py)
 
 
-def uniform_pitch(centres: Sequence[float]) -> float | None:
+@renamed_keywords(centres="centers")
+def uniform_pitch(centers: Sequence[float]) -> float | None:
     """The common spacing of a set of cell centres, or None if they vary.
 
     The raster path needs one: a pixel is a fixed fraction of the image and
     cannot be wider than its neighbour. Unevenly sampled data stays vector,
     where each cell can own the interval it actually stands for.
     """
-    if len(centres) < 2:
-        return abs(centres[0]) * 2.0 if centres else None
-    gaps = [b - a for a, b in zip(centres, centres[1:])]
+    if len(centers) < 2:
+        return abs(centers[0]) * 2.0 if centers else None
+    gaps = [b - a for a, b in zip(centers, centers[1:])]
     reach = max(abs(g) for g in gaps)
     if reach <= 0 or max(gaps) - min(gaps) > reach * 1e-9:
         return None

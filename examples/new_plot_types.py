@@ -34,7 +34,7 @@ shared = [0, 7, 1, 6, 7, 3]
 common = [0, 1, 0, 3, 3, 1]
 bars = inklet.panel(38, 30, x=(0, 60), y=cells)
 bars.bars(cells, [specific, shared, common], stacked=True, orient="h", width=0.72,
-          colors=["#668fb8", YELLOW, GREY], names=["specific", "shared", "common"],
+          color=["#668fb8", YELLOW, GREY], name=["specific", "shared", "common"],
           labels=True, stroke="none")
 bars.axes(x="cell types", y="neuron class").legend(side="top")
 
@@ -44,8 +44,8 @@ genes = ["Gad1", "Slc17a7", "Pvalb", "Sst", "Vip", "Olig2"]
 before = [2.1, 3.4, 1.2, 4.0, 2.6, 0.8]
 after = [3.9, 2.0, 1.9, 5.2, 3.4, 0.9]
 dumbbell = inklet.panel(30, 30, x=(0, 6), y=genes)
-dumbbell.dumbbell(genes, [before, after], orient="h", names=["before", "after"],
-                  colors=[BLUE, ORANGE])
+dumbbell.dumbbell(genes, [before, after], orient="h", name=["before", "after"],
+                  color=[BLUE, ORANGE])
 dumbbell.axes(x="log CPM").legend(side="top")
 
 # -- c: lollipop -------------------------------------------------------------
@@ -89,8 +89,8 @@ radar.legend(side="bottom")
 # -- g: donut ----------------------------------------------------------------
 
 donut = inklet.polar(11, hole=5.5, zero="up", winding="cw")
-donut.pie([54, 28, 12, 4, 2], colors=[BLUE, GREEN, ORANGE, YELLOW, GREY],
-          names=["neurons", "glia", "vascular", "immune", "other"])
+donut.pie([54, 28, 12, 4, 2], color=[BLUE, GREEN, ORANGE, YELLOW, GREY],
+          name=["neurons", "glia", "vascular", "immune", "other"])
 donut.legend(side="bottom")
 
 fig = inklet.figure(width=180, theme="nature")

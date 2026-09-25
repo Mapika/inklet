@@ -7,7 +7,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 import pytest
-from inklet.experimental.selection import SelectionState
+from inklet.selection import SelectionState
 from inklet.core import DiagramError
 
 RECIPE=Path(__file__).resolve().parents[1]/'examples/v4/regional_report.py'

@@ -1,8 +1,17 @@
-"""Immutable axis-aligned box assemblies with explicit physical units."""
+"""Immutable axis-aligned box assemblies with explicit physical units.
+
+Deprecated: this module warns on import from Inklet 4.4 and is removed in 5.0,
+with no replacement in Inklet. Pin `inklet<5` for recipes that use it.
+"""
 from dataclasses import dataclass
 import hashlib
 import json
 import math
+
+from inklet._compat import removed_module as _removed_module
+
+_removed_module(__name__, 'BoxComponent and BoxAssembly have no replacement; '
+                'pin inklet<5 for recipes that use them.')
 
 
 def _triple(value, label, positive=False):

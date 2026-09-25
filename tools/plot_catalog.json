@@ -212,6 +212,20 @@
     "block": 9
   },
   {
+    "title": "100% stacked bars",
+    "description": "Each category's series as percentages of its total, stacked to 100 with percent labels.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#100-stacked-bars",
+    "image": "assets/guides/plots-bars-percent.png",
+    "methods": [
+      "Panel.bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 10
+  },
+  {
     "title": "Histograms",
     "description": "Ninety-six durations in explicit half-second bins.",
     "category": "Distributions",
@@ -307,6 +321,106 @@
     "version": "Core",
     "requires": "Core only",
     "source": "distributions.md",
+    "block": 7
+  },
+  {
+    "title": "Hexbin and 2D histograms",
+    "description": "Overlapping points counted in hexagons or rectangles and coloured by count, with colour bars.",
+    "category": "Relationships",
+    "page": "relationships/#2d-histograms-and-hexbins",
+    "image": "assets/guides/plots-hexbin.png",
+    "methods": [
+      "Panel.hexbin",
+      "Panel.hist2d"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 1
+  },
+  {
+    "title": "Density-coloured scatter",
+    "description": "Every point coloured by local density, rasterised for 100,000 points, on log axes.",
+    "category": "Relationships",
+    "page": "relationships/#density-coloured-scatter",
+    "image": "assets/guides/plots-density-scatter.png",
+    "methods": [
+      "Panel.density_scatter"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 2
+  },
+  {
+    "title": "2D density contours",
+    "description": "Kernel density contours enclosing chosen shares of the probability, as lines or filled levels.",
+    "category": "Relationships",
+    "page": "relationships/#2d-density-contours",
+    "image": "assets/guides/plots-kde2d.png",
+    "methods": [
+      "Panel.kde2d"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 3
+  },
+  {
+    "title": "Regression and residuals",
+    "description": "Least-squares lines with confidence bands, LOWESS smoothers and residual plots.",
+    "category": "Relationships",
+    "page": "relationships/#regression-and-residuals",
+    "image": "assets/guides/plots-regression.png",
+    "methods": [
+      "Panel.regression",
+      "Panel.residuals"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 4
+  },
+  {
+    "title": "Bland-Altman plots",
+    "description": "Agreement between two methods: bias, limits of agreement and their confidence intervals.",
+    "category": "Relationships",
+    "page": "relationships/#bland-altman-agreement",
+    "image": "assets/guides/plots-bland-altman.png",
+    "methods": [
+      "Panel.bland_altman"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 5
+  },
+  {
+    "title": "Pair plots",
+    "description": "Every pair of variables in one grid with shared axes, groups and distributions on the diagonal.",
+    "category": "Relationships",
+    "page": "relationships/#pair-plots",
+    "image": "assets/guides/plots-pairplot.png",
+    "methods": [
+      "pairplot"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
+    "block": 6
+  },
+  {
+    "title": "Joint plots",
+    "description": "One pair of variables with marginal histograms or densities on the same scales.",
+    "category": "Relationships",
+    "page": "relationships/#joint-plots",
+    "image": "assets/guides/plots-jointplot.png",
+    "methods": [
+      "jointplot"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "relationships.md",
     "block": 7
   },
   {
@@ -543,5 +657,451 @@
     "requires": "Core only",
     "source": "distributions.md",
     "block": 10
+  },
+  {
+    "title": "Histogram groups and outlines",
+    "description": "Several groups on shared bins as translucent outlines, step outlines and cumulative fractions.",
+    "category": "Distributions",
+    "page": "distributions/#histogram-outlines-groups-and-cumulative-counts",
+    "image": "assets/guides/plots-hist-groups.png",
+    "methods": [
+      "Panel.hist"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 11
+  },
+  {
+    "title": "Kernel density curves",
+    "description": "Gaussian kernel densities for one or several groups, filled or as lines, with Scott or Silverman bandwidths.",
+    "category": "Distributions",
+    "page": "distributions/#kernel-density-curves",
+    "image": "assets/guides/plots-kde.png",
+    "methods": [
+      "Panel.kde"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 12
+  },
+  {
+    "title": "Letter-value plots",
+    "description": "Boxen plots: nested boxes at the quartiles, eighths and sixteenths for large samples.",
+    "category": "Distributions",
+    "page": "distributions/#letter-value-plots",
+    "image": "assets/guides/plots-boxen.png",
+    "methods": [
+      "Panel.boxen"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 13
+  },
+  {
+    "title": "Strip and sina plots",
+    "description": "Every observation with seeded jitter, alone or over boxes, or spread by the group's density.",
+    "category": "Distributions",
+    "page": "distributions/#strip-and-sina-plots",
+    "image": "assets/guides/plots-strip-sina.png",
+    "methods": [
+      "Panel.strip",
+      "Panel.sina"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 14
+  },
+  {
+    "title": "QQ and PP plots",
+    "description": "Sample quantiles against the normal with a quartile reference line, and probability-probability plots.",
+    "category": "Distributions",
+    "page": "distributions/#quantile-quantile-and-probability-plots",
+    "image": "assets/guides/plots-qq.png",
+    "methods": [
+      "Panel.qq",
+      "Panel.pp"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "distributions.md",
+    "block": 15
+  },
+  {
+    "title": "Treemaps and sunbursts",
+    "description": "Nested groups as tiled rectangles or rings, area or angle proportional to value.",
+    "category": "Hierarchies and networks",
+    "page": "networks-and-hierarchies/#treemaps-and-sunbursts",
+    "image": "assets/guides/plots-treemap.png",
+    "methods": [
+      "Panel.treemap",
+      "Panel.sunburst"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "networks-and-hierarchies.md",
+    "block": 1
+  },
+  {
+    "title": "Clustering levels",
+    "description": "An icicle of cluster splits across resolutions, with a highlighted lineage and level counts.",
+    "category": "Hierarchies and networks",
+    "page": "networks-and-hierarchies/#clustering-levels",
+    "image": "assets/guides/plots-icicle.png",
+    "methods": [
+      "Panel.icicle"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "networks-and-hierarchies.md",
+    "block": 2
+  },
+  {
+    "title": "Weighted networks",
+    "description": "Nodes sized by value and edges widened by weight, on a ring or a solved layout, with a width key.",
+    "category": "Hierarchies and networks",
+    "page": "networks-and-hierarchies/#weighted-networks",
+    "image": "assets/guides/plots-network.png",
+    "methods": [
+      "Panel.network",
+      "Panel.width_key",
+      "Panel.legend"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "networks-and-hierarchies.md",
+    "block": 3
+  },
+  {
+    "title": "Chord and arc diagrams",
+    "description": "Flows between groups as ribbons around a ring, or weighted arcs over a row of nodes.",
+    "category": "Hierarchies and networks",
+    "page": "networks-and-hierarchies/#chord-and-arc-diagrams",
+    "image": "assets/guides/plots-chord.png",
+    "methods": [
+      "Panel.chord",
+      "Panel.arc_diagram",
+      "Panel.width_key"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "networks-and-hierarchies.md",
+    "block": 4
+  },
+  {
+    "title": "Clustered matrices",
+    "description": "A matrix reordered by clustering, with diagonal cluster boxes and a zoomed inset.",
+    "category": "Matrices",
+    "page": "matrices/#clustered-matrices",
+    "image": "assets/guides/plots-clusters.png",
+    "methods": [
+      "Panel.matrix",
+      "Panel.clusters",
+      "Panel.inset"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 7
+  },
+  {
+    "title": "Clustermaps",
+    "description": "A clustered heatmap with row and column dendrograms, annotation strips and a colorbar.",
+    "category": "Matrices",
+    "page": "matrices/#clustermaps",
+    "image": "assets/guides/plots-clustermap.png",
+    "methods": [
+      "clustermap"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 8
+  },
+  {
+    "title": "Correlograms",
+    "description": "A correlation triangle of glyphs sized by |r| and coloured by r.",
+    "category": "Matrices",
+    "page": "matrices/#correlograms",
+    "image": "assets/guides/plots-correlogram.png",
+    "methods": [
+      "Panel.correlogram",
+      "Panel.colorbar"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "matrices.md",
+    "block": 9
+  },
+  {
+    "title": "Manhattan plots",
+    "description": "Genome-wide association results by chromosome, with significance lines and lead hits.",
+    "category": "Genomics",
+    "page": "genomics-plots/#manhattan-plots",
+    "image": "assets/guides/plots-manhattan.png",
+    "methods": [
+      "manhattan"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "genomics-plots.md",
+    "block": 1
+  },
+  {
+    "title": "MA plots",
+    "description": "Log fold change against mean expression, with regulated genes coloured and labelled.",
+    "category": "Genomics",
+    "page": "genomics-plots/#ma-plots",
+    "image": "assets/guides/plots-ma.png",
+    "methods": [
+      "Panel.ma",
+      "Panel.axes"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "genomics-plots.md",
+    "block": 2
+  },
+  {
+    "title": "Ternary plots",
+    "description": "Three-part compositions as points in a triangle.",
+    "category": "Genomics",
+    "page": "genomics-plots/#ternary-plots",
+    "image": "assets/guides/plots-ternary.png",
+    "methods": [
+      "Panel.ternary",
+      "Panel.legend"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "genomics-plots.md",
+    "block": 3
+  },
+  {
+    "title": "Waterfalls",
+    "description": "Signed changes floating from a running total, with totals.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#waterfalls",
+    "image": "assets/guides/plots-waterfall.png",
+    "methods": [
+      "Panel.waterfall"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 11
+  },
+  {
+    "title": "Bars with points",
+    "description": "Mean bars, error bars and every observation in one call.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#bars-with-points-and-error-bars",
+    "image": "assets/guides/plots-barplot.png",
+    "methods": [
+      "Panel.barplot"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 12
+  },
+  {
+    "title": "Diverging bars",
+    "description": "Two quantities per category back to back, with dashed reference lines.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#diverging-bars",
+    "image": "assets/guides/plots-diverging-bars.png",
+    "methods": [
+      "Panel.diverging_bars"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 13
+  },
+  {
+    "title": "Population pyramid",
+    "description": "Age groups with one population to each side of zero.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#population-pyramids",
+    "image": "assets/guides/plots-pyramid.png",
+    "methods": [
+      "Panel.pyramid"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 14
+  },
+  {
+    "title": "Likert scale",
+    "description": "Diverging stacked bars centred on the neutral response.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#likert-scales",
+    "image": "assets/guides/plots-likert.png",
+    "methods": [
+      "Panel.likert"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 15
+  },
+  {
+    "title": "Mosaic plot",
+    "description": "Columns as wide as their totals, cells as tall as their shares.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#mosaic-plots",
+    "image": "assets/guides/plots-mosaic.png",
+    "methods": [
+      "Panel.mosaic"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 16
+  },
+  {
+    "title": "Waffle chart",
+    "description": "Shares of a whole as whole cells of a grid.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#waffle-charts",
+    "image": "assets/guides/plots-waffle.png",
+    "methods": [
+      "Panel.waffle"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 17
+  },
+  {
+    "title": "Streamgraph",
+    "description": "Stacked areas around a moving baseline.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#streamgraphs",
+    "image": "assets/guides/plots-streamgraph.png",
+    "methods": [
+      "Panel.streamgraph"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 18
+  },
+  {
+    "title": "Bullet chart",
+    "description": "A measure against a target and grey qualitative ranges.",
+    "category": "Bars and areas",
+    "page": "bars-and-areas/#bullet-charts",
+    "image": "assets/guides/plots-bullet.png",
+    "methods": [
+      "Panel.bullet"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "bars-and-areas.md",
+    "block": 19
+  },
+  {
+    "title": "Slope chart",
+    "description": "Values at two positions joined, with spread end labels.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#slope-charts",
+    "image": "assets/guides/plots-slope.png",
+    "methods": [
+      "Panel.slope"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 10
+  },
+  {
+    "title": "Bump chart",
+    "description": "Ranks over time joined by smooth curves.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#bump-charts",
+    "image": "assets/guides/plots-bump.png",
+    "methods": [
+      "Panel.bump"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 11
+  },
+  {
+    "title": "Stem plot",
+    "description": "Stems from a baseline to each sample of a signal.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#stem-plots",
+    "image": "assets/guides/plots-stem.png",
+    "methods": [
+      "Panel.stem"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 12
+  },
+  {
+    "title": "Parallel coordinates",
+    "description": "An axis per variable and a line per record.",
+    "category": "Lines and points",
+    "page": "lines-and-points/#parallel-coordinates",
+    "image": "assets/guides/plots-parallel.png",
+    "methods": [
+      "Panel.parallel"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "lines-and-points.md",
+    "block": 13
+  },
+  {
+    "title": "Gantt chart",
+    "description": "Tasks as bars from start to end, with milestones.",
+    "category": "Time",
+    "page": "timelines-and-calendars/#gantt-charts",
+    "image": "assets/guides/plots-gantt.png",
+    "methods": [
+      "Panel.gantt"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "timelines-and-calendars.md",
+    "block": 1
+  },
+  {
+    "title": "Event timeline",
+    "description": "Labelled events staggered off a date axis.",
+    "category": "Time",
+    "page": "timelines-and-calendars/#event-timelines",
+    "image": "assets/guides/plots-timeline.png",
+    "methods": [
+      "Panel.timeline"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "timelines-and-calendars.md",
+    "block": 2
+  },
+  {
+    "title": "Calendar heatmap",
+    "description": "A square per day, a column per week.",
+    "category": "Time",
+    "page": "timelines-and-calendars/#calendar-heatmaps",
+    "image": "assets/guides/plots-calendar.png",
+    "methods": [
+      "Panel.calendar"
+    ],
+    "version": "Core",
+    "requires": "Core only",
+    "source": "timelines-and-calendars.md",
+    "block": 3
   }
 ]

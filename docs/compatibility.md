@@ -1,6 +1,6 @@
 # Compatibility
 
-Stable Inklet **4.3.0** uses the environments and rendering paths below.
+Stable Inklet **4.4.0** uses the environments and rendering paths below.
 Experimental capabilities are identified separately.
 The matrix distinguishes installed-package checks from full integration tests.
 
@@ -47,16 +47,25 @@ The same acceptance, distribution and performance gates apply to later releases.
 | `inklet.project` | `FigureProject`, `Asset`, `AssetManifest`, `EntityMap`, `ExportDriftWarning` | `inklet.experimental.project` (and `.assets`, `.identity`) |
 | `inklet.editor` | `LayoutEditor` and its saved layout overrides | `inklet.experimental.layout_editor` |
 
-- The earlier `inklet.experimental` paths stay as aliases through 4.x: they
-  return the same objects and do not warn in 4.3. A `DeprecationWarning` is
-  planned for 4.4, and they will not be removed before 5.0. The compiled scene
+- The earlier `inklet.experimental` paths stay as aliases through 4.x and
+  return the same objects. From 4.4, importing one raises
+  `inklet._compat.InkletDeprecationWarning`, a `DeprecationWarning` subclass
+  that names the new path. They are removed in 5.0. The compiled scene
   viewer runtime moved to the private `inklet.render._viewer`; use
   `RenderScene.to_html()`. The layout editor's HTTP/JSON protocol and
   `snapshot()` payload are private; the class and saved overrides are the contract.
+- **Deprecations (4.4).** 4.4 adds American-spelling names and one keyword per
+  idea on `Panel`: `color=`, `name=` and `size=`. The old names keep working
+  and warn once per call. See the [rename table](migration.md#from-43-to-44).
+  A deprecated name keeps its released call shape until 5.0, and the
+  compatibility checker still verifies it. Giving an old and a new spelling
+  together is a `TypeError`. Inklet's own code and tests use only the new
+  names; the test suite turns `InkletDeprecationWarning` into an error.
 - The rest of `inklet.experimental` remains opt-in: browser documents
   (`browser`), mesh and grid fields (`fields`, `grid`), engineering drawings
-  (`engineering`), image measurement (`measurement`) and the figure planner
-  (`figure_planner`, `planner_geometry`). Their signatures, report schemas and
+  (`engineering`, deprecated in 4.4 and removed in 5.0), image measurement
+  (`measurement`) and the figure planner (`figure_planner`, `planner_geometry`).
+  `BrowserScatter` is deprecated in favour of `BrowserFigure`. Their signatures, report schemas and
   saved formats may change; keep an exact package pin and source recipe for
   archived work. See [experimental features](experimental.md).
 - `tools/check_compatibility.py` compares public call shapes with inventories
@@ -75,7 +84,7 @@ The same acceptance, distribution and performance gates apply to later releases.
 
 | Saved content | Current writer | Accepted input |
 | --- | --- | --- |
-| Composition edits | `inklet.composition-layout/0.5` | 0.1–0.5, with controls restricted by schema version |
+| Composition edits | `inklet.composition-layout/0.5` | 0.1–0.5, with controls restricted by schema version; 0.1–0.4 warn from 4.4, so re-save them |
 | Keyed selection | `inklet.selection/0.1` | 0.1, with table identity and data digest validation |
 | Linked browser view | `inklet.browser-view/0.1` | 0.1, subject to view/source validation |
 | Asset inventory | `inklet.assets/0.1` | 0.1, with contained paths, size and SHA-256 checks |

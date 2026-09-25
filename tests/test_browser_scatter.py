@@ -6,8 +6,11 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 import pytest
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 from inklet.experimental.browser import BrowserScatter, ScatterView
+
+# BrowserScatter is the deprecated 4.x entry point; these tests keep it working.
+pytestmark=pytest.mark.filterwarnings('ignore:BrowserScatter is deprecated')
 
 
 def scene(*, reverse=False):

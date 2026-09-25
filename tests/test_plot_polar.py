@@ -103,7 +103,7 @@ def test_point_puts_r_along_the_mapped_angle() -> None:
 
 
 def test_the_pole_is_the_panels_own_origin() -> None:
-    assert polar(20).centre == Vec2(0, 0)
+    assert polar(20).center == Vec2(0, 0)
 
 
 def test_a_built_polar_panel_is_a_panel_to_everything_downstream() -> None:

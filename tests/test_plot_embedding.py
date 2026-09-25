@@ -13,7 +13,7 @@ from inklet import use_theme
 from inklet.core import DiagramError, MarkerBatchPrim, resolve
 from inklet.diagnostics import lint
 from inklet.draw.coords import as_drawn
-from inklet.plot import cluster_centres, panel
+from inklet.plot import cluster_centers, panel
 from inklet.plot.embedding import cluster_colors
 from inklet.plot.point_labels import POINT_LABEL_KIND
 
@@ -44,23 +44,23 @@ def placed(p):
 def test_centres_lie_on_the_data_near_the_middle() -> None:
     points, names = cloud()
     for method in ("median", "medoid"):
-        found = cluster_centres(points, names, method=method)
+        found = cluster_centers(points, names, method=method)
         assert list(found) == list(CENTRES)
         for name, (x, y) in found.items():
             assert (x, y) in points
             cx, cy = CENTRES[name]
             assert math.hypot(x - cx, y - cy) < 0.5
-    mean = cluster_centres(points, names, method="mean")
+    mean = cluster_centers(points, names, method="mean")
     assert mean["NK"][0] == pytest.approx(0, abs=0.2)
     # A crescent: its mean falls off the data, the median centre does not.
     arc = [(math.cos(t / 50 * math.pi), math.sin(t / 50 * math.pi)) for t in range(51)]
-    (x, y), = cluster_centres(arc, ["c"] * len(arc)).values()
+    (x, y), = cluster_centers(arc, ["c"] * len(arc)).values()
     assert math.hypot(x, y) == pytest.approx(1.0)
-    assert list(cluster_centres([(0, 0), (1, 1)], [2, 1])) == [1, 2]
+    assert list(cluster_centers([(0, 0), (1, 1)], [2, 1])) == [1, 2]
     with pytest.raises(DiagramError):
-        cluster_centres(points, names[:-1])
+        cluster_centers(points, names[:-1])
     with pytest.raises(DiagramError):
-        cluster_centres(points, names, method="mode")
+        cluster_centers(points, names, method="mode")
 
 
 def test_embedding_is_one_marker_batch_with_named_clusters() -> None:
@@ -98,7 +98,7 @@ def test_axis_arrows_and_colours() -> None:
     points, names = cloud(per=40)
     p = panel(40, 40, x=(-7, 7), y=(-7, 7))
     p.embedding(points, names, arrows="UMAP", labels=False,
-                colors={n: "#336699" for n in CENTRES})
+                color={n: "#336699" for n in CENTRES})
     words = [n for n in placed(p) if n.diagram.kind == "axis-label"]
     assert sorted(w.diagram.prim.text for w in words) == ["UMAP1", "UMAP2"]
     for w in words:
@@ -106,7 +106,7 @@ def test_axis_arrows_and_colours() -> None:
         assert w.bbox.y0 >= p.area.y1 - 1e-6 or w.bbox.x1 <= p.area.x0 + 1e-6
     assert len(cluster_colors(30)) == len(set(cluster_colors(30))) == 30
     with pytest.raises(DiagramError):
-        panel(40, 40).embedding(points, names, colors={"NK": "red"})
+        panel(40, 40).embedding(points, names, color={"NK": "red"})
     with pytest.raises(DiagramError):
         panel(40, 40).embedding(points, names, arrows=("a",))
 

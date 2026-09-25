@@ -49,7 +49,7 @@ assert 'class CompiledSceneViewer' in viewer and 'drawArraysInstanced' in viewer
 assert 'class MarkerIndex' in viewer and 'texelFetch' in viewer
 assert 'inklet.compiled-viewer/1' in viewer and '/*SCENE*/' not in viewer
 from inklet.selection import KeyedTable
-# The pre-4.3 experimental paths re-export the same objects.
+# The pre-4.3 experimental paths re-export the same objects (and warn from 4.4).
 import inklet.experimental.selection as old_selection
 assert old_selection.KeyedTable is KeyedTable
 assert find_spec("pandas") is None and find_spec("polars") is None

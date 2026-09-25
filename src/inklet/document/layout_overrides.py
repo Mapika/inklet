@@ -189,6 +189,12 @@ def apply(recipe, value, *, missing='error'):
                 if compatible: options[group] = compatible
                 else: options.pop(group)
             if options: prepared[path] = options
+    if value['schema']!=SCHEMA:
+        from .._compat import REMOVAL, warn
+        # 1 = here, 2 = Composition.with_layout_overrides, 3 = its caller.
+        warn(f"composition layout schema {value['schema'].rpartition('/')[2]} is deprecated and "
+             f"may not be read by Inklet {REMOVAL}; re-save these overrides (layout_overrides() "
+             f"or the layout editor writes {SCHEMA}).", stacklevel=3)
     orphaned.sort()
     if orphaned and missing=='error': raise LayoutError('orphaned layout targets: '+', '.join(orphaned))
     # One nested definition may occur at several named paths. Contradictory

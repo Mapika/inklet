@@ -475,7 +475,7 @@ def panel_spread(width: float, height: float) -> inklet.Diagram:
     p.hspan(quarter, three_quarter, fill=inklet.mix(QUIET, TH.paper, 0.82))
     p.swarm({label: list(inside)
              for label, (_, inside, _) in zip(labels, per_class)},
-            size=0.85, colors=[ACCENT] * len(labels))
+            size=0.85, color=[ACCENT] * len(labels))
     p.axes(x="class", y="Tanimoto within class")
     return p.build()
 

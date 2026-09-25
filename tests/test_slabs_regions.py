@@ -9,10 +9,10 @@ import pytest
 np=pytest.importorskip('numpy')
 pytest.importorskip('scipy')
 from PIL import Image
-from inklet.experimental.volume import Volume
-from inklet.experimental.sections import Plane
-from inklet.experimental.regions import BoxRegion
-from inklet.experimental.slabs import Slab, SlabProjection
+from inklet.volume import Volume
+from inklet.volume import Plane
+from inklet.volume import BoxRegion
+from inklet.volume import Slab, SlabProjection
 
 
 def xy(centre=(1,1,1),shape=(3,3),spacing=(1,1),unit='um'):

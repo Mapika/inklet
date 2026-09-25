@@ -4,7 +4,7 @@ from types import MappingProxyType
 
 import pytest
 
-from inklet.experimental.selection import KeyedTable
+from inklet.selection import KeyedTable
 
 
 @pytest.fixture(params=['pandas', 'polars'])

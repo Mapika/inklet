@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from inklet.experimental.fields import MeshField
 from inklet.experimental.browser import BrowserFigure,MeshFieldView,RevisionOption
-from inklet.experimental.selection import KeyedTable,SelectionState
+from inklet.selection import KeyedTable,SelectionState
 
 RECIPE=Path(__file__).resolve().parents[1]/'examples/v4/mesh_fields.py'
 spec=importlib.util.spec_from_file_location('mesh_fields',RECIPE)

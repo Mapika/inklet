@@ -2,7 +2,7 @@
 import json
 import pytest
 import inklet as i
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 from inklet.document.layout_overrides import SCHEMA
 
 
@@ -113,6 +113,7 @@ def test_invalid_label_edits_do_not_change_state(fields):
         {'schema':SCHEMA,'targets':{'/missing':{'labels':{'peak':fields}}}},missing='drop')
 
 
+@pytest.mark.filterwarnings('ignore:composition layout schema')
 def test_legacy_files_load_and_reject_new_fields():
     base=source()
     for schema in ('inklet.composition-layout/0.1','inklet.composition-layout/0.2'):

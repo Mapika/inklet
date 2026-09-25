@@ -2,8 +2,9 @@
 
 `inklet.selection`, `inklet.project`, `inklet.editor` and the private
 `inklet.render._viewer` graduated from `inklet.experimental`. Every name the
-4.2.0 modules exposed stays importable from the old path as the same object,
-without a warning, and the package itself never imports those shims.
+4.2.0 modules exposed from Inklet stays importable from the old path as the
+same object, with one `InkletDeprecationWarning` from 4.4, and the package
+itself never imports those shims.
 """
 import importlib
 import os
@@ -52,21 +53,41 @@ RELEASED = {
         'parse_color', 're', 'to_html']),
 }
 
+#: Standard-library names the 4.2 modules happened to expose; the 4.4 shims no
+#: longer re-export them (they were never in a released `__all__`).
+STDLIB = {'Mapping', 'MappingProxyType', 'Set', 'annotations', 'dataclass', 'hashlib',
+          'json', 'math', 'date', 'datetime', 're', 'timezone', 'Path', 'os', 'shutil',
+          'tempfile', 'PurePosixPath', 'asdict', 'BaseHTTPRequestHandler', 'ET',
+          'ThreadingHTTPServer', 'copy', 'parse_qs', 'secrets', 'threading', 'urlsplit',
+          'base64', 'html'}
+
 EDITOR_ASSETS = ('gestures.js', 'page.html', 'workspace.css', 'workspace.js')
 VIEWER_ASSETS = ('controls.js', 'page.html', 'runtime.js', 'spatial.js')
 
 
 @pytest.mark.parametrize('old', sorted(RELEASED))
 def test_every_released_name_is_the_same_object_at_its_new_home(old):
+    from inklet._compat import InkletDeprecationWarning
     new, names = RELEASED[old]
-    with warnings.catch_warnings():
-        warnings.simplefilter('error')
+    for loaded in [m for m in sys.modules if m.startswith('inklet.experimental.' + old)]:
+        sys.modules.pop(loaded)
+    if '.' in old:  # the parent alias package warns for itself
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', InkletDeprecationWarning)
+            importlib.import_module('inklet.experimental.' + old.rpartition('.')[0])
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
         shim = importlib.import_module('inklet.experimental.' + old)
+    assert [w.category for w in caught] == [InkletDeprecationWarning]
     home = importlib.import_module(new)
     for name in names:
+        if name in STDLIB:
+            assert not hasattr(shim, name), f'{old}.{name}'
+            continue
         assert getattr(shim, name) is getattr(home, name), f'{old}.{name}'
 
 
+@pytest.mark.filterwarnings('ignore::inklet._compat.InkletDeprecationWarning')
 def test_new_public_surfaces():
     import inklet.editor
     import inklet.project

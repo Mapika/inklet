@@ -1,6 +1,6 @@
 # GeoJSON points, routes and regions
 
-Introduced in **4.0.0.dev5** and available in stable **4.3.0**, under
+Introduced in **4.0.0.dev5** and available in stable **4.4.0**, under
 `inklet.experimental`. See the
 [4.0 release guide](development-preview.md).
 

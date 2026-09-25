@@ -51,13 +51,13 @@ def test_dumbbell_missing_value_draws_one_dot_and_no_line() -> None:
 
 def test_dumbbell_legend_has_one_marker_per_name() -> None:
     p = panel(40, 30, x=["a", "b"], y=(0, 10))
-    p.dumbbell(["a", "b"], [[1, 2], [3, 4]], names=["pre", "post"])
+    p.dumbbell(["a", "b"], [[1, 2], [3, 4]], name=["pre", "post"])
     keys = p.keys
     assert [k.name for k in keys] == ["pre", "post"]
     assert all("marker" in k.forms for k in keys)
     assert keys[0].color != keys[1].color
     with pytest.raises(DiagramError):
-        p.dumbbell(["a", "b"], [[1, 2], [3, 4]], names=["only one"])
+        p.dumbbell(["a", "b"], [[1, 2], [3, 4]], name=["only one"])
 
 
 def test_dumbbell_needs_two_series() -> None:

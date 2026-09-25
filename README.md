@@ -31,10 +31,11 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.3.0 is stable**. Microscopy volumes, keyed selections, figure projects and
-the layout editor now live in stable `inklet.volume`, `inklet.selection`,
-`inklet.project` and `inklet.editor`; the old `inklet.experimental` imports
-still work.
+**4.4.0 is stable**. It adds about 60 plot types, 98 curated palettes with
+the new default `inklet` palette, and a label placement engine for direct
+labels and legends. It is the deprecation release before 5.0: old spellings
+and `inklet.experimental` import paths still work and now warn, naming the
+replacement.
 
 ```sh
 python -m pip install --upgrade inklet
@@ -50,7 +51,7 @@ From 4.3, microscopy volumes (`inklet.volume`), keyed selections
 (`inklet.editor`) are stable; the rest of `inklet.experimental` stays opt-in. The supported controls,
 saved-file policy and deferred features are listed in the
 [compatibility guide](https://inklet.readthedocs.io/en/latest/compatibility/).
-Animation and presentation authoring remain in the 5.0 direction.
+Inklet 5.0 focuses on dense journal figures; animation and presentation authoring move to the 5.x direction.
 
 ## Install
 

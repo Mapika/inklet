@@ -14,6 +14,7 @@ from ..draw.shapes import MARK_KIND
 from .raster import _missing_colour, is_missing, raster_matrix, uniform_pitch
 from .metadata import declare_domain as _declare_domain
 from .scale import Scale
+from .._compat import renamed_function
 
 
 #: How far each matrix cell is grown past its own pitch, as a fraction of it.
@@ -134,7 +135,7 @@ def _batched_cell_grid(rows,ramp,unit,xs,ys,style,missing=None,*,seamless=False)
     return as_drawn(result.styled(**style) if style else result)
 
 
-def matrix_centres(given: Sequence | None, count: int,
+def matrix_centers(given: Sequence | None, count: int,
                    scale: Scale, extent: float) -> list[float]:
     """Where each row or column sits, in panel millimetres.
 
@@ -184,7 +185,7 @@ def prepare_matrix(values, *, vector, interpolation, raster, overlap, style):
     return rows, raster, overlap, clip
 
 
-def default_colouring(rows, ramp, scale, center):
+def default_coloring(rows, ramp, scale, center):
     """The ramp and colour scale a matrix uses when the caller leaves them out.
 
     Without `scale`, a given `center` or an omitted `ramp` means the scale is
@@ -194,8 +195,9 @@ def default_colouring(rows, ramp, scale, center):
     else the sequential one. An explicit ramp with no scale keeps its old
     meaning: values are already fractions of the ramp.
     """
-    from .ramp import default_ramp
+    from .ramp import as_ramp, default_ramp
     from .scale import linear
+    ramp = as_ramp(ramp)  # a palette name such as "viridis" works too
     if center is not None and scale is not None:
         raise DiagramError('matrix() takes center= or scale=, not both: '
                            'a scale already fixes where its middle is')
@@ -219,6 +221,11 @@ def default_colouring(rows, ramp, scale, center):
         middle = 0.0 if center is None else center
         ramp = default_ramp(center is not None or min(low, high) < middle < max(low, high))
     return ramp, scale
+
+
+#: Deprecated spellings, removed in 5.0.
+matrix_centres = renamed_function("matrix_centres", matrix_centers, owner="inklet.plot.matrix")
+default_colouring = renamed_function("default_colouring", default_coloring, owner="inklet.plot.matrix")
 
 
 def matrix_layer(rows, ramp, unit, centres_x, centres_y, *,

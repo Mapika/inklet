@@ -47,7 +47,8 @@ extra:
   plot_families:
     Lines and points: Ordered series, steps and scatter, with paired-value dumbbells, lollipops, labelled points, volcano plots and UMAP or t-SNE embedding scatters.
     Bars and areas: Grouped, stacked and horizontal bars with value labels, UpSet plots of set intersections, and areas between curves.
-    Distributions: Histograms, boxplots, violins and split violins, swarms, cumulative distributions, ridgelines, rainclouds, Kaplan-Meier survival curves and stacked significance brackets.
+    Distributions: Histograms, kernel densities, boxplots, letter-value plots, violins and split violins, swarms, strip and sina plots, QQ and PP plots, cumulative distributions, ridgelines, rainclouds, Kaplan-Meier survival curves and stacked significance brackets.
+    Relationships: Hexbins, 2D histograms and density contours, density-coloured scatter, regression with confidence bands and residuals, Bland-Altman agreement, and pair and joint plots.
     Uncertainty: Supplied bounds as bands and error bars, and forest plots of effect sizes with summary diamonds.
     Matrices: Heatmaps and dot plots with colour and size keys, and dendrograms that order the rows.
     Polar: Angle and radius, from polar curves and roses to radar charts, pies, donuts and breakout bars.
@@ -143,9 +144,13 @@ nav:
   - Lines and points: lines-and-points.md
   - Bars and areas: bars-and-areas.md
   - Distributions: distributions.md
+  - Relationships and agreement: relationships.md
   - Uncertainty: uncertainty.md
   - Matrices and dendrograms: matrices.md
+  - Networks and hierarchies: networks-and-hierarchies.md
+  - Genomics and ternary plots: genomics-plots.md
   - Polar, radar and pie: polar-plots.md
+  - Timelines and calendars: timelines-and-calendars.md
   - Axes, scales and text: axes-and-scales.md
   - Live data and categories: data.md
   - Dense data: dense-data.md
@@ -154,9 +159,11 @@ nav:
 - Figures and layout:
   - Overview: figures.md
   - Dense figure pages: dense-figures.md
+  - Label placement and direct labelling: label-placement.md
   - Rebuild a journal figure: journal-figure.md
   - Panel layout in millimetres: layout.md
   - Presets and journal styles: presets.md
+  - Colour palettes: palettes.md
   - Reusable compositions: composition-recipes.md
   - Complex scientific plates: complex-figures.md
   - Scientific illustrations: scientific-authoring.md

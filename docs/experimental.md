@@ -85,10 +85,16 @@ may change between releases. See the
 [support and saved-file policy](compatibility.md#api-and-saved-file-policy)
 before relying on a saved state format.
 
-Still experimental in 4.3: linked browser documents (`inklet.experimental.browser`),
+Still experimental in 4.4: linked browser documents (`inklet.experimental.browser`),
 mesh and grid fields (`fields`, `grid`), engineering drawings (`engineering`),
 image measurement (`measurement`) and the figure planner (`figure_planner`,
 `planner_geometry`).
+
+**`inklet.experimental.engineering` will be removed in 5.0.** From 4.4,
+importing it raises a `DeprecationWarning`. `BoxComponent` and `BoxAssembly`
+have no replacement. The linked engineering report example keeps working in
+4.x; pin `inklet<5` for recipes that depend on it. In the browser package,
+`BrowserScatter` also warns: use `BrowserFigure(table, views, columns=len(views))`.
 
 Graduated in 4.3, and covered by the stable compatibility policy:
 
@@ -99,8 +105,8 @@ Graduated in 4.3, and covered by the stable compatibility policy:
 | `inklet.project` | `inklet.experimental.project` | [Figure projects](project-workflows.md) |
 | `inklet.editor` | `inklet.experimental.layout_editor` | [Local layout editor](layout-editor.md), [Save layout choices](layout-overrides.md) |
 
-The old paths still work and return the same objects; see
-[migration](migration.md#from-42-to-43). The compiled scene viewer runtime is
+The old paths still work and return the same objects, and from 4.4 they warn;
+see [migration](migration.md#from-43-to-44). The compiled scene viewer runtime is
 now private; open it with `RenderScene.to_html()` ([figure viewer](compiled-viewer.md)).
 
 <!-- cards -->

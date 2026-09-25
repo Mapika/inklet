@@ -94,6 +94,13 @@ def series_color(entries: Iterable[SeriesKey], name: str | None,
     return active_theme().color(positions.get(name, len(positions)))
 
 
+def series_names(name) -> list | None:
+    """`name=` of a multi-series mark as a list: one string means one series."""
+    if name is None:
+        return None
+    return [name] if isinstance(name, str) else list(name)
+
+
 def swatch_for(entry: SeriesKey, size: float) -> Diagram:
     """The little picture that stands for one series.
 

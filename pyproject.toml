@@ -1,6 +1,6 @@
 [project]
 name = "inklet"
-version = "4.3.0"
+version = "4.4.0"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
 authors = [{name = "Mark Marosi"}]
@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization",
 ]
 license = "MIT"
-license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md", "LICENSES/*"]
 requires-python = ">=3.11"
 dependencies = [
     "uharfbuzz>=0.39",
@@ -67,13 +67,16 @@ packages = ["src/inklet"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["acceptance: complete import/edit/reopen/revision/export workflows"]
+# Inklet's own code never uses a deprecated spelling; tests that exercise one
+# say so with pytest.warns or a filterwarnings mark.
+filterwarnings = ["error::inklet._compat.InkletDeprecationWarning"]
 
 [tool.hatch.build.targets.sdist]
 include = [
     "/src", "/tests", "/docs", "/examples", "/figures", "/gallery",
     "/stress", "/tools", "/scripts", "/.github", "/.gitignore", "/.gitattributes",
     "/README.md", "/CONTRIBUTING.md", "/CHANGELOG.md", "/CONTRACT.md",
-    "/LICENSE", "/THIRD_PARTY_NOTICES.md", "/mkdocs.yml", "/.readthedocs.yaml",
+    "/LICENSE", "/LICENSES", "/THIRD_PARTY_NOTICES.md", "/mkdocs.yml", "/.readthedocs.yaml",
     "/requirements-ci.txt", "/requirements-docs.txt",
     "/requirements-tables.txt",
 ]

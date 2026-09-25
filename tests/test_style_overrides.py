@@ -2,7 +2,7 @@
 import json
 import pytest
 import inklet as i
-from inklet.experimental.layout_editor import LayoutEditor
+from inklet.editor import LayoutEditor
 from inklet.document.layout_overrides import SCHEMA
 
 
@@ -133,6 +133,7 @@ def test_bad_style_values_are_atomic_even_when_missing(fields):
     with pytest.raises(ValueError):root.with_layout_overrides({'schema':SCHEMA,'targets':{'/absent':{'styles':{'line':fields}}}},missing='drop')
 
 
+@pytest.mark.filterwarnings('ignore:composition layout schema')
 def test_legacy_label_file_loads_but_cannot_claim_style_fields():
     root,_=source();editor=LayoutEditor(root)
     saved={'schema':'inklet.composition-layout/0.3','targets':{'/plot':{'labels':{'peak':{'kind':'plot-annotate','text':'Legacy'}}}}}

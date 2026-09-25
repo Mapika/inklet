@@ -29,7 +29,6 @@ from typing import Mapping, Sequence
 from ..core import Diagram, DiagramError, mm
 from ..draw.coords import active_theme
 from ..draw.place import place as draw_place
-from ..themes import contrast_ratio
 from . import marks as _marks
 from .axis import text_node
 from .scale import format_number
@@ -233,13 +232,11 @@ def _end_anchor(orient: str, outward: float) -> str:
 
 
 def _ink_on(fill: str, theme) -> str:
-    """Theme ink or paper, whichever reads better on `fill`."""
+    """Theme ink or paper, whichever reads on `fill` (`Theme.text_on`)."""
     try:
-        dark = contrast_ratio(theme.ink, fill)
-        light = contrast_ratio(theme.paper, fill)
+        return theme.text_on(fill)
     except (ValueError, TypeError):
         return theme.ink
-    return theme.ink if dark >= light else theme.paper
 
 
 def _plain(value):

@@ -81,7 +81,7 @@ def test_pie_slices_span_their_shares() -> None:
 
 def test_pie_labels_go_inside_or_outside_by_fit() -> None:
     p = polar(14, zero="up", winding="cw")
-    p.pie([90, 8, 2], names=["big", "mid", "tiny"])
+    p.pie([90, 8, 2], name=["big", "mid", "tiny"])
     node = p._content[-1]
     note = node.notes["pie_labels"]
     assert 0 in note["inside"] and 2 in note["outside"]
@@ -93,7 +93,7 @@ def test_pie_labels_go_inside_or_outside_by_fit() -> None:
 
 def test_pie_inside_label_contrasts_with_its_slice() -> None:
     p = polar(14)
-    p.pie([1, 1], colors=["#000000", "#ffffff"])
+    p.pie([1, 1], color=["#000000", "#ffffff"])
     theme = active_theme()
     fills = {x.style.text_fill for x in placements(p, TICK_LABEL_KIND)
              if getattr(x.diagram.prim, "text", None)}
@@ -155,8 +155,8 @@ def _ink_outside(node, margin: float = 2.0, dpi: int = 600) -> list[str]:
 
 def test_pie_and_radar_ink_stays_inside_the_measured_panel() -> None:
     donut = polar(11, hole=5.5, zero="up", winding="cw")
-    donut.pie([54, 28, 12, 4, 2], names=["a", "b", "c", "d", "e"],
-              colors=["#24698c", "#1f6f60", "#a4532f", "#e6b93f", "#b9b8b4"])
+    donut.pie([54, 28, 12, 4, 2], name=["a", "b", "c", "d", "e"],
+              color=["#24698c", "#1f6f60", "#a4532f", "#e6b93f", "#b9b8b4"])
     donut.legend(side="bottom")
     crowded = polar(10, zero="right")
     crowded.pie([70, 12, 8, 5, 3, 2])
@@ -169,7 +169,7 @@ def test_pie_and_radar_ink_stays_inside_the_measured_panel() -> None:
 
 def _breakout_panel(**kwargs):
     p = polar(11, zero="up", winding="cw")
-    p.pie([24.8, 1.5, 73.7], colors=["#262626", "#e6b93f", "#ececec"],
+    p.pie([24.8, 1.5, 73.7], color=["#262626", "#e6b93f", "#ececec"],
           labels=None)
     p.breakout([0, 1], **kwargs)
     return p
@@ -210,7 +210,7 @@ def test_breakout_connectors_run_from_the_rim_to_the_bar_corners() -> None:
 def test_breakout_parts_legend_and_left_side() -> None:
     p = polar(11, zero="up", winding="ccw")
     p.pie([30, 45, 25])
-    p.breakout(0, [60, 25, 10, 5], names=["w", "x", "y", "z"], side="left")
+    p.breakout(0, [60, 25, 10, 5], name=["w", "x", "y", "z"], side="left")
     assert [k.name for k in p.keys] == ["w", "x", "y", "z"]
     labels = texts(p)
     for text in ("60%", "25%", "10%", "5%"):
@@ -240,7 +240,7 @@ def test_breakout_lints_clean_exports_and_stays_measured() -> None:
     p = _breakout_panel(title="without noise")
     q = polar(10, hole=5, zero="up", winding="cw")
     q.pie([30, 45, 25])
-    q.breakout(0, [60, 25, 10, 5], names=["w", "x", "y", "z"], side="left")
+    q.breakout(0, [60, 25, 10, 5], name=["w", "x", "y", "z"], side="left")
     q.legend(side="bottom")
     for panel in (p, q):
         node = panel.build()
@@ -311,7 +311,7 @@ def _busy(p, order):
         if step == "grid":
             p.grid()
         elif step == "pie":
-            p.pie(values, names=["a", "b", "c"])
+            p.pie(values, name=["a", "b", "c"])
         elif step == "text":
             p.text(45, 0.5, "note")
     return p

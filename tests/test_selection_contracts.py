@@ -2,7 +2,7 @@
 import json
 import pytest
 import inklet as i
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 
 
 def table(ids=('a', 'b', 'c'), values=(1, 2, 3)):
@@ -154,7 +154,7 @@ def test_all_baseline_bars_keep_legend_and_paint_no_rectangles(orient, grouped):
     p = i.panel(70, 50, x=['a', 'b'] if orient=='v' else (0, 10),
                 y=(0, 10) if orient=='v' else ['a', 'b'])
     p.bars(['a', 'b'], [[5, 5], [5, 5]] if grouped else [5, 5], baseline=5,
-           orient=orient, names=['A', 'B'] if grouped else ['A'])
+           orient=orient, name=['A', 'B'] if grouped else ['A'])
     p.axes().legend()
     doc=i.document(width=120);doc.add('bars',p)
     figure=doc.compile()
@@ -220,7 +220,7 @@ def test_html_data_cannot_close_its_script_element(tmp_path):
 
 def test_zero_stacked_contributions_do_not_draw_at_a_nonzero_baseline():
     p=i.panel(70,50,x=['a','b'],y=(0,10))
-    p.bars(['a','b'],[[0,0],[0,0]],stacked=True,baseline=5,names=['A','B']).axes().legend()
+    p.bars(['a','b'],[[0,0],[0,0]],stacked=True,baseline=5,name=['A','B']).axes().legend()
     doc=i.document(width=120);doc.add('bars',p)
     figure=doc.compile()
     assert not p._content and not any(d.severity=='error' for d in figure.diagnostics)

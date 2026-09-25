@@ -134,7 +134,7 @@ def _ink_outside(node, margin: float = 2.0, dpi: int = 600) -> list[str]:
 
 
 def test_raincloud_lints_clean_exports_and_ink_stays_measured() -> None:
-    across = rain_panel(colors=["#24698c", "#288675"])
+    across = rain_panel(color=["#24698c", "#288675"])
     across.axes(x="Measurement / a.u.")
     upright = panel(40, 40, x=["control", "treated"], y=(0, 8))
     upright.raincloud(samples(), orient="v", points="swarm")

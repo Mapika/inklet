@@ -11,8 +11,8 @@ import types
 
 import pytest
 import inklet as i
-from inklet.experimental.project import FigureProject
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.project import FigureProject
+from inklet.selection import KeyedTable, SelectionState
 
 ROOT=Path(__file__).resolve().parents[1]
 FIXTURES=Path(__file__).with_name('fixtures')/'compatibility'
@@ -21,7 +21,7 @@ EXPERIMENTAL_42=[m for m in API_42['modules'] if m.startswith('inklet.experiment
 
 # ---------------------------------------------------------------------------
 # PLANNED 4.3 MOVES: released experimental module -> new stable home.
-# The old path stays a silent alias returning the *same* objects. Entries whose
+# The old path stays an alias returning the *same* objects; from 4.4 it warns. Entries whose
 # new module does not exist yet are skipped by the identity test; correct an
 # entry here when its move lands somewhere else.
 # ---------------------------------------------------------------------------
@@ -102,6 +102,7 @@ def test_released_42_inventory_covers_top_level_and_every_experimental_module():
     assert set(PLANNED_MOVES)<=set(EXPERIMENTAL_42)
 
 
+@pytest.mark.filterwarnings('ignore::inklet._compat.InkletDeprecationWarning')
 @pytest.mark.parametrize('module',EXPERIMENTAL_42)
 def test_released_experimental_names_import_from_old_path_with_same_call_shape(module):
     checker=load(ROOT/'tools/check_compatibility.py','compatibility_checker')
@@ -113,6 +114,7 @@ def test_released_experimental_names_import_from_old_path_with_same_call_shape(m
     assert checker.check(old)[1]==[]
 
 
+@pytest.mark.filterwarnings('ignore::inklet._compat.InkletDeprecationWarning')
 @pytest.mark.parametrize('old,new',sorted(PLANNED_MOVES.items()))
 def test_moved_experimental_objects_are_their_stable_homes(old,new):
     if not module_exists(new): pytest.skip(f'{new} does not exist yet; {old} has not moved')

@@ -26,9 +26,10 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from .._compat import renamed_function
 from ..core import Affine, ImagePrim, Rect
 
-__all__ = ["available", "average_colour", "clear_cache"]
+__all__ = ["available", "average_color", "average_colour", "clear_cache"]
 
 #: Longest side of the thumbnail every average is taken from. A caption sits on
 #: a region measured in millimetres, and its mean colour is stable long before
@@ -66,7 +67,7 @@ def _pillow():
     return Image
 
 
-def average_colour(prim: ImagePrim, world: Affine, box: Rect) -> str | None:
+def average_color(prim: ImagePrim, world: Affine, box: Rect) -> str | None:
     """Mean colour of the raster under a world-space box, as `#rrggbb`.
 
     `None` whenever the answer would be invented: no Pillow, no readable file,
@@ -87,6 +88,11 @@ def average_colour(prim: ImagePrim, world: Affine, box: Rect) -> str | None:
     if mean is not None:
         _MEANS[(source, crop)] = mean
     return mean
+
+
+#: Deprecated spelling, removed in 5.0.
+average_colour = renamed_function("average_colour", average_color,
+                                  owner="inklet.diagnostics.image")
 
 
 def _mean_of(image, crop: tuple[int, int, int, int]) -> str | None:

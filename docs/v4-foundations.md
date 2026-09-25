@@ -145,4 +145,4 @@ world map demonstrates revised CSV input and a source-year cohort.
 The three reference projects now have small, attributed fixtures and numerical
 checks. The analyst project has the linked-plot prototype; maps/facets and the
 integrated engineering/scientific recipes remain future work. Animation and
-presentation authoring remain in the 5.0 direction.
+presentation authoring move to the 5.x direction (see the [roadmap](roadmap.md#5x-direction)).

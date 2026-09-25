@@ -134,10 +134,10 @@ The same operations are available through the GitHub CLI:
 
 ```bash
 # Validate the existing release without uploading.
-gh workflow run publish.yml --ref master -f tag=v4.3.0 -F dry_run=true
+gh workflow run publish.yml --ref master -f tag=v4.4.0 -F dry_run=true
 
 # Publish the verified release assets.
-gh workflow run publish.yml --ref master -f tag=v4.3.0 -F dry_run=false
+gh workflow run publish.yml --ref master -f tag=v4.4.0 -F dry_run=false
 ```
 
 For subsequent versions, run release checks, create the tag and GitHub release,

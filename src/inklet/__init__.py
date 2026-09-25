@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from dataclasses import replace as _replace
 
+from ._compat import renamed_keywords as _renamed_keywords
 from .assets import asset
 from .core import (
     COLUMN_DOUBLE, COLUMN_SINGLE, Affine, Diagram, DiagramError, Envelope, Rect, Style, StyleError,
@@ -52,6 +53,8 @@ from .plot import (
     histogram, inset, legend, linear, log, panel, ramp, ribbon, row, symlog, upset,
 )
 from .plot import forest
+from .plot import jointplot, pairplot
+from .plot import clustermap, manhattan
 from .plot import (
     PolarPanel, circular_histogram, circular_mean, polar, theta_ticks,
 )
@@ -261,6 +264,7 @@ def text_on_path(content: str | Diagram, along, **kwargs) -> Diagram:
     return _onpath.text_on_path(_to_set(content, kwargs), along, **kwargs)
 
 
+@_renamed_keywords(centre="center")
 def text_on_arc(content: str | Diagram, radius: float, angle: float,
                 **kwargs) -> Diagram:
     """Set a line of text around a circle, centred on the bearing `angle`.
@@ -291,7 +295,7 @@ def _to_set(content: str | Diagram, kwargs: dict) -> Diagram:
 #: so that `inklet.text_on_arc("x", 10, 0, size=2, gap=1)` can carry both.
 _PLACEMENT_ARGS = frozenset({
     "align", "start_offset", "lift", "side", "flip", "overflow", "spacing",
-    "pivot", "kind", "gap", "centre", "sweep",
+    "pivot", "kind", "gap", "center", "sweep",
 })
 
 
@@ -469,6 +473,8 @@ __all__ = [
     "linear", "log", "symlog", "band", "grouped_band", "broken", "dates", "Scale",
     "ramp", "Ramp", "CategorySet", "categories",
     "inset", "ribbon", "facets", "histogram", "upset", "forest",
+    "pairplot", "jointplot",
+    "clustermap", "manhattan",
     "polar", "PolarPanel", "theta_ticks",
     "circular_mean", "circular_histogram",
     "AnatomyView", "anatomy_view", "model", "solid", "scene", "axes", "cartoon",
@@ -493,4 +499,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "4.3.0"
+__version__ = "4.4.0"

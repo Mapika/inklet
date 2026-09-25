@@ -54,6 +54,14 @@ def exported(module,owner=None):
 
 
 def inventory(modules,owner=None,expect=()):
+    """Deprecated aliases are part of the released API; inventory them quietly."""
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore',DeprecationWarning)
+        return _inventory(modules,owner,expect)
+
+
+def _inventory(modules,owner=None,expect=()):
     """Inventory ``modules`` (module objects or dotted paths).
 
     ``owner`` adds public names whose ``__module__`` lies under that package,

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from inklet.experimental.measurement import LabelImage
 from inklet.experimental.browser import BrowserFigure,LabelImageView,RevisionOption
-from inklet.experimental.selection import KeyedTable,SelectionState
+from inklet.selection import KeyedTable,SelectionState
 
 RECIPE=Path(__file__).resolve().parents[1]/'examples/v4/scientific_report.py'
 spec=importlib.util.spec_from_file_location('scientific_report',RECIPE)

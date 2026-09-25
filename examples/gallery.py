@@ -69,7 +69,7 @@ c.axes(y="expression")
 
 d = inklet.panel(W, H, x=COND, y=(0, 1.2))
 d.bars(COND, [[1.0, 0.62, 0.24], [0.90, 0.71, 0.40]],
-       names=["vehicle", "drug"])
+       name=["vehicle", "drug"])
 d.axes(y="expression")
 d.legend(side="top", columns=2)
 
@@ -78,7 +78,7 @@ d.legend(side="top", columns=2)
 STAGE = ["G1", "S", "G2"]
 e = inklet.panel(W, H, x=COND, y=(0, 100))
 e.bars(COND, [[52, 44, 61], [30, 33, 24], [18, 23, 15]], stacked=True,
-       names=STAGE)
+       name=STAGE)
 e.axes(y="cells / %")
 e.legend(side="top", columns=3)
 

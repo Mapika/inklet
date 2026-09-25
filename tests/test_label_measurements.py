@@ -5,10 +5,10 @@ from pathlib import Path
 import re
 import pytest
 np=pytest.importorskip('numpy')
-from inklet.experimental.volume import Volume
-from inklet.experimental.sections import Plane,SampledSection
-from inklet.experimental.regions import BoxRegion
-from inklet.experimental.measurements import measure_labels
+from inklet.volume import Volume
+from inklet.volume import Plane,SampledSection
+from inklet.volume import BoxRegion
+from inklet.volume import measure_labels
 
 
 def volume(data,spacing=(2,3,4),origin=(0,0,0)):

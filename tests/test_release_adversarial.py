@@ -38,7 +38,7 @@ def test_numpy_bar_arrays_have_the_same_geometry_as_python_lists(dtype, grouped)
     data = [[2, 4, 6], [1, 3, 5]] if grouped else [2, 4, 6]
     def geometry(values):
         p = i.panel(60, 40, x=['a', 'b', 'c'], y=(0, 8))
-        p.bars(['a', 'b', 'c'], values, names=['A', 'B'] if grouped else ['A'])
+        p.bars(['a', 'b', 'c'], values, name=['A', 'B'] if grouped else ['A'])
         p.legend()
         return [(n.diagram.kind, n.bbox) for n in resolve(as_drawn(p.build())).values()
                 if n.diagram.prim is not None]

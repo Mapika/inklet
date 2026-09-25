@@ -205,7 +205,7 @@ def test_a_horizontal_swarm_offsets_along_the_other_axis() -> None:
 
 def test_hollow_dots_are_paper_with_a_coloured_edge() -> None:
     p = panel(30, 30, x=["a"], y=(55, 105))
-    p.swarm({"a": SAMPLE}, hollow=True, colors=["#0072b2"])
+    p.swarm({"a": SAMPLE}, hollow=True, color=["#0072b2"])
     styles = [placed.diagram.style for placed in resolve(as_drawn(p.build())).values()
               if placed.diagram.kind == MARK_KIND]
 
@@ -215,7 +215,7 @@ def test_hollow_dots_are_paper_with_a_coloured_edge() -> None:
 
 def test_one_colour_per_group_in_the_order_the_groups_came_in() -> None:
     p = panel(30, 30, x=["a", "b"], y=(55, 105))
-    p.swarm({"a": SAMPLE, "b": OTHER}, colors=["#0072b2", "#d55e00"])
+    p.swarm({"a": SAMPLE, "b": OTHER}, color=["#0072b2", "#d55e00"])
     middle = (p.x.map("a") + p.x.map("b")) / 2
     inked = [((q.bbox.x0 + q.bbox.x1) / 2, q.diagram.style.fill)
              for q in resolve(as_drawn(p.build())).values()

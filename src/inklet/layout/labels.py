@@ -47,7 +47,7 @@ from ..draw.annotate import (
 )
 
 __all__ = [
-    "DEFAULT_RADII", "LabelChoice", "LabelWeights",
+    "DEFAULT_RADII", "JOINT_RADII", "LabelChoice", "LabelWeights",
     "label_plan", "place_labels",
 ]
 
@@ -62,6 +62,11 @@ __all__ = [
 #: near and a crowded label has nowhere to go, too far and it stops being
 #: obvious which dot it belongs to and the leaders start tangling instead.
 DEFAULT_RADII = (1.0, 2.4)
+
+#: The steps `method="joint"` tries: finer near the target, and further out
+#: for a label boxed in by its neighbours -- affordable because the joint
+#: search, not slot order, settles who gets the near slots.
+JOINT_RADII = (1.0, 1.6, 2.4, 3.4, 4.8)
 
 _DIRECTION = {
     "n": Vec2(0.0, -1.0), "s": Vec2(0.0, 1.0),
@@ -131,6 +136,8 @@ class LabelChoice:
     overlap: float = 0.0
     crossings: int = 0
     length: float = 0.0
+    #: Set by `method="joint"`: the label still collides with something.
+    unresolved: bool = False
 
     @property
     def moved(self) -> bool:
@@ -139,9 +146,10 @@ class LabelChoice:
 
 
 def place_labels(art: Diagram, *, sides: Sequence[str] = ANNOTATE_SIDES,
-                 radii: Sequence[float] = DEFAULT_RADII,
+                 radii: Sequence[float] | None = None,
                  weights: LabelWeights | None = None,
-                 clearance: float | str | None = None) -> Diagram:
+                 clearance: float | str | None = None,
+                 method: str = "greedy") -> Diagram:
     """Re-place every `annotate` label in `art`, deciding all of them at once.
 
     The tree comes back the same shape, with the same frame and the same node
@@ -164,16 +172,33 @@ def place_labels(art: Diagram, *, sides: Sequence[str] = ANNOTATE_SIDES,
     and half-placing a figure is worse than not placing it -- and a tree with
     no `annotate` in it comes back as the very same object. Safe to call on
     anything.
+
+    `method="joint"` decides the labels together instead of one after
+    another: every slot (at `JOINT_RADII` by default, more steps than the
+    greedy pass) is scored against every mark in the frame, and one slot per
+    label is chosen by `layout.label_search.solve` -- greedy, best response
+    and a seeded annealing pass -- so that no label sits on another label or
+    a mark and no leader crosses another leader or a label wherever that can
+    be had. It is deterministic like the greedy pass. With either method the
+    outermost node of each rebuilt chain carries a `place_labels` note:
+    `count`, `method` and `unresolved`, the texts of labels that still
+    collide, which `inklet.lint` reports as `LABEL_UNPLACED`.
     """
+    if method not in ("greedy", "joint"):
+        raise ValueError('place_labels method= is "greedy" or "joint"')
+    if radii is None:
+        radii = JOINT_RADII if method == "joint" else DEFAULT_RADII
     options = _Options(tuple(sides), tuple(float(r) for r in radii),
-                       weights or LabelWeights(), _clearance(clearance))
+                       weights or LabelWeights(), _clearance(clearance),
+                       method)
     return _rewrite(art, options)
 
 
 def label_plan(art: Diagram, *, sides: Sequence[str] = ANNOTATE_SIDES,
-               radii: Sequence[float] = DEFAULT_RADII,
+               radii: Sequence[float] | None = None,
                weights: LabelWeights | None = None,
-               clearance: float | str | None = None) -> tuple[LabelChoice, ...]:
+               clearance: float | str | None = None,
+               method: str = "greedy") -> tuple[LabelChoice, ...]:
     """What `place_labels` would do, without doing it.
 
     One `LabelChoice` per label, in the order the placer decided them -- which
@@ -181,8 +206,13 @@ def label_plan(art: Diagram, *, sides: Sequence[str] = ANNOTATE_SIDES,
     `annotate` calls were written. `choice.moved` says whether the author's
     requested side survived.
     """
+    if method not in ("greedy", "joint"):
+        raise ValueError('label_plan method= is "greedy" or "joint"')
+    if radii is None:
+        radii = JOINT_RADII if method == "joint" else DEFAULT_RADII
     options = _Options(tuple(sides), tuple(float(r) for r in radii),
-                       weights or LabelWeights(), _clearance(clearance))
+                       weights or LabelWeights(), _clearance(clearance),
+                       method)
     out: list[LabelChoice] = []
     for frame, specs in _chains(art):
         out.extend(_choose(frame, specs, options))
@@ -198,6 +228,7 @@ class _Options:
     radii: tuple[float, ...]
     weights: LabelWeights
     clearance: float
+    method: str = "greedy"
 
 
 def _clearance(value: float | str | None) -> float:
@@ -218,6 +249,8 @@ def _clearance(value: float | str | None) -> float:
 
 def _choose(frame: Diagram, specs: Sequence[LabelSpec],
             options: _Options) -> list[LabelChoice]:
+    if options.method == "joint":
+        return _choose_joint(frame, specs, options)
     places = resolve(frame)
     marks = _marks(frame, places)
     order = _document_order(frame)
@@ -238,6 +271,136 @@ def _choose(frame: Diagram, specs: Sequence[LabelSpec],
         if leader is not None:
             leaders.append(leader)
     return [chosen[i] for i in ranked if i in chosen]
+
+
+def _joint_setup(frame: Diagram, specs: Sequence[LabelSpec],
+                 options: _Options):
+    """The shared scoring for `method="joint"` and the unresolved check.
+
+    Returns `(ranked, slot)` -- the spec indices in target order, and a
+    function `slot(k, side, clear, rank)` giving the `label_search`
+    candidate for the `k`-th of them in that slot -- or None when a target
+    is not in the frame.
+    """
+    from .label_search import Candidate, ObstacleField, Weights
+
+    places = resolve(frame)
+    marks = _marks(frame, places)
+    order = _document_order(frame)
+    ranked = sorted(range(len(specs)),
+                    key=lambda i: (order.get(specs[i].target_id, len(order)), i))
+    field = ObstacleField(cell=4.0)
+    index_of: dict[str, int] = {}
+    for ident, box in marks:
+        index_of[ident] = field.add_rect(box)
+    info = []
+    count = 0
+    for index in ranked:
+        spec = specs[index]
+        node = (spec.target.diagram if isinstance(spec.target, AnchorRef)
+                else spec.target)
+        here = places.get(node.id)
+        if here is None:
+            return None
+        box = here.bbox
+        start = box.center if box is not None else here.point()
+        mine: tuple[int, ...] = ()
+        if box is not None:
+            field.add_target((box.x0, box.y0, box.x1, box.y1))
+            mine = (count,)
+            count += 1
+        own = _subtree(node)
+        through = {ident for item in spec.through for ident in _subtree(item)}
+        own_boxes = sorted(index_of[i] for i in own | through if i in index_of)
+        info.append((spec, node, here, start, mine, own_boxes))
+    for spec in specs:
+        for rect in _avoided(spec, places):
+            field.add_rect(rect)
+    weights = Weights(distance=options.weights.length)
+    pad = options.clearance
+
+    def slot(k: int, side: str, clear: float, rank: int):
+        spec, node, here, start, mine, own_boxes = info[k]
+        rect = label_slot(spec.target, spec.body, side=side, clear=clear,
+                          within=frame, placements=places)
+        b = (rect.x0, rect.y0, rect.x1, rect.y1)
+        cost, conflicts, _ = field.cost(b, spacing=pad, weights=weights,
+                                        own=mine, own_boxes=own_boxes)
+        end = _corner(rect, _FACING[side])
+        span = end - start
+        reach = _reach_from(here, start)
+        length = max(0.0, span.length - reach(span))
+        seg = None
+        if spec.leader and length > 1e-6 and span.length > _EPS:
+            # From the target's edge, where annotate starts it.
+            edge = start + span.normalized() * reach(span)
+            seg = (edge.x, edge.y, end.x, end.y)
+            lc, lk = field.leader_cost(seg, weights=weights, own=mine)
+            cost += lc
+            conflicts += lk
+        cost += weights.distance * length + 1e-3 * rank
+        return Candidate(b, seg, cost, conflicts, (side, clear, length))
+
+    return ranked, info, slot, weights, pad
+
+
+def _choose_joint(frame: Diagram, specs: Sequence[LabelSpec],
+                  options: _Options) -> list[LabelChoice]:
+    """Every label's slot at once, by `layout.label_search.solve`.
+
+    Returns the choices in target order, like the greedy pass, each with
+    `unresolved` set when the label still collides.
+    """
+    from .label_search import seed_of, solve
+
+    setup = _joint_setup(frame, specs, options)
+    if setup is None:
+        return []
+    ranked, info, slot, weights, pad = setup
+    candidates = []
+    for k in range(len(ranked)):
+        found = []
+        rank = 0
+        for radius in options.radii:
+            for side in options.sides:
+                if side not in _DIRECTION:
+                    continue
+                found.append(slot(k, side, info[k][0].clear * radius, rank))
+                rank += 1
+        found.sort(key=lambda c: c.cost)
+        candidates.append(found)
+    seed = seed_of(tuple((round(s.x, 4), round(s.y, 4))
+                         for _, _, _, s, _, _ in info))
+    solution = solve(candidates, spacing=pad, weights=weights, seed=seed)
+    stuck = set(solution.conflicted)
+    out = []
+    for k, (spec, node, _, _, _, _) in enumerate(info):
+        c = candidates[k][solution.chosen[k]]
+        side, clear, length = c.data
+        out.append(LabelChoice(target=node.id, side=side, clear=clear,
+                               score=c.cost, asked=spec.side, length=length,
+                               unresolved=k in stuck))
+    return out
+
+
+def _unresolved(frame: Diagram, specs: Sequence[LabelSpec],
+                choices: Sequence[LabelChoice], options: _Options) -> set[str]:
+    """Targets whose chosen slot still collides, by the joint search's rules:
+    a label on another label, a target or a solid mark, crossed by a line, or
+    a leader through another label or across another leader."""
+    from .label_search import solve
+
+    setup = _joint_setup(frame, specs, options)
+    if setup is None:
+        return set()
+    ranked, info, slot, weights, pad = setup
+    where = {c.target: c for c in choices}
+    single = []
+    for k, (_, node, _, _, _, _) in enumerate(info):
+        c = where[node.id]
+        single.append([slot(k, c.side, c.clear, 0)])
+    solution = solve(single, spacing=pad, weights=weights, sweeps=0)
+    return {info[k][1].id for k in solution.conflicted}
 
 
 def _seat(frame: Diagram, places: Mapping[str, Placement], spec: LabelSpec,
@@ -458,12 +621,31 @@ def _rewrite(node: Diagram, options: _Options) -> Diagram:
             # it cannot resolve -- so the whole chain stays as the author
             # built it. Half-placing a figure is worse than not placing it.
             return node
-        return _rebuild(frame, specs, choices)
+        placed = _rebuild(frame, specs, choices)
+        if options.method == "joint":
+            stuck = {c.target for c in choices if c.unresolved}
+        else:
+            stuck = _unresolved(frame, specs, choices, options)
+        texts = {spec.target_id: _text_of(spec) for spec in specs}
+        placed.notes["place_labels"] = {
+            "count": len(specs),
+            "method": options.method,
+            "unresolved": [texts[c.target] for c in choices
+                           if c.target in stuck],
+        }
+        return placed
     kids = tuple(_rewrite(child, options) for child in node.children)
     if all(new is old for new, old in zip(kids, node.children)):
         return node
     return _replace(node, children=kids, id=node.id, _cache={},
                     anchors=dict(node.anchors), notes=dict(node.notes))
+
+
+def _text_of(spec: LabelSpec) -> str:
+    """The words of a label, for reports; its target's id if it has none."""
+    words = [getattr(n.prim, "text", None) for n in spec.body.walk()]
+    words = [w for w in words if isinstance(w, str) and w]
+    return " ".join(words) if words else str(spec.target_id)
 
 
 def _rebuild(frame: Diagram, specs: Sequence[LabelSpec],

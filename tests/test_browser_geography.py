@@ -9,7 +9,7 @@ import subprocess
 
 import pytest
 from inklet.experimental.browser import BrowserFigure, GeoFeatures, MapView, ScatterView, RevisionOption
-from inklet.experimental.selection import KeyedTable, SelectionState
+from inklet.selection import KeyedTable, SelectionState
 from test_browser_switching import mark_geometry
 from test_browser_regions import marks as polygon_geometry
 

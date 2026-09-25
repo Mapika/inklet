@@ -48,7 +48,8 @@ def test_isolated_points_are_labelled_beside_them_without_leaders() -> None:
     p.label_points(pts, ["low", "high"])
     boxes = label_boxes(p)
     note = note_of(p)
-    assert note == {"count": 2, "leaders": [], "unresolved": []}
+    assert note == {"count": 2, "leaders": [], "unresolved": [],
+                    "covering_marks": []}
     for (x, y), name in zip(pts, ["low", "high"]):
         centre = p.point(x, y)
         box = boxes[name]

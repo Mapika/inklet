@@ -194,7 +194,7 @@ def make_case(*, width=360, cloud_points=30000):
     groups={name:[rng.gauss(mu,sd) for _ in range(240)] for name,mu,sd in
             [('Ctrl',2,.4),('A',3,.65),('B',3.8,.55),('A+B',4.4,.5)]}
     p=plot(x=list(groups),y=(0,6.5),clip=True)
-    p.violin(groups,colors=COLORS[:4],cut=0,median=True).boxplot(groups,width=.17,outliers=False,stroke='#243848')
+    p.violin(groups,color=COLORS[:4],cut=0,median=True).boxplot(groups,width=.17,outliers=False,stroke='#243848')
     p.axes(y='Simulated expression')
     add('violin','Distribution shapes + quartiles',p)
 
@@ -207,7 +207,7 @@ def make_case(*, width=360, cloud_points=30000):
     x=list(range(61))
     layers=[[.25+.12*math.sin(v/12+j*1.7) for v in x] for j in range(4)]
     layers=[[layer[k]/sum(l[k] for l in layers) for k in range(len(x))] for layer in layers]
-    p=plot(x=(0,60),y=(0,1)).stackarea(x,layers,colors=COLORS[:4],names=['I','II','III','IV'],stroke='none')
+    p=plot(x=(0,60),y=(0,1)).stackarea(x,layers,color=COLORS[:4],name=['I','II','III','IV'],stroke='none')
     p.axes(x='Time / min',y='Fraction').legend(side='bottom',columns=4)
     add('stacked','Compositional dynamics',p)
 

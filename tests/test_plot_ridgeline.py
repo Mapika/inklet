@@ -122,7 +122,7 @@ def _ink_outside(node, margin: float = 2.0, dpi: int = 600) -> list[str]:
 
 
 def test_ridgeline_lints_clean_exports_and_ink_stays_measured() -> None:
-    fitted = ridge_panel(colors=["#24698c", "#2d7d8a", "#3a9083", "#5aa374"])
+    fitted = ridge_panel(color=["#24698c", "#2d7d8a", "#3a9083", "#5aa374"])
     fitted.axes(x="Onset time / h")
     free = ridge_panel(overlap=2.5, fit=False)
     free.axes(x="Onset time / h")

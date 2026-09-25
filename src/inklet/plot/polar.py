@@ -77,7 +77,8 @@ from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
                          into_corner, plated)
 from .scale import Linear, Scale, format_number, linear
 from .metadata import declare_domain as _declare_domain
-from .series import SeriesKey, merge_keys, series_color, swatch_for
+from .series import SeriesKey, merge_keys, series_color, series_names, swatch_for
+from .._compat import renamed_keywords, renamed_property
 
 __all__ = [
     "PolarPanel", "Theta", "THETA_UNITS", "WINDINGS", "ZERO_DIRECTIONS",
@@ -501,9 +502,11 @@ class PolarPanel:
         return _sector_bounds(self.radius, self.hole, *self._page_ends())
 
     @property
-    def centre(self) -> Vec2:
+    def center(self) -> Vec2:
         """The pole, in panel coordinates. Always the local origin."""
         return ORIGIN
+
+    centre = renamed_property("centre", "center")
 
     def _page_ends(self) -> tuple[float, float]:
         """The two ends of the view, in page degrees."""
@@ -1216,8 +1219,9 @@ class PolarPanel:
         self._ring_values = (drawn, len(categories), shape) if values else None
         return self._touched()
 
-    def pie(self, values: Sequence[float], *, names: Sequence[str] | None = None,
-            colors=None, labels="percent", label_options: dict | None = None,
+    @renamed_keywords(names="name", colors="color")
+    def pie(self, values: Sequence[float], *, name: Sequence[str] | None = None,
+            color=None, labels="percent", label_options: dict | None = None,
             separator: bool = True, **style) -> "PolarPanel":
         """A pie chart, or a donut on a panel made with `hole=`.
 
@@ -1227,7 +1231,7 @@ class PolarPanel:
         twelve o'clock and runs clockwise.
 
             p = inklet.polar(14, hole=7, zero="up", winding="cw")
-            p.pie([54, 28, 18], names=["neurons", "glia", "other"])
+            p.pie([54, 28, 18], name=["neurons", "glia", "other"])
 
         `labels=` is `"percent"` (default), `"value"`, `None`, a format such
         as `"{share:.1%}"` (the value is `{}`, its fraction is `share`), a
@@ -1240,33 +1244,35 @@ class PolarPanel:
         which went where, and which have leaders under `"leaders"`.
         `label_options` takes `size`, `fill`, `markup` and `font_weight`.
 
-        `colors=` gives one colour per slice (default: the theme palette).
+        `color=` gives one colour per slice (default: the theme palette).
         `separator=True` draws a thin paper-coloured line between slices.
-        `names=` adds one area entry per slice to `legend()`. Needs a
+        `name=` (one name per slice) adds one area entry per slice to `legend()`. Needs a
         whole-turn panel.
         """
         from .wheel import pie as _pie
 
         clip = _clip_flag(style)
-        node, fills, note = _pie(self, values, colors=colors, labels=labels,
+        node, fills, note = _pie(self, values, colors=color, labels=labels,
                                  label_options=label_options,
                                  separator=separator, **style)
+        names = series_names(name)
         if names is not None:
             if len(names) != len(fills):
                 raise DiagramError(
-                    f"names= has {len(names)} names for {len(fills)} slices")
+                    f"name= has {len(names)} names for {len(fills)} slices")
             for label, fill in zip(names, fills):
                 self._note(label, "area", fill=fill, color=fill)
         self.draw(node, clip=clip)
         redraw = {"node": self._content[-1], "values": values, "clip": clip,
-                  "options": dict(colors=colors, labels=labels,
+                  "options": dict(colors=color, labels=labels,
                                   label_options=label_options,
                                   separator=separator, **style)}
         self._pie = (note, fills, redraw)
         return self
 
+    @renamed_keywords(colors="color", names="name")
     def breakout(self, slices, parts: Sequence[float] | None = None, *,
-                 colors=None, names: Sequence[str] | None = None,
+                 color=None, name: Sequence[str] | None = None,
                  labels="percent", label_options: dict | None = None,
                  side: str = "right", width: float | str | None = None,
                  height: float | str | None = None,
@@ -1282,20 +1288,20 @@ class PolarPanel:
         bottom corners.
 
             p = inklet.polar(11, zero="up", winding="cw")
-            p.pie([73.7, 24.8, 1.5], colors=[GREY, INK, YELLOW])
+            p.pie([73.7, 24.8, 1.5], color=[GREY, INK, YELLOW])
             p.breakout([1, 2])                  # the two slices, renormalised
-            p.breakout(1, [70, 20, 10], names=["a", "b", "c"])
+            p.breakout(1, [70, 20, 10], name=["a", "b", "c"])
 
         Without `parts`, the bar shows the chosen slices themselves, in their
         colours, as shares of their sum. With `parts`, it shows those values
-        instead (the composition of the slice), in `colors=` or the theme
+        instead (the composition of the slice), in `color=` or the theme
         palette. The bar is stacked from the top in the order given.
 
         `labels=` takes the same forms as `pie(labels=)` and writes each
         part's share of the bar beside it, on the far side from the pie.
         Labels that would overlap are moved down just far enough; the
         node's `pie_breakout` note lists the moved ones. `title=` writes a
-        short heading above the bar. `names=` adds one area entry per part to
+        short heading above the bar. `name=` adds one area entry per part to
         `legend()`.
 
         `width` and `height` size the bar in mm (default: 0.22 of the radius
@@ -1388,7 +1394,7 @@ class PolarPanel:
             self._content[held[0]] = drawn
             self._pie = (note, fills, dict(redraw, node=drawn))
         node, colours, made = _breakout(
-            self, note, slices, parts, fills=fills, colors=colors,
+            self, note, slices, parts, fills=fills, colors=color,
             labels=labels, label_options=label_options, side=side,
             width=width, height=height, gap=gap, title=title,
             connector=connector, separator=separator, **style)
@@ -1396,10 +1402,11 @@ class PolarPanel:
                     turned=turned)
         if axis_labels is not None:
             made["axis_labels"] = axis_labels
+        names = series_names(name)
         if names is not None:
             if len(names) != len(colours):
                 raise DiagramError(
-                    f"names= has {len(names)} names for {len(colours)} parts")
+                    f"name= has {len(names)} names for {len(colours)} parts")
             for label, fill in zip(names, colours):
                 self._note(label, "area", fill=fill, color=fill)
         return self.draw(node, clip=clip)
@@ -1711,8 +1718,15 @@ for _name in ("draw", "under", "over", "place", "background", "spine", "grid",
               "theta_axis", "r_axis", "title", "line", "scatter", "marks",
               "band", "rose", "radar", "radar_grid", "pie", "breakout",
               "mean_vector", "text", "legend"):
-    setattr(PolarPanel, _name, _journalled(getattr(PolarPanel, _name)))
-del _name
+    _method = getattr(PolarPanel, _name)
+    _renames = getattr(_method, "__deprecated_keywords__", None)
+    if _renames:
+        # Journal the canonical keywords, and warn at the caller's line.
+        _method = renamed_keywords(**_renames)(_journalled(_method.__wrapped__))
+    else:
+        _method = _journalled(_method)
+    setattr(PolarPanel, _name, _method)
+del _name, _method, _renames
 
 
 def polar(radius: float | str = 30.0, *, r=None, theta=None,
