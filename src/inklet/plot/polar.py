@@ -479,6 +479,13 @@ class PolarPanel:
     #: radar polygons in `_radar_data` (their vertices, panel millimetres).
     _ring_values: tuple | None = field(default=None, repr=False, compare=False)
     _radar_data: list = field(default_factory=list, repr=False, compare=False)
+    #: `(connector segments, boxes)` of a breakout on the panel, panel
+    #: millimetres: `theta_axis` keeps its labels clear of them.
+    _breakout_clear: tuple | None = field(default=None, repr=False,
+                                          compare=False)
+    #: `(drawn node, keywords)` of each `theta_axis` call, so `breakout` can
+    #: draw the axis again clear of its connectors.
+    _theta_axes: list = field(default_factory=list, repr=False, compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -712,6 +719,10 @@ class PolarPanel:
         18mm disc a curved `330°` laps the plate behind the outermost r tick,
         which the default `at` puts halfway between two spokes. Give `r_axis`
         an explicit `at=` or `plate=False` if that pair reports.
+
+        Beside a `breakout`, a label that touches a connector, the bar or the
+        title is nudged off, by at most the type size, or dropped; a curved
+        label is dropped. The node's `theta_axis` note lists them.
         """
         theme = active_theme()
         values = tuple(self.theta.ticks(count) if ticks is None else ticks)
@@ -732,6 +743,7 @@ class PolarPanel:
                                    _polar(self.radius + reach, angle)),
                                   kind=TICK_KIND))
         placed: list[tuple[Vec2, Diagram, float, Diagram | None]] = []
+        moved = None
         if labels:
             edge = max(reach, 0.0) + gap
             for value, text in zip(values, texts):
@@ -746,6 +758,11 @@ class PolarPanel:
                 placed.append(_outward(node, tip, angle) + (angle, bent))
             placed = _keep_round(placed, _CLEAR_OF_TYPE * theme.font_size,
                                  self.theta.full, thin)
+            if self._breakout_clear is not None:
+                names = {round(self.theta.page(v), 6): t
+                         for v, t in zip(values, texts)}
+                placed, moved = _clear_breakout(placed, names,
+                                                self._breakout_clear, theme)
             # A curved label is already drawn in the panel's own coordinates,
             # so it goes in bare and `place` puts it back where `text_on_arc`
             # put it; an upright one is a node plus the point to centre it on.
@@ -757,8 +774,15 @@ class PolarPanel:
         if label is not None:
             items.append(self._theta_name(label, placed, reach, gap,
                                           label_pad, theme))
-        self._over.append(as_drawn(draw_place(items, kind=kind, origin=(0, 0),
-                                              **style)))
+        drawn = as_drawn(draw_place(items, kind=kind, origin=(0, 0), **style))
+        if moved is not None:
+            drawn.notes["theta_axis"] = moved
+        self._over.append(drawn)
+        self._theta_axes.append((drawn, dict(
+            count=count, ticks=ticks, labels=labels, format=format,
+            label=label, spine=spine, tick_size=tick_size, pad=pad,
+            label_pad=label_pad, thin=thin, curved=curved, kind=kind,
+            **style)))
         return self._touched()
 
     def _theta_name(self, label, placed, reach: float, gap: float,
@@ -1294,6 +1318,12 @@ class PolarPanel:
         note lists any label that could not clear under `"crossing"`. The node's
         `pie_breakout` note records the `zero` and `winding` used and
         whether the pie was `"turned"`.
+
+        A `theta_axis` on the panel, drawn before or after, keeps its labels
+        off the connectors, the bar and the title. A label that touches one
+        is nudged a little along the rim or outward, or dropped when no
+        nudge clears it. The axis's `theta_axis` note, and `axis_labels` in
+        the `pie_breakout` note, list the labels `nudged` and `dropped`.
         """
         from .wheel import breakout as _breakout
         from .wheel import (breakout_connectors, breakout_frame,
@@ -1319,6 +1349,7 @@ class PolarPanel:
         again = (not alone and held and self._replayable
                  and not any(name == "breakout" for name, _, _ in self._journal))
         turned = False
+        axis_labels = None
         if valid and (alone or again) and any(self._free):
             zero, winding = breakout_turn(self.theta, note["values"], ordered,
                                           side=side, zero=self._free[0],
@@ -1348,6 +1379,8 @@ class PolarPanel:
                                          **frame)
             if heading is not None:
                 boxes.append(heading)
+            self._breakout_clear = (links, list(boxes))
+            axis_labels = self._clear_theta_axes()
             node, fills, note = _pie(self, redraw["values"], avoid=links,
                                      avoid_boxes=boxes,
                                      **redraw["options"])
@@ -1361,6 +1394,8 @@ class PolarPanel:
             connector=connector, separator=separator, **style)
         made.update(zero=self.theta.zero, winding=self.theta.winding,
                     turned=turned)
+        if axis_labels is not None:
+            made["axis_labels"] = axis_labels
         if names is not None:
             if len(names) != len(colours):
                 raise DiagramError(
@@ -1368,6 +1403,33 @@ class PolarPanel:
             for label, fill in zip(names, colours):
                 self._note(label, "area", fill=fill, color=fill)
         return self.draw(node, clip=clip)
+
+    def _clear_theta_axes(self) -> dict | None:
+        """Draw each theta axis on the panel again, its labels clear of the
+        breakout in `_breakout_clear`. Returns the labels nudged and dropped,
+        or None when the panel has no theta axis."""
+        records, self._theta_axes = self._theta_axes, []
+        if not records:
+            return None
+        nudged: list[str] = []
+        dropped: list[str] = []
+        for node, options in records:
+            at = next((k for k, item in enumerate(self._over) if item is node),
+                      None)
+            if at is None:
+                self._theta_axes.append((node, options))
+                continue
+            self._depth += 1
+            try:
+                self.theta_axis(**options)
+            finally:
+                self._depth -= 1
+            fresh = self._over.pop()
+            self._over[at] = fresh
+            moved = fresh.notes.get("theta_axis", {})
+            nudged += moved.get("nudged", [])
+            dropped += moved.get("dropped", [])
+        return {"nudged": nudged, "dropped": dropped}
 
     def _redraw(self, theta: Theta) -> None:
         """Clear the panel and make every journalled call again under
@@ -1377,6 +1439,7 @@ class PolarPanel:
         self._title, self._pie, self._built = None, None, None
         self._keys, self._spokes, self._ring = [], [], []
         self._ring_values, self._radar_data = None, []
+        self._breakout_clear, self._theta_axes = None, []
         self.theta = theta
         for name, args, kwargs in journal:
             getattr(self, name)(*args, **dict(kwargs))
@@ -1866,6 +1929,74 @@ def _boxes_clear(a: Rect, b: Rect, gap: float) -> bool:
     `CROWDING` between them make, in the frame the panel is drawn in."""
     return (a.x1 + gap <= b.x0 or b.x1 + gap <= a.x0
             or a.y1 + gap <= b.y0 or b.y1 + gap <= a.y0)
+
+
+#: How far a theta label may be nudged off a breakout connector, as a
+#: fraction of the small type size, and the step the search takes.
+_NUDGE_OF_TYPE = 1.0
+_NUDGE_STEP = 0.25
+
+
+def _clear_breakout(placed: Sequence[tuple], names: dict, clear: tuple,
+                    theme) -> tuple[list[tuple], dict]:
+    """Theta labels kept off a breakout's connectors, bar and title.
+
+    A label that touches one (within half the theme's small gap) is nudged:
+    along the rim either way, straight out, or out and along, the smallest
+    move first, up to `_NUDGE_OF_TYPE` of the type size, and never onto
+    another label. A label no nudge clears is dropped, as is a curved label,
+    which carries its own position. Returns the labels kept and a note of
+    the `nudged` and `dropped` label texts.
+    """
+    from .point_labels import _segment_hits
+
+    segments, boxes = clear
+    pad = theme.gap("xs") / 2
+    step = _NUDGE_STEP
+    reach = _NUDGE_OF_TYPE * theme.font_size_small
+
+    def box_of(entry) -> Rect:
+        at, node, _angle, bent = entry
+        return bent.bbox if bent is not None else _shifted(node.bbox, at)
+
+    def free(box: Rect, others: Sequence[Rect]) -> bool:
+        grown = Rect(box.x0 - pad, box.y0 - pad, box.x1 + pad, box.y1 + pad)
+        return (not any(_segment_hits(a, b, grown) for a, b in segments)
+                and all(_boxes_clear(box, other, pad)
+                        for other in (*boxes, *others)))
+
+    current: list[Rect | None] = [box_of(entry) for entry in placed]
+    kept: list[tuple] = []
+    nudged: list[str] = []
+    dropped: list[str] = []
+    for k, entry in enumerate(placed):
+        at, node, angle, bent = entry
+        name = names.get(round(angle, 6), "")
+        others = [b for j, b in enumerate(current) if j != k and b is not None]
+        if free(current[k], []):
+            kept.append(entry)
+            continue
+        along = _polar(1.0, angle + 90.0)
+        out = _polar(1.0, angle)
+        moves: list[Vec2] = []
+        distance = step
+        while distance <= reach + 1e-9 and bent is None:
+            moves += [along * distance, along * -distance, out * distance,
+                      (out + along) * (distance / math.sqrt(2)),
+                      (out - along) * (distance / math.sqrt(2))]
+            distance += step
+        for move in moves:
+            box = Rect(current[k].x0 + move.x, current[k].y0 + move.y,
+                       current[k].x1 + move.x, current[k].y1 + move.y)
+            if free(box, others):
+                kept.append((at + move, node, angle, None))
+                current[k] = box
+                nudged.append(name)
+                break
+        else:
+            current[k] = None
+            dropped.append(name)
+    return kept, {"nudged": nudged, "dropped": dropped}
 
 
 def _curved_label(text: str, radius: float, angle: float, theme) -> Diagram:

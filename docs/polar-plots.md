@@ -154,6 +154,13 @@ they leave their slice, to keep clear of the connectors and the bar. A label tha
 `crossing` in the pie's `pie_labels` note; leave it out (`labels=` with
 `None` for that slice) or pass `zero=`.
 
+A `theta_axis` on the panel, drawn before or after `breakout`, keeps its
+angle labels off the connectors, the bar and the title. A label that touches
+one is nudged a little along the rim or outward, or dropped when no nudge
+clears it; a curved label is dropped. The axis's `theta_axis` note lists the
+labels `nudged` and `dropped`, as does `axis_labels` in the `pie_breakout`
+note.
+
 ```python
 import inklet as i
 ink, yellow, grey = '#262626', '#e6b93f', '#e4e4e4'

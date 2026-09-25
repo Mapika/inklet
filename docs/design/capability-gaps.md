@@ -236,7 +236,24 @@ note. It returns a `Diagram`, like `upset`.
 the coordinate-wise median (distances scaled by the median absolute
 deviation), so it stays on the data for curved clusters. A name that would
 overlap one already placed moves to the nearest free candidate position.
-The names do not avoid the points of other clusters.
+They also keep clear of other clusters' points, found on a grid of dot
+cells, and of other clusters' outlines; a name may sit over its own
+cluster and cross its own outline line. With `outline="fill"` it does not
+lap its own tint's edge either, which the linter reports as an overlap. A name
+that cannot clear another cluster's points takes the position that covers
+the fewest, and is listed under `covering` in the `embedding` note.
+`outline=` draws each cluster's core: the region whose smoothed density
+reaches the level that the `outline_core` share of its points reach. Points
+beyond five robust spreads are left out, and an island holding under a tenth
+of the points is dropped, so strays neither enlarge the outline nor add
+islands.
+
+**Theta labels beside a breakout.** A `theta_axis` label that comes within
+half the small gap of a breakout connector, the bar or the title is nudged
+along the rim or outward, the smallest move first and at most the type
+size, and never onto another label. A label no nudge clears is dropped, as
+is a curved label that touches one. The choice is listed in the axis's
+`theta_axis` note and in `axis_labels` of the `pie_breakout` note.
 
 **Split violins.** Each half is the `violin` density of its group; with
 `scale="shared"` the wider peak of the two halves sets the width, so the
@@ -259,4 +276,8 @@ the bracket below. `format_p` uses strict bounds: p = 0.001 is `**`.
   off by default, since a busy chart leaves room for only a few.
 - Done (4.2): `label_points` is placed when the panel is built, so it avoids
   marks drawn after the call. Several calls are placed in call order.
-- Per-cluster outlines (hulls or density contours) for `Panel.embedding`.
+- Done (4.3): per-cluster outlines for `Panel.embedding`, as density
+  contours round each cluster's core.
+- Done (4.3): cluster names avoid the points of other clusters.
+- Done (4.3): theta-axis labels on a pie turned by `breakout` keep off the
+  connectors, nudged or dropped.
