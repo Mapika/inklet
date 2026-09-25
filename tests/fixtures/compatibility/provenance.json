@@ -1,7 +1,8 @@
 {
-  "source": "Released PyPI wheels installed in isolated Python 3.13.9 environments, 2026-09-14",
+  "source": "Released PyPI wheels installed in isolated environments: Python 3.13.9 on 2026-09-14 (3.1.0, 4.0.0.dev16, 4.0.0rc1); Python 3.12.3 with all extras on 2026-09-25 (4.2.0)",
   "writers": {
     "api-3.1.json": "3.1.0",
+    "api-4.2.json": "4.2.0",
     "dev16-project": "4.0.0.dev16",
     "layout.json": "4.0.0.dev16",
     "selection.json": "4.0.0.dev16"
@@ -39,10 +40,22 @@
         },
         "url": "https://files.pythonhosted.org/packages/61/a0/d545f7de0bd6f482d7c9d6bf97d6923fc686addd9a0e5cfdef97442a168c/inklet-4.0.0rc1-py3-none-any.whl"
       }
+    ],
+    "4.2.0": [
+      {
+        "filename": "inklet-4.2.0-py3-none-any.whl",
+        "digests": {
+          "blake2b_256": "db588213bed33b0819994fd4ced30c7487cab0926bad414f516392d9c4730d34",
+          "md5": "69d1d55a0f867b732a429367462f594c",
+          "sha256": "65e9f061e05d95002ece51d7063d7ff2cbccf4f7fe0989bb187ddaefc1978701"
+        },
+        "url": "https://files.pythonhosted.org/packages/db/58/8213bed33b0819994fd4ced30c7487cab0926bad414f516392d9c4730d34/inklet-4.2.0-py3-none-any.whl"
+      }
     ]
   },
   "files": {
     "api-3.1.json": "310fd9394375b773d0ee22d8e3def79837ee77c3706585f99cba7fc2139741fc",
+    "api-4.2.json": "84f6545847cfd42b16a49247d1334e5f92545d368f0111db04b157725683b11d",
     "dev16-project/.inklet/figure.pdf": "7a527cb886e95fadb2abfddd8fa97efc134c4985bfcb16097412f6b5bea0bf7e",
     "dev16-project/.inklet/figure.svg": "c8aff5492240ebc279e25f91f07474d9323d6447912b2b7cd4a30fa555af3fe5",
     "dev16-project/.inklet/project.json": "9e4ecb7b47422c0ef102be531fbf2fa3a2cb09139f939571bd8990f29d37c5cf",

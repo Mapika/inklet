@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Add the released 4.2.0 API inventory (`tests/fixtures/compatibility/api-4.2.json`):
+  top-level `__all__` plus every public `inklet.experimental` module.
+  `tools/check_compatibility.py` now checks against both 3.1 and 4.2,
+  namespaces keys as `module:Name`, reports per-baseline results under
+  `baselines`, and gains `--capture PATH`; `--baseline` is repeatable.
+- Tests: released experimental names keep importing from their old paths
+  with unchanged call shapes; moved objects must be the same object at
+  their new home; `import inklet` stays free of numpy, pandas, polars, PIL,
+  scikit-image, SciPy, tifffile and `inklet.volume`; stable namespaces
+  define `__all__`.
+
 ## 4.2.0 — 2026-09-25
 
 4.2.0 adds dot plots with size keys, Kaplan–Meier curves with number-at-risk
