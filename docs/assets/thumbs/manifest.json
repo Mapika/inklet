@@ -92,16 +92,16 @@
   "assets/guides/layout-3.png": {
     "files": [
       {
-        "path": "assets/thumbs/assets-guides-layout-3-480-e08fd1c65c.webp",
+        "path": "assets/thumbs/assets-guides-layout-3-480-99ef6cf1ba.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/assets-guides-layout-3-960-e08fd1c65c.webp",
+        "path": "assets/thumbs/assets-guides-layout-3-960-99ef6cf1ba.webp",
         "width": 960
       }
     ],
     "height": 365,
-    "sha256": "e08fd1c65c22e59c476f1ad9adbfc1cd63e4753e14961433dee282c83edac1fc",
+    "sha256": "99ef6cf1ba172e02c0330fce97bc0f972bef509177ea713c5af3d6c5e853c1a1",
     "width": 1153
   },
   "assets/guides/layout-restored.png": {
