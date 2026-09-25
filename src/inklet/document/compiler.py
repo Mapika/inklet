@@ -129,7 +129,7 @@ class Document(BuildSpec):
     theme: object = 'nature'
     publication: object = None
     preset: object = None
-    share_plot_margins: bool = False
+    share_plot_margins: bool | str = False
     _preset_overrides: dict = field(default_factory=dict, repr=False)
     _cells: list = field(default_factory=list, repr=False)
     _links: list = field(default_factory=list, repr=False)
@@ -139,7 +139,9 @@ class Document(BuildSpec):
     _last: object = field(default=None, repr=False)
 
     def __post_init__(self):
-        if type(self.share_plot_margins) is not bool: raise ValueError('share_plot_margins must be a boolean')
+        if type(self.share_plot_margins) is not bool and not (
+                type(self.share_plot_margins) is str and self.share_plot_margins == 'all'):
+            raise ValueError("share_plot_margins must be a boolean or 'all'")
         self.width = length(self.width, 'document width')
         if self.height is not None: self.height = length(self.height, 'document height')
         self.margin = length(self.margin, 'margin', zero=True)
@@ -344,11 +346,17 @@ class Document(BuildSpec):
 def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False):
     """Create a live document; optionally share plot furniture across the grid.
 
-    Shared margins reserve the largest left/right labels and letters on every
-    plot. Automatic row heights use the tallest data region plus the top and
-    bottom furniture of that row; a fixed height shares all four. Equal tracks and
-    unspanned plot cells then have equal data areas. Fixed artwork is unchanged;
-    unequal track weights, spans or larger cell minima can still vary areas.
+    Left and right furniture is shared along vertical grid lines: plots that
+    start on the same grid line reserve the largest left labels and letters
+    among them, and plots that end on the same grid line reserve the largest
+    right furniture, so their data edges line up there. A plot that shares
+    neither line with a wide label keeps its own margin. Automatic row heights
+    use the tallest data region plus the top and bottom furniture of that row;
+    a fixed height shares top and bottom furniture across the grid. Plots in
+    one column track then have equal data areas. `share_plot_margins='all'`
+    instead reserves the largest left and right furniture on every plot, so
+    equal tracks give equal data widths across columns, as small multiples
+    with one physical scale need. Fixed artwork is unchanged.
     """
     return Document(width,height,columns,margin,gap,row_gap,theme,publication,share_plot_margins=share_plot_margins)
 

@@ -86,7 +86,8 @@ twelve-panel page at 183 mm. It sets:
 
 `legend_side='inside'` places each `.legend()` without an explicit `side=` or
 `corner=` in empty data space, found after the marks are drawn. If no position
-clears the marks, the legend goes above the data area instead. The legend is
+clears the marks, the legend goes above the data area instead, using the
+whole panel width when it needs more than the data width. The legend is
 never shrunk.
 
 The checks are tuned for this density. The minimum text size is 5 pt, and the

@@ -1142,9 +1142,13 @@ class Panel:
         `(name, diagram)` pairs, which is the escape hatch for a key that
         describes something this panel did not draw.
 
-        Top/bottom legends fit their columns to the plot width by default.
-        Pass `columns=1` to stack entries explicitly, or `columns='auto'` and
-        `max_width=...` to choose another measured width. Text is never shrunk.
+        Top/bottom legends fit their columns to the plot width by default,
+        centred on the data. When that takes more rows than the whole panel
+        width would, counting the axis furniture beside the data, the key is
+        fitted to the panel width and left-aligned with the panel's outer
+        edge. Pass `columns=1` to stack entries explicitly, or
+        `columns='auto'` and `max_width=...` to choose another measured width.
+        Text is never shrunk.
 
         A `name=` is prose the figure wrote about one curve, so it reads inline
         markup -- `p.line(mean, name="ChR2 (//n// = 12)")` sets that `n` in
@@ -1163,16 +1167,23 @@ class Panel:
             )
         if columns is None:
             columns = 'auto' if side in ('top', 'bottom') else 1
-        if columns == 'auto' and max_width is None:
-            max_width = self.width if side is not None else self.width - 2*(theme.gap('s') if pad is None else mm(pad))
-        node = make_legend(rows, columns=columns, max_width=max_width, swatch=swatch, title=title,
-                           markup=markup, order=order, col_gap=col_gap, row_gap=row_gap, **style)
+
+        def build(width):
+            return make_legend(rows, columns=columns, max_width=width, swatch=swatch, title=title,
+                               markup=markup, order=order, col_gap=col_gap, row_gap=row_gap, **style)
+
         gap = theme.gap("s") if pad is None else mm(pad)
+        # Outside the plot the key is measured against the furniture's line
+        # boxes, which already carry the type's leading; a further 's' step
+        # parted it from the axis name it explains.
+        beside_gap = theme.gap("xs") if pad is None else gap
+        if side in ('top', 'bottom') and columns == 'auto' and max_width is None:
+            self._over.append(self._across(build, side, beside_gap))
+            return self._touched()
+        if columns == 'auto' and max_width is None:
+            max_width = self.width if side is not None else self.width - 2*gap
+        node = build(max_width)
         if side is not None:
-            # Outside the plot the key is measured against the furniture's
-            # line boxes, which already carry the type's leading; a further
-            # 's' step parted it from the axis name it explains.
-            beside_gap = theme.gap("xs") if pad is None else gap
             self._over.append(self._beside(node, side, beside_gap))
             return self._touched()
         if plate is None:
@@ -1187,6 +1198,34 @@ class Panel:
             node = _into_corner(node, self.area, corner or "ne", gap)
         self._over.append(node)
         return self._touched()
+
+    def _across(self, build, side: str, gap: float) -> Diagram:
+        """A top or bottom key, as wide as the whole panel when it needs to be.
+
+        Fitted to the data width first and centred on the data. When the
+        panel's furniture makes it wider than the data, the key is refitted
+        to that full width and kept if it takes fewer rows (or fits only
+        there); it is then centred on the data if it still fits within the
+        data width, and otherwise left-aligned with the panel's outer edge.
+        """
+        box = _union_box(self._under + self._content + self._over) or self.area
+        try:
+            node, failure = build(self.width), None
+        except ValueError as error:
+            node, failure = None, error
+        if box.width > self.width + 1e-9:
+            try:
+                wide = build(box.width)
+            except ValueError:
+                wide = None
+            if wide is not None and (node is None or wide.bbox.height < node.bbox.height - 1e-9):
+                placed = beside(wide, box, side, gap, Vec2(0.0, 0.0))
+                if wide.bbox.width > self.width + 1e-9:
+                    placed = placed.translated(box.x0 - placed.bbox.x0, 0.0)
+                return placed
+        if node is None:
+            raise failure
+        return beside(node, box, side, gap, Vec2(0.0, 0.0))
 
     def _legend_rows(self, swatch: float | str | None) -> list[tuple[str, object]]:
         """One (name, swatch) per series, the swatch mirroring how it was drawn.

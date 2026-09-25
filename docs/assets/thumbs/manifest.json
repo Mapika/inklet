@@ -512,16 +512,16 @@
   "gallery/diagram-review.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-diagram-review-480-41ebf11512.webp",
+        "path": "assets/thumbs/gallery-diagram-review-480-e7c00a6e79.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-diagram-review-960-41ebf11512.webp",
+        "path": "assets/thumbs/gallery-diagram-review-960-e7c00a6e79.webp",
         "width": 960
       }
     ],
-    "height": 859,
-    "sha256": "41ebf11512a34d1129fc69df477417871f71a2d4af8463e5824bea0dcdde245a",
+    "height": 842,
+    "sha256": "e7c00a6e795297b9e72ca6e946dc82e1442676f174c7e4adb16b56c6133df506",
     "width": 1181
   },
   "gallery/fluorescence-biology.png": {
@@ -542,16 +542,16 @@
   "gallery/general-plots.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-general-plots-480-6fdf4424ca.webp",
+        "path": "assets/thumbs/gallery-general-plots-480-d74d600233.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-general-plots-960-6fdf4424ca.webp",
+        "path": "assets/thumbs/gallery-general-plots-960-d74d600233.webp",
         "width": 960
       }
     ],
     "height": 1311,
-    "sha256": "6fdf4424ca076a5999aacf059e187c21d7561ccfaa68162014002bd605c9911a",
+    "sha256": "d74d600233a3ea2c8dee19321aef724f8fbec3c44732c5a0d10c3fa4bee40dc0",
     "width": 1369
   },
   "gallery/label-intensities.png": {
@@ -647,16 +647,16 @@
   "gallery/process.png": {
     "files": [
       {
-        "path": "assets/thumbs/gallery-process-480-eda9fd6999.webp",
+        "path": "assets/thumbs/gallery-process-480-dcdce71db1.webp",
         "width": 480
       },
       {
-        "path": "assets/thumbs/gallery-process-960-eda9fd6999.webp",
+        "path": "assets/thumbs/gallery-process-960-dcdce71db1.webp",
         "width": 960
       }
     ],
     "height": 1365,
-    "sha256": "eda9fd69990fb1a62c0aa1cc013d9ed28b08b86434f7c78da5e0f3d5e22dae90",
+    "sha256": "dcdce71db1194465d08798f321c00bf82344bbf98646ad31e81720042ca3180f",
     "width": 1008
   },
   "gallery/real-biology.png": {

@@ -149,6 +149,36 @@ a round tick for the intersection bars and at the largest set for the set
 bars, with at most as many ticks as fit without thinning. With value
 labels, the default column pitch widens to fit the widest label.
 
+## Layout limits found by the dense figure
+
+`examples/dense_figure.py` worked around these library limits.
+
+| Limit | Workaround | Status |
+| --- | --- | --- |
+| `share_plot_margins=True` reserved the largest left and right furniture on every plot, which squeezed grids with mixed spans | Sharing turned off | Done: left and right margins are shared along vertical grid lines; `'all'` keeps the whole-grid rule |
+| A top or bottom legend, including an inside legend moved above the plot, could only be as wide as the data area | Panel B widened | Done: the key uses the whole panel width when that saves rows |
+| A label on a link a few millimetres long floated a label height or more above the boxes, or sat on the arrowhead | The circuit panel has no link labels | Done: nearest clear spot, flagged and reported by `LABEL_OFF_LINK` |
+
+**Grid-line sharing.** A plot's left edge is grid line `column` and its
+right edge is grid line `column + colspan`. The left margin of a plot is the
+largest measured left margin among plots on its left line, and the right
+margin the largest among plots on its right line. The dense figure still
+leaves sharing off: sharing also gives every plot the tallest data height,
+which would override the heights chosen per row.
+
+**Panel-wide keys.** The key is fitted to the data width first. If the
+panel, including the tick labels and axis name left of the data, is wider,
+the key is refitted to that width and kept when it has fewer rows. It is then
+centred on the data if it fits within the data width, and otherwise starts at
+the panel's left edge, next to the panel letter.
+
+**Short link labels.** When no candidate spot beside the line is clear, the
+label is moved out along the normal from eleven points on the line, in
+0.25 mm steps up to two label sizes. It must be 0.25 mm clear of nodes, other
+label plates and the arrowheads, and about the label offset from other
+shafts. The smallest step wins, and ties go to the point nearest the middle
+of the line.
+
 ## Deferred work
 
 - Leaders for pie labels placed outside the rim.

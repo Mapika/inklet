@@ -268,22 +268,24 @@ def test_a_crossing_under_a_label_plate_is_a_warning():
     plate is wide -- a reader sees an arrow that stops in a word.
 
     The router's label placer is good at dodging: it tries five spots along
-    the shaft, each on both sides, and takes the least obstructed. Five posts
-    across the line, one under each spot, is what it takes to leave it no
-    clear choice -- which is also the honest measure of how rare the warning
-    is on a routed figure.
+    the shaft, each on both sides, then slides the label out from the line
+    until it is clear. Five posts across the line, closer together than the
+    label is long and near enough to both ends that the label cannot clear
+    them past either box, is what it takes to leave it no clear choice --
+    which is also the honest measure of how rare the warning is on a routed
+    figure.
     """
     a = inklet.box("A").named("A")
     b = inklet.box("B").named("B")
     fig = inklet.figure(width=140)
     posts, pairs = [], []
-    for index, x in enumerate((-30.0, -19.0, -1.0, 17.0, 28.0)):
+    for index, x in enumerate((-34.0, -19.0, -1.0, 17.0, 34.0)):
         top = inklet.box(" ").named(f"t{index}")
         foot = inklet.box(" ").named(f"u{index}")
         posts += [((x, -26.0), top), ((x, 26.0), foot)]
         pairs.append((top, foot))
     fig.add(inklet.place([((-50.0, 0.0), a), ((50.0, 0.0), b)] + posts))
-    fig.link(a, b, label="binds tightly")
+    fig.link(a, b, label="binds tightly to the receptor")
     for top, foot in pairs:
         fig.link(top, foot)
 

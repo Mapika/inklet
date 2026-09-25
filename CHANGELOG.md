@@ -57,6 +57,31 @@
   Previously the axis came from the centre-to-centre direction, so a target
   mostly above or below the source was reached by a run along its own side
   face with the arrowhead inside the box.
+- `share_plot_margins=True` shares left and right plot furniture along
+  vertical grid lines instead of across the whole grid. Plots whose cells
+  start on the same grid line share the largest left margin among them, and
+  plots whose cells end on the same grid line share the largest right margin,
+  so their data edges line up there. A wide label no longer narrows plots in
+  other columns or with other spans. Plots in different columns can now have
+  different data widths when their labels differ; `share_plot_margins='all'`
+  keeps the whole-grid rule, and facet figures use it. Top and bottom sharing
+  is unchanged. `examples/general_plots.py` gains about 3 mm of data width in
+  its left column; `gallery/general-plots.png` is regenerated.
+- Top and bottom legends with automatic columns may use the whole panel
+  width. A key that needs more rows at the data width than at the panel width,
+  including the axis furniture left of the data, is refitted to the panel
+  width and left-aligned with the panel's outer edge; a key that fits the data
+  width stays centred on it. This includes `legend_side='inside'` keys moved
+  above a crowded plot. Explicit `columns=` or `max_width=` are unchanged.
+- Link labels keep clear of arrowheads, and `inklet.connect` and `route()`
+  keep a label off the link's own end shapes even when no obstacles are
+  passed. When no spot beside the line is clear, as on a link a few
+  millimetres long between two boxes, the label moves out from the line in
+  0.25 mm steps to the nearest clear spot, usually just above or below the
+  boxes and centred on the gap, instead of a full label size or more away.
+  The link is flagged `FLAG_LABEL_OFF_LINK` and the new lint rule
+  `LABEL_OFF_LINK` reports it as an info. Regenerate `gallery/process.png`,
+  `gallery/diagram-review.png` and `gallery/diagram-labels-after.png`.
 - Add `examples/dense_figure.py`, a thirteen-panel 183 mm page with the
   `scientific.cell` preset, and its gallery image `gallery/dense-figure.png`.
 - Retighten `examples/general_plots.py`: the preset's 183 mm width, margin,

@@ -81,7 +81,9 @@ does not describe a single legend category. Use [category definitions](data.md)
 when filtering should preserve category colours and labels.
 
 Top/bottom legends choose a measured number of
-columns to fit the plot width. Pass `columns=1` to stack explicitly, or
+columns to fit the plot width, centred on the data. When the axis labels beside
+the data leave room for fewer rows, the legend uses the whole panel width and
+starts at the panel's left edge. Pass `columns=1` to stack explicitly, or
 `columns='auto', max_width=...` to control the available space. An entry that
 cannot fit is reported rather than clipped or reduced in type size.
 `font_size=` is measured before layout. The [general plotting example](general-plots.md)

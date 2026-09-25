@@ -38,7 +38,8 @@ from ..plot.raster import MATRIX_KIND
 # The one place a rule needs to know what a link is rather than what it drew:
 # a router that could not do what it was asked leaves a flag behind, and only
 # `inklet.links` says how that flag is written down.
-from ..links import (FLAG_COINCIDENT, FLAG_NO_CLEAR_ROUTE, FLAG_OVERLAP,
+from ..links import (FLAG_COINCIDENT, FLAG_LABEL_OFF_LINK,
+                     FLAG_NO_CLEAR_ROUTE, FLAG_OVERLAP,
                      HEAD_KIND, LABEL_KIND,
                      FLAG_SHORT, FLAG_SOURCE_MISSED, FLAG_SOURCE_NO_EXTENT,
                      FLAG_SOURCE_NO_TRACE, FLAG_TARGET_MISSED,
@@ -2902,6 +2903,39 @@ def rule_route_blocked(ctx: LintContext) -> list[Diagnostic]:
     return out
 
 
+def rule_label_off_link(ctx: LintContext) -> list[Diagnostic]:
+    """A link label that found no room beside its link and was moved away.
+
+    On a link only a few millimetres long the label is often wider than the
+    gap between the two shapes, so every spot beside the shaft lands on one
+    of them or on the arrowhead. The placer then moves the label to the
+    nearest clear spot, usually just past the edge of the shapes, and flags
+    the link. The figure is still readable, so this is an `info`: it says
+    which label is no longer next to its line.
+    """
+    out: list[Diagnostic] = []
+    for node_id in sorted(ctx.attachments):
+        node = ctx.nodes.get(node_id)
+        if node is None or FLAG_LABEL_OFF_LINK not in link_flags(node):
+            continue
+        endpoints = link_ends(ctx.attachments[node_id])
+        between = " -> ".join(ctx.label(end) for end in endpoints)
+        plates = [ctx.placements[child.id].bbox for child in node.children
+                  if child.kind == LABEL_KIND and child.id in ctx.placements]
+        out.append(Diagnostic(
+            code="LABEL_OFF_LINK",
+            severity="info",
+            message=(f"{ctx.label(node_id)} ({between}) has no room for its "
+                     f"label beside the line; the label was moved to the "
+                     f"nearest clear spot"),
+            targets=(node_id,) + tuple(endpoints),
+            where=plates[0] if plates and plates[0] is not None else None,
+            hint=("move the shapes apart, shorten the label, or give it "
+                  "label_side= or label_offset= to choose where it goes"),
+        ))
+    return out
+
+
 #: Why a connector came out unreadable, in the order the reasons are worth
 #: hearing. A link that overlaps its target also has zero length, and being
 #: told the cause is more use than being told the symptom, so the causes come
@@ -3256,6 +3290,7 @@ RULES: dict[str, Rule] = {
     "LINK_CROSSES_LINK": rule_link_crosses_link,
     "PATH_CROSSES": rule_path_crosses,
     "ROUTE_BLOCKED": rule_route_blocked,
+    "LABEL_OFF_LINK": rule_label_off_link,
     "LINK_COLLAPSED": rule_link_collapsed,
     "LINK_UNCLIPPED": rule_link_unclipped,
     "COINCIDENT_SHAFT": rule_coincident_shaft,

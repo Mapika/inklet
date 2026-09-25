@@ -37,7 +37,7 @@ __all__ = [
     "FLAG_SOURCE_NO_TRACE", "FLAG_TARGET_NO_TRACE",
     "FLAG_SOURCE_MISSED", "FLAG_TARGET_MISSED",
     "FLAG_SOURCE_NO_EXTENT", "FLAG_TARGET_NO_EXTENT",
-    "FLAG_NO_CLEAR_ROUTE", "link_ends",
+    "FLAG_NO_CLEAR_ROUTE", "FLAG_LABEL_OFF_LINK", "link_ends",
 ]
 
 EPS = 1e-9
@@ -89,6 +89,7 @@ FLAG_TARGET_MISSED = "target-clip-missed"
 FLAG_SOURCE_NO_EXTENT = "source-has-no-extent"
 FLAG_TARGET_NO_EXTENT = "target-has-no-extent"
 FLAG_NO_CLEAR_ROUTE = "no-clear-route"
+FLAG_LABEL_OFF_LINK = "label-off-link"
 
 _NO_TRACE = {"source": FLAG_SOURCE_NO_TRACE, "target": FLAG_TARGET_NO_TRACE}
 _MISSED = {"source": FLAG_SOURCE_MISSED, "target": FLAG_TARGET_MISSED}
@@ -431,7 +432,13 @@ def route(link: Link, placements: Mapping[str, Placement],
     """
     marked = _as_obstacles(obstacles)
     plan, flags = _route_points(link, placements, marked, drawn)
-    return _assemble(link, plan, flags, marked, drawn)
+    # A lone link still knows its own end shapes, and its label must not
+    # land on them, whether or not the caller listed them as obstacles.
+    ends = tuple(Obstacle(node_id, placements[node_id].bbox)
+                 for node_id in _attachments(link)[:2]
+                 if node_id in placements and placements[node_id].bbox is not None
+                 and not isinstance(placements[node_id].diagram.prim, PhantomPrim))
+    return _assemble(link, plan, flags, marked + ends, drawn)
 
 
 @dataclass(frozen=True, slots=True)
@@ -525,8 +532,12 @@ def _assemble(link: Link, plan: _Plan, flags: list[str],
     if link.label is not None:
         own = tuple((a, b) for strand in plan.strands
                     for a, b in zip(strand.points, strand.points[1:]))
+        # The heads count as obstacles: on a short link the head is a large
+        # share of the shaft, and a label over it hides the direction.
+        tips = tuple(Obstacle("", head.bbox) for head in heads)
         placed = _place_label(link.label, list(plan.spine), link.label_side,
-                              link.label_offset, marked, drawn, own=own)
+                              link.label_offset, tuple(marked) + tips, drawn,
+                              own=own, flags=flags)
         if placed is not None:
             children.append(placed)
 
@@ -2286,7 +2297,8 @@ def _straight_cubic(p0: Vec2, p3: Vec2) -> tuple[Vec2, Vec2, Vec2, Vec2]:
 def _place_label(label: Diagram, points: list[Vec2], side: str, offset: float,
                  obstacles: Sequence[Obstacle] = (),
                  drawn: Sequence[tuple[Vec2, Vec2]] = (), *,
-                 own: Sequence[tuple[Vec2, Vec2]] = ()) -> Diagram | None:
+                 own: Sequence[tuple[Vec2, Vec2]] = (),
+                 flags: list[str] | None = None) -> Diagram | None:
     """Sit the label beside the line, and clear of everything else.
 
     M1 keeps labels horizontal rather than rotating them to follow the line:
@@ -2300,6 +2312,11 @@ def _place_label(label: Diagram, points: list[Vec2], side: str, offset: float,
     slides along it, and the least-obstructed candidate wins. The first
     candidate is kept whenever it is clear, so an uncluttered figure places
     labels exactly where it always did.
+
+    A link only a few millimetres long can leave no clear spot beside it at
+    all. The label then moves out along the normal from points on the line,
+    in 0.25 mm steps, to the nearest spot clear of every obstacle by
+    `_LABEL_CLEARANCE`, and the link is flagged `FLAG_LABEL_OFF_LINK`.
     """
     try:
         box = label.bbox
@@ -2319,7 +2336,29 @@ def _place_label(label: Diagram, points: list[Vec2], side: str, offset: float,
         # A fallback beside a fork must clear every branch, including the
         # one omitted from the label's spine. Otherwise moving off a box can
         # simply hide the branch under the label's background instead.
-        for centre in _label_bend_candidates(points, box, offset):
+        # Spots right beside a bend first, then the nearest clear spot off
+        # the line, then the further spots beside a bend.
+        bends = list(_label_bend_candidates(points, box, offset))
+        for centre, extra in bends:
+            if extra > 0.0:
+                continue
+            spot = Rect.from_size(box.width, box.height, centre)
+            blocked = (_blocked_area(spot, obstacles)
+                       + _crossed_length(spot, drawn)
+                       + _crossed_length(spot, own))
+            if blocked <= 0.0:
+                best = (blocked, centre)
+                break
+    beside = best[0] <= 0.0
+    if not beside:
+        near = _nearest_clear_spot(points, box, offset, total, obstacles,
+                                   drawn, own)
+        if near is not None:
+            best = (0.0, near)
+    if best[0] > 0.0:
+        for centre, extra in bends:
+            if extra <= 0.0:
+                continue
             spot = Rect.from_size(box.width, box.height, centre)
             blocked = (_blocked_area(spot, obstacles)
                        + _crossed_length(spot, drawn)
@@ -2344,8 +2383,57 @@ def _place_label(label: Diagram, points: list[Vec2], side: str, offset: float,
                     break
             if best[0] <= 0.0:
                 break
+    if not beside and flags is not None:
+        _flag(flags, FLAG_LABEL_OFF_LINK)
     delta = best[1] - box.center
     return Diagram(children=(label.translated(delta.x, delta.y),), kind=LABEL_KIND)
+
+
+#: Clear space kept round a label moved off its link, so it does not sit
+#: flush against the box it was pushed out of.
+_LABEL_CLEARANCE = 0.25
+
+#: Step, in millimetres, of the search outward from the line.
+_LABEL_STEP = 0.25
+
+
+def _nearest_clear_spot(points: list[Vec2], box: Rect, offset: float,
+                        total: float, obstacles: Sequence[Obstacle],
+                        drawn: Sequence[tuple[Vec2, Vec2]],
+                        own: Sequence[tuple[Vec2, Vec2]]) -> Vec2 | None:
+    """The clear label centre nearest the line, for a link with no room beside it.
+
+    Eleven points along the line, both normals at each, and outward steps up
+    to two label sizes beyond the usual offset. The smallest outward step
+    wins; ties go to the point nearest the middle of the line. A label pushed
+    past another link keeps the usual offset from that link too, so it lines
+    up with that link's own label.
+    """
+    gap = max(offset - _LABEL_STEP / 2, 0.0)
+    best: tuple[float, float, Vec2] | None = None
+    for index in range(11):
+        at, tangent = _point_along(points, total * index / 10)
+        middle = abs(index - 5)
+        for normal in (_label_normal(tangent), -_label_normal(tangent)):
+            extent = _half_extent(box, normal)
+            reach = 2 * (2*extent + 1.0)
+            steps = int(reach / _LABEL_STEP) + 1
+            for step in range(steps):
+                extra = step * _LABEL_STEP
+                if best is not None and (extra, middle) >= best[:2]:
+                    break
+                centre = at + normal * (offset + extent + extra)
+                spot = Rect.from_size(box.width, box.height, centre)
+                wide = Rect(spot.x0 - _LABEL_CLEARANCE, spot.y0 - _LABEL_CLEARANCE,
+                            spot.x1 + _LABEL_CLEARANCE, spot.y1 + _LABEL_CLEARANCE)
+                apart = Rect(spot.x0 - gap, spot.y0 - gap,
+                             spot.x1 + gap, spot.y1 + gap)
+                if (_blocked_area(wide, obstacles) <= 0.0
+                        and _crossed_length(apart, drawn) <= 0.0
+                        and _crossed_length(spot, own) <= 0.0):
+                    best = (extra, middle, centre)
+                    break
+    return None if best is None else best[2]
 
 
 def _label_candidates(points: list[Vec2], box: Rect, side: str, offset: float,
@@ -2361,8 +2449,11 @@ def _label_candidates(points: list[Vec2], box: Rect, side: str, offset: float,
 
 
 def _label_bend_candidates(points: list[Vec2], box: Rect,
-                           offset: float) -> Iterable[Vec2]:
-    """Extra positions beside bends, used only when ordinary placement fails."""
+                           offset: float) -> Iterable[tuple[Vec2, float]]:
+    """Extra positions beside bends, used only when ordinary placement fails.
+
+    Each comes with the clearance added beyond the usual offset.
+    """
     # A short fork's sampled positions can all land too close to the source
     # or on a diagonal whose normal lifts the label back into the source.
     # The bend itself can still have room beside it. Try both incident
@@ -2378,8 +2469,8 @@ def _label_bend_candidates(points: list[Vec2], box: Rect,
             normal = _label_normal(tangent)
             for extra in (0.0, max(abs(offset), 1.0), max(box.width, box.height)):
                 reach = offset + _half_extent(box, normal) + extra
-                yield corner + normal * reach
-                yield corner - normal * reach
+                yield corner + normal * reach, extra
+                yield corner - normal * reach, extra
 
 
 #: A connector through a label is scored as if it were a stroke this wide

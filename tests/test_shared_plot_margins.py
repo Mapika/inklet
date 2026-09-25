@@ -1,4 +1,4 @@
-"""Opt-in equal physical plot regions across differently labelled grid cells."""
+"""Opt-in shared plot furniture across differently labelled grid cells."""
 
 import pytest
 
@@ -41,19 +41,23 @@ def _regions(compiled, prefix=''):
     return result
 
 
-def _assert_equal_sizes(regions):
+def _assert_shared(regions):
+    # Every data region has the same height; regions in one column share both
+    # vertical grid lines, so they also share their data left and right edges.
     first = next(iter(regions.values()))
     assert first.width > 5 and first.height > 5
     for region in regions.values():
-        assert (region.width, region.height) == pytest.approx(
-            (first.width, first.height), abs=1e-5)
+        assert region.height == pytest.approx(first.height, abs=1e-5)
+    for top, below in (('a', 'c'), ('b', 'd')):
+        assert (regions[top].x0, regions[top].x1) == pytest.approx(
+            (regions[below].x0, regions[below].x1), abs=1e-5)
 
 
 @pytest.mark.parametrize('height', [None, 150])
 def test_shared_margins_equalize_data_regions_with_letters_and_empty_series(height):
     compiled = _grid(height=height, share_plot_margins=True).compile()
     regions = _regions(compiled)
-    _assert_equal_sizes(regions)
+    _assert_shared(regions)
     if height is None:
         # The largest top and bottom labels are on different panels. Reserve
         # both instead of subtracting their sum from only one panel's height.
@@ -64,8 +68,11 @@ def test_shared_margins_equalize_data_regions_with_letters_and_empty_series(heig
         margins.append((region.x0 - cell.x0, cell.x1 - region.x1,
                         region.y0 - cell.y0, cell.y1 - region.y1))
     assert all(min(margin) >= 0 for margin in margins)
-    for margin in margins[1:]:
-        assert margin[:2] == pytest.approx(margins[0][:2], abs=1e-5)
+    # Left and right furniture is shared along a column, not across the grid:
+    # the right axis on 'b' does not narrow the data in column 0.
+    assert margins[2][:2] == pytest.approx(margins[0][:2], abs=1e-5)
+    assert margins[3][:2] == pytest.approx(margins[1][:2], abs=1e-5)
+    assert margins[1][1] > margins[0][1] + 5
     if height is None:
         # Automatic rows share top and bottom furniture along the row only,
         # so one row's tall labels do not open a gap under every other row.
@@ -74,7 +81,7 @@ def test_shared_margins_equalize_data_regions_with_letters_and_empty_series(heig
         assert margins[0][2:] != pytest.approx(margins[2][2:], abs=1e-3)
     else:
         for margin in margins[1:]:
-            assert margin == pytest.approx(margins[0], abs=1e-5)
+            assert margin[2:] == pytest.approx(margins[0][2:], abs=1e-5)
     assert regions['a'].y0 == pytest.approx(regions['b'].y0)
     assert regions['a'].x0 == pytest.approx(regions['c'].x0)
     assert not any(d.code in ('OFF_CANVAS', 'RULE_FAILED') for d in compiled.diagnostics)
@@ -90,7 +97,9 @@ def test_default_layout_remains_identical_to_explicit_false():
 
 
 def test_direct_toggle_invalidates_compilation_and_preserves_previous_snapshot():
-    doc = _grid()
+    # Unshared cells already align within their column and row tracks; a fixed
+    # height is where sharing visibly differs, by equalizing top and bottom.
+    doc = _grid(height=150)
     original = doc.compile()
     original_svg = original.to_svg()
     assert doc.compile() is original
@@ -100,7 +109,7 @@ def test_direct_toggle_invalidates_compilation_and_preserves_previous_snapshot()
     shared = doc.compile()
     assert shared is not original
     assert doc.compile() is shared
-    _assert_equal_sizes(_regions(shared))
+    _assert_shared(_regions(shared))
     assert shared.to_svg() != original_svg
     assert original.to_svg() == original_svg
     doc.configure(share_plot_margins=False)
@@ -117,7 +126,7 @@ def test_resize_and_label_edit_match_clean_compilation():
     clean.configure(width=260)
     clean['a'].replace('labels', x='Revised elapsed time / s', y='Response / units')
     assert resized.to_svg() == clean.compile().to_svg()
-    _assert_equal_sizes(_regions(resized))
+    _assert_shared(_regions(resized))
     assert _regions(resized)['a'].width > _regions(before)['a'].width
 
 
@@ -133,7 +142,7 @@ def test_nested_flag_change_invalidates_parent_and_keeps_child_names_stable():
     updated = outer.compile()
     assert updated is not original
     assert outer.compile() is updated
-    _assert_equal_sizes(_regions(updated, 'cell-group/'))
+    _assert_shared(_regions(updated, 'cell-group/'))
     assert abs(_regions(original, 'cell-group/')['a'].width
                - _regions(original, 'cell-group/')['b'].width) > 5
     assert original.to_svg() == before_svg
@@ -160,16 +169,64 @@ def test_shared_margins_do_not_resize_fixed_diagrams():
 
 
 def test_shared_margins_respect_unequal_author_selected_column_widths():
-    doc = i.document(width=220, height=70, columns=(1, 2), share_plot_margins=True)
-    for index, plot in enumerate(_plots()[:2]):
-        doc.add(chr(ord('a') + index), plot, row=0, column=index)
-    compiled = doc.compile()
+    def make(shared):
+        doc = i.document(width=220, height=70, columns=(1, 2), share_plot_margins=shared)
+        for index, plot in enumerate(_plots()[:2]):
+            doc.add(chr(ord('a') + index), plot, row=0, column=index)
+        return doc.compile()
+
+    compiled = make(True)
     positions = compiled.build()[1]
     areas = [plot_area(positions[f'cell-{name}'].diagram) for name in ('a', 'b')]
     assert areas[1].width > areas[0].width
-    assert areas[1].width - areas[0].width == pytest.approx(
-        compiled.cells['b'].width - compiled.cells['a'].width)
     assert areas[0].height == pytest.approx(areas[1].height)
+    # The two cells share no vertical grid line, so each keeps its own left
+    # and right furniture, exactly as without sharing.
+    alone = make(False).build()[1]
+    for name, area in zip('ab', areas):
+        own = plot_area(alone[f'cell-{name}'].diagram)
+        assert (area.x0, area.x1) == pytest.approx((own.x0, own.x1), abs=1e-5)
+
+
+def _spanned(shared):
+    # Twelve tracks with mixed spans, as on a dense journal page. Only 'a'
+    # carries a long y label; only 'b' carries wide right-axis furniture.
+    doc = i.document(width=183, columns=12, share_plot_margins=shared).letters()
+
+    def plot():
+        return i.plot_spec(height=20, x=(0, 10), y=(0, 10)).line([(0, 0), (10, 10)])
+
+    doc.add('a', plot().axes(y='A deliberately long response label / units'),
+            row=0, column=0, colspan=6)
+    doc.add('b', plot().axes().axis('right', label='Secondary axis',
+                                    format=lambda value: f'{value:.6f}'),
+            row=0, column=6, colspan=6)
+    doc.add('c', plot().axes(), row=1, column=0, colspan=4)
+    doc.add('d', plot().axes(), row=1, column=4, colspan=4)
+    doc.add('e', plot().axes(), row=1, column=8, colspan=4)
+    return doc.compile()
+
+
+def _areas(compiled, names):
+    positions = compiled.build()[1]
+    return {name: plot_area(positions[f'cell-{name}'].diagram).transform(
+        positions[f'cell-{name}'].world @ positions[f'cell-{name}'].diagram.transform.inverse())
+        for name in names}
+
+
+def test_left_and_right_furniture_is_shared_along_grid_lines_only():
+    names = 'abcde'
+    shared, alone = _areas(_spanned(True), names), _areas(_spanned(False), names)
+    # Cells on the same left grid line align their data left edges, and cells
+    # on the same right grid line align their data right edges.
+    assert shared['c'].x0 == pytest.approx(shared['a'].x0, abs=1e-5)
+    assert shared['e'].x1 == pytest.approx(shared['b'].x1, abs=1e-5)
+    assert alone['c'].x0 != pytest.approx(alone['a'].x0, abs=1e-2)
+    # A cell that shares no grid line with the long label or the right axis
+    # keeps its own furniture instead of reserving theirs.
+    assert shared['d'].x0 == pytest.approx(alone['d'].x0, abs=1e-5)
+    assert shared['d'].x1 == pytest.approx(alone['d'].x1, abs=1e-5)
+    assert shared['d'].width > shared['c'].width
 
 
 @pytest.mark.parametrize('width, series_count', [(180, 4), (220, 6), (260, 8)])
@@ -191,7 +248,6 @@ def test_wrapping_legends_grow_auto_height_without_shrinking_data(width, series_
     def assert_data_height(compiled):
         positions = compiled.build()[1]
         areas = [plot_area(positions[f'cell-{name}'].diagram) for name in ('left', 'right')]
-        assert areas[0].width == pytest.approx(areas[1].width)
         for area in areas:
             assert area.height == pytest.approx(30, abs=1e-5)
         assert not any(d.code in ('OFF_CANVAS', 'RULE_FAILED') for d in compiled.diagnostics)
@@ -226,3 +282,15 @@ def test_invalid_configuration_is_atomic_and_direct_edits_are_revalidated():
     doc.share_plot_margins = 'yes'
     with pytest.raises((TypeError, ValueError), match='share_plot_margins'):
         doc.compile()
+
+
+def test_all_shares_left_and_right_furniture_across_the_grid():
+    # Small multiples need one physical scale: 'all' keeps the whole-grid rule.
+    for height in (None, 150):
+        regions = _regions(_grid(height=height, share_plot_margins='all').compile())
+        first = regions['a']
+        for region in regions.values():
+            assert (region.width, region.height) == pytest.approx(
+                (first.width, first.height), abs=1e-5)
+    spanned = _areas(_spanned('all'), 'abcde')
+    assert spanned['d'].width == pytest.approx(spanned['c'].width, abs=1e-5)
