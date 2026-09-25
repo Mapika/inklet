@@ -1,5 +1,10 @@
 # Development history
 
+!!! note "Moved"
+
+    This list is now part of [development notes](development.md#earlier-releases-and-studies),
+    together with engine studies, design notes and release process pages.
+
 These pages retain earlier release notes, prototype decisions and benchmark
 results. They stay at their original URLs so existing links and anchors work,
 but are excluded from ordinary documentation search. Use the linked current

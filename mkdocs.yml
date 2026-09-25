@@ -21,9 +21,93 @@ hooks:
 extra:
   # Group labels shown in the sidebar before these top-level sections.
   nav_labels:
-    Start here: Guides
-    Interactive documents (experimental): Previews
-    Examples: Examples and reference
+    Get started: Guides
+    Gallery: Examples and reference
+    Experimental: Previews and project notes
+  # Plot-catalog titles shown on the home page, in this order. Titles not in
+  # tools/plot_catalog.json are skipped.
+  home_plots:
+    - Dumbbells
+    - Labelled points
+    - Volcano plots
+    - Bar value labels
+    - Cumulative distributions
+    - Ridgelines
+    - Rainclouds
+    - Dendrograms
+    - Radar charts
+    - Pie breakout bars
+    - UpSet plots
+  # One-line summaries shown above each family in the plot-type gallery.
+  # Families come from the `category` field of tools/plot_catalog.json.
+  plot_families:
+    Lines and points: Ordered series, steps and scatter, with paired-value dumbbells, lollipops, labelled points and volcano plots.
+    Bars and areas: Grouped, stacked and horizontal bars with value labels, and areas between curves.
+    Distributions: Histograms, boxplots, violins, swarms, cumulative distributions, ridgelines and rainclouds.
+    Uncertainty: Supplied bounds as bands and error bars.
+    Matrices: Heatmaps with a colour key, and dendrograms that order the rows.
+    Polar: Angle and radius, from polar curves and roses to radar charts, pies, donuts and breakout bars.
+  # Pages built and searchable but left out of the sidebar. Each one belongs
+  # to a section: the sidebar opens that section and search reports it. Every
+  # page listed here must also be listed in not_in_nav below.
+  unlisted:
+    Diagrams:
+      - diagram-engine.md
+    3D and images:
+      - scientific-scenes.md
+      - open-anatomy.md
+    Gallery:
+      - general-plots.md
+      - biology-panels.md
+      - complex-scene.md
+      - recipes/interference.md
+      - recipes/attractor.md
+      - recipes/wave-packets.md
+      - recipes/photonics.md
+      - recipes/lattice.md
+      - recipes/helix.md
+      - recipes/architecture.md
+      - recipes/architecture-sketch.md
+    Experimental:
+      - table-inputs.md
+      - time-series.md
+      - statistical-views.md
+      - geographic-features.md
+      - visual-editing.md
+      - regional-report.md
+      - world-map.md
+      - engineering-report.md
+      - scientific-report.md
+      - mesh-fields.md
+      - contours-streamlines.md
+      - oblique-sections.md
+      - slabs-and-regions.md
+      - channels-and-contours.md
+      - label-measurements.md
+      - microscopy-tiff.md
+      - real-biology.md
+      - oblique-biology.md
+      - slab-biology.md
+      - fluorescence-biology.md
+      - label-intensities.md
+    Development:
+      - history.md
+      - development-preview.md
+      - roadmap.md
+      - acceptance.md
+      - release-checks.md
+      - brand.md
+      - rendering-engine.md
+      - plot-quality.md
+      - compositing.md
+      - hatching.md
+      - clipping.md
+      - compiled-scenes.md
+      - marker-batches.md
+      - marker-culling.md
+      - design/v2.md
+      - design/capability-gaps.md
+      - design/docs-structure.md
 extra_css:
   - stylesheets/code.css
   - stylesheets/inklet.css
@@ -47,128 +131,80 @@ validation:
     anchors: warn
 nav:
 - Overview: index.md
-- Start here:
+- Get started:
   - Install Inklet: installation.md
   - First figure: quickstart.md
   - From CSV to a figure: csv-figure.md
   - How Inklet works: concepts.md
 - Plots:
-  - Visual plot gallery: plot-types.md
+  - Plot type gallery: plot-types.md
   - Build and combine plots: plotting.md
-  - Reusable recipes and styling: plot-recipes.md
-  - Plot guides:
-    - Lines and points: lines-and-points.md
-    - Bars and areas: bars-and-areas.md
-    - Distributions: distributions.md
-    - Uncertainty: uncertainty.md
-    - Matrices: matrices.md
-    - Polar plots: polar-plots.md
+  - Lines and points: lines-and-points.md
+  - Bars and areas: bars-and-areas.md
+  - Distributions: distributions.md
+  - Uncertainty: uncertainty.md
+  - Matrices and dendrograms: matrices.md
+  - Polar, radar and pie: polar-plots.md
   - Axes, scales and text: axes-and-scales.md
   - Live data and categories: data.md
   - Dense data: dense-data.md
-  - Advanced plot layout: publication-plots.md
-- Whole figures:
-  - Panel layout: layout.md
+  - Reusable plot recipes: plot-recipes.md
+  - Insets and shared categories: publication-plots.md
+- Figures and layout:
+  - Overview: figures.md
+  - Dense figure pages: dense-figures.md
+  - Panel layout in millimetres: layout.md
+  - Presets and journal styles: presets.md
   - Reusable compositions: composition-recipes.md
-  - Figure projects and assets: project-workflows.md
-  - Save layout choices: layout-overrides.md
-  - Local layout editor: layout-editor.md
-  - Presets and styling: presets.md
-  - Scientific illustrations: scientific-authoring.md
   - Complex scientific plates: complex-figures.md
-  - Review and export: export-review.md
+  - Scientific illustrations: scientific-authoring.md
 - Diagrams:
+  - Overview: diagrams-overview.md
   - Measured connections: diagrams.md
   - Component library: diagram-components.md
-  - Architecture example: diagram-engine.md
 - 3D and images:
+  - Overview: three-d.md
   - Meshes and images: three-images.md
   - Blender scenes: blender-scenes.md
-  - Label an anatomy model: open-anatomy.md
-  - Biological schematics: scientific-scenes.md
-  - GPU rendering and jobs: render-jobs.md
-  - Vector paths in scenes: scene-paths.md
   - Annotations and measurements: scene-annotations.md
+  - Vector paths in scenes: scene-paths.md
   - Scene templates: scene-templates.md
-  - Annotated scene example: complex-scene.md
-- Interactive documents (experimental):
-  - Choose an interactive workflow: interactive-documents.md
-  - Inklet 4.0: development-preview.md
-  - Native figure viewer: compiled-viewer.md
-  - Linked plots: linked-plots.md
-  - Category panels: linked-facets.md
-  - pandas and Polars inputs: table-inputs.md
-  - Dates and time series: time-series.md
-  - Distributions and intervals: statistical-views.md
-  - Region maps: linked-maps.md
-  - Points, routes and regions: geographic-features.md
-  - Replace source data: data-revisions.md
-  - Edit plot appearance: visual-editing.md
-  - Complete reports:
-    - Regional report: regional-report.md
-    - World map: world-map.md
-    - Engineering report: engineering-report.md
-    - Image measurements: scientific-report.md
-    - Mesh fields: mesh-fields.md
-    - Contours and streamlines: contours-streamlines.md
-- Microscopy (preview):
-  - Calibrated volumes: calibrated-volumes.md
-  - Oblique sections: oblique-sections.md
-  - Slab projections and regions: slabs-and-regions.md
-  - Channels and contours: channels-and-contours.md
-  - Per-label intensities: label-measurements.md
-  - TIFF import: microscopy-tiff.md
-  - Biology examples:
-    - Coordinated panels: biology-panels.md
-    - Real microscopy and organelles: real-biology.md
-    - Shared oblique planes: oblique-biology.md
-    - Linked slab regions: slab-biology.md
-    - Fluorescence channels: fluorescence-biology.md
-    - Microscopy intensity plots: label-intensities.md
-- Examples:
+  - GPU rendering and jobs: render-jobs.md
+- Export and review:
+  - Overview: export.md
+  - Export, diagnostics and revisions: export-review.md
+  - Figure viewer in HTML: compiled-viewer.md
+- Gallery:
   - Figure gallery: examples.md
-  - Scientific figure gallery: scientific-gallery.md
-  - Everyday plots from CSV: general-plots.md
-  - All example scripts: example-library.md
-  - Direct drawing cookbook: cookbook.md
+  - Scientific figures: scientific-gallery.md
+  - Showcase recipes: showcase.md
   - Twenty-panel figure: stress20.md
-  - Showcase recipes:
-    - Rebuild the showcase: showcase.md
-    - Interference: recipes/interference.md
-    - Deterministic chaos: recipes/attractor.md
-    - Travelling wave packets: recipes/wave-packets.md
-    - Integrated photonics: recipes/photonics.md
-    - Designed porosity: recipes/lattice.md
-    - Paired helices: recipes/helix.md
-    - Architectural interior: recipes/architecture.md
-    - Architectural sketch: recipes/architecture-sketch.md
+  - All example scripts: example-library.md
 - Reference:
   - Python API: api.md
   - Command line: cli.md
-  - Troubleshooting: troubleshooting.md
+  - Direct drawing cookbook: cookbook.md
   - Compatibility: compatibility.md
   - Migration: migration.md
+  - Troubleshooting: troubleshooting.md
+- Experimental:
+  - Overview: experimental.md
+  - Interactive documents: interactive-documents.md
+  - Linked plots: linked-plots.md
+  - Category panels: linked-facets.md
+  - Region maps: linked-maps.md
+  - Replace source data: data-revisions.md
+  - Figure projects: project-workflows.md
+  - Save layout choices: layout-overrides.md
+  - Local layout editor: layout-editor.md
+  - Microscopy volumes: calibrated-volumes.md
+  - Research preview: research-preview.md
 - Development:
-  - Roadmap to 4.0: roadmap.md
+  - Development notes: development.md
   - Contributing: https://github.com/Mapika/inklet/blob/master/CONTRIBUTING.md
   - Changelog: https://github.com/Mapika/inklet/blob/master/CHANGELOG.md
-  - Acceptance workflows: acceptance.md
-  - Release checks: release-checks.md
-  - Development history: history.md
-  - Logo and brand assets: brand.md
-  - Engine studies:
-    - Engine measurements: rendering-engine.md
-    - Shared plotting quality: plot-quality.md
-    - Transparency and compositing: compositing.md
-    - Vector hatching: hatching.md
-    - Curves and painted windows: clipping.md
-    - Compiled scenes: compiled-scenes.md
-    - Packed markers: marker-batches.md
-    - Spatial marker culling: marker-culling.md
-  - Research studies: research-preview.md
-  - Compilation contract: design/v2.md
-  - Plot capability gaps: design/capability-gaps.md
 not_in_nav: |
+  # Archived pages (front matter `archived: true`), excluded from search.
   /v2.md
   /v2.5.md
   /v3.md
@@ -180,3 +216,56 @@ not_in_nav: |
   /design/v4.md
   /design/browser-backends.md
   /design/page_grid.md
+  # Pages listed under extra.unlisted.
+  /diagram-engine.md
+  /scientific-scenes.md
+  /open-anatomy.md
+  /general-plots.md
+  /biology-panels.md
+  /complex-scene.md
+  /recipes/interference.md
+  /recipes/attractor.md
+  /recipes/wave-packets.md
+  /recipes/photonics.md
+  /recipes/lattice.md
+  /recipes/helix.md
+  /recipes/architecture.md
+  /recipes/architecture-sketch.md
+  /table-inputs.md
+  /time-series.md
+  /statistical-views.md
+  /geographic-features.md
+  /visual-editing.md
+  /regional-report.md
+  /world-map.md
+  /engineering-report.md
+  /scientific-report.md
+  /mesh-fields.md
+  /contours-streamlines.md
+  /oblique-sections.md
+  /slabs-and-regions.md
+  /channels-and-contours.md
+  /label-measurements.md
+  /microscopy-tiff.md
+  /real-biology.md
+  /oblique-biology.md
+  /slab-biology.md
+  /fluorescence-biology.md
+  /label-intensities.md
+  /history.md
+  /development-preview.md
+  /roadmap.md
+  /acceptance.md
+  /release-checks.md
+  /brand.md
+  /rendering-engine.md
+  /plot-quality.md
+  /compositing.md
+  /hatching.md
+  /clipping.md
+  /compiled-scenes.md
+  /marker-batches.md
+  /marker-culling.md
+  /design/v2.md
+  /design/capability-gaps.md
+  /design/docs-structure.md

@@ -39,6 +39,10 @@ def on_config(config):
     config['extra']['archive_pages'] = []
     config['extra'].pop('docs_thumbs', None)
     config['extra'].setdefault('nav_labels', {})
+    # extra.unlisted maps a sidebar section to pages left out of the sidebar.
+    config['extra']['unlisted_sections'] = {
+        page: section for section, pages in config['extra'].get('unlisted', {}).items()
+        for page in pages}
     assets = [*config['extra_css'], *config['extra_javascript']]
     digest = hashlib.sha256()
     for asset in assets:
@@ -98,6 +102,28 @@ def rewrite_links(markdown, source_path, repo_url, ref='master'):
                    for index,part in enumerate(FENCE.split(markdown)))
 
 
+def resolve_cards(page, files):
+    """Give each card on a section overview its page URL, and check its image.
+
+    Cards name their page as a docs-relative Markdown path, optionally with an
+    anchor, so a renamed or missing page fails the build like a broken link.
+    Images are site paths: ``gallery/...`` or a file under docs/.
+    """
+    groups = page.meta.get('groups') or []
+    for group in groups:
+        group['id'] = re.sub(r'[^a-z0-9]+', '-', group['title'].lower()).strip('-')
+        group['images'] = any(card.get('image') for card in group['cards'])
+        for card in group['cards']:
+            path, _, fragment = card['page'].partition('#')
+            target = files.get_file_from_path(path)
+            if target is None:
+                raise ValueError(f'{page.file.src_uri}: card links to missing page {path}')
+            card['url'] = target.url + (f'#{fragment}' if fragment else '')
+            image = card.get('image')
+            if image and not (ROOT/image if image.startswith('gallery/') else DOCS/image).is_file():
+                raise ValueError(f'{page.file.src_uri}: card image {image} does not exist')
+
+
 def on_page_markdown(markdown, page, config, files):
     if page.meta.get('archived'):
         config['extra']['archive_pages'].append(page.url)
@@ -106,6 +132,8 @@ def on_page_markdown(markdown, page, config, files):
             raise ValueError(f'{page.file.src_uri}: archived pages need a current guide')
         markdown = ('!!! note "Historical material"\n\n'
                     f'    This page preserves an earlier release or study. See the [current guide]({current}) for supported behavior.\n\n' + markdown)
+    if page.meta.get('layout') == 'section':
+        resolve_cards(page, files)
     def recipe(match):
         source = (ROOT/'examples/showcase/figures.py').read_text()
         function = next(node for node in ast.parse(source).body
@@ -172,6 +200,12 @@ def on_page_context(context, page, config, nav):
     context['docs_gallery'] = json.loads((ROOT/'tools/docs_gallery.json').read_text())
     context['docs_plots'] = json.loads((ROOT/'tools/plot_catalog.json').read_text())
     context['docs_version'] = docs_version()
+    # A page outside the sidebar still belongs to a section: the sidebar opens
+    # it, the breadcrumb names it and search results report it.
+    section = config['extra']['unlisted_sections'].get(page.file.src_uri)
+    context['nav_section'] = section
+    if section and page.url not in config['extra']['search_pages']:
+        config['extra']['search_pages'][page.url] = dict(section=section, page_title=page.title)
     if page.meta.get('layout') == 'home':
         context['home_example'] = home_example()
     headings = list(page.toc)

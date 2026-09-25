@@ -1,18 +1,19 @@
-{% macro navigation(items, depth=0) %}
+{% macro navigation(items, depth=0, hint='') %}
 {% for item in items %}
 {% if depth == 0 and item.title in config.extra.nav_labels %}<p class="nav-label">{{ config.extra.nav_labels[item.title] }}</p>{% endif %}
 {% if item.children %}
-<details class="nav-group" {% if item.active or item.title == 'Start here' %}open{% endif %}>
-  <summary>{{ item.title }}</summary><div>{{ navigation(item.children, depth + 1) }}</div>
+<details class="nav-group" {% if item.active or item.title == 'Get started' or (depth == 0 and item.title == hint) %}open{% endif %}>
+  <summary>{{ item.title }}</summary><div>{{ navigation(item.children, depth + 1, hint) }}</div>
 </details>
 {% else %}<a href="{{ item.url|url }}" {% if item.active %}aria-current="page"{% endif %}{% if item.is_link %} class="nav-external"{% endif %}>{{ item.title }}</a>{% endif %}
 {% endfor %}
 {% endmacro %}
 {%- set ns = namespace(top='') -%}
 {%- if page -%}{%- for ancestor in page.ancestors -%}{%- set ns.top = ancestor.title -%}{%- endfor -%}{%- endif -%}
+{%- if not ns.top and nav_section -%}{%- set ns.top = nav_section -%}{%- endif -%}
 {%- set layout = page.meta.layout if page and page.meta.layout else 'doc' -%}
 {%- if page and page.url == 'plot-types/' -%}{%- set tab = 'plots' -%}
-{%- elif page and (page.url == 'examples/' or ns.top == 'Examples') -%}{%- set tab = 'gallery' -%}
+{%- elif page and (page.url == 'examples/' or ns.top == 'Gallery') -%}{%- set tab = 'gallery' -%}
 {%- elif page and page.url == 'api/' -%}{%- set tab = 'api' -%}
 {%- elif page and not page.is_homepage -%}{%- set tab = 'guides' -%}
 {%- else -%}{%- set tab = '' -%}{%- endif -%}
@@ -51,7 +52,7 @@
 </header>
 <div class="site-layout">
   <aside class="sidebar" id="sidebar" aria-label="Documentation navigation">
-    <nav aria-label="Documentation">{{ navigation(nav) }}</nav>
+    <nav aria-label="Documentation">{{ navigation(nav, 0, ns.top) }}</nav>
   </aside>
   <div class="nav-backdrop" hidden></div>
   <main id="main-content" tabindex="-1">
@@ -61,10 +62,12 @@
       {#- Text after an <!-- about --> marker folds into a collapsed note so the grid starts on the first screen. -#}
       {%- set intro = page.content.split('<!-- about -->', 1) -%}
       <div class="gallery-page"><div class="page-intro prose">{{ intro[0] }}{% if intro|length > 1 %}<details class="gallery-about"><summary>About this gallery</summary>{{ intro[1] }}</details>{% endif %}</div>{% if page.meta.catalog == 'plots' %}{% include 'plot-gallery.html' %}{% else %}{% include 'gallery.html' %}{% endif %}</div>
+    {% elif layout == 'section' %}
+      {% include 'section.html' %}
     {% else %}
       {%- set has_toc = page.toc and (page.toc|first).children -%}
       <div class="reading-layout{% if not has_toc %} no-toc{% endif %}"><article class="prose">
-        <nav class="breadcrumbs" aria-label="Breadcrumb">{% if page.ancestors %}{% for ancestor in page.ancestors|reverse %}<span>{{ ancestor.title }}</span>{% endfor %}{% else %}<span>Documentation</span>{% endif %}</nav>
+        <nav class="breadcrumbs" aria-label="Breadcrumb">{% if page.ancestors %}{% for ancestor in page.ancestors|reverse %}<span>{{ ancestor.title }}</span>{% endfor %}{% elif ns.top %}<span>{{ ns.top }}</span>{% else %}<span>Documentation</span>{% endif %}</nav>
         {% if has_toc %}
         <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page sections">{% for item in page.toc %}{% for child in item.children %}<a href="{{ child.url }}">{{ child.title }}</a>{% endfor %}{% endfor %}</nav></details>
         {% endif %}

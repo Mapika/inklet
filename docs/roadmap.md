@@ -79,4 +79,4 @@ prerelease does not automatically publish or designate a stable release.
 Animation, timelines, transitions, camera paths, video/GIF and presentation
 authoring remain the **5.0 direction**. Existing presentation styling presets
 continue to work. Earlier proposals and measurements are preserved in
-[development history](history.md); they are not additional release checklists.
+[development history](development.md#earlier-releases-and-studies); they are not additional release checklists.

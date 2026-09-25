@@ -8,6 +8,17 @@ Browse the [figure gallery](examples.md) for full previews, individual recipes,
 requirements and source links. This page explains how to rebuild and reuse the
 complete collection.
 
+| Recipe | Content |
+| --- | --- |
+| [Interference](recipes/interference.md) | Two radial waves on one shared colour scale |
+| [Deterministic chaos](recipes/attractor.md) | A Lorenz trajectory drawn as continuous vector strokes |
+| [Travelling wave packets](recipes/wave-packets.md) | Eighteen offset signals in a consistent drawing order |
+| [Integrated photonics](recipes/photonics.md) | A rendered device and an analytic transmission curve |
+| [Designed porosity](recipes/lattice.md) | A procedural strut lattice between two compression plates |
+| [Paired helices](recipes/helix.md) | Parametric backbones and repeated connecting links |
+| [An architectural interior](recipes/architecture.md) | Authored materials, textured furniture and an orthographic camera |
+| [From scene to sketch](recipes/architecture-sketch.md) | The same room and camera with matte surfaces and outlines |
+
 ## Build and download the collection
 
 From a repository checkout, install Inklet and the rendering extras:
