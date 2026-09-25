@@ -2245,7 +2245,8 @@ class Panel:
                   colors=None, size=None, labels: bool = True,
                   centre: str = "median", label_size: float | str | None = None,
                   arrows=None, shuffle: bool = True, seed: int = 0,
-                  raster: bool = False, **style) -> "Panel":
+                  raster: bool = False, outline=None,
+                  outline_core: float = 0.8, **style) -> "Panel":
         """A UMAP or t-SNE style scatter, coloured and named by cluster.
 
         `points` are `(x, y)` pairs and `clusters` one cluster name per
@@ -2261,7 +2262,19 @@ class Panel:
         halo. The centre is on the data: by default the member point nearest
         the cluster's median (`centre="median"`), or `"medoid"` or `"mean"`;
         see `inklet.plot.cluster_centres`. A name that would overlap one
-        already placed moves to the nearest free spot around its centre.
+        already placed, or the points of another cluster, moves to the
+        nearest free spot around its centre. It may cover its own cluster.
+        Names that could not clear other clusters' points are listed under
+        `covering` in the note.
+
+        `outline="line"` (or `True`) draws a smooth outline round each
+        cluster's core, thin and in the cluster's colour, over the points;
+        `outline="fill"` draws the core as a light tint under them. The core
+        is the densest `outline_core` share of the cluster's points (default
+        0.8), found as a density threshold, so stray points do not enlarge
+        it. Names keep off other clusters' outlines, and with `"fill"` off
+        the edge of their own tint too, so a name wider than its core sits
+        beside it. The note records the style, the core share and the rings.
 
         `arrows="UMAP"` draws two short arrows in the lower-left corner,
         labelled UMAP1 and UMAP2, instead of axes; a pair of names sets both
@@ -2279,7 +2292,8 @@ class Panel:
         note = _embedding(self, points, clusters, colors=colors, size=size,
                           labels=labels, centre=centre, label_size=label_size,
                           arrows=arrows, shuffle=shuffle, seed=seed,
-                          raster=raster, **style)
+                          raster=raster, outline=outline,
+                          outline_core=outline_core, **style)
         last = (self._over or self._content)[-1]
         last.notes["embedding"] = note
         return self

@@ -495,3 +495,90 @@ def test_contrast_lint_reads_a_halo_and_a_translucent_fill() -> None:
     haloed = inklet.text("0.5", size=2, text_fill="#1a1a1a", halo=0.5)
     ringed = place([solid, (Vec2(5, 5), haloed)], origin=(0, 0))
     assert "LOW_CONTRAST" not in [d.code for d in lint(ringed)]
+
+
+# -- theta labels on a turned pie ---------------------------------------------
+
+
+def _connector_ends(p):
+    muted = active_theme().muted
+    return [tuple(x.world.apply(v) for v in x.diagram.prim.subpaths[0].points)
+            for x in placements(p, MARK_LINE_KIND)
+            if x.diagram.style.stroke == muted]
+
+
+def _angle_boxes(p):
+    return {k: x.bbox for k, x in texts(p).items() if k.endswith("°")}
+
+
+def _theta_note(p):
+    return next(x.notes["theta_axis"] for x in p._over if "theta_axis" in x.notes)
+
+
+@pytest.mark.parametrize("after", [False, True])
+def test_theta_labels_keep_off_a_breakout_connector(after) -> None:
+    from inklet.plot.point_labels import _segment_hits
+
+    p = polar(12)
+    p.pie([70, 20, 10])
+    if not after:
+        p.theta_axis(count=8)
+    p.breakout([1, 2])
+    if after:
+        p.theta_axis(count=8)
+    # Drawn under the turned angles without the breakout in view, the 270°
+    # label lies on the upper connector.
+    bare = polar(12, zero=p.theta.zero, winding=p.theta.winding)
+    bare.pie([70, 20, 10])
+    bare.theta_axis(count=8)
+    ends = _connector_ends(p)
+    assert any(_segment_hits(a, b, _angle_boxes(bare)["270°"]) for a, b in ends)
+    # With it, the label is nudged off, the choice recorded in a note.
+    boxes = _angle_boxes(p)
+    assert len(boxes) == 8
+    for box in boxes.values():
+        assert not any(_segment_hits(a, b, box) for a, b in ends)
+    assert _theta_note(p) == {"nudged": ["270°"], "dropped": []}
+    breakout = p._content[-1].notes["pie_breakout"]
+    if after:
+        assert "axis_labels" not in breakout
+    else:
+        assert breakout["axis_labels"] == {"nudged": ["270°"], "dropped": []}
+    # Nudged, not moved to another tick: still nearest its own spoke.
+    moved = boxes["270°"].center
+    bearing = math.degrees(math.atan2(moved.y, moved.x)) % 360
+    spoke = p.theta.page(270) % 360
+    assert abs((bearing - spoke + 180) % 360 - 180) < 22.5
+    assert [d for d in lint(p.build()) if d.severity != "info"] == []
+
+
+def test_curved_theta_labels_on_a_connector_are_dropped() -> None:
+    from inklet.plot.point_labels import _segment_hits
+
+    p = polar(12)
+    p.pie([70, 20, 10])
+    p.theta_axis(count=8, curved=True)
+    p.breakout([1, 2])
+    note = _theta_note(p)
+    assert note["nudged"] == [] and "270°" in note["dropped"]
+    ends = _connector_ends(p)
+    for x in placements(p, TICK_LABEL_KIND):
+        if getattr(x.diagram.prim, "text", None):
+            assert not any(_segment_hits(a, b, x.bbox) for a, b in ends)
+
+
+def test_theta_labels_clear_of_the_bar_stay_where_they_are() -> None:
+    p = polar(12)
+    p.pie([50, 30, 20])
+    p.theta_axis(count=8)
+    p.breakout([1, 2], gap=12)
+    note = _theta_note(p)
+    assert note["dropped"] == []
+    q = polar(12, zero=p.theta.zero, winding=p.theta.winding)
+    q.pie([50, 30, 20])
+    q.theta_axis(count=8)
+    before, after = _angle_boxes(q), _angle_boxes(p)
+    for text, box in after.items():
+        if text not in note["nudged"]:
+            assert box.center.x == pytest.approx(before[text].center.x)
+            assert box.center.y == pytest.approx(before[text].center.y)

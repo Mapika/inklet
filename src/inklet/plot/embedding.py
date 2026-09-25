@@ -10,10 +10,13 @@ the plain centroid.
 
 `Panel.embedding` draws the points with one `scatter` call, so from 256
 points up they are one packed marker batch, and writes each cluster's name at
-its centre on a paper halo. When two names would overlap, the later one moves
-to the nearest free spot around its centre, searched on the rings
-`label_points` uses. `arrows=` replaces the axes with two short arrows in the
-lower-left corner, labelled for example UMAP1 and UMAP2.
+its centre on a paper halo. A name that would overlap a name already placed,
+or the points of another cluster, moves to the nearest free spot around its
+centre, searched on the rings `label_points` uses. It may cover its own
+cluster. `outline=` draws each cluster's core, found by `core_outline`, as a
+thin line in its colour or a light fill under the points. `arrows=` replaces
+the axes with two short arrows in the lower-left corner, labelled for example
+UMAP1 and UMAP2.
 """
 
 from __future__ import annotations
@@ -27,11 +30,14 @@ from ..draw.coords import active_theme
 from ..draw.path import polygon, polyline
 from ..draw.place import place as draw_place
 from ..draw.shapes import MARK_KIND, MARK_LINE_KIND
+from ..themes.color import mix
 from .axis import text_node
+from .outlines import core_outline
 from .point_labels import (POINT_LABEL_KIND, _box_at, _candidates, _overlap,
                            _within)
 
-__all__ = ["cluster_centres", "cluster_colors", "CENTRE_METHODS"]
+__all__ = ["cluster_centres", "cluster_colors", "CENTRE_METHODS",
+           "OUTLINE_STYLES"]
 
 #: Accepted values of `cluster_centres(method=)`.
 CENTRE_METHODS = ("median", "medoid", "mean")
@@ -41,6 +47,22 @@ _MEDOID_SAMPLE = 400
 
 #: The halo behind a cluster name, in mm.
 _HALO = 0.8
+
+#: Accepted values of `Panel.embedding(outline=)`.
+OUTLINE_STYLES = ("line", "fill")
+
+#: An outline fill is the cluster colour blended this far towards paper.
+_FILL_TOWARD_PAPER = 0.8
+
+#: Cluster names: how far out the search goes, in type sizes; the weight of
+#: covering another name (per square millimetre), of each outline crossed
+#: and of each millimetre moved, against other clusters' points covered (per
+#: square millimetre); and the smallest cell of the dot grid, in mm.
+_REACH = 6.0
+_NAME_WEIGHT = 10.0
+_EDGE_WEIGHT = 4.0
+_DISTANCE_WEIGHT = 0.3
+_CELL_MIN = 0.2
 
 #: Corner arrows: length as a fraction of the shorter panel side, clamped to
 #: these millimetres, and the arrowhead's length and half-width.
@@ -145,7 +167,8 @@ def embedding(panel, points, clusters, *, colors=None, size=None,
               labels: bool = True, centre: str = "median",
               label_size: float | str | None = None,
               arrows=None, shuffle: bool = True, seed: int = 0,
-              raster: bool = False, **style) -> dict:
+              raster: bool = False, outline=None, outline_core: float = 0.8,
+              **style) -> dict:
     """Draw an embedding scatter into `panel`. See `Panel.embedding`.
 
     Returns the note: cluster order, colours, centres and label positions.
@@ -172,6 +195,20 @@ def embedding(panel, points, clusters, *, colors=None, size=None,
         if not given:
             raise DiagramError("embedding colors= was given no colours")
         paint = {c: given[k % len(given)] for k, c in enumerate(order)}
+    if outline is True:
+        outline = "line"
+    if outline not in (None, False, *OUTLINE_STYLES):
+        raise DiagramError(
+            f"embedding outline= is one of {', '.join(OUTLINE_STYLES)}, not {outline!r}")
+    if not 0.0 < outline_core < 1.0:
+        raise DiagramError(
+            f"embedding outline_core is a fraction between 0 and 1, not {outline_core!r}")
+    pages = [panel.point(*p) if _finite(p) else None for p in data]
+    rings: dict = {}
+    if outline:
+        rings = _outlines(pages, names, order, outline_core)
+        if outline == "fill":
+            panel.draw(*_outline_nodes(rings, paint, outline), clip=True)
     indices = list(range(len(data)))
     if shuffle:
         # Drawn in a seeded random order, so no cluster covers another just
@@ -180,27 +217,97 @@ def embedding(panel, points, clusters, *, colors=None, size=None,
     panel.scatter([data[i] for i in indices],
                   color=[paint[names[i]] for i in indices], size=size,
                   raster=raster, **style)
+    if outline and outline != "fill":
+        panel.draw(*_outline_nodes(rings, paint, outline), clip=True)
     for name in order:
         panel._note(str(name), "marker", color=paint[name], marker="circle")
     centres = cluster_centres(data, names, method=centre)
     placed: dict = {}
+    covering: list = []
     if labels:
-        placed = _names(panel, centres, label_size)
+        placed, covering = _names(panel, centres, label_size, pages, names,
+                                  order, _dot_size(size), rings,
+                                  own=outline == "fill")
     if arrows is not None:
         panel.over(_arrows(panel, arrows), clip=False)
     note = {"clusters": order, "colors": [paint[c] for c in order],
-            "centres": centres, "labels": placed}
+            "centres": centres, "labels": placed, "covering": covering}
+    if outline:
+        note["outline"] = {"style": outline, "core": outline_core,
+                           "rings": {c: len(rings.get(c, ())) for c in order}}
     return note
 
 
-def _names(panel, centres: dict, size) -> dict:
-    """Cluster names at their centres, moved apart where they collide."""
+def _finite(p) -> bool:
+    return math.isfinite(float(p[0])) and math.isfinite(float(p[1]))
+
+
+def _dot_size(size) -> float:
+    """The largest dot diameter in mm."""
+    from ..draw.shapes import _MARKER_OF_TYPE
+
+    if size is None:
+        return _MARKER_OF_TYPE * active_theme().font_size
+    if isinstance(size, (int, float, str)):
+        return mm(size)
+    return max((mm(v) for v in size), default=0.0)
+
+
+def _outlines(pages: Sequence, names: Sequence, order: Sequence,
+              core: float) -> dict:
+    """Each cluster's core rings, in page millimetres."""
+    members: dict = {}
+    for at, name in zip(pages, names):
+        if at is not None:
+            members.setdefault(name, []).append(at)
+    return {name: core_outline(members.get(name, ()), core=core)
+            for name in order}
+
+
+def _outline_nodes(rings: dict, paint: dict, style: str) -> list:
+    """One path per cluster: a thin line in its colour, or a light fill."""
+    theme = active_theme()
+    nodes = []
+    for name, loops in rings.items():
+        if not loops:
+            continue
+        if style == "fill":
+            fill = mix(paint[name], theme.paper, _FILL_TOWARD_PAPER)
+            nodes.append(polygon(loops[0], holes=loops[1:], fill_rule="evenodd",
+                                 kind=MARK_KIND, fill=fill, stroke="none"))
+        else:
+            nodes.append(polygon(loops[0], holes=loops[1:], fill_rule="evenodd",
+                                 kind=MARK_LINE_KIND, filled=False, fill="none",
+                                 stroke=paint[name], stroke_width=theme.stroke,
+                                 stroke_linejoin="round"))
+    return nodes
+
+
+def _names(panel, centres: dict, size, pages: Sequence, names: Sequence,
+           order: Sequence, dot: float, rings: dict,
+           own: bool = False) -> tuple[dict, list]:
+    """Cluster names at their centres, moved clear of each other and of the
+    points of other clusters.
+
+    Candidates are the centre, then the rings `label_points` searches. The
+    first that covers no name already placed, no point of another cluster
+    and no edge of another cluster's outline wins; a name may cover its own
+    cluster and its own outline line, on its halo. With `own` (a filled
+    outline), a name must also not lap its own tint's edge, which the linter
+    reports as an overlap: it sits wholly inside the tint or beside it.
+    Otherwise the lowest score
+    wins: names covered weigh most, then outlines crossed, then other clusters' points
+    covered (in square millimetres), then the distance moved. Returns the
+    positions and the names that still cover other clusters' points.
+    """
     theme = active_theme()
     font = theme.font_size_small if size is None else mm(size)
     area = panel.area
+    occupied = _Occupancy(pages, names, order, dot, rings)
     boxes: list[Rect] = []
     parts: list = []
     where: dict = {}
+    covering: list = []
     ring = 0.6 * font
     for name, (x, y) in centres.items():
         node = text_node(str(name), font, POINT_LABEL_KIND, markup=False,
@@ -208,27 +315,86 @@ def _names(panel, centres: dict, size) -> dict:
         w, h = node.bbox.width, node.bbox.height
         anchor = panel.point(x, y)
         first = Rect(anchor.x - w / 2, anchor.y - h / 2, anchor.x + w / 2, anchor.y + h / 2)
-        tries = [first] + [_box_at(anchor, angle, distance, w, h, slide)
-                           for distance, angle, slide, _ in _candidates(0.2 * font, ring, 6 * font)]
-        best, cost = None, math.inf
-        for box in tries:
+        tries = [(first, 0.0)] + [
+            (_box_at(anchor, angle, distance, w, h, slide), distance)
+            for distance, angle, slide, _ in _candidates(0.2 * font, ring, _REACH * font)]
+        best, cost, others = None, math.inf, 0.0
+        for box, distance in tries:
             box = _inside(box, area)
             if box is None:
                 continue
             clash = sum(_overlap(box, _grown(other, 0.3)) for other in boxes)
-            if clash == 0:
-                best = box
+            crowd, edges = occupied.covered(box, name, own)
+            if clash == 0 and crowd == 0 and edges == 0:
+                best, others = box, 0.0
                 break
-            if clash < cost:
-                best, cost = box, clash
+            score = (_NAME_WEIGHT * clash + _EDGE_WEIGHT * edges + crowd
+                     + _DISTANCE_WEIGHT * distance)
+            if score < cost:
+                best, cost, others = box, score, crowd
         if best is None:
             best = first
+        if others > 0:
+            covering.append(name)
         boxes.append(best)
         parts.append((best.center, node))
         where[name] = panel_data(panel, best.center)
     if parts:
         panel.over(draw_place(parts, origin=(0, 0), kind="cluster-labels"), clip=False)
-    return where
+    return where, covering
+
+
+class _Occupancy:
+    """Which clusters have a dot, and which an outline edge, in each cell
+    of a fine square grid.
+
+    The cell is the dot diameter (at least `_CELL_MIN` mm), and a dot marks
+    every cell its box touches, so a name box tested against the grid sees
+    every dot it could cover. An outline marks the cells it passes through.
+    """
+
+    def __init__(self, pages: Sequence, names: Sequence, order: Sequence,
+                 dot: float, rings: dict) -> None:
+        self.cell = max(dot, _CELL_MIN)
+        self.bit = {name: 1 << k for k, name in enumerate(order)}
+        self.cells: dict[tuple[int, int], int] = {}
+        self.edges: dict[tuple[int, int], int] = {}
+        half = dot / 2
+        c = self.cell
+        for owner, loop in ((n, r) for n, loops in rings.items() for r in loops):
+            bit = self.bit[owner]
+            for a, b in zip(loop, loop[1:] + loop[:1]):
+                steps = max(1, math.ceil(math.hypot(b.x - a.x, b.y - a.y) / (c / 2)))
+                for k in range(steps):
+                    t = k / steps
+                    key = (math.floor((a.x + (b.x - a.x) * t) / c),
+                           math.floor((a.y + (b.y - a.y) * t) / c))
+                    self.edges[key] = self.edges.get(key, 0) | bit
+        for at, name in zip(pages, names):
+            if at is None:
+                continue
+            bit = self.bit[name]
+            for i in range(math.floor((at.x - half) / c),
+                           math.floor((at.x + half) / c) + 1):
+                for j in range(math.floor((at.y - half) / c),
+                               math.floor((at.y + half) / c) + 1):
+                    self.cells[i, j] = self.cells.get((i, j), 0) | bit
+
+    def covered(self, box: Rect, name, own_edges: bool = False) -> tuple[float, int]:
+        """Square millimetres of `box` over cells holding other clusters,
+        and how many outlines of other clusters (and with `own_edges`, of
+        this one) pass through it."""
+        own = self.bit.get(name, 0)
+        mask = -1 if own_edges else ~own
+        c = self.cell
+        count = 0
+        edges = 0
+        for i in range(math.floor(box.x0 / c), math.floor(box.x1 / c) + 1):
+            for j in range(math.floor(box.y0 / c), math.floor(box.y1 / c) + 1):
+                if self.cells.get((i, j), 0) & ~own:
+                    count += 1
+                edges |= self.edges.get((i, j), 0) & mask
+        return count * c * c, bin(edges).count("1")
 
 
 def _grown(box: Rect, by: float) -> Rect:

@@ -34,6 +34,16 @@
   `ValueError`.
 - The layout editor's HTTP/JSON protocol and `snapshot()` payload are
   documented as private; the class and saved layout overrides are the contract.
+- Add `Panel.embedding(outline=)`: `"line"` draws a thin outline in each
+  cluster's colour round its dense core, `"fill"` a light tint under the
+  points. `outline_core` sets the share of points held (default 0.8); stray
+  points do not enlarge the outline.
+- `Panel.embedding` cluster names keep clear of other clusters' points and
+  outlines as well as each other; they may sit over their own cluster. Names
+  that cannot clear are listed under `covering` in the `embedding` note.
+- `PolarPanel.theta_axis` labels keep off a `breakout`'s connectors, bar and
+  title: a label that touches one is nudged or dropped, and the `theta_axis`
+  note (and `axis_labels` in the `pie_breakout` note) lists which.
 
 ## 4.2.0 — 2026-09-25
 

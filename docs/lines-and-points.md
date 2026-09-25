@@ -263,10 +263,22 @@ Each cluster's name is written at its centre on a paper halo. The centre lies
 on the data: the member point nearest the cluster's median, which stays on a
 curved cluster where the mean would not. `centre='medoid'` or `'mean'` choose
 another rule, and `inklet.plot.cluster_centres` returns the centres without
-drawing. A name that would overlap one already placed moves to the nearest
-free spot. `arrows='UMAP'` draws two short arrows labelled UMAP1 and UMAP2 in
-the lower-left corner instead of axes. The default colours are Paul Tol's
-qualitative palettes, and every cluster is recorded for `legend()`.
+drawing. A name that would overlap a name already placed, or the points of
+another cluster, moves to the nearest free spot. A name may cover its own
+cluster. Names that could not clear another cluster's points are listed under
+`covering` in the `embedding` note. `arrows='UMAP'` draws two short arrows
+labelled UMAP1 and UMAP2 in the lower-left corner instead of axes. The default
+colours are Paul Tol's qualitative palettes, and every cluster is recorded for
+`legend()`.
+
+`outline='line'` draws a smooth outline round each cluster's core, thin and in
+the cluster's colour. `outline='fill'` draws the core as a light tint under the
+points instead. The core is the region holding the densest `outline_core`
+share of the cluster's points (default 0.8). It is found as a threshold on a
+smoothed density, so it follows a curved cluster, and stray points neither
+enlarge it nor add islands. A cluster name keeps off other clusters'
+outlines. It may cross its own outline line, but not the edge of its own
+tint: a name wider than its core then sits beside the cluster.
 
 ```python
 import inklet as i
@@ -285,13 +297,13 @@ for name, (cx, cy) in centres.items():
                        cy + .35 * math.sin(turn) + rng.gauss(0, .45)))
         clusters.append(name)
 p = i.plot_spec(x=(-8, 8.5), y=(-7, 7), width=60, height=56)
-p.embedding(points, clusters, arrows='UMAP', size=.35)
+p.embedding(points, clusters, arrows='UMAP', size=.2, outline='line')
 doc = i.document(width=76)
 doc.add('embedding', p)
 doc.save('embedding.svg', 'embedding.pdf')
 ```
 
-![Embedding scatters: 16,000 simulated cells in eight clusters, named at their centres.](assets/guides/plots-embedding.png)
+![Embedding scatters: 16,000 simulated cells in eight clusters, each outlined round its core and named at its centre.](assets/guides/plots-embedding.png)
 
 *Simulated data. The points are one marker batch; `raster=True` embeds them
 as an image instead.*
