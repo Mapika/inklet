@@ -31,7 +31,7 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.4.0 is stable**. It adds about 60 plot types, 98 curated palettes with
+**4.4.1 is stable**. The 4.4 series adds about 60 plot types, 98 curated palettes with
 the new default `inklet` palette, and a label placement engine for direct
 labels and legends. It is the deprecation release before 5.0: old spellings
 and `inklet.experimental` import paths still work and now warn, naming the

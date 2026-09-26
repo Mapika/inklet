@@ -97,6 +97,28 @@ After tagging a release, check the project's build dashboard and confirm that
 keep **stable** on the latest stable release and use **latest** or the explicitly activated preview tag. The old `v2.5.0` tag predates the
 hosting configuration and is intentionally unchanged.
 
+## One-command release
+
+[`tools/release.py`](../tools/release.py) runs a whole release from a clean,
+up-to-date `master` whose `pyproject.toml`, `inklet.__version__` and
+`CHANGELOG.md` already name the new version:
+
+```bash
+python tools/release.py 4.4.1 --dry-run   # local checks and build only
+python tools/release.py 4.4.1             # publish, asking before each outward step
+```
+
+It runs the API reference, compatibility, strict docs and test-suite checks,
+builds the wheel and source archive into `out/release-<version>` (rejecting a
+source archive over 25 MB), and writes `SHA256SUMS` and release notes from the
+changelog. It then pushes `master` and waits for this workflow, creates and
+pushes the tag, creates the GitHub release (as a prerelease for development and
+RC versions), runs the publishing workflow as a dry run and then for real, and
+checks that PyPI serves files with the same hashes. It asks before every step
+that reaches GitHub or PyPI unless given `--yes`. Finished steps are detected
+and skipped, so a stopped release continues with the same command; `--from
+<step>` starts later and `--fast` leaves the local test suite to CI.
+
 ## Publishing to PyPI
 
 The separate [publishing workflow](../.github/workflows/publish.yml) uploads
@@ -134,10 +156,10 @@ The same operations are available through the GitHub CLI:
 
 ```bash
 # Validate the existing release without uploading.
-gh workflow run publish.yml --ref master -f tag=v4.4.0 -F dry_run=true
+gh workflow run publish.yml --ref master -f tag=v4.4.1 -F dry_run=true
 
 # Publish the verified release assets.
-gh workflow run publish.yml --ref master -f tag=v4.4.0 -F dry_run=false
+gh workflow run publish.yml --ref master -f tag=v4.4.1 -F dry_run=false
 ```
 
 For subsequent versions, run release checks, create the tag and GitHub release,

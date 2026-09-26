@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.4.1 — 2026-09-26
+
+4.4.1 changes only the source archive; the wheel's code is unchanged.
+
+- The source archive (sdist) no longer carries rendered images. 4.4.0's
+  archive was 89 MB, almost all of it PNG, SVG, PDF and HTML renders under
+  `docs/assets` and `gallery`; 4.4.1's is about 7 MB. Sources, tests, docs
+  text, examples and tools are still included, so the test suite runs from
+  an unpacked archive. The images remain in the repository and on the
+  documentation site.
+- The five tests that compare published images skip when those images are
+  absent, as they are in the source archive.
+
 ## 4.4.0 — 2026-09-25
 
 4.4 is the deprecation release before 5.0. It adds about 60 plot types, 98

@@ -8,6 +8,11 @@ from urllib.parse import unquote, urlsplit
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+# The source archive leaves out rendered images (see pyproject's sdist
+# exclude); tests that check them run in the repository only.
+needs_rendered_images = pytest.mark.skipif(
+    not any((ROOT / 'gallery').glob('*.png')),
+    reason='rendered images are not shipped in the source archive')
 PAGES = ('README.md', 'docs/quickstart.md', 'docs/csv-figure.md', 'docs/concepts.md', 'docs/layout.md',
          'docs/plotting.md', 'docs/axes-and-scales.md', 'docs/dense-data.md',
          'docs/publication-plots.md', 'docs/data.md', 'docs/diagrams.md',
@@ -48,6 +53,7 @@ def test_optional_review_examples(relative, tmp_path, monkeypatch):
     assert list(tmp_path.rglob('*-manifest.json'))
 
 
+@needs_rendered_images
 def test_documentation_links_resolve_inside_repository():
     pages = [ROOT/'README.md',ROOT/'CONTRIBUTING.md',*(ROOT/'docs').rglob('*.md')]
     missing = []
@@ -71,6 +77,7 @@ def test_readme_links_are_portable_to_pypi():
         assert not url.path or url.scheme == 'https', f'non-portable PyPI link: {target}'
 
 
+@needs_rendered_images
 def test_site_links_keep_gallery_local_and_repository_access_controlled():
     spec = importlib.util.spec_from_file_location('docs_site',ROOT/'tools/docs_site.py')
     module = importlib.util.module_from_spec(spec);spec.loader.exec_module(module)

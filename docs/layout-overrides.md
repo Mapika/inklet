@@ -1,6 +1,6 @@
 # Save and restore layout choices
 
-Available in stable 4.4.0 under the opt-in layout override API. The dev7–dev11
+Available in stable 4.4.1 under the opt-in layout override API. The dev7–dev11
 previews introduced uniform artwork scale, named text and callout decisions,
 and supported appearance fields; those milestones explain the saved schema
 history below. Save placement and dimension edits separately from

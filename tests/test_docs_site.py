@@ -11,6 +11,11 @@ import pytest
 pytest.importorskip('mkdocs')
 pytest.importorskip('pygments')
 ROOT = Path(__file__).resolve().parents[1]
+# The source archive leaves out rendered images (see pyproject's sdist
+# exclude); tests that check them run in the repository only.
+needs_rendered_images = pytest.mark.skipif(
+    not any((ROOT / 'gallery').glob('*.png')),
+    reason='rendered images are not shipped in the source archive')
 
 
 class References(HTMLParser):
@@ -38,6 +43,7 @@ class References(HTMLParser):
             self.references.append((tag,attrs['src']))
 
 
+@needs_rendered_images
 def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, monkeypatch):
     from mkdocs.config import load_config
 
@@ -191,6 +197,7 @@ def test_plot_catalog_covers_core_families_with_rendered_source():
                    and entry['image'] == 'assets/guides/'+row['image'] for row in previews)
 
 
+@needs_rendered_images
 def test_homepage_example_runs_and_matches_its_published_figure(tmp_path, monkeypatch):
     """The homepage shows this script beside docs/assets/examples/quickstart.svg."""
     import re
@@ -204,6 +211,7 @@ def test_homepage_example_runs_and_matches_its_published_figure(tmp_path, monkey
     assert produced == published == ('183mm', '68mm')
 
 
+@needs_rendered_images
 def test_gallery_previews_match_their_source_images():
     """Run tools/docs_thumbnails.py after changing a gallery image."""
     import hashlib

@@ -1,6 +1,6 @@
 # pandas and Polars inputs
 
-Introduced in **4.0.0.dev1** and available in stable **4.4.0**. See the [4.0 release guide](development-preview.md).
+Introduced in **4.0.0.dev1** and available in stable **4.4.1**. See the [4.0 release guide](development-preview.md).
 
 Create an immutable `KeyedTable` directly from a pandas or Polars DataFrame,
 then use it in linked plots, facets or joined maps. Import it from

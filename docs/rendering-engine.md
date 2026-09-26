@@ -2,7 +2,7 @@
 
 This page records historical engine measurements from named development
 revisions. Use the current [dense data guide](dense-data.md) and [compiled
-viewer guide](compiled-viewer.md) for stable 4.4.0 workflows; the figures below
+viewer guide](compiled-viewer.md) for stable 4.4.1 workflows; the figures below
 are reproducibility studies, not current performance budgets.
 
 For the next engine architecture increment after dev2, see

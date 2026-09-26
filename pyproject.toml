@@ -1,6 +1,6 @@
 [project]
 name = "inklet"
-version = "4.4.0"
+version = "4.4.1"
 description = "Scientific figures with live data, measured layout, and consistent vector exports."
 readme = "README.md"
 authors = [{name = "Mark Marosi"}]
@@ -79,4 +79,12 @@ include = [
     "/LICENSE", "/LICENSES", "/THIRD_PARTY_NOTICES.md", "/mkdocs.yml", "/.readthedocs.yaml",
     "/requirements-ci.txt", "/requirements-docs.txt",
     "/requirements-tables.txt",
+]
+# Rendered images are published in the docs and kept in the repository; the
+# archive keeps the sources that tests and docs builds read. With them, 4.4.0's
+# archive was 89 MB.
+exclude = [
+    "/docs/assets/**/*.png", "/docs/assets/**/*.svg", "/docs/assets/**/*.pdf",
+    "/docs/assets/**/*.html", "/docs/assets/**/*.jpg", "/docs/assets/**/*.webp",
+    "/gallery/**/*.png", "/gallery/**/*.svg", "/gallery/**/*.pdf", "/gallery/**/*.jpg",
 ]
