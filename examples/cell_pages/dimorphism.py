@@ -375,20 +375,22 @@ def panel_h(d):
 
 def pies(label, values, outline, legend):
     iso, dim, noise = values
-    p = i.polar(6.5, zero='up', winding='cw')
+    small = {'size': PT5}
+    p = i.polar(6.5)                    # breakout() turns the pie to face its bar
     p.pie([iso, dim, noise], color=[INK, AMBER, PALE], name=['isomorphic', 'dimorphic', 'noise'],
-          labels=[f'{iso}%', f'{dim}%', f'{noise}%'], stroke=outline, stroke_width=STYLE.theme.stroke)
-    p.breakout([0, 1], labels='{share:.1%}', title='without\nnoise', width=2)
-    p.title(label)
+          labels=[f'{iso}%', f'{dim}%', f'{noise}%'], label_options=small,
+          stroke=outline, stroke_width=STYLE.theme.stroke)
+    p.breakout([0, 1], labels='{share:.1%}', label_options=small, title='without\nnoise', width=2)
     if legend:
-        p.legend(side='bottom')
-    return p.build()
+        p.legend(side='left')
+    # The sex symbol stands at the pie's upper left, as in the reference.
+    return i.hstack([i.text(label), p.build()], gap=.5, align='top')
 
 
 def panel_pies(axis_label, male, female, legend=False):
     def factory():
         column = i.vstack([pies('♂', male, GREEN, False), pies('♀', female, MAGENTA, legend)],
-                          gap=2, align='left')
+                          gap=1, align='right')
         return i.hstack([i.text(axis_label, angle=90), column], gap=1, align='center')
     return i.component(factory)
 
@@ -525,7 +527,7 @@ def panel_m(d, communities):
     # A bottom legend wider than the data is charged to the side margins (see
     # GAPS), so the key is a grid row of its own.
     key = i.legend([(name, color) for name, color in CLASSES] +
-                   [('cluster', square(INK)), ('enriched cluster', square(RED))], columns=3)
+                   [('cluster', square(INK)), ('enriched cluster', square(RED))], columns=5)
     m = i.subfigure(columns=1, gap=1)
     m.add('matrix', p, row=0, column=0)
     m.add('key', key, row=1, column=0, align='w')
@@ -646,10 +648,12 @@ def make_document(data_dir: Path, chart_dir: Path):
     doc.add('f', panel_f(), row=1, column=3, colspan=2)
     doc.add('g', panel_g(d), row=1, column=5, colspan=3)
     doc.add('h', panel_h(d), row=1, column=8, colspan=4)
-    doc.add('i', panel_pies('% of connections', (24.8, 1.5, 73.7), (24.8, .3, 74.9)),
-            row=2, column=0, colspan=3)
-    doc.add('j', panel_pies('% of synapses in connections', (85.5, 4.9, 9.6), (88.6, .7, 10.8), legend=True),
-            row=2, column=3, colspan=4)
+    for name, column, colspan, pies in [
+            ('i', 0, 3, panel_pies('% of connections', (24.8, 1.5, 73.7), (24.8, .3, 74.9))),
+            ('j', 3, 4, panel_pies('% of synapses in connections', (85.5, 4.9, 9.6), (88.6, .7, 10.8),
+                                   legend=True))]:
+        doc.add(name, pies, row=2, column=column, colspan=colspan,
+                min_width=lettered_width(pies.factory()))
     doc.add('k', panel_k(art, d), row=2, column=7, colspan=5, align='n')
     doc.add('l', panel_l(communities), row=3, column=0, colspan=2, rowspan=3)
     doc.add('m', panel_m(d, communities), row=3, column=2, colspan=6)
