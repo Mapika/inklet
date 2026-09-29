@@ -1278,7 +1278,8 @@ class Panel:
         if corner == 'auto':
             from ..layout.clear_space import place_in_clear_space
             node = place_in_clear_space(node, within=self.area,
-                                        avoid=(*self._content,*self._over), pad=gap)
+                                        avoid=(*self._content, *self._placed_over()),
+                                        pad=gap)
         else:
             node = _into_corner(node, self.area, corner or "ne", gap)
         self._over.append(node)
@@ -1386,7 +1387,8 @@ class Panel:
             raise ValueError(
                 f"unknown side {side!r}; expected one of {', '.join(SIDES)}"
             )
-        box = _union_box(self._under + self._content + self._over) or self.area
+        box = (_union_box(self._under + self._content + self._placed_over())
+               or self.area)
         return beside(node, box, side, gap, Vec2(0.0, 0.0))
 
     # -- writing on the plot, in data coordinates --------------------------

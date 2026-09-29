@@ -50,6 +50,10 @@
 - A pie label too wide for its slice's center line is tried beside the
   slice's straight edges before it goes outside, so "24.8%" fits a quarter
   slice as it does in a journal figure.
+- A key placed by `legend(corner='best')`, `corner='auto'` or beside the
+  plot keeps clear of line-end labels, which `label_lines()` places at build
+  time. Previously the key could sit on them. With them in view,
+  `corner='auto'` can find no clear spot and raises instead.
 
 ### Added
 
