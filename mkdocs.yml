@@ -110,6 +110,7 @@ extra:
       - design/v2.md
       - design/capability-gaps.md
       - design/docs-structure.md
+      - design/layout-solver.md
 extra_css:
   - stylesheets/code.css
   - stylesheets/inklet.css
@@ -281,3 +282,4 @@ not_in_nav: |
   /design/v2.md
   /design/capability-gaps.md
   /design/docs-structure.md
+  /design/layout-solver.md
