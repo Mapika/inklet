@@ -65,6 +65,9 @@ class CompiledFigure:
         """
         layout = self.metadata['layout']
         lines = ['row  height  set by']
+        if layout.get('packing'):
+            # Packed pages have no rows; `|` is side by side, `/` stacked.
+            lines = [f"packed  {layout['packing']}"]
         for index, row in enumerate(layout['rows']):
             lines.append(f"{index:>3}  {row['height']:6.1f}  {', '.join(row['set_by']) or '-'}")
         unused = [(name, cell) for name, cell in layout['cells'].items()

@@ -51,7 +51,8 @@ from .scale import format_number
 __all__ = ["RING_SHAPES", "radar_spokes", "radar", "radar_grid",
            "ring_value_items", "pie",
            "pie_label_texts", "breakout", "breakout_frame",
-           "breakout_connectors", "breakout_turn", "BREAKOUT_SIDES"]
+           "breakout_connectors", "breakout_turn", "breakout_title_gap", "BREAKOUT_SIDES",
+           "BREAKOUT_TITLE_SIDES"]
 
 #: Accepted values of `radar_grid(rings=)`'s shape.
 RING_SHAPES = ("polygon", "circle")
@@ -758,14 +759,15 @@ _BREAKOUT_GAP_OF_RADIUS = 0.75
 
 #: Sides a breakout bar may stand on.
 BREAKOUT_SIDES = ("right", "left")
+BREAKOUT_TITLE_SIDES = ("top", "gap")
 
 
 def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
              colors=None, labels="percent", label_options: Mapping | None = None,
              side: str = "right", width: float | str | None = None,
              height: float | str | None = None, gap: float | str | None = None,
-             title: str | None = None, connector: Mapping | None = None,
-             separator: bool = True,
+             title: str | None = None, title_side: str = "top",
+             connector: Mapping | None = None, separator: bool = True,
              **style) -> tuple[Diagram, tuple[str, ...], dict]:
     """A stacked bar that expands slices of a pie. See `PolarPanel.breakout`.
 
@@ -837,9 +839,9 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
                                      kind=MARK_LINE_KIND, **rule))
     line = {"stroke": theme.muted, "stroke_width": theme.hairline}
     line.update(connector or {})
-    links = [polyline(ends, kind=MARK_LINE_KIND, **line)
-             for ends in breakout_connectors(panel, angles, ordered, side=side,
-                                             width=width, height=height, gap=gap)]
+    ends = breakout_connectors(panel, angles, ordered, side=side,
+                               width=width, height=height, gap=gap)
+    links = [polyline(pair, kind=MARK_LINE_KIND, **line) for pair in ends]
     layers = [draw_place(links, origin=(0, 0), kind="breakout-links"),
               draw_place(segments, origin=(0, 0), kind="breakout-bar")]
     texts = ([None] * len(data) if labels is None
@@ -867,7 +869,7 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
         if abs(centre - middle) > 1e-6:
             note["moved"].append(index)
     if title:
-        node, at = _breakout_title(panel, title, size, top, x0, x1)
+        node, at = _breakout_title(panel, title, size, top, x0, x1, title_side, ends)
         items.append((at, node))
     if items:
         layers.append(draw_place(items, origin=(0, 0), kind=AXIS_KIND))
@@ -877,21 +879,53 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
 
 
 def _breakout_title(panel, title: str, size: float, top: float, x0: float,
-                    x1: float) -> tuple[Diagram, Vec2]:
-    """The breakout title's node and offset: centred over the bar."""
+                    x1: float, title_side: str = "top",
+                    links: Sequence[tuple[Vec2, Vec2]] = ()) -> tuple[Diagram, Vec2]:
+    """The breakout title's node and offset: centered over the bar, or in
+    the gap between the rim and the bar, midway between the connectors."""
     theme = active_theme()
     pad = max(_PAD_OF_TYPE * theme.font_size, theme.gap("s"))
     node = text_node(title, size, TICK_LABEL_KIND, markup=False)
     node = node.styled(text_fill=theme.ink)
     box = node.bbox
+    if title_side == "gap":
+        near = x0 if abs(x0) < abs(x1) else x1
+        x = (math.copysign(panel.radius, near) + near) / 2
+        heights = []
+        for a, b in links:
+            if abs(b.x - a.x) > 1e-9:
+                t = min(1.0, max(0.0, (x - a.x) / (b.x - a.x)))
+                heights.append(a.y + t * (b.y - a.y))
+        y = sum(heights) / len(heights) if heights else 0.0
+        return node, Vec2(x - box.center.x, y - box.center.y)
     return node, Vec2((x0 + x1) / 2 - box.center.x, top - pad - box.y1)
+
+
+def breakout_title_gap(panel, title: str | None, *, title_side: str = "top",
+                       gap: float | str | None = None,
+                       label_options: Mapping | None = None) -> float | str | None:
+    """The rim-to-bar gap: widened to hold a title set in it, unless given."""
+    if title_side not in BREAKOUT_TITLE_SIDES:
+        raise DiagramError(f"breakout title_side is one of "
+                           f"{', '.join(BREAKOUT_TITLE_SIDES)}, not {title_side!r}")
+    if not title or title_side != "gap" or gap is not None:
+        return gap
+    theme = active_theme()
+    options = dict(label_options or {})
+    size = (theme.font_size_small if options.get("size") is None
+            else mm(options["size"]))
+    width = text_node(title, size, TICK_LABEL_KIND, markup=False).bbox.width
+    pad = max(_PAD_OF_TYPE * theme.font_size, theme.gap("s"))
+    return max(panel.radius * _BREAKOUT_GAP_OF_RADIUS, width + 2 * pad)
 
 
 def breakout_title_box(panel, title: str | None, *, side: str = "right",
                        width: float | str | None = None,
                        height: float | str | None = None,
                        gap: float | str | None = None,
-                       label_options: Mapping | None = None) -> Rect | None:
+                       label_options: Mapping | None = None,
+                       title_side: str = "top",
+                       links: Sequence[tuple[Vec2, Vec2]] = ()) -> Rect | None:
     """The panel-mm box a breakout's title takes, or None without one."""
     if not title:
         return None
@@ -901,7 +935,7 @@ def breakout_title_box(panel, title: str | None, *, side: str = "right",
             else mm(options["size"]))
     _, top, _, x0, x1 = breakout_frame(panel, side=side, width=width,
                                        height=height, gap=gap)
-    node, at = _breakout_title(panel, title, size, top, x0, x1)
+    node, at = _breakout_title(panel, title, size, top, x0, x1, title_side, links)
     box = node.bbox
     return Rect(box.x0 + at.x, box.y0 + at.y, box.x1 + at.x, box.y1 + at.y)
 

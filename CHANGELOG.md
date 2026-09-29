@@ -55,7 +55,27 @@
   time. Previously the key could sit on them. With them in view,
   `corner='auto'` can find no clear spot and raises instead.
 
+- Compiling is several times faster on large pages. Cyclic garbage
+  collection is paused while a document compiles, raster scatters paint each
+  marker shape once, 3D paths project without per-point objects, and plot
+  margins that converge geometrically jump to their limit. A plot row no
+  longer grows by amounts under 0.005 mm, which kept the layout measuring
+  again for up to 24 passes.
+- 3D paths and points projected over a model (`paths3d`, `points3d`) count
+  as computed ink in `lint()`, like mesh strokes: `PATH_CROSSES` and
+  `CROWDING` no longer report their segments.
+
 ### Added
+
+- `breakout(title_side="gap")` sets the title between the pie and the bar,
+  centered on the connectors, and widens the default gap to hold it. The bar
+  no longer needs room above it for the title, so a row of pies is shorter.
+
+- Experimental: `document(pack=True)` packs cells without a grid, in the
+  order they were added, into side-by-side groups and stacks that give the
+  shortest page; `layout_report()` shows the arrangement. Responsive content
+  set in a taller box receives that box's height, as it does in a grid cell,
+  and keeps a taller build only when it still fits.
 
 - Graph edges accept `same_rank=True`, which keeps both ends in one rank of a
   layered drawing, side by side, so a decision flow's "yes" can run across
@@ -95,6 +115,27 @@ engine. Nothing is removed. Old spellings and paths keep working and warn with
 `inklet._compat.InkletDeprecationWarning`, a `DeprecationWarning` subclass that
 names the replacement. See the
 [migration notes](docs/migration.md#from-43-to-44).
+
+### Fixed
+
+- A circular `network()` too tight for its nodes no longer draws them
+  overlapping. Every node shrinks by one factor, so areas still compare and the
+  size key follows. No node shrinks below the size its inside label needs.
+
+- `text(..., fill=color)` keeps its color inside a document. The document
+  root sets the theme ink as the text color, and a text's own `fill` did not
+  override it, so colored labels came out black on the page but not in
+  `to_svg()` of the diagram alone.
+- Lint measures text placed by its ink (`text(bounds="ink")`, as in
+  `value_table` cells) by that ink. Digits centered in a tight table cell
+  were reported as overlapping their own cell.
+- Lint measures an image with transparent areas, such as a raster scatter,
+  by its opaque pixels. A label in an empty stretch of the plot was reported
+  as overlapping the scatter, and a label entirely inside the scatter's box
+  was never checked against its points.
+- `document(pack=True)` no longer fails on a row of several cells whose
+  gaps, rounded to the coarse grid, fit the page but overran it on the fine
+  one.
 
 ### Deprecated
 

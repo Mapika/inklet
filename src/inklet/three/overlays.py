@@ -20,9 +20,39 @@ def _xyz(point):
             v = Vec3(float(x), float(y), float(z))
         except (TypeError, ValueError):
             raise MeshError("3D overlays require finite (x, y, z) points") from None
-    if not all(math.isfinite(c) for c in (v.x, v.y, v.z)):
+    if not (math.isfinite(v.x) and math.isfinite(v.y) and math.isfinite(v.z)):
         raise MeshError("3D overlays require finite (x, y, z) points")
     return v
+
+
+def _projector(view):
+    """view.project as plain float arithmetic: (x, y, depth) per point.
+
+    Paths through a brain run to hundreds of thousands of vertices, and the
+    Vec3 and Vec2 objects per vertex were most of the drawing's time. The
+    arithmetic is View.project's own, in the same order.
+    """
+    from .camera import View
+    if type(view) is not View:
+        def project(p):
+            hit = view.project(p)
+            return hit.point.x, hit.point.y, hit.depth
+        return project
+    ex, ey, ez = view.eye.x, view.eye.y, view.eye.z
+    rx, ry, rz = view.right.x, view.right.y, view.right.z
+    ux, uy, uz = view.up.x, view.up.y, view.up.z
+    fx, fy, fz = view.forward.x, view.forward.y, view.forward.z
+    perspective, focal, near = view.perspective, view.focal, view.near
+    scale, ox, oy = view.scale, view.offset.x, view.offset.y
+
+    def project(p):
+        dx, dy, dz = p.x-ex, p.y-ey, p.z-ez
+        x, y, depth = dx*rx+dy*ry+dz*rz, dx*ux+dy*uy+dz*uz, dx*fx+dy*fy+dz*fz
+        if perspective:
+            divisor = depth if depth > near else near
+            x, y = x*focal/divisor, y*focal/divisor
+        return x*scale+ox, -y*scale+oy, depth
+    return project
 
 
 def _options(depth_cue, levels, opacity, width):
@@ -69,13 +99,14 @@ def paths3d(view, lines, *, color="#668fb8", stroke_width=0.25,
     """
     width = mm(stroke_width); _options(depth_cue, levels, opacity, width)
     items = []
+    project, near = _projector(view), view.near
     for line in lines:
-        hits = [view.project(_xyz(v)) for v in line]
-        for a, b in zip(hits, hits[1:]):
-            if min(a.depth, b.depth) < view.near:
+        hits = [project(_xyz(v)) for v in line]
+        for (ax, ay, ad), (bx, by, bd) in zip(hits, hits[1:]):
+            if ad < near or bd < near:
                 raise MeshError("3D overlay crosses the camera near plane; clip it before projection")
-            if a.point != b.point:
-                items.append(((a.depth+b.depth)/2, Subpath((a.point, b.point))))
+            if ax != bx or ay != by:
+                items.append(((ad+bd)/2, Subpath((Vec2(ax, ay), Vec2(bx, by)))))
     return _paint(items, color=color, paper=paper, depth_cue=depth_cue,
                   levels=levels, opacity=opacity, width=width, filled=False,
                   kind="projected-paths")

@@ -27,6 +27,7 @@ class LayoutRequest:
     letters: Mapping
     links: tuple
     share_plot_margins: bool | str
+    pack: bool = False
 
 
 class LayoutResult(NamedTuple):
@@ -218,6 +219,33 @@ def _measure_cells(request, context, boxes, margins, decorate):
     return nodes, measured
 
 
+def _extrapolate(margins, measured, steps):
+    """Jump margins that approach their fixed point geometrically.
+
+    A label centered over the data grows its margin by half of any narrowing
+    of the data, so each pass halves the remaining error. Once two passes
+    shrink the step by the same ratio, the limit follows directly; the next
+    pass checks it.
+    """
+    out = {}
+    for name, values in measured.items():
+        step = tuple(b-a for a, b in zip(margins[name], values))
+        last = steps.get(name) or (None, None)
+        ratios = tuple(now/before if before and abs(before) > 1e-9 else None
+                       for now, before in zip(step, last[0] or step))
+        steps[name] = (step, ratios)
+        jumped = list(values)
+        if last[0] is not None and last[1] is not None:
+            for n, (now, ratio, previous) in enumerate(zip(step, ratios, last[1])):
+                if (ratio is not None and previous is not None and .2 < ratio < .9
+                        and abs(ratio-previous) < .05 and abs(now) >= .005):
+                    jumped[n] = values[n]+now*ratio/(1-ratio)
+        if jumped != list(values):
+            steps[name] = None
+        out[name] = tuple(jumped)
+    return out
+
+
 def _stacks(plots, edge):
     """Group plots whose `edge` grid line matches and whose rows touch.
 
@@ -279,7 +307,9 @@ def _grow_natural_heights(request, plots, measured, heights):
     else:
         required = {name: values[0]+measured[name][2]+measured[name][3]
                     for name, values in plots.items()}
-    if not any(heights[name] < value-1e-6 for name, value in required.items()):
+    # Margins settle to .005 mm; growing rows for less would chase the last
+    # digits of a margin that converges geometrically, one pass at a time.
+    if not any(heights[name] < value-.005 for name, value in required.items()):
         return False
     for name, value in required.items():
         heights[name] = max(heights[name], value)
@@ -363,6 +393,9 @@ def layout_document(request: LayoutRequest, context: BuildContext,
     """
     if not request.cells:
         raise LayoutError('cannot compile an empty document')
+    if request.pack:
+        from .packing import pack_document
+        return pack_document(request, context, width, height)
     choices = [n for n, c in enumerate(request.cells) if isinstance(c.item, Choice)]
     if not choices:
         return _layout_once(request, context, width, height)
@@ -416,6 +449,7 @@ def _layout_once(request, context, width, height):
         heights = _fit_rows(request, rows, heights, natural_heights, natural_plots, height)
     boxes = _cell_boxes(request, x_prefix, heights)
     margins = {c.name: (0., 0., 0., 0.) for c in request.cells}
+    steps = {}
     # Tick selection depends on width; grow furniture and tracks to a stable fit.
     for iteration in range(24):
         nodes, measured = _measure_cells(request, context, boxes, margins, decorate)
@@ -429,7 +463,7 @@ def _layout_once(request, context, width, height):
             continue
         if all(max(abs(a-b) for a, b in zip(measured[n], margins[n])) < .005 for n in margins):
             break
-        margins = measured
+        margins = _extrapolate(margins, measured, steps)
     else:
         raise LayoutError('plot furniture did not settle after 24 measurement passes')
     content, handles = _place_cells(request.cells, nodes, boxes, margins,

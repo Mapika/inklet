@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, asdict, fields, is_dataclass, replace
 from collections.abc import Mapping
 from types import MappingProxyType
+import gc
 import hashlib
 import json
 import math
@@ -44,6 +45,10 @@ class BuildContext:
         self.preset = preset
         self.active = []
         self.hits = self.misses = 0
+        # Specs do not change during one compile, and fingerprinting large
+        # data on every lookup dominates repeated measurement. Holding the
+        # item keeps its id from being reused by a newer spec.
+        self.prints = {}
 
     def build(self, item, width=None, height=None):
         if isinstance(item, Diagram):
@@ -61,7 +66,10 @@ class BuildContext:
         # across measurement passes and page resizes.
         if isinstance(item, ComponentSpec) and not item.responsive:
             width = height = None
-        key = (id(item), repr(fingerprint(item)), width, height, repr(self.theme), repr(self.preset))
+        held = self.prints.get(id(item))
+        if held is None or held[0] is not item:
+            held = self.prints[id(item)] = (item, repr(fingerprint(item)))
+        key = (id(item), held[1], width, height, repr(self.theme), repr(self.preset))
         if key in self.cache:
             self.hits += 1
             return self.cache[key]
@@ -132,6 +140,7 @@ class Document(BuildSpec):
     preset: object = None
     share_plot_margins: bool | str = False
     stretch: bool = True
+    pack: bool = False
     _preset_overrides: dict = field(default_factory=dict, repr=False)
     _cells: list = field(default_factory=list, repr=False)
     _links: list = field(default_factory=list, repr=False)
@@ -145,6 +154,7 @@ class Document(BuildSpec):
                 type(self.share_plot_margins) is str and self.share_plot_margins == 'all'):
             raise ValueError("share_plot_margins must be a boolean or 'all'")
         if type(self.stretch) is not bool: raise ValueError('stretch must be a boolean')
+        if type(self.pack) is not bool: raise ValueError('pack must be a boolean')
         self.width = length(self.width, 'document width')
         if self.height is not None: self.height = length(self.height, 'document height')
         self.margin = length(self.margin, 'margin', zero=True)
@@ -208,7 +218,7 @@ class Document(BuildSpec):
 
     def configure(self, **options):
         """Validate page changes together before applying them."""
-        names=('width','height','columns','margin','gap','row_gap','theme','publication','share_plot_margins')
+        names=('width','height','columns','margin','gap','row_gap','theme','publication','share_plot_margins','pack')
         unknown=set(options).difference(names)
         if unknown: raise TypeError(f'unknown document options: {unknown!r}')
         candidate=Document(**{name:options.get(name,getattr(self,name)) for name in names}, preset=self.preset)
@@ -232,7 +242,7 @@ class Document(BuildSpec):
         overrides = (self._preset_overrides if keep_overrides else {}) | options
         overrides.setdefault('columns', self.columns)
         candidate = selected.document(**overrides)
-        for name in ('width','height','columns','margin','gap','row_gap','theme','publication','preset','share_plot_margins'):
+        for name in ('width','height','columns','margin','gap','row_gap','theme','publication','preset','share_plot_margins','pack'):
             setattr(self, name, getattr(candidate, name))
         self._preset_overrides = candidate._preset_overrides
         self._last = None
@@ -280,7 +290,7 @@ class Document(BuildSpec):
                 self.gap, self.row_gap, fingerprint(self._letters, trail),
                 tuple((c.name, c.row, c.column, c.rowspan, c.colspan,
                        c.min_width, c.min_height, c.align, c.grow, fingerprint(c.item, trail)) for c in self._cells),
-                fingerprint(self._links, trail), self.share_plot_margins, self.stretch)
+                fingerprint(self._links, trail), self.share_plot_margins, self.stretch, self.pack)
 
     def render(self, context, width=None, height=None):
         self.__post_init__()
@@ -296,11 +306,23 @@ class Document(BuildSpec):
     def _layout(self, context, width, height):
         request = LayoutRequest(tuple(self._cells), self.columns, self.margin,
                                 self.gap, self.row_gap, dict(self._letters),
-                                tuple(self._links), self.share_plot_margins)
+                                tuple(self._links), self.share_plot_margins, self.pack)
         return layout_document(request, context, width, height)
 
     def compile(self):
         """Measure dependencies and return a cached CompiledFigure snapshot."""
+        # A page allocates millions of small geometry objects, and each full
+        # collection rescans every live one: with cyclic collection running,
+        # most of a large compile was spent in it. Reference counting still
+        # frees what the compile drops; cycles wait until it returns.
+        enabled=gc.isenabled()
+        gc.disable()
+        try:
+            return self._compile()
+        finally:
+            if enabled: gc.enable()
+
+    def _compile(self):
         started=time.perf_counter()
         # Revalidate public page dimensions after direct edits.
         self.__post_init__()
@@ -312,7 +334,7 @@ class Document(BuildSpec):
         signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,c.grow,
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram,Panel,PolarPanel)) else id(context.build(c.item)))
                          for c in self._cells)
-        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins))
+        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins,self.pack))
         if self._last is not None and self._last[0]==key and self._last[1].scene.sources_current():
             return self._last[1]
         dependency_seconds=time.perf_counter()-started
@@ -368,7 +390,8 @@ class Document(BuildSpec):
         return self.compile().save(*paths,**kwargs)
 
 
-def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False):
+def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False,
+             pack=False):
     """Create a live document; optionally share plot furniture across the grid.
 
     Left and right furniture is shared along vertical grid lines: plots that
@@ -382,8 +405,14 @@ def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None
     instead reserves the largest left and right furniture on every plot, so
     equal tracks give equal data widths across columns, as small multiples
     with one physical scale need. Fixed artwork is unchanged.
+
+    Experimental: `pack=True` ignores rows and columns and packs the cells,
+    in the order they were added, into nested side-by-side groups and stacks
+    that give the shortest page. `layout_report()` shows the arrangement,
+    with `|` for side by side and `/` for stacked.
     """
-    return Document(width,height,columns,margin,gap,row_gap,theme,publication,share_plot_margins=share_plot_margins)
+    return Document(width,height,columns,margin,gap,row_gap,theme,publication,share_plot_margins=share_plot_margins,
+                    pack=pack)
 
 
 def subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False,

@@ -257,7 +257,7 @@ A label-sized module. Port coordinates are fractions of its box.
 
 Create a measured module with fractional ports.
 
-#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool | str' = False, stretch: 'bool' = True, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
+#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool | str' = False, stretch: 'bool' = True, pack: 'bool' = False, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
 
 A physical page containing named, live figure definitions.
 
@@ -291,7 +291,7 @@ A resolved snapshot; later authoring changes cannot alter its exports.
 
 A document cannot satisfy its declared physical layout constraints.
 
-#### `document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False)`
+#### `document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False, pack=False)`
 
 Create a live document; optionally share plot furniture across the grid.
 
@@ -883,7 +883,7 @@ A disc, or a fan of one, plus the scales that map data into it.
 * `radar(values: 'Sequence[float]', *, name: 'str | None' = None, color: 'str | None' = None, fill: 'bool' = True, markers: 'bool' = True, size: 'float | str | None' = None, **style) -> "'PolarPanel'"` -- One series of a radar chart: a closed polygon with a value per spoke.
 * `radar_grid(categories: 'Sequence[str]', *, rings=None, shape: 'str' = 'polygon', labels: 'bool' = True, values: 'bool' = False, **style) -> "'PolarPanel'"` -- The rings, spokes and category names of a radar chart.
 * `pie(values: 'Sequence[float]', *, name: 'Sequence[str] | None' = None, color=None, labels='percent', label_options: 'dict | None' = None, separator: 'bool' = True, names=<deprecated: use name=>, colors=<deprecated: use color=>, **style) -> "'PolarPanel'"` -- A pie chart, or a donut on a panel made with `hole=`.
-* `breakout(slices, parts: 'Sequence[float] | None' = None, *, color=None, name: 'Sequence[str] | None' = None, labels='percent', label_options: 'dict | None' = None, side: 'str' = 'right', width: 'float | str | None' = None, height: 'float | str | None' = None, gap: 'float | str | None' = None, title: 'str | None' = None, connector: 'dict | None' = None, separator: 'bool' = True, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'PolarPanel'"` -- Expand slices of the pie into a stacked bar beside it.
+* `breakout(slices, parts: 'Sequence[float] | None' = None, *, color=None, name: 'Sequence[str] | None' = None, labels='percent', label_options: 'dict | None' = None, side: 'str' = 'right', width: 'float | str | None' = None, height: 'float | str | None' = None, gap: 'float | str | None' = None, title: 'str | None' = None, title_side: 'str' = 'top', connector: 'dict | None' = None, separator: 'bool' = True, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'PolarPanel'"` -- Expand slices of the pie into a stacked bar beside it.
 * `mean_vector(angles: 'Sequence[float]', weights: 'Sequence[float] | None' = None, *, r: 'float | None' = None, order: 'int' = 1, head: 'str' = 'triangle', label: 'str | Diagram | None' = None, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'PolarPanel'"` -- The circular mean of `angles`, drawn as an arrow from the pole.
 * `text(theta, r, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, **style) -> "'PolarPanel'"` -- Writing at one data point, `anchor` of it on that point.
 * `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int' = 1, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, **style) -> "'PolarPanel'"` -- A key built from the series this panel actually drew.

@@ -211,6 +211,41 @@ in turn, in page order, until no change shortens the page. `layout_report()`
 lists the alternative kept for each cell. Every alternative is laid out at
 least once, so each one adds to compile time.
 
+## Pack panels without a grid (experimental)
+
+```python
+def trace():
+    return (i.plot_spec(40, 24, x=(0, 3), y=(0, 4))
+            .line([(0, 1), (1, 3), (2, 2), (3, 4)]).axes(x='Time', y='Value'))
+
+packed = i.document(width=160, margin=2, gap=4, pack=True)
+packed.add('art', i.box('tall drawing', width=40, height=80))
+for name in ('one', 'two', 'three'):
+    packed.add(name, trace())
+assert packed.compile().metadata['layout']['packing'] == '(art | (one / (two | three)))'
+```
+
+Journal figures are rarely one grid: two plots stack beside a tall drawing,
+a wide panel runs under three small ones. With `pack=True` the page ignores
+rows and columns and packs the cells, in the order they were added, into
+groups set side by side (`|`) or stacked (`/`), down to single cells. Only
+cells added one after another are grouped, so the panel letters still read
+left to right and top to bottom.
+
+Each cell is measured at several widths, and the page takes the arrangement
+and widths that give the shortest page. Plots pay a little for straying from
+their authored proportions, and drawings for width they leave empty, so of
+two equally short pages the one closer to your panels wins. A plot's data is
+never narrowed below 60% of its authored width. Content that grows taller
+with width stops growing at one and a half times its smallest height, so a
+drawing stays in scale with its fixed-size text; in a wider slot it is placed
+by its `align=`. `choose()` cells are settled at the same time. The first line of
+`layout_report()` and `metadata['layout']['packing']` show the arrangement.
+
+Packing is experimental: the arrangement may change between releases, plot
+margins are not shared between packed cells, and measuring every cell at
+several widths makes a large page slower to compile than a grid.
+
 ## Resize and replace
 
 ```python

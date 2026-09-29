@@ -197,6 +197,11 @@ def text(content: str, *, size: float | str | None = None, font: str | None = No
                 ink = ink.pad(mm(style["halo"]) / 2)
             node = _replace(node, envelope_override=ink).translated(-center.x, -center.y)
         node.notes['text_bounds'] = 'ink'
+    # Glyphs paint with `text_fill`, which a document's root sets to the
+    # theme ink; a text's own `fill` has to set it too, or that inherited ink
+    # wins and the color shows only outside a document.
+    if style.get("fill") is not None and "text_fill" not in style:
+        style["text_fill"] = style["fill"]
     node = node.styled(**style) if style else node
     return node if not angle else node.rotated(angle)
 

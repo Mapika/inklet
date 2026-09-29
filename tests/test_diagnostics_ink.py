@@ -79,3 +79,28 @@ def test_a_shape_keeps_its_own_box():
     shapes = [i for i in ctx.items if i.is_shape]
 
     assert shapes and all(_ink_box(ctx, i) == i.bbox for i in shapes)
+
+
+def test_digits_centered_on_their_ink_sit_inside_their_table_cells():
+    # Digits have no descenders; their font box pokes out of a tight cell,
+    # but they were placed by their glyphs and lint measures them that way.
+    import inklet
+    from inklet.diagnostics import lint
+    table = inklet.value_table([[202, 218]], headers=['left', 'right'], font_size=inklet.pt(5),
+                               header_size=inklet.pt(5), pad=(.6, .3), stroke_width=.1)
+    assert [d for d in lint(table) if d.code == 'OVERLAP'] == []
+
+
+def test_a_raster_scatter_is_ink_only_where_it_has_points():
+    # One image spans the plot; its transparent stretches are empty page.
+    import random
+    rng = random.Random(1)
+    cloud = [(rng.uniform(0, 3), rng.uniform(0, 3)) for _ in range(3000)]
+
+    def overlaps(x, y):
+        p = inklet.panel(40, 30, x=(0, 10), y=(0, 10))
+        p.scatter(cloud, size=.6, raster=True)
+        p.text(x, y, 'label')
+        return [d for d in lint(p.build()) if d.code == 'OVERLAP']
+    assert overlaps(8, 8) == []
+    assert overlaps(1.5, 1.5)

@@ -715,6 +715,14 @@ def build_context(
         bbox = _prim_bbox(node.prim, placement.world)
         if bbox is None:
             continue  # a degenerate prim: no lines, no points, nothing to check
+        above = nodes.get(parent.get(node_id))
+        if (isinstance(node.prim, TextPrim) and node.envelope_override is not None
+                and 'ink' in (node.notes.get('text_bounds'),
+                              above is not None and above.notes.get('text_bounds'))):
+            # Placed by its glyphs, so measured by them: digits centered in a
+            # table cell have descender room below them that pokes out of
+            # the cell, and the text was never meant to sit by that.
+            bbox = node.envelope_override.transform(placement.world).bbox()
         if placement.clip_regions:
             from ..draw.clip import _region, clip_polygon
             points = list(bbox.corners)
@@ -1406,7 +1414,11 @@ def rule_overlap(ctx: LintContext) -> list[Diagnostic]:
                 continue
             area, fraction, intersection = hit
         else:
-            if _contains(first.bbox, second.bbox) or _contains(second.bbox, first.bbox):
+            # A frame around its label is not a collision -- but an image
+            # with see-through stretches is marks, not a frame: a raster
+            # scatter spans the plot, and every label in the plot sits in it.
+            if ((_contains(first.bbox, second.bbox) and not _sparse(first))
+                    or (_contains(second.bbox, first.bbox) and not _sparse(second))):
                 continue
             area, intersection = _ink_overlap(first, second, intersection)
             smaller = min(_ink_area(first), _ink_area(second))
@@ -1501,6 +1513,65 @@ def _ink_area(item: Item) -> float:
     return sum(polygon_area(ring) for ring in rings)
 
 
+def _opaque_area(item: Item, box: Rect) -> float | None:
+    """The area of `box` an image actually paints: its opaque pixels.
+
+    A raster scatter is one image over the whole plot, transparent between
+    the points, and a label set in an empty stretch of it covers nothing. A
+    photograph is opaque throughout and measures as its box, as before. None
+    when the pixels cannot be read or the image is turned.
+    """
+    prim = item.prim
+    if not isinstance(prim, ImagePrim) or prim.outline or prim.data is None:
+        return None
+    world = item.world
+    if abs(world.b) > 1e-9 or abs(world.c) > 1e-9:
+        return None
+    alpha = _alpha(prim)
+    if alpha is None:
+        return None
+    local = box.transform(world.inverse())
+    frame = prim.rect
+    columns, rows = alpha.size
+    x0 = max(0, int((local.x0-frame.x0)/frame.width*columns))
+    x1 = min(columns, int(math.ceil((local.x1-frame.x0)/frame.width*columns)))
+    y0 = max(0, int((local.y0-frame.y0)/frame.height*rows))
+    y1 = min(rows, int(math.ceil((local.y1-frame.y0)/frame.height*rows)))
+    if x1 <= x0 or y1 <= y0:
+        return 0.
+    # Faint antialiasing at a point's rim is not ink a label collides with.
+    opaque = sum(alpha.crop((x0, y0, x1, y1)).point(lambda v: 255 if v > 64 else 0).histogram()[255:])
+    pixel = abs(world.a*frame.width/columns * world.d*frame.height/rows)
+    return min(opaque*pixel, _area(box))
+
+
+def _sparse(item: Item) -> bool:
+    """An image mostly see-through: points or strokes on nothing."""
+    prim = item.prim
+    if not isinstance(prim, ImagePrim) or prim.outline or prim.data is None:
+        return False
+    alpha = _alpha(prim)
+    return alpha is not None and alpha.getextrema()[0] < 64
+
+
+_ALPHAS: dict[int, object] = {}
+
+
+def _alpha(prim: ImagePrim):
+    key = id(prim.data)
+    if key not in _ALPHAS or _ALPHAS[key][0] is not prim.data:
+        try:
+            import io
+            from PIL import Image
+            image = Image.open(io.BytesIO(prim.data))
+            _ALPHAS[key] = (prim.data, image.getchannel('A') if 'A' in image.getbands() else None)
+        except Exception:
+            _ALPHAS[key] = (prim.data, None)
+        if len(_ALPHAS) > 64:
+            _ALPHAS.pop(next(iter(_ALPHAS)))
+    return _ALPHAS[key][1]
+
+
 def _ink_overlap(first: Item, second: Item,
                  intersection: Rect) -> tuple[float, Rect]:
     """Refine a box-against-box overlap using whatever real geometry is there.
@@ -1513,6 +1584,9 @@ def _ink_overlap(first: Item, second: Item,
     shape = second if first.is_text else first
     if shape.is_text:
         return _area(intersection), intersection
+    covered = _opaque_area(shape, intersection)
+    if covered is not None:
+        return covered, intersection
     rings = _rings(shape)
     if rings is None:
         return _area(intersection), intersection
@@ -1595,7 +1669,8 @@ _CROWDING_GROUP_MIN = 3
 
 # Kinds whose position was *computed from a source* rather than chosen by a
 # layout: `inklet.plot` marks come from the scales, `inklet.three` facets and strokes
-# come from the mesh. Two of them a fifth of a millimetre apart is what the
+# come from the mesh, and 3D paths and points projected over a model come from
+# their data through the camera. Two of them a fifth of a millimetre apart is what the
 # measurement or the geometry says, and telling an author to separate them asks
 # them to falsify the figure.
 #
@@ -1613,6 +1688,7 @@ _CROWDING_GROUP_MIN = 3
 _COMPUTED_KINDS = frozenset({
     "mark", "mark-line", "colorband",
     "model-facet", "model-outline", "model-crease", "model-ink",
+    "projected-paths", "projected-points",
 })
 
 # Wrappers that carry a transform and nothing else. `translated()` makes one per
