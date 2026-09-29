@@ -61,7 +61,7 @@ def panel_a(d):
     grid = d['weight_grid']
     totals = [d[f'cdf{k}'] for k in range(3)]
     everything = sum(t[-1] for t in totals)
-    p = i.plot_spec(height=34, x=i.log((1, 1000)), y=i.log((1e4, 4e7)))
+    p = i.plot_spec(height=24, x=i.log((1, 1000)), y=i.log((1e4, 4e7)))
     for k, color in [(0, INK), (2, BLUE), (1, AMBER)]:
         share = f'{100 * totals[k][-1] / everything:.1f}%'
         p.line(list(zip(grid, np.maximum(totals[k], 1e4))), stroke=color, name=share)
@@ -75,7 +75,7 @@ def panel_a(d):
                side='n', leader=False, size=PT5)
     p.axes(x='weight (♂)', y='no. of connections (cum.)')
     dot = lambda color: i.marker('circle', 1.2, fill=color, stroke='none')
-    p.legend(title='cell types', side='bottom', columns=3,
+    p.legend(title='cell types', corner='best', plate=False,
              entries=[('isomorphic', dot(INK)), ('dimorphic', dot(AMBER)), ('sex-specific', dot(BLUE))])
     return p
 
@@ -298,7 +298,7 @@ def panel_f():
     keys = ['in-m', 'in-f', 'out-m', 'out-f']
     cats = i.categories({k: INK for k in keys},
                         labels={'in-m': 'in ♂', 'in-f': 'in ♀', 'out-m': 'out ♂', 'out-f': 'out ♀'})
-    p = i.plot_spec(height=34, x=cats.scale(), y=(0, 1))
+    p = i.plot_spec(height=24, x=cats.scale(), y=(0, 1))
     p.bars(keys, [[b[1] for b in bars], [b[0] for b in bars]], stacked=True, width=.72,
            color=[INK, AMBER], name=['isomorphic', 'dimorphic'],
            stroke='none')
@@ -319,7 +319,7 @@ def superscript(v):
 def panel_g(d):
     s = d['scatter']
     scale = lambda: i.symlog((0, 1e5), linthresh=1)
-    p = i.plot_spec(height=34, x=scale(), y=scale())
+    p = i.plot_spec(height=24, x=scale(), y=scale())
     p.rect(0, 0, 5, 1e5, fill=PALE, stroke='none')
     p.rect(0, 0, 1e5, 5, fill=PALE, stroke='none')
     buckets = [('> 0.1', '#aaaaaa', .1, 2), ('≤ 0.1', GREEN, .05, .1),
@@ -342,7 +342,7 @@ def panel_g(d):
 # -- H: dimorphic fraction per cell type ------------------------------------------------
 
 def panel_h(d):
-    p = i.plot_spec(height=34, x=(1, 0), y=(0, 1))
+    p = i.plot_spec(height=24, x=(1, 0), y=(0, 1))
     for flag, color in [(1, AMBER), (0, INK)]:
         for prefix, dash in [('type', None), ('expr', (.4, .4))]:
             values = d[f'{prefix}_fraction_{flag}']
@@ -355,20 +355,19 @@ def panel_h(d):
            x_options={'ticks': [1, .5, 0]})
 
     shares = [.006, .011, .031, .069]                   # transcribed from the reference
-    bars = i.plot_spec(height=34, x=['a', 'b', 'c', 'd'], y=(0, .075))
+    bars = i.plot_spec(height=24, x=['a', 'b', 'c', 'd'], y=(0, .075))
     bars.bars(['a', 'b', 'c', 'd'], shares, width=.7, bar_colors=[BLUE, '#e07b53', '#8fb4dd', '#c8bd8a'],
               stroke='none')
     bars.axis('right', ticks=[0, .02, .04, .06], format='{:.0%}', label='fraction of neurons')
     bars.axis('bottom', labels=False, tick_size=0)
 
-    # A plot legend on side='top' is charged to the side margins (gap), so the
-    # key gets its own grid row instead.
-    key = i.legend([('dimorphic types', AMBER), ('isomorphic types', INK),
-                    ('all types', line(None)), ('fru+|dsx+ only', line((.4, .4)))], columns=2, col_gap=1.5)
+    # As in the reference, the key sits in the empty top left of the data.
+    p.legend(corner='nw', plate=False,
+             entries=[('dimorphic types', AMBER), ('isomorphic types', INK),
+                      ('all types', line(None)), ('fru+|dsx+ only', line((.4, .4)))])
     h = i.subfigure(columns=[3, 1], gap=1)
-    h.add('key', key, row=0, column=0, colspan=2, align='w')
-    h.add('curves', p, row=1, column=0, min_height=40)
-    h.add('neurons', bars, row=1, column=1, min_height=40)
+    h.add('curves', p, row=0, column=0)
+    h.add('neurons', bars, row=0, column=1)
     return h
 
 
@@ -469,7 +468,7 @@ LABELLED = [79, 81, 89, 102, 103, 116, 153, 185, 186, 249, 250, 270]
 
 def panel_l(communities):
     tree, highlight = hierarchy(communities)
-    p = i.plot_spec(height=85, width=30)
+    p = i.plot_spec(height=66, width=30)
     p.icicle(tree, gap=2.2, highlight=set(highlight), labels=[str(c) for c in LABELLED],
              levels=True, counts=True, color=LIGHT_BLUE)
     p.title('hierarchy levels')
@@ -507,7 +506,7 @@ def panel_m(d, communities):
     n = len(matrix)
     enriched = set(communities.loc[communities.enriched, 'community_id'])
     lo, hi = 70, 120
-    zoom = i.plot_spec(width=40, height=40, x=(lo - .5, hi - .5), y=(hi - .5, lo - .5))
+    zoom = i.plot_spec(width=32, height=32, x=(lo - .5, hi - .5), y=(hi - .5, lo - .5))
     class_layers(zoom, matrix[lo:hi, lo:hi], classes[lo:hi], range(lo, hi), range(lo, hi))
     for c in range(lo, hi):
         zoom.rect(c - .5, c - .5, c + .5, c + .5, fill='none',
@@ -515,7 +514,7 @@ def panel_m(d, communities):
     shown = [c for c in LABELLED if lo <= c < hi]
     zoom.label_points([(c, c) for c in shown], [str(c) for c in shown], fill=RED)
 
-    p = i.plot_spec(height=40, x=(-.5, n - .5), y=(n - .5, -.5))
+    p = i.plot_spec(height=32, x=(-.5, n - .5), y=(n - .5, -.5))
     class_layers(p, matrix, classes, range(n), range(n))
     p.axes(x='target (postsynaptic)', y='source (presynaptic)',
            x_options={'ticks': []}, y_options={'ticks': []})
@@ -528,7 +527,7 @@ def panel_m(d, communities):
     key = i.legend([(name, color) for name, color in CLASSES] +
                    [('cluster', square(INK)), ('enriched cluster', square(RED))], columns=3)
     m = i.subfigure(columns=1, gap=1)
-    m.add('matrix', p, row=0, column=0, min_height=46)
+    m.add('matrix', p, row=0, column=0)
     m.add('key', key, row=1, column=0, align='w')
     return m
 
@@ -542,11 +541,11 @@ def panel_n(clusters):
     totals = [r['total'] for r in rows]
     shares = [[c / t for c, t in zip(series, totals)] for series in counts]
     labels = [[str(c) if c else '' for c in series] for series in counts]
-    p = i.plot_spec(height=52, x=(0, 1), y=names[::-1])
+    p = i.plot_spec(height=36, x=(0, 1), y=names[::-1])
     p.bars(names, shares, stacked=True, orient='h', width=.78, color=[BLUE, AMBER, GREY],
            name=['specific', 'dimorphic', 'isomorphic'], labels=labels, stroke='none')
     p.axes(x='proportion of cell types', y='enriched cluster ID')
-    p.legend(side='top', columns=2)
+    p.legend(side='top')
     return p
 
 
@@ -562,13 +561,13 @@ def panel_o(d, communities):
                         reverse=True)[:80]
     edges = [(str(a), str(b), float(w), 'dimorphic' if dim[a, b] / w > .4 else 'isomorphic')
              for w, a, b in candidates]
-    p = i.plot_spec(height=52)
+    p = i.plot_spec(height=36)
     p.network({str(c): float(sizes[c]) for c in ids}, edges, shape='square', arrows=True, diameter=3.5,
               groups={str(c): 'enriched' if c in enriched else 'not enriched' for c in ids},
               color={'enriched': RED, 'not enriched': '#c8c8c8'},
               edge_color={'isomorphic': '#555555', 'dimorphic': AMBER})
     p.width_key(title='edge weight\n(no. of synapses)', values=[50000, 1000], format='{:,.0f}', side='bottom')
-    p.size_key(title='no. of types\nin cluster', values=[50, 10], side='bottom')
+    p.size_key(title='no. of types\nin cluster', values=[50, 10], side='right')
     p.legend(side='bottom', columns=2)
     return p
 
@@ -583,7 +582,7 @@ def panel_p(art: Artwork):
     cns = art.mesh_points('male-brain', 'male-vnc')
 
     def factory(*, width, height):
-        v = art.view(cns, width, height=80 if height is None else min(80, height - 10))
+        v = art.view(cns, width, height=66 if height is None else min(66, height - 10))
         for name in ('male-brain', 'male-vnc'):
             v.surface(name, a.display_mesh(name, 3000), color='#e8e8e8', opacity=.6)
         v.paths('male-specific', [r for b in specific for r in art.runs(b, 5)],
@@ -612,7 +611,7 @@ def panel_q():
     p.axis('top', ticks=[0, .2, .4, .6, .8, 1])
     p.axis('left', label='clusters')
     p.title('proportion of non-isomorphic cell types')
-    p.legend(side='bottom', columns=2)
+    p.legend(side='bottom')
     return p
 
 
