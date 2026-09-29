@@ -582,3 +582,25 @@ def test_theta_labels_clear_of_the_bar_stay_where_they_are() -> None:
         if text not in note["nudged"]:
             assert box.center.x == pytest.approx(before[text].center.x)
             assert box.center.y == pytest.approx(before[text].center.y)
+
+
+def test_a_wide_label_on_a_small_disc_moves_inward_to_fit_its_slice() -> None:
+    from inklet.plot.wheel import pie as wheel_pie
+
+    # At 0.62 of this radius "85.5%" reaches past the rim; nearer the centre
+    # of the large slice it fits.
+    _, _, note = wheel_pie(polar(6.5), [85.5, 4.9, 9.6])
+    assert note["inside"] == [0]
+
+
+def test_a_breakout_wider_than_a_half_turn_keeps_its_connectors_off_the_disc() -> None:
+    from inklet.plot.wheel import breakout_connectors
+    from inklet.plot.wheel import pie as wheel_pie
+
+    p = polar(11, zero="up", winding="cw")
+    _, _, note = wheel_pie(p, [85.5, 4.9, 9.6])
+    for start, end in breakout_connectors(p, note["angles"], [0, 1]):
+        assert math.isclose(math.hypot(start.x, start.y), 11, abs_tol=1e-6)
+        dx, dy = end.x - start.x, end.y - start.y
+        t = max(0., min(1., -(start.x*dx + start.y*dy) / (dx*dx + dy*dy)))
+        assert math.hypot(start.x + t*dx, start.y + t*dy) >= 11 - 1e-6

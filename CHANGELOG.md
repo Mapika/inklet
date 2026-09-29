@@ -20,6 +20,12 @@
   rows touch. Previously a key beside one plot narrowed every plot on that
   line anywhere on the page, and could leave a distant plot no data width.
 
+- A pie label that does not fit its slice at the usual radius moves
+  towards the centre before going outside, so wide labels on small pies stay
+  inside large slices.
+- `breakout()` connectors for slices covering more than half the pie leave
+  from the tangent points on the rim instead of crossing the disc.
+
 ### Added
 
 - `subfigure(stretch=False)` keeps a nested grid at its natural height inside

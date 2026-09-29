@@ -410,12 +410,21 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
             node = text_node(text, size, TICK_LABEL_KIND,
                              markup=bool(options.get("markup", False)), **extra)
             mid = (a0 + a1) / 2
-            middle = (inner + outer) / 2 if inner > 0 else outer * 0.62
-            centre = Vec2(math.cos(math.radians(mid)) * middle,
-                          math.sin(math.radians(mid)) * middle)
             margin = _SLICE_MARGIN_OF_TYPE * size
-            box = _moved(node.bbox, centre - node.bbox.center)
-            if _fits_slice(box, inner, outer, a0, a1, margin):
+            # A ring label sits mid-ring. A disc label starts at 0.62 of the
+            # radius and moves inward until it fits: a wide label on a small
+            # disc clears the rim nearer the centre of a large slice.
+            radii = ((inner + outer) / 2,) if inner > 0 else tuple(
+                outer * f for f in (.62, .55, .48, .41, .34))
+            for middle in radii:
+                centre = Vec2(math.cos(math.radians(mid)) * middle,
+                              math.sin(math.radians(mid)) * middle)
+                box = _moved(node.bbox, centre - node.bbox.center)
+                if _fits_slice(box, inner, outer, a0, a1, margin):
+                    break
+            else:
+                middle = None
+            if middle is not None:
                 ink = options.get("fill") or _ink_on(fill, theme)
                 inside.append((centre - node.bbox.center, node.styled(text_fill=ink)))
                 note["inside"].append(index)
@@ -905,7 +914,30 @@ def breakout_connectors(panel, angles: Sequence[tuple[float, float]],
     rim = sorted((Vec2(math.cos(math.radians(a)) * radius,
                        math.sin(math.radians(a)) * radius) for a in (a0, a1)),
                  key=lambda v: v.y)
-    return [(rim[0], Vec2(near, top)), (rim[1], Vec2(near, top + bar_height))]
+    ends = [Vec2(near, top), Vec2(near, top + bar_height)]
+    # A span wider than a half turn has its ends on the far side of the disc;
+    # a connector from there would cross the pie, so it leaves from where a
+    # line from the bar corner touches the rim instead, as drawn by hand.
+    return [(_clear_of_disc(start, end, radius, upper=k == 0), end)
+            for k, (start, end) in enumerate(zip(rim, ends))]
+
+
+def _clear_of_disc(start: Vec2, end: Vec2, radius: float, *, upper: bool) -> Vec2:
+    """`start`, or the tangent point from `end` on the upper or lower side of
+    the disc when the segment from `start` to `end` runs through it."""
+    dx, dy = end.x - start.x, end.y - start.y
+    length = dx * dx + dy * dy
+    t = 0.0 if length == 0 else max(0.0, min(1.0, -(start.x * dx + start.y * dy) / length))
+    if math.hypot(start.x + t * dx, start.y + t * dy) >= radius * (1 - 1e-6):
+        return start
+    distance = math.hypot(end.x, end.y)
+    if distance <= radius:
+        return start
+    base = math.atan2(end.y, end.x)
+    turn = math.acos(radius / distance)
+    touches = [Vec2(math.cos(a) * radius, math.sin(a) * radius)
+               for a in (base - turn, base + turn)]
+    return min(touches, key=lambda v: v.y) if upper else max(touches, key=lambda v: v.y)
 
 
 def breakout_turn(theta, values: Sequence[float], slices: Sequence[int], *,

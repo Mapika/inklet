@@ -1237,7 +1237,8 @@ class PolarPanel:
         as `"{share:.1%}"` (the value is `{}`, its fraction is `share`), a
         callable taking `(value, share)`, or one string per slice. A label is
         set inside its slice when it fits with a margin, in ink or paper
-        against the slice colour; otherwise it goes outside the rim. An
+        against the slice colour, moving towards the centre of a disc if
+        that is where it fits; otherwise it goes outside the rim. An
         outside label that meets another moves out or round the rim to the
         nearest clear spot; one that ends up away from its slice gets a
         hairline leader back to the rim. The node's `pie_labels` note lists
@@ -1285,7 +1286,9 @@ class PolarPanel:
         of adjacent indices. The bar stands to the `side` of the disc
         (`"right"` or `"left"`) and two connector lines run from the rim,
         where the chosen slices' outer edges meet it, to the bar's top and
-        bottom corners.
+        bottom corners. When the slices cover more than half the pie, a
+        connector that would cross the disc leaves from where it touches
+        the rim instead.
 
             p = inklet.polar(11, zero="up", winding="cw")
             p.pie([73.7, 24.8, 1.5], color=[GREY, INK, YELLOW])
