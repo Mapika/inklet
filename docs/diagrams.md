@@ -98,6 +98,22 @@ Figure; `.diagram` alone does not include the routed connections. Available
 layouts are `layered`, `tree`, `force` and `circular`. Edge crossings can remain
 in dense graphs and are reported for review.
 
+```python
+decision = i.graph(
+    {name: i.box(name) for name in ('weight', 'types', 'discard', 'verdict')},
+    [('weight', 'types', {'label': 'yes', 'same_rank': True}),
+     ('weight', 'discard', 'no'), ('types', 'verdict')],
+)
+assert decision.ranks == (0, 0, 1, 1)
+```
+
+A layered graph puts every edge's target a rank below its source. Mark an edge
+`same_rank=True` to keep both ends in one rank instead, side by side with the
+source first: a decision flow can then send "yes" across and "no" down, and a
+row label can sit level with its row. Each node takes at most one same-rank
+edge in and one out; a hidden edge (`stroke='none', head='none'`) aligns
+nodes without drawing anything.
+
 For branches, loops, explicit routing and diagram annotations, use the
 [tested cookbook](cookbook.md). For a graph inside a responsive document
 component, see `network()` in the [stress example](../examples/stress20.py).

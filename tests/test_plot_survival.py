@@ -198,7 +198,9 @@ def test_at_risk_table_columns_sit_under_the_ticks() -> None:
         # The name, right of nothing, then one number under each tick.
         assert centres[1:] == pytest.approx([p.x.map(t) for t in ticks], abs=1e-6)
         assert centres[0] < p.area.x0
-    assert lint(built) == []
+    # Table rows are set close, so the ink of a tall name may come within the
+    # crowding clearance of the row above: an info note, not a problem.
+    assert [d for d in lint(built) if d.severity != "info"] == []
 
 
 def test_at_risk_and_kaplan_meier_errors() -> None:

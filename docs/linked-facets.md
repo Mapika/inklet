@@ -83,17 +83,15 @@ reserve the same space. Ordinary documents can opt into the same rule with
 `document(..., share_plot_margins=True)` or
 `subfigure(..., share_plot_margins=True)` aligns plots without reserving
 every plot's furniture on every other plot. Left and right furniture is shared
-along vertical grid lines: plots whose cells start on the same grid line
-reserve the largest left furniture among them, and plots whose cells end on the
-same grid line reserve the largest right furniture among them, so their data
-edges line up. A long label in one column does not narrow plots that share
-neither of its grid lines. With an automatic page height, top and bottom
-furniture is shared along each row, and every row adds its own furniture to the
-tallest natural data region; a legend or colorbar under one row no longer adds
-space under the others. A fixed page height shares top and bottom furniture
-across the grid. Plots in one column track have equal data areas; plots in
-different columns can differ when their labels do. Fixed artwork retains its
-authored size. This option defaults to `False`.
+along vertical grid lines: stacked plots whose cells start on the same grid
+line reserve the largest left furniture among them, and stacked plots whose
+cells end on the same grid line reserve the largest right furniture among them,
+so their data edges line up. Plots are stacked when their rows touch. A long label in one column does not narrow plots that share
+neither of its grid lines. Top and bottom furniture is shared along each
+row, and every row adds its own furniture to the tallest natural data region;
+a legend or colorbar under one row adds no space under the others. A fixed
+page height keeps these rows and gives extra space to plot rows in proportion
+to their data heights. Fixed artwork retains its authored size. This option defaults to `False`.
 
 The wrapped view supplies fixed domains, axis labels, color and mark settings.
 Line adjacency follows source order **within each category**, so interleaving

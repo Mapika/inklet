@@ -168,7 +168,23 @@ def test_released_fixture_bytes_match_recorded_origins():
         assert hashlib.sha256((FIXTURES/name).read_bytes()).hexdigest()==digest,name
 
 
-def test_dev16_project_reopens_with_original_choices_and_export():
+def test_dev16_project_reopens_with_original_choices_and_export(monkeypatch):
+    # dev16 read a theme's font list as one unknown family, so fontconfig
+    # answered with its default face; the fixture's SVG embeds that face.
+    # Reproduce that resolution to keep the byte comparison strict.
+    from inklet.typeset import fonts, shaping
+    def forget():
+        fonts.find_font.cache_clear(); shaping._variant.cache_clear()
+    original=fonts._fc_match
+    monkeypatch.setattr(fonts,'_fc_match',lambda family,*rest: original('sans' if ',' in family else family,*rest))
+    forget()
+    try:
+        _reopen_dev16()
+    finally:
+        monkeypatch.undo(); forget()
+
+
+def _reopen_dev16():
     recipe=load(FIXTURES/'recipe.py','compatibility_recipe')
     bundle=FIXTURES/'dev16-project'
     metadata=json.loads((bundle/'.inklet/project.json').read_text())

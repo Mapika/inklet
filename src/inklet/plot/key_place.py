@@ -11,7 +11,7 @@ def best_spot(panel, node: Diagram, pad: float) -> Diagram | None:
     """`node` moved to the emptiest spot in `panel`'s plot area, or None.
 
     Scored against everything the panel has drawn so far in its content and
-    over layers (see `layout.label_search.emptiest`). None when every spot
+    over layers, deferred labels included (see `layout.label_search.emptiest`). None when every spot
     would cover or cross something, so the caller can put the key outside.
     """
     area = panel.area
@@ -19,7 +19,9 @@ def best_spot(panel, node: Diagram, pad: float) -> Diagram | None:
     if (b is None or b.width > area.width - 2 * pad
             or b.height > area.height - 2 * pad):
         return None
-    field = field_of([*panel._content, *panel._over], cell=4.0)
+    # Labels deferred to build time (`label_lines`, `label_points`) are placed
+    # provisionally, so the key keeps clear of where they will go.
+    field = field_of([*panel._content, *panel._placed_over()], cell=4.0)
     box, _, clean = emptiest(b.width, b.height, area, field, pad=pad)
     if not clean:
         return None

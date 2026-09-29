@@ -260,6 +260,24 @@ def test_best_legend_goes_outside_when_the_plot_is_full():
     assert legend_box(corner="best") == legend_box(side="right")
 
 
+def test_a_key_keeps_clear_of_line_end_labels_placed_at_build():
+    """`label_lines` places its labels at build time; the key is placed at the
+    call, so it has to see where they will go."""
+    def keyed(corner):
+        p = inklet.plot.panel(30, 24, x=(0, 10), y=(0, 10))
+        for level in (8, 5, 4.2):
+            p.line([(0, level - 3), (10, level)], name=f"{level * 10:.0f}%")
+        p.label_lines(where="end")
+        return p.legend(corner=corner, title="cell types",
+                        entries=[(name, "#333333") for name in
+                                 ("isomorphic", "dimorphic", "sex-specific")])
+    built = keyed("best").build()
+    assert not [d for d in inklet.lint(built) if d.code == "OVERLAP"]
+    # "auto" never goes outside: with the labels in view nothing is clear.
+    with pytest.raises(DiagramError, match="no clear legend"):
+        keyed("auto")
+
+
 def test_fixed_corners_are_unchanged():
     def svg(corner):
         p = inklet.plot.panel(40, 30, x=(0, 10), y=(0, 10))

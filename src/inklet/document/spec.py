@@ -385,3 +385,37 @@ def component(factory, *args, responsive=False, **kwargs):
     if not callable(factory):
         raise TypeError('component needs a callable diagram factory')
     return ComponentSpec(factory, freeze(args), freeze(kwargs), responsive)
+
+
+@dataclass(eq=False)
+class Choice(BuildSpec):
+    """Alternative definitions of one cell. Construct with `choose()`.
+
+    A document lays out each alternative and keeps the one that gives the
+    shortest page; ties keep the earlier alternative. Outside a document
+    grid, the first alternative is drawn.
+    """
+    options: tuple
+    names: tuple
+
+    def signature(self, trail=()):
+        return ('choice', self.names, tuple(fingerprint(o, trail) for o in self.options))
+
+    def render(self, context, width=None, height=None):
+        return context.build(self.options[0], width, height)
+
+
+def choose(*options, **named):
+    """Offer a document cell several layouts; the page keeps the shortest.
+
+    Pass alternatives in order of preference, positionally or by name
+    (`choose(inside=a, below=b)`); names appear in `layout_report()`. Only
+    alternatives that fit are considered; text is never scaled.
+    """
+    items = (*options, *named.values())
+    if len(items) < 2:
+        raise ValueError('choose() needs at least two alternatives')
+    if any(isinstance(item, Choice) for item in items):
+        raise TypeError('choose() alternatives cannot be choices themselves')
+    names = (*(str(n+1) for n in range(len(options))), *named)
+    return Choice(items, names)

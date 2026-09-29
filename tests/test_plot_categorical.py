@@ -398,3 +398,16 @@ def test_the_example_page_lints_without_errors_or_warnings(tmp_path) -> None:
         env={**os.environ, "PYTHONPATH": str(root/"src")})
     assert "ERROR" not in result.stdout and "WARNING" not in result.stdout
     assert (tmp_path/"examples/categorical_plot_types.svg").exists()
+
+
+def test_title_align_accepts_left_and_right_and_rejects_unknown_values() -> None:
+    import inklet as i
+    def title_x(align):
+        p = i.panel(width=40, height=20, x=(0, 1), y=(0, 1)).axes(x='x', y='y')
+        box = placed(p.title('Pearson r', align=align), 'title')[0].bbox
+        return round(box.x0, 6), round(box.x1, 6)
+    assert title_x('left') == title_x('start')
+    assert title_x('right') == title_x('end')
+    assert title_x('left')[0] < title_x('center')[0]
+    with pytest.raises(ValueError):
+        i.panel(width=40, height=20).title('t', align='middle')

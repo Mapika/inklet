@@ -64,10 +64,11 @@ def test_a_role_level_italic_is_painted_but_not_measured():
 
 def test_the_two_faces_are_not_the_same_width():
     """Which is what makes the paragraph above a defect rather than a
-    technicality: it is 3.3mm on a 62mm caption, one whole word."""
+    technicality: it is 3.3mm on a 62mm caption, one whole word. Measured in
+    the generic sans; an Arial-compatible italic keeps the upright's advances."""
     plain = "Growth of E. coli K-12 at 37 C, mean of three replicates."
-    roman = inklet.text(plain, size=2.4).bbox.width
-    italic = inklet.text(plain, size=2.4, font_style="italic").bbox.width
+    roman = inklet.text(plain, size=2.4, font="sans").bbox.width
+    italic = inklet.text(plain, size=2.4, font="sans", font_style="italic").bbox.width
 
     assert italic < roman - 1.0
 

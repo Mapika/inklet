@@ -89,7 +89,8 @@ def test_rotation_turns_the_block_and_not_the_letters():
 
 def test_one_child_per_shaping_cluster():
     """A ligature is one drawing and gets one station; a mark rides its base."""
-    run = inklet.text_on_path("waffle fi", op.baseline_arc(20, -140, -40), size=3)
+    run = inklet.text_on_path("waffle fi", op.baseline_arc(20, -140, -40), size=3,
+                             font="sans")
     assert [child.prim.text for child in run.children] == [
         "w", "a", "ffl", "e", " ", "fi"]
 

@@ -51,7 +51,8 @@ from .scale import format_number
 __all__ = ["RING_SHAPES", "radar_spokes", "radar", "radar_grid",
            "ring_value_items", "pie",
            "pie_label_texts", "breakout", "breakout_frame",
-           "breakout_connectors", "breakout_turn", "BREAKOUT_SIDES"]
+           "breakout_connectors", "breakout_turn", "breakout_title_gap", "BREAKOUT_SIDES",
+           "BREAKOUT_TITLE_SIDES"]
 
 #: Accepted values of `radar_grid(rings=)`'s shape.
 RING_SHAPES = ("polygon", "circle")
@@ -410,12 +411,24 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
             node = text_node(text, size, TICK_LABEL_KIND,
                              markup=bool(options.get("markup", False)), **extra)
             mid = (a0 + a1) / 2
-            middle = (inner + outer) / 2 if inner > 0 else outer * 0.62
-            centre = Vec2(math.cos(math.radians(mid)) * middle,
-                          math.sin(math.radians(mid)) * middle)
             margin = _SLICE_MARGIN_OF_TYPE * size
-            box = _moved(node.bbox, centre - node.bbox.center)
-            if _fits_slice(box, inner, outer, a0, a1, margin):
+            # A ring label sits mid-ring. A disc label starts at 0.62 of the
+            # radius and moves inward until it fits: a wide label on a small
+            # disc clears the rim nearer the centre of a large slice.
+            radii = ((inner + outer) / 2,) if inner > 0 else tuple(
+                outer * f for f in (.62, .55, .48, .41, .34))
+            for middle in radii:
+                centre = Vec2(math.cos(math.radians(mid)) * middle,
+                              math.sin(math.radians(mid)) * middle)
+                box = _moved(node.bbox, centre - node.bbox.center)
+                if _fits_slice(box, inner, outer, a0, a1, margin):
+                    break
+            else:
+                middle = None
+                centre = _off_centre_spot(node.bbox, inner, outer, a0, a1, margin)
+                if centre is not None:
+                    middle = centre.length
+            if middle is not None:
                 ink = options.get("fill") or _ink_on(fill, theme)
                 inside.append((centre - node.bbox.center, node.styled(text_fill=ink)))
                 note["inside"].append(index)
@@ -687,6 +700,32 @@ def _touch(a: Rect, b: Rect, pad: float) -> bool:
             and a.y0 - pad < b.y1 and b.y0 - pad < a.y1)
 
 
+def _off_centre_spot(box: Rect, inner: float, outer: float, a0: float, a1: float,
+                     margin: float) -> Vec2 | None:
+    """The center nearest the usual label spot at which `box` fits the slice.
+
+    A wide label in a quarter slice fits beside the straight edge that runs
+    along it, not on the slice's center line, so this also tries bearings
+    towards either edge. None when nothing fits.
+    """
+    mid = (a0 + a1) / 2
+    usual = outer * .62 if inner <= 0 else (inner + outer) / 2
+    target = Vec2(math.cos(math.radians(mid)) * usual,
+                  math.sin(math.radians(mid)) * usual)
+    spots = []
+    for step in range(1, 10):
+        angle = a0 + (a1 - a0) * step / 10
+        for tenth in range(3, 10):
+            radius = inner + (outer - inner) * tenth / 10
+            spots.append(Vec2(math.cos(math.radians(angle)) * radius,
+                              math.sin(math.radians(angle)) * radius))
+    for centre in sorted(spots, key=lambda spot: (spot - target).length):
+        if _fits_slice(_moved(box, centre - box.center), inner, outer, a0, a1,
+                       margin):
+            return centre
+    return None
+
+
 def _fits_slice(box: Rect, inner: float, outer: float, a0: float, a1: float,
                 margin: float) -> bool:
     """Whether every corner of `box` lies inside the annular sector, at least
@@ -720,14 +759,15 @@ _BREAKOUT_GAP_OF_RADIUS = 0.75
 
 #: Sides a breakout bar may stand on.
 BREAKOUT_SIDES = ("right", "left")
+BREAKOUT_TITLE_SIDES = ("top", "gap")
 
 
 def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
              colors=None, labels="percent", label_options: Mapping | None = None,
              side: str = "right", width: float | str | None = None,
              height: float | str | None = None, gap: float | str | None = None,
-             title: str | None = None, connector: Mapping | None = None,
-             separator: bool = True,
+             title: str | None = None, title_side: str = "top",
+             connector: Mapping | None = None, separator: bool = True,
              **style) -> tuple[Diagram, tuple[str, ...], dict]:
     """A stacked bar that expands slices of a pie. See `PolarPanel.breakout`.
 
@@ -799,9 +839,9 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
                                      kind=MARK_LINE_KIND, **rule))
     line = {"stroke": theme.muted, "stroke_width": theme.hairline}
     line.update(connector or {})
-    links = [polyline(ends, kind=MARK_LINE_KIND, **line)
-             for ends in breakout_connectors(panel, angles, ordered, side=side,
-                                             width=width, height=height, gap=gap)]
+    ends = breakout_connectors(panel, angles, ordered, side=side,
+                               width=width, height=height, gap=gap)
+    links = [polyline(pair, kind=MARK_LINE_KIND, **line) for pair in ends]
     layers = [draw_place(links, origin=(0, 0), kind="breakout-links"),
               draw_place(segments, origin=(0, 0), kind="breakout-bar")]
     texts = ([None] * len(data) if labels is None
@@ -829,7 +869,7 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
         if abs(centre - middle) > 1e-6:
             note["moved"].append(index)
     if title:
-        node, at = _breakout_title(panel, title, size, top, x0, x1)
+        node, at = _breakout_title(panel, title, size, top, x0, x1, title_side, ends)
         items.append((at, node))
     if items:
         layers.append(draw_place(items, origin=(0, 0), kind=AXIS_KIND))
@@ -839,21 +879,53 @@ def breakout(panel, pie_note: Mapping, slices, parts=None, *, fills=(),
 
 
 def _breakout_title(panel, title: str, size: float, top: float, x0: float,
-                    x1: float) -> tuple[Diagram, Vec2]:
-    """The breakout title's node and offset: centred over the bar."""
+                    x1: float, title_side: str = "top",
+                    links: Sequence[tuple[Vec2, Vec2]] = ()) -> tuple[Diagram, Vec2]:
+    """The breakout title's node and offset: centered over the bar, or in
+    the gap between the rim and the bar, midway between the connectors."""
     theme = active_theme()
     pad = max(_PAD_OF_TYPE * theme.font_size, theme.gap("s"))
     node = text_node(title, size, TICK_LABEL_KIND, markup=False)
     node = node.styled(text_fill=theme.ink)
     box = node.bbox
+    if title_side == "gap":
+        near = x0 if abs(x0) < abs(x1) else x1
+        x = (math.copysign(panel.radius, near) + near) / 2
+        heights = []
+        for a, b in links:
+            if abs(b.x - a.x) > 1e-9:
+                t = min(1.0, max(0.0, (x - a.x) / (b.x - a.x)))
+                heights.append(a.y + t * (b.y - a.y))
+        y = sum(heights) / len(heights) if heights else 0.0
+        return node, Vec2(x - box.center.x, y - box.center.y)
     return node, Vec2((x0 + x1) / 2 - box.center.x, top - pad - box.y1)
+
+
+def breakout_title_gap(panel, title: str | None, *, title_side: str = "top",
+                       gap: float | str | None = None,
+                       label_options: Mapping | None = None) -> float | str | None:
+    """The rim-to-bar gap: widened to hold a title set in it, unless given."""
+    if title_side not in BREAKOUT_TITLE_SIDES:
+        raise DiagramError(f"breakout title_side is one of "
+                           f"{', '.join(BREAKOUT_TITLE_SIDES)}, not {title_side!r}")
+    if not title or title_side != "gap" or gap is not None:
+        return gap
+    theme = active_theme()
+    options = dict(label_options or {})
+    size = (theme.font_size_small if options.get("size") is None
+            else mm(options["size"]))
+    width = text_node(title, size, TICK_LABEL_KIND, markup=False).bbox.width
+    pad = max(_PAD_OF_TYPE * theme.font_size, theme.gap("s"))
+    return max(panel.radius * _BREAKOUT_GAP_OF_RADIUS, width + 2 * pad)
 
 
 def breakout_title_box(panel, title: str | None, *, side: str = "right",
                        width: float | str | None = None,
                        height: float | str | None = None,
                        gap: float | str | None = None,
-                       label_options: Mapping | None = None) -> Rect | None:
+                       label_options: Mapping | None = None,
+                       title_side: str = "top",
+                       links: Sequence[tuple[Vec2, Vec2]] = ()) -> Rect | None:
     """The panel-mm box a breakout's title takes, or None without one."""
     if not title:
         return None
@@ -863,7 +935,7 @@ def breakout_title_box(panel, title: str | None, *, side: str = "right",
             else mm(options["size"]))
     _, top, _, x0, x1 = breakout_frame(panel, side=side, width=width,
                                        height=height, gap=gap)
-    node, at = _breakout_title(panel, title, size, top, x0, x1)
+    node, at = _breakout_title(panel, title, size, top, x0, x1, title_side, links)
     box = node.bbox
     return Rect(box.x0 + at.x, box.y0 + at.y, box.x1 + at.x, box.y1 + at.y)
 
@@ -905,7 +977,30 @@ def breakout_connectors(panel, angles: Sequence[tuple[float, float]],
     rim = sorted((Vec2(math.cos(math.radians(a)) * radius,
                        math.sin(math.radians(a)) * radius) for a in (a0, a1)),
                  key=lambda v: v.y)
-    return [(rim[0], Vec2(near, top)), (rim[1], Vec2(near, top + bar_height))]
+    ends = [Vec2(near, top), Vec2(near, top + bar_height)]
+    # A span wider than a half turn has its ends on the far side of the disc;
+    # a connector from there would cross the pie, so it leaves from where a
+    # line from the bar corner touches the rim instead, as drawn by hand.
+    return [(_clear_of_disc(start, end, radius, upper=k == 0), end)
+            for k, (start, end) in enumerate(zip(rim, ends))]
+
+
+def _clear_of_disc(start: Vec2, end: Vec2, radius: float, *, upper: bool) -> Vec2:
+    """`start`, or the tangent point from `end` on the upper or lower side of
+    the disc when the segment from `start` to `end` runs through it."""
+    dx, dy = end.x - start.x, end.y - start.y
+    length = dx * dx + dy * dy
+    t = 0.0 if length == 0 else max(0.0, min(1.0, -(start.x * dx + start.y * dy) / length))
+    if math.hypot(start.x + t * dx, start.y + t * dy) >= radius * (1 - 1e-6):
+        return start
+    distance = math.hypot(end.x, end.y)
+    if distance <= radius:
+        return start
+    base = math.atan2(end.y, end.x)
+    turn = math.acos(radius / distance)
+    touches = [Vec2(math.cos(a) * radius, math.sin(a) * radius)
+               for a in (base - turn, base + turn)]
+    return min(touches, key=lambda v: v.y) if upper else max(touches, key=lambda v: v.y)
 
 
 def breakout_turn(theta, values: Sequence[float], slices: Sequence[int], *,

@@ -49,6 +49,7 @@ else:
 import inklet  # noqa: E402
 from inklet.core import MarkerBatchPrim, PathPrim, Rect, Vec2, resolve  # noqa: E402
 from inklet.draw.coords import as_drawn  # noqa: E402
+from inklet.layout.label_search import _SLACK  # noqa: E402
 
 #: Kinds of the text nodes the placers put down, and of their leaders.
 LABEL_KINDS = {"label", "annotation-label", "line-label"}
@@ -408,7 +409,9 @@ def measure(root, anchors, frame_point):
             start_on = box.x0 - 0.3 <= a0.x <= box.x1 + 0.3 and box.y0 - 0.3 <= a0.y <= box.y1 + 0.3
             if end_on or start_on:
                 continue
-            if any(_hits(p, q, _shrink(box, 0.1)) for p, q in segs):
+            # The solver's own tolerance: a graze of a label's side bearing
+            # is not a leader through it.
+            if any(_hits(p, q, _shrink(box, _SLACK)) for p, q in segs):
                 leader_cross += 1
     disp = []
     for text, box in labels:

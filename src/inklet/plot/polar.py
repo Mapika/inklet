@@ -1237,7 +1237,8 @@ class PolarPanel:
         as `"{share:.1%}"` (the value is `{}`, its fraction is `share`), a
         callable taking `(value, share)`, or one string per slice. A label is
         set inside its slice when it fits with a margin, in ink or paper
-        against the slice colour; otherwise it goes outside the rim. An
+        against the slice colour, moving towards the centre of a disc if
+        that is where it fits; otherwise it goes outside the rim. An
         outside label that meets another moves out or round the rim to the
         nearest clear spot; one that ends up away from its slice gets a
         hairline leader back to the rim. The node's `pie_labels` note lists
@@ -1277,6 +1278,7 @@ class PolarPanel:
                  side: str = "right", width: float | str | None = None,
                  height: float | str | None = None,
                  gap: float | str | None = None, title: str | None = None,
+                 title_side: str = "top",
                  connector: dict | None = None, separator: bool = True,
                  **style) -> "PolarPanel":
         """Expand slices of the pie into a stacked bar beside it.
@@ -1285,7 +1287,9 @@ class PolarPanel:
         of adjacent indices. The bar stands to the `side` of the disc
         (`"right"` or `"left"`) and two connector lines run from the rim,
         where the chosen slices' outer edges meet it, to the bar's top and
-        bottom corners.
+        bottom corners. When the slices cover more than half the pie, a
+        connector that would cross the disc leaves from where it touches
+        the rim instead.
 
             p = inklet.polar(11, zero="up", winding="cw")
             p.pie([73.7, 24.8, 1.5], color=[GREY, INK, YELLOW])
@@ -1301,7 +1305,9 @@ class PolarPanel:
         part's share of the bar beside it, on the far side from the pie.
         Labels that would overlap are moved down just far enough; the
         node's `pie_breakout` note lists the moved ones. `title=` writes a
-        short heading above the bar. `name=` adds one area entry per part to
+        short heading above the bar, or with `title_side="gap"` between the
+        pie and the bar, midway between the connectors; a default `gap`
+        then widens to hold it. `name=` adds one area entry per part to
         `legend()`.
 
         `width` and `height` size the bar in mm (default: 0.22 of the radius
@@ -1333,11 +1339,13 @@ class PolarPanel:
         """
         from .wheel import breakout as _breakout
         from .wheel import (breakout_connectors, breakout_frame,
-                            breakout_title_box, breakout_turn)
+                            breakout_title_box, breakout_title_gap, breakout_turn)
         from .wheel import pie as _pie
 
         if self._pie is None:
             raise DiagramError("breakout() needs a pie() drawn on the panel first")
+        gap = breakout_title_gap(self, title, title_side=title_side, gap=gap,
+                                 label_options=label_options)
         note, fills, redraw = self._pie
         clip = _clip_flag(style)
         chosen = [slices] if isinstance(slices, int) else list(slices)
@@ -1382,7 +1390,7 @@ class PolarPanel:
             links = breakout_connectors(self, angles, ordered, **frame)
             boxes = [Rect(x0, top, x1, top + tall)]
             heading = breakout_title_box(self, title, label_options=label_options,
-                                         **frame)
+                                         title_side=title_side, links=links, **frame)
             if heading is not None:
                 boxes.append(heading)
             self._breakout_clear = (links, list(boxes))
@@ -1397,7 +1405,7 @@ class PolarPanel:
             self, note, slices, parts, fills=fills, colors=color,
             labels=labels, label_options=label_options, side=side,
             width=width, height=height, gap=gap, title=title,
-            connector=connector, separator=separator, **style)
+            title_side=title_side, connector=connector, separator=separator, **style)
         made.update(zero=self.theta.zero, winding=self.theta.winding,
                     turned=turned)
         if axis_labels is not None:

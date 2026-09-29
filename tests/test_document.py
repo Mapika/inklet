@@ -1,3 +1,4 @@
+import re
 from dataclasses import replace
 import pytest
 import inklet as i
@@ -234,3 +235,12 @@ def test_completed_placements_cannot_be_removed_by_inspection():
     with pytest.raises(TypeError):
         del placements[root.id]
     assert compiled.build()[1][root.id].diagram is root
+
+
+def test_a_colored_text_keeps_its_color_in_a_document(tmp_path):
+    # The document root sets the theme ink for text; the text's own fill wins.
+    doc = i.document(width=60)
+    doc.add('x', i.text('ab', fill='#5a9a4f'))
+    path = tmp_path/'page.svg'
+    doc.compile().save(path)
+    assert re.findall(r'<text[^>]*fill="([^"]+)"', path.read_text()) == ['#5a9a4f']

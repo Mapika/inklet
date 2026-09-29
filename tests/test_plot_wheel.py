@@ -91,6 +91,15 @@ def test_pie_labels_go_inside_or_outside_by_fit() -> None:
     assert [k.name for k in p.keys] == ["big", "mid", "tiny"]
 
 
+def test_a_wide_label_in_a_quarter_slice_slides_off_its_center_line() -> None:
+    """On the center line it meets the rim or an edge; beside the edge that
+    runs along it, it fits, as a journal pie sets it."""
+    p = polar(6.5)
+    p.pie([24.8, 1.5, 73.7], labels=["24.8%", "1.5%", "73.7%"],
+          label_options={"size": inklet.pt(5)})
+    assert p._pie[0]["inside"] == [0, 2]
+
+
 def test_pie_inside_label_contrasts_with_its_slice() -> None:
     p = polar(14)
     p.pie([1, 1], color=["#000000", "#ffffff"])
@@ -349,14 +358,14 @@ def test_breakout_connectors_clear_outside_pie_labels() -> None:
     from inklet.plot.wheel import pie as wheel_pie
 
     values = [3, 25, 4, 68]
-    alone = polar(11, zero="up", winding="cw")
+    alone = polar(8, zero="up", winding="cw")
     node, _, note = wheel_pie(alone, values)
     links = breakout_connectors(alone, note["angles"], [1, 2])
     boxes = [x.bbox for x in resolve(as_drawn(node)).values()
              if getattr(x.diagram.prim, "text", None)]
     # Without the breakout in view, an outside label sits on a connector.
     assert any(_segment_hits(b, a, c) for b in boxes for a, c in links)
-    p = polar(11, zero="up", winding="cw")
+    p = polar(8, zero="up", winding="cw")
     p.pie(values)
     p.breakout([1, 2], labels=None)
     assert p._pie[0]["outside"] == [0, 2] and p._pie[0]["crossing"] == []
@@ -449,6 +458,27 @@ def test_breakout_title_keeps_the_pie_labels_off() -> None:
     assert [d for d in lint(p.build()) if d.severity != "info"] == []
 
 
+def test_breakout_title_can_sit_between_the_pie_and_the_bar() -> None:
+    p = polar(8, zero="up", winding="cw")
+    p.pie([24.8, 1.5, 73.7], labels=["24.8%", "1.5%", "73.7%"])
+    p.breakout([0, 1], title="without\nnoise", title_side="gap", width=2)
+    title = [x for k, x in texts(p).items() if "noise" in k or "without" in k]
+    assert title
+    bars = [x for x in placements(p, MARK_KIND) if x.bbox.x0 > 8]
+    near = min(b.bbox.x0 for b in bars)
+    for text in title:
+        # Beside the rim and short of the bar, not above either.
+        assert 8 <= text.bbox.x0 and text.bbox.x1 <= near
+        assert text.bbox.y0 >= -8 and text.bbox.y1 <= 8
+    # The gap widens to hold the title.
+    assert near - 8 >= max(t.bbox.width for t in title)
+    assert [d for d in lint(p.build()) if d.severity != "info"] == []
+    q = polar(8)
+    q.pie([1, 2, 3])
+    with pytest.raises(DiagramError, match="title_side"):
+        q.breakout(0, title="x", title_side="left")
+
+
 def test_radar_ring_values_keep_clear_of_the_data() -> None:
     p = polar(16, r=(0, 1), zero="up", winding="cw")
     p.radar_grid(list("ABCDEF"), values=True)
@@ -519,7 +549,7 @@ def _theta_note(p):
 def test_theta_labels_keep_off_a_breakout_connector(after) -> None:
     from inklet.plot.point_labels import _segment_hits
 
-    p = polar(12)
+    p = polar(11)
     p.pie([70, 20, 10])
     if not after:
         p.theta_axis(count=8)
@@ -528,7 +558,7 @@ def test_theta_labels_keep_off_a_breakout_connector(after) -> None:
         p.theta_axis(count=8)
     # Drawn under the turned angles without the breakout in view, the 270°
     # label lies on the upper connector.
-    bare = polar(12, zero=p.theta.zero, winding=p.theta.winding)
+    bare = polar(11, zero=p.theta.zero, winding=p.theta.winding)
     bare.pie([70, 20, 10])
     bare.theta_axis(count=8)
     ends = _connector_ends(p)
@@ -582,3 +612,25 @@ def test_theta_labels_clear_of_the_bar_stay_where_they_are() -> None:
         if text not in note["nudged"]:
             assert box.center.x == pytest.approx(before[text].center.x)
             assert box.center.y == pytest.approx(before[text].center.y)
+
+
+def test_a_wide_label_on_a_small_disc_moves_inward_to_fit_its_slice() -> None:
+    from inklet.plot.wheel import pie as wheel_pie
+
+    # At 0.62 of this radius "85.5%" reaches past the rim; nearer the centre
+    # of the large slice it fits.
+    _, _, note = wheel_pie(polar(6.5), [85.5, 4.9, 9.6])
+    assert note["inside"] == [0]
+
+
+def test_a_breakout_wider_than_a_half_turn_keeps_its_connectors_off_the_disc() -> None:
+    from inklet.plot.wheel import breakout_connectors
+    from inklet.plot.wheel import pie as wheel_pie
+
+    p = polar(11, zero="up", winding="cw")
+    _, _, note = wheel_pie(p, [85.5, 4.9, 9.6])
+    for start, end in breakout_connectors(p, note["angles"], [0, 1]):
+        assert math.isclose(math.hypot(start.x, start.y), 11, abs_tol=1e-6)
+        dx, dy = end.x - start.x, end.y - start.y
+        t = max(0., min(1., -(start.x*dx + start.y*dy) / (dx*dx + dy*dy)))
+        assert math.hypot(start.x + t*dx, start.y + t*dy) >= 11 - 1e-6

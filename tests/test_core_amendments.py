@@ -310,7 +310,8 @@ def test_the_recorded_features_reshape_to_the_same_advance():
     import inklet
 
     prim = inklet.text("0123456789", size=10, features={"tnum": True}).prim
-    again = inklet.shape("0123456789", size=10, features=dict(prim.features))
+    again = inklet.shape("0123456789", font=prim.font_path, size=10,
+                         features=dict(prim.features))
     assert again.width == prim.width
 
 

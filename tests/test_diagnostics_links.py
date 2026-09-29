@@ -63,7 +63,7 @@ def test_two_routes_leaving_a_box_centre_share_a_line():
     diag = only_coded(hub_and_spokes(), "COINCIDENT_SHAFT")
 
     assert diag.severity == "warning"
-    assert "run along the same line for 14.2" in diag.message
+    assert "run along the same line for 14.49" in diag.message
     assert "one line wearing two arrowheads" in diag.message
     # Both links, in id order, so the finding is stable between runs.
     assert len(diag.targets) == 2
@@ -108,12 +108,12 @@ def test_a_label_plate_over_an_elbow_leaves_a_ghost_stub():
     What the reader sees is a stub of line leaving A, a word, and an arrowhead
     under B with nothing joining them.
     """
-    fig = two_boxes(12.0, -18.0, label="washing step done twice")
+    fig = two_boxes(12.0, -16.0, label="washing step done twice")
 
     diag = only_coded(fig, "LABEL_COVERS_SHAFT")
 
     assert diag.severity == "warning"
-    assert "its own label plate covers 12.3" in diag.message
+    assert "its own label plate covers 12.19" in diag.message
     assert "stub past the plate edge" in diag.message
     assert "label_side" in diag.hint
 

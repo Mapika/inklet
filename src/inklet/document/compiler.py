@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, asdict, fields, is_dataclass, replace
 from collections.abc import Mapping
 from types import MappingProxyType
+import gc
 import hashlib
 import json
 import math
@@ -35,6 +36,7 @@ class Cell:
     min_width: float = 20
     min_height: float = 15
     align: str = 'center'
+    grow: bool = True
 
 
 class BuildContext:
@@ -43,6 +45,10 @@ class BuildContext:
         self.preset = preset
         self.active = []
         self.hits = self.misses = 0
+        # Specs do not change during one compile, and fingerprinting large
+        # data on every lookup dominates repeated measurement. Holding the
+        # item keeps its id from being reused by a newer spec.
+        self.prints = {}
 
     def build(self, item, width=None, height=None):
         if isinstance(item, Diagram):
@@ -60,7 +66,10 @@ class BuildContext:
         # across measurement passes and page resizes.
         if isinstance(item, ComponentSpec) and not item.responsive:
             width = height = None
-        key = (id(item), repr(fingerprint(item)), width, height, repr(self.theme), repr(self.preset))
+        held = self.prints.get(id(item))
+        if held is None or held[0] is not item:
+            held = self.prints[id(item)] = (item, repr(fingerprint(item)))
+        key = (id(item), held[1], width, height, repr(self.theme), repr(self.preset))
         if key in self.cache:
             self.hits += 1
             return self.cache[key]
@@ -130,6 +139,8 @@ class Document(BuildSpec):
     publication: object = None
     preset: object = None
     share_plot_margins: bool | str = False
+    stretch: bool = True
+    pack: bool = False
     _preset_overrides: dict = field(default_factory=dict, repr=False)
     _cells: list = field(default_factory=list, repr=False)
     _links: list = field(default_factory=list, repr=False)
@@ -142,6 +153,8 @@ class Document(BuildSpec):
         if type(self.share_plot_margins) is not bool and not (
                 type(self.share_plot_margins) is str and self.share_plot_margins == 'all'):
             raise ValueError("share_plot_margins must be a boolean or 'all'")
+        if type(self.stretch) is not bool: raise ValueError('stretch must be a boolean')
+        if type(self.pack) is not bool: raise ValueError('pack must be a boolean')
         self.width = length(self.width, 'document width')
         if self.height is not None: self.height = length(self.height, 'document height')
         self.margin = length(self.margin, 'margin', zero=True)
@@ -163,19 +176,22 @@ class Document(BuildSpec):
             if not self.columns: raise ValueError('document needs at least one column')
 
     def add(self, name, item, *, row=None, column=0, rowspan=1, colspan=1,
-            min_width=None, min_height=None, align='center'):
+            min_width=None, min_height=None, align='center', grow=True):
         """Place a named cell; align fixed artwork by a compass point.
 
         Omitted row appends below existing cells. ``align`` accepts ``center``,
         ``n``, ``s``, ``e``, ``w`` and the four corners. It positions artwork
         within its cell without scaling. Plots fill their available data
-        regions and retain shared axis alignment.
+        regions and retain shared axis alignment. With a fixed page height,
+        ``grow=False`` keeps the cell's natural height instead of taking a
+        share of the extra space.
         """
         if not isinstance(name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*',name):
             raise ValueError('cell names start with a letter and contain letters, digits, underscores or hyphens')
         if any(c.name == name for c in self._cells): raise DiagramError(f'duplicate cell {name!r}')
         if align not in ('center','n','s','e','w','nw','ne','sw','se'):
             raise ValueError('cell align must be center, n, s, e, w, nw, ne, sw or se')
+        if type(grow) is not bool: raise ValueError('grow must be a boolean')
         row = max((c.row+c.rowspan for c in self._cells), default=0) if row is None else row
         for value,label,minimum in [(row,'row',0),(column,'column',0),(rowspan,'rowspan',1),(colspan,'colspan',1)]:
             if not isinstance(value,int) or isinstance(value,bool) or value < minimum:
@@ -187,18 +203,22 @@ class Document(BuildSpec):
                 raise LayoutError(f'cell {name!r} overlaps {other.name!r}')
         if isinstance(item,Diagram):
             default_w,default_h = item.width,item.height
+        elif isinstance(item,PlotSpec):
+            # Plots are measured at their authored height; the floor only
+            # keeps a data region, so short stacked plots stay short.
+            default_w,default_h = 20,5
         else:
             default_w,default_h = 20,15
         cell=Cell(name,item,row,column,rowspan,colspan,
                   length(default_w if min_width is None else min_width,'minimum width'),
-                  length(default_h if min_height is None else min_height,'minimum height'),align)
+                  length(default_h if min_height is None else min_height,'minimum height'),align,grow)
         self._cells.append(cell)
         self._last=None
         return item
 
     def configure(self, **options):
         """Validate page changes together before applying them."""
-        names=('width','height','columns','margin','gap','row_gap','theme','publication','share_plot_margins')
+        names=('width','height','columns','margin','gap','row_gap','theme','publication','share_plot_margins','pack')
         unknown=set(options).difference(names)
         if unknown: raise TypeError(f'unknown document options: {unknown!r}')
         candidate=Document(**{name:options.get(name,getattr(self,name)) for name in names}, preset=self.preset)
@@ -222,7 +242,7 @@ class Document(BuildSpec):
         overrides = (self._preset_overrides if keep_overrides else {}) | options
         overrides.setdefault('columns', self.columns)
         candidate = selected.document(**overrides)
-        for name in ('width','height','columns','margin','gap','row_gap','theme','publication','preset','share_plot_margins'):
+        for name in ('width','height','columns','margin','gap','row_gap','theme','publication','preset','share_plot_margins','pack'):
             setattr(self, name, getattr(candidate, name))
         self._preset_overrides = candidate._preset_overrides
         self._last = None
@@ -249,21 +269,35 @@ class Document(BuildSpec):
             if cell.name == name: return cell.item
         raise KeyError(name)
 
-    def letters(self, *, start='a', **options):
-        """Measure panel letters with the cells, reserving room before placement."""
+    def letters(self, *, start='a', anchor='content', **options):
+        """Measure panel letters with the cells, reserving room before placement.
+
+        With ``anchor='content'`` a letter hangs off its plot's data area or
+        its drawing's top edge. ``anchor='cell'`` moves it to the top-left
+        corner of the cell after placement, so the letters in a row share one
+        line however their contents are aligned. Other options go to
+        `inklet.letters`.
+        """
+        if anchor not in ('content', 'cell'):
+            raise ValueError("letters anchor must be 'content' or 'cell'")
         self._letters = dict(start=start, **options)
+        if anchor != 'content':
+            self._letters['anchor'] = anchor
         return self
 
     def signature(self, trail=()):
         return ('subfigure', self.width, self.height, self.columns, self.margin,
                 self.gap, self.row_gap, fingerprint(self._letters, trail),
                 tuple((c.name, c.row, c.column, c.rowspan, c.colspan,
-                       c.min_width, c.min_height, c.align, fingerprint(c.item, trail)) for c in self._cells),
-                fingerprint(self._links, trail), self.share_plot_margins)
+                       c.min_width, c.min_height, c.align, c.grow, fingerprint(c.item, trail)) for c in self._cells),
+                fingerprint(self._links, trail), self.share_plot_margins, self.stretch, self.pack)
 
     def render(self, context, width=None, height=None):
         self.__post_init__()
-        content, _, _, page_height, _ = self._layout(
+        if not self.stretch:
+            # Keep natural rows; the containing cell aligns the result.
+            height = None
+        content, _, _, page_height, _, _ = self._layout(
             context, self.width if width is None else width,
             self.height if height is None else height)
         return Diagram(children=(content,), kind='subfigure', envelope_override=
@@ -272,11 +306,23 @@ class Document(BuildSpec):
     def _layout(self, context, width, height):
         request = LayoutRequest(tuple(self._cells), self.columns, self.margin,
                                 self.gap, self.row_gap, dict(self._letters),
-                                tuple(self._links), self.share_plot_margins)
+                                tuple(self._links), self.share_plot_margins, self.pack)
         return layout_document(request, context, width, height)
 
     def compile(self):
         """Measure dependencies and return a cached CompiledFigure snapshot."""
+        # A page allocates millions of small geometry objects, and each full
+        # collection rescans every live one: with cyclic collection running,
+        # most of a large compile was spent in it. Reference counting still
+        # frees what the compile drops; cycles wait until it returns.
+        enabled=gc.isenabled()
+        gc.disable()
+        try:
+            return self._compile()
+        finally:
+            if enabled: gc.enable()
+
+    def _compile(self):
         started=time.perf_counter()
         # Revalidate public page dimensions after direct edits.
         self.__post_init__()
@@ -285,14 +331,14 @@ class Document(BuildSpec):
         theme=get_theme(self.theme) if isinstance(self.theme,str) else self.theme
         if not self._cells: raise LayoutError('cannot compile an empty document')
         context=BuildContext(theme,self._cache,self.preset)
-        signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,
+        signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,c.grow,
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram,Panel,PolarPanel)) else id(context.build(c.item)))
                          for c in self._cells)
-        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins))
+        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins,self.pack))
         if self._last is not None and self._last[0]==key and self._last[1].scene.sources_current():
             return self._last[1]
         dependency_seconds=time.perf_counter()-started
-        content, boxes, handles, page_height, passes = self._layout(context, width, height)
+        content, boxes, handles, page_height, passes, report = self._layout(context, width, height)
         layout_seconds=time.perf_counter()-started
         with themed(theme):
             root=Diagram(children=(content,),kind='page',envelope_override=Envelope.from_rect(Rect(0,0,width,page_height)))
@@ -316,6 +362,7 @@ class Document(BuildSpec):
                       datasets=_sources([c.item for c in self._cells]))
         from ..render.resources import rendering_manifest
         metadata['rendering'] = rendering_manifest(program.root)
+        metadata['layout'] = report
         if self.publication is not None: metadata['publication']=asdict(self.publication)
         if self.preset is not None:
             metadata['preset'] = self.preset.as_dict()
@@ -343,31 +390,43 @@ class Document(BuildSpec):
         return self.compile().save(*paths,**kwargs)
 
 
-def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False):
+def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False,
+             pack=False):
     """Create a live document; optionally share plot furniture across the grid.
 
     Left and right furniture is shared along vertical grid lines: plots that
     start on the same grid line reserve the largest left labels and letters
     among them, and plots that end on the same grid line reserve the largest
     right furniture, so their data edges line up there. A plot that shares
-    neither line with a wide label keeps its own margin. Automatic row heights
-    use the tallest data region plus the top and bottom furniture of that row;
-    a fixed height shares top and bottom furniture across the grid. Plots in
-    one column track then have equal data areas. `share_plot_margins='all'`
+    neither line with a wide label keeps its own margin. Row heights use the
+    tallest data region plus the top and bottom furniture of that row; a fixed
+    height gives extra space to plot rows in proportion to their data heights.
+    `share_plot_margins='all'`
     instead reserves the largest left and right furniture on every plot, so
     equal tracks give equal data widths across columns, as small multiples
     with one physical scale need. Fixed artwork is unchanged.
+
+    Experimental: `pack=True` ignores rows and columns and packs the cells,
+    in the order they were added, into nested side-by-side groups and stacks
+    that give the shortest page. `layout_report()` shows the arrangement,
+    with `|` for side by side and `/` for stacked.
     """
-    return Document(width,height,columns,margin,gap,row_gap,theme,publication,share_plot_margins=share_plot_margins)
+    return Document(width,height,columns,margin,gap,row_gap,theme,publication,share_plot_margins=share_plot_margins,
+                    pack=pack)
 
 
-def subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False):
+def subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False,
+              stretch=True):
     """Create a nested grid. Children inherit the enclosing document theme.
 
     Use the same add/replace/link/letters API as Document. Width and height are
     defaults; a containing cell supplies the available physical dimensions.
+    A cell taller than the grid gives the extra height to its plots in
+    proportion to their data heights. With ``stretch=False`` the grid keeps
+    its natural height and the containing cell's ``align`` positions it.
     Nested layout shares measurement caches and runs paint and diagnostics only
     once, when the complete document is compiled.
     """
     return Document(width=width, height=height, columns=columns, margin=margin,
-                    gap=gap, row_gap=row_gap,share_plot_margins=share_plot_margins)
+                    gap=gap, row_gap=row_gap,share_plot_margins=share_plot_margins,
+                    stretch=stretch)

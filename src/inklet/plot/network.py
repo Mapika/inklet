@@ -427,31 +427,26 @@ def network(panel, nodes, edges, *, layout: str = "circular", order=None,
     box = panel.area
     unit = _positions(names, diam, layout, pairs, order, theme.gap("m") if gap is None else mm(gap),
                       iterations)
-    margin_x = margin_y = 0.0
-    for d, lab in zip(diam, label_nodes):
-        margin_x = max(margin_x, d / 2)
-        margin_y = max(margin_y, d / 2)
-        if lab is not None and not lab[1]:
-            margin_x = max(margin_x, d / 2 + theme.gap("xs") + lab[0].bbox.width)
-            margin_y = max(margin_y, d / 2 + theme.gap("xs") + lab[0].bbox.height)
-    span_x = max((abs(p.x) for p in unit), default=0.0)
-    span_y = max((abs(p.y) for p in unit), default=0.0)
-    sx = (box.width / 2 - margin_x) / span_x if span_x > 1e-12 else math.inf
-    sy = (box.height / 2 - margin_y) / span_y if span_y > 1e-12 else math.inf
-    if layout == "circular":
-        # A ring stays round.
-        sx = sy = min(sx, sy)
-    else:
-        # A force or layered drawing has no aspect of its own: it fills the area.
-        sx = sy if not math.isfinite(sx) else sx
-        sy = sx if not math.isfinite(sy) else sy
-    if not math.isfinite(sx):
-        sx = sy = 0.0
-    if (sx <= 0 or sy <= 0) and len(names) > 1:
+    centre = box.center
+    at, sx = _fit(unit, diam, label_nodes, box, layout, theme)
+    if layout == "circular" and len(names) > 2 and sx > 0:
+        # A ring too tight for its nodes shrinks them, all by one factor so
+        # sizes still compare, but none below what its inside label needs.
+        # Smaller nodes leave the ring more room; fit it again.
+        need = [0.0 if lab is None or not lab[1] else
+                max(lab[0].bbox.width / 0.95, lab[0].bbox.height) / (_SQUARE_SIDE if k == "square" else 0.72)
+                for lab, k in zip(label_nodes, kinds)]
+        for _ in range(3):
+            factor = min(1.0, _ring_room(at, diam, kinds, theme.hairline * 2))
+            if factor > 0.999:
+                break
+            diam = [max(n, d * factor) for n, d in zip(need, diam)]
+            if area is not None:
+                area = AreaScale(area.top, area.diameter * factor)
+            at, sx = _fit(unit, diam, label_nodes, box, layout, theme)
+    if (sx <= 0) and len(names) > 1:
         raise DiagramError("the network's nodes and labels do not fit in the panel; "
                            "make the panel larger or the nodes smaller")
-    centre = box.center
-    at = [centre + Vec2(p.x * sx, p.y * sy) for p in unit]
 
     # Edges, lightest first so the heavy ones read on top.
     reach = [d / 2 * (1.12 if k == "square" else 1.0) for d, k in zip(diam, kinds)]
@@ -558,6 +553,49 @@ def network(panel, nodes, edges, *, layout: str = "circular", order=None,
     note["node_keys"] = keys
     note["edge_keys"] = [(c, cat_color[c]) for c in categories]
     return group, note
+
+
+def _fit(unit, diam, label_nodes, box, layout, theme):
+    """Unit positions scaled into `box`, clear of node and label overhang,
+    and the smaller scale used (not above zero when nothing fits)."""
+    margin_x = margin_y = 0.0
+    for d, lab in zip(diam, label_nodes):
+        margin_x = max(margin_x, d / 2)
+        margin_y = max(margin_y, d / 2)
+        if lab is not None and not lab[1]:
+            margin_x = max(margin_x, d / 2 + theme.gap("xs") + lab[0].bbox.width)
+            margin_y = max(margin_y, d / 2 + theme.gap("xs") + lab[0].bbox.height)
+    span_x = max((abs(p.x) for p in unit), default=0.0)
+    span_y = max((abs(p.y) for p in unit), default=0.0)
+    sx = (box.width / 2 - margin_x) / span_x if span_x > 1e-12 else math.inf
+    sy = (box.height / 2 - margin_y) / span_y if span_y > 1e-12 else math.inf
+    if layout == "circular":
+        # A ring stays round.
+        sx = sy = min(sx, sy)
+    else:
+        # A force or layered drawing has no aspect of its own: it fills the area.
+        sx = sy if not math.isfinite(sx) else sx
+        sy = sx if not math.isfinite(sy) else sy
+    if not math.isfinite(sx):
+        sx = sy = 0.0
+    centre = box.center
+    return [centre + Vec2(p.x * sx, p.y * sy) for p in unit], min(sx, sy)
+
+
+def _ring_room(at, diam, kinds, clear):
+    """The largest factor on node sizes that keeps ring neighbors apart."""
+    centre = Vec2(sum(p.x for p in at) / len(at), sum(p.y for p in at) / len(at))
+    ring = sorted(range(len(at)), key=lambda k: math.atan2(at[k].y - centre.y, at[k].x - centre.x))
+    factor = math.inf
+    for a, b in zip(ring, ring[1:] + ring[:1]):
+        offset = at[b] - at[a]
+        both = kinds[a] == kinds[b] == "square"
+        # Squares are drawn axis-aligned; they part along either axis.
+        apart = max(abs(offset.x), abs(offset.y)) if both else offset.length
+        half = (diam[a] + diam[b]) / 2 * (_SQUARE_SIDE * 1.12 if both else 1.0)
+        if half > 1e-12:
+            factor = min(factor, max(0.0, apart - clear) / half)
+    return factor
 
 
 def _shape_of(group, names, group_of, kinds) -> str:

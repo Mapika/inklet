@@ -496,3 +496,45 @@ def test_an_unknown_waypoint_key_is_named_in_the_error():
     boxes = {k: inklet.box(k) for k in ("a", "b")}
     with pytest.raises(GraphError, match="nope"):
         graph(boxes, [("a", "b", {"waypoints": [("nope", "e")]})])
+
+
+def test_a_same_rank_edge_sets_its_ends_side_by_side():
+    flow = graph({k: rect(name=k) for k in "abcd"},
+                 [("a", "b", {"same_rank": True}), ("a", "c"), ("b", "d"),
+                  ("c", "d", {"same_rank": True, "label": "yes"})])
+    assert flow.ranks == (0, 0, 1, 1)
+    a, b, c, d = boxes_of(flow)
+    assert a.center.y == pytest.approx(b.center.y) and a.x1 < b.x0
+    assert c.center.y == pytest.approx(d.center.y) and c.x1 < d.x0
+    assert "same_rank" not in flow.edges[0].link_kwargs()
+    assert flow.edges[3].route == "straight"
+    figure = inklet.figure(width=80)
+    flow.add_to(figure)
+    assert not any(d.severity == "error" for d in figure.lint())
+
+
+def test_same_rank_edges_are_checked():
+    boxes = {k: rect(name=k) for k in "abc"}
+    same = {"same_rank": True}
+    with pytest.raises(GraphError, match="simple chains"):
+        graph(boxes, [("a", "b", same), ("a", "c", same)])
+    with pytest.raises(GraphError, match="cycle"):
+        graph(boxes, [("a", "b", same), ("b", "a", same)])
+    with pytest.raises(GraphError, match="layered"):
+        graph(boxes, [("a", "b", same)], layout="tree")
+
+
+def test_row_labels_of_any_width_leave_the_columns_aligned():
+    hidden = {"same_rank": True, "stroke": "none", "head": "none"}
+    parts = {"short": rect(6, 4), "a": rect(8, 8), "long": rect(30, 4), "b": rect(8, 8)}
+    rows = graph(parts, [("short", "a", hidden), ("long", "b", hidden), ("a", "b")])
+    boxes = boxes_of(rows)
+    assert boxes[1].center.x == pytest.approx(boxes[3].center.x)
+
+
+def test_a_labelled_same_rank_edge_keeps_room_for_its_label():
+    label = inklet.text("a long edge label")
+    flow = graph({k: rect(name=k) for k in "ab"},
+                 [("a", "b", {"same_rank": True, "label": label})])
+    a, b = boxes_of(flow)
+    assert b.x0 - a.x1 > label.bbox.width

@@ -245,6 +245,12 @@ def graph(nodes, edges: Iterable = (), *, layout: str = "layered",
     rank too wide on its own stays too wide. Layered drawings only; a tree,
     force or circular layout has no ranks to slide.
 
+    An edge mapping with `same_rank=True` keeps both ends in one rank, the
+    source before the target, instead of putting the target a rank further
+    on: a decision flow's "yes" can run across while its "no" runs down, and
+    an unstroked same-rank edge sets a label level with a node. Each node
+    takes at most one same-rank edge in and one out. Layered drawings only.
+
     `ports` spreads the arrows leaving one box across its edge rather than
     starting them all at its centre, which is what keeps three outgoing
     branches from sharing a shaft. It applies to layered and tree drawings,
@@ -261,7 +267,15 @@ def graph(nodes, edges: Iterable = (), *, layout: str = "layered",
 
     items, keys = _node_list(nodes)
     pairs, extras = _edge_list(edges, items, keys)
+    flat = [(pair, extra) for pair, extra in zip(pairs, extras)
+            if extra.pop("same_rank", False)]
+    if flat and layout != "layered":
+        raise GraphError(
+            f"same_rank= needs the layered layout; a {layout} drawing has no ranks")
     gap_mm, rank_gap_mm, lane_mm = _spacings(gap, rank_gap, lane)
+    # A labelled same-rank edge is given room for its label along the arrow.
+    flat = [(u, v, _flat_space(extra.get("label"), direction, gap_mm))
+            for (u, v), extra in flat]
     fit_mm = None if fit is None else mm(fit)
     if fit_mm is not None and fit_mm <= 0.0:
         raise GraphError(f"graph fit must be positive, got {fit_mm}")
@@ -273,7 +287,7 @@ def graph(nodes, edges: Iterable = (), *, layout: str = "layered",
     boxes = [_box_of(node, index) for index, node in enumerate(items)]
     positions, ranks, corridors = _solve(
         layout, direction, boxes, simple, gap_mm, rank_gap_mm, lane_mm, roots,
-        iterations, sweeps, items, keys, fit_mm)
+        iterations, sweeps, items, keys, fit_mm, flat)
 
     placed = _place(items, boxes, positions, name)
     lanes = _corridors(placed, corridors)
@@ -616,6 +630,17 @@ def _box_of(node: Diagram, index: int) -> Rect:
     return box
 
 
+def _flat_space(label, direction: str, gap: float) -> float:
+    """The space a same-rank edge keeps between its ends: the node gap, or its
+    label's length along the arrow plus a gap either side."""
+    shaped = _edge_label(label)
+    box = None if shaped is None else shaped.envelope.bbox()
+    if box is None:
+        return gap
+    return max(gap, (box.width if direction in ("down", "up") else box.height)
+               + 2 * gap)
+
+
 def _edge_label(value):
     """A string label is shaped now, with the theme in force, exactly as
     `inklet.box` shapes the text inside a box. Anything else is passed along."""
@@ -658,7 +683,8 @@ def _solve(layout: str, direction: str, boxes: Sequence[Rect],
            pairs: Sequence[tuple[int, int]], gap: float, rank_gap: float,
            lane: float, roots, iterations: int, sweeps: int,
            items: Sequence[Diagram], keys: Mapping[str, int],
-           fit: float | None = None
+           fit: float | None = None,
+           flat: Sequence[tuple[int, int]] = ()
            ) -> tuple[list[Point], list[int], list[list[Point]]]:
     """Positions in figure coordinates, a rank per node (empty if none), and
     the corridor each edge was given (empty unless the layout reserves them)."""
@@ -680,7 +706,11 @@ def _solve(layout: str, direction: str, boxes: Sequence[Rect],
     vertical = direction in ("down", "up")
     sizes = [(box.width, box.height) if vertical else (box.height, box.width)
              for box in boxes]
-    if layout == "layered":
+    if layout == "layered" and flat:
+        points, ranks, lanes = _layered_with_rows(sizes, pairs, flat, gap=gap,
+                                                  rank_gap=rank_gap, lane=lane,
+                                                  sweeps=sweeps, fit=fit)
+    elif layout == "layered":
         points, ranks, lanes = layered_positions(sizes, pairs, gap=gap,
                                                  rank_gap=rank_gap, lane=lane,
                                                  sweeps=sweeps, fit=fit)
@@ -690,6 +720,87 @@ def _solve(layout: str, direction: str, boxes: Sequence[Rect],
         lanes = [[] for _ in pairs]
     return ([_orient(direction, u, v) for u, v in points], list(ranks),
             [[_orient(direction, u, v) for u, v in lane] for lane in lanes])
+
+
+def _layered_with_rows(sizes, pairs, flat, *, gap, rank_gap, lane, sweeps, fit):
+    """A layered layout in which each `same_rank` edge joins its ends in one rank.
+
+    Each chain of same-rank edges is laid out as one block as wide as its
+    members side by side, source before target, and split back afterwards; an
+    edge to any member is an edge to the block. The edges inside a block cross
+    no rank, so they take no part in the layout. A block is padded to center
+    on the members its other edges attach to, since the layout straightens
+    edges between centers: row labels of different widths then leave the
+    columns beside them aligned.
+    """
+    n = len(sizes)
+    after: dict[int, int] = {}
+    before: dict[int, int] = {}
+    space = {(u, v): room for u, v, room in flat}
+    for u, v, _ in flat:
+        if u == v or after.get(u, v) != v or before.get(v, u) != u:
+            raise GraphError(
+                "same_rank= edges must form simple chains: each node can have one "
+                "same-rank edge out and one in")
+        after[u], before[v] = v, u
+    rows: list[list[int]] = []
+    row_of = [-1] * n
+    for start in range(n):
+        if start in before or row_of[start] >= 0:
+            continue
+        row = [start]
+        while row[-1] in after:
+            row.append(after[row[-1]])
+        for member in row:
+            row_of[member] = len(rows)
+        rows.append(row)
+    if any(r < 0 for r in row_of):
+        raise GraphError("same_rank= edges form a cycle; a rank has no first node")
+    offsets: list[dict[int, float]] = []
+    widths: list[float] = []
+    for row in rows:
+        left, at = 0.0, {}
+        for k, member in enumerate(row):
+            if k:
+                left += space[(row[k - 1], member)]
+            at[member] = left + sizes[member][0] / 2
+            left += sizes[member][0]
+        offsets.append(at)
+        widths.append(left)
+    linked = [0] * n
+    for u, v in pairs:
+        if row_of[u] != row_of[v]:
+            linked[u] += 1
+            linked[v] += 1
+    anchors, block_sizes = [], []
+    for row, at, width in zip(rows, offsets, widths):
+        weight = sum(linked[m] for m in row)
+        anchor = (sum(at[m] * linked[m] for m in row) / weight if weight
+                  else width / 2)
+        anchors.append(anchor)
+        block_sizes.append((2 * max(anchor, width - anchor),
+                            max(sizes[m][1] for m in row)))
+    seen: dict[tuple[int, int], int] = {}
+    block_edges: list[tuple[int, int]] = []
+    where: list[int | None] = []
+    for u, v in pairs:
+        a, b = row_of[u], row_of[v]
+        if a == b:
+            where.append(None)
+            continue
+        if (a, b) not in seen:
+            seen[(a, b)] = len(block_edges)
+            block_edges.append((a, b))
+        where.append(seen[(a, b)])
+    points, block_ranks, lanes = layered_positions(
+        block_sizes, block_edges, gap=gap, rank_gap=rank_gap, lane=lane,
+        sweeps=sweeps, fit=fit)
+    out: list[Point] = [(0.0, 0.0)] * n
+    for at, anchor, (across, along) in zip(offsets, anchors, points):
+        for member, offset in at.items():
+            out[member] = (across + offset - anchor, along)
+    return (out, [block_ranks[row_of[i]] for i in range(n)],
+            [[] if w is None else lanes[w] for w in where])
 
 
 def _root_indices(roots, items: Sequence[Diagram],

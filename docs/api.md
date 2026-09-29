@@ -211,7 +211,7 @@ List built-in presets, optionally restricted to one family.
 
 List built-in physical formats accepted by preset().
 
-#### `subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False)`
+#### `subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False, stretch=True)`
 
 Create a nested grid. Children inherit the enclosing document theme.
 
@@ -257,16 +257,16 @@ A label-sized module. Port coordinates are fractions of its box.
 
 Create a measured module with fractional ports.
 
-#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool | str' = False, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
+#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool | str' = False, stretch: 'bool' = True, pack: 'bool' = False, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
 
 A physical page containing named, live figure definitions.
 
-* `add(name, item, *, row=None, column=0, rowspan=1, colspan=1, min_width=None, min_height=None, align='center')` -- Place a named cell; align fixed artwork by a compass point.
+* `add(name, item, *, row=None, column=0, rowspan=1, colspan=1, min_width=None, min_height=None, align='center', grow=True)` -- Place a named cell; align fixed artwork by a compass point.
 * `configure(**options)` -- Validate page changes together before applying them.
 * `use_preset(selected, *, format=None, keep_overrides=True, **options)` -- Switch presets and remeasure live content, preserving explicit page options.
 * `replace(name, item)` -- Replace a cell definition while retaining its layout constraints.
 * `link(source, target, **kwargs)` -- Connect named cells, optionally `cell:anchor`, after layout.
-* `letters(*, start='a', **options)` -- Measure panel letters with the cells, reserving room before placement.
+* `letters(*, start='a', anchor='content', **options)` -- Measure panel letters with the cells, reserving room before placement.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 * `compile()` -- Measure dependencies and return a cached CompiledFigure snapshot.
@@ -280,6 +280,7 @@ A resolved snapshot; later authoring changes cannot alter its exports.
 * `build()` -- Return the retained drawing and read-only resolved placements.
 * `lint(**kwargs)`
 * `report(**kwargs)`
+* `layout_report() -> 'str'` -- Which cells set each row's height, unused space per cell, and the alternative kept for each `choose()` cell.
 * `to_svg(*, text=None, **kwargs)`
 * `to_pdf(*, text=None, **kwargs)`
 * `to_png(*, dpi=None, **kwargs)`
@@ -290,7 +291,7 @@ A resolved snapshot; later authoring changes cannot alter its exports.
 
 A document cannot satisfy its declared physical layout constraints.
 
-#### `document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False)`
+#### `document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False, pack=False)`
 
 Create a live document; optionally share plot furniture across the grid.
 
@@ -320,6 +321,13 @@ A diagram factory with explicit, versioned arguments and dependencies.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 
+#### `class Choice(options: 'tuple', names: 'tuple') -> None`
+
+Alternative definitions of one cell. Construct with `choose()`.
+
+* `signature(trail=())`
+* `render(context, width=None, height=None)`
+
 #### `plot_spec(width=40, height=30, **options)`
 
 Defer Panel drawing instructions until a document is compiled.
@@ -327,6 +335,10 @@ Defer Panel drawing instructions until a document is compiled.
 #### `component(factory, *args, responsive=False, **kwargs)`
 
 Rebuild a component under its document theme when its arguments change.
+
+#### `choose(*options, **named)`
+
+Offer a document cell several layouts; the page keeps the shortest.
 
 #### `class Dataset(columns, *, units=None, source: 'Source | None' = None, name='data')`
 
@@ -605,7 +617,7 @@ A compact numeric/text table with measured, glyph-centered cells.
 
 A plot area of a fixed size, with scales fitted to it.
 
-#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = (), _deferred: 'dict' = <factory>, _sizes: 'object | None' = None, _widths: 'object | None' = None, _ternary: 'object | None' = None, _survival: 'list' = <factory>) -> None`
+#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = (), _deferred: 'dict' = <factory>, _sizes: 'object | None' = None, _widths: 'object | None' = None, _ternary: 'object | None' = None, _survival: 'list' = <factory>, _side_stacks: 'dict' = <factory>) -> None`
 
 A drawing region plus the scales that map data into it.
 
@@ -871,7 +883,7 @@ A disc, or a fan of one, plus the scales that map data into it.
 * `radar(values: 'Sequence[float]', *, name: 'str | None' = None, color: 'str | None' = None, fill: 'bool' = True, markers: 'bool' = True, size: 'float | str | None' = None, **style) -> "'PolarPanel'"` -- One series of a radar chart: a closed polygon with a value per spoke.
 * `radar_grid(categories: 'Sequence[str]', *, rings=None, shape: 'str' = 'polygon', labels: 'bool' = True, values: 'bool' = False, **style) -> "'PolarPanel'"` -- The rings, spokes and category names of a radar chart.
 * `pie(values: 'Sequence[float]', *, name: 'Sequence[str] | None' = None, color=None, labels='percent', label_options: 'dict | None' = None, separator: 'bool' = True, names=<deprecated: use name=>, colors=<deprecated: use color=>, **style) -> "'PolarPanel'"` -- A pie chart, or a donut on a panel made with `hole=`.
-* `breakout(slices, parts: 'Sequence[float] | None' = None, *, color=None, name: 'Sequence[str] | None' = None, labels='percent', label_options: 'dict | None' = None, side: 'str' = 'right', width: 'float | str | None' = None, height: 'float | str | None' = None, gap: 'float | str | None' = None, title: 'str | None' = None, connector: 'dict | None' = None, separator: 'bool' = True, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'PolarPanel'"` -- Expand slices of the pie into a stacked bar beside it.
+* `breakout(slices, parts: 'Sequence[float] | None' = None, *, color=None, name: 'Sequence[str] | None' = None, labels='percent', label_options: 'dict | None' = None, side: 'str' = 'right', width: 'float | str | None' = None, height: 'float | str | None' = None, gap: 'float | str | None' = None, title: 'str | None' = None, title_side: 'str' = 'top', connector: 'dict | None' = None, separator: 'bool' = True, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'PolarPanel'"` -- Expand slices of the pie into a stacked bar beside it.
 * `mean_vector(angles: 'Sequence[float]', weights: 'Sequence[float] | None' = None, *, r: 'float | None' = None, order: 'int' = 1, head: 'str' = 'triangle', label: 'str | Diagram | None' = None, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'PolarPanel'"` -- The circular mean of `angles`, drawn as an arrow from the pole.
 * `text(theta, r, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, **style) -> "'PolarPanel'"` -- Writing at one data point, `anchor` of it on that point.
 * `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int' = 1, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, **style) -> "'PolarPanel'"` -- A key built from the series this panel actually drew.

@@ -234,9 +234,10 @@ def test_sweeps_zero_leaves_only_the_swap_polish():
 
     Which is worth pinning separately, because it is the split the two halves
     of the greedy get measured by: on the adversarial fixture the swaps alone
-    take 34 down to 14, and the barycentre passes are what find the other 5.
+    take 34 down to 20, and the barycentre passes are what find the other 11.
     """
-    assert build(ADVERSARIAL, sweeps=0).crossings == 14
+    assert build(ADVERSARIAL, sweeps=0).crossings == 20
+    assert build(ADVERSARIAL).crossings == 9
 
 
 def test_nodes_fixes_the_given_order():

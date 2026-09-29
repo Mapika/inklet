@@ -197,6 +197,11 @@ def text(content: str, *, size: float | str | None = None, font: str | None = No
                 ink = ink.pad(mm(style["halo"]) / 2)
             node = _replace(node, envelope_override=ink).translated(-center.x, -center.y)
         node.notes['text_bounds'] = 'ink'
+    # Glyphs paint with `text_fill`, which a document's root sets to the
+    # theme ink; a text's own `fill` has to set it too, or that inherited ink
+    # wins and the color shows only outside a document.
+    if style.get("fill") is not None and "text_fill" not in style:
+        style["text_fill"] = style["fill"]
     node = node.styled(**style) if style else node
     return node if not angle else node.rotated(angle)
 
@@ -423,7 +428,7 @@ def _check_content(what: str, content, width, height) -> None:
 
 
 from .document import (PublicationProfile, publication, subfigure, Composition, LayoutValue, composition, ModuleSpec, module, Document, CompiledFigure, LayoutError, document, PlotSpec,
-                       ComponentSpec, plot_spec, component, Dataset, DataRef, Source,
+                       ComponentSpec, Choice, plot_spec, component, choose, Dataset, DataRef, Source,
                        Series, SharedScale, dataset, shared_scale, CategoryEncoding, FileRef, DerivedData, derive, read_csv)
 from .document import FigureFormat, PlotDefaults, GuidelineSource, Preset, preset, preset_names, format_names
 from .three.scenes import SceneRender, BlendSceneSpec, render_blend, blend_scene, blend_scene_spec, inspect_blend
@@ -453,7 +458,7 @@ __all__ = [
     "FigureFormat", "PlotDefaults", "GuidelineSource", "Preset", "preset", "preset_names", "format_names",
     "subfigure", "Composition", "LayoutValue", "composition", "ModuleSpec", "module",
     "Document", "CompiledFigure", "LayoutError", "document", "PlotSpec", "ComponentSpec",
-    "plot_spec", "component", "Dataset", "DataRef", "Source", "Series", "SharedScale",
+    "Choice", "plot_spec", "component", "choose", "Dataset", "DataRef", "Source", "Series", "SharedScale",
     "dataset", "read_csv", "shared_scale", "CategoryEncoding", "FileRef", "DerivedData", "derive",
     # authoring
     "text", "label", "title", "box", "circle", "asset", "escape_markup",

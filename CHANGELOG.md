@@ -1,5 +1,107 @@
 # Changelog
 
+## Unreleased (5.0)
+
+### Changed
+
+- A fixed page height, and a nested subfigure laid out at its parent cell's
+  height, now keep the natural row heights. Extra space goes to plot rows in
+  proportion to their data heights, and to nested grids and responsive
+  components; text rows and fixed artwork keep their size. Previously every
+  row received an equal share, so authored plot heights in a subfigure were
+  lost and a one-line key row could grow as tall as a plot.
+- Tabular figures (`tnum`, on for tick labels and number tables) also turn
+  off kerning between digits, unless `kern` is set. Arial-style faces kern
+  "11" even in their tabular set, so a column of numbers came out ragged.
+- `share_plot_margins=True` with a fixed height shares top and bottom margins
+  along each row, as automatic heights already did. An axis or legend under
+  the last plot of a stack no longer reserves space under every plot.
+- A plot cell's default `min_height` is 5 mm instead of 15 mm, so short
+  authored plots keep short rows.
+- Left and right plot margins are shared only among stacked plots: plots on
+  the same grid line (or column span, without `share_plot_margins`) whose
+  rows touch. Previously a key beside one plot narrowed every plot on that
+  line anywhere on the page, and could leave a distant plot no data width.
+
+- A pie label that does not fit its slice at the usual radius moves
+  towards the centre before going outside, so wide labels on small pies stay
+  inside large slices.
+- `breakout()` connectors for slices covering more than half the pie leave
+  from the tangent points on the rim instead of crossing the disc.
+
+- Column tracks reserve the measured width of fixed artwork, including its
+  panel letter. Previously a drawing wider than its share of the page failed
+  to compile unless the author measured it and passed `min_width=`.
+
+- A font list such as `'Arial, Helvetica, sans-serif'` is resolved in order
+  through fontconfig. Previously fontconfig read the whole list as one unknown
+  family and substituted its default face (often Noto Sans), so the Cell and
+  Nature themes set text in a wider face than they asked for. When none of
+  the named families is installed, the substitute is preferably TrueType, so
+  PDFs can embed it (Arimo rather than a CFF Nimbus Sans for Helvetica).
+  Text measurements change for pages set in these themes.
+- `fit()` never returns a build wider than its target. It accepted builds
+  up to `tolerance` (0.05 mm) over; `tolerance` now only ends the search.
+- `icicle(counts=True)` sets its highlighted and total counts as one
+  two-line label with the theme's leading. The rows touched, and in
+  vertical orientation they were drawn over each other.
+- A plot `title(align=)` accepts `left` and `right` as `start` and `end`,
+  and rejects other values; `align='left'` was silently centered.
+- A pie label too wide for its slice's center line is tried beside the
+  slice's straight edges before it goes outside, so "24.8%" fits a quarter
+  slice as it does in a journal figure.
+- A key placed by `legend(corner='best')`, `corner='auto'` or beside the
+  plot keeps clear of line-end labels, which `label_lines()` places at build
+  time. Previously the key could sit on them. With them in view,
+  `corner='auto'` can find no clear spot and raises instead.
+
+- Compiling is several times faster on large pages. Cyclic garbage
+  collection is paused while a document compiles, raster scatters paint each
+  marker shape once, 3D paths project without per-point objects, and plot
+  margins that converge geometrically jump to their limit. A plot row no
+  longer grows by amounts under 0.005 mm, which kept the layout measuring
+  again for up to 24 passes.
+- 3D paths and points projected over a model (`paths3d`, `points3d`) count
+  as computed ink in `lint()`, like mesh strokes: `PATH_CROSSES` and
+  `CROWDING` no longer report their segments.
+
+- Keys set outside a plot on the same side (`size_key`, `width_key`) share
+  one column (or row, for top and bottom), centered together, while they fit
+  the plot area's height (or width). Previously each key moved out past the
+  last, so two keys on the right doubled the panel's margin.
+
+### Added
+
+- `breakout(title_side="gap")` sets the title between the pie and the bar,
+  centered on the connectors, and widens the default gap to hold it. The bar
+  no longer needs room above it for the title, so a row of pies is shorter.
+
+- Experimental: `document(pack=True)` packs cells without a grid, in the
+  order they were added, into side-by-side groups and stacks that give the
+  shortest page; `layout_report()` shows the arrangement. Responsive content
+  set in a taller box receives that box's height, as it does in a grid cell,
+  and keeps a taller build only when it still fits. A plot is charged for
+  width past 1.25 times its authored width as empty area, and set beside a
+  taller neighbor it grows to at most 1.5 times its height, keeping the top
+  of its box, so short plots are not stretched to fill a tall row.
+
+- Graph edges accept `same_rank=True`, which keeps both ends in one rank of a
+  layered drawing, side by side, so a decision flow's "yes" can run across
+  while its "no" runs down.
+
+- `subfigure(stretch=False)` keeps a nested grid at its natural height inside
+  a taller cell; the cell's `align=` positions it.
+- `CompiledFigure.layout_report()` names the cells that set each row's
+  height and the unused space in every other cell; `metadata['layout']`
+  carries the same data.
+- `document.letters(anchor='cell')` sets each panel letter at its cell's
+  top-left corner, so the letters in a row share one line.
+- `i.choose(*alternatives, **named)` offers a document cell several
+  definitions; the page keeps the one that gives the shortest layout, and
+  `layout_report()` names the alternative kept.
+- `add(..., grow=False)` holds one cell's row at its natural height when a
+  fixed page height has space to spare.
+
 ## 4.4.1 — 2026-09-26
 
 4.4.1 changes only the source archive; the wheel's code is unchanged.
@@ -21,6 +123,27 @@ engine. Nothing is removed. Old spellings and paths keep working and warn with
 `inklet._compat.InkletDeprecationWarning`, a `DeprecationWarning` subclass that
 names the replacement. See the
 [migration notes](docs/migration.md#from-43-to-44).
+
+### Fixed
+
+- A circular `network()` too tight for its nodes no longer draws them
+  overlapping. Every node shrinks by one factor, so areas still compare and the
+  size key follows. No node shrinks below the size its inside label needs.
+
+- `text(..., fill=color)` keeps its color inside a document. The document
+  root sets the theme ink as the text color, and a text's own `fill` did not
+  override it, so colored labels came out black on the page but not in
+  `to_svg()` of the diagram alone.
+- Lint measures text placed by its ink (`text(bounds="ink")`, as in
+  `value_table` cells) by that ink. Digits centered in a tight table cell
+  were reported as overlapping their own cell.
+- Lint measures an image with transparent areas, such as a raster scatter,
+  by its opaque pixels. A label in an empty stretch of the plot was reported
+  as overlapping the scatter, and a label entirely inside the scatter's box
+  was never checked against its points.
+- `document(pack=True)` no longer fails on a row of several cells whose
+  gaps, rounded to the coarse grid, fit the page but overran it on the fine
+  one.
 
 ### Deprecated
 

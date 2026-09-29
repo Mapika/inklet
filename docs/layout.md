@@ -38,17 +38,30 @@ or hyphens. Names are unique within each document.
 `columns=2` creates equal columns. `columns=[1, 2]` requests a 1:2 allocation,
 adjusted as needed to meet cell minima. `min_width` and `min_height` constrain
 the entire cell, including axes and labels. They are not data-domain limits.
+Fixed artwork reserves its measured width, including its panel letter, so a
+drawing never needs a `min_width` to fit its column.
 
 With no explicit page height, rows grow to meet their measured content and
-minimum heights. A fixed `height` distributes the available space. Plot areas
-resize; text and strokes retain their physical dimensions. Set
+minimum heights. A fixed `height` starts from those same natural rows and
+gives the extra space to plot rows in proportion to their data heights, so
+stacked plots keep one scale; nested grids and responsive components grow with
+their natural height, and text and fixed artwork keep their size. A nested
+subfigure is laid out this way at the height of its parent cell, so it keeps
+the plot heights authored for it. When the height is too small, rows shrink in
+proportion down to their minima. Plot areas resize; text and strokes retain
+their physical dimensions. A plot cell's default `min_height` is 5 mm, so a
+short authored plot keeps a short row. Set
 `share_plot_margins=True` to align plot areas by sharing relevant axis and
 legend margins within a grid. Left and right margins are shared along vertical
-grid lines: plots that start on the same grid line get the same left margin,
-and plots that end on the same grid line get the same right margin. A plot
-that shares neither line with a wide label is not narrowed by it. With an
-automatic page height, data heights are shared along each row only, so rows
-keep the plot heights set for them.
+grid lines: stacked plots that start on the same grid line get the same left
+margin, and stacked plots that end on the same grid line get the same right
+margin. Plots are stacked when their rows touch, directly or through other
+plots on that line; a key beside one plot does not narrow a plot further down
+the page with other content between them. A plot that shares neither line
+with a wide label is not narrowed by it. Top and
+bottom margins and data heights are shared along each row only, so rows keep
+the plot heights set for them and an axis under the last row reserves no space
+under the others.
 `share_plot_margins='all'` shares the largest left and right margins across
 the whole grid instead, and gives every plot the tallest data height, so equal
 columns give equal data areas. This is
@@ -75,6 +88,21 @@ fill their available data regions. The compiler also
 preserves fixed drawings' measured letter space when a parent assigns a final
 height to an automatically sized subfigure.
 
+### Letters on one line
+
+```python
+lined = i.document(width=100, columns=2).letters(anchor='cell')
+lined.add('trace', i.plot_spec(height=20).line([(0, 0), (1, 1)]).axes(x='t', y='F'))
+lined.add('model', i.component(i.box, 'Model', width=30, height=10), row=0, column=1)
+assert lined.compile().cells['model'].y0 == lined.compile().cells['trace'].y0
+```
+
+A plot's letter hangs off its data area and a drawing's off its top edge, so
+letters in a row can sit at different heights. `letters(anchor='cell')` moves
+each letter to its cell's top-left corner after placement, as journal pages
+set them. Space is still reserved beside the content, so the move never
+changes the layout.
+
 ## Nested subfigures
 
 Build a named group, then place and revise its children through the parent:
@@ -98,6 +126,27 @@ by `letters()` are measured and have space reserved. Local names such as
 `control` can be reused in different subfigures; compiled identities include
 their containing cells. Margin sharing applies inside each grid, not across
 arbitrary nested grids.
+
+A subfigure takes the height of its parent cell. When a neighbouring cell makes
+that row taller than the subfigure needs, the plots inside grow in proportion
+to their authored data heights, so a stack of bar blocks keeps one bar
+thickness, and text rows keep their size. To keep the natural height instead,
+create the group with `stretch=False` and position it with the cell's `align`;
+to hold one row at its natural height, add it with `grow=False`:
+
+```python
+stack = i.subfigure(row_gap=1, stretch=False)
+stack.add('key', i.text('male'), row=0)
+for k, rows in enumerate([['taste peg', 'labellar'], ['leg bristle']]):
+    block = i.plot_spec(height=5*len(rows), x=(0, 10), y=rows)
+    block.bars(rows, [4]*len(rows), orient='h')
+    stack.add(f'block{k}', block, row=k+1)
+tall = i.plot_spec(height=60, x=(0, 1), y=(0, 1)).axes()
+side = i.document(width=120, columns=3)
+side.add('stack', stack, row=0, column=0, align='n')
+side.add('tall', tall, row=0, column=1, colspan=2)
+assert side.compile().cells['stack'].height > 60
+```
 
 The [reusable plot composition example](plot-recipes.md) combines independent
 plot variants with a responsive diagram at two physical widths.
@@ -124,6 +173,80 @@ The engine reuses a fixed factory's result across measurement
 passes and page resizes when its arguments, dependencies and theme are unchanged.
 Factories must be deterministic. Responsive factories still receive the new
 cell dimensions and rebuild when those dimensions change.
+
+## Find what sets the page height
+
+```python
+report = side.compile().layout_report()
+assert report.splitlines()[1].split()[2] == 'tall'
+```
+
+`layout_report()` lists each row's height and the cells that set it: a cell
+sets its rows when its natural height, or its `min_height`, fills them, so a
+page gets shorter only when those cells do. It then lists the space other
+cells leave unused, largest first, which shows where a drawing could grow or
+a key could move. The same data is in `compiled.metadata['layout']`.
+
+## Let the page choose a layout
+
+```python
+def keyed(**legend):
+    p = i.plot_spec(height=20)
+    p.line([(0, 0), (1, 1)], name='control').line([(0, 1), (1, 0)], name='treated')
+    return p.legend(**legend)
+
+choice = i.document(width=120, columns=2)
+choice.add('trend', i.choose(below=keyed(side='bottom'), inside=keyed(corner='best')))
+choice.add('note', i.text('A short note'), row=0, column=1)
+assert choice.compile().metadata['layout']['choices'] == {'trend': 'inside'}
+```
+
+`i.choose()` offers one cell several definitions: a key below or inside, a
+flow chart drawn across or down, a wide or a stacked arrangement. The page
+lays out each alternative and keeps the one that gives the shortest page;
+alternatives that do not fit are skipped. List them in order of preference,
+positionally or by name: an alternative replaces an earlier one only when it
+saves more than 0.1 mm. With several choices on a page, each cell is settled
+in turn, in page order, until no change shortens the page. `layout_report()`
+lists the alternative kept for each cell. Every alternative is laid out at
+least once, so each one adds to compile time.
+
+## Pack panels without a grid (experimental)
+
+```python
+def trace():
+    return (i.plot_spec(40, 24, x=(0, 3), y=(0, 4))
+            .line([(0, 1), (1, 3), (2, 2), (3, 4)]).axes(x='Time', y='Value'))
+
+packed = i.document(width=160, margin=2, gap=4, pack=True)
+packed.add('art', i.box('tall drawing', width=40, height=80))
+for name in ('one', 'two', 'three'):
+    packed.add(name, trace())
+assert packed.compile().metadata['layout']['packing'] == '((art | one) | (two / three))'
+```
+
+Journal figures are rarely one grid: two plots stack beside a tall drawing,
+a wide panel runs under three small ones. With `pack=True` the page ignores
+rows and columns and packs the cells, in the order they were added, into
+groups set side by side (`|`) or stacked (`/`), down to single cells. Only
+cells added one after another are grouped, so the panel letters still read
+left to right and top to bottom.
+
+Each cell is measured at several widths, and the page takes the arrangement
+and widths that give the shortest page. Plots pay a little for straying from
+their authored proportions, and drawings for width they leave empty, so of
+two equally short pages the one closer to your panels wins. A plot's data is
+never narrowed below 60% of its authored width, and width past 1.25 times its
+authored width counts as empty area. Beside a taller neighbor a plot grows
+to at most one and a half times its height and keeps the top of its box. Content that grows taller
+with width stops growing at one and a half times its smallest height, so a
+drawing stays in scale with its fixed-size text; in a wider slot it is placed
+by its `align=`. `choose()` cells are settled at the same time. The first line of
+`layout_report()` and `metadata['layout']['packing']` show the arrangement.
+
+Packing is experimental: the arrangement may change between releases, plot
+margins are not shared between packed cells, and measuring every cell at
+several widths makes a large page slower to compile than a grid.
 
 ## Resize and replace
 

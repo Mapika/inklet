@@ -94,6 +94,11 @@ def _raster_markers(records, *, opacity, dpi, clip):
     sx,sy=width*aa/box.width,height*aa/box.height
     def pixel(v): return ((v.x-box.x0)*sx,(v.y-box.y0)*sy)
     painted=set()
+    # Markers that differ only by where they sit share one painted patch.
+    # Offsets snap to an eighth of a supersampled pixel, finer than any
+    # antialiasing step, so the cache does not change what is drawn.
+    patches={}
+    tables={}
     for (shape, world, style, _), b in zip(records,boxes):
         if b.x1 < box.x0 or b.x0 > box.x1 or b.y1 < box.y0 or b.y0 > box.y1: continue
         x0=max(0,math.floor((b.x0-box.x0)*sx)-2)
@@ -102,9 +107,15 @@ def _raster_markers(records, *, opacity, dpi, clip):
         y1=min(height*aa,math.ceil((b.y1-box.y0)*sy)+3)
         if x1<=x0 or y1<=y0: continue
         size=(x1-x0,y1-y0)
+        ox,oy=pixel(Vec2(world.e,world.f))
+        ox,oy=round((ox-x0)*8)/8,round((oy-y0)*8)/8
+        key=(id(shape),id(style),world.a,world.b,world.c,world.d,size,ox,oy)
+        if key in patches:
+            image.alpha_composite(patches[key],(x0,y0))
+            continue
         patch=Image.new('RGBA',size)
         def local(v):
-            x,y=pixel(world.apply(v));return (x-x0,y-y0)
+            return (world.a*v.x+world.c*v.y)*sx+ox,(world.b*v.x+world.d*v.y)*sy+oy
         def mask(stroke):
             m=Image.new('L',size)
             d=ImageDraw.Draw(m)
@@ -140,9 +151,12 @@ def _raster_markers(records, *, opacity, dpi, clip):
             rgb=parse_color(color);painted.add(color)
             a=1. if alpha is None else alpha
             m=mask(stroke)
-            if a!=1:m=m.point(lambda v:round(v*a))
+            if a!=1:
+                if a not in tables:tables[a]=[round(v*a) for v in range(256)]
+                m=m.point(tables[a])
             layer=Image.new('RGBA',size,(*rgb,255));layer.putalpha(m)
             patch=Image.alpha_composite(patch,layer)
+        if len(patches)<4096:patches[key]=patch
         image.alpha_composite(patch,(x0,y0))
     image=image.resize((width,height),Image.Resampling.LANCZOS)
     if opacity!=1:image.putalpha(image.getchannel('A').point(lambda v:round(v*opacity)))
