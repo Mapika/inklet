@@ -51,9 +51,12 @@ their physical dimensions. A plot cell's default `min_height` is 5 mm, so a
 short authored plot keeps a short row. Set
 `share_plot_margins=True` to align plot areas by sharing relevant axis and
 legend margins within a grid. Left and right margins are shared along vertical
-grid lines: plots that start on the same grid line get the same left margin,
-and plots that end on the same grid line get the same right margin. A plot
-that shares neither line with a wide label is not narrowed by it. Top and
+grid lines: stacked plots that start on the same grid line get the same left
+margin, and stacked plots that end on the same grid line get the same right
+margin. Plots are stacked when their rows touch, directly or through other
+plots on that line; a key beside one plot does not narrow a plot further down
+the page with other content between them. A plot that shares neither line
+with a wide label is not narrowed by it. Top and
 bottom margins and data heights are shared along each row only, so rows keep
 the plot heights set for them and an axis under the last row reserves no space
 under the others.

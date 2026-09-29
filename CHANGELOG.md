@@ -15,6 +15,10 @@
   the last plot of a stack no longer reserves space under every plot.
 - A plot cell's default `min_height` is 5 mm instead of 15 mm, so short
   authored plots keep short rows.
+- Left and right plot margins are shared only among stacked plots: plots on
+  the same grid line (or column span, without `share_plot_margins`) whose
+  rows touch. Previously a key beside one plot narrowed every plot on that
+  line anywhere on the page, and could leave a distant plot no data width.
 
 ### Added
 

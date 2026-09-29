@@ -328,3 +328,21 @@ def test_all_still_gives_every_plot_the_tallest_data_height():
     areas = _areas(_rows('all'), 'abcd')
     for area in areas.values():
         assert area.height == pytest.approx(34, abs=1e-5)
+
+
+@pytest.mark.parametrize('share', [False, True])
+def test_side_furniture_is_shared_only_by_stacked_plots(share):
+    # A wide key beside 'a' aligns 'b' directly below it, but not 'c', which
+    # sits on the same grid lines with a text row between them.
+    def plot():
+        return i.plot_spec(height=20, x=(0, 10), y=(0, 10)).line([(0, 0), (10, 10)]).axes()
+
+    keyed = plot().line([(0, 5), (10, 5)], name='a rather long series name')
+    doc = i.document(width=120, columns=2, share_plot_margins=share)
+    doc.add('a', keyed.legend(side='right'), row=0, column=0)
+    doc.add('b', plot(), row=1, column=0)
+    doc.add('note', i.component(i.text, 'between'), row=2, column=0)
+    doc.add('c', plot(), row=3, column=0)
+    areas = _areas(doc.compile(), 'abc')
+    assert areas['b'].x1 == pytest.approx(areas['a'].x1, abs=1e-5)
+    assert areas['c'].x1 > areas['a'].x1+10

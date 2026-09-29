@@ -207,35 +207,55 @@ def _measure_cells(request, context, boxes, margins, decorate):
     return nodes, measured
 
 
+def _stacks(plots, edge):
+    """Group plots whose `edge` grid line matches and whose rows touch.
+
+    Aligning a data edge matters where panels stand directly above one
+    another. Plots on one grid line with other content between them are not
+    a stack, so a key beside one never narrows the other.
+    """
+    group = {cell.name: cell.name for cell in plots}
+
+    def find(name):
+        while group[name] != name:
+            name = group[name]
+        return name
+
+    for n, a in enumerate(plots):
+        for b in plots[n+1:]:
+            if (edge(a) == edge(b) and a.row <= b.row+b.rowspan
+                    and b.row <= a.row+a.rowspan):
+                group[find(a.name)] = find(b.name)
+    return {cell.name: find(cell.name) for cell in plots}
+
+
 def _share_margins(request, measured, margins):
-    columns, rows, lefts, rights = {}, {}, {}, {}
     plots = [cell for cell in request.cells if isinstance(cell.item, PlotSpec)]
+    if request.share_plot_margins:
+        # Left and right furniture is shared by stacked cells that start or
+        # end on the same vertical grid line, so their data edges line up;
+        # a wide label never squeezes a cell that shares neither line.
+        left_of = _stacks(plots, lambda c: c.column)
+        right_of = _stacks(plots, lambda c: c.column+c.colspan)
+    else:
+        left_of = right_of = _stacks(plots, lambda c: (c.column, c.colspan))
+    row_of = {cell.name: (cell.row, cell.rowspan) for cell in plots}
+    lefts, rights, rows = {}, {}, {}
     for cell in plots:
         left, right, top, bottom = measured[cell.name]
-        a, b = columns.get((cell.column, cell.colspan), (0., 0.))
-        columns[cell.column, cell.colspan] = max(a, left), max(b, right)
-        a, b = rows.get((cell.row, cell.rowspan), (0., 0.))
-        rows[cell.row, cell.rowspan] = max(a, top), max(b, bottom)
-        # Keyed by grid line: a cell's left edge is line `column`, its right
-        # edge is line `column+colspan`, whatever its span.
-        lefts[cell.column] = max(lefts.get(cell.column, 0.), left)
-        end = cell.column+cell.colspan
-        rights[end] = max(rights.get(end, 0.), right)
-    shared = (tuple(max((measured[c.name][n] for c in plots), default=0.) for n in range(4))
-              if request.share_plot_margins else None)
+        lefts[left_of[cell.name]] = max(lefts.get(left_of[cell.name], 0.), left)
+        rights[right_of[cell.name]] = max(rights.get(right_of[cell.name], 0.), right)
+        a, b = rows.get(row_of[cell.name], (0., 0.))
+        rows[row_of[cell.name]] = max(a, top), max(b, bottom)
     for cell in plots:
-        if shared is None:
-            values = (*columns[cell.column, cell.colspan], *rows[cell.row, cell.rowspan])
+        if request.share_plot_margins == 'all':
+            # One physical x scale across the grid.
+            sides = tuple(max(measured[c.name][n] for c in plots) for n in (0, 1))
         else:
-            # Left and right furniture is shared by the cells that start or end
-            # on the same vertical grid line, so their data edges line up there;
-            # a wide label never squeezes a cell that shares neither line.
-            # 'all' shares them across the grid for one physical x scale.
-            sides = (shared[:2] if request.share_plot_margins == 'all' else
-                     (lefts[cell.column], rights[cell.column+cell.colspan]))
-            # Top and bottom furniture is shared along a row: each row track
-            # holds its own furniture around the row's common data height.
-            values = (*sides, *rows[cell.row, cell.rowspan])
+            sides = lefts[left_of[cell.name]], rights[right_of[cell.name]]
+        # Top and bottom furniture is shared along a row: each row track
+        # holds its own furniture around the row's common data height.
+        values = (*sides, *rows[row_of[cell.name]])
         # Monotonic margins prevent tick-thinning oscillations.
         measured[cell.name] = tuple(max(a, b) for a, b in zip(values, margins[cell.name]))
 
