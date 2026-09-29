@@ -58,6 +58,11 @@ def load(data_dir: Path, chart_dir: Path):
 # -- A: cumulative connection weights ---------------------------------------------
 
 def panel_a(d):
+    """The key under the plot, as in the reference, unless beside it makes the page shorter."""
+    return i.choose(below=cumulative(d, side='bottom'), beside=cumulative(d, corner='best'))
+
+
+def cumulative(d, **key):
     grid = d['weight_grid']
     totals = [d[f'cdf{k}'] for k in range(3)]
     everything = sum(t[-1] for t in totals)
@@ -65,17 +70,17 @@ def panel_a(d):
     for k, color in [(0, INK), (2, BLUE), (1, AMBER)]:
         share = f'{100 * totals[k][-1] / everything:.1f}%'
         p.line(list(zip(grid, np.maximum(totals[k], 1e4))), stroke=color, name=share)
-    p.label_lines(where='end')
     noise_c, noise_s = float(d['noise_connection_pct']), float(d['noise_synapse_pct'])
     # The reference splits these notes either side of the threshold; annotate(side='w')
     # is overridden when the west side is short of room (see GAPS), so one note carries both.
     p.vline(10, stroke=INK, stroke_dash=(.4, .4), stroke_width=HAIR)
-    p.annotate(10, 1.2e7, f'noise ← | → signal\n{noise_c:.0f}% | {100 - noise_c:.0f}% of connections\n'
+    p.annotate(10, 1.5e7, f'noise ← | → signal\n{noise_c:.0f}% | {100 - noise_c:.0f}% of connections\n'
                           f'{noise_s:.0f}% | {100 - noise_s:.0f}% of synapses',
                side='n', leader=False, size=PT5)
+    p.label_lines(where='end')
     p.axes(x='weight (♂)', y='no. of connections (cum.)')
     dot = lambda color: i.marker('circle', 1.2, fill=color, stroke='none')
-    p.legend(title='cell types', corner='best', plate=False,
+    p.legend(title='cell types', plate=False, **key,
              entries=[('isomorphic', dot(INK)), ('dimorphic', dot(AMBER)), ('sex-specific', dot(BLUE))])
     return p
 
