@@ -349,14 +349,14 @@ def test_breakout_connectors_clear_outside_pie_labels() -> None:
     from inklet.plot.wheel import pie as wheel_pie
 
     values = [3, 25, 4, 68]
-    alone = polar(11, zero="up", winding="cw")
+    alone = polar(8, zero="up", winding="cw")
     node, _, note = wheel_pie(alone, values)
     links = breakout_connectors(alone, note["angles"], [1, 2])
     boxes = [x.bbox for x in resolve(as_drawn(node)).values()
              if getattr(x.diagram.prim, "text", None)]
     # Without the breakout in view, an outside label sits on a connector.
     assert any(_segment_hits(b, a, c) for b in boxes for a, c in links)
-    p = polar(11, zero="up", winding="cw")
+    p = polar(8, zero="up", winding="cw")
     p.pie(values)
     p.breakout([1, 2], labels=None)
     assert p._pie[0]["outside"] == [0, 2] and p._pie[0]["crossing"] == []
@@ -519,7 +519,7 @@ def _theta_note(p):
 def test_theta_labels_keep_off_a_breakout_connector(after) -> None:
     from inklet.plot.point_labels import _segment_hits
 
-    p = polar(12)
+    p = polar(11)
     p.pie([70, 20, 10])
     if not after:
         p.theta_axis(count=8)
@@ -528,7 +528,7 @@ def test_theta_labels_keep_off_a_breakout_connector(after) -> None:
         p.theta_axis(count=8)
     # Drawn under the turned angles without the breakout in view, the 270°
     # label lies on the upper connector.
-    bare = polar(12, zero=p.theta.zero, winding=p.theta.winding)
+    bare = polar(11, zero=p.theta.zero, winding=p.theta.winding)
     bare.pie([70, 20, 10])
     bare.theta_axis(count=8)
     ends = _connector_ends(p)

@@ -38,6 +38,8 @@ or hyphens. Names are unique within each document.
 `columns=2` creates equal columns. `columns=[1, 2]` requests a 1:2 allocation,
 adjusted as needed to meet cell minima. `min_width` and `min_height` constrain
 the entire cell, including axes and labels. They are not data-domain limits.
+Fixed artwork reserves its measured width, including its panel letter, so a
+drawing never needs a `min_width` to fit its column.
 
 With no explicit page height, rows grow to meet their measured content and
 minimum heights. A fixed `height` starts from those same natural rows and
@@ -85,6 +87,21 @@ the cell. This positions geometry without scaling it. Plot cells continue to
 fill their available data regions. The compiler also
 preserves fixed drawings' measured letter space when a parent assigns a final
 height to an automatically sized subfigure.
+
+### Letters on one line
+
+```python
+lined = i.document(width=100, columns=2).letters(anchor='cell')
+lined.add('trace', i.plot_spec(height=20).line([(0, 0), (1, 1)]).axes(x='t', y='F'))
+lined.add('model', i.component(i.box, 'Model', width=30, height=10), row=0, column=1)
+assert lined.compile().cells['model'].y0 == lined.compile().cells['trace'].y0
+```
+
+A plot's letter hangs off its data area and a drawing's off its top edge, so
+letters in a row can sit at different heights. `letters(anchor='cell')` moves
+each letter to its cell's top-left corner after placement, as journal pages
+set them. Space is still reserved beside the content, so the move never
+changes the layout.
 
 ## Nested subfigures
 
@@ -156,6 +173,43 @@ The engine reuses a fixed factory's result across measurement
 passes and page resizes when its arguments, dependencies and theme are unchanged.
 Factories must be deterministic. Responsive factories still receive the new
 cell dimensions and rebuild when those dimensions change.
+
+## Find what sets the page height
+
+```python
+report = side.compile().layout_report()
+assert report.splitlines()[1].split()[2] == 'tall'
+```
+
+`layout_report()` lists each row's height and the cells that set it: a cell
+sets its rows when its natural height, or its `min_height`, fills them, so a
+page gets shorter only when those cells do. It then lists the space other
+cells leave unused, largest first, which shows where a drawing could grow or
+a key could move. The same data is in `compiled.metadata['layout']`.
+
+## Let the page choose a layout
+
+```python
+def keyed(**legend):
+    p = i.plot_spec(height=20)
+    p.line([(0, 0), (1, 1)], name='control').line([(0, 1), (1, 0)], name='treated')
+    return p.legend(**legend)
+
+choice = i.document(width=120, columns=2)
+choice.add('trend', i.choose(below=keyed(side='bottom'), inside=keyed(corner='best')))
+choice.add('note', i.text('A short note'), row=0, column=1)
+assert choice.compile().metadata['layout']['choices'] == {'trend': 'inside'}
+```
+
+`i.choose()` offers one cell several definitions: a key below or inside, a
+flow chart drawn across or down, a wide or a stacked arrangement. The page
+lays out each alternative and keeps the one that gives the shortest page;
+alternatives that do not fit are skipped. List them in order of preference,
+positionally or by name: an alternative replaces an earlier one only when it
+saves more than 0.1 mm. With several choices on a page, each cell is settled
+in turn, in page order, until no change shortens the page. `layout_report()`
+lists the alternative kept for each cell. Every alternative is laid out at
+least once, so each one adds to compile time.
 
 ## Resize and replace
 

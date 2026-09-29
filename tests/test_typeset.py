@@ -108,6 +108,32 @@ def test_font_stack_scan_uses_first_installed_family(monkeypatch, family, expect
     assert (Path(found[0]).name if found else None) == expected
 
 
+def test_font_stack_asks_fontconfig_for_each_family_in_order(monkeypatch):
+    from inklet.typeset.fonts import _fc_match
+    asked = []
+    monkeypatch.setattr('inklet.typeset.fonts._fc_query', lambda pattern, family=False: asked.append(pattern))
+    _fc_match('Arial, "Liberation Sans", Font-Name, sans-serif', 400, False)
+    families = asked[0].split(':')[0]
+    assert families == r'Arial,Liberation Sans,Font\-Name,sans\-serif'
+
+
+@pytest.mark.parametrize('matched,expected', [
+    ('Nimbus Sans', 'Arimo-Regular.ttf'),       # a substitute: prefer an embeddable face
+    ('Inter', 'Inter-Regular.otf'),             # a named family is kept, whatever its format
+])
+def test_a_substituted_font_prefers_truetype_but_a_named_one_is_kept(monkeypatch, matched, expected):
+    from inklet.typeset.fonts import _fc_match
+    files = {'Nimbus Sans': 'NimbusSans-Regular.otf', 'Inter': 'Inter-Regular.otf'}
+
+    def query(pattern, family=False):
+        if 'fontformat=TrueType' in pattern:
+            return 'Arimo-Regular.ttf', 0
+        return (files[matched], 0, matched) if family else (files[matched], 0)
+
+    monkeypatch.setattr('inklet.typeset.fonts._fc_query', query)
+    assert _fc_match('Inter, Helvetica, sans-serif', 400, False)[0] == expected
+
+
 def test_default_theme_text_works_without_fontconfig(monkeypatch):
     import inklet as i
     monkeypatch.setattr('inklet.typeset.fonts._fc_match', lambda *args: None)
@@ -757,13 +783,15 @@ def test_a_slant_asked_for_as_a_style_field_is_measured_too():
     measured in the upright and painted in the italic is the wrong width."""
     import inklet
 
-    styled = inklet.text("Nature", font_style="italic")
+    # The generic family, so the guard below checks the faces actually used.
+    # Some italics (Arimo's, like Arial's) share the upright's advances.
+    styled = inklet.text("Nature", font_style="italic", font="sans")
     assert load_face(styled.prim.font_path).italic
     assert styled.prim.width == pytest.approx(
-        inklet.text("Nature", weight="italic").prim.width, abs=MICRON)
+        inklet.text("Nature", weight="italic", font="sans").prim.width, abs=MICRON)
     if find_font("sans", "regular", True).path != find_font("sans").path:
         assert styled.prim.width != pytest.approx(
-            inklet.text("Nature").prim.width, abs=MICRON)
+            inklet.text("Nature", font="sans").prim.width, abs=MICRON)
 
 
 def test_a_halo_claims_the_space_its_ink_takes():
@@ -792,3 +820,14 @@ def test_a_haloed_label_is_spaced_for_its_halo():
                          gap=1.0)
     bare = inklet.vstack([inklet.text("one"), inklet.text("two")], gap=1.0)
     assert stacked.height == pytest.approx(bare.height + 1.0, abs=MICRON)
+
+
+def test_tabular_figures_are_not_kerned_between_digits() -> None:
+    """Arial-style faces kern "11" even in their tabular set."""
+    face = find_font("Arimo")
+    if "Arimo" not in face.path and "Arial" not in face.path:
+        pytest.skip("needs a face that kerns its digits")
+    tabular = (("tnum", 1),)
+    assert _advance_units("1111", face, tabular) == 4 * _advance_units("1", face, tabular)
+    assert _advance_units("1111", face, (("kern", 1), ("tnum", 1))) < \
+        4 * _advance_units("1", face, tabular)

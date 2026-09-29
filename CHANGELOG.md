@@ -10,6 +10,9 @@
   components; text rows and fixed artwork keep their size. Previously every
   row received an equal share, so authored plot heights in a subfigure were
   lost and a one-line key row could grow as tall as a plot.
+- Tabular figures (`tnum`, on for tick labels and number tables) also turn
+  off kerning between digits, unless `kern` is set. Arial-style faces kern
+  "11" even in their tabular set, so a column of numbers came out ragged.
 - `share_plot_margins=True` with a fixed height shares top and bottom margins
   along each row, as automatic heights already did. An axis or legend under
   the last plot of a stack no longer reserves space under every plot.
@@ -26,10 +29,37 @@
 - `breakout()` connectors for slices covering more than half the pie leave
   from the tangent points on the rim instead of crossing the disc.
 
+- Column tracks reserve the measured width of fixed artwork, including its
+  panel letter. Previously a drawing wider than its share of the page failed
+  to compile unless the author measured it and passed `min_width=`.
+
+- A font list such as `'Arial, Helvetica, sans-serif'` is resolved in order
+  through fontconfig. Previously fontconfig read the whole list as one unknown
+  family and substituted its default face (often Noto Sans), so the Cell and
+  Nature themes set text in a wider face than they asked for. When none of
+  the named families is installed, the substitute is preferably TrueType, so
+  PDFs can embed it (Arimo rather than a CFF Nimbus Sans for Helvetica).
+  Text measurements change for pages set in these themes.
+- `fit()` never returns a build wider than its target. It accepted builds
+  up to `tolerance` (0.05 mm) over; `tolerance` now only ends the search.
+- `icicle(counts=True)` sets its highlighted and total counts as one
+  two-line label with the theme's leading. The rows touched, and in
+  vertical orientation they were drawn over each other.
+- A plot `title(align=)` accepts `left` and `right` as `start` and `end`,
+  and rejects other values; `align='left'` was silently centered.
+
 ### Added
 
 - `subfigure(stretch=False)` keeps a nested grid at its natural height inside
   a taller cell; the cell's `align=` positions it.
+- `CompiledFigure.layout_report()` names the cells that set each row's
+  height and the unused space in every other cell; `metadata['layout']`
+  carries the same data.
+- `document.letters(anchor='cell')` sets each panel letter at its cell's
+  top-left corner, so the letters in a row share one line.
+- `i.choose(*alternatives, **named)` offers a document cell several
+  definitions; the page keeps the one that gives the shortest layout, and
+  `layout_report()` names the alternative kept.
 - `add(..., grow=False)` holds one cell's row at its natural height when a
   fixed page height has space to spare.
 

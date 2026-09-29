@@ -259,9 +259,20 @@ class Document(BuildSpec):
             if cell.name == name: return cell.item
         raise KeyError(name)
 
-    def letters(self, *, start='a', **options):
-        """Measure panel letters with the cells, reserving room before placement."""
+    def letters(self, *, start='a', anchor='content', **options):
+        """Measure panel letters with the cells, reserving room before placement.
+
+        With ``anchor='content'`` a letter hangs off its plot's data area or
+        its drawing's top edge. ``anchor='cell'`` moves it to the top-left
+        corner of the cell after placement, so the letters in a row share one
+        line however their contents are aligned. Other options go to
+        `inklet.letters`.
+        """
+        if anchor not in ('content', 'cell'):
+            raise ValueError("letters anchor must be 'content' or 'cell'")
         self._letters = dict(start=start, **options)
+        if anchor != 'content':
+            self._letters['anchor'] = anchor
         return self
 
     def signature(self, trail=()):
@@ -276,7 +287,7 @@ class Document(BuildSpec):
         if not self.stretch:
             # Keep natural rows; the containing cell aligns the result.
             height = None
-        content, _, _, page_height, _ = self._layout(
+        content, _, _, page_height, _, _ = self._layout(
             context, self.width if width is None else width,
             self.height if height is None else height)
         return Diagram(children=(content,), kind='subfigure', envelope_override=
@@ -305,7 +316,7 @@ class Document(BuildSpec):
         if self._last is not None and self._last[0]==key and self._last[1].scene.sources_current():
             return self._last[1]
         dependency_seconds=time.perf_counter()-started
-        content, boxes, handles, page_height, passes = self._layout(context, width, height)
+        content, boxes, handles, page_height, passes, report = self._layout(context, width, height)
         layout_seconds=time.perf_counter()-started
         with themed(theme):
             root=Diagram(children=(content,),kind='page',envelope_override=Envelope.from_rect(Rect(0,0,width,page_height)))
@@ -329,6 +340,7 @@ class Document(BuildSpec):
                       datasets=_sources([c.item for c in self._cells]))
         from ..render.resources import rendering_manifest
         metadata['rendering'] = rendering_manifest(program.root)
+        metadata['layout'] = report
         if self.publication is not None: metadata['publication']=asdict(self.publication)
         if self.preset is not None:
             metadata['preset'] = self.preset.as_dict()

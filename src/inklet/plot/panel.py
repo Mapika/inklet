@@ -1133,7 +1133,14 @@ class Panel:
 
     def title(self, content: str | Diagram, *, align: str = "center",
               pad: float | str | None = None) -> "Panel":
-        """A heading over the panel, clear of whatever is already in it."""
+        """A heading over the panel, clear of whatever is already in it.
+
+        `align` is `center` (over the data area), `start`/`left` or
+        `end`/`right` (flush with the panel's furniture).
+        """
+        align = {"left": "start", "right": "end"}.get(align, align)
+        if align not in ("center", "start", "end"):
+            raise ValueError("title align must be center, start, end, left or right")
         node = (content if isinstance(content, Diagram)
                 else text_node(content, active_theme().font_size, TITLE_KIND))
         gap = active_theme().gap("s") if pad is None else mm(pad)

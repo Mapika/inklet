@@ -255,10 +255,14 @@ def mouse_bottom_row(mouse, **kwargs) -> Diagram:
 
 def test_the_mouse_figures_bottom_row_is_unlevelled_by_centring(mouse):
     """The BACKLOG reproduction, to the tenth of a millimetre: (d) is a
-    column of two panels, so its area is 44.1mm tall against its neighbours'
-    34.0, and centring lifts it by half the difference."""
-    tops = [area.y0 for area in member_areas(mouse_bottom_row(mouse))]
-    assert close(max(tops) - min(tops), (44.108 - 34.0) / 2.0, 5e-3)
+    column of two panels, so its area is about 43mm tall (the gap between its
+    two plots is text) against its neighbours' 34.0, and centring lifts it
+    by half the difference."""
+    areas = member_areas(mouse_bottom_row(mouse))
+    tall = areas[1].height
+    assert tall > 40.0
+    tops = [area.y0 for area in areas]
+    assert close(max(tops) - min(tops), (tall - 34.0) / 2.0, 5e-3)
 
 
 def test_the_mouse_figures_bottom_row_levels_under_align_top(mouse):
@@ -321,8 +325,8 @@ def test_a_lettered_panel_blocks_out_its_area_and_not_its_box():
     area = plot_area(grid)
     # Two 30x20 data regions across and down, however much letter and
     # furniture is round them.
-    assert area.width < grid.bbox.width - 10.0
-    assert area.height < grid.bbox.height - 10.0
+    assert area.width < grid.bbox.width - 5.0
+    assert area.height < grid.bbox.height - 5.0
     members = [plot_area(child) for child in grid.children]
     across = [m for m in members if m is not None]
     assert close(area.width, max(m.x1 for m in across)

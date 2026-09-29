@@ -9,6 +9,7 @@ bit-identical floats, which is what the deterministic-output promise rests on.
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from dataclasses import dataclass, fields, replace
 from functools import lru_cache
@@ -715,13 +716,25 @@ def shape_buffer(text: str, face: FontFace,
 
     `text` must be non-empty: HarfBuzz leaves the position array unset for an
     empty buffer. `features` is the sorted-tuple form from `feature_key`.
+
+    Tabular figures also turn kerning off between digits, unless `kern` is
+    given: Arial-style faces kern "11" even in their tabular set, which would
+    leave a column of numbers ragged.
     """
     buffer = hb.Buffer()
     buffer.add_str(text)
     buffer.guess_segment_properties()
     buffer.language = DEFAULT_LANGUAGE
-    hb.shape(_hb_font(face), buffer, dict(features))
+    requested = dict(features)
+    if requested.get("tnum") and "kern" not in requested:
+        digits = [match.span() for match in _DIGIT_RUN.finditer(text)]
+        if digits:
+            requested["kern"] = [(start, end, 0) for start, end in digits]
+    hb.shape(_hb_font(face), buffer, requested)
     return buffer
+
+
+_DIGIT_RUN = re.compile(r"\d{2,}")
 
 
 def feature_key(features: dict[str, bool | int] | None) -> tuple[tuple[str, int], ...]:

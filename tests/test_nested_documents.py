@@ -323,3 +323,55 @@ def test_plot_authored_at_the_minimum_data_height_fits_in_a_nested_grid():
     doc.add('stack',group,row=0,column=0)
     doc.add('tall',i.plot_spec(height=60,x=(0,1),y=(0,1)).axes(),row=0,column=1,colspan=2)
     doc.compile()
+
+
+def test_fixed_artwork_reserves_its_lettered_width_in_the_column_tracks():
+    # Equal weights would give each column 48 mm; the drawing and its letter
+    # need more, so its column takes it and the plot column gives it up.
+    doc = i.document(width=100, columns=2, gap=4, margin=0).letters()
+    doc.add('art', i.component(i.box, 'Wide', width=60, height=10), row=0, column=0)
+    doc.add('plot', i.plot_spec(x=(0, 1), y=(0, 1)).axes(), row=0, column=1, min_height=30)
+    compiled = doc.compile()
+    drawn = compiled.build()[1]['cell-art'].diagram.bbox
+    assert compiled.cells['art'].width == pytest.approx(drawn.width, abs=1e-6)
+    assert compiled.cells['art'].width > 60
+    assert compiled.cells['plot'].width == pytest.approx(96-compiled.cells['art'].width, abs=1e-6)
+
+
+def test_layout_report_names_the_cells_that_set_each_row_and_unused_space():
+    doc = i.document(width=100, columns=2).letters()
+    doc.add('art', i.component(i.box, 'Short', width=30, height=10), row=0, column=0)
+    doc.add('plot', i.plot_spec(height=30, x=(0, 1), y=(0, 1)).axes(), row=0, column=1)
+    doc.add('note', i.component(i.text, 'caption'), row=1, colspan=2)
+    compiled = doc.compile()
+    layout = compiled.metadata['layout']
+    assert [row['set_by'] for row in layout['rows']] == [['plot'], ['note (min_height)']]
+    art, box = layout['cells']['art'], compiled.cells['art']
+    assert art['unused_height'] == pytest.approx(box.height-compiled.build()[1]['cell-art'].diagram.bbox.height)
+    assert layout['cells']['plot'] == {'unused_width': 0., 'unused_height': 0.}
+    text = compiled.layout_report()
+    assert 'plot' in text.splitlines()[1] and 'art:' in text
+
+
+def test_cell_anchored_letters_share_the_row_line_at_each_cell_corner():
+    from inklet.core import resolve
+    def letters(anchor):
+        doc=i.document(width=120,columns=3,margin=0).letters(anchor=anchor)
+        doc.add('plot',i.plot_spec(height=20).line([(0,0),(1,1)]).axes(x='x',y='y').title('A title'))
+        doc.add('art',i.box('small',height=8),row=0,column=1)
+        doc.add('tall',i.box('tall',height=40),row=0,column=2)
+        compiled=doc.compile()
+        boxes={p.diagram.prim.text:p.bbox for p in resolve(compiled.root).values()
+               if p.diagram.kind=='letter'}
+        return compiled,boxes
+    loose,before=letters('content')
+    assert len({round(b.y0,3) for b in before.values()})>1
+    tight,after=letters('cell')
+    assert tight.metadata['height_mm']==pytest.approx(loose.metadata['height_mm'])
+    for name,letter in zip(('plot','art','tall'),'abc'):
+        cell=tight.cells[name]
+        assert after[letter].x0==pytest.approx(cell.x0,abs=1e-6)
+        assert after[letter].y0==pytest.approx(cell.y0,abs=1e-6)
+    assert not [d for d in tight.lint() if d.code=='OVERLAP']
+    with pytest.raises(ValueError):
+        i.document().letters(anchor='row')

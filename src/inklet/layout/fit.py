@@ -109,7 +109,7 @@ def fit(build: Callable[[float], Diagram], width: Length | None = None,
             seen[x] = measure(x)
         return seen[x]
 
-    low, high = _bracket(look, start, target, tol)
+    low, high = _bracket(look, start, target)
     node, extras, size = look(low)
     # Bisection rather than a secant. The extra builds are cheap next to being
     # wrong: a step function has flat runs where a secant divides by nothing,
@@ -119,7 +119,7 @@ def fit(build: Callable[[float], Diagram], width: Length | None = None,
             break
         middle = (low + high) / 2.0
         candidate, candidate_extras, measured = look(middle)
-        if measured <= target + tol:
+        if measured <= target:
             low, node, extras, size = middle, candidate, candidate_extras, measured
         else:
             high = middle
@@ -168,7 +168,7 @@ def _measured(build: Callable[[float], Diagram], axis: str,
 
 
 def _bracket(look: Callable[[float], tuple[Diagram, object, float]], start: float,
-             target: float, tol: float) -> tuple[float, float]:
+             target: float) -> tuple[float, float]:
     """A parameter that fits and one that does not, in that order.
 
     Halving downward is the half that can fail, and failing here is the useful
@@ -177,11 +177,11 @@ def _bracket(look: Callable[[float], tuple[Diagram, object, float]], start: floa
     search grind.
     """
     _, _, size = look(start)
-    if size <= target + tol:
+    if size <= target:
         low, high = start, start * _GROWTH
         for _ in range(_SPREAD):
             _, _, grown = look(high)
-            if grown > target + tol:
+            if grown > target:
                 return low, high
             low, high = high, high * _GROWTH
         # Nothing in four thousand times the guess overshoots: the parameter
@@ -192,7 +192,7 @@ def _bracket(look: Callable[[float], tuple[Diagram, object, float]], start: floa
     for _ in range(_SPREAD):
         _, _, shrunk = look(low)
         smallest = min(smallest, shrunk)
-        if shrunk <= target + tol:
+        if shrunk <= target:
             return low, high
         high, low = low, low / _GROWTH
     raise DiagramError(

@@ -1,7 +1,7 @@
 """Measure live cells to a stable fit, then place artwork and route links."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from itertools import accumulate
 from typing import TYPE_CHECKING, Mapping, NamedTuple
 
@@ -10,7 +10,7 @@ from ..draw.coords import plot_area
 from ..figure import Figure
 from ..links import route_all
 from .errors import LayoutError
-from .spec import ComponentSpec, PlotSpec, themed
+from .spec import Choice, ComponentSpec, PlotSpec, themed
 from .tracks import allocate_tracks
 
 if TYPE_CHECKING:
@@ -35,6 +35,7 @@ class LayoutResult(NamedTuple):
     handles: dict[str, Diagram]
     page_height: float
     passes: int
+    report: dict
 
 
 def plot_margins(node):
@@ -53,6 +54,7 @@ def _decorator(request, context):
             return node
         from ..draw.annotate import letters
         options = dict(request.letters)
+        options.pop('anchor', None)
         if context.preset is not None:
             options.setdefault('style', context.preset.letter_style)
             if context.preset.letter_pad is not None:
@@ -69,6 +71,15 @@ def _decorator(request, context):
 
 def _fixed(item):
     return isinstance(item, Diagram) or (isinstance(item, ComponentSpec) and not item.responsive)
+
+
+def _min_width(cell, context, decorate):
+    """A cell's width floor: its `min_width`, and for fixed artwork the
+    measured width of the drawing with its panel letter, which no track may
+    cut."""
+    if not _fixed(cell.item):
+        return cell.min_width
+    return max(cell.min_width, decorate(context.build(cell.item), cell).bbox.width)
 
 
 def _natural_sizes(request, context, x_prefix, height, decorate):
@@ -275,7 +286,20 @@ def _grow_natural_heights(request, plots, measured, heights):
     return True
 
 
-def _place_cells(cells, nodes, boxes, margins):
+def _to_cell_corner(node, box, dx, dy):
+    """Move a cell's panel letter to the cell's top-left corner.
+
+    The letter sits left of its content, so moving it up and left never
+    meets the content; each move is clamped to those two directions.
+    """
+    content, letter = node.children
+    ink = letter.bbox
+    shift_x = min(0., box.x0-dx-ink.x0)
+    shift_y = min(0., box.y0-dy-ink.y0)
+    return replace(node, children=(content, letter.translated(shift_x, shift_y)))
+
+
+def _place_cells(cells, nodes, boxes, margins, corner_letters=False):
     placed, handles = [], {}
     for cell in cells:
         node, box = nodes[cell.name].copy(), boxes[cell.name]
@@ -297,6 +321,8 @@ def _place_cells(cells, nodes, boxes, margins):
                 dy = box.y0-actual.y0
             elif cell.align in ('s', 'sw', 'se'):
                 dy = box.y1-actual.y1
+        if corner_letters:
+            node = _to_cell_corner(node, box, dx, dy)
         handles[cell.name] = node
         # Always wrap: a zero-offset translated() would lose the cell boundary.
         placed.append(Diagram(children=(node,), transform=Affine.translation(dx, dy),
@@ -326,13 +352,62 @@ def _route_links(content, handles, links, theme):
 
 def layout_document(request: LayoutRequest, context: BuildContext,
                     width: float, height: float | None) -> LayoutResult:
+    """Lay out the grid, choosing among each `choose()` cell's alternatives.
+
+    Choices are settled one cell at a time, in page order, by coordinate
+    descent: a cell switches alternative only when that shortens the page's
+    natural height by more than 0.1 mm, so ties keep the author's preferred
+    (earlier) alternative. Passes repeat until nothing changes. Alternatives
+    that cannot fit are skipped. Under a fixed page height, the natural
+    height is still what is minimized, leaving the most room to distribute.
+    """
     if not request.cells:
         raise LayoutError('cannot compile an empty document')
+    choices = [n for n, c in enumerate(request.cells) if isinstance(c.item, Choice)]
+    if not choices:
+        return _layout_once(request, context, width, height)
+    picks = {n: 0 for n in choices}
+    tried = {}
+
+    def attempt(picks):
+        key = tuple(sorted(picks.items()))
+        if key not in tried:
+            cells = tuple(replace(c, item=c.item.options[picks[n]]) if n in picks else c
+                          for n, c in enumerate(request.cells))
+            try:
+                tried[key] = _layout_once(replace(request, cells=cells), context, width, height)
+            except LayoutError as error:
+                tried[key] = error
+        return tried[key]
+
+    def score(result):
+        return result.report['natural_height'] if isinstance(result, LayoutResult) else float('inf')
+
+    best = attempt(picks)
+    for _ in range(4):
+        changed = False
+        for n in choices:
+            for option in range(len(request.cells[n].item.options)):
+                if option == picks[n]:
+                    continue
+                candidate = attempt(picks | {n: option})
+                if score(candidate) < score(best)-.1:
+                    best, picks, changed = candidate, picks | {n: option}, True
+        if not changed:
+            break
+    if isinstance(best, LayoutError):
+        raise best
+    best.report['choices'] = {request.cells[n].name: request.cells[n].item.names[picks[n]]
+                              for n in choices}
+    return best
+
+
+def _layout_once(request, context, width, height):
     decorate = _decorator(request, context)
     rows = max(c.row+c.rowspan for c in request.cells)
     widths = allocate_tracks(
         len(request.columns), request.columns,
-        [(c.column, c.colspan, c.min_width, c.name) for c in request.cells],
+        [(c.column, c.colspan, _min_width(c, context, decorate), c.name) for c in request.cells],
         width-2*request.margin, request.gap, 'width')
     x_prefix = tuple(accumulate(widths, initial=0.))
     natural_heights, natural_plots = _natural_sizes(request, context, x_prefix, height, decorate)
@@ -357,9 +432,44 @@ def layout_document(request: LayoutRequest, context: BuildContext,
         margins = measured
     else:
         raise LayoutError('plot furniture did not settle after 24 measurement passes')
-    content, handles = _place_cells(request.cells, nodes, boxes, margins)
+    content, handles = _place_cells(request.cells, nodes, boxes, margins,
+                                    request.letters.get('anchor') == 'cell')
     with themed(context.theme):
         content = _route_links(content, handles, request.links, context.theme)
     page_height = (height if height is not None else
                    2*request.margin+sum(heights)+request.row_gap*(rows-1))
-    return LayoutResult(content, boxes, handles, page_height, iteration+1)
+    report = _layout_report(request, heights, widths, natural_heights, boxes, handles)
+    natural = _row_tracks(request, rows, natural_heights)
+    report['natural_height'] = 2*request.margin+sum(natural)+request.row_gap*(rows-1)
+    return LayoutResult(content, boxes, handles, page_height, iteration+1, report)
+
+
+def _layout_report(request, heights, widths, natural_heights, boxes, handles):
+    """What set each row track, and the space each cell leaves unused.
+
+    A cell sets its rows when its natural height, or its `min_height`, fills
+    them: shortening it is the only way to shorten those rows. A plot fills
+    its cell; other content is measured against its box.
+    """
+    rows = []
+    for index, height in enumerate(heights):
+        binding = []
+        for cell in request.cells:
+            if not cell.row <= index < cell.row+cell.rowspan:
+                continue
+            span = sum(heights[cell.row:cell.row+cell.rowspan])+request.row_gap*(cell.rowspan-1)
+            natural = natural_heights.get(cell.name, 0.)
+            need = max(natural, cell.min_height)
+            if need >= span-.05:
+                binding.append(cell.name if natural >= cell.min_height else f'{cell.name} (min_height)')
+        rows.append({'height': height, 'set_by': binding})
+    cells = {}
+    for cell in request.cells:
+        box = boxes[cell.name]
+        if isinstance(cell.item, PlotSpec):
+            cells[cell.name] = {'unused_width': 0., 'unused_height': 0.}
+            continue
+        ink = handles[cell.name].bbox
+        cells[cell.name] = {'unused_width': max(0., box.width-ink.width),
+                            'unused_height': max(0., box.height-ink.height)}
+    return {'rows': rows, 'columns': list(widths), 'cells': cells, 'choices': {}}

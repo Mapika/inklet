@@ -408,15 +408,15 @@ def icicle(panel, data, *, orient: str = "h", root: bool | None = None,
             if paint.lit:
                 lit = sum(1 for c in row if id(c.node) in paint.lit)
                 lines.insert(0, (str(lit), _readable_on_paper(paint.lit_color, theme)))
-            y = area.y1 + theme.gap("xs")
-            for text, ink in lines:
-                t = text_node(text, font, LABEL_KIND, markup=False, text_fill=ink)
-                if orient == "h":
-                    at = Vec2(r.center.x, y + t.bbox.height / 2)
-                    y += t.bbox.height
-                else:
-                    at = Vec2(area.x1 + theme.gap("xs") + t.bbox.width / 2, r.center.y)
-                furniture.append(draw_place([(at, t)], origin=(0, 0)))
+            # One block, so the two rows keep the type's leading instead of
+            # touching at their ink, and never overprint in either orientation.
+            t = text_node("\n".join(f"{{{ink}|{text}}}" for text, ink in lines),
+                          font, LABEL_KIND)
+            if orient == "h":
+                at = Vec2(r.center.x, area.y1 + theme.gap("xs") + t.bbox.height / 2)
+            else:
+                at = Vec2(area.x1 + theme.gap("xs") + t.bbox.width / 2, r.center.y)
+            furniture.append(draw_place([(at, t)], origin=(0, 0)))
     node = draw_place(fans + shapes + texts, origin=(0, 0), kind=abutting("icicle"))
     extra = draw_place(outside + furniture, origin=(0, 0)) if outside or furniture else None
     note = {"levels": [len([c for c in by_depth[d] if c.end - c.start > 0]) for d in drawn_depths],

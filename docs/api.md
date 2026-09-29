@@ -266,7 +266,7 @@ A physical page containing named, live figure definitions.
 * `use_preset(selected, *, format=None, keep_overrides=True, **options)` -- Switch presets and remeasure live content, preserving explicit page options.
 * `replace(name, item)` -- Replace a cell definition while retaining its layout constraints.
 * `link(source, target, **kwargs)` -- Connect named cells, optionally `cell:anchor`, after layout.
-* `letters(*, start='a', **options)` -- Measure panel letters with the cells, reserving room before placement.
+* `letters(*, start='a', anchor='content', **options)` -- Measure panel letters with the cells, reserving room before placement.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 * `compile()` -- Measure dependencies and return a cached CompiledFigure snapshot.
@@ -280,6 +280,7 @@ A resolved snapshot; later authoring changes cannot alter its exports.
 * `build()` -- Return the retained drawing and read-only resolved placements.
 * `lint(**kwargs)`
 * `report(**kwargs)`
+* `layout_report() -> 'str'` -- Which cells set each row's height, unused space per cell, and the alternative kept for each `choose()` cell.
 * `to_svg(*, text=None, **kwargs)`
 * `to_pdf(*, text=None, **kwargs)`
 * `to_png(*, dpi=None, **kwargs)`
@@ -320,6 +321,13 @@ A diagram factory with explicit, versioned arguments and dependencies.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 
+#### `class Choice(options: 'tuple', names: 'tuple') -> None`
+
+Alternative definitions of one cell. Construct with `choose()`.
+
+* `signature(trail=())`
+* `render(context, width=None, height=None)`
+
 #### `plot_spec(width=40, height=30, **options)`
 
 Defer Panel drawing instructions until a document is compiled.
@@ -327,6 +335,10 @@ Defer Panel drawing instructions until a document is compiled.
 #### `component(factory, *args, responsive=False, **kwargs)`
 
 Rebuild a component under its document theme when its arguments change.
+
+#### `choose(*options, **named)`
+
+Offer a document cell several layouts; the page keeps the shortest.
 
 #### `class Dataset(columns, *, units=None, source: 'Source | None' = None, name='data')`
 

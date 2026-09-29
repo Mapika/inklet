@@ -156,7 +156,9 @@ def test_manhattan_and_ma_panels() -> None:
     note = _note(node, "manhattan")
     assert note["labelled"] == [5]
     assert "rs5" in inklet.to_svg(node)
-    assert lint(node) == []
+    # Points at p = 1 sit on the frame, by data, within 1mm of the chromosome
+    # labels: an info note, as for volcano plots.
+    assert [d for d in lint(node) if d.severity != "info"] == []
     mean = [2 ** rng.uniform(0, 12) for _ in range(200)]
     fold = [rng.gauss(0, 1.2) for _ in range(200)]
     padj = [0.001 if abs(f) > 1.5 else 0.5 for f in fold]

@@ -255,19 +255,33 @@ def _looks_like_path(family: str) -> bool:
 def _fc_match(family: str, weight: int, italic: bool) -> tuple[str, int] | None:
     """Ask fontconfig. None if fc-match is missing, broken, or points nowhere."""
     nearest = min(_CSS_TO_FC_WEIGHT, key=lambda css: abs(css - weight))
-    name = _GENERIC_FAMILIES.get(family.strip().lower(), family.strip())
+    # A CSS-style list keeps its order: fontconfig takes the first family it
+    # has, rather than reading the whole list as one unknown name.
+    names = [name.strip().strip("'\"") for name in family.split(',') if name.strip()]
+    names = [_GENERIC_FAMILIES.get(name.lower(), name) for name in names] or [family.strip()]
     # ':' separates properties and '-' introduces a point size in fc syntax.
-    escaped = re.sub(r"([-:,\\])", r"\\\1", name)
+    escaped = ','.join(re.sub(r"([-:,\\])", r"\\\1", name) for name in names)
     pattern = f"{escaped}:weight={_CSS_TO_FC_WEIGHT[nearest]}:slant={100 if italic else 0}"
 
-    return _fc_query(pattern)
+    found = _fc_query(pattern, family=True)
+    if found is None:
+        return None
+    path, index, families = found
+    named = {name.lower() for name in names if name not in _GENERIC_FAMILIES.values()}
+    if named and not named & {name.strip().lower() for name in families.split(',')}:
+        # None of the named families is installed, so the answer is a
+        # substitute. Prefer one that a PDF can embed (`/FontFile2`), such as
+        # Arimo over a CFF Nimbus Sans for Helvetica; the order is still kept.
+        return _fc_query(f"{pattern}:fontformat=TrueType") or (path, index)
+    return path, index
 
 
-def _fc_query(pattern: str) -> tuple[str, int] | None:
-    """Run one fc-match. None if fc-match is missing, broken, or points nowhere."""
+def _fc_query(pattern: str, family: bool = False):
+    """Run one fc-match: (file, index), plus the matched family names when
+    `family` is set. None if fc-match is missing, broken, or points nowhere."""
     try:
         result = subprocess.run(
-            ["fc-match", "-f", "%{file}\\t%{index}", pattern],
+            ["fc-match", "-f", "%{file}\\t%{index}\\t%{family}", pattern],
             capture_output=True, text=True, timeout=_FC_TIMEOUT_S, check=False,
         )
     except (OSError, subprocess.SubprocessError):
@@ -275,10 +289,11 @@ def _fc_query(pattern: str) -> tuple[str, int] | None:
     if result.returncode != 0:
         return None
 
-    path, _, index = result.stdout.strip().partition("\t")
+    path, index, families = (result.stdout.strip().split("\t") + ["", ""])[:3]
     if not path or not Path(path).is_file():
         return None
-    return path, int(index) if index.isdigit() else 0
+    index = int(index) if index.isdigit() else 0
+    return (path, index, families) if family else (path, index)
 
 
 def _scan_match(family: str, weight: int, italic: bool) -> tuple[str, int] | None:

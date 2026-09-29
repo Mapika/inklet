@@ -178,7 +178,7 @@ def test_named_ticks_are_still_thinned_by_default() -> None:
     """Documented, and the reason `thin=False` is worth naming in the docstring:
     asking for a label is not the same as keeping it."""
     named = [-0.4, 0.0, 0.5, 1.0, 2.8]
-    bar = colorbar("tol-ylorbr", domain=(-0.4, 2.8), length=32.0,
+    bar = colorbar("tol-ylorbr", domain=(-0.4, 2.8), length=20.0,
                    ticks=named, format=lambda v: f"{v:g}")
 
     assert 0 < len(labels_of(bar)) < len(named)

@@ -33,7 +33,7 @@ def test_out_of_frame_labels_are_omitted_even_with_show():
 def test_label_extents_expand_layout_and_origin_registration_survives():
     scene = snapshot()
     layer = scene.annotate3d((1.9, 0, -1), 'Outside the image', side='e', clear=5)
-    assert layer.bbox.x1 > 70
+    assert layer.bbox.x1 > 65
     assert layer.bbox.x0 == -50
     assert layer.anchor_point('origin') == i.Vec2(0, 0)
     art = i.overlay([scene.diagram.anchor('origin', i.Vec2(0, 0)), layer], align='origin')

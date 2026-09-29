@@ -423,7 +423,7 @@ def _check_content(what: str, content, width, height) -> None:
 
 
 from .document import (PublicationProfile, publication, subfigure, Composition, LayoutValue, composition, ModuleSpec, module, Document, CompiledFigure, LayoutError, document, PlotSpec,
-                       ComponentSpec, plot_spec, component, Dataset, DataRef, Source,
+                       ComponentSpec, Choice, plot_spec, component, choose, Dataset, DataRef, Source,
                        Series, SharedScale, dataset, shared_scale, CategoryEncoding, FileRef, DerivedData, derive, read_csv)
 from .document import FigureFormat, PlotDefaults, GuidelineSource, Preset, preset, preset_names, format_names
 from .three.scenes import SceneRender, BlendSceneSpec, render_blend, blend_scene, blend_scene_spec, inspect_blend
@@ -453,7 +453,7 @@ __all__ = [
     "FigureFormat", "PlotDefaults", "GuidelineSource", "Preset", "preset", "preset_names", "format_names",
     "subfigure", "Composition", "LayoutValue", "composition", "ModuleSpec", "module",
     "Document", "CompiledFigure", "LayoutError", "document", "PlotSpec", "ComponentSpec",
-    "plot_spec", "component", "Dataset", "DataRef", "Source", "Series", "SharedScale",
+    "Choice", "plot_spec", "component", "choose", "Dataset", "DataRef", "Source", "Series", "SharedScale",
     "dataset", "read_csv", "shared_scale", "CategoryEncoding", "FileRef", "DerivedData", "derive",
     # authoring
     "text", "label", "title", "box", "circle", "asset", "escape_markup",

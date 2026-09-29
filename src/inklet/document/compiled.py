@@ -56,6 +56,28 @@ class CompiledFigure:
     def report(self, **kwargs):
         return format_report(self.lint(**kwargs))
 
+    def layout_report(self) -> str:
+        """Which cells set each row's height, unused space per cell, and the
+        alternative kept for each `choose()` cell.
+
+        Shortening a page means shortening the cells that set its rows; the
+        other cells in those rows leave the listed space unused.
+        """
+        layout = self.metadata['layout']
+        lines = ['row  height  set by']
+        for index, row in enumerate(layout['rows']):
+            lines.append(f"{index:>3}  {row['height']:6.1f}  {', '.join(row['set_by']) or '-'}")
+        unused = [(name, cell) for name, cell in layout['cells'].items()
+                  if cell['unused_width'] >= .5 or cell['unused_height'] >= .5]
+        if unused:
+            lines.append('unused space (width x height, mm)')
+            lines.extend(f"  {name}: {cell['unused_width']:.1f} x {cell['unused_height']:.1f}"
+                         for name, cell in sorted(unused, key=lambda item: -item[1]['unused_height']))
+        if layout.get('choices'):
+            lines.append('chosen alternatives')
+            lines.extend(f'  {name}: {pick}' for name, pick in layout['choices'].items())
+        return '\n'.join(lines)
+
     def to_svg(self, *, text=None, **kwargs):
         if text is None: text=self.metadata.get('publication',{}).get('text','embed')
         return self._state.page.to_svg(text=text, **kwargs)

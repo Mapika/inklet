@@ -659,8 +659,8 @@ def test_a_panel_passes_the_rotation_through() -> None:
 def test_tabular_figures_are_on_by_default() -> None:
     """A column of tick labels is a table, and a table wants lining digits.
 
-    Noto Sans's default figures are already tabular, so asking for the feature
-    moved no bytes in the corpus -- but the axis should not depend on that.
+    Some faces' default figures are already tabular, but the axis should not
+    depend on that, nor on a face that kerns "11" inside its tabular set.
     """
     ticks = [1111.0, 1000.0, 1888.0]
     lining = axis(linear((0.0, 2000.0)), length=60.0, ticks=ticks)
