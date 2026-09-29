@@ -92,13 +92,23 @@ class Artwork:
 
     def __init__(self, data_dir):
         self.a = Anatomy(data_dir)
+        self._runs = {}
 
     def camera(self, view='front'):
         a = self.a
         return Anatomy.camera(a.frame((0, 0, 1, 1), view=view), view)
 
     def runs(self, body, step=3):
-        """Unbranched skeleton runs in 3D, every `step`-th node plus both ends."""
+        """Unbranched skeleton runs in 3D, every `step`-th node plus both ends.
+
+        Cells are drawn at several widths while the page is laid out, so the
+        runs are read once and kept as Vec3 points, which views take as is.
+        """
+        if (body, step) not in self._runs:
+            self._runs[body, step] = self._read_runs(body, step)
+        return self._runs[body, step]
+
+    def _read_runs(self, body, step):
         xyz, ids, parents = self.a.skeleton(int(body))
         lookup = {int(n): k for k, n in enumerate(ids)}
         children = np.zeros(len(ids), int)
@@ -116,7 +126,7 @@ class Artwork:
                 if children[current] != 1:
                     break
             keep = chain[::step] + ([chain[-1]] if (len(chain) - 1) % step else [])
-            out.append([tuple(xyz[k]) for k in keep])
+            out.append([i.three.Vec3(*map(float, xyz[k])) for k in keep])
         return out
 
     def view(self, reference, width, view='front', height=None, pad=.5):
@@ -141,7 +151,7 @@ def panel_b(art: Artwork):
     ids = a.ids('vpoEN', side='L')
     female = [a.display_mesh('female-' + str(b), 3000) for b in a.manifest['female_groups']['vpoEN']]
     lines = [r for b in ids for r in art.runs(b)]
-    points = [p for r in lines for p in r]
+    points = [(p.x, p.y, p.z) for r in lines for p in r]
     brain = art.mesh_points('male-brain')
 
     def arbors(width, view):
@@ -157,15 +167,56 @@ def panel_b(art: Artwork):
         v.paths('vpoEN', lines, color='#555555', stroke_width=.1, depth_cue=0)
         return v.build()
 
-    def factory(*, width, height):
-        side = width * .38
+    def columns(side, width):
         caption = lambda s: i.text(s, fill=GREY, size=PT5)
         left = i.vstack([locator(side, 'front'), caption('frontal'),
                          locator(side, 'dorsal'), caption('dorsal')], gap=.8)
         right = i.vstack([arbors(width - side - 2, 'front'), arbors(width - side - 2, 'dorsal')], gap=1.5)
-        head = i.hstack([i.text('vpoEN (isomorphic)'), i.text('♂', fill=GREEN, size=i.pt(9)),
-                         i.text('♀', fill=MAGENTA, size=i.pt(9))], gap=2, align='center')
-        return i.vstack([head, i.hstack([left, right], gap=2, align='center')], gap=1, align='left')
+        return left, right
+
+    lines_at = {}
+
+    def heights(side, width):
+        # Column heights are linear in their widths; two trial widths fix them.
+        if not lines_at:
+            for w in (20, 40):
+                lines_at[w] = tuple(x.bbox.height for x in columns(w, w + 2 + w))
+        (l0, r0), (l1, r1) = lines_at[20], lines_at[40]
+        return (l0 + (l1 - l0) * (side - 20) / 20,
+                r0 + (r1 - r0) * (width - side - 2 - 20) / 20)
+
+    head = lambda: i.hstack([i.text('vpoEN (isomorphic)'), i.text('♂', fill=GREEN, size=i.pt(9)),
+                             i.text('♀', fill=MAGENTA, size=i.pt(9))], gap=2, align='center')
+
+    def tall(width):
+        # The locators share a row; the arbors take the full width under it.
+        caption = lambda s: i.text(s, fill=GREY, size=PT5)
+        side = (width - 2) / 2
+        views = i.hstack([i.vstack([locator(side, view), caption(name)], gap=.5)
+                          for view, name in (('front', 'frontal'), ('dorsal', 'dorsal'))], gap=2, align='bottom')
+        return i.vstack([head(), views, arbors(width, 'front'), arbors(width, 'dorsal')], gap=1.2, align='left')
+
+    tall_at = {}
+
+    def factory(*, width, height):
+        # Split the width so both columns stand equally tall.
+        a0, b0 = heights(width * .3, width)
+        a1, b1 = heights(width * .5, width)
+        slope = (a1 - b1) - (a0 - b0)
+        share = .3 - .2 * (a0 - b0) / slope if slope else .38
+        side = width * min(.55, max(.3, share))
+        left, right = columns(side, width)
+        wide = i.vstack([head(), i.hstack([left, right], gap=2, align='center')], gap=1, align='left')
+        if height is None or height < wide.bbox.height + 3:
+            return wide
+        # A taller cell stacks the views, at the widest width its height
+        # allows; heights grow linearly with width.
+        if not tall_at:
+            tall_at.update({w: tall(w).bbox.height for w in (20, 40)})
+        per = (tall_at[40] - tall_at[20]) / 20
+        fits = min(width, 20 + (height - .3 - tall_at[20]) / per)
+        # Worth it only when the arbors come out wider than beside the locators.
+        return tall(fits) if fits > width - side - 2 + 2 else wide
     return i.component(factory, responsive=True)
 
 
@@ -253,14 +304,28 @@ def panel_d(art: Artwork):
         sexes = i.hstack([i.text('♂', fill=GREEN, size=i.pt(9)), i.text('♀', fill=MAGENTA, size=i.pt(9))],
                          gap=14)
         tables = i.vstack([sexes, flow], gap=1)
-        pair = i.graph({'v': i.hstack([i.text('vpoEN'), i.marker('circle', 1.6, fill=INK)], gap=.8),
-                        's': i.hstack([i.text('aSP10C_a'), i.marker('circle', 1.6, fill=INK)], gap=.8)},
-                       [('v', 's')], layout='layered', direction='down', rank_gap=1.5).build()
-        side = max(pair.bbox.width, width - tables.bbox.width - 2)
-        v = art.view(central, side)
-        v.surface('brain', a.display_mesh('central-brain', 2500), color='#eeeeee', opacity=.6)
-        v.paths('aSP10C_a', lines, color=GREEN, stroke_width=.12, opacity=.8, depth_cue=0)
-        left = i.vstack([pair, v.build()], gap=2, align='right')
+        # The arrow runs between the dots, clear of the names.
+        names = [i.text('vpoEN'), i.text('aSP10C_a')]
+        tall, dot, apart, clear = names[0].bbox.height, 1.6, 1.5, .3
+        dots = i.vstack([i.marker('circle', dot, fill=INK),
+                         i.arrow([(0, 0), (0, apart + tall - dot - 2*clear)], head_length=.9,
+                                 stroke_width=HAIR, color=INK),
+                         i.marker('circle', dot, fill=INK)], gap=clear)
+        pair = i.hstack([i.vstack(names, gap=apart, align='right'), dots], gap=.8, align='center')
+
+        def brain(side):
+            v = art.view(central, side)
+            v.surface('brain', a.display_mesh('central-brain', 2500), color='#eeeeee', opacity=.6)
+            v.paths('aSP10C_a', lines, color=GREEN, stroke_width=.12, opacity=.8, depth_cue=0)
+            return v.build()
+        # The brain takes the width the tables leave, but no more height
+        # than they do: a wide cell leaves room rather than a giant brain.
+        side = max(pair.bbox.width, min(width - tables.bbox.width - 2, .6 * tables.bbox.width))
+        drawn = brain(side)
+        room = tables.bbox.height - pair.bbox.height - 2
+        if drawn.bbox.height > room > 0:
+            drawn = brain(max(pair.bbox.width, side * room / drawn.bbox.height))
+        left = i.vstack([pair, drawn], gap=2, align='right')
         return i.hstack([left, tables], gap=2, align='top')
     # The table flow has a fixed width; the brain takes what is left. Built at
     # zero width, the panel is at its narrowest, which is what the cell must reserve.
@@ -326,6 +391,12 @@ def superscript(v):
 
 
 def panel_g(d):
+    # The data leave no corner clear enough for the key, so it goes beside
+    # the plot, or under it where the page is narrow.
+    return i.choose(beside=scatter_g(d, 'right'), below=scatter_g(d, 'bottom'))
+
+
+def scatter_g(d, key_side):
     s = d['scatter']
     scale = lambda: i.symlog((0, 1e5), linthresh=1)
     p = i.plot_spec(height=24, x=scale(), y=scale())
@@ -340,11 +411,13 @@ def panel_g(d):
     for factor in (.7, 1.3):
         p.line([(1, factor), (1e5 / 1.3, 1e5 / 1.3 * factor)], stroke=INK,
                stroke_dash=(.5, .4), stroke_width=HAIR)
-    p.annotate(2, 2, 'noise', side='sw', leader=False)
+    # It names the shaded band, in its empty stretch right of the data.
+    p.text(1e4, 2, 'noise')
     ticks = {'ticks': [0, 1, 1e2, 1e4], 'format': superscript}
     p.axes(x='weight ♂ (scaled)', y='weight ♀', x_options=ticks, y_options=ticks)
     p.title('all type-to-type connections')
-    p.legend(title='p-values\n(FDR-corrected)', corner='se')
+    p.legend(title='p-values\n(FDR-corrected)' if key_side == 'right' else 'p-values (FDR-corrected)',
+             side=key_side)
     return p
 
 
@@ -385,23 +458,27 @@ def panel_h(d):
 def pies(label, values, outline, legend):
     iso, dim, noise = values
     small = {'size': PT5}
-    p = i.polar(6.5)                    # breakout() turns the pie to face its bar
+    p = i.polar(8)                      # breakout() turns the pie to face its bar
     p.pie([iso, dim, noise], color=[INK, AMBER, PALE], name=['isomorphic', 'dimorphic', 'noise'],
           labels=[f'{iso}%', f'{dim}%', f'{noise}%'], label_options=small,
           stroke=outline, stroke_width=STYLE.theme.stroke)
-    p.breakout([0, 1], labels='{share:.1%}', label_options=small, title='without\nnoise', width=2)
+    p.breakout([0, 1], labels='{share:.1%}', label_options=small, title='without\nnoise',
+               title_side='gap', width=2)
     if legend:
-        p.legend(side='left')
+        p.legend(side=legend)
     # The sex symbol stands at the pie's upper left, as in the reference.
     return i.hstack([i.text(label), p.build()], gap=.5, align='top')
 
 
-def panel_pies(axis_label, male, female, legend=False):
-    def factory():
-        column = i.vstack([pies('♂', male, GREEN, False), pies('♀', female, MAGENTA, legend)],
+def panel_pies(axis_label, male, female, legend=None):
+    def factory(side):
+        column = i.vstack([pies('♂', male, GREEN, None), pies('♀', female, MAGENTA, side)],
                           gap=1, align='right')
         return i.hstack([i.text(axis_label, angle=90), column], gap=1, align='center')
-    return i.component(factory)
+    if legend is None:
+        return i.component(factory, None)
+    # The key sits left of the pies, or under them where the page is narrow.
+    return i.choose(beside=i.component(factory, 'left'), below=i.component(factory, 'bottom'))
 
 
 # -- K: where the dimorphic connections are ------------------------------------------------
@@ -413,15 +490,14 @@ def panel_k(art: Artwork, d):
     ramp = i.ramp([MAGENTA, '#f4f0f2', GREEN])
     brain = art.mesh_points('male-brain')
 
-    def colorbar(length):
-        return i.colorbar(ramp, domain=(-1, 1), length=length, ticks=[-1, 0, 1],
-                          label='male − female\nconnection weight',
+    def colorbar(length, side='right'):
+        return i.colorbar(ramp, domain=(-1, 1), length=length, ticks=[-1, 0, 1], side=side,
+                          label='male − female\nconnection weight' if side == 'right'
+                          else 'male − female connection weight',
                           format=lambda t: {-1: 'more in female', 0: '0', 1: 'more in male'}[round(t)])
 
-    def factory(*, width, height):
-        # Measured composition: the key's own width decides what the view gets.
-        key_width = colorbar(20).bbox.width + 1.5
-        v = art.view(brain, width - key_width)
+    def view(width):
+        v = art.view(brain, width)
         v.surface('brain', a.display_mesh('male-brain', 3000), color='#f4f4f4', opacity=.7)
         edges = np.linspace(-1, 1, 9)
         for lo, hi in zip(edges, edges[1:]):
@@ -429,11 +505,21 @@ def panel_k(art: Artwork, d):
             if flag.any():
                 v.markers(f'bin{lo:+.2f}', [tuple(p) for p in xyz[flag]],
                           color=ramp((lo + hi) / 4 + .5), radius=.25, opacity=.7, depth_cue=0)
-        key = colorbar(v.height * .9)
-        view = v.build()
-        body = i.hstack([view, key], gap=1.5, align='center')
+        return v
+
+    def beside(*, width, height):
+        # Measured composition: the key's own width decides what the view gets.
+        v = view(width - colorbar(20).bbox.width - 1.5)
+        body = i.hstack([v.build(), colorbar(v.height * .9)], gap=1.5, align='center')
         return i.vstack([body, i.text('synapses in dimorphic connections')], gap=1)
-    return i.component(factory, responsive=True)
+
+    def below(*, width, height):
+        # A narrow cell gives the brain the full width and lays the key under it.
+        key = colorbar(min(width * .7, 32), side='bottom')
+        return i.vstack([view(width).build(), key, i.text('synapses in dimorphic connections')],
+                        gap=1.5, align='center')
+    return i.choose(beside=i.component(beside, responsive=True),
+                    below=i.component(below, responsive=True))
 
 
 # -- L: hierarchy levels --------------------------------------------------------------------
@@ -479,11 +565,16 @@ LABELLED = [79, 81, 89, 102, 103, 116, 153, 185, 186, 249, 250, 270]
 
 def panel_l(communities):
     tree, highlight = hierarchy(communities)
-    p = i.plot_spec(height=66, width=30)
-    p.icicle(tree, gap=2.2, highlight=set(highlight), labels=[str(c) for c in LABELLED],
-             levels=True, counts=True, color=LIGHT_BLUE)
-    p.title('hierarchy levels')
-    return p
+
+    def icicle(height):
+        p = i.plot_spec(height=height, width=30)
+        p.icicle(tree, gap=2.2, highlight=set(highlight), labels=[str(c) for c in LABELLED],
+                 levels=True, counts=True, color=LIGHT_BLUE)
+        p.title('hierarchy levels')
+        return p
+    # Tall as in the reference, or short where a tall column would leave its
+    # neighbor a hole.
+    return i.choose(tall=icicle(66), short=icicle(46))
 
 
 # -- M: adjacency matrix with a zoom ---------------------------------------------------------
@@ -572,15 +663,31 @@ def panel_o(d, communities):
                         reverse=True)[:80]
     edges = [(str(a), str(b), float(w), 'dimorphic' if dim[a, b] / w > .4 else 'isomorphic')
              for w, a, b in candidates]
-    p = i.plot_spec(height=36)
-    p.network({str(c): float(sizes[c]) for c in ids}, edges, shape='square', arrows=True, diameter=3.5,
-              groups={str(c): 'enriched' if c in enriched else 'not enriched' for c in ids},
-              color={'enriched': RED, 'not enriched': '#c8c8c8'},
-              edge_color={'isomorphic': '#555555', 'dimorphic': AMBER})
-    p.width_key(title='edge weight\n(no. of synapses)', values=[50000, 1000], format='{:,.0f}', side='bottom')
-    p.size_key(title='no. of types\nin cluster', values=[50, 10], side='right')
-    p.legend(side='bottom', columns=2)
-    return p
+
+    def draw(width, height):
+        p = i.panel(width, height)
+        # Labels sit inside their nodes, as in the reference: the smallest
+        # node still holds three digits, and the ring keeps the whole panel.
+        p.network({str(c): float(sizes[c]) for c in ids}, edges, shape='square', arrows=True,
+                  diameter=5, floor=3.7, labels='inside', label_size=PT5,
+                  groups={str(c): 'enriched' if c in enriched else 'not enriched' for c in ids},
+                  color={'enriched': RED, 'not enriched': '#c8c8c8'},
+                  edge_color={'isomorphic': '#555555', 'dimorphic': AMBER})
+        p.width_key(title='edge weight\n(no. of synapses)', values=[50000, 1000], format='{:,.0f}',
+                    side='bottom')
+        p.size_key(title='no. of types\nin cluster', values=[50, 10], side='right')
+        p.legend(side='bottom', columns=2)
+        return p
+
+    def factory(*, width, height):
+        # A ring is round: its plot area is square, as wide as the keys
+        # beside it leave, rather than stretched by a tall cell. Under 32.5 mm
+        # the 22 nodes crowd their labels; a build wider than its cell tells
+        # the page the width it needs.
+        keys = draw(20, 20).build().bbox.width - 20
+        side = max(32.5, width - keys)
+        return draw(side, side).build()
+    return i.component(factory, responsive=True)
 
 
 # -- P: cluster 102 anatomy ------------------------------------------------------------------
