@@ -399,7 +399,7 @@ def panel_g(d):
 def scatter_g(d, key_side):
     s = d['scatter']
     scale = lambda: i.symlog((0, 1e5), linthresh=1)
-    p = i.plot_spec(height=24, x=scale(), y=scale())
+    p = i.plot_spec(width=28, height=24, x=scale(), y=scale())
     p.rect(0, 0, 5, 1e5, fill=PALE, stroke='none')
     p.rect(0, 0, 1e5, 5, fill=PALE, stroke='none')
     buckets = [('> 0.1', '#aaaaaa', .1, 2), ('≤ 0.1', GREEN, .05, .1),
@@ -455,30 +455,33 @@ def panel_h(d):
 
 # -- I, J: pies expanded into bars -------------------------------------------------------
 
-def pies(label, values, outline, legend):
+def pies(label, values, outline):
     iso, dim, noise = values
     small = {'size': PT5}
-    p = i.polar(8)                      # breakout() turns the pie to face its bar
+    p = i.polar(6.5)                    # breakout() turns the pie to face its bar
     p.pie([iso, dim, noise], color=[INK, AMBER, PALE], name=['isomorphic', 'dimorphic', 'noise'],
           labels=[f'{iso}%', f'{dim}%', f'{noise}%'], label_options=small,
           stroke=outline, stroke_width=STYLE.theme.stroke)
     p.breakout([0, 1], labels='{share:.1%}', label_options=small, title='without\nnoise',
                title_side='gap', width=2)
-    if legend:
-        p.legend(side=legend)
     # The sex symbol stands at the pie's upper left, as in the reference.
-    return i.hstack([i.text(label), p.build()], gap=.5, align='top')
+    return i.hstack([i.text(label, fill=outline, size=i.pt(9)), p.build()], gap=.5, align='top')
 
 
-def panel_pies(axis_label, male, female, legend=None):
+def panel_pies(axis_label, male, female, legend=False):
     def factory(side):
-        column = i.vstack([pies('♂', male, GREEN, None), pies('♀', female, MAGENTA, side)],
-                          gap=1, align='right')
-        return i.hstack([i.text(axis_label, angle=90), column], gap=1, align='center')
-    if legend is None:
+        column = i.vstack([pies('♂', male, GREEN), pies('♀', female, MAGENTA)], gap=1, align='right')
+        body = i.hstack([i.text(axis_label, angle=90), column], gap=1, align='center')
+        if side is None:
+            return body
+        # One key for both pies, beside the pair or under it.
+        entries = [('isomorphic', INK), ('dimorphic', AMBER), ('noise', PALE)]
+        if side == 'right':
+            return i.hstack([body, i.legend(entries)], gap=2, align='center')
+        return i.vstack([body, i.legend(entries, columns=3)], gap=1.5, align='center')
+    if not legend:
         return i.component(factory, None)
-    # The key sits left of the pies, or under them where the page is narrow.
-    return i.choose(beside=i.component(factory, 'left'), below=i.component(factory, 'bottom'))
+    return i.choose(beside=i.component(factory, 'right'), below=i.component(factory, 'bottom'))
 
 
 # -- K: where the dimorphic connections are ------------------------------------------------
@@ -674,7 +677,7 @@ def panel_o(d, communities):
                   color={'enriched': RED, 'not enriched': '#c8c8c8'},
                   edge_color={'isomorphic': '#555555', 'dimorphic': AMBER})
         p.width_key(title='edge weight\n(no. of synapses)', values=[50000, 1000], format='{:,.0f}',
-                    side='bottom')
+                    side='right')
         p.size_key(title='no. of types\nin cluster', values=[50, 10], side='right')
         p.legend(side='bottom', columns=2)
         return p
@@ -687,7 +690,7 @@ def panel_o(d, communities):
         keys = draw(20, 20).build().bbox.width - 20
         side = max(32.5, width - keys)
         return draw(side, side).build()
-    return i.component(factory, responsive=True)
+    return i.component(factory, responsive=True), lettered_width(factory(width=0, height=None))
 
 
 # -- P: cluster 102 anatomy ------------------------------------------------------------------
@@ -739,7 +742,7 @@ def lettered_width(diagram):
     """The width a diagram needs once the page letter is attached.
 
     Fixed artwork reserves this on its own; a responsive factory has no one
-    natural width, so D asks for the width of its narrowest build, lettered.
+    natural width, so D and O ask for the width of its narrowest build, lettered.
     """
     return i.letters([diagram], start='A', style=STYLE.letter_style, pad=STYLE.letter_pad)[0].bbox.width
 
@@ -770,7 +773,8 @@ def make_document(data_dir: Path, chart_dir: Path):
     doc.add('l', panel_l(communities), row=3, column=0, colspan=2, rowspan=3)
     doc.add('m', panel_m(d, communities), row=3, column=2, colspan=6)
     doc.add('n', panel_n(clusters), row=4, column=2, colspan=3, rowspan=2)
-    doc.add('o', panel_o(d, communities), row=4, column=5, colspan=3, rowspan=2)
+    o_panel, o_minimum = panel_o(d, communities)
+    doc.add('o', o_panel, row=4, column=5, colspan=3, rowspan=2, min_width=o_minimum + .5)
     doc.add('p', panel_p(art), row=3, column=8, colspan=4, rowspan=2, align='n')
     doc.add('q', panel_q(), row=5, column=8, colspan=4)
     return doc
