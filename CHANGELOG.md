@@ -65,6 +65,11 @@
   as computed ink in `lint()`, like mesh strokes: `PATH_CROSSES` and
   `CROWDING` no longer report their segments.
 
+- Keys set outside a plot on the same side (`size_key`, `width_key`) share
+  one column (or row, for top and bottom), centered together, while they fit
+  the plot area's height (or width). Previously each key moved out past the
+  last, so two keys on the right doubled the panel's margin.
+
 ### Added
 
 - `breakout(title_side="gap")` sets the title between the pie and the bar,
@@ -75,7 +80,10 @@
   order they were added, into side-by-side groups and stacks that give the
   shortest page; `layout_report()` shows the arrangement. Responsive content
   set in a taller box receives that box's height, as it does in a grid cell,
-  and keeps a taller build only when it still fits.
+  and keeps a taller build only when it still fits. A plot is charged for
+  width past 1.25 times its authored width as empty area, and set beside a
+  taller neighbor it grows to at most 1.5 times its height, keeping the top
+  of its box, so short plots are not stretched to fill a tall row.
 
 - Graph edges accept `same_rank=True`, which keeps both ends in one rank of a
   layered drawing, side by side, so a decision flow's "yes" can run across

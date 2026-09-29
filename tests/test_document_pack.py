@@ -25,14 +25,15 @@ def test_packing_sets_plots_beside_a_tall_drawing_in_reading_order():
     grid, packed = page(False), page(True)
     assert packed.metadata['height_mm'] <= grid.metadata['height_mm']+.1
     layout = packed.metadata['layout']
-    # Beside the drawing, one plot spans over the other two.
-    assert layout['packing'] == '(art | (one / (two | three)))'
+    # Beside the drawing the plots keep near their authored width, rather
+    # than one spanning the other two at nearly three times its width.
+    assert layout['packing'] == '((art | one) | (two / three))'
     boxes = packed.cells
     names = list(boxes)
     assert all(not overlaps(boxes[a], boxes[b]) for n, a in enumerate(names) for b in names[n+1:])
     assert all(2-1e-6 <= box.x0 and box.x1 <= 158+1e-6 for box in boxes.values())
-    assert packed.layout_report().splitlines()[0] == 'packed  (art | (one / (two | three)))'
-    assert boxes['one'].x0 == boxes['two'].x0 and boxes['one'].y1 < boxes['two'].y0
+    assert packed.layout_report().splitlines()[0] == 'packed  ((art | one) | (two / three))'
+    assert boxes['two'].x0 == boxes['three'].x0 and boxes['two'].y1 < boxes['three'].y0
 
 
 def test_a_packed_page_is_shorter_than_one_stack():
@@ -124,3 +125,16 @@ def test_packed_responsive_content_is_offered_its_box_height():
     unused = lambda figure: figure.metadata['layout']['cells']['art']['unused_height']
     assert unused(page(False)) < 1 and offered[-1] is not None
     assert unused(page(True)) == pytest.approx(50)
+
+
+def test_a_short_plot_beside_a_tall_drawing_keeps_near_its_height():
+    doc = i.document(width=100, margin=0, gap=4, pack=True)
+    doc.add('tall', i.box('tall', width=48, height=80))
+    doc.add('short', plot(height=12))
+    figure = doc.compile()
+    assert figure.metadata['layout']['packing'] == '(tall | short)'
+    box = figure.cells['short']
+    # Stretched to the drawing's height its marks would distort; it keeps
+    # the top of its box instead.
+    assert box.y0 == pytest.approx(figure.cells['tall'].y0)
+    assert box.height < 40

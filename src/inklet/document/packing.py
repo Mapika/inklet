@@ -26,6 +26,7 @@ from .spec import Choice, PlotSpec, themed
 _STEP = .5       # mm, fine width grid
 _COARSE = 2.5    # mm, width grid while choosing the arrangement
 _ASPECT = 4.     # mm of page height per unit of log aspect a plot strays
+_STRETCH = 1.25  # a plot this much wider than authored is charged for the rest
 _NARROW = .6     # a plot's data is never narrower than this share of authored
 _DATA = 15.      # mm, narrowest data region a packed plot is offered
 _WASTE = 1.      # empty cell area, charged as page height of the same area
@@ -118,8 +119,12 @@ def _plot(item, cell, context, decorate, grid):
             heights.append(_INF)
             costs.append(0.)
             continue
-        heights.append(max(narrow if width < authored else height, cell.min_height))
-        costs.append(_ASPECT*abs(math.log(max(width-furniture, 1e-6)/item.width)))
+        drawn = max(narrow if width < authored else height, cell.min_height)
+        heights.append(drawn)
+        # Past a moderate stretch, the extra width reads as empty area.
+        stretch = max(0., width-furniture-_STRETCH*item.width)
+        costs.append(_ASPECT*abs(math.log(max(width-furniture, 1e-6)/item.width))
+                     + _WASTE*stretch*drawn/grid[-1])
     from .layout import plot_margins
     return _Option(item, heights, costs, list(grid), lambda width: narrow if width < authored else height,
                    item.height, plot_margins(node))
@@ -518,6 +523,14 @@ def pack_document(request, context, width, height):
     cells = tuple(replace(c, item=options[n].item) for n, c in enumerate(request.cells))
     authored, request = request, replace(request, cells=cells)
     boxes = {c.name: placed[n][0] for n, c in enumerate(cells)}
+    for n, c in enumerate(cells):
+        # A plot beside a taller neighbor fills its box only so far: past
+        # that its marks stretch, so it keeps the top of the box instead.
+        if isinstance(c.item, PlotSpec):
+            box = boxes[c.name]
+            most = _GROW*options[n].measure(options[n].draws[placed[n][2]])
+            if box.height > most+1e-6:
+                boxes[c.name] = Rect(box.x0, box.y0, box.x1, box.y0+most)
     # Drawings and responsive content keep the build measured for the width
     # they are drawn at and sit in their box by `align`; plots fill theirs.
     nodes = {c.name: _drawn(options[n], options[n].draws[placed[n][2]], c, boxes[c.name], decorate)

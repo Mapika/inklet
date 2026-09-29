@@ -140,6 +140,8 @@ class Panel:
     #: `(name, estimate, colour)` per curve `kaplan_meier` drew, for
     #: `at_risk()`.
     _survival: list = field(default_factory=list, repr=False, compare=False)
+    #: Indices into `_over` of the keys stacked on each side.
+    _side_stacks: dict = field(default_factory=dict, repr=False, compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -1391,6 +1393,46 @@ class Panel:
                or self.area)
         return beside(node, box, side, gap, Vec2(0.0, 0.0))
 
+    def _side_key(self, node: Diagram, side: str, place) -> None:
+        """Add a key on `side`, stacked with the keys already there.
+
+        Keys on one side share a column (left, right) or a row (top, bottom)
+        while it stays within the plot area's extent, rather than each moving
+        out past the last; the group is re-centered where the first key sat.
+        `place(node)` gives the position beside the furniture otherwise.
+        """
+        stack = [k for k in self._side_stacks.get(side, ()) if k < len(self._over)]
+        if stack:
+            members = [self._over[k] for k in stack]
+            group = _union_box(members)
+            here = node.bbox
+            space = active_theme().gap("s")
+            if side in ("left", "right"):
+                total = group.height + space + here.height
+                if total <= self.area.height + 1e-6:
+                    dx = group.x0 - here.x0 if side == "right" else group.x1 - here.x1
+                    moved = node.translated(dx, group.y1 + space - here.y0)
+                    shift = Vec2(0.0, group.center.y - (group.y0 + total / 2))
+                else:
+                    moved = None
+            else:
+                total = group.width + space + here.width
+                if total <= self.area.width + 1e-6:
+                    dy = group.y0 - here.y0 if side == "bottom" else group.y1 - here.y1
+                    moved = node.translated(group.x1 + space - here.x0, dy)
+                    shift = Vec2(group.center.x - (group.x0 + total / 2), 0.0)
+                else:
+                    moved = None
+            if moved is not None:
+                for k in stack:
+                    self._over[k] = self._over[k].translated(shift.x, shift.y)
+                self._over.append(moved.translated(shift.x, shift.y))
+                stack.append(len(self._over) - 1)
+                self._side_stacks[side] = stack
+                return
+        self._over.append(place(node))
+        self._side_stacks[side] = [len(self._over) - 1]
+
     # -- writing on the plot, in data coordinates --------------------------
 
     def text(self, x, y, content: str | Diagram, *, anchor: str = "center",
@@ -2348,10 +2390,9 @@ class Panel:
                        max(box.x1, self.area.x1), max(box.y1, self.area.y1))
             if side not in SIDES:
                 raise ValueError(f"unknown side {side!r}; expected one of {', '.join(SIDES)}")
-            placed = beside(node, box, side, gap, Vec2(0.0, 0.0))
-        else:
-            placed = _into_corner(node, self.area, corner, gap)
-        self._over.append(placed)
+            self._side_key(node, side, lambda n: beside(n, box, side, gap, Vec2(0.0, 0.0)))
+            return self._touched()
+        self._over.append(_into_corner(node, self.area, corner, gap))
         return self._touched()
 
     def chord(self, matrix, name: Sequence[str] | None = None, *, color=None,
@@ -2675,7 +2716,8 @@ class Panel:
         if plate:
             node = _plated(node, theme, theme.gap("xs"))
         if corner is None:
-            placed = self._beside(node, side, gap)
+            self._side_key(node, side, lambda n: self._beside(n, side, gap))
+            return self._touched()
         elif corner == "auto":
             from ..layout.clear_space import place_in_clear_space
             placed = place_in_clear_space(node, within=self.area,

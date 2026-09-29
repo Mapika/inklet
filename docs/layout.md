@@ -222,7 +222,7 @@ packed = i.document(width=160, margin=2, gap=4, pack=True)
 packed.add('art', i.box('tall drawing', width=40, height=80))
 for name in ('one', 'two', 'three'):
     packed.add(name, trace())
-assert packed.compile().metadata['layout']['packing'] == '(art | (one / (two | three)))'
+assert packed.compile().metadata['layout']['packing'] == '((art | one) | (two / three))'
 ```
 
 Journal figures are rarely one grid: two plots stack beside a tall drawing,
@@ -236,7 +236,9 @@ Each cell is measured at several widths, and the page takes the arrangement
 and widths that give the shortest page. Plots pay a little for straying from
 their authored proportions, and drawings for width they leave empty, so of
 two equally short pages the one closer to your panels wins. A plot's data is
-never narrowed below 60% of its authored width. Content that grows taller
+never narrowed below 60% of its authored width, and width past 1.25 times its
+authored width counts as empty area. Beside a taller neighbor a plot grows
+to at most one and a half times its height and keeps the top of its box. Content that grows taller
 with width stops growing at one and a half times its smallest height, so a
 drawing stays in scale with its fixed-size text; in a wider slot it is placed
 by its `align=`. `choose()` cells are settled at the same time. The first line of

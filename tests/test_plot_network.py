@@ -170,3 +170,22 @@ def test_network_takes_canonical_keywords_only() -> None:
     for old in ({"sizes": [1, 2]}, {"colors": {"a": "#f00"}}, {"edge_colors": ["#f00"]}):
         with pytest.raises(TypeError):
             inklet.panel(40, 40).arc_diagram(["a", "b"], [("a", "b")], **old)
+
+
+def test_keys_on_one_side_share_a_column() -> None:
+    p = inklet.panel(50, 50)
+    p.network(NODES, EDGES, width=2)
+    p.width_key(title="weight").size_key(inklet.plot.area_scale(40, 4), title="types")
+    first, second = (k.bbox for k in p._over[-2:])
+    assert first.x0 == pytest.approx(second.x0)            # one column
+    assert first.y1 < second.y0                             # the second below the first
+    assert second.y1 - first.y0 <= p.area.height + 1e-6
+    # Centered together on the plot area, not on the first key alone.
+    middle = (first.y0 + second.y1) / 2
+    assert middle == pytest.approx(p.area.center.y, abs=1)
+    # A key that cannot join the column goes beside it instead.
+    q = inklet.panel(50, 12)
+    q.network(NODES, EDGES, width=2)
+    q.width_key(title="weight").size_key(inklet.plot.area_scale(40, 4), title="types")
+    first, second = (k.bbox for k in q._over[-2:])
+    assert second.x0 >= first.x1
