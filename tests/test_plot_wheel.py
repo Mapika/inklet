@@ -91,6 +91,15 @@ def test_pie_labels_go_inside_or_outside_by_fit() -> None:
     assert [k.name for k in p.keys] == ["big", "mid", "tiny"]
 
 
+def test_a_wide_label_in_a_quarter_slice_slides_off_its_center_line() -> None:
+    """On the center line it meets the rim or an edge; beside the edge that
+    runs along it, it fits, as a journal pie sets it."""
+    p = polar(6.5)
+    p.pie([24.8, 1.5, 73.7], labels=["24.8%", "1.5%", "73.7%"],
+          label_options={"size": inklet.pt(5)})
+    assert p._pie[0]["inside"] == [0, 2]
+
+
 def test_pie_inside_label_contrasts_with_its_slice() -> None:
     p = polar(14)
     p.pie([1, 1], color=["#000000", "#ffffff"])

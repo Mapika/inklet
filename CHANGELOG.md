@@ -47,8 +47,15 @@
   vertical orientation they were drawn over each other.
 - A plot `title(align=)` accepts `left` and `right` as `start` and `end`,
   and rejects other values; `align='left'` was silently centered.
+- A pie label too wide for its slice's center line is tried beside the
+  slice's straight edges before it goes outside, so "24.8%" fits a quarter
+  slice as it does in a journal figure.
 
 ### Added
+
+- Graph edges accept `same_rank=True`, which keeps both ends in one rank of a
+  layered drawing, side by side, so a decision flow's "yes" can run across
+  while its "no" runs down.
 
 - `subfigure(stretch=False)` keeps a nested grid at its natural height inside
   a taller cell; the cell's `align=` positions it.

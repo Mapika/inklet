@@ -424,6 +424,9 @@ def pie(panel, values: Sequence[float], *, colors=None, labels="percent",
                     break
             else:
                 middle = None
+                centre = _off_centre_spot(node.bbox, inner, outer, a0, a1, margin)
+                if centre is not None:
+                    middle = centre.length
             if middle is not None:
                 ink = options.get("fill") or _ink_on(fill, theme)
                 inside.append((centre - node.bbox.center, node.styled(text_fill=ink)))
@@ -694,6 +697,32 @@ def _moved(box: Rect, by: Vec2) -> Rect:
 def _touch(a: Rect, b: Rect, pad: float) -> bool:
     return (a.x0 - pad < b.x1 and b.x0 - pad < a.x1
             and a.y0 - pad < b.y1 and b.y0 - pad < a.y1)
+
+
+def _off_centre_spot(box: Rect, inner: float, outer: float, a0: float, a1: float,
+                     margin: float) -> Vec2 | None:
+    """The center nearest the usual label spot at which `box` fits the slice.
+
+    A wide label in a quarter slice fits beside the straight edge that runs
+    along it, not on the slice's center line, so this also tries bearings
+    towards either edge. None when nothing fits.
+    """
+    mid = (a0 + a1) / 2
+    usual = outer * .62 if inner <= 0 else (inner + outer) / 2
+    target = Vec2(math.cos(math.radians(mid)) * usual,
+                  math.sin(math.radians(mid)) * usual)
+    spots = []
+    for step in range(1, 10):
+        angle = a0 + (a1 - a0) * step / 10
+        for tenth in range(3, 10):
+            radius = inner + (outer - inner) * tenth / 10
+            spots.append(Vec2(math.cos(math.radians(angle)) * radius,
+                              math.sin(math.radians(angle)) * radius))
+    for centre in sorted(spots, key=lambda spot: (spot - target).length):
+        if _fits_slice(_moved(box, centre - box.center), inner, outer, a0, a1,
+                       margin):
+            return centre
+    return None
 
 
 def _fits_slice(box: Rect, inner: float, outer: float, a0: float, a1: float,
