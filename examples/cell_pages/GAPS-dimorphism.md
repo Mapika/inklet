@@ -67,6 +67,7 @@ entry. Where no small case reproduced the problem, the entry says so.
 - **4.4:** when the shapes sit in an `hstack` inside a `vstack`, the link endpoints land at the wrong offsets. The error changes with `align=` (see `nest.py`: left, right and center each fail differently).
   - Workaround: C and D were rebuilt on `i.graph`, with hidden edges to keep the labels in rank.
   - This workaround costs the header alignment in D (♂ and ♀ are not centered over their columns) and gives C's circles rank-based spacing.
+  - **5.0:** the hidden label edges are now `same_rank=True` edges, so each label shares its row's rank and the columns stay aligned.
 - **Category:** bug (diagram).
 - **Repro:**
   ```python
@@ -100,6 +101,7 @@ entry. Where no small case reproduced the problem, the entry says so.
 - **Workaround:**
   - A `lettered_width()` helper (`i.letters([d])[0].bbox.width`) sets each cell's `min_width`.
   - `i.use_theme(STYLE.theme)` runs before the diagrams are built.
+- **5.0:** fixed artwork reserves its measured width, letter included. C, E and the pies no longer need `lettered_width()`; only the responsive D still does.
 - **Category:** layout grid.
 - **Repro:**
   ```python
@@ -213,6 +215,7 @@ entry. Where no small case reproduced the problem, the entry says so.
 - **Suggested API:**
   - `i.graph(..., same_rank=[('threshold', 'discard')])`.
   - Node extras such as `{'note': i.text(...), 'note_side': 'e'}` that the router avoids.
+- **5.0:** edges take `same_rank=True`. E runs "yes" across and ends in one outcome rank (36.5 mm tall, was 39.9), and D sets its verdict beside the corrected p-value (36.3 mm, was 43.3).
 
 ### 13. A category axis cannot repeat labels or group them (F)
 - **Reference:** bars are labeled ♂ ♀ ♂ ♀, with the group labels "in" and "out" underneath.

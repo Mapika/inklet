@@ -177,8 +177,7 @@ def panel_c():
 
     Composing the circles with hstack/vstack and joining them with
     i.connect(within=...) misplaces nested endpoints (see GAPS), so the rows
-    are graph ranks. The row labels ride in the same ranks through unstroked
-    edges: the engine has no same-rank constraint for free-standing nodes.
+    are graph ranks, each row label joined to its row by a hidden same-rank edge.
     """
     def factory():
         rows = [('AVLP569', 'female-specific', 's', BLUE), ('vpoEN', 'isomorphic', 'i', INK),
@@ -189,14 +188,15 @@ def panel_c():
                                           gap=.2, align='right')
             nodes[f'm{k}'] = node(letter, color, hollow=k == 0)
             nodes[f'f{k}'] = node(letter, color)
-        hidden = {'stroke': 'none', 'head': 'none'}
+        hidden = {'stroke': 'none', 'head': 'none', 'same_rank': True}
         link = {'stroke': AMBER, 'stroke_width': STYLE.theme.thick}
-        edges += [('label0', 'label1', hidden), ('label1', 'label2', hidden),
-                  ('m0', 'm1', {**link, 'stroke_dash': (.6, .5), 'label': i.text('0')}),
+        edges += [edge for k in range(3)
+                  for edge in ((f'label{k}', f'm{k}', hidden), (f'm{k}', f'f{k}', hidden))]
+        edges += [('m0', 'm1', {**link, 'stroke_dash': (.6, .5), 'label': i.text('0')}),
                   ('f0', 'f1', {**link, 'label': i.text('23')}),
                   ('m1', 'm2', {**link, 'label': i.text('420')}),
                   ('f1', 'f2', {**link, 'label': i.text('237')})]
-        g = i.graph(nodes, edges, direction='down', rank_gap=6, gap=1.6).build()
+        g = i.graph(nodes, edges, direction='down', rank_gap=4.5, gap=1.6).build()
         head = i.hstack([i.text('♂', size=i.pt(10)), i.text('♀', size=i.pt(10))], gap=2)
         notes = i.vstack([i.vstack([i.text('connection\nby definition', align='left', size=PT5),
                                     i.text('dimorphic', fill=AMBER, size=PT5)], align='left'),
@@ -243,7 +243,7 @@ def panel_d(art: Artwork):
         edges += [('m2', 'test', {**arrow, 'label': i.text('t-statistics', size=PT5)}),
                   ('f2', 'test', arrow),
                   ('test', 'corrected', {**arrow, 'label': i.text('FDR correction', size=PT5)}),
-                  ('corrected', 'verdict', {'stroke': 'none', 'head': 'none'})]
+                  ('corrected', 'verdict', {'stroke': 'none', 'head': 'none', 'same_rank': True})]
         flow = i.graph(nodes, edges, direction='down', rank_gap=3.2, gap=1.5).build()
         sexes = i.hstack([i.text('♂', fill=GREEN, size=i.pt(9)), i.text('♀', fill=MAGENTA, size=i.pt(9))],
                          gap=14)
@@ -283,10 +283,14 @@ def panel_e():
                  'test': test,
                  'iso': step('isomorphic\nconnection', fill=INK, color='white'),
                  'dim': step('dimorphic\nconnection', fill=AMBER)}
-        edges = [('threshold', 'isotypes', 'yes'), ('threshold', 'discard', 'no'),
+        # "yes" from the first test runs across, as in the reference; the two
+        # outcomes share the last rank.
+        edges = [('threshold', 'isotypes', {'label': 'yes', 'same_rank': True}),
+                 ('threshold', 'discard', 'no'),
                  ('isotypes', 'iso', 'yes'), ('isotypes', 'specific', 'no'),
                  ('specific', 'test', 'no'), ('specific', 'dim', 'yes'),
-                 ('test', 'dim', 'yes'), ('test', 'iso', 'no')]
+                 ('test', 'dim', 'yes'), ('test', 'iso', 'no'),
+                 ('iso', 'dim', {'same_rank': True, 'stroke': 'none', 'head': 'none'})]
         return i.graph(nodes, edges, layout='layered', direction='down', rank_gap=2.5, gap=1.5).build()
     return factory()
 
@@ -620,11 +624,10 @@ def panel_q():
 # -- the page ----------------------------------------------------------------------------------
 
 def lettered_width(diagram):
-    """The width a fixed diagram needs once the page letter is attached.
+    """The width a diagram needs once the page letter is attached.
 
-    Track allocation does not reserve a fixed diagram's natural width, and a
-    cell's min_width does not include the letter gutter (see GAPS), so the
-    cell asks for the width of the lettered diagram.
+    Fixed artwork reserves this on its own; a responsive factory has no one
+    natural width, so D asks for the width of its narrowest build, lettered.
     """
     return i.letters([diagram], start='A', style=STYLE.letter_style, pad=STYLE.letter_pad)[0].bbox.width
 
@@ -635,16 +638,14 @@ def make_document(data_dir: Path, chart_dir: Path):
     # Diagrams built eagerly (C, E) are measured against the active theme, which
     # preset.document() does not activate on its own (see GAPS).
     i.use_theme(STYLE.theme)
-    doc = STYLE.document(columns=12, share_plot_margins=False).letters(start='A')
+    doc = STYLE.document(columns=12, share_plot_margins=False).letters(start='A', anchor='cell')
     doc.add('a', panel_a(d), row=0, column=0, colspan=3)
     doc.add('b', panel_b(art), row=0, column=3, colspan=3, align='nw')
-    c = panel_c()
-    doc.add('c', c, row=0, column=6, colspan=3, align='n', min_width=lettered_width(c))
+    doc.add('c', panel_c(), row=0, column=6, colspan=3, align='n')
     d_panel, d_minimum = panel_d(art)
     # +0.5 mm: a responsive cell is handed ~0.14 mm more than its letter leaves (see GAPS).
     doc.add('d', d_panel, row=0, column=9, colspan=3, align='nw', min_width=d_minimum + .5)
-    e = panel_e()
-    doc.add('e', e, row=1, column=0, colspan=3, align='n', min_width=lettered_width(e))
+    doc.add('e', panel_e(), row=1, column=0, colspan=3, align='n')
     doc.add('f', panel_f(), row=1, column=3, colspan=2)
     doc.add('g', panel_g(d), row=1, column=5, colspan=3)
     doc.add('h', panel_h(d), row=1, column=8, colspan=4)
@@ -652,8 +653,7 @@ def make_document(data_dir: Path, chart_dir: Path):
             ('i', 0, 3, panel_pies('% of connections', (24.8, 1.5, 73.7), (24.8, .3, 74.9))),
             ('j', 3, 4, panel_pies('% of synapses in connections', (85.5, 4.9, 9.6), (88.6, .7, 10.8),
                                    legend=True))]:
-        doc.add(name, pies, row=2, column=column, colspan=colspan,
-                min_width=lettered_width(pies.factory()))
+        doc.add(name, pies, row=2, column=column, colspan=colspan)
     doc.add('k', panel_k(art, d), row=2, column=7, colspan=5, align='n')
     doc.add('l', panel_l(communities), row=3, column=0, colspan=2, rowspan=3)
     doc.add('m', panel_m(d, communities), row=3, column=2, colspan=6)
