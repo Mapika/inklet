@@ -73,6 +73,11 @@ packing without a grid, and nested subfigures at their natural heights.
   the plot area's height (or width). Previously each key moved out past the
   last, so two keys on the right doubled the panel's margin.
 
+- `Panel.annotate()` measures its clearance from the edge of a marker drawn
+  on the point, not from a small type-sized disc inside it. A label over a
+  large scatter marker sat about half a millimeter closer than asked, and
+  lint reported it as crowding.
+
 ### Added
 
 - `breakout(title_side="gap")` sets the title between the pie and the bar,

@@ -192,8 +192,10 @@ def callout(panel, x, y, text: str | Diagram, *, side: str = "n",
     from ..draw.annotate import annotate as draw_annotate
 
     theme = active_theme()
-    radius = _TARGET_OF_TYPE * theme.font_size
     at = panel.point(x, y)
+    # A marker drawn on the point is part of the datum, so the clearance
+    # starts at its edge rather than inside it.
+    radius = _marker_radius(panel, at, _TARGET_OF_TYPE * theme.font_size)
     target = Diagram(prim=EllipsePrim(radius, radius),
                      kind=ANNOTATION_TARGET_KIND)
     target = target.translated(at.x, at.y)
@@ -203,6 +205,32 @@ def callout(panel, x, y, text: str | Diagram, *, side: str = "n",
     gap = theme.gap("xs") if clear is None else mm(clear)
     return draw_annotate(target, text, side=side, clear=gap, leader=leader,
                          avoid=blockers, **kwargs)
+
+
+def _marker_radius(panel, at: Vec2, least: float) -> float:
+    """Half the largest mark the panel centers on `at`, and at least `least`.
+
+    Only marks up to a few type sizes across count, so a shape that happens
+    to be centered on the point (a band, a disc of a pie) is not taken for
+    its marker.
+    """
+    from ..core import resolve
+
+    largest = 4 * active_theme().font_size
+    radius = least
+    for layer in panel._content:
+        box = layer.bbox
+        if not (box.x0 - 1e-6 <= at.x <= box.x1 + 1e-6 and box.y0 - 1e-6 <= at.y <= box.y1 + 1e-6):
+            continue
+        for placed in resolve(layer).values():
+            if placed.diagram.prim is None:
+                continue
+            mark = placed.envelope.bbox()
+            half = max(mark.width, mark.height) / 2
+            if (half <= largest / 2 and abs(mark.center.x - at.x) < 1e-3
+                    and abs(mark.center.y - at.y) < 1e-3):
+                radius = max(radius, half)
+    return radius
 
 
 def _outside(area: Rect) -> list[Rect]:

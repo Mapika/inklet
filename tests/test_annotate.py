@@ -374,3 +374,16 @@ def test_a_leader_is_styled_by_the_theme_not_by_the_caller():
     root, placements = fig.build()
     shaft = [n for n in root.walk() if n.kind == CONNECTOR_KIND][0]
     assert placements[shaft.id].style.stroke == TH.ink
+
+
+def test_a_callout_clears_the_marker_drawn_on_its_point():
+    from inklet.core import resolve
+    from inklet.plot.notes import active_theme
+    p = inklet.panel(40, 30, x=(0, 10), y=(0, 10))
+    p.scatter([(5, 5)], size=2.5)
+    p.annotate(5, 5, "Baseline", side="n")
+    boxes = {x.diagram.kind: x.envelope.bbox() for x in resolve(p.build()).values()
+             if x.diagram.prim is not None}
+    # The clearance starts at the marker's edge, not at a type-sized datum
+    # inside it.
+    assert boxes["mark"].y0 - boxes["label"].y1 >= active_theme().gap("xs") - 1e-6
