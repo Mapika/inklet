@@ -104,8 +104,8 @@ up-to-date `master` whose `pyproject.toml`, `inklet.__version__` and
 `CHANGELOG.md` already name the new version:
 
 ```bash
-python tools/release.py 4.4.1 --dry-run   # local checks and build only
-python tools/release.py 4.4.1             # publish, asking before each outward step
+python tools/release.py 4.5.0 --dry-run   # local checks and build only
+python tools/release.py 4.5.0             # publish, asking before each outward step
 ```
 
 It runs the API reference, compatibility, strict docs and test-suite checks,
@@ -156,10 +156,10 @@ The same operations are available through the GitHub CLI:
 
 ```bash
 # Validate the existing release without uploading.
-gh workflow run publish.yml --ref master -f tag=v4.4.1 -F dry_run=true
+gh workflow run publish.yml --ref master -f tag=v4.5.0 -F dry_run=true
 
 # Publish the verified release assets.
-gh workflow run publish.yml --ref master -f tag=v4.4.1 -F dry_run=false
+gh workflow run publish.yml --ref master -f tag=v4.5.0 -F dry_run=false
 ```
 
 For subsequent versions, run release checks, create the tag and GitHub release,

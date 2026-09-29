@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased (5.0)
+## 4.5.0 — 2026-09-29
+
+Pages that choose their own layout: `choose()` alternatives, experimental
+packing without a grid, and nested subfigures at their natural heights.
 
 ### Changed
 
