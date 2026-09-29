@@ -67,22 +67,32 @@ def _decorator(request, context):
     return decorate
 
 
+def _fixed(item):
+    return isinstance(item, Diagram) or (isinstance(item, ComponentSpec) and not item.responsive)
+
+
 def _natural_sizes(request, context, x_prefix, height, decorate):
-    """Retain authored plot heights and measure fixed artwork with its letters."""
+    """Retain authored plot heights and measure cells with their letters.
+
+    A fixed page height starts from these heights too, so a nested subfigure
+    laid out at its natural height is unchanged by its parent. Responsive
+    components have no natural height; under a fixed height they only ever
+    receive their cell's dimensions, and grow from their minimum.
+    """
     heights, plots = {}, {}
     for cell in request.cells:
-        fixed = isinstance(cell.item, Diagram) or (
-            isinstance(cell.item, ComponentSpec) and not cell.item.responsive)
-        if height is None or fixed:
-            width = (x_prefix[cell.column+cell.colspan]-x_prefix[cell.column]
-                     + request.gap*(cell.colspan-1))
-            natural = context.build(cell.item, width,
-                                    cell.item.height if isinstance(cell.item, PlotSpec) else None)
-            node = decorate(natural, cell)
-            heights[cell.name] = node.height
-            if isinstance(cell.item, PlotSpec):
-                plots[cell.name] = (plot_area(node).height, *plot_margins(node)[2:])
-    if request.share_plot_margins and height is None:
+        if (height is not None and isinstance(cell.item, ComponentSpec)
+                and cell.item.responsive):
+            continue
+        width = (x_prefix[cell.column+cell.colspan]-x_prefix[cell.column]
+                 + request.gap*(cell.colspan-1))
+        natural = context.build(cell.item, width,
+                                cell.item.height if isinstance(cell.item, PlotSpec) else None)
+        node = decorate(natural, cell)
+        heights[cell.name] = node.height
+        if isinstance(cell.item, PlotSpec):
+            plots[cell.name] = (plot_area(node).height, *plot_margins(node)[2:])
+    if request.share_plot_margins:
         # Maxima may belong to different plots; retain all of their furniture.
         # Top and bottom furniture is shared within a row only: a colorbar
         # under one bottom panel must not open the same gap under every row.
@@ -115,12 +125,48 @@ def _shared_data_heights(request, plots):
             for cell in request.cells if cell.name in plots}
 
 
-def _row_tracks(request, rows, natural_heights, height):
+def _row_tracks(request, rows, natural_heights):
     return allocate_tracks(
         rows, (1.,)*rows,
         [(c.row, c.rowspan, max(c.min_height, natural_heights.get(c.name, 0)), c.name)
          for c in request.cells],
-        None if height is None else height-2*request.margin, request.row_gap, 'height')
+        None, request.row_gap, 'height')
+
+
+def _fit_rows(request, rows, natural, natural_heights, plots, height):
+    """Fit natural row heights to a fixed page height.
+
+    Surplus goes to plot rows in proportion to their data heights, so stacked
+    plots keep one scale, and to nested grids and responsive components in
+    proportion to their natural heights. Text, fixed artwork and cells added
+    with ``grow=False`` keep their measured size. With too little room every row shrinks in proportion,
+    down to the cell minima; fixed artwork never shrinks.
+    """
+    available = height-2*request.margin
+    surplus = available-sum(natural)-request.row_gap*(rows-1)
+    if surplus < -1e-6:
+        floors = [(c.row, c.rowspan, max(c.min_height, natural_heights[c.name])
+                   if _fixed(c.item) else c.min_height, c.name) for c in request.cells]
+        return allocate_tracks(rows, [max(h, 1e-6) for h in natural], floors,
+                               available, request.row_gap, 'height')
+    weights = [0.]*rows
+    for cell in request.cells:
+        if not cell.grow or _fixed(cell.item):
+            continue
+        grow = (plots[cell.name][0] if cell.name in plots
+                else natural_heights.get(cell.name, cell.min_height))
+        for row in range(cell.row, cell.row+cell.rowspan):
+            weights[row] = max(weights[row], grow/cell.rowspan)
+    if not any(weights):
+        # Only fixed artwork: spread the surplus; cells align their artwork.
+        weights = [max(h, 1e-6) for h in natural]
+    total = sum(weights)
+    targets = [h+surplus*w/total for h, w in zip(natural, weights)]
+    return allocate_tracks(
+        rows, targets,
+        [(c.row, c.rowspan, max(c.min_height, natural_heights.get(c.name, 0)), c.name)
+         for c in request.cells],
+        available, request.row_gap, 'height')
 
 
 def _cell_boxes(request, x_prefix, heights):
@@ -140,7 +186,8 @@ def _measure_cells(request, context, boxes, margins, decorate):
         left, right, top, bottom = margins[cell.name]
         width, height = box.width-left-right, box.height-top-bottom
         if isinstance(cell.item, PlotSpec):
-            if width < 5 or height < 5:
+            # Tracks are sums of floats; a plot authored at the minimum must fit.
+            if width < 5-1e-6 or height < 5-1e-6:
                 raise LayoutError(f'cell {cell.name!r} leaves only {width:.2f} × {height:.2f} mm for data after labels. Increase its size.')
             nodes[cell.name] = context.build(cell.item, round(width, 6), round(height, 6))
         else:
@@ -160,7 +207,7 @@ def _measure_cells(request, context, boxes, margins, decorate):
     return nodes, measured
 
 
-def _share_margins(request, measured, margins, per_row=False):
+def _share_margins(request, measured, margins):
     columns, rows, lefts, rights = {}, {}, {}, {}
     plots = [cell for cell in request.cells if isinstance(cell.item, PlotSpec)]
     for cell in plots:
@@ -186,10 +233,9 @@ def _share_margins(request, measured, margins, per_row=False):
             # 'all' shares them across the grid for one physical x scale.
             sides = (shared[:2] if request.share_plot_margins == 'all' else
                      (lefts[cell.column], rights[cell.column+cell.colspan]))
-            # Top and bottom furniture is shared along a row for automatic
-            # heights: each row track grows by its own furniture around the
-            # common data height. A fixed height shares it across the grid.
-            values = (*sides, *(rows[cell.row, cell.rowspan] if per_row else shared[2:]))
+            # Top and bottom furniture is shared along a row: each row track
+            # holds its own furniture around the row's common data height.
+            values = (*sides, *rows[cell.row, cell.rowspan])
         # Monotonic margins prevent tick-thinning oscillations.
         measured[cell.name] = tuple(max(a, b) for a, b in zip(values, margins[cell.name]))
 
@@ -270,16 +316,19 @@ def layout_document(request: LayoutRequest, context: BuildContext,
         width-2*request.margin, request.gap, 'width')
     x_prefix = tuple(accumulate(widths, initial=0.))
     natural_heights, natural_plots = _natural_sizes(request, context, x_prefix, height, decorate)
-    heights = _row_tracks(request, rows, natural_heights, height)
+    heights = _row_tracks(request, rows, natural_heights)
+    if height is not None:
+        heights = _fit_rows(request, rows, heights, natural_heights, natural_plots, height)
     boxes = _cell_boxes(request, x_prefix, heights)
     margins = {c.name: (0., 0., 0., 0.) for c in request.cells}
     # Tick selection depends on width; grow furniture and tracks to a stable fit.
     for iteration in range(24):
         nodes, measured = _measure_cells(request, context, boxes, margins, decorate)
-        _share_margins(request, measured, margins, per_row=height is None)
-        if (height is None and natural_plots
-                and _grow_natural_heights(request, natural_plots, measured, natural_heights)):
-            heights = _row_tracks(request, rows, natural_heights, None)
+        _share_margins(request, measured, margins)
+        if natural_plots and _grow_natural_heights(request, natural_plots, measured, natural_heights):
+            heights = _row_tracks(request, rows, natural_heights)
+            if height is not None:
+                heights = _fit_rows(request, rows, heights, natural_heights, natural_plots, height)
             boxes = _cell_boxes(request, x_prefix, heights)
             margins = measured
             continue

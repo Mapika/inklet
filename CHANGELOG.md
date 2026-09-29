@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased (5.0)
+
+### Changed
+
+- A fixed page height, and a nested subfigure laid out at its parent cell's
+  height, now keep the natural row heights. Extra space goes to plot rows in
+  proportion to their data heights, and to nested grids and responsive
+  components; text rows and fixed artwork keep their size. Previously every
+  row received an equal share, so authored plot heights in a subfigure were
+  lost and a one-line key row could grow as tall as a plot.
+- `share_plot_margins=True` with a fixed height shares top and bottom margins
+  along each row, as automatic heights already did. An axis or legend under
+  the last plot of a stack no longer reserves space under every plot.
+- A plot cell's default `min_height` is 5 mm instead of 15 mm, so short
+  authored plots keep short rows.
+
+### Added
+
+- `subfigure(stretch=False)` keeps a nested grid at its natural height inside
+  a taller cell; the cell's `align=` positions it.
+- `add(..., grow=False)` holds one cell's row at its natural height when a
+  fixed page height has space to spare.
+
 ## 4.4.1 — 2026-09-26
 
 4.4.1 changes only the source archive; the wheel's code is unchanged.

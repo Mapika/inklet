@@ -73,15 +73,12 @@ def test_shared_margins_equalize_data_regions_with_letters_and_empty_series(heig
     assert margins[2][:2] == pytest.approx(margins[0][:2], abs=1e-5)
     assert margins[3][:2] == pytest.approx(margins[1][:2], abs=1e-5)
     assert margins[1][1] > margins[0][1] + 5
-    if height is None:
-        # Automatic rows share top and bottom furniture along the row only,
-        # so one row's tall labels do not open a gap under every other row.
-        assert margins[1][2:] == pytest.approx(margins[0][2:], abs=1e-5)
-        assert margins[3][2:] == pytest.approx(margins[2][2:], abs=1e-5)
-        assert margins[0][2:] != pytest.approx(margins[2][2:], abs=1e-3)
-    else:
-        for margin in margins[1:]:
-            assert margin[2:] == pytest.approx(margins[0][2:], abs=1e-5)
+    # Rows share top and bottom furniture along the row only, with automatic
+    # and fixed heights alike, so one row's tall labels do not open a gap
+    # under every other row.
+    assert margins[1][2:] == pytest.approx(margins[0][2:], abs=1e-5)
+    assert margins[3][2:] == pytest.approx(margins[2][2:], abs=1e-5)
+    assert margins[0][2:] != pytest.approx(margins[2][2:], abs=1e-3)
     assert regions['a'].y0 == pytest.approx(regions['b'].y0)
     assert regions['a'].x0 == pytest.approx(regions['c'].x0)
     assert not any(d.code in ('OFF_CANVAS', 'RULE_FAILED') for d in compiled.diagnostics)
@@ -97,15 +94,15 @@ def test_default_layout_remains_identical_to_explicit_false():
 
 
 def test_direct_toggle_invalidates_compilation_and_preserves_previous_snapshot():
-    # Unshared cells already align within their column and row tracks; a fixed
-    # height is where sharing visibly differs, by equalizing top and bottom.
+    # Unshared cells already align within their column and row tracks; 'all'
+    # visibly differs by sharing the right axis of 'b' across both columns.
     doc = _grid(height=150)
     original = doc.compile()
     original_svg = original.to_svg()
     assert doc.compile() is original
     # Direct mutation must participate in the compilation key, independently
     # of configure() clearing the last snapshot.
-    doc.share_plot_margins = True
+    doc.share_plot_margins = 'all'
     shared = doc.compile()
     assert shared is not original
     assert doc.compile() is shared

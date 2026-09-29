@@ -232,3 +232,94 @@ def test_composition_callouts_reflow_after_module_edits():
     assert 'Shared features' in changed.to_svg()
     assert not any(d.code=='RULE_FAILED' for d in changed.diagnostics)
     assert changed.to_svg()!=old and first.to_svg()==old
+
+
+def _stacked(share=False):
+    group=i.subfigure(columns=1,row_gap=1,share_plot_margins=share)
+    group.add('key',i.text('male'),row=0)
+    for k,height in enumerate([10,6,14]):
+        p=i.plot_spec(height=height,x=(0,1),y=['a','b']).bars(['a','b'],[.4,.8],orient='h')
+        if k==2: p.axis('bottom',label='share')
+        group.add(f'p{k}',p,row=k+1)
+    return group
+
+
+def _tracks(group,height):
+    from inklet.document.compiler import BuildContext
+    result=group._layout(BuildContext(i.theme('nature'),{}),45,height)
+    return result.page_height,{name:box.height for name,box in result.boxes.items()}
+
+
+@pytest.mark.parametrize('share',[False,True])
+def test_nested_grid_at_its_natural_height_keeps_its_rows(share):
+    group=_stacked(share)
+    page,natural=_tracks(group,None)
+    assert natural['p0']==pytest.approx(10) and natural['p1']==pytest.approx(6)
+    assert _tracks(group,page)[1]==pytest.approx(natural)
+
+
+@pytest.mark.parametrize('share',[False,True])
+def test_fixed_height_surplus_grows_plots_by_data_height_not_text(share):
+    group=_stacked(share)
+    page,natural=_tracks(group,None)
+    _,grown=_tracks(group,page+20)
+    assert grown['key']==pytest.approx(natural['key'])
+    # Stacked plots keep one scale: every data height grows by the same factor.
+    factors=[(grown[n]-natural[n])/h for n,h in [('p0',10),('p1',6),('p2',14)]]
+    assert factors==pytest.approx([factors[0]]*3)
+    assert sum(grown.values())==pytest.approx(sum(natural.values())+20)
+
+
+def test_parent_row_taller_than_nested_grid_keeps_nested_proportions():
+    doc=i.preset('scientific.cell').document(columns=12)
+    doc.add('stack',_stacked(True),row=0,column=0,colspan=3)
+    doc.add('tall',i.plot_spec(height=90,x=(0,1),y=(0,1)).axes(),row=0,column=3,colspan=9)
+    positions=doc.compile().build()[1]
+    heights={n:positions[f'cell-stack/cell-{n}'].bbox.height for n in ('key','p0','p1')}
+    assert heights['key']<5
+    assert heights['p0']/heights['p1']==pytest.approx(10/6,rel=.02)
+
+
+def test_fixed_height_too_small_shrinks_plots_but_not_fixed_artwork():
+    group=_stacked()
+    page,natural=_tracks(group,None)
+    _,shrunk=_tracks(group,page-8)
+    assert shrunk['key']==pytest.approx(natural['key'])
+    assert all(shrunk[n]<natural[n] for n in ('p0','p2'))
+
+
+def test_grow_false_row_keeps_natural_height_under_a_fixed_page():
+    group=_stacked()
+    group._cells[1]=replace(group._cells[1],grow=False)
+    page,natural=_tracks(group,None)
+    _,grown=_tracks(group,page+20)
+    assert grown['p0']==pytest.approx(natural['p0'])
+    assert grown['p2']>natural['p2']
+
+
+def test_unstretched_subfigure_keeps_natural_rows_and_follows_cell_align():
+    from inklet.draw.coords import plot_area
+    def page(stretch):
+        doc=i.preset('scientific.cell').document(columns=12)
+        group=_stacked(True); group.stretch=stretch
+        doc.add('stack',group,row=0,column=0,colspan=3,align='n')
+        doc.add('tall',i.plot_spec(height=90,x=(0,1),y=(0,1)).axes(),row=0,column=3,colspan=9)
+        compiled=doc.compile()
+        positions=compiled.build()[1]
+        data={n:plot_area(positions[f'cell-stack/cell-{n}'].diagram).height for n in ('p0','p1','p2')}
+        return compiled.metadata['cells']['stack'],positions['cell-stack/cell-key'].bbox,data
+    cell,key,natural=page(False)
+    assert [natural[n] for n in ('p0','p1','p2')]==pytest.approx([10,6,14],abs=.05)
+    assert key.y0==pytest.approx(cell['y'],abs=1)
+    _,_,stretched=page(True)
+    assert stretched['p0']>natural['p0']+5
+
+
+def test_plot_authored_at_the_minimum_data_height_fits_in_a_nested_grid():
+    group=i.subfigure(row_gap=1)
+    for k in range(3):
+        group.add(f'p{k}',i.plot_spec(height=5,x=(0,1),y=['a']).bars(['a'],[.5],orient='h'),row=k)
+    doc=i.document(width=120,columns=3)
+    doc.add('stack',group,row=0,column=0)
+    doc.add('tall',i.plot_spec(height=60,x=(0,1),y=(0,1)).axes(),row=0,column=1,colspan=2)
+    doc.compile()

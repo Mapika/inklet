@@ -35,6 +35,7 @@ class Cell:
     min_width: float = 20
     min_height: float = 15
     align: str = 'center'
+    grow: bool = True
 
 
 class BuildContext:
@@ -130,6 +131,7 @@ class Document(BuildSpec):
     publication: object = None
     preset: object = None
     share_plot_margins: bool | str = False
+    stretch: bool = True
     _preset_overrides: dict = field(default_factory=dict, repr=False)
     _cells: list = field(default_factory=list, repr=False)
     _links: list = field(default_factory=list, repr=False)
@@ -142,6 +144,7 @@ class Document(BuildSpec):
         if type(self.share_plot_margins) is not bool and not (
                 type(self.share_plot_margins) is str and self.share_plot_margins == 'all'):
             raise ValueError("share_plot_margins must be a boolean or 'all'")
+        if type(self.stretch) is not bool: raise ValueError('stretch must be a boolean')
         self.width = length(self.width, 'document width')
         if self.height is not None: self.height = length(self.height, 'document height')
         self.margin = length(self.margin, 'margin', zero=True)
@@ -163,19 +166,22 @@ class Document(BuildSpec):
             if not self.columns: raise ValueError('document needs at least one column')
 
     def add(self, name, item, *, row=None, column=0, rowspan=1, colspan=1,
-            min_width=None, min_height=None, align='center'):
+            min_width=None, min_height=None, align='center', grow=True):
         """Place a named cell; align fixed artwork by a compass point.
 
         Omitted row appends below existing cells. ``align`` accepts ``center``,
         ``n``, ``s``, ``e``, ``w`` and the four corners. It positions artwork
         within its cell without scaling. Plots fill their available data
-        regions and retain shared axis alignment.
+        regions and retain shared axis alignment. With a fixed page height,
+        ``grow=False`` keeps the cell's natural height instead of taking a
+        share of the extra space.
         """
         if not isinstance(name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*',name):
             raise ValueError('cell names start with a letter and contain letters, digits, underscores or hyphens')
         if any(c.name == name for c in self._cells): raise DiagramError(f'duplicate cell {name!r}')
         if align not in ('center','n','s','e','w','nw','ne','sw','se'):
             raise ValueError('cell align must be center, n, s, e, w, nw, ne, sw or se')
+        if type(grow) is not bool: raise ValueError('grow must be a boolean')
         row = max((c.row+c.rowspan for c in self._cells), default=0) if row is None else row
         for value,label,minimum in [(row,'row',0),(column,'column',0),(rowspan,'rowspan',1),(colspan,'colspan',1)]:
             if not isinstance(value,int) or isinstance(value,bool) or value < minimum:
@@ -187,11 +193,15 @@ class Document(BuildSpec):
                 raise LayoutError(f'cell {name!r} overlaps {other.name!r}')
         if isinstance(item,Diagram):
             default_w,default_h = item.width,item.height
+        elif isinstance(item,PlotSpec):
+            # Plots are measured at their authored height; the floor only
+            # keeps a data region, so short stacked plots stay short.
+            default_w,default_h = 20,5
         else:
             default_w,default_h = 20,15
         cell=Cell(name,item,row,column,rowspan,colspan,
                   length(default_w if min_width is None else min_width,'minimum width'),
-                  length(default_h if min_height is None else min_height,'minimum height'),align)
+                  length(default_h if min_height is None else min_height,'minimum height'),align,grow)
         self._cells.append(cell)
         self._last=None
         return item
@@ -258,11 +268,14 @@ class Document(BuildSpec):
         return ('subfigure', self.width, self.height, self.columns, self.margin,
                 self.gap, self.row_gap, fingerprint(self._letters, trail),
                 tuple((c.name, c.row, c.column, c.rowspan, c.colspan,
-                       c.min_width, c.min_height, c.align, fingerprint(c.item, trail)) for c in self._cells),
-                fingerprint(self._links, trail), self.share_plot_margins)
+                       c.min_width, c.min_height, c.align, c.grow, fingerprint(c.item, trail)) for c in self._cells),
+                fingerprint(self._links, trail), self.share_plot_margins, self.stretch)
 
     def render(self, context, width=None, height=None):
         self.__post_init__()
+        if not self.stretch:
+            # Keep natural rows; the containing cell aligns the result.
+            height = None
         content, _, _, page_height, _ = self._layout(
             context, self.width if width is None else width,
             self.height if height is None else height)
@@ -285,7 +298,7 @@ class Document(BuildSpec):
         theme=get_theme(self.theme) if isinstance(self.theme,str) else self.theme
         if not self._cells: raise LayoutError('cannot compile an empty document')
         context=BuildContext(theme,self._cache,self.preset)
-        signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,
+        signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,c.grow,
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram,Panel,PolarPanel)) else id(context.build(c.item)))
                          for c in self._cells)
         key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins))
@@ -350,10 +363,10 @@ def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None
     start on the same grid line reserve the largest left labels and letters
     among them, and plots that end on the same grid line reserve the largest
     right furniture, so their data edges line up there. A plot that shares
-    neither line with a wide label keeps its own margin. Automatic row heights
-    use the tallest data region plus the top and bottom furniture of that row;
-    a fixed height shares top and bottom furniture across the grid. Plots in
-    one column track then have equal data areas. `share_plot_margins='all'`
+    neither line with a wide label keeps its own margin. Row heights use the
+    tallest data region plus the top and bottom furniture of that row; a fixed
+    height gives extra space to plot rows in proportion to their data heights.
+    `share_plot_margins='all'`
     instead reserves the largest left and right furniture on every plot, so
     equal tracks give equal data widths across columns, as small multiples
     with one physical scale need. Fixed artwork is unchanged.
@@ -361,13 +374,18 @@ def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None
     return Document(width,height,columns,margin,gap,row_gap,theme,publication,share_plot_margins=share_plot_margins)
 
 
-def subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False):
+def subfigure(*, width=180, height=None, columns=1, margin=0, gap=6, row_gap=None, share_plot_margins=False,
+              stretch=True):
     """Create a nested grid. Children inherit the enclosing document theme.
 
     Use the same add/replace/link/letters API as Document. Width and height are
     defaults; a containing cell supplies the available physical dimensions.
+    A cell taller than the grid gives the extra height to its plots in
+    proportion to their data heights. With ``stretch=False`` the grid keeps
+    its natural height and the containing cell's ``align`` positions it.
     Nested layout shares measurement caches and runs paint and diagnostics only
     once, when the complete document is compiled.
     """
     return Document(width=width, height=height, columns=columns, margin=margin,
-                    gap=gap, row_gap=row_gap,share_plot_margins=share_plot_margins)
+                    gap=gap, row_gap=row_gap,share_plot_margins=share_plot_margins,
+                    stretch=stretch)

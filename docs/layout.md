@@ -40,15 +40,23 @@ adjusted as needed to meet cell minima. `min_width` and `min_height` constrain
 the entire cell, including axes and labels. They are not data-domain limits.
 
 With no explicit page height, rows grow to meet their measured content and
-minimum heights. A fixed `height` distributes the available space. Plot areas
-resize; text and strokes retain their physical dimensions. Set
+minimum heights. A fixed `height` starts from those same natural rows and
+gives the extra space to plot rows in proportion to their data heights, so
+stacked plots keep one scale; nested grids and responsive components grow with
+their natural height, and text and fixed artwork keep their size. A nested
+subfigure is laid out this way at the height of its parent cell, so it keeps
+the plot heights authored for it. When the height is too small, rows shrink in
+proportion down to their minima. Plot areas resize; text and strokes retain
+their physical dimensions. A plot cell's default `min_height` is 5 mm, so a
+short authored plot keeps a short row. Set
 `share_plot_margins=True` to align plot areas by sharing relevant axis and
 legend margins within a grid. Left and right margins are shared along vertical
 grid lines: plots that start on the same grid line get the same left margin,
 and plots that end on the same grid line get the same right margin. A plot
-that shares neither line with a wide label is not narrowed by it. With an
-automatic page height, data heights are shared along each row only, so rows
-keep the plot heights set for them.
+that shares neither line with a wide label is not narrowed by it. Top and
+bottom margins and data heights are shared along each row only, so rows keep
+the plot heights set for them and an axis under the last row reserves no space
+under the others.
 `share_plot_margins='all'` shares the largest left and right margins across
 the whole grid instead, and gives every plot the tallest data height, so equal
 columns give equal data areas. This is
@@ -98,6 +106,27 @@ by `letters()` are measured and have space reserved. Local names such as
 `control` can be reused in different subfigures; compiled identities include
 their containing cells. Margin sharing applies inside each grid, not across
 arbitrary nested grids.
+
+A subfigure takes the height of its parent cell. When a neighbouring cell makes
+that row taller than the subfigure needs, the plots inside grow in proportion
+to their authored data heights, so a stack of bar blocks keeps one bar
+thickness, and text rows keep their size. To keep the natural height instead,
+create the group with `stretch=False` and position it with the cell's `align`;
+to hold one row at its natural height, add it with `grow=False`:
+
+```python
+stack = i.subfigure(row_gap=1, stretch=False)
+stack.add('key', i.text('male'), row=0)
+for k, rows in enumerate([['taste peg', 'labellar'], ['leg bristle']]):
+    block = i.plot_spec(height=5*len(rows), x=(0, 10), y=rows)
+    block.bars(rows, [4]*len(rows), orient='h')
+    stack.add(f'block{k}', block, row=k+1)
+tall = i.plot_spec(height=60, x=(0, 1), y=(0, 1)).axes()
+side = i.document(width=120, columns=3)
+side.add('stack', stack, row=0, column=0, align='n')
+side.add('tall', tall, row=0, column=1, colspan=2)
+assert side.compile().cells['stack'].height > 60
+```
 
 The [reusable plot composition example](plot-recipes.md) combines independent
 plot variants with a responsive diagram at two physical widths.
