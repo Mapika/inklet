@@ -46,6 +46,9 @@ _LABELLED_CURVES = frozenset({'line', 'step', 'ecdf'})
 #: Prefix of a palette slot recorded before the palette is known.
 _TOKEN = '@series'
 
+#: The key of a chart's right-hand axis instruction, so `plot()` can restyle it.
+_RIGHT_AXIS = 'secondary_y'
+
 #: A pale version of a palette slot, for fills under that slot's lines, and a
 #: softer one for areas that fill most of a plot.
 _TINT, _TINT_AMOUNT = '@tint', 0.72
@@ -248,6 +251,27 @@ def _check_color(color):
                         'pass color=<column> and palette=[...]')
 
 
+def _matchable(label, y):
+    """The name `secondary_y=` matches a series by: its colour group, or else
+    the `y` column it plots. A lone unnamed series keeps no key entry, but
+    its column is still a name a reader can ask for."""
+    if label is not None:
+        return label
+    return y if isinstance(y, str) else None
+
+
+def _secondary_names(value) -> tuple:
+    """`secondary_y=` as a tuple of series names: one name or a list of them."""
+    if value is None:
+        return ()
+    # A list, a tuple, an Index or an array of names; anything else is one name.
+    names = [value] if isinstance(value, str) or not hasattr(value, '__iter__') else list(value)
+    if not names or any(name is None for name in names):
+        raise ValueError('secondary_y= names the series for the right-hand axis: a column '
+                         'name, or a list of them')
+    return tuple(dict.fromkeys(names))
+
+
 def _is_column(table, name) -> bool:
     return isinstance(name, str) and table is not None and name in table
 
@@ -448,11 +472,19 @@ class Chart(_Renderable):
         self._title_align = 'left'
         #: What `from_matplotlib` could not convert, if this chart came from it.
         self.skipped = []
+        #: The right-hand axis's recipe, made the first time `secondary_y=`
+        #: draws into it. Its series are drawn here, not in `self.spec`.
+        self._secondary = None
+        #: The series on that axis, by name, with the colour each was drawn in.
+        self._right_series = {}
+        #: The right-hand axis title, when `labels(y2=)` sets one.
+        self.y2label = None
 
     # Marks. Each mirrors the top-level function of the same name.
 
     def line(self, data=None, x=None, y=None, *, color=None, name=None, markers=False,
-             error_y=None, dash=None, linewidth=None, sort=True, gaps='break', **style):
+             error_y=None, dash=None, linewidth=None, sort=True, gaps='break',
+             secondary_y=None, **style):
         """Lines through (x, y), one per `color` group or per `y` column.
 
         Points are joined in x order; `sort=False` keeps row order (a path
@@ -462,17 +494,27 @@ class Chart(_Renderable):
         A row with a missing y (or error) is a gap. `gaps='break'`, the default,
         leaves it open, so no segment bridges it; `gaps='bridge'` joins the
         points either side as if the row were not there.
+
+        `secondary_y=` names series to draw against a right-hand y axis, titled
+        with the column name: a column or a list, matched against the `y`
+        columns or the `color` groups. Two scales read best as two charts, so
+        use it for two quantities that cannot share one.
         """
         if gaps not in ('break', 'bridge'):
             raise ValueError(f"gaps must be 'break' or 'bridge', got {gaps!r}")
         table = _table(data)
         _check_color(color)
-        for label, xs, ys, err in self._series(table, x, y, color, error_y, gaps=gaps == 'break'):
+        secondary = _secondary_names(secondary_y)
+        drawn = list(self._series(table, x, y, color, error_y, gaps=gaps == 'break',
+                                  secondary=secondary))
+        self._check_secondary(secondary, [_matchable(label, y) for label, *_ in drawn])
+        for label, xs, ys, err in drawn:
             if sort:
                 xs, ys, err = _ordered(xs, ys, err)
             series = name or label
             options = self._style(table, color, style, dash=dash, stroke_width=linewidth,
                                   label=series, lone=True)
+            recipe = self._recipe(_matchable(label, y), secondary, options.get('color'))
             # Each run is drawn alone, in the one colour; only the first is
             # named, so the key has one entry for the series.
             for number, (run_x, run_y, run_err) in enumerate(_runs(xs, ys, err)):
@@ -483,32 +525,37 @@ class Chart(_Renderable):
                     # Translucent, so where two groups' bands overlap both show.
                     # Unnamed: a key swatch has no opacity and would read solid.
                     spread = [(y - e, y + e) for y, e in zip(run_y, run_err)]
-                    self.spec.band(run_x, [lo for lo, _ in spread], [hi for _, hi in spread],
-                                   color=options['color'], fill=options['color'],
-                                   fill_opacity=_BAND_OPACITY)
+                    recipe.band(run_x, [lo for lo, _ in spread], [hi for _, hi in spread],
+                                color=options['color'], fill=options['color'],
+                                fill_opacity=_BAND_OPACITY)
                 elif run_err is not None:
                     run_options['err'] = run_err
-                self.spec.line(points, name=named, **run_options)
+                recipe.line(points, name=named, **run_options)
                 if markers:
-                    self.spec.scatter(points, name=named,
-                                      **self._style(table, color, {}, mark=True, label=series,
-                                                    lone=True))
+                    recipe.scatter(points, name=named,
+                                   **self._style(table, color, {}, mark=True, label=series,
+                                                 lone=True))
         return self._labelled(x, y)
 
     def scatter(self, data=None, x=None, y=None, *, color=None, size=None, name=None,
-                marker='circle', palette=None, error_y=None, text=None, **style):
+                marker='circle', palette=None, error_y=None, text=None, secondary_y=None,
+                **style):
         """Points at (x, y). A numeric `color` column with many values is a ramp.
 
         `size` is a diameter in mm or a column of them; `text` names a column
         of point labels (None for unlabelled points), placed clear of the marks.
+        `secondary_y=` names colour groups to draw against a right-hand y axis
+        (see `line`); a ramp has no groups, so it takes none.
         """
         table = _table(data)
         _check_color(color)
+        secondary = _secondary_names(secondary_y)
         xs, ys = _column(table, x, 'x'), _column(table, y, 'y')
         if xs is None:
             xs = _index(table, None, len(ys))
         sizes = _column(table, size, 'size') if _is_column(table, size) else None
         if _is_column(table, color) and _continuous(table[color]):
+            self._check_secondary(secondary, [])
             columns = [xs, ys, table[color]] + ([sizes] if sizes else [])
             _, *kept = _groups(None, None, *columns)[0]
             options = {'size': kept[3]} if sizes else _size(size, table)
@@ -519,20 +566,23 @@ class Chart(_Renderable):
         else:
             err = _column(table, error_y, 'error_y') if error_y is not None else None
             columns = [xs, ys] + ([err] if err else []) + ([sizes] if sizes else [])
-            for label, *kept in _groups(table, color, *columns):
+            groups = list(_groups(table, color, *columns))
+            self._check_secondary(secondary, [_matchable(label, y) for label, *_ in groups])
+            for label, *kept in groups:
                 points = list(zip(kept[0], kept[1]))
                 series = name or label
                 if not points:
                     continue
+                ink = self._style(table, color, {}, label=series, lone=True)
+                recipe = self._recipe(_matchable(label, y), secondary, ink.get('color'))
                 if err:
-                    self.spec.errorbars(points, yerr=kept[2],
-                                        **self._style(table, color, {}, label=series, lone=True))
+                    recipe.errorbars(points, yerr=kept[2], **ink)
                 options = {'size': kept[-1]} if sizes else _size(size, table)
                 if 'size' not in options:
                     options.update(_marker_look(len(points), len(xs)))
-                self.spec.scatter(points, name=series, marker=marker, **options,
-                                  **self._style(table, color, style, mark=True, label=series,
-                                                lone=True))
+                recipe.scatter(points, name=series, marker=marker, **options,
+                               **self._style(table, color, style, mark=True, label=series,
+                                             lone=True))
             self._named += sum(1 for group in _groups(table, color, xs, ys) if group[0] is not None)
         if text is not None:
             labels = _column(table, text, 'text')
@@ -903,15 +953,36 @@ class Chart(_Renderable):
 
     # Labels and layout.
 
-    def labels(self, *, x=None, y=None, title=None):
-        """Set axis titles and the chart title (all optional)."""
+    def labels(self, *, x=None, y=None, title=None, y2=None):
+        """Set axis titles and the chart title (all optional).
+
+        `y2` titles the right-hand axis that `secondary_y=` makes; it defaults
+        to the names of the series on it.
+        """
         if x is not None:
             self.xlabel = x
         if y is not None:
             self.ylabel = y
         if title is not None:
             self.title = title
+        if y2 is not None:
+            self.y2label = y2
         return self
+
+    def twin_y(self, *args, **kwargs):
+        """Not on a quick chart: use `secondary_y=` for a right-hand axis.
+
+        A bare `PlotSpec` handed back here would sit outside this chart, so
+        its marks would miss the palette and the key.
+        """
+        raise TypeError('chart.twin_y() is not available on a quick chart; pass secondary_y= '
+                        'naming the series for the right-hand axis, e.g. '
+                        'i.line(df, x=..., y=["rain", "temp"], secondary_y="temp")')
+
+    def twin_x(self, *args, **kwargs):
+        """Refused, for the same reason as `twin_y`: a quick chart has one x axis."""
+        raise TypeError('chart.twin_x() is not available on a quick chart; a second x scale '
+                        'needs the document model (inklet.plot_spec) instead')
 
     def size(self, width=None, height=None):
         """Width as 'single', 'double', 'slide' or millimetres; height in mm."""
@@ -972,10 +1043,13 @@ class Chart(_Renderable):
             rows, options = self._forest
             return component(_forest_figure, rows, options, label=self.xlabel or None)
         spec = self.spec.copy()
+        if self._secondary is not None:
+            # The title and colour depend on every series on the right, so they
+            # are set on the copy the plot is built from, as its keyed instruction.
+            spec.style(_RIGHT_AXIS, **self._right_options())
         if self._series_tokens or self._has_tokens():
             theme = (profile or self._profile()).theme
-            spec._steps = [(key, method, args, _resolve_tokens(kwargs, theme.palette, theme.paper))
-                           for key, method, args, kwargs in spec._steps]
+            _resolve_steps(spec, theme)
         xlabel = self.xlabel if self.xlabel is not None else self._auto_labels.get('x')
         ylabel = self.ylabel if self.ylabel is not None else self._auto_labels.get('y')
         methods = {step[1] for step in spec._steps}
@@ -1079,12 +1153,65 @@ class Chart(_Renderable):
                 self._auto_labels[axis] = name
         return self
 
+    def _recipe(self, label, secondary, colour):
+        """The recipe a series is drawn into: the right-hand axis's when
+        `secondary_y=` names it, otherwise this chart's own.
+
+        The right-hand axis is a `twin_y` instruction on this chart, so it is
+        keyed, and `plot()` gives it the title and colour it needs.
+        """
+        if label is None or label not in secondary:
+            return self.spec
+        from .document import plot_spec
+        self._right_series.setdefault(str(label), colour)
+        if self._secondary is None:
+            # Its scale is fitted to its own series when the plot is built, and
+            # its title and colour are set then, from every series on it.
+            self._secondary = plot_spec()
+            self.spec._record('twin_y', (self._secondary,), {'scale': None}, _RIGHT_AXIS)
+        return self._secondary
+
+    def _check_secondary(self, secondary, drawn):
+        """Refuse `secondary_y=` before drawing: a name that matches no series,
+        or one that would leave the left axis with nothing on it."""
+        if not secondary:
+            return
+        missing = [name for name in secondary if name not in drawn]
+        if missing:
+            named = ', '.join(repr(name) for name in missing)
+            available = ', '.join(repr(name) for name in drawn if name is not None)
+            raise ValueError(f'secondary_y= names {named}, which this chart does not draw as a '
+                             f'series; it draws {available or "none"}. Name a y column, or a '
+                             'colour group when color= is set')
+        left_is_empty = all(name in secondary for name in drawn)
+        if left_is_empty and not any(step[0] != _RIGHT_AXIS for step in self.spec._steps):
+            raise ValueError('secondary_y= puts every series on the right-hand axis, which leaves '
+                             'the left axis with nothing to show; keep one series on the left, '
+                             'or plot the right-hand quantity as a second chart')
+
+    def _right_options(self):
+        """The right-hand axis's title and colour, from the series on it.
+
+        The colour is only given when one series is on the axis, so the axis
+        is that series' colour; with several, the axis is plain ink.
+        """
+        if self._secondary is None:
+            return None
+        title = self.y2label if self.y2label is not None else ', '.join(self._right_series)
+        colours = list(self._right_series.values())
+        colour = colours[0] if len(colours) == 1 else None
+        return {'label': title, 'color': colour}
+
     def _has_tokens(self):
         def token(value):
             if isinstance(value, str):
                 return value.startswith((_TOKEN, _TINT, _SOFT))
             return isinstance(value, (list, tuple)) and any(token(v) for v in value)
-        return any(token(v) for step in self.spec._steps for v in step[3].values())
+
+        def tokens_in(spec):
+            return any(token(v) for step in spec._steps for v in step[3].values()) or any(
+                tokens_in(step[2][0]) for step in spec._steps if step[1] in ('twin_x', 'twin_y'))
+        return tokens_in(self.spec)
 
     def _token(self, label):
         """The palette slot a named series is drawn in, stable across layers.
@@ -1121,12 +1248,13 @@ class Chart(_Renderable):
             options['stroke_width'] = stroke_width
         return options
 
-    def _series(self, table, x, y, color, error_y, gaps=False):
+    def _series(self, table, x, y, color, error_y, gaps=False, secondary=()):
         """[(name, xs, ys, err)], one per `color` group or per `y` column.
 
         Without `y`, every numeric column other than `x` is a series, as in
         `DataFrame.plot()`. `gaps` keeps rows with a missing y for `line`
-        to break its path at (see `_groups`).
+        to break its path at (see `_groups`). `secondary` names the series
+        on the right-hand axis, which the left axis's title leaves out.
         """
         if y is None and table is not None:
             y = [name for name, values in table.items()
@@ -1143,8 +1271,11 @@ class Chart(_Renderable):
                     out.append((col, gx, gy, None))
             self._named += len(ys_names)
             self._labelled(x, None)
-            if len(ys_names) == 1:
-                self._labelled(None, ys_names[0])
+            # The left axis names what is left on it. Several columns with no
+            # right-hand axis stay unnamed, as they always have been.
+            left = [col for col in ys_names if col not in secondary]
+            if left and (len(ys_names) == 1 or secondary):
+                self._labelled(None, ', '.join(map(str, left)))
             return out
         ys = _column(table, y, 'y')
         xs = _column(table, x, 'x') if x is not None else _index(table, None, len(ys))
@@ -1253,6 +1384,19 @@ def _resolve_tokens(kwargs, palette, paper='#ffffff'):
             return type(value)(resolve(v) for v in value)
         return value
     return {key: resolve(value) for key, value in kwargs.items()}
+
+
+def _resolve_steps(spec, theme):
+    """Colour a recipe's palette slots in place, and those of its twin axes too.
+
+    A twin's marks are recorded in their own recipe, so resolving only the
+    parent's steps would leave their `@series` names in the drawing.
+    """
+    spec._steps = [(key, method, args, _resolve_tokens(kwargs, theme.palette, theme.paper))
+                   for key, method, args, kwargs in spec._steps]
+    for _, method, args, _ in spec._steps:
+        if method in ('twin_x', 'twin_y'):
+            _resolve_steps(args[0], theme)
 
 
 def _index(table, column, length=None):
@@ -1628,12 +1772,24 @@ def _share_domains(charts, own):
     """Set every facet's axes to the union of all their data."""
     from .plot.autodomain import measure
     from .plot.scale import log as log_scale
-    steps = []
+    steps, right = [], []
     neutral = ('#000000',)
     for chart in charts:
-        for _, method, args, kwargs in chart.spec._steps:
-            steps.append((method, args, _resolve_tokens(kwargs, neutral)))
+        steps.extend((method, args, _resolve_tokens(kwargs, neutral))
+                     for _, method, args, kwargs in chart.spec._steps)
+        if chart._secondary is not None:
+            right.extend((method, args, _resolve_tokens(kwargs, neutral))
+                         for _, method, args, kwargs in chart._secondary._steps)
     x, y = measure(steps, 60, 40)
+    if right:
+        # The right-hand axis shares x with the left, and its own y is the
+        # union of the right-hand series alone, never the left's.
+        x = measure(steps + right, 60, 40)[0]
+        domain = measure(right, 60, 40)[1].domain()
+        if domain is not None:
+            for chart in charts:
+                if chart._secondary is not None:
+                    chart.spec.style(_RIGHT_AXIS, scale=domain)
     for name, axis, lim, scale in (('x', x, 'xlim', own.get('xscale', 'linear')),
                                    ('y', y, 'ylim', own.get('yscale', 'linear'))):
         if own.get(lim) is not None:

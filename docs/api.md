@@ -20,8 +20,8 @@ in parent nodes, so handles created before layout still resolve in the figure.
 
 One plot: marks on shared axes, with a size and a preset.
 
-* `line(data=None, x=None, y=None, *, color=None, name=None, markers=False, error_y=None, dash=None, linewidth=None, sort=True, gaps='break', **style)` -- Lines through (x, y), one per `color` group or per `y` column.
-* `scatter(data=None, x=None, y=None, *, color=None, size=None, name=None, marker='circle', palette=None, error_y=None, text=None, **style)` -- Points at (x, y). A numeric `color` column with many values is a ramp.
+* `line(data=None, x=None, y=None, *, color=None, name=None, markers=False, error_y=None, dash=None, linewidth=None, sort=True, gaps='break', secondary_y=None, **style)` -- Lines through (x, y), one per `color` group or per `y` column.
+* `scatter(data=None, x=None, y=None, *, color=None, size=None, name=None, marker='circle', palette=None, error_y=None, text=None, secondary_y=None, **style)` -- Points at (x, y). A numeric `color` column with many values is a ramp.
 * `bar(data=None, x=None, y=None, *, color=None, name=None, orient='v', stacked=False, error_y=None, labels=None, agg='sum', points=False, **style)` -- Bars of `y` at each `x` category; `color` groups side by side or stacked.
 * `hist(data=None, x=None, *, color=None, bins=20, density=False, name=None, cumulative=False, **style)` -- Histogram of `x`; one overlaid histogram per `color` group.
 * `kde(data=None, x=None, *, color=None, fill=False, name=None, **style)` -- Kernel density estimate of `x`, one curve per `color` group.
@@ -35,7 +35,9 @@ One plot: marks on shared axes, with a size and a preset.
 * `survival(data=None, time=None, event=None, *, color=None, at_risk=True, pvalue=True, band='log-log', confidence=0.95, censors=True, **style)` -- Kaplan-Meier survival curves: `time` durations and `event` flags, one curve per `color` group.
 * `volcano(data=None, x=None, y=None, *, label=None, labels=None, highlight=None, q=None, **style)` -- A volcano plot: `x` the log2 fold change, `y` the raw p-value, one point per row.
 * `forest(data=None, label=None, estimate=None, lower=None, upper=None, *, weight=None, summary=None, left=('label',), right=('ci',), log=False, null=None, limits=None, measure='Estimate', digits=2, **style)` -- A forest plot: one row per study, with its estimate and confidence interval.
-* `labels(*, x=None, y=None, title=None)` -- Set axis titles and the chart title (all optional).
+* `labels(*, x=None, y=None, title=None, y2=None)` -- Set axis titles and the chart title (all optional).
+* `twin_y(*args, **kwargs)` -- Not on a quick chart: use `secondary_y=` for a right-hand axis.
+* `twin_x(*args, **kwargs)` -- Refused, for the same reason as `twin_y`: a quick chart has one x axis.
 * `size(width=None, height=None)` -- Width as 'single', 'double', 'slide' or millimetres; height in mm.
 * `plot(width=None, profile=None, rotate=False)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
 * `document(rotate=frozenset())` -- A `Document` holding this chart, sized and styled; add cells to grow it.
