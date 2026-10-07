@@ -235,6 +235,8 @@ class Composition(BuildSpec):
 
     def annotate(self, target, text, **options):
         """Place a measured callout; a unique name enables saved label editing."""
+        from ..draw.annotate import check_annotation_text
+        check_annotation_text(text)
         name = options.get('name')
         if name is not None:
             if not isinstance(name,str) or not name: raise ValueError('annotation name must be a nonempty string')

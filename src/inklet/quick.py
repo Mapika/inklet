@@ -913,6 +913,48 @@ class Chart(_Renderable):
             self.title = title
         return self
 
+    def colorbar(self, **options):
+        """Draw the colour bar, or update the one already drawn.
+
+        Takes the keywords of `Panel.colorbar` (`title=`, `side=`...). A heatmap
+        or a scatter coloured by a numeric column already draws a bar; a second
+        one for the same ramp is the DUPLICATE_KEY lint reports. So this never
+        adds a bar when one is recorded: the new keywords are merged into the
+        recorded bar's options, and the ones it did not name keep their values.
+        """
+        return self._once('colorbar', options, merge=True)
+
+    def legend(self, **options):
+        """Draw the key, or replace the key already recorded.
+
+        Takes the keywords of `Panel.legend` (`corner=`, `side=`, `title=`...).
+        A second call does not add a second key, which lint reports as
+        DUPLICATE_KEY when both key the same entries. Its keywords replace the
+        recorded key's options as a whole, so anything the first call set and
+        the second leaves out goes back to the default.
+        """
+        return self._once('legend', options, merge=False)
+
+    def _once(self, method, options, *, merge):
+        """Record `method` on the spec, keeping one step of that kind.
+
+        The call is recorded by the same code a first call uses, so nothing
+        about it is special-cased; the step it just added is then taken back
+        out and folded into the earlier one. That keeps the spec's own rules
+        (a duplicate key, a bad signature) in force for the update too.
+        """
+        spec = self.spec
+        earlier = [i for i, step in enumerate(spec._steps) if step[1] == method]
+        getattr(spec, method)(**options)
+        if not earlier:
+            return self
+        key, _, _, fresh = spec._steps.pop()
+        i = earlier[-1]
+        old_key, name, args, kwargs = spec._steps[i]
+        spec._steps[i] = (key if key is not None else old_key, name, args,
+                          (kwargs | fresh) if merge else fresh)
+        return self
+
     def size(self, width=None, height=None):
         """Width as 'single', 'double', 'slide' or millimetres; height in mm."""
         if width is not None:

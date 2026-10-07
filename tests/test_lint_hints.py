@@ -179,6 +179,11 @@ def test_two_legends_with_different_entries_are_left_alone():
 # -- 4. leaders with no label ------------------------------------------------
 
 
+def _blank_label():
+    """A label with no words, as a Diagram: `annotate` now refuses an empty string."""
+    return i.text("", kind="label")
+
+
 def _annotated(text, **options):
     box = i.box("target", width=20, height=10)
     figure = i.figure(width="96mm")
@@ -187,7 +192,7 @@ def _annotated(text, **options):
 
 
 def test_a_leader_drawn_for_an_empty_label_is_an_orphan_leader():
-    (finding,) = _codes(_annotated(""), "ORPHAN_LEADER")
+    (finding,) = _codes(_annotated(_blank_label()), "ORPHAN_LEADER")
     assert finding.severity == "warning"
     assert "drawn for an empty label" in finding.message
     assert "the label ''" in finding.message
@@ -199,7 +204,7 @@ def test_a_leader_with_text_at_its_end_is_not_an_orphan():
 
 
 def test_an_empty_label_without_a_leader_is_not_an_orphan():
-    assert _codes(_annotated("", leader=False), "ORPHAN_LEADER") == []
+    assert _codes(_annotated(_blank_label(), leader=False), "ORPHAN_LEADER") == []
 
 
 def _point_labels(words):

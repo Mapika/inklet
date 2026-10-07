@@ -242,6 +242,9 @@ class PlotSpec(BuildSpec):
         avoid_marks=False for the legacy placement policy or supply avoid=.
         Crowded layouts still report remaining conflicts in diagnostics.
         """
+        # Refused here, at the line that wrote it, not when the page compiles.
+        from ..draw.annotate import check_annotation_text
+        check_annotation_text(text)
         return self._record('annotate', (x,y,text), dict(_avoid_marks=avoid_marks, **options), key)
 
     def group_labels(self, categories, *, key=None, **kwargs):

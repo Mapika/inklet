@@ -208,6 +208,7 @@ def annotate(target: Diagram | AnchorRef, text: str | Diagram, *,
     against each other before calling this at all; letting the local search
     then move one of them would quietly undo the global decision.
     """
+    check_annotation_text(text)
     node = (target.diagram if isinstance(target, AnchorRef)
             else needs_diagram("annotate", target,
                                "the diagram being labelled"))
@@ -321,6 +322,20 @@ def label_slot(target: Diagram | AnchorRef, body: Diagram, *,
     reach, centre = _reach_of(here, target)
     at = _label_centre(body, reach, centre, mm(clear), _DIRECTION[side])
     return Rect.from_size(body.width, body.height, at)
+
+
+def check_annotation_text(text) -> None:
+    """Refuse a label with no words in it, before anything is drawn.
+
+    A leader drawn to an empty label ends at bare paper, a line pointing at
+    nothing (lint's ORPHAN_LEADER). An empty string is almost always a variable
+    that was never filled in, so it is an error rather than a quiet no-op. A
+    Diagram body is the caller's own label and is not second-guessed.
+    """
+    if isinstance(text, str) and not text.strip():
+        raise ValueError(
+            "annotate() needs text: an empty label leaves its leader pointing at "
+            "nothing. Give the label its words, or leave the call out.")
 
 
 def _text(content: str, size: float | str | None, align: str,

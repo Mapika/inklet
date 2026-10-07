@@ -58,6 +58,9 @@ def validate(value):
             raise ValueError('invalid label kind or fields')
         for name, val in fields.items():
             if name=='text' and not isinstance(val, str): raise ValueError('label text must be a string')
+            # An annotation with no words would be refused when the page compiles; say so here instead.
+            if name=='text' and kind in ('plot-annotate', 'composition-annotation') and not val.strip():
+                raise ValueError('an annotation label needs text; leave it out rather than blanking it')
             if name=='side' and val not in ('n','ne','e','se','s','sw','w','nw'):
                 raise ValueError('invalid annotation side')
             if name=='leader' and type(val) is not bool: raise ValueError('label leader must be a boolean')

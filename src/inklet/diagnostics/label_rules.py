@@ -64,9 +64,10 @@ def rule_orphan_leader(ctx: LintContext) -> list[Diagnostic]:
     """Leaders drawn to a label with no text in it.
 
     A leader is a line whose only job is to reach a label. When the label is
-    empty (`annotate(target, '')`, or a `label_points` entry that is '') the
-    line can still be drawn, and it ends at bare paper. Two shapes are checked,
-    the two the library draws:
+    empty (a blank Diagram body, or a `label_points` entry that is '') the
+    line can still be drawn, and it ends at bare paper. `annotate` itself
+    refuses an empty string, so the `annotate` case here is a blank body. Two
+    shapes are checked, the two the library draws:
 
     * an `annotate` call: a `link` leader beside its `annotation-label`;
     * a `label_points` group: the `mark-line` leaders the placer recorded in its
