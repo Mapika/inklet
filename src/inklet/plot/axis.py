@@ -437,7 +437,10 @@ def tick_texts(scale: Scale, values: Sequence, format=None,
     base = si_labels(values) if si else scale.tick_labels(values)
     if isinstance(format, str):
         if "{" in format:
-            return tuple(format.format(v) for v in values)
+            # A format spec writes an ASCII hyphen; set it as the true minus,
+            # like the scale's own labels, so mixed axes read alike.
+            from .scale import _minus
+            return tuple(_minus(format.format(v)) for v in values)
         return tuple(text + format for text in base)
     return tuple(base)
 
