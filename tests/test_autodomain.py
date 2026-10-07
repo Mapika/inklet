@@ -145,3 +145,15 @@ def test_an_extended_ecdf_is_fitted_to_its_samples():
     x, y = _fit(('ecdf', (values,), {}))
     assert 0 <= x[0] <= 50 and 400 <= x[1] <= 450
     assert y == (0.0, 1.0)
+
+
+def test_a_waterfall_on_string_steps_fits_its_running_totals():
+    chart = i.chart()
+    chart.spec.waterfall(['a', 'b', 'Total'], [100, 45, None], totals=['Total'])
+    assert [d.code for d in chart.compile().lint()] == []
+
+
+def test_a_slope_chart_fits_its_values_and_takes_string_time_points():
+    chart = i.chart()
+    chart.spec.slope({'A': [10, 20], 'B': [30, 15]}, at=['2015', '2025'])
+    assert [d.code for d in chart.compile().lint()] == []

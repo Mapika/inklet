@@ -40,7 +40,8 @@ _POINTS = frozenset({
 })
 
 #: Marks whose first positional argument is a sequence of positions.
-_AT = frozenset({'bars', 'lollipop', 'barplot', 'dotplot', 'dumbbell'})
+_AT = frozenset({'bars', 'lollipop', 'barplot', 'dotplot', 'dumbbell', 'waterfall',
+                  'slope'})
 
 #: Marks drawn from `groups`: a mapping of position to samples, or a list.
 _GROUPS = frozenset({'boxplot', 'violin', 'strip', 'swarm', 'boxen', 'sina',
@@ -330,9 +331,39 @@ def _read_direct(method, arguments, x: _Axis, y: _Axis) -> bool:
     elif method in ('text', 'annotate'):
         x.add(arguments.get('x'))
         y.add(arguments.get('y'))
+    elif method == 'waterfall' and 'values' in arguments:
+        _read_waterfall(arguments, x, y)
+    elif method == 'slope' and isinstance(arguments.get('values'), Mapping):
+        # String time points are band categories (see `_categories`); numbers are positions.
+        if arguments.get('at') is not None:
+            x.extend([a for a in arguments['at'] if not isinstance(a, str)])
+        for series in arguments['values'].values():
+            y.extend(series)
     else:
         return False
     return True
+
+
+def _read_waterfall(arguments, x: _Axis, y: _Axis):
+    """The running totals, read the way `waterfall` computes them."""
+    from .waterfall import waterfall_steps
+    places = list(arguments['at'])
+    indices = []
+    for item in arguments.get('totals') or ():
+        if isinstance(item, int) and not isinstance(item, bool) and item not in places:
+            indices.append(item)
+        elif item in places:
+            indices.append(places.index(item))
+    try:
+        steps = waterfall_steps(arguments['values'], indices,
+                                baseline=arguments.get('baseline', 0.0))
+    except Exception:
+        return  # the draw reports it
+    position, value = (y, x) if _orient(arguments) else (x, y)
+    position.extend([p for p in places if not isinstance(p, str)])
+    for step in steps:
+        value.add(step.start)
+        value.add(step.end)
 
 
 def _probe(method, args, kwargs, x: _Axis, y: _Axis, width, height):
