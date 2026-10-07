@@ -41,6 +41,10 @@ coding agents.
 
 ### Changed
 
+- One-call charts stay small on big tables: a scatter panel past 20,000
+  points is drawn as one raster image of its markers at the preset's dpi
+  (`raster=None|True|False`), and a line thins itself with `simplify='auto'`
+  (0.02 mm, past 40 points per mm of width). Axes, labels and keys stay vector.
 - `plot_spec()` without `x=`/`y=` fits each axis to the recorded marks when
   the data fall outside the unit domain, instead of drawing them outside the
   plot. `x='auto'` always fits, and `x='log'` fits a log scale. Points, rules
