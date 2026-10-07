@@ -4,7 +4,8 @@ Make a publication-sized chart from a table in one line, then save it as SVG,
 PDF or PNG. Each chart is a regular Inklet plot in a preset document, so
 layout, typography and diagnostics work exactly as they do elsewhere, and
 you can move to the [full document model](quickstart.md) when a figure
-needs more.
+needs more. The [chart gallery](quick-gallery.md) shows every chart type
+with the code that drew it.
 
 ```python
 import inklet as i
