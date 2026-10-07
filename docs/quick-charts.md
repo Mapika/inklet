@@ -59,8 +59,10 @@ Every function takes these:
 | `xscale`, `yscale` | `'linear'` or `'log'` |
 | `legend` | `'auto'`, `'direct'` (names at the ends of the lines instead of a key), a side (`'bottom'`), a corner (`'ne'`) or `False` |
 | `facet_col`, `facet_row` | Columns to split into a grid of charts on shared axes; `facet_col_wrap=` sets charts per row |
+| `facet_order` | The facet values in draw order: a list for every facet, or a dict from column name to list. Numbers and dates default to ascending, text to first appearance; a list must name every value |
 | `grid` | `True`, `False`, `'x'` or `'y'` |
 | `xticks`, `yticks` | The tick values to show, such as `xticks=[0, 5, 10, 15, 20]` |
+| `xminor`, `yminor` | `True` for unlabelled minor ticks between the major ones, or an integer: the number of pieces each step divides into |
 
 ## Layer, annotate and refine
 

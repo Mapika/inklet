@@ -44,8 +44,10 @@ Chart options, accepted by every function above:
 | `xscale`, `yscale` | `'linear'` or `'log'` |
 | `legend` | `'auto'` (default), `'direct'` (names at the line ends, no key), `'top'`, `'bottom'`, `'left'`, `'right'`, a corner `'ne'`, or `False` |
 | `facet_col`, `facet_row` | column names: one chart per value, on shared axes, in a grid; `facet_col_wrap=3` wraps |
+| `facet_order` | the facet values in draw order: a list for every facet, or a dict of column name to list. Default: numbers and dates ascending, text in first-appearance order; a list must name every value |
 | `grid` | `True`, `False`, `'x'`, `'y'` |
 | `xticks`, `yticks` | the tick values to show, e.g. `xticks=[0, 5, 10, 15, 20]` |
+| `xminor`, `yminor` | `True` for unlabelled minor ticks, or an integer: how many pieces each major step divides into |
 
 ## Layering and annotating
 
