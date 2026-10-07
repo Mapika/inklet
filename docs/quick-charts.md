@@ -54,9 +54,10 @@ Every function takes these:
 
 | Option | Values |
 |---|---|
-| `width` | `'single'` (89 mm, default), `'double'` (183 mm), `'slide'`, or millimetres |
+| `width` | `'single'` (89 mm), `'double'` (183 mm), `'slide'` (254 mm), or millimetres. Unset, a row defaults to double and a Preset keeps its own page; see [multi-panel figures](#multi-panel-figures) |
 | `height` | Millimetres. The default is about 0.62 × width, kept between 45 and 75 mm |
-| `style` | A [preset](presets.md); default `'scientific.modern'`: marks in the `inklet-vivid` palette on grey axes |
+| `style` | A [preset](presets.md) name; default `'scientific.modern'`: marks in the `inklet-vivid` palette on grey axes. Or a Preset object, such as `i.preset('scientific.modern').customize(font_pt=12)` |
+| `font_pt` | The main type size in points. Ticks and the key are 6/7 of it, titles 9/7 |
 | `palette` | A [palette name](palettes.md) such as `'okabe-ito'` or `'tol-muted'`, or a list of colours |
 | `title`, `xlabel`, `ylabel` | Text; [markup](axes-and-scales.md) such as `x^{2}` works |
 | `xlim`, `ylim` | `(low, high)`. Explicit limits zoom, and marks beyond them are clipped |
@@ -110,7 +111,10 @@ figure.save('figure1.pdf')
 
 ![Three panels: a time course and a box plot above a histogram spanning both columns](assets/examples/quick-layout.svg)
 
-A row defaults to double-column width.
+A row defaults to double-column width. When every chart in a row sets its
+width in millimetres, the row is as wide as they are together, with the gaps
+between them, and each panel keeps its own width. A width the layout cannot
+use raises a `UserWarning`; set the width on the layout instead.
 
 ## Check before you submit
 
