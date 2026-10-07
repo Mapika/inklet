@@ -130,6 +130,16 @@ def test_volcano_q_is_passed_with_its_missing_values_kept():
     assert list(kwargs['q']) == VOLCANO['fdr']
 
 
+def test_volcano_accepts_labels_as_the_panel_spelling_of_label():
+    # Agents guess `labels=` from Panel.volcano; it must mean the same column.
+    by_label = i.volcano(VOLCANO, x='log2fc', y='p', label='gene', highlight=['G0'])
+    by_labels = i.volcano(VOLCANO, x='log2fc', y='p', labels='gene', highlight=['G0'])
+    assert by_labels.to_svg() == by_label.to_svg()
+    assert list(_step(by_labels, 'volcano')[3]['labels']) == VOLCANO['gene']
+    with pytest.raises(ValueError, match='not both'):
+        i.volcano(VOLCANO, x='log2fc', y='p', label='gene', labels='gene')
+
+
 def test_volcano_drops_rows_missing_fold_or_p():
     table = {**VOLCANO, 'p': [None] + VOLCANO['p'][1:]}
     chart = i.volcano(table, x='log2fc', y='p', label='gene')

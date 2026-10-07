@@ -716,17 +716,23 @@ class Chart(_Renderable):
             self.spec.configure(y=(0, 1))
         return self._labelled(time, 'Survival probability')
 
-    def volcano(self, data=None, x=None, y=None, *, label=None, highlight=None, q=None, **style):
+    def volcano(self, data=None, x=None, y=None, *, label=None, labels=None, highlight=None, q=None, **style):
         """A volcano plot: `x` the log2 fold change, `y` the raw p-value, one point per row.
 
         Rows missing a fold change or p-value are dropped. `q=` names an
         adjusted p-value column, which classes the points by FDR (a missing q
-        makes that point "ns"). `label=` names each feature and `highlight=`
-        lists the features to name on the plot. Other keywords go to
-        `Panel.volcano`: `top=`, `fold_threshold=`, `p_threshold=`, `color=`.
+        makes that point "ns"). `label=` (or `labels=`, the name `Panel.volcano`
+        uses) names each feature and `highlight=` lists the features to name on
+        the plot. Other keywords go to `Panel.volcano`: `top=`,
+        `fold_threshold=`, `p_threshold=`, `color=`.
 
             i.volcano(df, x='log2fc', y='p', label='gene', q='fdr', highlight=['CRISPLD2'])
         """
+        if labels is not None:
+            # Both spellings name the same column; passing both would be ambiguous.
+            if label is not None:
+                raise ValueError('volcano takes label= or labels=, not both')
+            label = labels
         table = _table(data)
         if x is None or y is None:
             raise ValueError('volcano needs x= (log2 fold change) and y= (raw p-values)')

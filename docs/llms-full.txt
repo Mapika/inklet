@@ -106,6 +106,16 @@ A row defaults to double-column width. Set the layout width with
    prints the report, writes a preview, and exits 1 when there are errors
    (`--strict` also fails on warnings, `--json` gives machine-readable output).
 
+A script that `check` or `build` loads supplies its figure one of two ways.
+Define `make_document()`, `make_figure()` or `make_chart()` and return the
+figure; the first one defined, in that order, is called. Or leave a Document,
+Chart, Layout, CompiledFigure or Figure at module level. The figure is chosen
+by type, so other module-level values (a matplotlib `fig`, a DataFrame) are
+ignored. Name the figure `chart`, `doc`, `fig` or `figure` (first match wins)
+when the script has several inklet objects. With no such name, the only inklet
+object is used. Two unnamed ones are an error, and so is a script with none;
+the error lists the module-level names it found.
+
 `chart.show()` displays inline in Jupyter; outside a notebook it writes an SVG
 and returns its path. Nothing opens a window or blocks, so scripts run headless.
 
