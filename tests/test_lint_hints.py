@@ -81,11 +81,15 @@ def test_an_axis_already_turned_is_not_told_to_turn_again():
 
 
 def _hline_figure():
-    """A reference line whose label sits on a column of points."""
+    """A label written on top of a column of points.
+
+    Placed with `text`, which goes exactly where it is told: a rule's
+    `label=` now searches for clear space and would not overlap.
+    """
     points = [(x / 10, 60 + y / 2) for x in range(60, 101, 4) for y in range(0, 12, 2)]
     panel = i.panel(60, 40, x=(0, 10), y=(0, 100))
     panel.scatter(points, name="data")
-    panel.hline(63.9, label="mean 63.9")
+    panel.text(8.0, 63.9, "mean 63.9")
     panel.axis("bottom").axis("left")
     figure = i.figure(width="96mm")
     figure.add(panel.build())
@@ -99,12 +103,23 @@ def test_a_labelled_text_node_is_named_by_its_words_and_kind_with_the_id_last():
                      overlap.message)
 
 
-def test_a_crowding_hint_moves_the_label_by_its_words():
-    found = _hline_figure()
-    hints = [d.hint for d in found if d.code == "CROWDING" and "rather than the mark" in d.hint]
-    assert hints
-    assert all(re.search(r"move the label 'mean 63\.9' \(label\d+\) rather than the mark", h)
-               for h in hints)
+def _near_miss_figure(y):
+    """A label set just above a column of points, near enough to crowd them."""
+    points = [(x / 10, 60 + k / 2) for x in range(60, 101, 4) for k in range(0, 12, 2)]
+    panel = i.panel(60, 40, x=(0, 10), y=(0, 100))
+    panel.scatter(points, name="data")
+    panel.text(8.0, y, "mean 63.9")
+    panel.axis("bottom").axis("left")
+    figure = i.figure(width="96mm")
+    figure.add(panel.build())
+    return _quietly(lambda: figure.lint())
+
+
+def test_a_crowding_finding_names_the_label_by_its_words():
+    found = _near_miss_figure(69.0)
+    crowding = [d for d in found if d.code == "CROWDING"]
+    assert crowding
+    assert all(re.search(r"the label 'mean 63\.9' \(label\d+\)", d.message) for d in crowding)
 
 
 def test_no_message_leads_with_a_bare_internal_id():
