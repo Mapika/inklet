@@ -106,4 +106,6 @@ class _MeasuredTime(Time):
     def offset_label(self, ticks):
         if self.mode == 'utc' and abs(self.milliseconds[1]-self.milliseconds[0]) < 10000 and ticks:
             return ticks[0].date().isoformat() if len({t.date() for t in ticks}) == 1 else None
-        return Time.offset_label(self, ticks)
+        # The calendar labels carry their own date now; nothing is left over
+        # to write past the last tick.
+        return None

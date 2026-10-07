@@ -100,12 +100,12 @@ def test_four_decades_become_powers() -> None:
 # --- the year on a date axis -------------------------------------------------
 
 
-def test_a_single_year_is_written_once_at_the_end() -> None:
+def test_a_single_year_is_written_once_on_the_first_tick() -> None:
     p = panel(60, 30, x=dates((DAYS[0], DAYS[-1])), y=(0, 10))
     p.axis("bottom")
     written = words(p.build())
-    assert written.count("2024") == 1
-    assert written[-1] == "2024"
+    assert written[0] == "1 Mar 2024"
+    assert not any(word.isdigit() for word in written)
 
 
 def test_an_axis_that_crosses_new_year_writes_years_on_the_ticks() -> None:

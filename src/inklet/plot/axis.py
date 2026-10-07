@@ -192,13 +192,11 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
     whichever face the reader has installed. `tnum=False` gets the font's own
     digits back.
 
-    `offset` is the part of every tick label that the whole set has in common,
-    written once past the last tick instead of on each of them: the year, on a
-    date axis that sits inside one calendar year, or the date on an axis of
-    clock times inside one day. The default asks the scale, which is the only
-    object that knows; pass a string to write your own, or `False` for none.
-    Without it a monthly axis reads `Jan Apr Jul Oct` and never says the year,
-    and the author has to remember to put it in the axis name.
+    `offset` writes a string once past the last tick, for a part of every label
+    that the whole set has in common. A date axis does not need it: it writes
+    the year on its first tick (`Mar 2021 Apr May Jun`), and again wherever the
+    year changes, so the default writes nothing. Pass a string to add a note of
+    your own, or `False` to be sure nothing is added.
 
     `markup` says whether the tick labels are read as inklet's inline markup. The
     default asks the scale, and the answer is almost always no: a tick label is
