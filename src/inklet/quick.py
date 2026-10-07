@@ -23,6 +23,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 import math
 import warnings
+from datetime import date
 from numbers import Real
 from pathlib import Path
 
@@ -311,7 +312,7 @@ class Chart(_Renderable):
     def __init__(self, *, width='single', height=None, style='scientific.modern',
                  palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None,
                  xscale='linear', yscale='linear', legend='auto', grid=None,
-                 xticks=None, yticks=None):
+                 xticks=None, yticks=None, xminor=None, yminor=None):
         from .document import plot_spec
         for name, value in (('xscale', xscale), ('yscale', yscale)):
             if value not in ('linear', 'log'):
@@ -321,7 +322,8 @@ class Chart(_Renderable):
         self.title, self.xlabel, self.ylabel = title, xlabel, ylabel
         self.legend_side = legend
         self.xticks, self.yticks = xticks, yticks
-        options = {'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
+        self.xminor, self.yminor = xminor, yminor
+        options ={'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
         if xlim is not None or ylim is not None:
             # Explicit limits zoom: marks past them are cut at the axes.
             options['clip'] = True
@@ -722,6 +724,11 @@ class Chart(_Renderable):
                 x_options['ticks'] = tuple(self.xticks)
             if self.yticks is not None:
                 y_options['ticks'] = tuple(self.yticks)
+            # `minor=` is the axis option: True, or how many pieces each step divides into.
+            if self.xminor is not None:
+                x_options['minor'] = self.xminor
+            if self.yminor is not None:
+                y_options['minor'] = self.yminor
             if 'x' in self._hide_ticks:
                 x_options['labels'] = False
             if 'y' in self._hide_ticks:
@@ -1148,7 +1155,8 @@ class Layout(_Renderable):
 # -- top-level functions ----------------------------------------------------
 
 _CHART_OPTIONS = ('width', 'height', 'style', 'palette', 'title', 'xlabel', 'ylabel',
-                  'xlim', 'ylim', 'xscale', 'yscale', 'legend', 'grid', 'xticks', 'yticks')
+                  'xlim', 'ylim', 'xscale', 'yscale', 'legend', 'grid', 'xticks', 'yticks',
+                  'xminor', 'yminor')
 
 
 def chart(**options) -> Chart:
@@ -1160,7 +1168,29 @@ def _split(options):
     return ({k: options.pop(k) for k in _CHART_OPTIONS if k in options}, options)
 
 
-def _facet(method, data, args, own, rest, facet_col, facet_row, wrap):
+def _facet_values(values, what, name, facet_order):
+    """The distinct values of one facet, in the order they are drawn.
+
+    `facet_order` is a list, used for every facet, or a mapping from facet
+    column name to a list. Without an order, numbers and dates ascend and
+    anything else keeps the order it first appears in. An explicit list must
+    name every value in the data; extra names that match no row are ignored.
+    """
+    present = list(dict.fromkeys(v for v in values if v is not None))
+    order = facet_order.get(name) if isinstance(facet_order, Mapping) else facet_order
+    if order is not None:
+        order = list(dict.fromkeys(order))
+        missing = [v for v in present if v not in order]
+        if missing:
+            listed = ', '.join(repr(v) for v in missing)
+            raise ValueError(f'facet_order leaves out {listed} from {what}; list every value in the data')
+        return [v for v in order if v in present]
+    if present and all(isinstance(v, (Real, date)) and not isinstance(v, bool) for v in present):
+        return sorted(present)
+    return present
+
+
+def _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_order=None):
     """One chart per facet value, on shared scales, in a grid.
 
     Every facet is the same chart drawn from its subset of rows: same axes,
@@ -1170,10 +1200,17 @@ def _facet(method, data, args, own, rest, facet_col, facet_row, wrap):
     table = _table(data)
     if table is None:
         raise ValueError('facets need data=, a table with the facet column')
+    if isinstance(facet_order, Mapping):
+        unknown = [k for k in facet_order if k not in (facet_col, facet_row)]
+        if unknown:
+            raise ValueError(f'facet_order names {", ".join(map(repr, unknown))}, which is not '
+                             'facet_col or facet_row')
     rows_by = _column(table, facet_row, 'facet_row') if facet_row else None
     cols_by = _column(table, facet_col, 'facet_col') if facet_col else None
-    row_values = list(dict.fromkeys(v for v in rows_by if v is not None)) if rows_by else [None]
-    col_values = list(dict.fromkeys(v for v in cols_by if v is not None)) if cols_by else [None]
+    row_values = (_facet_values(rows_by, 'facet_row', facet_row, facet_order)
+                  if rows_by else [None])
+    col_values = (_facet_values(cols_by, 'facet_col', facet_col, facet_order)
+                  if cols_by else [None])
     if facet_row and facet_col:
         cells, columns = [(r, c) for r in row_values for c in col_values], len(col_values)
     elif facet_col:
@@ -1243,9 +1280,12 @@ def _entry(method):
         facet_col = options.pop('facet_col', None)
         facet_row = options.pop('facet_row', None)
         wrap = options.pop('facet_col_wrap', None)
+        facet_order = options.pop('facet_order', None)
         own, rest = _split(options)
         if facet_col is not None or facet_row is not None:
-            return _facet(method, data, args, own, rest, facet_col, facet_row, wrap)
+            return _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_order)
+        if facet_order is not None:
+            raise ValueError('facet_order= orders facet values, so it needs facet_col= or facet_row=')
         if method == 'scatter' and 'palette' in own and _is_column(_table(data), rest.get('color')):
             rest['palette'] = own['palette']
         if method == 'heatmap' and 'palette' in own:
@@ -1259,9 +1299,14 @@ def _entry(method):
     style (a preset name, default 'scientific.general'), palette, title,
     xlabel, ylabel, xlim, ylim, xscale/yscale ('linear' or 'log'), legend
     ('auto', 'direct', a side, a corner or False), grid (True, False, 'x' or
-    'y'), xticks/yticks (the tick values to show).
+    'y'), xticks/yticks (the tick values to show), xminor/yminor (True, or
+    how many minor-tick pieces each major step divides into).
     Facets: `facet_col=` / `facet_row=` name columns to split into a grid
     of charts on shared axes; `facet_col_wrap=` sets the columns per row.
+    `facet_order=` lists the facet values in the order they are drawn: a
+    list for every facet, or a dict of column name to list when both
+    facets are set. Numbers and dates default to ascending, text to first
+    appearance; an explicit list must name every value.
     Returns a `Chart` (a `Layout` when faceted); call `.save('figure.pdf')`.
     '''
     return make

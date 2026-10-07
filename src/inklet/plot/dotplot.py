@@ -93,6 +93,27 @@ def area_scale(top: float, diameter: float | str) -> AreaScale:
     return AreaScale(float(top), mm(diameter))
 
 
+#: Words for the large values a key shows, largest first.
+_KEY_WORDS = ((1e12, "trillion"), (1e9, "billion"), (1e6, "million"))
+
+
+def _key_texts(values: Sequence[float], default: Sequence[str]) -> tuple[str, ...]:
+    """Default key labels: '10 million' and '1.5 billion' from a million up,
+    '50,000' from a thousand up, and the axis's own text below a thousand."""
+    out = []
+    for value, text in zip(values, default):
+        number = float(value)
+        if 1e6 <= number < 1e15:
+            scale, word = next((s, w) for s, w in _KEY_WORDS if number >= s)
+            mantissa = f"{number / scale:.2f}".rstrip("0").rstrip(".")
+            out.append(f"{mantissa} {word}")
+        elif 1e3 <= number < 1e6:
+            out.append(f"{number:,.6f}".rstrip("0").rstrip("."))
+        else:
+            out.append(text)
+    return tuple(out)
+
+
 def size_key(sizes: AreaScale, *, values: Sequence[float] | None = None,
              count: int = 3, format=None, title: str | None = None,
              orient: str = "v", fill: str | None = None,
@@ -103,7 +124,10 @@ def size_key(sizes: AreaScale, *, values: Sequence[float] | None = None,
 
     `sizes` is the `AreaScale` the marks were sized with. `values` names the
     reference values (default: `sizes.ticks(count)`); `format` is an axis
-    format, a callable or a string such as `"{:.0%}"`. With `orient="v"`
+    format, a callable or a string such as `"{:.0%}"`. Without a `format`,
+    large values read as words and thousands separators: `10 million`,
+    `1.5 billion`, `50,000`; values under a thousand are written as usual.
+    With `orient="v"`
     the circles stand in a column, each with its value to the right; with
     `orient="h"` they sit in a row with the values underneath. `fill`,
     `stroke` and `stroke_width` paint the circles (default: a grey fill and
@@ -119,7 +143,9 @@ def size_key(sizes: AreaScale, *, values: Sequence[float] | None = None,
     if any(float(v) <= 0 for v in shown):
         raise DiagramError("size key values must be positive; zero has no circle")
     size = theme.font_size_small if font_size is None else mm(font_size)
-    texts = tick_texts(linear((0.0, sizes.top)), shown, format)
+    scale = linear((0.0, sizes.top))
+    texts = (tick_texts(scale, shown, format) if format is not None
+             else _key_texts(shown, tick_texts(scale, shown)))
     paint = {"fill": _marks.series_colors(None, 1)[0] if fill is None else fill,
              "stroke": theme.ink if stroke is None else stroke,
              "stroke_width": theme.hairline if stroke_width is None else mm(stroke_width)}
