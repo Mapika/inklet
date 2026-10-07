@@ -43,6 +43,9 @@ are turned 45 degrees to fit.
 | `i.area(df, x, y, color=)` | Stacked areas (`stacked=False` overlays) |
 | `i.regression(df, x, y, color=)` | Points with a fitted line and confidence band |
 | `i.heatmap(rows, x=, y=)` | Colour matrix with a colour bar, or a long table with `z=` |
+| `i.survival(df, time=, event=, color=)` | Kaplan-Meier curves, one per group, with censor ticks, confidence bands, a number-at-risk table and a log-rank P. `event` is 1 or True for an event and 0 or False for a censored subject |
+| `i.volcano(df, x=, y=)` | Volcano plot: `x` the log2 fold change, `y` the raw p-value. `label=` names the features, `highlight=` names chosen ones, and `q=` classes the points by adjusted p |
+| `i.quick.forest(df, label=, estimate=, lower=, upper=)` | Forest plot, one row per study with its interval; `weight=` sizes the squares, `summary=` draws diamonds, and `right=` adds text columns. It is `inklet.quick.forest` because `inklet.forest(rows)` is the rows-list diagram |
 
 ## Chart options
 

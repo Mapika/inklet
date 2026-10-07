@@ -28,6 +28,9 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 | `i.area(df, x, y, color=)` | groups stack (values must be >= 0) | `stacked=False` overlays |
 | `i.regression(df, x, y, color=)` | points + fitted line + confidence band | `method='linear'` or `'lowess'` |
 | `i.heatmap(rows, x=col_labels, y=row_labels)` | or a long table: `i.heatmap(df, x=, y=, z=)` | first row is drawn at the top; `palette='viridis'` |
+| `i.survival(df, time=, event=, color=)` | Kaplan-Meier curves, one per group; `event` is 1/True for an event, 0/False for censored | `at_risk=True` table, `pvalue=True` log-rank P for 2+ groups, `band='log-log'`; survival runs 0 to 1 |
+| `i.volcano(df, x=, y=)` | `x` log2 fold change, `y` raw p-value | `label='col'` and `highlight=['name', ...]`, `q='col'` adjusted p colours by FDR |
+| `i.quick.forest(df, label=, estimate=, lower=, upper=)` | one row per study with its interval | `weight='col'`, `summary='col'` for diamonds, `log=True`, `right=['ci', 'n']`; `i.forest(rows)` is the rows-list diagram |
 
 `color=` that is not a column name is a literal colour: `color='#c1121f'`.
 
