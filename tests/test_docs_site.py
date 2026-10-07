@@ -160,6 +160,9 @@ def test_strict_site_has_working_assets_search_and_rendered_examples(tmp_path, m
     assert examples_html.count('srcset="../assets/thumbs/') == len(gallery)
     assert f'data-lightbox="../{gallery[0]["image"]}"' in examples_html
     assert 'srcset="assets/thumbs/' in (site/'index.html').read_text()
+    home = (site/'index.html').read_text()
+    assert 'assets/home/growth.svg' in home and 'class="codehilite"' in home
+    assert 'Charts in one call' in home and 'Why inklet' in home
     # Static templates such as the 404 page show the same version chip.
     assert 'class="version"' in (site/'404.html').read_text()
 
@@ -209,6 +212,31 @@ def test_homepage_example_runs_and_matches_its_published_figure(tmp_path, monkey
     produced = size.search((tmp_path/'two-panels.svg').read_text()).groups()
     published = size.search((ROOT/'docs/assets/examples/quickstart.svg').read_text()).groups()
     assert produced == published == ('183mm', '68mm')
+
+
+def test_home_chart_runs_and_matches_its_published_figure(tmp_path, monkeypatch):
+    """The hero's one-call chart is tools/docs_home_chart.py; tools/home_figure.py draws it.
+
+    The committed SVG must be what the script writes now, so the figure and
+    the code beside it cannot drift apart.
+    """
+    monkeypatch.chdir(tmp_path)
+    source = (ROOT/'tools/docs_home_chart.py').read_text()
+    exec(compile(source, 'docs_home_chart.py', 'exec'), {'__name__': '__docs__'})
+    assert (tmp_path/'growth.svg').read_bytes() == (ROOT/'docs/assets/home/growth.svg').read_bytes()
+
+
+def test_home_chart_page_shows_the_script_it_runs():
+    """The hero's code block is the highlighted script, text for text."""
+    import html as htmllib
+    import re
+    sys.path.insert(0, str(ROOT/'tools'))
+    try:
+        from docs_site import home_chart
+    finally:
+        sys.path.remove(str(ROOT/'tools'))
+    shown = htmllib.unescape(re.sub(r'<[^>]+>', '', home_chart()))
+    assert shown.strip() == (ROOT/'tools/docs_home_chart.py').read_text().strip()
 
 
 @needs_rendered_images

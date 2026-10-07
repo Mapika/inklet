@@ -2,11 +2,15 @@
 layout: home
 title: Overview
 ---
-## Start with a complete figure
+## Start with one call
 
-[Install Inklet](installation.md), then follow the [first figure tutorial](quickstart.md)
+[Charts in one call](quick-charts.md) draws a chart from a table in a single line,
+and the [chart gallery](quick-gallery.md) shows every type with the code that drew it.
+The one-call API is a front door to the document model, so a chart can move to the
+document API when a figure needs more. For several panels on a journal page,
+[install Inklet](installation.md) and follow the [first figure tutorial](quickstart.md)
 to draw, revise and export a page. If your data already lives in a table, start
-with [CSV to figure](csv-figure.md). Both paths use the stable document and plot APIs.
+with [CSV to figure](csv-figure.md).
 
 Read [the authoring model](concepts.md) before building reusable figures: it
 explains which objects remain editable, how data changes reach a plot, and what
@@ -16,6 +20,11 @@ a compiled export preserves.
 
 | You want to… | Start here |
 |---|---|
+| Make a chart from a table in one call | [Charts in one call](quick-charts.md) |
+| See every one-call chart type with its code | [Chart gallery](quick-gallery.md) |
+| Have a coding agent make your figures | [Use with coding agents](coding-agents.md) |
+| Redraw a matplotlib figure in Inklet | [Bring matplotlib figures](matplotlib.md) |
+| Recreate published figures from their data | [Published figures, recreated](published-figures.md) |
 | Make and export your first figure | [First figure tutorial](quickstart.md) |
 | Choose a plot for your data | [Plot type gallery](plot-types.md) |
 | Put a dozen panels on one journal page | [Dense figure pages](dense-figures.md) |
@@ -36,7 +45,8 @@ a compiled export preserves.
 [Troubleshooting](troubleshooting.md) · [Compatibility](compatibility.md) ·
 [Migration](migration.md)
 
-The default install is stable **4.6.0**. See [what is included](development-preview.md)
-and the [migration guide](migration.md#from-31-to-40) for existing recipes.
+The default install is stable **4.6.0**. The [compatibility page](compatibility.md)
+states the supported API and saved-file policy, and the
+[migration guide](migration.md#from-31-to-40) covers existing recipes.
 Release process, engine studies and earlier guides are in the
 [development notes](development.md).

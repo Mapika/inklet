@@ -148,19 +148,29 @@ def on_page_markdown(markdown, page, config, files):
     return rewrite_links(markdown,Path(page.file.abs_src_path),config['repo_url'],repository_ref())
 
 
+def highlighted(name):
+    """Highlight a tools/ script with the same markup as guide code blocks."""
+    from markupsafe import Markup
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import PythonLexer
+
+    source = (ROOT/'tools'/name).read_text()
+    return Markup(highlight(source, PythonLexer(), HtmlFormatter(cssclass='codehilite', wrapcode=True)))
+
+
 def home_example():
     """Highlight the homepage script with the same markup as guide code blocks.
 
     tests/test_docs_site.py runs the script, so the homepage cannot show code
     that no longer works.
     """
-    from markupsafe import Markup
-    from pygments import highlight
-    from pygments.formatters import HtmlFormatter
-    from pygments.lexers import PythonLexer
+    return highlighted('docs_home_example.py')
 
-    source = (ROOT/'tools/docs_home_example.py').read_text()
-    return Markup(highlight(source, PythonLexer(), HtmlFormatter(cssclass='codehilite', wrapcode=True)))
+
+def home_chart():
+    """The one-call chart beside the homepage hero; tools/home_figure.py draws it."""
+    return highlighted('docs_home_chart.py')
 
 
 def current_thumbnails():
@@ -213,6 +223,7 @@ def on_page_context(context, page, config, nav):
         config['extra']['search_pages'][page.url] = dict(section=section, page_title=page.title)
     if page.meta.get('layout') == 'home':
         context['home_example'] = home_example()
+        context['home_chart'] = home_chart()
     headings = list(page.toc)
     if headings and headings[0].level == 1:
         config['extra']['search_page_heads'][page.url] = headings[0].id
