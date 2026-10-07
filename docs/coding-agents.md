@@ -40,6 +40,10 @@ on the first try, and the chart options borrow familiar names: `xlim`,
 Errors say what to do. A misspelt column lists the columns that exist, and a
 mark with a bad argument names the argument.
 
+Chart methods such as `chart.hline`, `annotate`, `brackets` and `labels` take
+the same arguments as the functions, change the chart in place and return it,
+so they chain. The guide has the table of them.
+
 ## Let the figure report its problems
 
 An agent that cannot see the figure needs to be told what is wrong with it.
@@ -61,9 +65,11 @@ ERROR
   ...
 ```
 
-`--json` prints the same findings as structured data, along with the figure's
-size in millimetres and the preview path. In Python, `chart.save()` raises a
-`LayoutWarning` carrying the report when something needs attention, so an agent
+A clean check is not a visual review: the agent should still open the PNG and
+confirm that the right data are plotted. `--json` prints the same findings as
+structured data, along with the figure's size in millimetres and the preview
+path. In Python, `chart.save()` raises a `LayoutWarning` carrying the report
+when something needs attention, so an agent
 sees problems in the script's output even if it never calls `report()`.
 
 The script's figure is chosen by type, so a matplotlib `fig` beside an inklet
