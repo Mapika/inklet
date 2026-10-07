@@ -7,10 +7,12 @@ order in one namespace, as an agent would read them, in a scratch directory.
 import re
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 import inklet as i
+
+# The guide's snippets use a DataFrame; without pandas there is nothing to run.
+pd = pytest.importorskip("pandas")
 
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT / 'src' / 'inklet' / 'guide.md'
