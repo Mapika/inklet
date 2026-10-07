@@ -243,7 +243,7 @@ def ma(panel, mean: Sequence[float], fold: Sequence[float], p: Sequence[float] |
        log: bool = True, zero: bool = True, **style):
     """An MA plot on `panel`. See `Panel.ma`."""
     from ..themes.palettes import palette as _palette
-    from .volcano import VOLCANO_CLASSES, volcano_points
+    from .volcano import VOLCANO_CLASSES, significant_first, volcano_points
     theme = active_theme()
     mean, fold = list(mean), list(fold)
     if len(mean) != len(fold):
@@ -272,10 +272,14 @@ def ma(panel, mean: Sequence[float], fold: Sequence[float], p: Sequence[float] |
     dot = {"size": 0.9 if size is None else size}
     points = [None if x is None or pt is None else (x, pt[0])
               for x, pt in zip(xs, result["points"])]
+    start, keyed = len(panel._keys), []
     for kind in VOLCANO_CLASSES:
         chosen = [pt for pt, c in zip(points, result["classes"]) if c == kind and pt is not None]
         if chosen:
             panel.scatter(chosen, color=paint[kind], name=named.get(kind), **dot, **style)
+            if named.get(kind) is not None:
+                keyed.append(kind)
+    significant_first(panel, start, keyed)
     labelled: list[int] = []
     if labels is not None:
         labels = list(labels)

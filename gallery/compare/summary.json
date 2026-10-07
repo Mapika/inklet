@@ -7,8 +7,8 @@
         "matplotlib": 20
       },
       "seconds": {
-        "inklet": 0.58,
-        "matplotlib": 0.7
+        "inklet": 0.45,
+        "matplotlib": 0.54
       },
       "size_mm": {
         "inklet": [
@@ -30,8 +30,8 @@
         "matplotlib": 36
       },
       "seconds": {
-        "inklet": 0.56,
-        "matplotlib": 0.72
+        "inklet": 0.46,
+        "matplotlib": 0.57
       },
       "size_mm": {
         "inklet": [
@@ -53,8 +53,8 @@
         "matplotlib": 20
       },
       "seconds": {
-        "inklet": 0.6,
-        "matplotlib": 0.94
+        "inklet": 0.52,
+        "matplotlib": 0.76
       },
       "size_mm": {
         "inklet": [
@@ -76,8 +76,8 @@
         "matplotlib": 30
       },
       "seconds": {
-        "inklet": 0.65,
-        "matplotlib": 0.8
+        "inklet": 0.51,
+        "matplotlib": 0.64
       },
       "size_mm": {
         "inklet": [
@@ -99,8 +99,8 @@
         "matplotlib": 33
       },
       "seconds": {
-        "inklet": 1.02,
-        "matplotlib": 0.92
+        "inklet": 0.94,
+        "matplotlib": 0.86
       },
       "size_mm": {
         "inklet": [
@@ -122,8 +122,8 @@
         "matplotlib": 53
       },
       "seconds": {
-        "inklet": 0.56,
-        "matplotlib": 0.71
+        "inklet": 0.53,
+        "matplotlib": 0.72
       },
       "size_mm": {
         "inklet": [
@@ -145,7 +145,7 @@
         "matplotlib": 20
       },
       "seconds": {
-        "inklet": 0.57,
+        "inklet": 0.55,
         "matplotlib": 0.79
       },
       "size_mm": {
@@ -168,8 +168,8 @@
         "matplotlib": 64
       },
       "seconds": {
-        "inklet": 0.89,
-        "matplotlib": 1.3
+        "inklet": 0.84,
+        "matplotlib": 1.21
       },
       "size_mm": {
         "inklet": [

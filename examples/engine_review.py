@@ -22,8 +22,8 @@ Recipe and figure: MIT, Mark Marosi.
 
 def transparent_ink():
     boxes = i.hstack([
-        i.box('Input',width=24,height=18,fill='#d5e9f4',stroke='#0072b2',stroke_width=2),
-        i.box('Output',width=24,height=18,fill='#f9ddca',stroke='#d55e00',stroke_width=2),
+        i.box('Input',width=24,height=18,fill='#d5e9f4',stroke='#0072b2',stroke_width=2,text_fill='#000000'),
+        i.box('Output',width=24,height=18,fill='#f9ddca',stroke='#d55e00',stroke_width=2,text_fill='#000000'),
     ],gap=10)
     label = i.text('f(x)',size=8,font_style='italic',halo=1.6,halo_color='#bddbee',text_fill='#222222')
     return i.vstack([boxes,label],gap=10).styled(opacity=.6)

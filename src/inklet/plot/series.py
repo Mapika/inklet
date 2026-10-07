@@ -27,7 +27,7 @@ from ..draw.coords import active_theme
 from ..draw.path import polyline
 from ..draw.shapes import MARK_KIND, marker as make_marker
 
-__all__ = ["SeriesKey", "merge_keys", "swatch_for"]
+__all__ = ["SeriesKey", "merge_keys", "select_keys", "swatch_for"]
 
 #: A swatch is wider than it is tall, because most of them carry a line and a
 #: line needs length to show its dash pattern. 1.9 is enough for two dashes of
@@ -54,6 +54,12 @@ class SeriesKey:
     #: The marker's diameter in mm when the series gave one size for every
     #: point; None draws the swatch's own default marker.
     marker_size: float | None = None
+    #: The marker's own paint when it was not simply `color` all over: a
+    #: hollow ring is a paper fill inside a coloured outline, and a marker
+    #: given `stroke=` is outlined in that. None falls back to `color`.
+    marker_fill: str | None = None
+    marker_stroke: str | None = None
+    marker_stroke_width: float | None = None
     #: A swatch the caller built themselves -- `marks(item, ...)` passes the
     #: very shape it placed, which is the most honest swatch there is.
     node: Diagram | None = field(default=None, compare=False)
@@ -73,6 +79,12 @@ class SeriesKey:
             marker=self.marker if "marker" in self.forms else other.marker,
             marker_size=(self.marker_size if "marker" in self.forms
                          else other.marker_size),
+            marker_fill=(self.marker_fill if "marker" in self.forms
+                         else other.marker_fill),
+            marker_stroke=(self.marker_stroke if "marker" in self.forms
+                           else other.marker_stroke),
+            marker_stroke_width=(self.marker_stroke_width if "marker" in self.forms
+                                 else other.marker_stroke_width),
             dash=self.dash if self.dash is not None else other.dash,
             width=self.width if self.width is not None else other.width,
             node=self.node if self.node is not None else other.node,
@@ -133,8 +145,20 @@ def swatch_for(entry: SeriesKey, size: float) -> Diagram:
                               kind="mark-line", **style))
     if "marker" in entry.forms:
         node = make_marker(entry.marker, _swatch_marker(entry.marker_size, size))
-        if entry.color is not None:
-            node = node.styled(fill=entry.color, stroke=entry.color)
+        # The marker as it was drawn: its own fill and outline where the
+        # series gave them (a hollow ring, a white dot with an ochre edge),
+        # otherwise the series colour all over.
+        paint = {}
+        fill = entry.marker_fill or entry.color
+        stroke = entry.marker_stroke or entry.color
+        if fill is not None:
+            paint["fill"] = fill
+        if stroke is not None:
+            paint["stroke"] = stroke
+        if entry.marker_stroke_width is not None:
+            paint["stroke_width"] = entry.marker_stroke_width
+        if paint:
+            node = node.styled(**paint)
         parts.append(node)
     if not parts:
         parts.append(Diagram(prim=RectPrim(size, size), kind=MARK_KIND)
@@ -184,3 +208,25 @@ def merge_keys(entries) -> list[SeriesKey]:
         here = out.get(entry.name)
         out[entry.name] = entry if here is None else here.merged(entry)
     return list(out.values())
+
+
+def select_keys(keys: Iterable[SeriesKey], names=None) -> list[SeriesKey]:
+    """`keys` chosen and ordered by `names` -- `legend(names=)` -- or all of
+    them in drawing order when `names` is None. A name not among the keys,
+    or one listed twice, raises."""
+    from ..core import DiagramError
+
+    keys = list(keys)
+    if names is None:
+        return keys
+    if isinstance(names, str):
+        names = [names]
+    by_name = {entry.name: entry for entry in keys}
+    wanted = [str(name) for name in names]
+    unknown = [name for name in wanted if name not in by_name]
+    if unknown:
+        raise DiagramError(
+            f"legend(names=) lists {unknown} but this panel drew {list(by_name)}")
+    if len(set(wanted)) != len(wanted):
+        raise DiagramError(f"legend(names=) repeats a name: {wanted}")
+    return [by_name[name] for name in wanted]

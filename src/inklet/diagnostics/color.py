@@ -112,6 +112,58 @@ def parse_color(value: str | None) -> RGB | None:
     return None
 
 
+def split_alpha(value: str | None) -> tuple[str, float] | None:
+    """`(opaque colour, alpha)` for a colour that may carry an alpha channel.
+
+    `#rgba`, `#rrggbbaa` and `rgba(r, g, b, a)` come back as their opaque
+    `#rrggbb` and the alpha in 0..1; an opaque colour comes back unchanged
+    with alpha 1. None when the colour cannot be read at all -- the caller
+    then skips it, as `parse_color` does.
+    """
+    if not isinstance(value, str):
+        return None
+    text = value.strip().lower()
+    match = _HEX.match(text)
+    if match is not None and len(match.group(1)) in (4, 8):
+        digits = match.group(1)
+        if len(digits) == 4:
+            digits = "".join(ch * 2 for ch in digits)
+        return "#" + digits[:6], int(digits[6:8], 16) / 255
+    match = _FUNC.match(text)
+    if match is not None:
+        parts = [p.strip() for p in match.group(1).replace("/", ",").split(",")
+                 if p.strip()]
+        if len(parts) == 4:
+            try:
+                raw = float(parts[3].rstrip("%"))
+            except ValueError:
+                return None
+            alpha = raw / 100 if parts[3].endswith("%") else raw
+            rgb = parse_color(f"rgb({', '.join(parts[:3])})")
+            if rgb is None:
+                return None
+            return _to_hex(rgb), _clamp01(alpha)
+    return (value, 1.0) if parse_color(value) is not None else None
+
+
+def composite(foreground: str, background: str, alpha: float) -> str | None:
+    """`foreground` at `alpha` over an opaque `background`, as `#rrggbb`.
+
+    Blended in gamma-encoded sRGB, which is what SVG, PDF and every browser
+    do with `opacity` and `fill-opacity`. None when either colour is unknown.
+    """
+    fg, bg = parse_color(foreground), parse_color(background)
+    if fg is None or bg is None:
+        return None
+    a = _clamp01(alpha)
+    return _to_hex(tuple(f * a + b * (1.0 - a) for f, b in zip(fg, bg)))
+
+
+def _to_hex(rgb) -> str:
+    return "#" + "".join(f"{max(0, min(255, math.floor(c * 255 + 0.5))):02x}"
+                         for c in rgb)
+
+
 def _clamp01(v: float) -> float:
     return 0.0 if v < 0.0 else 1.0 if v > 1.0 else v
 

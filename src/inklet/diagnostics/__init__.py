@@ -32,6 +32,7 @@ from ..core import Diagram, Placement, Rect, resolve
 from .abut import abutting, is_abutting_kind
 from .cross import crossing, declared_crossings
 from .color import contrast_ratio, parse_color, relative_luminance
+from .decorative import decorative, is_decorative_kind
 from .report import format_report
 from .review import FigureReview, review_figure
 from .rules import (
@@ -43,6 +44,7 @@ from .rules import (
 __all__ = [
     "FigureReview", "review_figure",
     "abutting", "is_abutting_kind",
+    "decorative", "is_decorative_kind",
     "crossing", "declared_crossings",
     "Diagnostic", "Item", "LintContext", "Rule", "RULES", "SEVERITIES",
     "RULE_FAILED", "lint", "format_report", "build_context",

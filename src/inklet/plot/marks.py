@@ -707,6 +707,9 @@ def scatter(panel, points: Sequence[Sequence], *, size=None, color=None,
         node = make_marker(marker, sizes[index])
         if fills[index] is not None:
             node = node.styled(fill=fills[index])
+            if marker in ("cross", "plus") and style.get("stroke") in (None, "none"):
+                # Drawn in strokes: its colour is the colour of its lines.
+                node = node.styled(stroke=fills[index])
         placed.append((panel.point(*point), node))
     return draw_place(placed, **style)
 

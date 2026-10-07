@@ -46,6 +46,8 @@ __all__ = ["SIDES", "axis", "text_node", "tick_texts", "tick_values"]
 SIDES = ("bottom", "top", "left", "right")
 
 AXIS_KIND = "axis"
+#: Note on an axis that thinned away ticks its caller supplied explicitly.
+TICKS_DROPPED_NOTE = "ticks_dropped"
 SPINE_KIND = "spine"
 TICK_KIND = "tick"
 TICK_LABEL_KIND = "tick-label"
@@ -236,12 +238,15 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
     keep = _keep(positions, extents, _CLEAR_OF_TYPE * base_size,
                  _thins(scale, thin))
 
+    dropped: list[int] = []
     if ticks is not None and thin is None and labels and len(keep) < len(values):
         import warnings
         warnings.warn(
             f"axis omitted {len(values)-len(keep)} of {len(values)} explicitly supplied ticks; "
             "use thin=False to preserve them or thin=True to request thinning",
             UserWarning, stacklevel=2)
+        kept = set(keep)
+        dropped = [j for j in range(len(values)) if j not in kept]
 
     items: list = []
     gaps = gap_bands(scale)
@@ -308,6 +313,14 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
         note = getattr(node, "note", None)
         if callable(note):
             note(BREAK_NOTE, breaks)
+    if dropped:
+        # Read by the TICKS_DROPPED lint rule, so the report says which of
+        # the caller's ticks went missing rather than only a Python warning.
+        node.note(TICKS_DROPPED_NOTE, {
+            "values": tuple(values[j] for j in dropped),
+            "labels": tuple("".join(line.text for line in texts[j].prim.lines)
+                            for j in dropped),
+            "supplied": len(values), "side": side})
     return node
 
 

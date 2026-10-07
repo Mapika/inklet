@@ -60,6 +60,7 @@ Every function takes these:
 | `legend` | `'auto'`, `'direct'` (names at the ends of the lines instead of a key), a side (`'bottom'`), a corner (`'ne'`) or `False` |
 | `facet_col`, `facet_row` | Columns to split into a grid of charts on shared axes; `facet_col_wrap=` sets charts per row |
 | `grid` | `True`, `False`, `'x'` or `'y'` |
+| `xticks`, `yticks` | The tick values to show, such as `xticks=[0, 5, 10, 15, 20]` |
 
 ## Layer, annotate and refine
 

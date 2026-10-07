@@ -45,7 +45,9 @@ from .matrix import (_RASTER_ABOVE_CELLS, matrix_centers, matrix_layer,
                      prepare_matrix, default_coloring)
 from .scale import Band, Linear, Log, Scale, linear
 from .metadata import declare_domain as _declare_domain
-from .series import SeriesKey, merge_keys, series_color, series_names, swatch_for
+from .paint import paint_keywords
+from .series import (SeriesKey, merge_keys, select_keys, series_color,
+                     series_names, swatch_for)
 from .._compat import renamed_keywords, resolve_renamed
 from .timescale import dates, is_time_like
 
@@ -363,6 +365,7 @@ class Panel:
                  scale: Scale, extent: float) -> list[float]:
         return matrix_centers(given, count, scale, extent)
 
+    @paint_keywords
     def line(self, points: Iterable[Sequence], *, smooth: float = 0.0,
              closed: bool = False, name: str | None = None, err=None,
              err_style: str = "band", simplify: float | str | None = None,
@@ -410,6 +413,7 @@ class Panel:
                       input_points=len(mapped),output_points=len(reduced)))
         return self.draw(node, clip=clip)
 
+    @paint_keywords
     def band(self, x: Sequence, lo, hi, *, name: str | None = None,
              color: str | None = None, **style) -> "Panel":
         """The shaded envelope between two edges over shared x.
@@ -472,10 +476,12 @@ class Panel:
     # Every method in this section takes DATA and maps it. The only two that
     # do not are `under` and `over`, immediately below, and they say so.
 
+    @paint_keywords
     def scatter(self, points: Iterable[Sequence], *, size=None, color=None,
                 ramp=None, scale: Scale | None = None,
                 marker: str = "circle", name: str | None = None,
-                raster: bool = False, dpi: float = 300, **style) -> "Panel":
+                hollow: bool = False, raster: bool = False, dpi: float = 300,
+                **style) -> "Panel":
         """Markers at data points, with size and colour that may be data too.
 
         `marks()` places copies of one shape you built, which is right when
@@ -513,9 +519,32 @@ class Panel:
         in this colour, at this `size` when it is one number (kept within the
         key's row height), and a per-point `color=` sequence records nothing,
         since a legend row cannot stand for eighty colours.
+
+        `hollow=True` draws rings: a paper fill inside an outline in the
+        series colour (`color=`, or the palette slot of `name=`), at the
+        theme's stroke width unless `stroke_width=` says otherwise -- the
+        open marker that a second group, a mean or an outlier is drawn with.
+        The key swatch is the marker as drawn: its fill and its outline,
+        including a `stroke=` given here, so `color="white", stroke=ink`
+        gets a visible ring in the key too.
         """
         clip = _clip_flag(style)
-        if ramp is not None:
+        theme = active_theme()
+        marker_paint: dict = {}
+        if hollow:
+            if ramp is not None or not (color is None or isinstance(color, str)):
+                raise DiagramError(
+                    "scatter(hollow=True) draws rings in one colour; a per-point "
+                    "or ramped color= needs filled markers")
+            color = self._series_color(name, color)
+            style.setdefault("stroke", theme.ink if color is None else color)
+            style.setdefault("stroke_width", theme.stroke)
+            marker_paint = {"marker_fill": theme.paper,
+                            "marker_stroke": style["stroke"],
+                            "marker_stroke_width": style["stroke_width"]}
+            if color is None:
+                color = style["stroke"]
+        elif ramp is not None:
             color, scale = self._ramped(color, ramp, scale)
             # The pale end of a sequential ramp is paper: a point coloured
             # #ffffcc is a hole in the picture rather than a datum. An outline
@@ -525,9 +554,14 @@ class Panel:
             style.setdefault("stroke_width", active_theme().hairline)
         elif color is None or isinstance(color, str):
             color = self._series_color(name, color)
+            if style.get("stroke") not in (None, "none"):
+                marker_paint = {"marker_stroke": style["stroke"],
+                                "marker_stroke_width": style.get("stroke_width")}
         self._note(name, "marker", marker=marker,
                    color=color if isinstance(color, str) else None,
-                   marker_size=_one_size(size))
+                   marker_size=_one_size(size), **marker_paint)
+        if hollow:
+            color = theme.paper     # every point's fill; the ring is the stroke
         if not isinstance(raster, bool):
             raise ValueError("scatter raster must be True or False")
         direct_raster = raster and not {'anchor', 'origin'}.intersection(style)
@@ -726,6 +760,7 @@ class Panel:
             baseline=baseline, orient=orient, colors=color, **style),
             clip=clip)
 
+    @paint_keywords
     def errorbars(self, points: Iterable[Sequence], *, yerr=None, xerr=None,
                   cap: float | None = None, **style) -> "Panel":
         """Whiskers through each point, in the data's own units.
@@ -744,6 +779,7 @@ class Panel:
         return self.draw(_marks.errorbars(self, points, yerr=yerr, xerr=xerr,
                                           cap=cap, **style), clip=clip)
 
+    @paint_keywords
     def fill(self, points: Iterable[Sequence], *, baseline: float = 0.0,
              orient: str = "v", name: str | None = None, **style) -> "Panel":
         """The area between a series and a baseline.
@@ -764,6 +800,7 @@ class Panel:
         return self.draw(_marks.area(self, points, baseline=baseline,
                                      orient=orient, **style), clip=clip)
 
+    @paint_keywords
     def fill_between(self, x: Sequence, y0, y1, *, name: str | None = None,
                      **style) -> "Panel":
         """The band between two curves over shared x -- a confidence envelope.
@@ -811,6 +848,7 @@ class Panel:
             lower = upper
         return self
 
+    @paint_keywords
     def step(self, points: Iterable[Sequence], *, where: str = "post",
              name: str | None = None, **style) -> "Panel":
         """A staircase through the points, for a quantity that changes at
@@ -883,6 +921,7 @@ class Panel:
 
     # -- reference lines, in data coordinates ------------------------------
 
+    @paint_keywords
     def hline(self, y, *, span: tuple | None = None, front: bool = False,
               label: str | Diagram | None = None,
               label_side: str | None = None, **style) -> "Panel":
@@ -907,6 +946,7 @@ class Panel:
         self._layer(_marks.rule(self, y=y, span=span, **style), front, clip)
         return self._rule_label(label, y=y, span=span, side=label_side)
 
+    @paint_keywords
     def vline(self, x, *, span: tuple | None = None, front: bool = False,
               label: str | Diagram | None = None,
               label_side: str | None = None, **style) -> "Panel":
@@ -928,6 +968,7 @@ class Panel:
             return self
         return self.over(_notes.rule_label(self, label, **kwargs), clip=False)
 
+    @paint_keywords
     def vspan(self, x0, x1, *, front: bool = False, **style) -> "Panel":
         """A shaded stripe between two **data** values of x, full height.
 
@@ -940,6 +981,7 @@ class Panel:
         return self._layer(_marks.span_node(self, x=(x0, x1), **style), front,
                            clip)
 
+    @paint_keywords
     def hspan(self, y0, y1, *, front: bool = False, **style) -> "Panel":
         """A shaded stripe between two **data** values of y, full width."""
         _color_as(style, "fill")
@@ -947,6 +989,7 @@ class Panel:
         return self._layer(_marks.span_node(self, y=(y0, y1), **style), front,
                            clip)
 
+    @paint_keywords
     def rect(self, x0, y0, x1, y1, *, front: bool = False, **style) -> "Panel":
         """A rectangle whose four sides are **data** values -- a gated region,
         the extent of an inset, a box round a cluster."""
@@ -1234,7 +1277,7 @@ class Panel:
                pad: float | str | None = None, plate: bool | None = None,
                title: str | None = None, markup: bool = True, order: str = "row",
                col_gap: float | str | None = None, row_gap: float | str | None = None,
-               **style) -> "Panel":
+               names: Sequence[str] | None = None, **style) -> "Panel":
         """A key built from the series this panel actually drew.
 
         Every drawing method takes `name=`, and the panel remembers the
@@ -1261,6 +1304,18 @@ class Panel:
         `(name, diagram)` pairs, which is the escape hatch for a key that
         describes something this panel did not draw.
 
+        Rows follow drawing order. `names=` lists series names to choose and
+        order the rows instead -- the key reads in that order and leaves out
+        any series not listed, while the swatches are still built from the
+        record:
+
+            p.line(h1_shifted, name="H1 (shifted)")   # drawn first, beneath
+            p.line(l1, name="L1")
+            p.legend(names=["L1", "H1 (shifted)"])
+
+        A name this panel never drew raises. (`order=` is a different thing:
+        whether entries fill a multi-column key by "row" or by "column".)
+
         Top/bottom legends fit their columns to the plot width by default,
         centred on the data. When that takes more rows than the whole panel
         width would, counting the axis furniture beside the data, the key is
@@ -1277,7 +1332,12 @@ class Panel:
         theme = active_theme()
         if swatch is None and 'font_size' in style:
             swatch = SWATCH_OF_TYPE * mm(style['font_size'])
-        rows = list(entries) if entries is not None else self._legend_rows(swatch)
+        if names is not None and entries is not None:
+            raise DiagramError(
+                "legend() takes names= to order the drawn series or entries= "
+                "to replace them, not both")
+        rows = (list(entries) if entries is not None
+                else self._legend_rows(swatch, names))
         if not rows:
             raise DiagramError(
                 "legend() found no named series: pass name= to line(), "
@@ -1354,16 +1414,19 @@ class Panel:
             raise failure
         return beside(node, box, side, gap, Vec2(0.0, 0.0))
 
-    def _legend_rows(self, swatch: float | str | None) -> list[tuple[str, object]]:
+    def _legend_rows(self, swatch: float | str | None,
+                     names: Sequence[str] | None = None) -> list[tuple[str, object]]:
         """One (name, swatch) per series, the swatch mirroring how it was drawn.
 
         Sized from `plot.key`'s own constant, so a built key and a hand-written
-        `legend(entries=[...])` beside it are the same size.
+        `legend(entries=[...])` beside it are the same size. `names` picks
+        and orders the series; see `legend`.
         """
         theme = active_theme()
         size = (SWATCH_OF_TYPE * theme.font_size_small if swatch is None
                 else mm(swatch))
-        return [(entry.name, swatch_for(entry, size)) for entry in self.keys]
+        return [(entry.name, swatch_for(entry, size))
+                for entry in select_keys(self.keys, names)]
 
     def colorbar(self, *, side: str = "right", source=None, corner: str | None = None,
                  scale: Scale | None = None, length: float | str | None = None,
@@ -1477,7 +1540,7 @@ class Panel:
     def text(self, x, y, content: str | Diagram, *, anchor: str = "center",
              offset: Sequence[float] = (0.0, 0.0),
              size: float | str | None = None, markup: bool = True,
-             front: bool = True, **style) -> "Panel":
+             front: bool = True, decorative: bool = False, **style) -> "Panel":
         """Words at one **data** point.
 
         `anchor` is the compass point of the *label* that lands on the datum,
@@ -1491,7 +1554,16 @@ class Panel:
         that came out of the data needs -- `p.text(x, y, sample_id,
         markup=False)`. Prose keeps markup, as it does everywhere else.
         """
-        _color_as(style, "fill")
+        # `decorative=True` marks words that are ornament, not information --
+        # a pale watermark year -- so the contrast check leaves them alone.
+        if decorative:
+            from ..diagnostics.decorative import decorative as _decorative
+            style["kind"] = _decorative(style.get("kind", "label"))
+        # Words are coloured by their glyphs: `color=` and a bare `fill=` both
+        # mean the text colour, which a fill on the wrapping group cannot set.
+        if "fill" in style and "text_fill" not in style:
+            style["text_fill"] = style.pop("fill")
+        _color_as(style, "text_fill")
         # Writing is never clipped, whatever the panel does with its data: a
         # word cut in half at the spine is not a shorter word.
         return self._layer(_notes.text_at(self, x, y, content, anchor=anchor,
@@ -1838,6 +1910,7 @@ class Panel:
         self._note(name, "marker", color=ink, marker=marker)
         return self.draw(node, clip=clip)
 
+    @paint_keywords
     def ecdf(self, values: Sequence[float], *, weights: Sequence[float] | None = None,
              complementary: bool = False, normalize: bool = True,
              extend: bool = True, name: str | None = None,
@@ -2531,10 +2604,12 @@ class Panel:
 
     @renamed_keywords(colors="color", names="name")
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
-                labels: Sequence[str] | None = None, top: int = 10,
+                labels: Sequence[str] | None = None, top: int | None = None,
                 fold_threshold: float = 1.0, p_threshold: float = 0.05,
                 color=None, name=None, size: float | None = None,
                 thresholds: bool = True, label_options: dict | None = None,
+                highlight: Sequence[str] | None = None,
+                q: Sequence[float] | None = None,
                 **style) -> "Panel":
         """A volcano plot: log2 fold change on x against -log10 p on y.
 
@@ -2548,11 +2623,27 @@ class Panel:
             p.volcano(fold, pvalues, labels=genes, top=8)
             p.axes(x="log2 fold change", y="-log10 p")
 
+        `q=` (one adjusted p-value per feature) classes the points by q
+        while `p` still sets their height -- raw p on the axis, colour by
+        FDR, as most papers draw it. A missing q makes that point "ns". The
+        p_threshold rule is then not drawn, since no single height separates
+        the classes.
+
         `thresholds=True` (default) draws dashed rules at `±fold_threshold`
         and at `-log10(p_threshold)`, under the points. With `labels=` (one
         string per feature), the `top` significant points with the smallest
         p-values are named with `label_points`, clear of the points and of
         each other; points outside the plot area are not labelled.
+        `highlight=` names chosen features instead -- the genes the paper
+        discusses, whatever their class:
+
+            p.volcano(fold, pvalues, labels=genes, q=padj,
+                      highlight=["CRISPLD2", "DUSP1", "FKBP5"])
+
+        Every point whose label is listed is named, by the same placement
+        and leader rules; a name not among `labels` raises. `top` defaults
+        to 10 without `highlight` and 0 with it; give both to name the
+        chosen genes and then the `top` most significant others.
         `label_options=` passes keywords to `label_points`. A p-value of 0
         is drawn at the smallest positive p-value in the data.
 
@@ -2560,23 +2651,30 @@ class Panel:
         colours in the order down, ns, up. The default is red for up and blue
         for down, from the Tol sunset diverging palette. `name=` (the same
         shapes) names the classes in `legend()`; a class with no name has no
-        legend row. `size` is the dot diameter in mm; other keywords style
-        the points. The last layer drawn carries a `volcano` note with the
-        classes, the ranked significant indices, the labelled indices and the
-        capped and skipped indices. `inklet.plot.volcano_points` does the
-        same classification without drawing.
+        legend row. The key lists the classes up, down, n.s. -- significant
+        first -- although "ns" is drawn beneath. `size` is the dot diameter
+        in mm; other keywords style the points. The last layer drawn carries
+        a `volcano` note with the classes, the ranked significant indices,
+        the labelled indices, the highlighted indices that could not be
+        labelled (`unlabelled`: missing or outside the plot) and the capped
+        and skipped indices. `inklet.plot.volcano_points` does the same
+        classification without drawing.
         """
         import math
 
         from ..themes.palettes import palette as _palette
-        from .volcano import VOLCANO_CLASSES, volcano_points
+        from .volcano import VOLCANO_CLASSES, significant_first, volcano_points
 
         if isinstance(self.x, Band) or isinstance(self.y, Band):
             raise DiagramError("volcano needs continuous x and y scales")
+        if top is None:
+            top = 10 if highlight is None else 0
         if top < 0:
             raise DiagramError(f"volcano top must be 0 or more, got {top!r}")
+        if highlight is not None and labels is None:
+            raise DiagramError("volcano highlight= names features from labels=; pass labels too")
         result = volcano_points(fold, p, fold_threshold=fold_threshold,
-                                p_threshold=p_threshold)
+                                p_threshold=p_threshold, q=q)
         theme = active_theme()
         sunset = _palette("tol-sunset").colors
         paint = {"down": sunset[1], "ns": mix(theme.muted, theme.paper, 0.55),
@@ -2591,15 +2689,21 @@ class Panel:
                 self.vline(fold_threshold, **rule)
             else:
                 self.vline(0, **rule)
-            self.hline(-math.log10(p_threshold), **rule)
+            if q is None:
+                self.hline(-math.log10(p_threshold), **rule)
         dot = {} if size is None else {"size": size}
+        start, keyed = len(self._keys), []
         for kind in VOLCANO_CLASSES:
             chosen = [pt for pt, c in zip(result["points"], result["classes"])
                       if c == kind]
             if chosen:
                 self.scatter(chosen, color=paint[kind], name=named.get(kind),
                              **dot, **style)
+                if named.get(kind) is not None:
+                    keyed.append(kind)
+        significant_first(self, start, keyed)
         labelled: list[int] = []
+        unlabelled: list[int] = []
         if labels is not None:
             labels = list(labels)
             if len(labels) != len(result["points"]):
@@ -2608,18 +2712,38 @@ class Panel:
                     f"for {len(result['points'])} points")
             # A point outside the plot area has nowhere to put its label.
             area = self.area
-            inside = [i for i in result["ranked"]
-                      if area.x0 - 1e-9 <= self.x.map(result["points"][i][0]) <= area.x1 + 1e-9
-                      and area.y0 - 1e-9 <= self.y.map(result["points"][i][1]) <= area.y1 + 1e-9]
-            labelled = inside[:top]
+
+            def inside(i):
+                point = result["points"][i]
+                return (point is not None
+                        and area.x0 - 1e-9 <= self.x.map(point[0]) <= area.x1 + 1e-9
+                        and area.y0 - 1e-9 <= self.y.map(point[1]) <= area.y1 + 1e-9)
+
+            chosen = []
+            if highlight is not None:
+                wanted = [highlight] if isinstance(highlight, str) else list(highlight)
+                wanted = [str(w) for w in wanted]
+                known = {str(label) for label in labels}
+                missing = [w for w in wanted if w not in known]
+                if missing:
+                    raise DiagramError(
+                        f"volcano highlight= names {missing}, which are not among labels=")
+                where = {}
+                for i, label in enumerate(labels):
+                    where.setdefault(str(label), []).append(i)
+                for w in dict.fromkeys(wanted):
+                    for i in where[w]:
+                        (chosen if inside(i) else unlabelled).append(i)
+            ranked = [i for i in result["ranked"] if inside(i) and i not in chosen]
+            labelled = chosen + ranked[:top]
             if labelled:
                 self.label_points([result["points"][i] for i in labelled],
                                   [labels[i] for i in labelled],
                                   **(label_options or {}))
         last = (self._over or self._content)[-1] if (self._over or self._content) else None
         note = {"classes": result["classes"], "ranked": result["ranked"],
-                "labelled": labelled, "capped": result["capped"],
-                "skipped": result["skipped"]}
+                "labelled": labelled, "unlabelled": unlabelled,
+                "capped": result["capped"], "skipped": result["skipped"]}
         if last is not None:
             last.notes["volcano"] = note
         return self
@@ -2774,6 +2898,7 @@ class Panel:
         return self._touched()
 
     @renamed_keywords(colors="color")
+    @paint_keywords
     def kaplan_meier(self, data, *, confidence: float = 0.95,
                      band: str | None = "log-log", shade: bool = True,
                      censors: bool = True, color=None,
@@ -2794,20 +2919,27 @@ class Panel:
 
         Each curve is a post step from 1 at time 0 to the last observed
         time, with a short vertical tick at every censoring time
-        (`censors=False` leaves them out). `band` is the confidence band:
-        `"log-log"` (default), `"linear"` or None, at `confidence`;
-        `shade=False` computes it without drawing it. `color=` sets one
-        colour, or one per group (default: the ink for one group, the theme
-        palette for several). Other keywords style the curves.
+        (`censors=False` leaves them out; on a clipping panel, ticks past the
+        x domain are left out rather than clipped to nothing). `band` is the
+        confidence band: `"log-log"` (default), `"log"` (R's `survfit`
+        default), `"linear"` or None, at `confidence`; `shade=False` computes
+        it without drawing it. `color=` sets one colour, or one per group
+        (default: the ink for one group, the theme palette for several).
+        Other keywords style the curves, `dash=` included.
 
-        There is no significance test: `pvalue=` writes a p-value computed
-        elsewhere, as "P = 0.004" with an italic P, in `pvalue_corner` of the
-        plot area. `inklet.plot.kaplan_meier` returns the estimate without
-        drawing. The last curve carries a `kaplan_meier` note with each
-        group's name, median survival and number of subjects.
+        `pvalue="logrank"` runs the log-rank (Mantel-Cox) test between the
+        groups -- `inklet.plot.logrank`, chi-square on k - 1 degrees of
+        freedom, as R's `survdiff` -- and writes "Log-rank P = 0.0013" with
+        an italic P in `pvalue_corner` of the plot area. A number is written
+        as "P = 0.004", and any other string as given. `inklet.plot.kaplan_meier`
+        returns the estimate without drawing. The last curve carries a
+        `kaplan_meier` note with each group's name, median survival and
+        number of subjects, and the test (`logrank`: statistic, df, p) when
+        one was run.
         """
         from .survival import (band_edges, censor_ticks, curve_points,
-                               estimates, pvalue_text)
+                               estimates, format_pvalue, logrank_of,
+                               pvalue_text)
 
         if isinstance(self.x, Band) or isinstance(self.y, Band):
             raise DiagramError("kaplan_meier needs continuous x and y scales")
@@ -2820,6 +2952,15 @@ class Panel:
         else:
             inks = _marks.series_colors(color, len(groups))
         tick = _CENSOR_TICK_OF_TYPE * theme.font_size
+        # A censor tick past the end of a clipping x axis would be clipped to
+        # an empty node; leave it out, as the clip leaves out the curve there.
+        within = None
+        if (self.clip if clip is None else clip) and not isinstance(self.x, Band):
+            within = (min(self.x.domain), max(self.x.domain))
+        test = None
+        if isinstance(pvalue, str) and pvalue.strip().lower() in ("logrank", "log-rank"):
+            test = logrank_of(groups)
+            pvalue = "Log-rank " + format_pvalue(test.p)
         drawn: list[Diagram] = []
         for (name, estimate), ink in zip(groups, inks):
             if shade and estimate.band is not None:
@@ -2831,8 +2972,10 @@ class Panel:
             drawn.append(self._content[-1])
             if censors and estimate.censored:
                 width = style.get("stroke_width", theme.stroke)
-                self.draw(*censor_ticks(self, estimate, tick, stroke=ink,
-                                        stroke_width=width), clip=clip)
+                ticks = censor_ticks(self, estimate, tick, within=within,
+                                     stroke=ink, stroke_width=width)
+                if ticks:
+                    self.draw(*ticks, clip=clip)
             self._survival.append((name, estimate, ink))
         if pvalue is not None:
             label = as_drawn(pvalue_text(pvalue, theme.font_size_small))
@@ -2843,6 +2986,9 @@ class Panel:
             "medians": [estimate.median for _, estimate in groups],
             "subjects": [len(estimate.durations) for _, estimate in groups],
             "band": band, "confidence": confidence}
+        if test is not None:
+            drawn[-1].notes["kaplan_meier"]["logrank"] = {
+                "statistic": test.statistic, "df": test.df, "p": test.p}
         return self._touched()
 
     def at_risk(self, *, ticks: Sequence | None = None, count: int = 5,

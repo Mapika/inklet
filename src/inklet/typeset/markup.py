@@ -302,6 +302,11 @@ def _scan(text: str, mark: Mark, colors: Mapping[str, str],
             at = after
             continue
 
+        if (char == "-" and mark.level and at + 1 < len(text)
+                and (text[at + 1].isdigit() or text[at + 1] == ".")):
+            # `10^{-3}`, `s^{-1}`: in a script a hyphen before a number is a
+            # minus sign, and is set as one (U+2212, the width of a plus).
+            char = "\u2212"
         out_text.append(char)
         out_marks.append(mark)
         at += 1

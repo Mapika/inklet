@@ -19,10 +19,14 @@ from typing import Sequence
 
 from ..core import DiagramError
 
-__all__ = ["volcano_points", "VOLCANO_CLASSES"]
+__all__ = ["volcano_points", "VOLCANO_CLASSES", "VOLCANO_KEY_ORDER"]
 
 #: The classes a point can fall into, in drawing order.
 VOLCANO_CLASSES = ("ns", "down", "up")
+
+#: The order the classes are listed in a key: the significant ones first,
+#: although "ns" is drawn first so that it lies beneath them.
+VOLCANO_KEY_ORDER = ("up", "down", "ns")
 
 _FLOOR = 1e-300
 
@@ -33,13 +37,19 @@ def _missing(value) -> bool:
 
 def volcano_points(fold: Sequence[float], p: Sequence[float], *,
                    fold_threshold: float = 1.0,
-                   p_threshold: float = 0.05) -> dict:
+                   p_threshold: float = 0.05,
+                   q: Sequence[float] | None = None) -> dict:
     """Classify volcano points without drawing them.
 
     `fold` are log2 fold changes and `p` the p-values (or adjusted
     p-values), one per feature. A point is "up" when its p-value is below
     `p_threshold` and its fold change is at least `fold_threshold`, "down"
     when the fold change is at most `-fold_threshold`, and "ns" otherwise.
+
+    `q=` classes by a second sequence -- the adjusted p-values -- while `p`
+    still gives the height: the usual published volcano, raw p on the axis
+    and colour by FDR. A missing q (None or NaN, as DESeq2 writes for a gene
+    it filtered out) makes that point "ns", not skipped.
 
     Returns a dict with `points` (one `(fold, -log10 p)` pair per input, or
     None for a skipped input), `classes` (one of `VOLCANO_CLASSES` per input,
@@ -57,28 +67,42 @@ def volcano_points(fold: Sequence[float], p: Sequence[float], *,
     if not 0 < p_threshold <= 1:
         raise DiagramError(
             f"volcano p_threshold must be in (0, 1], got {p_threshold!r}")
+    if q is not None:
+        q = list(q)
+        if len(q) != len(p):
+            raise DiagramError(
+                f"volcano needs one q-value per p-value, got {len(q)} and {len(p)}")
     positive = [float(v) for v in p if not _missing(v) and float(v) > 0]
     floor = min(positive) if positive else _FLOOR
     points: list = []
     classes: list = []
     capped: list[int] = []
     skipped: list[int] = []
-    for index, (f, q) in enumerate(zip(fold, p)):
-        if _missing(f) or _missing(q):
+    for index, (f, pv) in enumerate(zip(fold, p)):
+        if _missing(f) or _missing(pv):
             points.append(None)
             classes.append(None)
             skipped.append(index)
             continue
-        f, q = float(f), float(q)
-        if q < 0 or q > 1:
-            raise DiagramError(f"volcano p-value {q!r} at index {index} is not in [0, 1]")
-        if q == 0:
+        f, pv = float(f), float(pv)
+        if pv < 0 or pv > 1:
+            raise DiagramError(f"volcano p-value {pv!r} at index {index} is not in [0, 1]")
+        if pv == 0:
             capped.append(index)
-            q = floor
-        points.append((f, -math.log10(q)))
-        if q < p_threshold and f >= fold_threshold and f > 0:
+            pv = floor
+        points.append((f, -math.log10(pv)))
+        if q is None:
+            judged = pv
+        elif _missing(q[index]):
+            judged = math.inf               # untested: never significant
+        else:
+            judged = float(q[index])
+            if judged < 0 or judged > 1:
+                raise DiagramError(
+                    f"volcano q-value {judged!r} at index {index} is not in [0, 1]")
+        if judged < p_threshold and f >= fold_threshold and f > 0:
             classes.append("up")
-        elif q < p_threshold and f <= -fold_threshold and f < 0:
+        elif judged < p_threshold and f <= -fold_threshold and f < 0:
             classes.append("down")
         else:
             classes.append("ns")
@@ -86,3 +110,17 @@ def volcano_points(fold: Sequence[float], p: Sequence[float], *,
                     key=lambda i: (-points[i][1], -abs(points[i][0]), i))
     return {"points": points, "classes": classes, "ranked": ranked,
             "capped": capped, "skipped": skipped}
+
+
+def significant_first(panel, start: int, kinds: Sequence[str]) -> None:
+    """List the key records a volcano (or MA) plot just added in
+    `VOLCANO_KEY_ORDER`, whatever order they were drawn in.
+
+    `start` is how many records the panel held before the classes were
+    drawn and `kinds` the class of each named scatter drawn since, in order.
+    """
+    added = panel._keys[start:]
+    if len(added) != len(kinds):
+        return
+    ranked = sorted(zip(kinds, added), key=lambda pair: VOLCANO_KEY_ORDER.index(pair[0]))
+    panel._keys[start:] = [record for _, record in ranked]

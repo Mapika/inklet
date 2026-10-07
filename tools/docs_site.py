@@ -23,7 +23,8 @@ FENCE = re.compile(r'(^```[^\n]*\n.*?^```[^\n]*$)', re.MULTILINE | re.DOTALL)
 def on_files(files, config):
     from mkdocs.structure.files import File
     gallery = ROOT/'gallery'
-    for path in sorted([*gallery.glob('*.png'), *gallery.glob('compare/*-side-by-side.png')]):
+    for path in sorted([*gallery.glob('*.png'), *gallery.glob('compare/*-side-by-side.png'),
+                        *gallery.glob('published/*.png')]):
         files.append(File(path.relative_to(ROOT).as_posix(),str(ROOT),
                           config['site_dir'],config['use_directory_urls']))
     return files
@@ -91,7 +92,8 @@ def rewrite_links(markdown, source_path, repo_url, ref='master'):
             raise ValueError(f'{source_path}: missing repository link {target}')
         relative = path.relative_to(ROOT).as_posix()
         if label.startswith('!') and path.suffix == '.png' and (
-                path.parent == ROOT/'gallery' or path.name.endswith('-side-by-side.png')
+                path.parent in (ROOT/'gallery', ROOT/'gallery'/'published')
+                or path.name.endswith('-side-by-side.png')
                 and path.parent == ROOT/'gallery'/'compare'):
             parent = source_path.parent.relative_to(DOCS).as_posix()
             url = posixpath.relpath(relative,parent)

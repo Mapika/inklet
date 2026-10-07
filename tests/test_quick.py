@@ -330,3 +330,20 @@ def test_lines_join_points_in_x_order_and_default_to_every_numeric_column():
     assert kept.spec._steps[0][2][0] == ((3, 30), (1, 10), (2, 20))
     wide = i.line({'t': [0, 1], 'a': [1, 2], 'b': [2, 1], 'label': ['p', 'q']}, x='t')
     assert [k['name'] for _, m, _, k in wide.spec._steps if m == 'line'] == ['a', 'b']
+
+
+def test_tick_values_and_letters_beside_titles():
+    chart = i.line(DATA, x='time', y='signal', xticks=[0, 1, 2, 3], yticks=[1, 3, 5])
+    axes = next(k for _, m, _, k in chart.plot()._steps if m == 'axes')
+    assert axes['x_options']['ticks'] == (0, 1, 2, 3) and axes['y_options']['ticks'] == (1, 3, 5)
+    titled = i.line(DATA, x='time', y='signal', title='A') | i.line(DATA, x='time', y='signal')
+    assert titled.document()._letters.get('anchor') == 'cell'
+    plain = i.line(DATA, x='time', y='signal') | i.line(DATA, x='time', y='signal')
+    assert 'anchor' not in plain.document()._letters
+
+
+def test_bars_are_softened_series_colours():
+    single = i.bar({'c': ['a', 'b'], 'v': [1, 2]}, x='c', y='v')
+    assert single.spec._steps[0][3]['color'] == '@soft0'
+    resolved = next(k for _, m, _, k in single.plot()._steps if m == 'bars')
+    assert resolved['color'].startswith('#') and resolved['stroke'] == 'none'

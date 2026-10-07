@@ -291,6 +291,11 @@ def _linear_minors(domain: tuple[float, float], majors: Sequence,
                  for i in range(int(first), int(last) + 1) if i not in known)
 
 
+def _minus(label: str) -> str:
+    """A negative tick in typeset form: U+2212, the width of a plus, not a hyphen."""
+    return "\u2212" + label[1:] if label.startswith("-") else label
+
+
 def _decimals(step: float) -> int:
     """How many decimal places `step` needs to be written exactly."""
     # Start at the step's magnitude: a fixed twelve-place ceiling collapses
@@ -348,7 +353,7 @@ class Scale:
     def tick_labels(self, ticks: Sequence) -> tuple[str, ...]:
         """Labels for a set of ticks, formatted against their own spacing."""
         step = _spacing(ticks)
-        return tuple(format_number(t, step) for t in ticks)
+        return tuple(_minus(format_number(t, step)) for t in ticks)
 
     def minor_ticks(self, majors: Sequence, count: int | None = None,
                     clear: float = 0.0) -> tuple:

@@ -141,6 +141,12 @@ class PlotSpec(BuildSpec):
             raise AttributeError(name)
         def record(*args, key=None, **kwargs):
             inspect.signature(method).bind(None, *args, **kwargs)
+            # Paint keywords are checked now, at the line that wrote them,
+            # rather than by Style when the document compiles.
+            check = getattr(method, '__style_check__', None)
+            if check is not None:
+                aliases = getattr(method, '__deprecated_keywords__', {})
+                check({k: v for k, v in kwargs.items() if k not in aliases})
             warn_renamed(method, kwargs, stacklevel=2)
             return self._record(name, args, kwargs, key)
         return record

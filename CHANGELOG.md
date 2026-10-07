@@ -41,6 +41,32 @@ coding agents.
   plot. `x='auto'` always fits, and `x='log'` fits a log scale. Points, rules
   and bands are read directly; statistical marks are measured from a probe
   drawing. Bars and histograms keep their baseline on the axis.
+- Eight published figures recreated from their data (physics, astronomy,
+  climate, ecology, medicine, genomics, development, statistics) in
+  `examples/published/`, with sources and licences; see the docs page
+  "Published figures, recreated".
+- `scatter(hollow=True)`; `legend(names=[...])` orders and filters a key;
+  `volcano(highlight=, q=)` labels chosen genes and classes by adjusted p,
+  with its key listing up, down, n.s.; `kaplan_meier(band='log',
+  pvalue='logrank')` and `inklet.plot.logrank()` (Mantel-Cox, k groups);
+  `dash='dashed'|'dotted'|'dashdot'` on line-like marks
+  (`inklet.plot.paint.DASHES`), and unknown style keywords fail at the call
+  with a suggestion.
+- One-call charts: `xticks=`/`yticks=`; bars use a softened series colour;
+  panel letters sit beside chart titles.
+- Lint: `KEY_COVERS_DATA` when a key inside a plot hides data, naming the
+  clear corners; `TICKS_DROPPED` when supplied ticks are thinned away;
+  contrast checks composite opacity and alpha instead of skipping translucent
+  text, with `text(decorative=True)` / `diagnostics.decorative()` as the
+  opt-out; parts of one key no longer crowd each other, and crowding names
+  the nearest mark rather than a whole panel.
+- Key labels line up across rows whose swatches differ in width; `plus` and
+  `cross` scatter markers take their colour; a minus in a sub- or superscript
+  (`s^{-1}`) is set as U+2212.
+- Fixed: negative tick labels use a true minus (U+2212); `text(color=)` and
+  `text(fill=)` colour the glyphs; grouped histogram outlines no longer run
+  along the axis under empty bins; censor ticks beyond a clipped x domain no
+  longer leave empty nodes; the vertical size key is aligned.
 - A new preset, `scientific.modern`, and palette, `inklet-vivid` (eight mid
   tones tuned for lines and markers, `tools/design_palette.py`), are the
   default of one-call charts and `from_matplotlib`: a lone series takes the

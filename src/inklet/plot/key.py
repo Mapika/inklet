@@ -19,7 +19,7 @@ import math
 from ..core import COLUMN_SINGLE, Affine, Diagram, RectPrim, Vec2, mm
 from ..draw.coords import active_theme, as_drawn, drawn_group
 from ..draw.shapes import marker
-from ..layout import grid as grid_layout, hstack, vstack
+from ..layout import grid as grid_layout, hstack, overlay, spacer, vstack
 from .axis import SPINE_KIND, axis, text_node, _font_style
 from .ramp import Ramp, ramp as make_ramp
 from .metadata import declare_domain as _declare_domain
@@ -212,11 +212,16 @@ def legend(entries: Sequence[tuple[str, object]], *, columns: int | str = 1,
     # (`Notch1**`, `*CO`) is unaffected: those delimiters have no partner, and
     # an unpartnered delimiter is ordinary text. `markup=False` is there for
     # the name that really did come out of a column header.
+    # Every swatch sits centred in a slot as wide as the widest one, so the
+    # names line up whether a row's swatch is a marker, a line or a band.
+    swatches = [_swatch(value, size) for _, value in entries]
+    slot = max((sw.width for sw in swatches), default=0.0)
     rows = [
-        hstack([_swatch(value, size), text_node(str(name), label_size,
-                                                LEGEND_LABEL_KIND, markup=markup, **_font_style(style))],
+        hstack([overlay([spacer(slot, sw.height), sw]),
+                text_node(str(name), label_size, LEGEND_LABEL_KIND, markup=markup,
+                          **_font_style(style))],
                gap=inner, align="center")
-        for name, value in entries
+        for (name, _), sw in zip(entries, swatches)
     ]
     def arranged(count):
         if order=='row':return rows

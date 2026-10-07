@@ -1179,56 +1179,155 @@ def rule_low_contrast(ctx: LintContext) -> list[Diagnostic]:
     The backdrop may be a raster (see `Item.is_backdrop`), in which case the
     colour is an average over the covered pixels and needs Pillow; without it
     `background_of` returns None and this rule declines to guess.
+
+    Translucency is composited rather than skipped (ISSUES-medicine-econ 5):
+    an alpha in the colour itself (`#1a1a1a1a`), a `fill_opacity` in scope and
+    the `opacity` of the text node and every group above it all multiply, as
+    they do in SVG and PDF, and the glyph colour that reaches the page is
+    measured against its backdrop. A pale grey and a 10% ink that look the
+    same are now judged the same. Text that is *meant* to recede -- a
+    watermark year, a "DRAFT" -- says so with `diagnostics.decorative`, and is
+    the one thing this rule skips; fully transparent text paints nothing and is
+    skipped with it.
     """
+    from .color import composite, split_alpha
+    from .decorative import is_decorative_node
+
     out: list[Diagnostic] = []
     for item in ctx.items:
         if not item.is_text or not item.draws:
             continue
-        foreground = item.style.text_fill or item.node.style.fill or "#000000"
+        if any(is_decorative_node(ctx.nodes.get(step))
+               for step in ctx.chain(item.id)):
+            continue
+        written = item.style.text_fill or item.node.style.fill or "#000000"
         background, source = ctx.background_of(item)
+        split = split_alpha(written)
+        if split is None or background is None:
+            continue  # unknown colour: say nothing rather than guess
+        foreground, ink_alpha = split
+        fill_alpha = item.style.fill_opacity
+        ink_alpha *= 1.0 if fill_alpha is None else float(fill_alpha)
+        group_alpha = _group_opacity(ctx, ctx.chain(item.id))
+        if ink_alpha * group_alpha <= 0.0:
+            continue  # paints nothing at all
         on_halo = bool(item.style.halo)
         if on_halo:
             # The glyphs sit on their own halo, painted in the page colour
-            # unless the text names another.
-            background = item.style.halo_color or ctx.page_fill or background
+            # unless the text names another; a group opacity fades the two
+            # together over whatever is behind them.
+            halo = item.style.halo_color or ctx.page_fill or background
+            glyph = composite(foreground, halo, ink_alpha)
+            behind = composite(halo, background, group_alpha)
+            glyph = None if glyph is None else composite(glyph, background,
+                                                         group_alpha)
             source = None
-        ratio = contrast_ratio(foreground, background)
+        else:
+            glyph, behind = _faded(ctx, item, source, foreground, background,
+                                   ink_alpha)
+        if glyph is None or behind is None:
+            ratio = None
+        else:
+            ratio = contrast_ratio(glyph, behind)
         if ratio is None:
-            continue  # unknown or translucent colour: say nothing rather than guess
+            continue  # unknown colour: say nothing rather than guess
+        alpha = ink_alpha * group_alpha
         effective_pt = _effective_font_pt(item)
         bold = str(item.style.font_weight or "").lower() in ("bold", "bolder", "700",
                                                              "800", "900")
-        threshold = (_CONTRAST_LARGE
-                     if effective_pt >= _LARGE_TEXT_PT
-                     or (bold and effective_pt >= _LARGE_BOLD_PT)
-                     else _CONTRAST_NORMAL)
+        large = (effective_pt >= _LARGE_TEXT_PT
+                 or (bold and effective_pt >= _LARGE_BOLD_PT))
+        threshold = _CONTRAST_LARGE if large else _CONTRAST_NORMAL
         if ratio >= threshold - 1e-9:
             continue
         if on_halo:
-            against = f"its halo {background}"
+            against = f"its halo {behind}"
         elif source is None:
             against = f"the page background {background}"
         elif isinstance(source.prim, ImagePrim):
             against = f"{source.label}, averaging {background} under the text"
         else:
             against = f"{source.label}'s {background}"
+        if not on_halo and behind != background:
+            against += f" (faded with it to {behind})"
+        colour = written if alpha >= 1.0 - 1e-9 else (
+            f"{written} at {alpha:.0%} opacity (painted as {glyph})")
+        hint = (f"darken or lighten the text fill until the ratio reaches "
+                f"{threshold:.1f}:1 (currently {ratio:.2f}:1)")
+        if alpha < 1.0 - 1e-9:
+            hint += ", or raise its opacity"
+        if source is not None and isinstance(source.prim, ImagePrim):
+            hint += (", or set the caption on a plate -- an average is not a "
+                     "guarantee, and one bright patch of a micrograph swallows "
+                     "white type whatever the mean says")
+        if large:
+            hint += (" -- if it is a watermark meant to recede, declare it "
+                     "with kind=inklet.diagnostics.decorative() and this "
+                     "check skips it")
         out.append(Diagnostic(
             code="LOW_CONTRAST",
             severity="warning",
-            message=(f"{item.described} in {foreground} on {against} has a "
+            message=(f"{item.described} in {colour} on {against} has a "
                      f"contrast ratio of {ratio:.2f}:1, below WCAG "
                      f"{threshold:.1f}:1"),
             targets=(item.id,) if source is None else (item.id, source.id),
             where=item.bbox,
-            hint=(f"darken or lighten the text fill until the ratio reaches "
-                  f"{threshold:.1f}:1 (currently {ratio:.2f}:1)"
-                  + (", or set the caption on a plate -- an average is not a "
-                     "guarantee, and one bright patch of a micrograph swallows "
-                     "white type whatever the mean says"
-                     if source is not None and isinstance(source.prim, ImagePrim)
-                     else "")),
+            hint=hint,
         ))
     return out
+
+
+def _faded(ctx: LintContext, item: Item, source: Item | None,
+           foreground: str, background: str,
+           ink_alpha: float) -> tuple[str | None, str | None]:
+    """(glyph colour, backdrop colour) as they reach the page.
+
+    A group `opacity` fades everything inside it at once, so what it does to
+    the contrast depends on whether the backdrop is inside it too. A label in
+    a box, the two wrapped in one 60% group, is the box's colour and the
+    label's colour both faded toward the paper -- the label is not faded over
+    a box at full strength. So the chain is split where the text's and the
+    backdrop's part: opacity above that point fades both, below it only its
+    own side. Whatever lies behind a faded group is taken to be the paper.
+    """
+    from .color import composite
+    paper = ctx.page_fill or "#ffffff"
+    text_chain = ctx.chain(item.id)
+    if source is None:
+        return (composite(foreground, background,
+                          ink_alpha * _group_opacity(ctx, text_chain)),
+                background)
+    source_chain = ctx.chain(source.id)
+    shared = 0
+    for mine, theirs in zip(text_chain, source_chain):
+        if mine != theirs:
+            break
+        shared += 1
+    both = _group_opacity(ctx, text_chain[:shared])
+    backdrop = composite(background, paper, _group_opacity(ctx, source_chain[shared:]))
+    if backdrop is None:
+        return None, None
+    glyph = composite(foreground, backdrop,
+                      ink_alpha * _group_opacity(ctx, text_chain[shared:]))
+    if glyph is None:
+        return None, None
+    return composite(glyph, paper, both), composite(backdrop, paper, both)
+
+
+def _group_opacity(ctx: LintContext, chain: Sequence[str]) -> float:
+    """The product of `opacity` over a run of nodes, root first.
+
+    Read off each node's *own* style, not the resolved one: `Style.over`
+    inherits `opacity` like any other field, but a renderer writes it once per
+    group and the groups multiply -- two nested 50% groups are 25%, not 50%.
+    """
+    alpha = 1.0
+    for step in chain:
+        node = ctx.nodes.get(step)
+        value = None if node is None else node.style.opacity
+        if value is not None:
+            alpha *= max(0.0, min(1.0, float(value)))
+    return alpha
 
 
 def rule_text_fill_ignored(ctx: LintContext) -> list[Diagnostic]:
@@ -1764,6 +1863,10 @@ def rule_crowding(ctx: LintContext) -> list[Diagnostic]:
       reported pair by pair -- see `_same_arrival`.
     * Two fragments of one authored block: the letters of a curved label are
       meant to be a letter-space apart -- see `_one_block`.
+    * Two parts of one key -- a size key's circle and the number under it, a
+      legend's swatch and its name. The key's spacing is the plot layer's own
+      layout (`_same_key`); two of its labels, and the key against anything
+      *outside* it, are still measured.
     * Text that sits on a plate, against anything outside that plate. The
       plate is the ink the reader sees a gap to, and it is always the nearer
       of the two, so the text's own pair restates a finding the plate has
@@ -1794,6 +1897,9 @@ def rule_crowding(ctx: LintContext) -> list[Diagnostic]:
         if ctx.is_attached(first.id, second.id):
             continue
         if _same_connector(ctx, first.id, second.id):
+            continue
+        if not (first.is_text and second.is_text) and _same_key(
+                ctx, first.id, second.id):
             continue
         homes = _source_homes(ctx, first, second)
         if homes is not None and _same_object(ctx, *homes):
@@ -1873,6 +1979,42 @@ def _spoken_for(ctx: LintContext, plates: dict[str, "Item | None"],
     plate = plates[text.id]
     return (plate is not None and plate.id != other.id
             and not _contains(plate.bbox, other.bbox))
+
+
+#: The keys `inklet.plot` builds: what a mark means, set beside or over the
+#: marks. Spelled out rather than imported for the same reason as `_SCENE_KIND`.
+KEY_KINDS = frozenset({"legend", "colorbar", "size-key", "width-key"})
+
+
+def _key_home(ctx: LintContext, node_id: str) -> str | None:
+    """The outermost key this node is part of, or None. Memoised."""
+    known = ctx._memo.setdefault("key_home", {})
+    answer = known.get(node_id, _UNASKED)
+    if answer is _UNASKED:
+        answer = None
+        for step in ctx.chain(node_id):
+            node = ctx.nodes.get(step)
+            if node is not None and node.kind in KEY_KINDS:
+                answer = step
+                break
+        known[node_id] = answer
+    return answer
+
+
+def _same_key(ctx: LintContext, a: str, b: str) -> bool:
+    """Whether both nodes are parts of one key.
+
+    A key is laid out by the plot layer to its own measure: `size_key` sets
+    each value 0.6 x gap('xs') under its circle, a legend sets a swatch a gap
+    from its name. Those are the key's design, and reporting them -- with the
+    circle called a data mark, since it is drawn as one -- told an author to
+    move a number off its own circle (ISSUES-medicine-econ 4). The key
+    against the data, the axis or another key is still measured, and so are
+    two of its *labels* against each other: a width key whose numbers nearly
+    touch is hard to read whoever laid it out, and the caller keeps that pair.
+    """
+    home = _key_home(ctx, a)
+    return home is not None and home == _key_home(ctx, b)
 
 
 def _spaced_on_purpose(ctx: LintContext, first: Item, second: Item) -> bool:
@@ -2408,7 +2550,14 @@ def _head_length(head: Item) -> float:
 def _crowded_against(ctx: LintContext, key: tuple[str, str],
                      pairs: Sequence[tuple[Item, Item, float]],
                      clearance: float) -> Diagnostic:
-    """One finding for a label against one object, however many parts it met."""
+    """One finding for a label against one object, however many parts it met.
+
+    The object is named when it is something an author can find and move: a
+    mirror, a model. When the nearest named thing above the mark is a whole
+    plot -- a panel, its document cell, the page -- naming it says nothing
+    (`'Japan' and y2007 are only 0.07mm apart`), so the nearest mark itself is
+    named instead, with its data position when the axes can be read.
+    """
     free_id, object_id = key
     where = pairs[0][0].bbox
     involved: set[str] = set()
@@ -2418,18 +2567,54 @@ def _crowded_against(ctx: LintContext, key: tuple[str, str],
     tightest = min(gap for _, _, gap in pairs)
     first, second, _ = min(pairs, key=lambda pair: pair[2])
     free = first if first.id == free_id else second
-    places = "" if len(pairs) == 1 else f" at {len(pairs)} points"
+    mark = second if free is first else first
+    if _is_container(ctx, object_id):
+        named = _mark_phrase(ctx, mark)
+        marks = {m.id for pair in pairs for m in pair[:2] if m.id != free_id}
+        places = ("" if len(marks) <= 1
+                  else f" (the nearest of {len(marks)} marks within the clearance)")
+    else:
+        named = _object_label(ctx, object_id)
+        places = "" if len(pairs) == 1 else f" at {len(pairs)} points"
+    said = (f"the legend plate {free.id}" if free.node.kind == "legend-plate"
+            else free.described)
     return Diagnostic(
         code="CROWDING",
         severity="info",
-        message=(f"{free.described} and {_object_label(ctx, object_id)} are "
+        message=(f"{said} and {named} are "
                  f"only {_mm(tightest)} apart{places}, under the "
                  f"{_mm(clearance)} clearance"),
         targets=tuple(sorted(involved)),
         where=where,
-        hint=_crowding_hint(first, second, tightest, clearance,
-                            named=_object_label(ctx, object_id)),
+        hint=_crowding_hint(first, second, tightest, clearance, named=named),
     )
+
+
+#: Containers too big to be "the object" a mark belongs to: naming one tells
+#: an author nothing about where to look.
+_CONTAINER_KINDS = frozenset({"panel", "document-cell", "document-content",
+                              "facets", PAGE_KIND})
+
+
+def _is_container(ctx: LintContext, node_id: str) -> bool:
+    """Whether a node is a whole plot or layout cell rather than an object."""
+    node = ctx.nodes.get(node_id)
+    if node is None:
+        return False
+    if node.kind in _CONTAINER_KINDS:
+        return True
+    notes = getattr(node, "notes", None)
+    from ..draw.coords import AREA_NOTE
+    return isinstance(notes, Mapping) and AREA_NOTE in notes
+
+
+def _mark_phrase(ctx: LintContext, mark: Item) -> str:
+    """`the mark <id> at x=.., y=..` -- a mark as an author can find it."""
+    from .plot_rules import data_position
+    at = data_position(ctx, mark)
+    name = _written_name(mark.node)
+    what = f"the mark {name!r} ({mark.id})" if name else f"the mark {mark.id}"
+    return f"{what} {at}" if at else what
 
 
 def _object_pair(ctx: LintContext, first: str, second: str) -> tuple[str, str]:
@@ -2518,7 +2703,7 @@ def _crowding_hint(first: Item, second: Item, gap: float,
 #: reason they are absent from `_COMPUTED_KINDS` is written there.
 _FURNITURE_KINDS = frozenset({
     "spine", "tick", "tick-label", "axis-label", "axis",
-    "legend", "label", "title", "gridline",
+    "legend", "legend-plate", "label", "title", "gridline",
 })
 
 
@@ -3384,16 +3569,19 @@ from .link_rules import (rule_coincident_shaft,                     # noqa: E402
                          rule_label_covers_shaft, rule_link_crosses_link)
 from .path_rules import (rule_path_crosses,                         # noqa: E402
                          stroke_near_misses)
-from .plot_rules import rule_data_outside, rule_off_panel           # noqa: E402
+from .plot_rules import (rule_data_outside, rule_off_panel,         # noqa: E402
+                          rule_ticks_dropped)
 from .break_rules import rule_break_distorts                       # noqa: E402
 from .three_rules import rule_depth_order                           # noqa: E402
 from .label_rules import rule_label_unplaced                       # noqa: E402
+from .key_cover import rule_key_covers_data                         # noqa: E402
 
 RULES: dict[str, Rule] = {
     "TEXT_OVERFLOW": rule_text_overflow,
     "OFF_CANVAS": rule_off_canvas,
     "OFF_PANEL": rule_off_panel,
     "DATA_OUTSIDE": rule_data_outside,
+    "TICKS_DROPPED": rule_ticks_dropped,
     "BREAK_DISTORTS": rule_break_distorts,
     "TINY_TEXT": rule_tiny_text,
     "LARGE_TEXT": rule_large_text,
@@ -3416,6 +3604,7 @@ RULES: dict[str, Rule] = {
     "COINCIDENT_SHAFT": rule_coincident_shaft,
     "LABEL_COVERS_SHAFT": rule_label_covers_shaft,
     "KEY_MISMATCH": rule_key_mismatch,
+    "KEY_COVERS_DATA": rule_key_covers_data,
     "DEPTH_ORDER": rule_depth_order,
     "EMPTY_DIAGRAM": rule_empty_diagram,
     "FONT_SUBSTITUTED": rule_font_substituted,

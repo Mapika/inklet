@@ -45,6 +45,7 @@ Chart options, accepted by every function above:
 | `legend` | `'auto'` (default), `'direct'` (names at the line ends, no key), `'top'`, `'bottom'`, `'left'`, `'right'`, a corner `'ne'`, or `False` |
 | `facet_col`, `facet_row` | column names: one chart per value, on shared axes, in a grid; `facet_col_wrap=3` wraps |
 | `grid` | `True`, `False`, `'x'`, `'y'` |
+| `xticks`, `yticks` | the tick values to show, e.g. `xticks=[0, 5, 10, 15, 20]` |
 
 ## Layering and annotating
 
@@ -88,8 +89,12 @@ A row defaults to double-column width. Set the layout width with
 
 1. `figure = chart.save('fig.png')` returns the compiled figure.
    `print(figure.report())` lists overlapping labels, clipped or tiny text, and
-   data running outside the axes (`DATA_OUTSIDE`, with the range to set), each
-   with a suggested fix. `inklet lint: clean` means no problems.
+   data running outside the axes (`DATA_OUTSIDE`, with the range to set), a key
+   drawn over data (`KEY_COVERS_DATA`, with the corners that are clear), and
+   supplied ticks dropped for lack of room (`TICKS_DROPPED`), each with a
+   suggested fix. `inklet lint: clean` means no problems. Mark ornamental text
+   such as a pale watermark with `text(..., decorative=True)` so the contrast
+   check skips it.
 2. Look at the PNG. If you can view images, open it. Labels are measured, so
    overlaps are rare. Check that the right data are plotted, not just that it ran.
 3. From a shell: `inklet check script.py --png preview.png` builds the script,
@@ -200,7 +205,7 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `kde2d(points, *, levels=5, fill=False, bandwidth='scott', adjust=1.0, gridsize=96, color=None, ramp=None, name=None, **style)`: Contours of a 2D kernel density: lines, or filled levels.
 - `label_lines(name=None, **kwargs)`: Name curves at the curves themselves instead of in a legend.
 - `label_points(points, labels, **kwargs)`: Label many data points at once, clear of the marks and each other.
-- `legend(*, corner='ne', side=None, entries=None, columns=None, max_width=None, swatch=None, pad=None, plate=None, title=None, markup=True, order='row', col_gap=None, row_gap=None, **style)`: A key built from the series this panel actually drew.
+- `legend(*, corner='ne', side=None, entries=None, columns=None, max_width=None, swatch=None, pad=None, plate=None, title=None, markup=True, order='row', col_gap=None, row_gap=None, names=None, **style)`: A key built from the series this panel actually drew.
 - `likert(at, counts, *, neutral=None, normalize=True, orient='h', width=0.7, color=None, name=None, labels=None, zero=True, **style)`: Diverging stacked bars for Likert-scale responses, centred on neutral.
 - `line(points, *, smooth=0.0, closed=False, name=None, err=None, err_style='band', simplify=None, **style)`: A path through data points: straight by default, curved with `smooth`.
 - `lollipop(at, values, *, baseline=0.0, orient='v', size=None, color=None, marker='circle', stem=None, name=None, **style)`: One value per category as a dot on a stem from `baseline`.
@@ -221,7 +226,7 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `residuals(points, *, method='linear', frac=0.6666666666666666, iterations=3, smooth=False, color=None, size=None, name=None, **style)`: The residuals of a fit against x, with a zero line.
 - `ribbon(a, b, **kwargs)`: A Sankey band from data point `a` to data point `b`.
 - `ridgeline(groups, *, at=None, overlap=1.5, bandwidth=None, samples=96, scale='shared', fit=True, color=None, **style)`: Overlapping kernel densities, one per category: a ridgeline plot.
-- `scatter(points, *, size=None, color=None, ramp=None, scale=None, marker='circle', name=None, raster=False, dpi=300, **style)`: Markers at data points, with size and colour that may be data too.
+- `scatter(points, *, size=None, color=None, ramp=None, scale=None, marker='circle', name=None, hollow=False, raster=False, dpi=300, **style)`: Markers at data points, with size and colour that may be data too.
 - `sina(groups, *, at=None, width=0.8, orient='v', bandwidth='scott', adjust=1.0, size=None, seed=0, color=None, marker='circle', **style)`: A sina plot: points jittered within their group's density.
 - `size_key(source=None, *, side='right', corner=None, values=None, count=3, format=None, title=None, orient=None, pad=None, plate=False, **style)`: Reference circles with their values: the key to a size encoding.
 - `slope(values, *, at=None, labels='both', format=None, color=None, highlight=None, size=None, name=True, **style)`: A slope chart: each series' values at a few time points, joined.
@@ -234,7 +239,7 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `sunburst(data, *, inner=0.3, start=-90.0, color=None, highlight=None, highlight_color=None, labels=True, center=None, sort=False, size=None, **style)`: A sunburst: an icicle chart bent into rings about the centre of the plot area, the first level innermost.
 - `swarm(groups, *, at=None, width=0.8, max_width=None, orient='v', size=None, gap=None, marker='circle', hollow=False, color=None, **style)`: Every observation as its own dot, nudged sideways until none hides another.
 - `ternary(points, *, labels=None, ticks=5, grid=True, total=100, format=None, color=None, size=None, marker='circle', name=None, **style)`: Compositions of three parts as points in a triangle.
-- `text(x, y, content, *, anchor='center', offset=(0.0, 0.0), size=None, markup=True, front=True, **style)`: Words at one **data** point.
+- `text(x, y, content, *, anchor='center', offset=(0.0, 0.0), size=None, markup=True, front=True, decorative=False, **style)`: Words at one **data** point.
 - `timeline(events, *, at=None, color=None, size=None, levels=None, line=True, **style)`: An event timeline: labelled stems off a base line.
 - `title(content, *, align='center', pad=None)`: A heading over the panel, clear of whatever is already in it.
 - `treemap(data, *, color=None, highlight=None, highlight_color=None, padding=None, header=None, labels=True, values=None, sort=True, size=None, **style)`: A squarified treemap: each leaf a rectangle with area proportional to its value, filling the plot area.
@@ -242,7 +247,7 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `twin_y(scale=None, *, side='right', label=None, color=None, axis=True, **kwargs)`: A second y scale over the same area, and a handle that draws in it.
 - `violin(groups, *, at=None, width=0.8, orient='v', bandwidth=None, samples=64, cut=2.0, median=True, color=None, **style)`: Mirrored kernel densities, one per group.
 - `vline(x, *, span=None, front=False, label=None, label_side=None, **style)`: A vertical rule at one **data** value of x -- stimulus onset, a dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
-- `volcano(fold, p, *, labels=None, top=10, fold_threshold=1.0, p_threshold=0.05, color=None, name=None, size=None, thresholds=True, label_options=None, **style)`: A volcano plot: log2 fold change on x against -log10 p on y.
+- `volcano(fold, p, *, labels=None, top=None, fold_threshold=1.0, p_threshold=0.05, color=None, name=None, size=None, thresholds=True, label_options=None, highlight=None, q=None, **style)`: A volcano plot: log2 fold change on x against -log10 p on y.
 - `vspan(x0, x1, *, front=False, **style)`: A shaded stripe between two **data** values of x, full height.
 - `waffle(values, *, rows=10, columns=10, total=None, color=None, name=None, gap=0.18, order='column', **style)`: A waffle chart: shares of a whole as cells of a grid.
 - `waterfall(at, values, *, totals=(), baseline=0.0, orient='v', width=0.6, color=None, connectors=True, labels=None, name=None, **style)`: A waterfall chart: signed changes as bars floating on a running total.

@@ -121,7 +121,7 @@ def test_estimator_errors() -> None:
     with pytest.raises(DiagramError):
         kaplan_meier([-1, 2])
     with pytest.raises(DiagramError):
-        kaplan_meier([1, 2], band="log")
+        kaplan_meier([1, 2], band="logit")
     with pytest.raises(DiagramError):
         kaplan_meier([1, 2], confidence=1.0)
     with pytest.raises(DiagramError):

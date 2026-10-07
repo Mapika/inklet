@@ -308,11 +308,16 @@ def test_a_fill_set_directly_on_the_text_is_honoured():
     assert only(lint(frame), "LOW_CONTRAST")
 
 
-def test_translucent_text_is_not_guessed_at():
-    # What is behind a 50%-alpha glyph is a rendering question, not a geometry
-    # one, so the rule declines rather than inventing a luminance.
+def test_translucent_text_is_composited_over_its_backdrop():
+    # A 50%-alpha black glyph on white paints as #7f7f7f, 4.0:1, and is judged
+    # as that -- the same verdict as the opaque grey it looks like. Skipping
+    # translucent colours used to let a too-faint caption through unchecked
+    # (ISSUES-medicine-econ 5; see test_lint_fixes_round2_contrast.py).
     label = text("half there", 20.0, name="label", text_fill="#00000080")
-    assert [d for d in lint(group([label])) if d.code == "LOW_CONTRAST"] == []
+    found = [d for d in lint(group([label])) if d.code == "LOW_CONTRAST"]
+    assert len(found) == 1 and "painted as #7f7f7f" in found[0].message
+    darker = text("mostly there", 20.0, name="label", text_fill="#000000cc")
+    assert [d for d in lint(group([darker])) if d.code == "LOW_CONTRAST"] == []
 
 
 def test_large_text_gets_the_wcag_large_allowance():

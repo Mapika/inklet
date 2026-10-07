@@ -47,7 +47,8 @@ from .rules import (
     Diagnostic, Item, LintContext, _mm, _outside, _sides_phrase,
 )
 
-__all__ = ["rule_off_panel", "rule_data_outside"]
+__all__ = ["rule_off_panel", "rule_data_outside", "rule_ticks_dropped",
+           "TICKS_DROPPED_NOTE"]
 
 #: Containers the plot layer places itself, whose contents sit where the layer
 #: put them. A `side="top"` legend is above the plot box by construction and a
@@ -567,6 +568,31 @@ def _axis_readers(ctx: LintContext, panel_id: str,
     return answer
 
 
+def data_position(ctx: LintContext, item: Item) -> str:
+    """`at x=.., y=..` for an item drawn in a panel, read off its axes.
+
+    Empty when the item is not data in any panel or neither axis can be read
+    (`_axis_readers` declines a twin axis or a categorical one), so a caller
+    can append it unconditionally.
+    """
+    home = _data_home(ctx, item.id)
+    if home is None:
+        return ""
+    panel_id, box = home
+    readers = _axis_readers(ctx, panel_id, box)
+    return at_position(item.bbox.center, readers)
+
+
+def at_position(point: Vec2, readers: Mapping[str, _Reader]) -> str:
+    """`at x=.., y=..` for a page point, through whichever readers exist."""
+    bits = []
+    for axis, value in (("x", point.x), ("y", point.y)):
+        reader = readers.get(axis)
+        if reader is not None:
+            bits.append(f"{axis}={_format_value(reader(value), reader.step)}")
+    return "at " + ", ".join(bits) if bits else ""
+
+
 def _agree(a: _Reader, b: _Reader) -> bool:
     probes = (a.at[0], a.at[-1])
     return all(math.isclose(a(p), b(p), rel_tol=1e-3, abs_tol=1e-9) for p in probes)
@@ -676,3 +702,99 @@ def _format_value(value: float, step: float | None) -> str:
             text = text.rstrip("0").rstrip(".")
         return "0" if text in ("-0", "") else text
     return f"{value:.2g}"
+
+
+# -- TICKS_DROPPED -------------------------------------------------------------
+#
+# An axis given explicit `ticks=` thins them when their labels would collide,
+# unless `thin=` says otherwise, and until now said so only with a Python
+# `UserWarning` at build time -- which an agent running a script under a
+# harness never sees, and which `figure.report()`, the one channel the guide
+# tells it to read, did not repeat (ISSUES-earth-life 3). The month inset of
+# `keeling_curve` asked for Feb, Apr, ... Dec and printed every other one.
+#
+# The axis records what it dropped in a note on its own node (`plot.axis`
+# writes it under the same condition as the warning: explicit ticks, `thin`
+# left at its default, labels on). The note is a mapping:
+#
+#     {"values": (...), "labels": ("Apr", "Aug", "Dec"), "supplied": 6,
+#      "side": "bottom"}
+#
+# of which only `values` or `labels` is required; anything missing is said
+# less precisely rather than not at all.
+#
+# **Grade: warning.** The author named those ticks; a figure that silently
+# prints a different set is the failure, and the fix is one argument.
+
+#: Read defensively: the axis may predate the note, and then says nothing.
+TICKS_DROPPED_NOTE = "ticks_dropped"
+
+
+def rule_ticks_dropped(ctx: LintContext) -> list[Diagnostic]:
+    """Explicitly supplied ticks an axis left out for lack of room."""
+    noted = {}
+    for node_id, node in ctx.nodes.items():
+        notes = getattr(node, "notes", None)
+        dropped = notes.get(TICKS_DROPPED_NOTE) if isinstance(notes, Mapping) else None
+        if isinstance(dropped, Mapping):
+            noted[node_id] = dropped
+    # A wrapper with one child inherits that child's notes (`carry_notes`),
+    # so one axis's note turns up on every single-child wrapper above it.
+    # The deepest holder is the axis itself.
+    wrappers = {step for node_id in noted for step in ctx.ancestors(node_id)}
+    out: list[Diagnostic] = []
+    for node_id in sorted(noted):
+        if node_id in wrappers:
+            continue
+        dropped = noted[node_id]
+        labels = [str(v) for v in dropped.get("labels") or ()]
+        if not labels:
+            labels = [_tick_word(v) for v in dropped.get("values") or ()]
+        if not labels:
+            continue
+        supplied = dropped.get("supplied")
+        placed = ctx.placements.get(node_id)
+        box = None if placed is None else placed.bbox
+        side = dropped.get("side")
+        axis = ("x" if side in ("top", "bottom") else "y" if side in ("left", "right")
+                else None)
+        if axis is None and box is not None:
+            axis = "x" if box.width >= box.height else "y"
+        named = _axis_owner(ctx, node_id)
+        of = (f"{len(labels)} of {supplied}" if isinstance(supplied, int)
+              else f"{len(labels)}")
+        shown = ", ".join(labels[:6]) + (f" and {len(labels) - 6} more"
+                                         if len(labels) > 6 else "")
+        which = f"the {axis} axis" if axis else "an axis"
+        span = "width" if axis == "x" else "height" if axis == "y" else "size"
+        out.append(Diagnostic(
+            code="TICKS_DROPPED",
+            severity="warning",
+            message=(f"{which} of {named} left out {of} explicitly supplied "
+                     f"ticks because their labels would collide: {shown}"),
+            targets=(node_id,),
+            where=box,
+            hint=(f"pass thin=False in that axis' options to keep every tick "
+                  f"(rotate=45 makes room for long labels), supply fewer "
+                  f"ticks, or give the plot more {span}; thin=True accepts "
+                  f"the thinning and silences this"),
+        ))
+    return out
+
+
+def _tick_word(value) -> str:
+    if isinstance(value, float):
+        return f"{value:g}"
+    return str(value)
+
+
+def _axis_owner(ctx: LintContext, node_id: str) -> str:
+    """The panel an axis belongs to, as `_panel_name` spells it -- and, for a
+    panel inset in another, which one it is inset in."""
+    panels = [step for step in ctx.ancestors(node_id)
+              if getattr(ctx.nodes.get(step), "kind", None) == _PANEL_KIND]
+    if not panels:
+        return node_id
+    if len(panels) > 1 and not ctx.nodes[panels[0]].name:
+        return f"the inset {panels[0]} in {_panel_name(ctx, panels[1])}"
+    return _panel_name(ctx, panels[0])

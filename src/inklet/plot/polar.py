@@ -77,7 +77,8 @@ from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
                          into_corner, plated)
 from .scale import Linear, Scale, format_number, linear
 from .metadata import declare_domain as _declare_domain
-from .series import SeriesKey, merge_keys, series_color, series_names, swatch_for
+from .series import (SeriesKey, merge_keys, select_keys, series_color,
+                     series_names, swatch_for)
 from .._compat import renamed_keywords, renamed_property
 
 __all__ = [
@@ -1565,8 +1566,12 @@ class PolarPanel:
                columns: int = 1, swatch: float | str | None = None,
                pad: float | str | None = None, plate: bool | None = None,
                title: str | None = None, markup: bool = True,
+               names: Sequence[str] | None = None,
                **style) -> "PolarPanel":
         """A key built from the series this panel actually drew.
+
+        `names=` chooses and orders the rows by series name, as
+        `Panel.legend` does.
 
         `corner` puts it in a corner of the box round the disc -- which on a
         polar panel is *paper*, the quarter the data cannot reach, and the one
@@ -1574,7 +1579,12 @@ class PolarPanel:
         `side` puts it outside instead.
         """
         theme = active_theme()
-        rows = list(entries) if entries is not None else self._legend_rows(swatch)
+        if names is not None and entries is not None:
+            raise DiagramError(
+                "legend() takes names= to order the drawn series or entries= "
+                "to replace them, not both")
+        rows = (list(entries) if entries is not None
+                else self._legend_rows(swatch, names))
         if not rows:
             raise DiagramError(
                 "legend() found no named series: pass name= to line(), "
@@ -1609,11 +1619,13 @@ class PolarPanel:
         box = _union_box(self._under + self._content + self._over) or self.area
         return beside(node, box, side, gap, self.area.center)
 
-    def _legend_rows(self, swatch: float | str | None) -> list[tuple[str, object]]:
+    def _legend_rows(self, swatch: float | str | None,
+                     names: Sequence[str] | None = None) -> list[tuple[str, object]]:
         theme = active_theme()
         size = (SWATCH_OF_TYPE * theme.font_size_small if swatch is None
                 else mm(swatch))
-        return [(entry.name, swatch_for(entry, size)) for entry in self.keys]
+        return [(entry.name, swatch_for(entry, size))
+                for entry in select_keys(self.keys, names)]
 
     # -- output ------------------------------------------------------------
 

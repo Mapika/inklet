@@ -19,7 +19,8 @@ def test_scientific_labels_distinguish_resolved_positions(base, step):
     labels = linear((values[0], values[-1])).tick_labels(values)
     assert len(set(labels)) == len(values)
     for value, label in zip(values, labels):
-        assert abs(float(label) - value) <= math.ulp(value)
+        # Labels are typeset: a negative tick carries U+2212, not a hyphen.
+        assert abs(float(label.replace("\u2212", "-")) - value) <= math.ulp(value)
 
 
 @pytest.mark.parametrize('step', [1e-13, 1e-15, 2e-18, 5e-21, 1e-24, 1e-100])

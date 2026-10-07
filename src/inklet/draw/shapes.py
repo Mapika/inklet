@@ -156,6 +156,11 @@ def marker(kind: str = "circle", size: float | str | None = None,
         raise ValueError(f"a marker needs a positive size, got {size!r}")
     builder = _MARKERS[kind]
     prim = builder(s)
+    if kind in _STROKE_MARKERS and style.get("fill") not in (None, "none") \
+            and style.get("stroke") in (None, "none"):
+        # A cross is drawn in strokes, so the colour asked for as its fill is
+        # the colour of its lines -- otherwise it paints in ink, unlike its key.
+        style = {**style, "stroke": style["fill"]}
     node_kind = MARK_LINE_KIND if kind in _STROKE_MARKERS else MARK_KIND
     return drawn(prim, ORIGIN, node_kind, style)
 

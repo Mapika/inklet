@@ -129,7 +129,7 @@ def size_key(sizes: AreaScale, *, values: Sequence[float] | None = None,
     circles = [make_marker("circle", sizes(float(v)), **paint) for v in shown]
     if orient == "v":
         rows = _left_aligned_labels(circles, labels, widest, theme.gap("xs"))
-        body = vstack(rows, gap=theme.gap("xs"), align="left")
+        body = _column(rows, theme.gap("xs"))
     else:
         body = _baseline_row(circles, labels, theme.gap("xs") * 0.6,
                              theme.gap("xs") * 1.5)
@@ -154,6 +154,21 @@ def _left_aligned_labels(circles, labels, widest: float, gap: float) -> list:
                                           -circle.bbox.center.y)
         rows.append(Diagram(children=(placed_circle, placed_label), kind="swatch"))
     return rows
+
+
+def _column(rows, gap: float) -> Diagram:
+    """Rows stacked top to bottom, each kept at the x it was built at.
+
+    `vstack(align="left")` would line up each row's own left edge -- the
+    edge of its circle, which is further in for a smaller circle -- and undo
+    the shared slot `_left_aligned_labels` built.
+    """
+    parts, y = [], 0.0
+    for row in rows:
+        box = row.bbox
+        parts.append(row.translated(0.0, y - box.y0))
+        y += box.height + gap
+    return Diagram(children=tuple(parts), kind="swatch")
 
 
 def _baseline_row(circles, labels, gap: float, between: float) -> Diagram:

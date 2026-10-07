@@ -47,8 +47,7 @@ _SOFT, _SOFT_AMOUNT = '@soft', 0.45
 #: Opacity of a grouped series' error band.
 _BAND_OPACITY = 0.22
 
-#: Named dash patterns, in millimetres of dash and gap.
-_DASHES = {'dashed': (1.6, 0.8), 'dotted': (0.3, 0.6), 'dashdot': (1.6, 0.6, 0.3, 0.6)}
+from .plot.paint import DASHES as _DASHES
 
 #: A categorical `color=` column with more distinct numeric values than this
 #: is read as a continuous variable and drawn with a colour ramp.
@@ -311,7 +310,8 @@ class Chart(_Renderable):
 
     def __init__(self, *, width='single', height=None, style='scientific.modern',
                  palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None,
-                 xscale='linear', yscale='linear', legend='auto', grid=None):
+                 xscale='linear', yscale='linear', legend='auto', grid=None,
+                 xticks=None, yticks=None):
         from .document import plot_spec
         for name, value in (('xscale', xscale), ('yscale', yscale)):
             if value not in ('linear', 'log'):
@@ -320,6 +320,7 @@ class Chart(_Renderable):
         self.height = height
         self.title, self.xlabel, self.ylabel = title, xlabel, ylabel
         self.legend_side = legend
+        self.xticks, self.yticks = xticks, yticks
         options = {'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
         if xlim is not None or ylim is not None:
             # Explicit limits zoom: marks past them are cut at the axes.
@@ -450,7 +451,10 @@ class Chart(_Renderable):
         if (literal := _literal_color(table, color)) is not None:
             options['color'] = literal
         elif len(series) == 1:
-            options.setdefault('color', f'{_TOKEN}0')
+            # A bar is a large area: a softened series colour, not a block.
+            options.setdefault('color', f'{_SOFT}0')
+        else:
+            options.setdefault('color', [f'{_SOFT}{k}' for k in range(len(series))])
         if len(series) > 1:
             options['stacked' if stacked else 'grouped'] = True
             options['name'] = names
@@ -714,6 +718,10 @@ class Chart(_Renderable):
             x_options = {**self._tick_overrides.get('x', {}), **(self._tick_options(width, profile, rotate) or {})}
             y_options = dict(self._tick_overrides.get('y', {}))
             # Inner facets keep their ticks and drop the numbers beside them.
+            if self.xticks is not None:
+                x_options['ticks'] = tuple(self.xticks)
+            if self.yticks is not None:
+                y_options['ticks'] = tuple(self.yticks)
             if 'x' in self._hide_ticks:
                 x_options['labels'] = False
             if 'y' in self._hide_ticks:
@@ -1081,7 +1089,10 @@ class Layout(_Renderable):
             doc = profile.document(columns=len(self.items) if self.direction == 'row' else 1)
             self._fill(doc, doc.width, prefix='p', profile=profile, rotate=rotate)
         if self.letters and len(list(self.charts())) > 1:
-            doc.letters()
+            # Beside a chart title the letter shares its line; otherwise it
+            # hangs off the plot area.
+            titled = any(chart.title for chart in self.charts())
+            doc.letters(anchor='cell') if titled else doc.letters()
         return doc
 
     def _grid(self):
@@ -1137,7 +1148,7 @@ class Layout(_Renderable):
 # -- top-level functions ----------------------------------------------------
 
 _CHART_OPTIONS = ('width', 'height', 'style', 'palette', 'title', 'xlabel', 'ylabel',
-                  'xlim', 'ylim', 'xscale', 'yscale', 'legend', 'grid')
+                  'xlim', 'ylim', 'xscale', 'yscale', 'legend', 'grid', 'xticks', 'yticks')
 
 
 def chart(**options) -> Chart:
@@ -1247,7 +1258,8 @@ def _entry(method):
     Chart options: width ('single', 'double', 'slide' or mm), height (mm),
     style (a preset name, default 'scientific.general'), palette, title,
     xlabel, ylabel, xlim, ylim, xscale/yscale ('linear' or 'log'), legend
-    ('auto', a side, a corner or False), grid (True, False, 'x' or 'y').
+    ('auto', 'direct', a side, a corner or False), grid (True, False, 'x' or
+    'y'), xticks/yticks (the tick values to show).
     Facets: `facet_col=` / `facet_row=` name columns to split into a grid
     of charts on shared axes; `facet_col_wrap=` sets the columns per row.
     Returns a `Chart` (a `Layout` when faceted); call `.save('figure.pdf')`.

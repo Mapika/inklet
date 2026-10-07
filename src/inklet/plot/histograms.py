@@ -66,6 +66,20 @@ def _outline(panel, edges, heights, baseline: float, orient: str,
     return pts
 
 
+def _occupied(heights) -> list[tuple[int, int]]:
+    """Index ranges (first, last) of consecutive non-empty bins."""
+    runs, start = [], None
+    for index, height in enumerate(heights):
+        if height and start is None:
+            start = index
+        elif not height and start is not None:
+            runs.append((start, index - 1))
+            start = None
+    if start is not None:
+        runs.append((start, len(heights) - 1))
+    return runs
+
+
 def hist_layer(panel, values, bins=10, *, range=None, density: bool = False,
                cumulative: bool = False, histtype: str | None = None,
                baseline: float = 0.0, orient: str = "v", colors=None,
@@ -134,8 +148,16 @@ def hist_layer(panel, values, bins=10, *, range=None, density: bool = False,
         line.update({k: v for k, v in style.items() if k != "fill"})
         if cumulative:
             pts = pts[:-1]      # a running total ends at its top, not back at zero
-        items.append(draw_path(pts, closed=False, filled=False,
-                               kind=MARK_LINE_KIND, **line))
+            items.append(draw_path(pts, closed=False, filled=False,
+                                   kind=MARK_LINE_KIND, **line))
+            continue
+        # One outline per run of occupied bins: empty bins draw nothing, so a
+        # group's outline does not run along the axis under its neighbours.
+        for first, last in _occupied(heights):
+            run = _outline(panel, edges[first:last + 2], heights[first:last + 1],
+                           baseline, orient, False)
+            items.append(draw_path(run, closed=False, filled=False,
+                                   kind=MARK_LINE_KIND, **line))
     if not items:
         raise DiagramError("hist() had nothing to draw")
     node = draw_place(items, origin=(0, 0), kind="hist")

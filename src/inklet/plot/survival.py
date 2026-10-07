@@ -18,13 +18,27 @@ The variance is Greenwood's,
 The default confidence band is the log-log ("exponential Greenwood") one:
 the interval is built for log(-log S), which keeps it inside (0, 1), and
 gives `S ** exp(+-z * se)` with `se = sqrt(sum d/(n(n-d))) / |log S|`.
-`band="linear"` gives `S +- z * sqrt(Var)`, clipped to [0, 1]. Where the
-estimate reaches 0 the variance and the band are undefined (NaN) and the
+`band="log"` -- R's `survfit` default, `conf.type = "log"` -- builds it for
+log S instead: `S * exp(+-z * sqrt(sum d/(n(n-d))))`, the upper edge clipped
+to 1. `band="linear"` gives `S +- z * sqrt(Var)`, clipped to [0, 1]. Where
+the estimate reaches 0 the variance and the band are undefined (NaN) and the
 band is not drawn.
 
+`logrank` is the Mantel-Cox log-rank test between two or more groups: at each
+distinct event time t, with `n_j` at risk and `d_j` events in group j (and
+`n`, `d` overall), group j expects `E_j = d n_j / n` events, and the
+hypergeometric covariance is
+
+    V_jk = d (n - d) / (n - 1) * n_j / n * (delta_jk - n_k / n).
+
+The statistic `(O - E)' V^-1 (O - E)`, over all groups but the last, is
+chi-square on k - 1 degrees of freedom; its p-value comes from the
+regularized upper incomplete gamma function (`erfc` for one degree of
+freedom). This is what R's `survdiff` reports.
+
 `Panel.kaplan_meier` draws step curves, censor ticks and the bands;
-`Panel.at_risk` hangs the number-at-risk table under the x axis. There is no
-significance test here: pass a p-value computed elsewhere to `pvalue=`.
+`Panel.at_risk` hangs the number-at-risk table under the x axis.
+`kaplan_meier(pvalue="logrank")` writes the log-rank p-value on the plot.
 """
 
 from __future__ import annotations
@@ -43,10 +57,11 @@ from ..draw.shapes import MARK_LINE_KIND
 from .axis import text_node, tick_values
 
 __all__ = ["kaplan_meier", "SurvivalEstimate", "SURVIVAL_BANDS",
-           "format_pvalue", "at_risk_table", "AT_RISK_KIND"]
+           "format_pvalue", "at_risk_table", "AT_RISK_KIND", "logrank",
+           "LogRank", "chi2_sf"]
 
 #: Accepted values of `kaplan_meier(band=)`.
-SURVIVAL_BANDS = ("log-log", "linear", None)
+SURVIVAL_BANDS = ("log-log", "log", "linear", None)
 
 AT_RISK_KIND = "at-risk"
 
@@ -114,12 +129,12 @@ def kaplan_meier(durations: Sequence[float], events: Sequence | None = None, *,
     `events` out when every event was observed. Subjects with a missing
     duration or event flag (None or NaN) are skipped and listed in
     `skipped`. `confidence` is the band's coverage and `band` its kind:
-    `"log-log"` (default), `"linear"` or None. See the module docstring for
-    the formulas.
+    `"log-log"` (default), `"log"` (R's default), `"linear"` or None. See
+    the module docstring for the formulas.
     """
     if band not in SURVIVAL_BANDS:
         raise DiagramError(
-            f'kaplan_meier band is "log-log", "linear" or None, not {band!r}')
+            f'kaplan_meier band is "log-log", "log", "linear" or None, not {band!r}')
     if not 0 < confidence < 1:
         raise DiagramError(
             f"kaplan_meier confidence must be in (0, 1), got {confidence!r}")
@@ -191,6 +206,9 @@ def _interval(s: float, greenwood: float, z: float, band: str | None) -> tuple[f
     if band == "linear":
         spread = z * s * math.sqrt(greenwood)
         return max(0.0, s - spread), min(1.0, s + spread)
+    if band == "log":
+        spread = math.exp(z * math.sqrt(greenwood))
+        return s / spread, min(1.0, s * spread)
     if s >= 1.0:
         return 1.0, 1.0
     log_s = math.log(s)
@@ -256,6 +274,134 @@ def estimates(data, *, confidence: float, band: str | None) -> list[tuple[str | 
     return out
 
 
+@dataclass(frozen=True)
+class LogRank:
+    """The result of `logrank`: the chi-square `statistic` on `df` degrees
+    of freedom, its `p`-value, and per group (in `groups` order) the
+    `observed` and `expected` numbers of events."""
+    statistic: float
+    df: int
+    p: float
+    groups: tuple[str | None, ...]
+    observed: tuple[float, ...]
+    expected: tuple[float, ...]
+
+
+def logrank(data) -> LogRank:
+    """The log-rank (Mantel-Cox) test that survival differs between groups.
+
+    `data` takes every form `Panel.kaplan_meier` takes -- a mapping of group
+    name to `(durations, events)`, or to a `SurvivalEstimate` -- with at
+    least two groups. Two groups give chi-square on 1 degree of freedom, k
+    groups on k - 1; the numbers match R's `survdiff(Surv(time, status) ~
+    group)`. See the module docstring for the formula.
+
+        result = inklet.plot.logrank({"Male": (t_m, e_m), "Female": (t_f, e_f)})
+        result.statistic, result.p        # 10.33, 0.0013 for the NCCTG lung data
+    """
+    return logrank_of(estimates(data, confidence=0.95, band=None))
+
+
+def logrank_of(groups: Sequence[tuple[str | None, SurvivalEstimate]]) -> LogRank:
+    """`logrank` of `(name, estimate)` pairs already computed."""
+    groups = list(groups)
+    if len(groups) < 2:
+        raise DiagramError("a log-rank test needs at least two groups")
+    events = [{t: d for t, d in zip(e.times, e.events) if d > 0} for _, e in groups]
+    times = sorted(set().union(*events))
+    k = len(groups)
+    observed = [float(sum(found.values())) for found in events]
+    expected = [0.0] * k
+    cov = [[0.0] * k for _ in range(k)]
+    for t in times:
+        risk = [e.at_risk_at(t) for _, e in groups]
+        n = sum(risk)
+        d = sum(found.get(t, 0) for found in events)
+        if n <= 0:
+            continue
+        for j in range(k):
+            expected[j] += d * risk[j] / n
+        if n > 1:
+            scale = d * (n - d) / (n - 1)
+            for j in range(k):
+                for m in range(k):
+                    share = (1.0 if j == m else 0.0) - risk[m] / n
+                    cov[j][m] += scale * risk[j] / n * share
+    diff = [o - e for o, e in zip(observed, expected)]
+    statistic = _quadratic_form([row[:k - 1] for row in cov[:k - 1]], diff[:k - 1])
+    return LogRank(statistic=statistic, df=k - 1, p=chi2_sf(statistic, k - 1),
+                   groups=tuple(name for name, _ in groups),
+                   observed=tuple(observed), expected=tuple(expected))
+
+
+def _quadratic_form(matrix: list[list[float]], vector: list[float]) -> float:
+    """`v' M^-1 v`, by Gaussian elimination with partial pivoting."""
+    size = len(vector)
+    rows = [list(row) + [value] for row, value in zip(matrix, vector)]
+    for col in range(size):
+        pivot = max(range(col, size), key=lambda r: abs(rows[r][col]))
+        if abs(rows[pivot][col]) < 1e-12:
+            raise DiagramError(
+                "the log-rank variance is singular: a group has no subjects "
+                "at risk at any event time")
+        rows[col], rows[pivot] = rows[pivot], rows[col]
+        for r in range(col + 1, size):
+            factor = rows[r][col] / rows[col][col]
+            for c in range(col, size + 1):
+                rows[r][c] -= factor * rows[col][c]
+    solution = [0.0] * size
+    for r in reversed(range(size)):
+        total = rows[r][size] - sum(rows[r][c] * solution[c] for c in range(r + 1, size))
+        solution[r] = total / rows[r][r]
+    return max(0.0, sum(v * x for v, x in zip(vector, solution)))
+
+
+def chi2_sf(x: float, df: int) -> float:
+    """P(X > x) for X chi-square on `df` degrees of freedom."""
+    if df < 1:
+        raise DiagramError(f"chi-square needs at least 1 degree of freedom, got {df!r}")
+    if x <= 0:
+        return 1.0
+    if df == 1:
+        return math.erfc(math.sqrt(x / 2))
+    return _gamma_q(df / 2, x / 2)
+
+
+def _gamma_q(a: float, x: float) -> float:
+    """The regularized upper incomplete gamma function Q(a, x)."""
+    log_front = a * math.log(x) - x - math.lgamma(a)
+    if x < a + 1:
+        # Series for P(a, x), then Q = 1 - P.
+        term = total = 1.0 / a
+        ap = a
+        for _ in range(1000):
+            ap += 1
+            term *= x / ap
+            total += term
+            if abs(term) < abs(total) * 1e-15:
+                break
+        return max(0.0, 1.0 - total * math.exp(log_front))
+    # Continued fraction for Q(a, x), by the modified Lentz method.
+    tiny = 1e-300
+    b = x + 1 - a
+    c = 1 / tiny
+    d = 1 / b
+    h = d
+    for i in range(1, 1000):
+        an = -i * (i - a)
+        b += 2
+        d = an * d + b
+        d = tiny if abs(d) < tiny else d
+        c = b + an / c
+        c = tiny if abs(c) < tiny else c
+        d = 1 / d
+        delta = d * c
+        h *= delta
+        if abs(delta - 1) < 1e-15:
+            break
+    return math.exp(log_front) * h
+
+
 def curve_points(estimate: SurvivalEstimate, end: float | None = None) -> list[tuple[float, float]]:
     """The corners of the step curve, from (0, 1) to the last observed time."""
     last = estimate.end if end is None else end
@@ -286,10 +432,19 @@ def band_edges(estimate: SurvivalEstimate) -> tuple[list, list, list]:
     return xs, lo, hi
 
 
-def censor_ticks(panel, estimate: SurvivalEstimate, size: float, **style) -> list[Diagram]:
-    """A short vertical tick on the curve at each censoring time."""
+def censor_ticks(panel, estimate: SurvivalEstimate, size: float, *,
+                 within: tuple[float, float] | None = None,
+                 **style) -> list[Diagram]:
+    """A short vertical tick on the curve at each censoring time.
+
+    `within=(lo, hi)` keeps only the times in that closed range -- the x
+    domain of a clipping panel, so a subject followed past the axis's end
+    leaves no empty clipped node behind.
+    """
     out = []
     for t in dict.fromkeys(estimate.censored):
+        if within is not None and not within[0] <= t <= within[1]:
+            continue
         at = panel.point(t, estimate.at(t))
         out.append(polyline(((at.x, at.y - size / 2), (at.x, at.y + size / 2)),
                             kind=MARK_LINE_KIND, **style))

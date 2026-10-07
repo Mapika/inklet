@@ -16,7 +16,7 @@ in parent nodes, so handles created before layout still resolve in the figure.
 
 ## One-call charts
 
-#### `class Chart(*, width='single', height=None, style='scientific.modern', palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None, xscale='linear', yscale='linear', legend='auto', grid=None)`
+#### `class Chart(*, width='single', height=None, style='scientific.modern', palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None, xscale='linear', yscale='linear', legend='auto', grid=None, xticks=None, yticks=None)`
 
 One plot: marks on shared axes, with a size and a preset.
 
@@ -736,7 +736,7 @@ A drawing region plus the scales that map data into it.
 * `matrix(values: 'Sequence[Sequence[float]]', *, ramp=None, scale: 'Scale | None' = None, center: 'float | None' = None, x: 'Sequence | None' = None, y: 'Sequence | None' = None, overlap: 'float | None' = None, missing: 'str | None' = None, vector: 'str' = 'cells', interpolation: 'str' = 'nearest', samples: 'int' = 4, raster: 'bool | str' = 'auto', **style) -> "'Panel'"` -- A 2D array of values, one coloured cell each.
 * `line(points: 'Iterable[Sequence]', *, smooth: 'float' = 0.0, closed: 'bool' = False, name: 'str | None' = None, err=None, err_style: 'str' = 'band', simplify: 'float | str | None' = None, **style) -> "'Panel'"` -- A path through data points: straight by default, curved with `smooth`.
 * `band(x: 'Sequence', lo, hi, *, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'Panel'"` -- The shaded envelope between two edges over shared x.
-* `scatter(points: 'Iterable[Sequence]', *, size=None, color=None, ramp=None, scale: 'Scale | None' = None, marker: 'str' = 'circle', name: 'str | None' = None, raster: 'bool' = False, dpi: 'float' = 300, **style) -> "'Panel'"` -- Markers at data points, with size and colour that may be data too.
+* `scatter(points: 'Iterable[Sequence]', *, size=None, color=None, ramp=None, scale: 'Scale | None' = None, marker: 'str' = 'circle', name: 'str | None' = None, hollow: 'bool' = False, raster: 'bool' = False, dpi: 'float' = 300, **style) -> "'Panel'"` -- Markers at data points, with size and colour that may be data too.
 * `bars(at: 'Sequence', heights, *, width: 'float' = 0.8, baseline: 'float' = 0.0, orient: 'str' = 'v', stacked: 'bool | None' = None, grouped: 'bool | None' = None, gap: 'float' = 0.12, color=None, bar_colors=None, name: 'str | Sequence[str] | None' = None, labels=None, label_position: 'str' = 'auto', label_options: 'dict | None' = None, normalize: 'bool' = False, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'Panel'"` -- A rectangle per value, standing on a baseline.
 * `hist(values: 'Sequence[float]', bins: 'int | Sequence[float]' = 10, *, range: 'tuple[float, float] | None' = None, density: 'bool' = False, baseline: 'float' = 0.0, orient: 'str' = 'v', color=None, name: 'str | None' = None, histtype: 'str | None' = None, cumulative: 'bool' = False, colors=<deprecated: use color=>, **style) -> "'Panel'"` -- Binned counts as touching rectangles.
 * `errorbars(points: 'Iterable[Sequence]', *, yerr=None, xerr=None, cap: 'float | None' = None, **style) -> "'Panel'"` -- Whiskers through each point, in the data's own units.
@@ -761,9 +761,9 @@ A drawing region plus the scales that map data into it.
 * `twin_y(scale=None, *, side: 'str' = 'right', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second y scale over the same area, and a handle that draws in it.
 * `twin_x(scale=None, *, side: 'str' = 'top', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second x scale over the same area -- wavelength above frequency, or a second time base. `twin_y` explains the shape of it.
 * `title(content: 'str | Diagram', *, align: 'str' = 'center', pad: 'float | str | None' = None) -> "'Panel'"` -- A heading over the panel, clear of whatever is already in it.
-* `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int | str | None' = None, max_width: 'float | str | None' = None, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, order: 'str' = 'row', col_gap: 'float | str | None' = None, row_gap: 'float | str | None' = None, **style) -> "'Panel'"` -- A key built from the series this panel actually drew.
+* `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int | str | None' = None, max_width: 'float | str | None' = None, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, order: 'str' = 'row', col_gap: 'float | str | None' = None, row_gap: 'float | str | None' = None, names: 'Sequence[str] | None' = None, **style) -> "'Panel'"` -- A key built from the series this panel actually drew.
 * `colorbar(*, side: 'str' = 'right', source=None, corner: 'str | None' = None, scale: 'Scale | None' = None, length: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool' = False, title: 'str | None' = None, **kwargs) -> "'Panel'"` -- The ramp this panel's matrix was coloured through, as a key beside it.
-* `text(x, y, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, front: 'bool' = True, **style) -> "'Panel'"` -- Words at one **data** point.
+* `text(x, y, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, front: 'bool' = True, decorative: 'bool' = False, **style) -> "'Panel'"` -- Words at one **data** point.
 * `arrow(a: 'Sequence', b: 'Sequence', *, head: 'str' = 'triangle', label: 'str | Diagram | None' = None, front: 'bool' = True, **style) -> "'Panel'"` -- An arrow from one **data** point to another.
 * `annotate(x, y, text: 'str | Diagram', *, side: 'str' = 'n', clear: 'float | str | None' = None, leader: 'bool' = True, inside: 'bool' = True, dot: 'bool' = False, front: 'bool' = True, **kwargs) -> "'Panel'"` -- A callout on one **data** point: a label clear of it, with a leader.
 * `placed(x, y) -> 'Diagram'` -- Build with the data rectangle's top-left at page ``(x, y)`` in mm.
@@ -792,7 +792,7 @@ A drawing region plus the scales that map data into it.
 * `width_key(source=None, *, side: 'str' = 'right', corner: 'str | None' = None, values: 'Sequence[float] | None' = None, count: 'int' = 3, format=None, title: 'str | None' = None, color: 'str | None' = None, length: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool' = False) -> "'Panel'"` -- Reference lines with their weights: the key to an edge-width encoding.
 * `chord(matrix, name: 'Sequence[str] | None' = None, *, color=None, gap: 'float' = 2.0, start: 'float' = -90.0, directed: 'bool' = False, sort: 'bool' = False, thickness: 'float | str | None' = None, pad: 'float | str | None' = None, labels: 'bool' = True, opacity: 'float' = 0.72, color_by: 'str' = 'source', size: 'float | str | None' = None, **style) -> "'Panel'"` -- A chord diagram: groups as arcs around a ring, flows between them as ribbons through the middle, fitted into the plot area.
 * `arc_diagram(nodes, edges, *, size=None, top: 'float | None' = None, diameter: 'float | str | None' = None, floor: 'float | str | None' = None, shape: 'str' = 'circle', shapes=None, groups=None, color=None, labels: 'bool' = True, rotate: 'float | None' = None, weights=None, width: 'float | str | None' = None, width_floor: 'float | str | None' = None, edge_color=None, directed: 'bool' = False, opacity: 'float' = 0.8, label_size: 'float | str | None' = None, **style) -> "'Panel'"` -- An arc diagram: nodes in a row, each edge a half-ellipse arc above them whose width is the edge weight.
-* `volcano(fold: 'Sequence[float]', p: 'Sequence[float]', *, labels: 'Sequence[str] | None' = None, top: 'int' = 10, fold_threshold: 'float' = 1.0, p_threshold: 'float' = 0.05, color=None, name=None, size: 'float | None' = None, thresholds: 'bool' = True, label_options: 'dict | None' = None, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'Panel'"` -- A volcano plot: log2 fold change on x against -log10 p on y.
+* `volcano(fold: 'Sequence[float]', p: 'Sequence[float]', *, labels: 'Sequence[str] | None' = None, top: 'int | None' = None, fold_threshold: 'float' = 1.0, p_threshold: 'float' = 0.05, color=None, name=None, size: 'float | None' = None, thresholds: 'bool' = True, label_options: 'dict | None' = None, highlight: 'Sequence[str] | None' = None, q: 'Sequence[float] | None' = None, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'Panel'"` -- A volcano plot: log2 fold change on x against -log10 p on y.
 * `ma(mean: 'Sequence[float]', fold: 'Sequence[float]', p: 'Sequence[float] | None' = None, *, labels: 'Sequence[str] | None' = None, top: 'int' = 10, fold_threshold: 'float' = 1.0, p_threshold: 'float' = 0.05, color=None, name=None, size: 'float | None' = None, log: 'bool' = True, zero: 'bool' = True, **style) -> "'Panel'"` -- An MA plot: mean expression on x against log2 fold change on y.
 * `dotplot(sizes: 'Sequence[Sequence[float]] | None' = None, colors=None, *, x: 'Sequence | None' = None, y: 'Sequence | None' = None, top: 'float | None' = None, diameter: 'float | str | None' = None, ramp=None, scale: 'Scale | None' = None, center: 'float | None' = None, color=None, size: 'Sequence[Sequence[float]] | None' = None, **style) -> "'Panel'"` -- A dot plot: a circle per cell, its area one value, its colour another.
 * `size_key(source=None, *, side: 'str' = 'right', corner: 'str | None' = None, values: 'Sequence[float] | None' = None, count: 'int' = 3, format=None, title: 'str | None' = None, orient: 'str | None' = None, pad: 'float | str | None' = None, plate: 'bool' = False, **style) -> "'Panel'"` -- Reference circles with their values: the key to a size encoding.
@@ -992,7 +992,7 @@ A disc, or a fan of one, plus the scales that map data into it.
 * `breakout(slices, parts: 'Sequence[float] | None' = None, *, color=None, name: 'Sequence[str] | None' = None, labels='percent', label_options: 'dict | None' = None, side: 'str' = 'right', width: 'float | str | None' = None, height: 'float | str | None' = None, gap: 'float | str | None' = None, title: 'str | None' = None, title_side: 'str' = 'top', connector: 'dict | None' = None, separator: 'bool' = True, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'PolarPanel'"` -- Expand slices of the pie into a stacked bar beside it.
 * `mean_vector(angles: 'Sequence[float]', weights: 'Sequence[float] | None' = None, *, r: 'float | None' = None, order: 'int' = 1, head: 'str' = 'triangle', label: 'str | Diagram | None' = None, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'PolarPanel'"` -- The circular mean of `angles`, drawn as an arrow from the pole.
 * `text(theta, r, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, **style) -> "'PolarPanel'"` -- Writing at one data point, `anchor` of it on that point.
-* `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int' = 1, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, **style) -> "'PolarPanel'"` -- A key built from the series this panel actually drew.
+* `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int' = 1, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, names: 'Sequence[str] | None' = None, **style) -> "'PolarPanel'"` -- A key built from the series this panel actually drew.
 * `build() -> 'Diagram'` -- The panel as a diagram, with its `origin` anchor on the pole.
 
 #### `theta_ticks(low: 'float', high: 'float', count: 'int' = 8, *, unit: 'str' = 'deg', closed: 'bool' = False) -> 'tuple[float, ...]'`
@@ -1717,6 +1717,10 @@ Strokes that vanish on press. 0.088mm is the usual 0.25pt floor.
 
 Report more distinct line weights than the configured limit.
 
+#### `KEY_COVERS_DATA`
+
+A key inside the plot area painted over the panel's own data.
+
 #### `KEY_MISMATCH`
 
 Report a color key that does not match the adjacent marks.
@@ -1796,6 +1800,10 @@ A link that asked to go around the obstacles and could not.
 #### `TEXT_OVERFLOW`
 
 A label wider or taller than the box it was put inside.
+
+#### `TICKS_DROPPED`
+
+Explicitly supplied ticks an axis left out for lack of room.
 
 #### `TINY_TEXT`
 

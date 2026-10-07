@@ -45,6 +45,7 @@ Chart options, accepted by every function above:
 | `legend` | `'auto'` (default), `'direct'` (names at the line ends, no key), `'top'`, `'bottom'`, `'left'`, `'right'`, a corner `'ne'`, or `False` |
 | `facet_col`, `facet_row` | column names: one chart per value, on shared axes, in a grid; `facet_col_wrap=3` wraps |
 | `grid` | `True`, `False`, `'x'`, `'y'` |
+| `xticks`, `yticks` | the tick values to show, e.g. `xticks=[0, 5, 10, 15, 20]` |
 
 ## Layering and annotating
 
@@ -88,8 +89,12 @@ A row defaults to double-column width. Set the layout width with
 
 1. `figure = chart.save('fig.png')` returns the compiled figure.
    `print(figure.report())` lists overlapping labels, clipped or tiny text, and
-   data running outside the axes (`DATA_OUTSIDE`, with the range to set), each
-   with a suggested fix. `inklet lint: clean` means no problems.
+   data running outside the axes (`DATA_OUTSIDE`, with the range to set), a key
+   drawn over data (`KEY_COVERS_DATA`, with the corners that are clear), and
+   supplied ticks dropped for lack of room (`TICKS_DROPPED`), each with a
+   suggested fix. `inklet lint: clean` means no problems. Mark ornamental text
+   such as a pale watermark with `text(..., decorative=True)` so the contrast
+   check skips it.
 2. Look at the PNG. If you can view images, open it. Labels are measured, so
    overlaps are rare. Check that the right data are plotted, not just that it ran.
 3. From a shell: `inklet check script.py --png preview.png` builds the script,

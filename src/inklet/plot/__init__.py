@@ -39,7 +39,7 @@ from .clustermap import clustermap
 from .genomics import ManhattanLayout, chromosome_key, manhattan, manhattan_layout
 from .ternary import TernaryFrame, ternary_frame
 from .dotplot import AreaScale, area_scale, size_key
-from .survival import SurvivalEstimate, kaplan_meier
+from .survival import LogRank, SurvivalEstimate, kaplan_meier, logrank
 from .forest import ForestLayout, ForestRow, forest, forest_layout
 from .embedding import cluster_centers, cluster_centres
 from .significance import format_p
@@ -98,6 +98,7 @@ __all__ = [
     "manhattan", "manhattan_layout", "ManhattanLayout", "chromosome_key",
     "ternary_frame", "TernaryFrame",
     "area_scale", "AreaScale", "size_key", "kaplan_meier", "SurvivalEstimate",
+    "logrank", "LogRank",
     "forest", "forest_layout", "ForestLayout", "ForestRow",
     "cluster_centers", "cluster_centres", "format_p",
     # statistical plots

@@ -143,6 +143,7 @@ nav:
   - Use with coding agents: coding-agents.md
   - Bring matplotlib figures: matplotlib.md
   - Inklet and matplotlib side by side: compare-matplotlib.md
+  - Published figures, recreated: published-figures.md
 - Plots:
   - Plot type gallery: plot-types.md
   - Build and combine plots: plotting.md
