@@ -28,7 +28,7 @@ from numbers import Real
 from pathlib import Path
 
 __all__ = ['Chart', 'Layout', 'LayoutWarning', 'chart', 'line', 'scatter', 'bar', 'hist', 'boxplot', 'violin',
-           'strip', 'kde', 'ecdf', 'area', 'heatmap', 'regression']
+           'strip', 'kde', 'ecdf', 'area', 'heatmap', 'regression', 'survival', 'volcano', 'forest']
 
 #: Named widths, with the formats they select.
 _WIDTHS = {'single': 'single-column', 'double': 'double-column', 'slide': 'slide',
@@ -348,6 +348,8 @@ class Chart(_Renderable):
         self.legend_side = legend
         self.xticks, self.yticks = xticks, yticks
         self.xminor, self.yminor = xminor, yminor
+        #: A forest plot's rows and options; it is a Diagram, not Panel marks.
+        self._forest = None
         options = {'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
         if xlim is not None or ylim is not None:
             # Explicit limits zoom: marks past them are cut at the axes.
@@ -674,6 +676,118 @@ class Chart(_Renderable):
             self.spec.colorbar(title=title)
         return self
 
+    def survival(self, data=None, time=None, event=None, *, color=None, at_risk=True,
+                 pvalue=True, band='log-log', confidence=0.95, censors=True, **style):
+        """Kaplan-Meier survival curves: `time` durations and `event` flags, one curve per `color` group.
+
+        `event` is 1 or True where the event was observed and 0 or False where
+        the subject was censored. Each curve has censor ticks and a confidence
+        band: `band='log-log'` by default, or `'log'`, `'linear'` or None.
+        `at_risk=True` adds the number-at-risk table under the axis, and
+        `pvalue=True` writes the log-rank P when there are two or more groups.
+        The survival axis runs from 0 to 1 unless `ylim=` says otherwise.
+
+            i.survival(df, time='months', event='died', color='arm')
+        """
+        table = _table(data)
+        _check_color(color)
+        if time is None or event is None:
+            raise ValueError('survival needs time= and event=, the duration and event columns')
+        groups = _groups(table, color, _column(table, time, 'time'), _column(table, event, 'event'))
+        self._named += sum(1 for label, *_ in groups if label is not None)
+        if len(groups) == 1:
+            curves = (groups[0][1], groups[0][2])
+        else:
+            curves = {label: (durations, events) for label, durations, events in groups}
+        options = {}
+        if (literal := _literal_color(table, color)) is not None:
+            options['color'] = literal
+        elif len(groups) > 1:
+            options['color'] = [self._token(label) for label, *_ in groups]
+        if len(groups) > 1 and pvalue:
+            options['pvalue'] = 'logrank'
+        self.spec.kaplan_meier(curves, confidence=confidence, band=band, censors=censors,
+                               **options, **style)
+        if at_risk:
+            self.spec.at_risk()
+        if self.spec.options.get('y') == 'auto':
+            self.spec.configure(y=(0, 1))
+        return self._labelled(time, 'Survival probability')
+
+    def volcano(self, data=None, x=None, y=None, *, label=None, highlight=None, q=None, **style):
+        """A volcano plot: `x` the log2 fold change, `y` the raw p-value, one point per row.
+
+        Rows missing a fold change or p-value are dropped. `q=` names an
+        adjusted p-value column, which classes the points by FDR (a missing q
+        makes that point "ns"). `label=` names each feature and `highlight=`
+        lists the features to name on the plot. Other keywords go to
+        `Panel.volcano`: `top=`, `fold_threshold=`, `p_threshold=`, `color=`.
+
+            i.volcano(df, x='log2fc', y='p', label='gene', q='fdr', highlight=['CRISPLD2'])
+        """
+        table = _table(data)
+        if x is None or y is None:
+            raise ValueError('volcano needs x= (log2 fold change) and y= (raw p-values)')
+        folds = _column(table, x, 'x')
+        pvalues = _column(table, y, 'y')
+        names = _column(table, label, 'label')
+        adjusted = _column(table, q, 'q')
+        kept = [k for k, (fold, p) in enumerate(zip(folds, pvalues)) if fold is not None and p is not None]
+        # A key row for the significant classes; the "ns" points need none.
+        style.setdefault('name', {'up': 'up', 'down': 'down'})
+        self._named += 2
+        self.spec.volcano([folds[k] for k in kept], [pvalues[k] for k in kept],
+                          labels=None if names is None else ['' if names[k] is None else str(names[k])
+                                                             for k in kept],
+                          highlight=highlight,
+                          q=None if adjusted is None else [adjusted[k] for k in kept], **style)
+        return self._labelled('log2 fold change', '−log10 P')
+
+    def forest(self, data=None, label=None, estimate=None, lower=None, upper=None, *,
+               weight=None, summary=None, left=('label',), right=('ci',), log=False,
+               null=None, limits=None, measure='Estimate', digits=2, **style):
+        """A forest plot: one row per study, with its estimate and confidence interval.
+
+        `label=` names the study column, and `estimate=`, `lower=` and `upper=`
+        the estimate and interval bounds. `weight=` sizes each square by its
+        weight; `summary=` names a column of flags that draws those rows as
+        diamonds. `left` and `right` are the text columns beside the plot:
+        "label", "ci" (the estimate and interval), "estimate", "weight" or
+        any other column of the table. Rows missing a label, estimate or
+        bound are dropped. The chart's `xlabel` names the axis; other keywords
+        (`width=`, `color=`, `summary_line=`) go to `inklet.plot.forest`.
+
+            i.forest(df, label='study', estimate='or', lower='lo', upper='hi',
+                     weight='n', log=True, measure='OR', right=['ci', 'n'])
+        """
+        table = _table(data)
+        if label is None or estimate is None or lower is None or upper is None:
+            raise ValueError('forest needs label=, estimate=, lower= and upper=, the column names')
+        names, values, lows, highs = (_column(table, name, what) for name, what in
+                                      ((label, 'label'), (estimate, 'estimate'), (lower, 'lower'), (upper, 'upper')))
+        weights = _column(table, weight, 'weight')
+        flags = _column(table, summary, 'summary')
+        extra = [name for name in dict.fromkeys([*left, *right]) if isinstance(name, str)
+                 and name not in ('label', 'ci', 'estimate', 'weight', 'low', 'high', 'summary')]
+        extras = {name: _column(table, name, 'left or right') for name in extra}
+        rows = []
+        for k in range(len(values)):
+            if any(column[k] is None for column in (names, values, lows, highs)):
+                continue
+            row = {'label': str(names[k]), 'estimate': values[k], 'low': lows[k], 'high': highs[k]}
+            if weights is not None and weights[k] is not None:
+                row['weight'] = weights[k]
+            if flags is not None and flags[k]:
+                row['summary'] = True
+            row.update({name: column[k] for name, column in extras.items()})
+            rows.append(row)
+        if not rows:
+            raise ValueError('forest has no rows with a label, an estimate and both bounds')
+        options = {'log': log, 'null': null, 'limits': limits, 'left': tuple(left),
+                   'right': tuple(right), 'measure': measure, 'digits': digits, **style}
+        self._forest = (rows, options)
+        return self
+
     # Labels and layout.
 
     def labels(self, *, x=None, y=None, title=None):
@@ -734,6 +848,11 @@ class Chart(_Renderable):
         `width` (mm) and `profile` (the `Preset`) let crowded category labels
         be turned to fit.
         """
+        if self._forest is not None:
+            # A forest is a Diagram, built under the document's theme at compile.
+            from .document.spec import component
+            rows, options = self._forest
+            return component(_forest_figure, rows, options, label=self.xlabel or None)
         spec = self.spec.copy()
         if self._series_tokens or self._has_tokens():
             theme = (profile or _preset(self.width, self.style, self.palette, self.grid)).theme
@@ -792,6 +911,9 @@ class Chart(_Renderable):
         if self.height is not None:
             from .core import mm
             return mm(self.height)
+        if self._forest is not None:
+            # A forest is as tall as its rows, not a plot's default height.
+            return None
         return round(min(max(page_width * 0.62, 45.0), 75.0), 1)
 
     # Helpers.
@@ -930,6 +1052,12 @@ class Chart(_Renderable):
         if style.get('orient', 'v') == 'v':
             self._categories(list(groups))
         getattr(self.spec, method)(groups, **self._style(table, color, style, lone=True))
+
+
+def _forest_figure(rows, options, label=None):
+    """The forest Diagram of a `Chart.forest`, drawn under the document theme."""
+    from .plot.forest import forest
+    return forest(rows, label=label, **options)
 
 
 def _labels_collide(figure, categories) -> bool:
@@ -1354,3 +1482,6 @@ ecdf = _entry('ecdf')
 area = _entry('area')
 heatmap = _entry('heatmap')
 regression = _entry('regression')
+survival = _entry('survival')
+volcano = _entry('volcano')
+forest = _entry('forest')

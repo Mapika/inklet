@@ -32,6 +32,9 @@ One plot: marks on shared axes, with a size and a preset.
 * `area(data=None, x=None, y=None, *, color=None, stacked=True, **style)` -- Filled areas under `y`; groups stack unless `stacked=False`.
 * `regression(data=None, x=None, y=None, *, color=None, method='linear', confidence=0.95, name=None, **style)` -- Points with a fitted line and its confidence band, per `color` group.
 * `heatmap(data=None, x=None, y=None, z=None, *, palette='viridis', center=None, colorbar=True, **style)` -- A matrix of colour cells. `colorbar` is True, False or the bar's title.
+* `survival(data=None, time=None, event=None, *, color=None, at_risk=True, pvalue=True, band='log-log', confidence=0.95, censors=True, **style)` -- Kaplan-Meier survival curves: `time` durations and `event` flags, one curve per `color` group.
+* `volcano(data=None, x=None, y=None, *, label=None, highlight=None, q=None, **style)` -- A volcano plot: `x` the log2 fold change, `y` the raw p-value, one point per row.
+* `forest(data=None, label=None, estimate=None, lower=None, upper=None, *, weight=None, summary=None, left=('label',), right=('ci',), log=False, null=None, limits=None, measure='Estimate', digits=2, **style)` -- A forest plot: one row per study, with its estimate and confidence interval.
 * `labels(*, x=None, y=None, title=None)` -- Set axis titles and the chart title (all optional).
 * `size(width=None, height=None)` -- Width as 'single', 'double', 'slide' or millimetres; height in mm.
 * `plot(width=None, profile=None, rotate=False)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
@@ -113,6 +116,14 @@ A matrix of colour cells. `colorbar` is True, False or the bar's title.
 #### `regression(data=None, *args, **options)`
 
 Points with a fitted line and its confidence band, per `color` group.
+
+#### `survival(data=None, *args, **options)`
+
+Kaplan-Meier survival curves: `time` durations and `event` flags, one curve per `color` group.
+
+#### `volcano(data=None, *args, **options)`
+
+A volcano plot: `x` the log2 fold change, `y` the raw p-value, one point per row.
 
 #### `from_matplotlib(figure, *, width=None, style='scientific.modern', palette=None, keep_colors=False, letters=True)`
 
