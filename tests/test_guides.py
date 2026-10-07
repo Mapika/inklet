@@ -69,6 +69,38 @@ def test_documentation_links_resolve_inside_repository():
     assert not missing, '\n'.join(missing)
 
 
+#: Pages that name a stable release because the release is their subject: the
+#: install and compatibility policy, the roadmap, the preview guide, the migration
+#: notes and the release checklist. Every other page describes a feature, and a
+#: stable version written into it goes stale at the next release.
+VERSIONED_PAGES = {
+    'docs/index.md', 'docs/installation.md', 'docs/compatibility.md',
+    'docs/release-checks.md', 'docs/roadmap.md', 'docs/development-preview.md',
+    'docs/migration.md',
+}
+STABLE_VERSION = re.compile(
+    r'stable\W{0,4}(?:Inklet\s+)?v?\d+\.\d+'
+    r'|\d+\.\d+(?:\.\d+)?\**\s+(?:is\s+)?(?:the\s+)?(?:current\s+)?stable\b')
+
+
+def test_stable_release_numbers_stay_out_of_feature_pages():
+    """A page about a feature says what it does, not which release it arrived in.
+
+    Release history belongs in CHANGELOG.md and on the VERSIONED_PAGES above. A
+    banner such as "available in stable 4.6.0" is rewritten at every release, so
+    it is removed from feature pages instead; experimental features get a neutral
+    "Experimental: the API may change." note.
+    """
+    found = []
+    for page in sorted((ROOT/'docs').rglob('*.md')):
+        relative = page.relative_to(ROOT).as_posix()
+        if relative in VERSIONED_PAGES:
+            continue
+        prose = re.sub(r'^```[^\n]*\n.*?^```','',page.read_text(),flags=re.MULTILINE | re.DOTALL)
+        found.extend(f'{relative}: {match.group(0)!r}' for match in STABLE_VERSION.finditer(prose))
+    assert not found, 'stable release numbers on feature pages:\n' + '\n'.join(found)
+
+
 def test_readme_links_are_portable_to_pypi():
     prose = re.sub(r'^```[^\n]*\n.*?^```','',(ROOT/'README.md').read_text(),
                    flags=re.MULTILINE | re.DOTALL)

@@ -1,8 +1,8 @@
 # Transparency and compositing
 
 This is a historical engine study. The measurements and comparison files retain
-their recorded development revisions; stable 4.6.0 users should follow the
-current [export and review guide](export-review.md) for ordinary exports.
+their recorded development revisions. For ordinary exports, follow the
+current [export and review guide](export-review.md).
 
 These engine changes are included in **4.0.0.dev2**. They correct native
 PDF output and reduce repeated geometry work during export. The SVG output of
