@@ -21,6 +21,7 @@ string is used as a literal colour.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+import inspect
 import math
 import warnings
 from datetime import date
@@ -29,6 +30,11 @@ from pathlib import Path
 
 __all__ = ['Chart', 'Layout', 'LayoutWarning', 'chart', 'line', 'scatter', 'bar', 'hist', 'boxplot', 'violin',
            'strip', 'kde', 'ecdf', 'area', 'heatmap', 'regression', 'survival', 'volcano', 'forest']
+
+#: What `legend=` names besides off (False or None): a placement, a side, a corner.
+_LEGEND_SIDES = ('top', 'bottom', 'left', 'right')
+_LEGEND_CORNERS = ('nw', 'ne', 'sw', 'se')
+_LEGEND_NAMES = ('auto', 'direct', 'best', 'none', *_LEGEND_SIDES, *_LEGEND_CORNERS)
 
 #: Named widths, with the formats they select.
 _WIDTHS = {'single': 'single-column', 'double': 'double-column', 'slide': 'slide',
@@ -91,8 +97,20 @@ def _table(data) -> dict[str, list] | None:
     if isinstance(data, Sequence) and data and all(isinstance(r, Mapping) for r in data):
         names = list(dict.fromkeys(k for row in data for k in row))
         return {str(k): _values([row.get(k) for row in data]) for k in names}
+    if _bare_values(data):
+        raise TypeError('data is a sequence of values, not a table; pass the values as a '
+                        'named sequence, e.g. x=[...]')
     raise TypeError('data must be a DataFrame, a mapping of columns or a list of records; '
                     f'got {type(data).__name__}')
+
+
+def _bare_values(data) -> bool:
+    """A plain sequence of values, which `data=` does not take: a table has columns."""
+    if data is None or isinstance(data, (str, bytes, Path, Mapping)) or hasattr(data, 'columns'):
+        return False
+    if isinstance(data, (list, tuple)):
+        return not (data and all(isinstance(row, Mapping) for row in data))
+    return getattr(data, 'ndim', None) == 1
 
 
 #: Cell texts read as missing values, as R, pandas and most exports write them.
@@ -274,6 +292,8 @@ class _Renderable:
         """
         if not paths:
             raise ValueError('save() needs at least one path, e.g. save("figure.pdf")')
+        from .render.page import check_export_options
+        check_export_options([Path(p).suffix.lower() for p in paths], options)
         figure = self.compile()
         figure.save(*paths, **options)
         serious = [d for d in figure.lint() if d.severity in ('error', 'warning')]
@@ -283,12 +303,18 @@ class _Renderable:
         return figure
 
     def to_svg(self, **options) -> str:
+        from .render.page import check_export_options
+        check_export_options(['.svg'], options, 'to_svg()')
         return self.compile().to_svg(**options)
 
     def to_pdf(self, **options) -> bytes:
+        from .render.page import check_export_options
+        check_export_options(['.pdf'], options, 'to_pdf()')
         return self.compile().to_pdf(**options)
 
     def to_png(self, **options) -> bytes:
+        from .render.page import check_export_options
+        check_export_options(['.png'], options, 'to_png()')
         return self.compile().to_png(**options)
 
     def report(self, **options) -> str:
@@ -342,6 +368,10 @@ class Chart(_Renderable):
         for name, value in (('xscale', xscale), ('yscale', yscale)):
             if value not in ('linear', 'log'):
                 raise ValueError(f"{name} must be 'linear' or 'log', got {value!r}")
+        if not (legend is None or legend is False or legend in _LEGEND_NAMES):
+            raise ValueError(f"legend must be False, 'auto', 'direct', 'best', a side "
+                             f"({', '.join(_LEGEND_SIDES)}) or a corner "
+                             f"({', '.join(_LEGEND_CORNERS)}); got {legend!r}")
         self.width, self.style, self.palette, self.grid = width, style, palette, grid
         self.height = height
         self.title, self.xlabel, self.ylabel = title, xlabel, ylabel
@@ -636,12 +666,17 @@ class Chart(_Renderable):
         return self._labelled(x, y)
 
     def heatmap(self, data=None, x=None, y=None, z=None, *, palette='viridis', center=None,
-                colorbar=True, **style):
+                colorbar=True, colorbar_title=None, **style):
         """A matrix of colour cells. `colorbar` is True, False or the bar's title.
 
-        Pass a 2D sequence (rows of values) as `data`, with `x`/`y` as the
-        column and row labels; or a long table with `x`, `y` and `z` columns.
+        `colorbar_title=` names the bar, as `colorbar='r'` does. Pass a 2D
+        sequence (rows of values) as `data`, with `x`/`y` as the column and row
+        labels; or a long table with `x`, `y` and `z` columns.
         """
+        if colorbar_title is not None:
+            if colorbar is not True:
+                raise ValueError('heatmap takes colorbar= or colorbar_title=, not both')
+            colorbar = colorbar_title
         if z is not None:
             table = _table(data)
             xs, ys, zs = (_column(table, n, w) for n, w in ((x, 'x'), (y, 'y'), (z, 'z')))
@@ -658,6 +693,9 @@ class Chart(_Renderable):
                 data = data.to_numpy()
             else:
                 xlabels, ylabels = x, y
+            if any(isinstance(row, str) or not hasattr(row, '__iter__') for row in data):
+                raise TypeError('heatmap data is rows of values, e.g. [[1, 2], [3, 4]], not a '
+                                'flat sequence; for a long table give data=, x=, y= and z=')
             values = [_values(row) for row in data]
         xlabels = list(xlabels) if xlabels is not None else [str(i) for i in range(len(values[0]))]
         ylabels = list(ylabels) if ylabels is not None else [str(i) for i in range(len(values))]
@@ -819,7 +857,12 @@ class Chart(_Renderable):
             result = method(*args, **kwargs)
             self._noticed(args, kwargs)
             return self if result is self.spec else result
+        # help(chart.vline) should describe the Panel method, not this wrapper.
+        forward.__name__ = name
+        forward.__qualname__ = f'Chart.{name}'
         forward.__doc__ = getattr(method, '__doc__', None)
+        forward.__signature__ = inspect.signature(method)
+        forward.__wrapped__ = method
         return forward
 
     def _noticed(self, args, kwargs):
@@ -1440,6 +1483,63 @@ def _share_domains(charts, own):
                 chart.spec.configure(**{name: value})
 
 
+_FACET_OPTIONS = ('facet_col', 'facet_row', 'facet_col_wrap', 'facet_order')
+
+#: The Panel methods each one-call function hands its extra keywords to. A
+#: keyword none of them takes is refused at the call, not by Style at compile.
+_FORWARDS = {
+    'line': ('line',), 'scatter': ('scatter',), 'bar': ('bars', 'barplot'),
+    'hist': ('hist',), 'kde': ('kde',), 'ecdf': ('ecdf',),
+    'boxplot': ('boxplot', 'strip'), 'violin': ('violin', 'strip'), 'strip': ('strip',),
+    'area': ('fill_between', 'stackarea'), 'regression': ('regression',),
+    'heatmap': ('matrix',), 'survival': ('kaplan_meier',), 'volcano': ('volcano',),
+}
+
+#: A plain sequence where a table belongs, with the call that takes it.
+_BARE_EXAMPLE = {'hist': 'x=[1, 2, 3]', 'kde': 'x=[1, 2, 3]', 'ecdf': 'x=[1, 2, 3]',
+                 'survival': 'time=[5, 8, 12], event=[1, 0, 1]',
+                 'forest': 'label=[...], estimate=[...], lower=[...], upper=[...]'}
+
+
+def _accepted_options(method) -> tuple[set[str], set[str]]:
+    """What a one-call function takes -- its own keywords, the chart's and the
+    marks' -- and the old spellings among them, which are taken but not listed."""
+    from .plot.forest import forest as forest_plot
+    from .plot.panel import Panel
+    kinds = (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+    names = {p.name for p in inspect.signature(getattr(Chart, method)).parameters.values()
+             if p.kind in kinds}
+    names -= {'self', 'data'}
+    names |= set(_CHART_OPTIONS) | set(_FACET_OPTIONS)
+    targets = [forest_plot] if method == 'forest' else [
+        getattr(Panel, name) for name in _FORWARDS.get(method, ())]
+    old = set()
+    for target in targets:
+        # Keyword-only parameters are the ones a chart passes by name; the rest
+        # are the data it passes by position.
+        names |= {p.name for p in inspect.signature(target).parameters.values()
+                  if p.kind is inspect.Parameter.KEYWORD_ONLY}
+        old |= set(getattr(target, '__deprecated_keywords__', {}))
+    return names | old, old
+
+
+def _check_options(method, options) -> None:
+    """Refuse a keyword no one-call function takes, listing the ones it does."""
+    from .plot.paint import is_paint, keyword_hint
+    accepted, old = _accepted_options(method)
+    unknown = [k for k in options if k not in accepted and not is_paint(k)]
+    if not unknown:
+        return
+    hints = []
+    for key in unknown:
+        better = keyword_hint(key, accepted - old)
+        hints.append(f'{key}= (did you mean {better}=?)' if better else f'{key}=')
+    plural = 's' if len(unknown) > 1 else ''
+    raise TypeError(f"{method}() got unknown option{plural} {', '.join(hints)}; it accepts "
+                    f"{', '.join(sorted(accepted - old))}, and paint keywords such as stroke=, "
+                    "fill=, opacity=")
+
+
 def _entry(method):
     def make(data=None, *args, **options):
         facet_col = options.pop('facet_col', None)
@@ -1447,6 +1547,12 @@ def _entry(method):
         wrap = options.pop('facet_col_wrap', None)
         facet_order = options.pop('facet_order', None)
         own, rest = _split(options)
+        if _bare_values(data) and method != 'heatmap':
+            example = _BARE_EXAMPLE.get(method, 'x=[...], y=[...]')
+            raise TypeError(f'i.{method}() needs data= to be a table (a DataFrame, a mapping '
+                            f'of columns or a list of records); pass a plain sequence as a '
+                            f'named argument instead, e.g. i.{method}({example})')
+        _check_options(method, rest)
         if facet_col is not None or facet_row is not None:
             return _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_order)
         if facet_order is not None:

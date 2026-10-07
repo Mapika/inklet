@@ -147,8 +147,19 @@ class PlotSpec(BuildSpec):
             if check is not None:
                 aliases = getattr(method, '__deprecated_keywords__', {})
                 check({k: v for k, v in kwargs.items() if k not in aliases})
+            # So are options that take one of a few named values.
+            option_check = getattr(method, '__option_check__', None)
+            if option_check is not None:
+                option_check(kwargs)
             warn_renamed(method, kwargs, stacklevel=2)
             return self._record(name, args, kwargs, key)
+        # help() and inspect.signature() should show the Panel method's own
+        # parameters and docs, with key= added for the recipe.
+        record.__name__ = name
+        record.__qualname__ = f'PlotSpec.{name}'
+        record.__doc__ = method.__doc__
+        record.__signature__ = _recorded_signature(method)
+        record.__wrapped__ = method
         return record
 
     def _record(self, name, args, kwargs, key):
@@ -365,6 +376,16 @@ class PlotSpec(BuildSpec):
                     # A deprecated keyword warned when the call was recorded.
                     warnings.simplefilter('ignore', InkletDeprecationWarning)
                     getattr(panel, method)(*args, **kwargs)
+
+
+def _recorded_signature(method):
+    """A Panel method's signature without `self`, with the recipe's `key=` added."""
+    parameters = list(inspect.signature(method).parameters.values())[1:]
+    key = inspect.Parameter('key', inspect.Parameter.KEYWORD_ONLY, default=None)
+    # Keyword-only parameters precede **kwargs, so the key goes just before it.
+    at = next((i for i, p in enumerate(parameters)
+               if p.kind is inspect.Parameter.VAR_KEYWORD), len(parameters))
+    return inspect.Signature(parameters[:at] + [key] + parameters[at:])
 
 
 def _inside_legend(panel, options):
