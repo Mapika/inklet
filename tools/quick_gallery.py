@@ -1,19 +1,25 @@
-"""Build the one-call chart gallery: its SVGs and the page that shows their code.
+"""Build the one-call chart gallery: its figures and the page that shows them.
 
-    python tools/quick_gallery.py             # write docs/assets/quick-gallery/*.svg and the page
+    python tools/quick_gallery.py             # write docs/assets/quick-gallery/ and the page
     python tools/quick_gallery.py --markdown  # print the page instead of writing it
 
 Each example's code is a string here. The string is executed to draw the
 figure and is also the code block on docs/quick-gallery.md, so the page cannot
-drift from what ran. The data are simulated with fixed seeds, so a rerun
+drift from what ran. For each example this writes a full-size SVG (shown in
+its section) and a PNG (the card thumbnail in the grid at the top of the
+page). After a run, `python tools/docs_thumbnails.py` writes the WebP
+previews the cards use. The data are simulated with fixed seeds, so a rerun
 reproduces the same files. Every figure must lint without errors or warnings.
 """
 from __future__ import annotations
 
+import json
 import math
 import random
+import re
 import sys
 import textwrap
+import unicodedata
 from pathlib import Path
 from typing import NamedTuple
 
@@ -263,6 +269,69 @@ def viability():
     return table
 
 
+def outcomes_by_sex():
+    """Response of 12 females and 12 males in each of three groups; males respond more."""
+    rng = random.Random(29)
+    table = {'group': [], 'sex': [], 'response (a.u.)': []}
+    for group, mean in (('control', 1.0), ('low dose', 1.4), ('high dose', 2.1)):
+        for sex, shift in (('female', 0.0), ('male', 0.3)):
+            for _ in range(12):
+                table['group'].append(group)
+                table['sex'].append(sex)
+                table['response (a.u.)'].append(round(rng.gauss(mean + shift, 0.35), 3))
+    return table
+
+
+def survival_arms():
+    """Follow-up of 40 patients on placebo and 40 on drug; follow-up ends are censored."""
+    rng = random.Random(67)
+    table = {'arm': [], 'months': [], 'died': []}
+    for arm, scale in (('placebo', 14.0), ('drug', 24.0)):
+        for _ in range(40):
+            death = rng.expovariate(1 / scale)
+            end = rng.uniform(4, 36)
+            table['arm'].append(arm)
+            table['months'].append(round(max(0.1, min(death, end)), 1))
+            table['died'].append(int(death <= end))
+    return table
+
+
+def genes():
+    """Fold change and p-value of 200 genes; 12 are truly changed, and q adjusts for 200 tests."""
+    rng = random.Random(71)
+    named = ['Il6', 'Tnf', 'Cxcl10', 'Nos2', 'Ifit1', 'Irf7', 'Mx1', 'Isg15', 'Oas1a', 'Stat1',
+             'Socs3', 'Ccl5']
+    rows = []
+    for k in range(200):
+        truth = (1 if k % 2 == 0 else -1) * rng.uniform(1.0, 3.0) if k < 12 else 0.0
+        fold = truth + rng.gauss(0, 0.15)
+        p = math.erfc(abs(fold) / 0.2 / math.sqrt(2))
+        rows.append((named[k] if k < 12 else f'Gene {k:03d}', fold, p))
+    # Benjamini-Hochberg: each q is the smallest false discovery rate at which its gene is called.
+    count = len(rows)
+    order = sorted(range(count), key=lambda k: rows[k][2])
+    q = [1.0] * count
+    running = 1.0
+    for rank in range(count - 1, -1, -1):
+        k = order[rank]
+        running = min(running, rows[k][2] * count / (rank + 1))
+        q[k] = running
+    return {'gene': [row[0] for row in rows],
+            'log2 fold change': [round(row[1], 3) for row in rows],
+            'p-value': [row[2] for row in rows],
+            'fdr': [round(value, 6) for value in q]}
+
+
+def studies():
+    """Odds ratios from four studies, each with its 95 per cent interval, and the pooled estimate."""
+    return {'study': ['Ahmed 2019', 'Berg 2020', 'Chen 2021', 'Dubois 2022', 'Evans 2023', 'Pooled'],
+            'odds ratio': [0.72, 0.91, 0.64, 0.58, 1.12, 0.79],
+            'lower': [0.55, 0.62, 0.38, 0.41, 0.70, 0.66],
+            'upper': [0.94, 1.33, 1.08, 0.82, 1.79, 0.95],
+            'participants': [812, 355, 210, 640, 150, 2167],
+            'pooled': [False, False, False, False, False, True]}
+
+
 # -- the examples -----------------------------------------------------------
 
 
@@ -419,7 +488,7 @@ EXAMPLES = [
                           palette='rdbu', center=0)
         """),
     Example(
-        'facets', 'Panels with facet_col',
+        'facets', 'Facet panels',
         'Viability over 24 hours in two panels, one per cell line, with vehicle and two '
         'drugs; the panels share axes and one key',
         '`df` has `cell line`, `drug`, `time (h)` and `viability (%)`. `facet_col=` '
@@ -430,7 +499,7 @@ EXAMPLES = [
                        facet_col='cell line')
         """),
     Example(
-        'layout', 'Panels with | and /',
+        'layout', 'Combined panels',
         'A line plot and a box plot side by side, with a histogram below them, the '
         'panels lettered a to c',
         '`df` is the growth table, and `outcomes` is the response table. `|` places '
@@ -510,6 +579,123 @@ EXAMPLES = [
         """
         chart = i.slope(df, x='year', y='support (%)', group='country', format='{:.0f}%')
         """),
+    Example(
+        'line-secondary', 'Lines on a right-hand axis',
+        'Gas, hydro and wind generation on the left axis and solar generation on a '
+        'right-hand axis, from 2010 to 2024',
+        '`df` is the generation table from the stacked-area example. `secondary_y=` puts '
+        'the named series on a right-hand axis with its own scale.',
+        {'df': generation},
+        """
+        chart = i.line(df, x='year', y='generation (TWh)', color='source',
+                       secondary_y=['solar'], markers=True)
+        """),
+    Example(
+        'regression-equation', 'Regression with its equation',
+        'Absorbance against concentration for a calibration series, with the fitted line, '
+        'its confidence band and its equation written on the plot',
+        '`df` is the calibration table from the regression example. `equation=True` writes '
+        'the fitted line on the plot.',
+        {'df': calibration},
+        """
+        chart = i.regression(df, x='concentration (µM)', y='absorbance (AU)', equation=True)
+        """),
+    Example(
+        'bar-grouped-mean', 'Grouped mean bars with error bars and points',
+        'Mean response of control, low-dose and high-dose groups, with a bar for each sex, '
+        'standard-error whiskers and a dot for each animal',
+        '`df` has `group`, `sex` and `response (a.u.)`, one row per animal. `color=` puts '
+        'the bars side by side, and `agg=`, `error_y=` and `points=` work as they do for a '
+        'single series.',
+        {'df': outcomes_by_sex},
+        """
+        chart = i.bar(df, x='group', y='response (a.u.)', color='sex', agg='mean',
+                      error_y='sem', points=True)
+        """),
+    Example(
+        'survival', 'Survival curves',
+        'Kaplan-Meier survival curves for placebo and drug, the drug curve staying higher, '
+        'with censor ticks, a confidence band and a number-at-risk table',
+        '`df` has `arm`, `months` and `died`. `died` is 1 where the patient died and 0 where '
+        'follow-up ended first, which is a censored observation.',
+        {'df': survival_arms},
+        """
+        chart = i.survival(df, time='months', event='died', color='arm')
+        """),
+    Example(
+        'volcano', 'Volcano plot',
+        'Log2 fold change against p-value for 200 genes, the changed genes coloured up or '
+        'down and two of them named',
+        '`df` has one row per gene: `log2 fold change`, a raw `p-value` and an adjusted '
+        '`fdr`. `q=` classes each point by its adjusted p-value, and `highlight=` names the '
+        'genes to label.',
+        {'df': genes},
+        """
+        chart = i.volcano(df, x='log2 fold change', y='p-value', label='gene', q='fdr',
+                          highlight=['Il6', 'Cxcl10'])
+        """),
+    Example(
+        'forest', 'Forest plot',
+        'Odds ratios from four studies and their pooled estimate, each study a square on a '
+        'log axis with its interval, the pooled estimate a diamond',
+        '`df` has `study`, `odds ratio`, `lower` and `upper`, one row per study. `summary=` '
+        'draws a flagged row as a diamond, and `right=` lists the text beside the plot: here '
+        'the estimate with its interval.',
+        {'df': studies},
+        """
+        chart = i.quick.forest(df, label='study', estimate='odds ratio', lower='lower',
+                               upper='upper', summary='pooled', log=True, measure='OR',
+                               right=['ci'])
+        """),
+]
+
+# The page's card grid: each family, its one-line text, and each example's
+# card text. A card links to the example's section further down the page.
+FAMILIES = [
+    ('Lines and trends', 'Series followed along an axis, with their bands and right-hand scales.', [
+        ('line', 'Three curves with standard-error bands, one per condition.'),
+        ('direct-legend', 'The same curves, named where each line ends.'),
+        ('line-secondary', 'Solar on a right-hand axis beside three sources on the left.'),
+        ('area', 'Four sources stacked over fifteen years.'),
+        ('slope', 'Each country\'s support in two years, joined by a line.'),
+    ]),
+    ('Relationships', 'Points against points, with fitted lines.', [
+        ('scatter-groups', 'Percent response against dose for two strains.'),
+        ('scatter-colour', 'Points coloured by a numeric column, with a colour bar.'),
+        ('regression', 'A fitted line with its 95 per cent confidence band.'),
+        ('regression-equation', 'The same fit, with its equation written on the plot.'),
+    ]),
+    ('Distributions', 'The spread of values, as histograms, curves and dots.', [
+        ('hist', 'Overlaid histograms of body length by sex.'),
+        ('kde', 'Smoothed density curves of expression for two genotypes.'),
+        ('ecdf', 'Cumulative proportion of latency for two groups.'),
+        ('boxplot', 'Box plots of crop yield, with each plot as a dot.'),
+        ('violin', 'Violins of grip force across three age cohorts.'),
+        ('strip', 'Jittered dots of soil pH at three sites.'),
+    ]),
+    ('Categories and shares', 'Bars, dots and wedges for counts and totals.', [
+        ('bar-count', 'Bars counting specimens in each species.'),
+        ('bar-grouped', 'Biomass at four sites, with bars side by side by season.'),
+        ('bar-mean', 'Mean response with error bars and a dot for each animal.'),
+        ('bar-grouped-mean', 'Mean response by group, one bar per sex, with error bars and dots.'),
+        ('lollipop', 'Pathway scores as dots on stems from zero.'),
+        ('dumbbell', 'Soil moisture before and after a dry season, at four sites.'),
+        ('waterfall', 'A budget from its opening balance to its closing balance.'),
+        ('pie', 'Cell types in one tissue sample as a pie.'),
+        ('donut', 'The same cell types as a donut.'),
+    ]),
+    ('Matrices', 'Values in a grid of coloured cells.', [
+        ('heatmap', 'Log2 fold change of six genes, centred on zero.'),
+    ]),
+    ('Studies and survival', 'Statistics from experiments, trials and cohorts.', [
+        ('volcano', 'Fold change against p-value for 200 genes, with two named.'),
+        ('forest', 'Odds ratios from four studies and their pooled estimate.'),
+        ('survival', 'Kaplan-Meier curves for two arms, with a number-at-risk table.'),
+    ]),
+    ('Panels', 'Several charts in one figure, with shared axes or lettered panels.', [
+        ('facets', 'Viability in one panel per cell line, sharing axes.'),
+        ('layout', 'Lettered panels placed side by side and stacked.'),
+    ]),
 ]
 
 HEAD = """\
@@ -517,11 +703,19 @@ HEAD = """\
 
 # Chart gallery
 
-Every one-call chart type, drawn from simulated data, with the code that drew it.
-The examples assume `import inklet as i`. `df` is a table of simulated
-measurements, and each figure names its columns. Options such as `width`,
-`palette` and `legend` are described in [Charts in one call](quick-charts.md).
+Every one-call chart type, drawn from simulated data. Each card shows a chart;
+selecting it opens the section below with the code that drew it and the
+full-size figure. The examples assume `import inklet as i`. `df` is a table of
+simulated measurements, and each figure names its columns. Options such as
+`width`, `palette` and `legend` are described in [Charts in one call](quick-charts.md).
 """
+
+
+def anchor(title):
+    """The id mkdocs gives a heading with this text (its toc slug), so a card can link to it."""
+    text = unicodedata.normalize('NFKD', title).encode('ascii', 'ignore').decode()
+    text = re.sub(r'[^\w\s-]', '', text).strip().lower()
+    return re.sub(r'[-\s]+', '-', text)
 
 
 def code_of(example):
@@ -543,13 +737,31 @@ def render(example):
 
 
 def markdown():
-    """The page: heading, note, image and code for each example, in order."""
-    parts = [HEAD]
-    for example in EXAMPLES:
-        parts.append(f"## {example.title}\n\n{example.note}\n\n"
-                     f"![{example.alt}](assets/quick-gallery/{example.name}.svg)\n\n"
-                     f"```python\n{code_of(example)}\n```\n")
-    return '\n'.join(parts)
+    """The page: a section layout whose card grid links to the examples below it.
+
+    The front matter names the card groups for tools/docs_theme/section.html,
+    which shows the text above `<!-- cards -->`, then the grid, then the rest:
+    one section per example with its note, full-size SVG and code.
+    """
+    by_name = {example.name: example for example in EXAMPLES}
+    groups = []
+    for family, text, cards in FAMILIES:
+        groups.append({'title': family, 'text': text, 'cards': [
+            {'title': by_name[name].title, 'text': summary,
+             'image': f'assets/quick-gallery/{name}.png',
+             'page': f'quick-gallery.md#{anchor(by_name[name].title)}'}
+            for name, summary in cards]})
+    front = json.dumps({'layout': 'section', 'title': 'Chart gallery', 'groups': groups},
+                       indent=2, ensure_ascii=False)
+    sections = []
+    for family, text, cards in FAMILIES:
+        sections.append(f"## {family}\n\n{text}\n")
+        for name, _ in cards:
+            example = by_name[name]
+            sections.append(f"### {example.title}\n\n{example.note}\n\n"
+                            f"![{example.alt}](assets/quick-gallery/{example.name}.svg)\n\n"
+                            f"```python\n{code_of(example)}\n```\n")
+    return '\n'.join([f'---\n{front}\n---\n', HEAD, '<!-- cards -->\n', *sections])
 
 
 def main(argv):
@@ -561,6 +773,8 @@ def main(argv):
         figure = render(example)
         path = OUT / f'{example.name}.svg'
         figure.save(path)
+        # The card thumbnail: the same figure as a PNG, which docs_thumbnails.py can resize.
+        (OUT / f'{example.name}.png').write_bytes(figure.to_png())
         print(path)
     PAGE.write_text(markdown())
     print(PAGE)
