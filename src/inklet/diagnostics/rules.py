@@ -2748,6 +2748,21 @@ def _crowded_group(ctx: LintContext, container: str, gap: float,
         involved.update((first.id, second.id))
     label = ctx.label(container)
     node = ctx.nodes.get(container)
+    # One piece of text near many marks is one thing to move: name it.
+    shared = [item for item in (pairs[0][0], pairs[0][1])
+              if item.is_text and all(item.id in (f.id, g.id) for f, g, _ in pairs)]
+    if shared:
+        text = shared[0]
+        return Diagnostic(
+            code="CROWDING",
+            severity="info",
+            message=(f"{text.described} is {_mm(gap)} from {len(pairs)} items inside "
+                     f"{label}, under the {_mm(clearance)} clearance"),
+            targets=tuple(sorted(involved)),
+            where=where,
+            hint=(f"move {text.described} {_mm(clearance - gap)} further from them, or "
+                  f"lower min_clearance_mm if the spacing is deliberate"),
+        )
     noun = "cells" if node is not None and node.kind == "grid" else "items"
     return Diagnostic(
         code="CROWDING",
