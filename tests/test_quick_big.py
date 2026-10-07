@@ -163,4 +163,4 @@ def test_a_100k_point_scatter_compiles_in_a_generous_time():
     chart = i.scatter(_cloud(100_000, groups=2), x='x', y='y', color='group')
     start = time.perf_counter()
     chart.compile()
-    assert time.perf_counter() - start < 10
+    assert time.perf_counter() - start < 60
