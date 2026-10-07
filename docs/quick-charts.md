@@ -5,16 +5,160 @@ PDF or PNG. Each chart is a regular Inklet plot in a preset document, so
 layout, typography and diagnostics work exactly as they do elsewhere, and
 you can move to the [full document model](quickstart.md) when a figure
 needs more. The [chart gallery](quick-gallery.md) shows every chart type
-with the code that drew it.
+with the code that drew it. The [reference](#reference) below lists every option.
+
+## Your first chart in five minutes
+
+This walkthrough builds one figure in eight steps. Every step uses the same
+table, [growth-assay.csv](assets/data/growth-assay.csv). Save it beside your
+script or notebook, because the snippets read it by name.
+
+The table is a made-up but plausible assay: a yeast culture grown with three
+drug doses, read every hour for 12 hours. Each row is the mean of three wells.
+
+| Column | Meaning |
+|---|---|
+| `condition` | `control`, `low dose` or `high dose` |
+| `hour` | hours since the culture was started, 0 to 12 |
+| `od` | mean optical density at 600 nm (OD600) |
+| `sd` | standard deviation of the three wells |
+
+Each step adds to the one before it. Run them in order.
+
+### 1. One call and save
+
+`i.line` draws one line for each value of `color=`, which names a column. A
+CSV path is read as the table, and its numbers are parsed.
 
 ```python
 import inklet as i
 
-chart = i.line(df, x='time', y='signal', color='condition')
-chart.save('signal.pdf', 'signal.png')
+df = 'growth-assay.csv'
+chart = i.line(df, x='hour', y='od', color='condition')
+chart.save('growth.pdf', 'growth.png')
 ```
 
-![Two lines grouped by condition, with a legend below](assets/examples/quick-line.svg)
+<!-- figure: chart -->
+![Three growth curves, one per condition, rising over 12 hours with a legend below](assets/tutorial/one-call.svg)
+
+Axes fit the data, the axis titles come from the column names, and a legend
+appears because there is more than one group. Each group is drawn in colour
+from the start.
+
+### 2. Add error bands
+
+`error_y` names the column of half-widths. Each line gets a translucent band
+either side of it, and `markers=True` marks each reading.
+
+```python
+chart = i.line(df, x='hour', y='od', color='condition', error_y='sd', markers=True)
+```
+
+<!-- figure: chart -->
+![The same three curves with shaded standard-deviation bands and a dot at each hour](assets/tutorial/bands.svg)
+
+### 3. Titles, labels and limits
+
+Titles and labels are keywords. `xlim` and `ylim` set the range, and marks
+outside it are cut off. Markup such as `OD^{600}` works in labels too.
+
+```python
+chart = i.line(df, x='hour', y='od', color='condition', error_y='sd', markers=True,
+               title='Yeast growth under three doses', xlabel='Time / h', ylabel='OD600',
+               xlim=(0, 12), ylim=(0, 2))
+```
+
+<!-- figure: chart -->
+![The chart with a title, labelled axes and the vertical range set from zero to two](assets/tutorial/labels.svg)
+
+### 4. Layer a reference line
+
+Chart methods add marks to the same chart and return it. `hline` draws a rule
+at one data value, and `annotate` writes a note at one data point.
+
+```python
+chart.hline(1.0, label='OD 1.0', stroke_dash=(1.0, 0.8))
+chart.annotate(9.5, 1.65, 'control plateaus')
+```
+
+<!-- figure: chart -->
+![The chart with a dashed horizontal rule at OD 1.0 and the words control plateaus near the top](assets/tutorial/layers.svg)
+
+### 5. Two charts side by side
+
+`|` places charts in a row and `/` stacks them. Each chart gets a panel letter.
+The second chart shows how the spread grows with the signal.
+
+```python
+spread = i.scatter(df, x='od', y='sd', color='condition', xlabel='OD600', ylabel='SD')
+figure = chart | spread
+```
+
+<!-- figure: figure -->
+![Two panels, lettered a and b: the growth chart on the left, and SD against OD600 on the right](assets/tutorial/panels.svg)
+
+### 6. Facets
+
+`facet_col=` makes one panel for each value of a column. The panels share
+their axes, so they can be compared directly.
+
+```python
+figure = i.line(df, x='hour', y='od', error_y='sd', facet_col='condition')
+```
+
+<!-- figure: figure -->
+![Three panels side by side, one per condition, each with its own curve and band on shared axes](assets/tutorial/facets.svg)
+
+### 7. Check the chart
+
+`report()` lists layout problems: overlapping or clipped text, type below the
+print minimum, and similar. Each finding names the object and the change that
+fixes it. A clean chart reports nothing.
+
+```python
+print(chart.report())
+```
+
+A finding looks like this. The report below is from the same chart drawn with
+`font_pt=4`, which makes its type too small to print:
+
+```text
+inklet lint: 17 errors, 1 info
+
+ERROR
+  TINY_TEXT       the tick-label '8' (cell-chart/0/3/0/0/10/0) renders at 3.5pt, below the 6.0pt minimum  -> set font_size to at least 6.0pt (pt(6.0)), or stop scaling the group down
+  TINY_TEXT       the axis-label 'hour' (cell-chart/0/3/0/0/15/0) renders at 4.0pt, below the 6.0pt minimum  -> set font_size to at least 6.0pt (pt(6.0)), or stop scaling the group down
+  ...
+```
+
+`inklet check` prints the same report for a script, and exits with status 1
+when there are errors:
+
+```bash
+inklet check growth.py
+```
+
+### 8. Save for a journal
+
+`width='single'` sets the 89 mm single-column width. That is the default for
+one chart, and writing it in the call keeps the size fixed when the call
+changes. `save()` writes the format named by the file's extension, so a PDF
+stays vector.
+
+```python
+journal = i.line(df, x='hour', y='od', color='condition', error_y='sd', markers=True,
+                 width='single', xlabel='Time / h', ylabel='OD600')
+journal.save('growth-journal.pdf')
+```
+
+<!-- figure: journal -->
+![The growth chart at single-column width, with bands, markers and a legend below](assets/tutorial/journal.svg)
+
+## Reference
+
+Every option of the one-call functions, with the rules that apply to them.
+
+### Tables and defaults
 
 `df` can be a pandas or Polars DataFrame, a mapping of columns, a list of
 row dictionaries, or the path of a CSV or TSV file (numbers and ISO dates are
@@ -29,7 +173,7 @@ outlines, boxes and violins are a pale tint with edges in the same hue, and the
 axes are a quiet grey so the data is the darkest thing on the page. Category labels that would collide
 are turned 45 degrees to fit.
 
-## Chart types
+### Chart types
 
 | Function | What it draws |
 |---|---|
@@ -53,16 +197,17 @@ are turned 45 degrees to fit.
 | `i.waterfall(df, x=, y=)` | Changes as bars floating on a running total. `totals=` names the steps that stand from zero; a missing change on a total shows the running total, and `labels=True` writes each change |
 | `i.slope(df, x=, y=, group=)` | Each group's values at two or more time points, joined by a line, with the name and value written at the ends. `x` is the time column, `group=` the series |
 
-## Regression fits
+### Regression fits
 
 `i.regression` fits each group by least squares, and `chart.fits` holds the
 result, keyed by the group's `color=` value (an ungrouped chart is keyed by
 `name=`, or `None` without it). The fits are made when the call is, so they
-are there before `save()`:
+are there before `save()`. Here the spread is fitted against the optical
+density, for each condition of the walkthrough table:
 
 ```python
-chart = i.regression(df, x='dose', y='response', color='strain', equation=True)
-fit = chart.fits['wild type']
+chart = i.regression(df, x='od', y='sd', color='condition', equation=True)
+fit = chart.fits['control']
 fit.slope, fit.intercept, fit.r2, fit.p   # p: two-sided, against a slope of 0
 fit.slope_interval(0.95)                  # the 95% confidence interval of the slope
 ```
@@ -79,7 +224,7 @@ and the equation writes `log_{10}(x)`. `equation=` also takes a template
 filled from `slope`, `intercept`, `r`, `r2`, `n` and `p`, such as
 `equation='slope {slope:.2f}'`; literal braces are doubled.
 
-## Chart options
+### Chart options
 
 Every function takes these:
 
@@ -102,32 +247,43 @@ Every function takes these:
 | `xformat`, `yformat` | How the tick numbers are written, as the axis `format=` takes it: a `'{}'` spec such as `'{:.0%}'` or `'{:,.0f}'`, a suffix such as `'%'`, or a callable. Not for `forest`, which draws its own axis |
 | `aspect` | `'equal'` makes one data unit the same length on x and y, as maps need; a number is the plot area's height over its width. The plot is the largest of that shape that fits its cell, and `height` caps it. `'equal'` needs linear scales. Not for `forest` |
 
-## Layer, annotate and refine
+### Layer, annotate and refine
 
 Chart methods share names and arguments with the functions, and every
-[plot method](api.md) works on a chart too. Each call returns the chart:
+[plot method](api.md) works on a chart too. Each call returns the chart. The
+model here is a logistic curve fitted by hand to the control condition:
 
 ```python
-chart = i.scatter(df, x='dose', y='response', color='strain', xscale='log')
-chart.line(fit, x='dose', y='predicted', color='#444444', name='model')
-chart.hline(0.5, label='EC50', stroke_dash=(1.0, 0.8))
-chart.annotate(30, 0.9, 'saturation')
-chart.labels(x='Dose / mg kg^{-1}', y='Response')
+import math
+
+hours = list(range(13))
+model = {'hour': hours,
+         'od': [0.06 + 1.55 / (1 + math.exp(-0.5 * (h - 3.6))) for h in hours]}
+chart = i.scatter(df, x='hour', y='od', color='condition')
+chart.line(model, x='hour', y='od', color='#444444', name='control model')
+chart.hline(0.5, label='half of control', stroke_dash=(1.0, 0.8))
+chart.annotate(9, 1.6, 'saturation')
+chart.labels(x='Time / h', y='OD600')
 ```
 
 A series name keeps its colour across calls, so a line and the points it
 was fitted to match.
 
-## A second y axis
+### A second y axis
 
 `secondary_y=` names the series to draw against a right-hand y axis: a column,
-a list of them, or for `scatter` a `color=` group.
+a list of them, or for `scatter` a `color=` group. The monthly table here is
+its own; the walkthrough table has no column on a second scale.
 
 ```python
-i.line(df, x='month', y=['rain', 'temp'], secondary_y='temp')
+weather = {'month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
+                     'Sep', 'Oct', 'Nov', 'Dec'],
+           'rain': [62, 51, 58, 49, 61, 55, 40, 44, 57, 70, 74, 68],
+           'temp': [1.2, 2.0, 4.8, 8.9, 13.1, 16.4, 18.7, 18.2, 14.3, 9.8, 5.1, 2.3]}
+i.line(weather, x='month', y=['rain', 'temp'], secondary_y='temp')
 
-chart = i.bar(df, x='month', y='rain')                       # rain as bars, left
-chart.line(df, x='month', y='temp', secondary_y='temp')      # temperature line, right
+chart = i.bar(weather, x='month', y='rain')                       # rain as bars, left
+chart.line(weather, x='month', y='temp', secondary_y='temp')      # temperature line, right
 chart.labels(y='Rainfall / mm', y2='Mean temperature / °C')
 ```
 
@@ -138,13 +294,25 @@ are often clearer than two y scales, so use this when the quantities must
 share one x axis. `chart.twin_y()` is refused on a quick chart; this is its
 replacement.
 
-## Small multiples
+### Small multiples
 
-`facet_col=` and `facet_row=` draw one chart per value of a column, in a grid:
+`facet_col=` and `facet_row=` draw one chart per value of a column, in a grid.
+`facet_col_wrap=` sets the charts per row, and `facet_order=` the order of the
+panels. The wells table here is its own, with a replicate column for the rows:
 
 ```python
-i.line(df, x='time', y='signal', color='drug', facet_col='cell_line')
-i.scatter(df, x='dose', y='response', facet_row='replicate', facet_col='strain')
+wells = {'strain': [], 'replicate': [], 'dose': [], 'response': []}
+for strain, ec50 in (('wild type', 4.0), ('mutant', 12.0)):
+    for replicate in (1, 2, 3):
+        for dose in (0.5, 1, 2, 4, 8, 16):
+            wells['strain'].append(strain)
+            wells['replicate'].append(replicate)
+            wells['dose'].append(dose)
+            wells['response'].append(round(100 - 80 * dose / (dose + ec50) + 2 * replicate, 1))
+
+i.scatter(wells, x='dose', y='response', facet_row='replicate', facet_col='strain')
+i.line(df, x='hour', y='od', facet_col='condition', facet_col_wrap=3,
+       facet_order=['control', 'low dose', 'high dose'])
 ```
 
 Facets share both axes, so panels can be compared at a glance. A group keeps
@@ -152,17 +320,21 @@ its colour in every panel, a single key serves the grid, and inner panels drop
 the tick numbers and axis titles their neighbours already show. Numeric facet
 values are titled with their column (`rep = 2`).
 
-## Multi-panel figures
+### Multi-panel figures
 
 `|` places charts side by side and `/` stacks them. Each chart gets a panel
 letter, and two levels of nesting share one grid:
 
 ```python
+trace = i.line(df, x='hour', y='od', color='condition', error_y='sd')
+spread = i.scatter(df, x='od', y='sd', color='condition')
+histogram = i.hist(df, x='od', color='condition', bins=12, xlabel='OD600')
 figure = (trace | spread) / histogram
 figure.save('figure1.pdf')
 ```
 
-![Three panels: a time course and a box plot above a histogram spanning both columns](assets/examples/quick-layout.svg)
+<!-- figure: figure -->
+![Three panels: a time course and a spread plot side by side, with a histogram spanning both columns below](assets/tutorial/layout.svg)
 
 A row defaults to double-column width. When every chart in a row sets its
 width in millimetres, the row is as wide as they are together, with the gaps
@@ -187,7 +359,7 @@ chart without one takes the figure's. A series name keeps its palette slot
 across the panels, so a series called `control` is one colour in every panel
 that shares a palette.
 
-## Large data
+### Large data
 
 Big tables need no options. Two defaults keep the figure small:
 
@@ -207,12 +379,12 @@ Big tables need no options. Two defaults keep the figure small:
   millimetres. Smooth lines are never thinned.
 
 ```python
-i.scatter(df, x='x', y='y', color='group')               # raster when past 20,000 points
-i.scatter(df, x='x', y='y', color='group', raster=False)  # keep every point as vector
-i.line(df, x='t', y='signal', simplify=None)              # keep every point
+i.scatter(df, x='od', y='sd', color='condition')              # raster when past 20,000 points
+i.scatter(df, x='od', y='sd', color='condition', raster=False)  # keep every point as vector
+i.line(df, x='hour', y='od', color='condition', simplify=None)  # keep every point
 ```
 
-## Check before you submit
+### Check and save
 
 `save()` returns the compiled figure. `figure.report()` lists overlapping or
 clipped text, type below the print minimum and similar problems, with the
@@ -228,7 +400,7 @@ is embedded at the preset's dpi.
 In Jupyter and VS Code notebooks a chart displays itself. Outside a notebook,
 `chart.show()` writes an SVG and returns its path; nothing opens a window.
 
-## Grow into the document model
+### Grow into the document model
 
 `chart.spec` is the underlying `PlotSpec`, and `chart.document()` returns a
 `Document` with the chart in its `'chart'` cell. Add diagrams, images or other

@@ -74,12 +74,10 @@ def matplotlib_source():
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    quick_line().save(OUT / 'quick-line.svg')
-    quick_layout().save(OUT / 'quick-layout.svg')
     fig = matplotlib_source()
     fig.savefig(OUT / 'mpl-bridge-before.png', dpi=110)
     i.from_matplotlib(fig).save(OUT / 'mpl-bridge-after.svg')
-    for name in ('quick-line.svg', 'quick-layout.svg', 'mpl-bridge-before.png', 'mpl-bridge-after.svg'):
+    for name in ('mpl-bridge-before.png', 'mpl-bridge-after.svg'):
         print(OUT / name)
 
 
