@@ -137,6 +137,7 @@ nav:
 - Get started:
   - Install Inklet: installation.md
   - Charts in one call: quick-charts.md
+  - Chart gallery: quick-gallery.md
   - First figure: quickstart.md
   - From CSV to a figure: csv-figure.md
   - How Inklet works: concepts.md
