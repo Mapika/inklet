@@ -37,7 +37,7 @@ One plot: marks on shared axes, with a size and a preset.
 * `forest(data=None, label=None, estimate=None, lower=None, upper=None, *, weight=None, summary=None, left=('label',), right=('ci',), log=False, null=None, limits=None, measure='Estimate', digits=2, **style)` -- A forest plot: one row per study, with its estimate and confidence interval.
 * `labels(*, x=None, y=None, title=None)` -- Set axis titles and the chart title (all optional).
 * `size(width=None, height=None)` -- Width as 'single', 'double', 'slide' or millimetres; height in mm.
-* `plot(width=None, profile=None, rotate=False)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
+* `plot(width=None, profile=None, rotate=False, colours=None, slots=None)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
 * `document(rotate=frozenset())` -- A `Document` holding this chart, sized and styled; add cells to grow it.
 * `compile()` -- Measure and place everything; returns a `CompiledFigure`.
 * `report(**options) -> 'str'` -- Layout and print diagnostics: overlaps, clipped text, small type.
@@ -47,10 +47,11 @@ One plot: marks on shared axes, with a size and a preset.
 * `to_png(**options) -> 'bytes'`
 * `to_svg(**options) -> 'str'`
 
-#### `class Layout(direction, items, *, width=None, style=None, letters=True, columns=None)`
+#### `class Layout(direction, items, *, width=None, style=None, letters=True, columns=None, palette=None, font_pt=None, grid=None)`
 
 Charts side by side (`a | b`) or stacked (`a / b`), with panel letters.
 
+* `options(**settings)` -- Set this layout's options and return it: `(a | b).options(style='scientific.nature', palette='okabe-ito', font_pt=8)`.
 * `charts()`
 * `document(rotate=frozenset())` -- A `Document` with one lettered cell per chart.
 * `compile()` -- Measure and place everything; returns a `CompiledFigure`.

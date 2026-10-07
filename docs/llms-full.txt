@@ -109,6 +109,18 @@ they are together, with the gaps between them, and each panel keeps its width:
 186 mm. A chart width the layout cannot use (a different page width on a
 stacked layout, say) raises a `UserWarning`; set widths on the layout instead.
 
+Figure options. `style`, `font_pt` and `grid` apply to the whole figure.
+Set them on the layout, `i.Layout('row', [a, b], style='scientific.nature')`,
+or after the fact with `fig.options(font_pt=8, grid=True)`, which returns the
+layout. Left unset, the charts decide: charts that agree use their value, and
+charts that disagree raise one `UserWarning` per setting, naming the values,
+and the first chart's value is used. Palettes are per panel: each chart's own
+`palette=` colours its own series, a palette set on the layout
+(`fig.options(palette='okabe-ito')`) overrides them all, and a chart without
+one takes the figure's (the first chart's). A series name keeps its palette
+slot across the panels, so `'control'` is the same colour in every panel that
+draws it, provided the panels share a palette.
+
 ## A figure for a slide
 
 `width='slide'` makes a 254 mm page, and its labels are 14 pt by default, so the

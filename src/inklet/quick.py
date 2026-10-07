@@ -416,8 +416,7 @@ class Chart(_Renderable):
             # The axis's own `format=` forms: a spec with `{}`, a suffix, or a callable.
             if value is not None and not (isinstance(value, str) or callable(value)):
                 raise TypeError(f"{name} must be a format string or a callable, got {value!r}")
-        if font_pt is not None and (isinstance(font_pt, bool) or not isinstance(font_pt, Real) or font_pt <= 0):
-            raise ValueError(f'font_pt is the main type size in points, a positive number; got {font_pt!r}')
+        _check_font_pt(font_pt)
         # A width of None means "the style decides": a Preset keeps its own page, a name is a single column.
         self.width, self.palette, self.grid = width, palette, grid
         self.style = _check_style(style)
@@ -960,11 +959,13 @@ class Chart(_Renderable):
 
     # The finished recipe.
 
-    def plot(self, width=None, profile=None, rotate=False):
+    def plot(self, width=None, profile=None, rotate=False, colours=None, slots=None):
         """The `PlotSpec` with axes, legend and title applied, for a document cell.
 
         `width` (mm) and `profile` (the `Preset`) let crowded category labels
-        be turned to fit.
+        be turned to fit. `colours` is the palette this chart's series are
+        drawn in (default: the profile's), and `slots` maps every series name
+        to its palette position across a layout, so one name keeps one colour.
         """
         if self._forest is not None:
             # A forest is a Diagram, built under the document's theme at compile.
@@ -974,7 +975,9 @@ class Chart(_Renderable):
         spec = self.spec.copy()
         if self._series_tokens or self._has_tokens():
             theme = (profile or self._profile()).theme
-            spec._steps = [(key, method, args, _resolve_tokens(kwargs, theme.palette, theme.paper))
+            palette = theme.palette if colours is None else colours
+            index = self._slot_index(slots)
+            spec._steps = [(key, method, args, _resolve_tokens(kwargs, palette, theme.paper, index))
                            for key, method, args, kwargs in spec._steps]
         xlabel = self.xlabel if self.xlabel is not None else self._auto_labels.get('x')
         ylabel = self.ylabel if self.ylabel is not None else self._auto_labels.get('y')
@@ -1098,6 +1101,15 @@ class Chart(_Renderable):
         if label not in self._series_tokens:
             self._series_tokens[label] = f'{_TOKEN}{len(self._series_tokens)}'
         return self._series_tokens[label]
+
+    def _slot_index(self, slots):
+        """This chart's palette positions mapped to the layout's, by series name.
+
+        None outside a layout, where a position is its own palette slot.
+        """
+        if slots is None:
+            return None
+        return {int(token[len(_TOKEN):]): slots[label] for label, token in self._series_tokens.items()}
 
     def _style(self, table, color, style, *, mark=False, dash=None, stroke_width=None, label=None,
                lone=False):
@@ -1238,16 +1250,23 @@ def _marker_look(count, total):
     return {'size': 0.8, 'fill_opacity': 0.55}
 
 
-def _resolve_tokens(kwargs, palette, paper='#ffffff'):
-    """Replace palette slots (`@series2`, `@tint2`) with colours, in nested values too."""
+def _resolve_tokens(kwargs, palette, paper='#ffffff', index=None):
+    """Replace palette slots (`@series2`, `@tint2`) with colours, in nested values too.
+
+    `index` maps a slot to the palette position to use (see `Chart._slot_index`).
+    """
     from .themes import mix
+
+    def position(value, prefix):
+        slot = int(value[len(prefix):])
+        return index.get(slot, slot) if index is not None else slot
 
     def resolve(value):
         if isinstance(value, str) and value.startswith(_TOKEN):
-            return palette[int(value[len(_TOKEN):]) % len(palette)]
+            return palette[position(value, _TOKEN) % len(palette)]
         for prefix, amount in ((_TINT, _TINT_AMOUNT), (_SOFT, _SOFT_AMOUNT)):
             if isinstance(value, str) and value.startswith(prefix):
-                colour = palette[int(value[len(prefix):]) % len(palette)]
+                colour = palette[position(value, prefix) % len(palette)]
                 return mix(colour, paper, amount)
         if isinstance(value, (list, tuple)):
             return type(value)(resolve(v) for v in value)
@@ -1297,6 +1316,11 @@ def _domain(lim, scale):
         from .plot.scale import log
         return log(tuple(lim))
     return tuple(lim)
+
+
+def _check_font_pt(font_pt):
+    if font_pt is not None and (isinstance(font_pt, bool) or not isinstance(font_pt, Real) or font_pt <= 0):
+        raise ValueError(f'font_pt is the main type size in points, a positive number; got {font_pt!r}')
 
 
 def _check_style(style):
@@ -1368,9 +1392,18 @@ class Layout(_Renderable):
     `Layout('grid', charts, columns=3)` fills a grid row by row; facets use it.
     A row whose charts all set a width in mm is as wide as they are, with
     gaps between; otherwise the page takes `width=`, or the first chart's.
+
+    `style`, `font_pt` and `grid` set the look of the whole figure, and
+    `palette` the colours of every panel; `options()` sets them after the
+    fact. Left unset, they come from the charts: charts that agree on a
+    setting decide it, and charts that disagree warn and the first chart's
+    value is used. A palette needs no agreement, since each chart's own
+    palette colours its own series. A series name keeps one colour across
+    the panels, whatever order each panel lists its series in.
     """
 
-    def __init__(self, direction, items, *, width=None, style=None, letters=True, columns=None):
+    def __init__(self, direction, items, *, width=None, style=None, letters=True, columns=None,
+                 palette=None, font_pt=None, grid=None):
         if direction not in ('row', 'column', 'grid'):
             raise ValueError("layout direction is 'row', 'column' or 'grid'")
         if direction == 'grid' and not (isinstance(columns, int) and columns >= 1):
@@ -1385,7 +1418,25 @@ class Layout(_Renderable):
             else:
                 raise TypeError(f'cannot lay out a {type(item).__name__}; use inklet charts')
         self.direction, self.items = direction, tuple(flat)
-        self.width, self.style, self.letters = width, style, letters
+        self.options(width=width, style=style, letters=letters, palette=palette, font_pt=font_pt, grid=grid)
+
+    def options(self, **settings):
+        """Set this layout's options and return it: `(a | b).options(style='scientific.nature', palette='okabe-ito', font_pt=8)`.
+
+        The names are the constructor's: width, style, letters, palette,
+        font_pt and grid. None clears one, so the charts decide it again.
+        A layout inside another one sets its options for the whole figure.
+        """
+        allowed = ('width', 'style', 'letters', 'palette', 'font_pt', 'grid')
+        unknown = [name for name in settings if name not in allowed]
+        if unknown:
+            raise TypeError(f"layout options are {', '.join(allowed)}; got {', '.join(unknown)}")
+        if settings.get('style') is not None:
+            settings['style'] = _check_style(settings['style'])
+        _check_font_pt(settings.get('font_pt'))
+        for name, value in settings.items():
+            setattr(self, name, value)
+        return self
 
     def charts(self):
         for item in self.items:
@@ -1396,6 +1447,18 @@ class Layout(_Renderable):
 
     def _first(self):
         return next(self.charts())
+
+    def _explicit(self, name):
+        """A figure option set on this layout or inside it, the outermost first; None when unset."""
+        value = getattr(self, name)
+        if value is not None:
+            return value
+        for item in self.items:
+            if isinstance(item, Layout):
+                found = item._explicit(name)
+                if found is not None:
+                    return found
+        return None
 
     def _chart_list(self):
         return list(self.charts())
@@ -1412,7 +1475,19 @@ class Layout(_Renderable):
         charts = list(self.charts())
         across = self.direction != 'column' or any(
             isinstance(item, Layout) for item in self.items)
-        style = self.style or first.style
+        style = self._explicit('style')
+        if style is None:
+            style = self._agreed('style', charts)
+        font_pt = self._explicit('font_pt')
+        if font_pt is None:
+            font_pt = self._agreed('font_pt', charts)
+        grid = self._explicit('grid')
+        if grid is None:
+            grid = self._agreed('grid', charts)
+        # The figure's palette is the default for panels that set none of their own.
+        palette = self._explicit('palette')
+        if palette is None:
+            palette = first.palette
         sizes = self._column_sizes()
         width = self.width
         if width is None and sizes is None:
@@ -1423,17 +1498,18 @@ class Layout(_Renderable):
                 width = 'double'
         if width is None and sizes is not None:
             # Each chart keeps its own width: the page is their sum and the gaps between them.
-            gap = _preset(sum(sizes), style, first.palette, first.grid).gap
+            gap = _preset(sum(sizes), style, palette, grid).gap
             width = sum(sizes) + gap * (len(sizes) - 1)
-        profile = _preset(width, style, first.palette, first.grid, first.font_pt)
+        profile = _preset(width, style, palette, grid, font_pt)
         # Only a chart's own width= is noticed; a width it inherits is the page's.
         if sizes is None and any(c.width is not None and abs(_width_mm(c.width) - profile.format.width) > 1e-6
                                  for c in charts):
             warnings.warn('in a layout the page width comes from Layout(width=...) or the first chart; '
                           'set widths on the layout', UserWarning, stacklevel=2)
-        grid = self._grid()
-        if grid is not None:
-            columns, cells = grid
+        plotting = self._plotting(charts)
+        grid_cells = self._grid()
+        if grid_cells is not None:
+            columns, cells = grid_cells
             # Facets share their scales, so their plot areas should line up too.
             doc = profile.document(columns=sizes if sizes is not None else columns,
                                    share_plot_margins=self.direction == 'grid')
@@ -1444,13 +1520,14 @@ class Layout(_Renderable):
                 cell_width = sum(tracks[column:column + colspan]) + doc.gap * (colspan - 1)
                 # A chart spanning columns keeps its row's height, not one
                 # proportional to its full width.
-                doc.add(f'p{index + 1}', item.plot(cell_width, profile, id(item) in rotate),
+                doc.add(f'p{index + 1}', item.plot(cell_width, profile, id(item) in rotate,
+                                                   **plotting[id(item)]),
                         row=row, column=column,
                         rowspan=rowspan, colspan=colspan,
                         min_height=item._height(tracks[column]) if rowspan == 1 else None)
         else:
             doc = profile.document(columns=len(self.items) if self.direction == 'row' else 1)
-            self._fill(doc, doc.width, prefix='p', profile=profile, rotate=rotate)
+            self._fill(doc, doc.width, prefix='p', profile=profile, rotate=rotate, plotting=plotting)
         if self.letters and len(list(self.charts())) > 1:
             # Beside a chart title the letter shares its line; otherwise it
             # hangs off the plot area.
@@ -1495,7 +1572,45 @@ class Layout(_Renderable):
         sizes = [_length(item.width) for item in self.items]
         return None if any(size is None for size in sizes) else sizes
 
-    def _fill(self, doc, width, prefix, profile=None, rotate=frozenset()):
+    def _agreed(self, name, charts):
+        """A figure option the charts did not set on the layout: the value they agree on.
+
+        Where they disagree, the first chart's value is used and one warning names the values.
+        """
+        values = [getattr(chart, name) for chart in charts]
+        distinct = []
+        for value in values:
+            if value not in distinct:
+                distinct.append(value)
+        if len(distinct) > 1:
+            listed = ', '.join(repr(value) for value in distinct)
+            warnings.warn(f'the charts in this layout disagree on {name} ({listed}); using the first '
+                          f"chart's {name}={values[0]!r}. Set {name}= on the layout to choose one",
+                          UserWarning, stacklevel=3)
+        return values[0]
+
+    def _plotting(self, charts):
+        """Per chart, the `plot()` keywords that colour its series.
+
+        A chart with its own palette keeps it, unless the layout sets one.
+        Every series name gets one palette position for the whole layout, so
+        a name drawn in two panels keeps its colour (`_slot_index` maps each
+        chart's own positions onto these).
+        """
+        slots = {}
+        for chart in charts:
+            for label in chart._series_tokens:
+                slots.setdefault(label, len(slots))
+        layout_palette = self._explicit('palette') is not None
+        plotting = {}
+        for chart in charts:
+            colours = None
+            if not layout_palette and chart.palette is not None:
+                colours = chart._profile().theme.palette
+            plotting[id(chart)] = {'colours': colours, 'slots': slots}
+        return plotting
+
+    def _fill(self, doc, width, prefix, profile, rotate, plotting):
         from .document import subfigure
         count = len(self.items)
         # A row's cells share the width in proportion to the document's column weights.
@@ -1508,12 +1623,13 @@ class Layout(_Renderable):
                 cell_width = width
             place = dict(row=0, column=index) if self.direction == 'row' else dict(row=index, column=0)
             if isinstance(item, Chart):
-                doc.add(name, item.plot(cell_width, profile, id(item) in rotate),
+                doc.add(name, item.plot(cell_width, profile, id(item) in rotate, **plotting[id(item)]),
                         min_height=item._height(cell_width), **place)
             else:
                 sub = subfigure(width=cell_width, gap=doc.gap,
                                 columns=len(item.items) if item.direction == 'row' else 1)
-                item._fill(sub, cell_width, prefix=name + '_', profile=profile, rotate=rotate)
+                item._fill(sub, cell_width, prefix=name + '_', profile=profile, rotate=rotate,
+                           plotting=plotting)
                 doc.add(name, sub, **place)
 
     def __repr__(self):
