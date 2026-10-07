@@ -350,7 +350,14 @@ def _probe(method, args, kwargs, x: _Axis, y: _Axis, width, height):
         getattr(probe, method)(*args, **kwargs)
     except Exception:
         return
-    drawn = [*probe._under[before[0]:], *probe._content[before[1]:], *probe._over[before[2]:]]
+    # A `label_points` or `label_lines` call leaves an empty placeholder in
+    # `_over` until the panel is built, and it has no box to read. Labels
+    # are kept inside the plot area and never set a domain, so the probe
+    # reads the marks alone and leaves the placeholders out.
+    held = probe._deferred
+    drawn = [node for node in (*probe._under[before[0]:], *probe._content[before[1]:],
+                               *probe._over[before[2]:])
+             if id(node) not in held]
     if not drawn:
         return
     box = drawn[0].bbox
