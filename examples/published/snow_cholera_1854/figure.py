@@ -29,8 +29,11 @@ broad = pumps[pumps.label == "Broad St"].iloc[0]
 # -- figure -------------------------------------------------------------------
 side = MM_PER_UNIT * (XLIM[1] - XLIM[0])
 MARGIN = 4              # mm, page margin around the square map
-doc = i.preset("scientific.modern").document(width=side + 2 * MARGIN, margin=MARGIN)
-p = i.plot_spec(side, side, x=XLIM, y=YLIM, clip=True)
+PAGE = 144              # mm, the published page is square (NOTES.md)
+doc = i.preset("scientific.modern").document(width=PAGE, margin=MARGIN)
+# aspect='equal' keeps one unit the same length on x and y at any page width: a
+# narrower page shrinks the map to the largest square it holds, never stretches it.
+p = i.plot_spec(side, side, x=XLIM, y=YLIM, clip=True, aspect="equal")
 
 for k, (_, seg) in enumerate(streets.groupby("street", sort=False)):
     p.line(seg[["x", "y"]].to_numpy(), stroke=STREET, stroke_width=0.15,

@@ -33,6 +33,11 @@ coding agents.
   prints its diagnostics and exits 1 on errors. `inklet build` and `check`
   also accept scripts that define `chart` or `make_chart()`.
 - The documentation publishes `llms.txt` and `llms-full.txt`.
+- `plot_spec(..., aspect='equal')` keeps one data unit the same length on x
+  and y, and `aspect=<number>` keeps the data area's height over its width.
+  The plot is the largest region of that shape inside its cell, `align=`
+  places the slack, and `layout_report()` counts it as unused. One-call
+  charts take `aspect=` too.
 
 ### Changed
 

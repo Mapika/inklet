@@ -10,10 +10,12 @@ import warnings
 from copy import deepcopy
 import math
 from collections.abc import Mapping
+from numbers import Real
 
 from .._compat import InkletDeprecationWarning, warn_renamed
 from ..core import Diagram, DiagramError, mm
 from ..plot import Panel, PolarPanel
+from ..plot.scale import Linear, Scale
 
 
 def length(value, name, *, zero=False):
@@ -21,6 +23,61 @@ def length(value, name, *, zero=False):
     if not math.isfinite(value) or value < 0 or (not zero and value == 0):
         raise ValueError(f'{name} must be finite and {"non-negative" if zero else "positive"}')
     return value
+
+
+def _aspect(value):
+    """Validate `aspect=`: 'equal', or height over width of the data area."""
+    if value == 'equal':
+        return value
+    if (isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(value)
+            or value <= 0):
+        raise ValueError("aspect must be 'equal' or a positive height/width ratio of the data area")
+    return float(value)
+
+
+def _plot_options(options):
+    """Recipe options after validation. `aspect=None` means the plot has none."""
+    options = dict(options)
+    if options.get('aspect') is None:
+        options.pop('aspect', None)
+    else:
+        options['aspect'] = _aspect(options['aspect'])
+    return options
+
+
+def _ratio(aspect, options):
+    """Height over width of the data area for an `aspect` and resolved scales.
+
+    `'equal'` makes one data unit the same length on both axes, so the ratio
+    is the y span over the x span. Only linear, numeric domains have a unit
+    length; other scales need a number.
+    """
+    if aspect != 'equal':
+        return aspect
+    spans = []
+    for name in ('x', 'y'):
+        scale = options.get(name)
+        if scale is None:
+            domain = (0.0, 1.0)
+        elif isinstance(scale, Linear):
+            domain = scale.domain
+        elif isinstance(scale, Scale) or not (
+                len(scale) == 2 and all(isinstance(v, Real) and not isinstance(v, bool) for v in scale)):
+            raise ValueError(f"aspect='equal' needs linear numeric {name} scales; "
+                             "give a height/width number for other scales")
+        else:
+            domain = scale
+        span = abs(float(domain[1]) - float(domain[0]))
+        if not math.isfinite(span) or span == 0:
+            raise ValueError(f"aspect='equal' needs a nonzero {name} span")
+        spans.append(span)
+    return spans[1] / spans[0]
+
+
+def _fit_aspect(width, height, ratio):
+    """The largest rectangle of height/width `ratio` inside `width` x `height`."""
+    fitted = min(width, height / ratio)
+    return fitted, fitted * ratio
 
 
 @contextmanager
@@ -131,7 +188,7 @@ class PlotSpec(BuildSpec):
     def __post_init__(self):
         self.width = length(self.width, 'plot width')
         self.height = length(self.height, 'plot height')
-        self.options = freeze(self.options)
+        self.options = _plot_options(freeze(self.options))
 
     def __getattr__(self, name):
         from ..plot.panel import Panel
@@ -231,7 +288,7 @@ class PlotSpec(BuildSpec):
         """Validate physical dimensions together before applying configuration."""
         new_width = self.width if width is None else length(width, 'plot width')
         new_height = self.height if height is None else length(height, 'plot height')
-        new_options = self.options | freeze(options)
+        new_options = _plot_options(self.options | freeze(options))
         self.width, self.height, self.options = new_width, new_height, new_options
         return self
 
@@ -290,7 +347,13 @@ class PlotSpec(BuildSpec):
         from ..plot import panel
         width = self.width if width is None else width
         height = self.height if height is None else height
-        options = self._fitted(materialize(self.options, context), context, width, height)
+        options = materialize(self.options, context)
+        aspect = options.pop('aspect', None)
+        options = self._fitted(options, context, width, height)
+        if aspect is not None:
+            # The domains come first: 'equal' takes its ratio from their spans.
+            # The data region is then the largest one of that shape that fits.
+            width, height = _fit_aspect(width, height, _ratio(aspect, options))
         p = panel(width, height, **options)
         self._replay(p, context)
         return p.build()
@@ -460,7 +523,14 @@ def _copy_plot_value(value, memo):
 
 
 def plot_spec(width=40, height=30, **options):
-    """Defer Panel drawing instructions until a document is compiled."""
+    """Defer Panel drawing instructions until a document is compiled.
+
+    `aspect='equal'` makes one data unit the same length on x and y, and a
+    number sets the data area's height over its width. The document then
+    keeps the largest data region of that shape that fits its cell: `height`
+    caps it, the cell's width and furniture limit it, and `align=` on
+    `doc.add` places the slack.
+    """
     return PlotSpec(width, height, options)
 
 

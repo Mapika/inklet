@@ -182,9 +182,12 @@ class Document(BuildSpec):
         Omitted row appends below existing cells. ``align`` accepts ``center``,
         ``n``, ``s``, ``e``, ``w`` and the four corners. It positions artwork
         within its cell without scaling. Plots fill their available data
-        regions and retain shared axis alignment. With a fixed page height,
+        regions and retain shared axis alignment, except a plot with
+        ``aspect=``: its data region is the largest of that shape inside the
+        cell, and ``align`` places the slack. With a fixed page height,
         ``grow=False`` keeps the cell's natural height instead of taking a
-        share of the extra space.
+        share of the extra space; if no other cell can take that space, it is
+        shared out anyway, so a fixed page height is always filled.
         """
         if not isinstance(name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*',name):
             raise ValueError('cell names start with a letter and contain letters, digits, underscores or hyphens')
