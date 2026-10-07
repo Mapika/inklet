@@ -1,6 +1,6 @@
 # Linked region maps
 
-Introduced in **4.0.0.dev1** and available in stable **4.6.0**. See the [4.0 release guide](development-preview.md).
+Experimental: the API may change.
 
 The development preview now joins GeoJSON regions to the same keyed table used
 by linked bars and scatter plots. Select a region in either map to select its
