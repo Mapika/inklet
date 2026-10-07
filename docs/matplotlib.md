@@ -39,9 +39,14 @@ change the preset or check the report like any other chart.
 | `fill_between` | `band` |
 | `axhline` / `axvline` | `hline` / `vline` |
 | `imshow` | `matrix` with a colour bar |
+| `bar(color=[...])` | `bars`, one colour per bar |
+| `bar(alpha=)`, `plot(mfc='none')`, `scatter(facecolors='none')` | Opacity, hollow markers |
+| `errorbar(capsize=)`, `linewidth=` | Error-bar caps, line width |
 | `text`, `annotate` (data coordinates) | `text`, `annotate` |
+| `fig.colorbar(im, label=)`, `cb.set_label()` | The colour bar's title |
+| `set_xticks(ticks, labels)`, `invert_yaxis()`, `grid(True)` | Ticks as placed, inverted axes, gridlines |
 | Axis labels, title, log scales, explicit limits, categorical ticks, legend | Chart options |
-| A grid of subplots | A layout with panel letters |
+| A grid of subplots | A layout with panel letters; a colour bar beside a panel keeps the grid |
 
 matplotlib's automatic colour cycle (`C0`, `C1`, ...) maps onto the preset
 palette slot by slot, so series that shared a colour still share one. Colours
@@ -55,8 +60,33 @@ and `style=` or `palette=` to choose a [preset](presets.md) or
 
 ## What does not
 
-Artists the bridge cannot read are not dropped silently. They are listed in a
-`MatplotlibWarning` and on each chart's `skipped` list. These include patches
-other than bars, text placed in axes or figure coordinates, polygons that are
-not a band between two curves, and non-linear scales other than log. Colorbar
-axes are recognised and replaced by Inklet colour bars.
+Nothing is dropped silently. Each property the bridge does not carry is listed
+in a `MatplotlibWarning` and on the chart's `skipped` list, so a figure that
+loses something says what it lost. The cases:
+
+- **Hatches** on bars and bands are drawn solid.
+- **Outlines and fills**: bar and marker edges in their own colour are drawn
+  without them, and bars with no fill are drawn in the default colour.
+- **Images**: colour images (RGB or RGBA pixels) are not kept. Colour scales
+  other than linear, such as `LogNorm`, are drawn linear, and a colour map
+  Inklet does not know is drawn as viridis.
+- **Markers**: shapes other than circle, square, triangle, diamond, cross and
+  plus are drawn as circles. Hollow markers stay hollow.
+- **Lines**: `drawstyle="steps"` is drawn as straight segments. Dashed lines
+  from `hlines` and `vlines` are drawn solid, and a labelled set of lines in
+  several colours loses its label.
+- **Text**: rotated text is drawn level. Text placed in axes or figure
+  coordinates is not converted, and neither is an annotation whose point is in
+  axes coordinates (data coordinates are).
+- **Axes**: `set_aspect` is not forced, so panels fill their space. The legend
+  title and legend labels given by hand are not kept, since the key uses the
+  artists' own labels. Inset axes are not drawn.
+- **Twin axes** (`twinx`, `twiny`) are not drawn. The second axes is reported
+  and left out, so its lines and bars are missing from the figure.
+- **Figure level**: `suptitle`, `fig.text` and figure legends are not drawn.
+- **Other artists**: patches other than bars (circles, polygons), contours,
+  meshes, quivers, violins and collections that are not a band between two
+  curves are reported by name.
+
+Colour bars are recognised and replaced by Inklet colour bars, with the label
+they were given as their title.

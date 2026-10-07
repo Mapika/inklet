@@ -146,6 +146,11 @@ figure.save('figure.pdf')
 manhattan, survival curves, ridgelines, raincloud, sankey, upset, treemap,
 networks, ternary...) with its signature.
 
+- `i.from_matplotlib(fig)` redraws a matplotlib figure's data as Inklet charts,
+  in Inklet's type and layout. What it does not carry (hatches, RGB images,
+  figure-level text, twin axes, inset axes, and more) is listed in a
+  `MatplotlibWarning`; `docs/matplotlib.md` has the full list.
+
 ## Common mistakes
 
 - `i.box` is a diagram box, not a box plot. Use `i.boxplot`.
