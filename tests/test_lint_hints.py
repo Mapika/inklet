@@ -99,7 +99,9 @@ def _hline_figure():
 def test_a_labelled_text_node_is_named_by_its_words_and_kind_with_the_id_last():
     found = _hline_figure()
     overlap = next(d for d in found if d.code == "OVERLAP")
-    assert re.search(r"^the label 'mean 63\.9' \(label\d+\) overlaps the mark \(mark\d+\)",
+    # One label over a cloud of marks is one finding that names the count, not
+    # one sentence per mark (see test_lint_grouping_text).
+    assert re.search(r"^the label 'mean 63\.9' \(label\d+\) overlaps \d+ marks",
                      overlap.message)
 
 

@@ -15,6 +15,13 @@ one panel share a parent and a kind, but not a pair, so they stay two lines;
 a chain of three or more labels touching one another is one problem and is
 reported once. An isolated pair -- the common case -- is never touched.
 
+The other shape of run is one label against many things: a label set on a
+point cloud overlaps every mark it lands on, and the pairs share their text
+item and nothing else. Twenty-five OVERLAP lines for one label are one fault,
+so three or more pairs that share a text item against non-text items fold
+into one finding about that label. Two labels over marks are two findings,
+and a label touching only two things is still two lines.
+
 The folded finding keeps the shape every reader of `lint()` relies on: one
 `Diagnostic`, the most severe code and severity among the pairs (an overlap
 outranks a near miss), every item involved in `targets`, and the first few
@@ -27,10 +34,11 @@ from __future__ import annotations
 import math
 from typing import Sequence
 
-from ..core import Rect
+from ..core import MarkerBatchPrim, Rect
 from .plot_rules import _panel_name
 from .rules import (
-    Diagnostic, Item, LintContext, _SEVERITY_RANK, _text_excerpt,
+    Diagnostic, Item, LintContext, _SEVERITY_RANK, _ink_overlap, _marker_overlap,
+    _mm, _text_excerpt, node_phrase,
 )
 
 __all__ = ["group_runs", "GROUPED_CODES"]
@@ -54,15 +62,24 @@ _PANEL_KIND = "panel"
 
 
 def group_runs(ctx: LintContext, diags: Sequence[Diagnostic]) -> list[Diagnostic]:
-    """`diags` with every run of three or more colliding siblings folded."""
+    """`diags` with every run of three or more colliding siblings folded, and
+    every label that collides with three or more things folded into one."""
     keyed: dict[tuple[str, str], list[Diagnostic]] = {}
+    labelled: dict[tuple[str, str], list[Diagnostic]] = {}
+    labels: dict[str, Item] = {}
     rest: list[Diagnostic] = []
     for diag in diags:
         key = _run_key(ctx, diag)
-        if key is None:
+        if key is not None:
+            keyed.setdefault(key, []).append(diag)
+            continue
+        label = _label_key(ctx, diag)
+        if label is None:
             rest.append(diag)
         else:
-            keyed.setdefault(key, []).append(diag)
+            text, code = label
+            labels[text.id] = text
+            labelled.setdefault((text.id, code), []).append(diag)
     for key in sorted(keyed):
         for component in _components(keyed[key]):
             members = sorted({t for d in component for t in d.targets})
@@ -70,7 +87,25 @@ def group_runs(ctx: LintContext, diags: Sequence[Diagnostic]) -> list[Diagnostic
                 rest.extend(component)
             else:
                 rest.append(_folded(ctx, key[0], members, component))
+    for text_id, code in sorted(labelled):
+        pairs = labelled[(text_id, code)]
+        if len(pairs) < _MIN_RUN:
+            rest.extend(pairs)
+        else:
+            rest.append(_folded_label(ctx, labels[text_id], code, pairs))
     return rest
+
+
+def _label_key(ctx: LintContext,
+               diag: Diagnostic) -> tuple[Item, str] | None:
+    """(the text item, code) when this pair is one text item against something
+    that is not text -- the pairs a label makes with the marks it sits on."""
+    if diag.code not in GROUPED_CODES or len(diag.targets) != 2:
+        return None
+    first, second = (ctx.item(t) for t in diag.targets)
+    if first is None or second is None or first.is_text == second.is_text:
+        return None
+    return (first if first.is_text else second), diag.code
 
 
 def _run_key(ctx: LintContext, diag: Diagnostic) -> tuple[str, str] | None:
@@ -117,13 +152,105 @@ def _components(diags: list[Diagnostic]) -> list[list[Diagnostic]]:
     return [groups[key] for key in sorted(groups)]
 
 
+def _folded_label(ctx: LintContext, text: Item, code: str,
+                  pairs: list[Diagnostic]) -> Diagnostic:
+    """One label's pairs with the things it sits on, as one finding.
+
+    The pairwise messages each name the label and one mark, so a label on a
+    cloud reads as the same sentence twenty-five times. This names the label
+    once and says how many things it reaches. The area is the largest of the
+    pairs', measured as `rule_overlap` measures it, so the figure is one the
+    pairwise report would have printed.
+    """
+    members = sorted({t for d in pairs for t in d.targets})
+    partners = [item for item in (ctx.item(t) for t in members if t != text.id)
+                if item is not None]
+    where: Rect | None = None
+    for d in pairs:
+        if isinstance(d.where, Rect):
+            where = d.where if where is None else where.union(d.where)
+    within = _within(ctx, [text.id] + [p.id for p in partners])
+    count = _counted(len(partners), _shared_kind(partners))
+    # Items the layout placed, not the data, are the case where "the data" is
+    # the wrong noun; a label on a box is clear of the box, not of the data.
+    them = "the data" if all(p.is_computed for p in partners) else "them"
+    # The node's own kind names it ("the label" for `panel.text`), so the hint
+    # says what the message says.
+    noun = text.node.kind or "label"
+    if code == "OVERLAP":
+        largest = max(_overlap_area(text, p) for p in partners)
+        message = (f"{text.described} overlaps {count} {within} "
+                   f"(largest overlap {largest:.1f}mm^2)")
+        hint = (f"move the {noun} clear of {them} (for plot text use annotate(), "
+                f"which places itself), or raise min_overlap_fraction if the "
+                f"overlap is deliberate")
+    else:
+        message = (f"{text.described} is under the {_mm(ctx.min_clearance_mm)} "
+                   f"clearance from {count} {within}")
+        hint = (f"move the {noun} clear of {them} (for plot text use annotate(), "
+                f"which places itself), or lower min_clearance_mm if the "
+                f"spacing is deliberate")
+    return Diagnostic(code=code, severity=_worst_severity(pairs),
+                      message=message, targets=tuple(members), where=where,
+                      hint=hint)
+
+
+def _overlap_area(text: Item, other: Item) -> float:
+    """The area OVERLAP reports for one pair, measured the way `rule_overlap`
+    measures it. A marker batch is one item standing for many markers, and its
+    pairwise area is the strongest of them, which `_marker_overlap` finds."""
+    if isinstance(other.prim, MarkerBatchPrim):
+        hit = _marker_overlap(other, text)
+        return hit[0] if hit is not None else 0.0
+    intersection = text.bbox.overlap(other.bbox)
+    if intersection is None:
+        return 0.0
+    return _ink_overlap(text, other, intersection)[0]
+
+
+def _within(ctx: LintContext, ids: list[str]) -> str:
+    """'inside panel 'data'': the panel the nodes share, else the nearest node
+    they all sit in, named the way a reader finds it."""
+    shared = ids[0]
+    for node_id in ids[1:]:
+        # Two nodes in one figure always share the root, so a None here means
+        # the nodes are not in one tree at all; keep what was shared so far.
+        shared = ctx.common_ancestor(shared, node_id) or shared
+    for step in reversed(ctx.chain(shared)):
+        node = ctx.nodes.get(step)
+        if node is not None and node.kind == _PANEL_KIND:
+            return f"inside {_panel_name(ctx, step)}"
+    node = ctx.nodes.get(shared)
+    return f"inside {node_phrase(node) if node is not None else shared}"
+
+
+def _counted(count: int, kind: str | None) -> str:
+    """'25 marks', or '3 items' when the things are of mixed kinds."""
+    noun = kind or "item"
+    if count == 1:
+        return f"1 {noun}"
+    # 'boxes', not 'boxs': a kind ending in a sibilant takes -es.
+    plural = noun + "es" if noun.endswith(("s", "x", "ch", "sh")) else noun + "s"
+    return f"{count} {plural}"
+
+
+def _shared_kind(items: list[Item]) -> str | None:
+    """The one kind every item has, or None when they differ."""
+    kinds = {item.node.kind for item in items}
+    return kinds.pop() if len(kinds) == 1 else None
+
+
+def _worst_severity(pairs: list[Diagnostic]) -> str:
+    return min((d.severity for d in pairs),
+               key=lambda s: _SEVERITY_RANK.get(s, len(_SEVERITY_RANK)))
+
+
 def _folded(ctx: LintContext, parent: str, members: list[str],
             pairs: list[Diagnostic]) -> Diagnostic:
     overlaps = [d for d in pairs if d.code == "OVERLAP"]
     near = [d for d in pairs if d.code != "OVERLAP"]
     code = "OVERLAP" if overlaps else pairs[0].code
-    severity = min((d.severity for d in pairs),
-                   key=lambda s: _SEVERITY_RANK.get(s, len(_SEVERITY_RANK)))
+    severity = _worst_severity(pairs)
     items = [ctx.item(t) for t in members]
     items = [i for i in items if i is not None]
     what, hint = _describe_run(ctx, parent, items)
