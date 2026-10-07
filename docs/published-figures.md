@@ -1,6 +1,6 @@
 # Published figures, recreated
 
-Eight well-known figures from eight fields, rebuilt in Inklet from the data
+Fourteen well-known figures from a dozen fields, rebuilt in Inklet from the data
 behind them. Each lives in
 [`examples/published/`](../examples/published/) with its data, a `SOURCE.md`
 (full citation, data URL, licence, retrieval date and any processing) and a
@@ -108,6 +108,74 @@ F. J. Anscombe, "Graphs in Statistical Analysis", *The American Statistician*
 Figures 1–4. Data: the paper's table, checked value by value.
 [Script](../examples/published/anscombe_1973/figure.py) ·
 [notes](../examples/published/anscombe_1973/NOTES.md)
+
+## Cosmology: the cosmic microwave background spectrum
+
+![COBE/FIRAS monopole spectrum with error bars times 400 and a 2.725 K blackbody curve](../gallery/published/cobe_firas_cmb.png)
+
+Mather et al., *ApJ* 420, 439 (1994), [doi:10.1086/173574](https://doi.org/10.1086/173574),
+and Fixsen et al., *ApJ* 473, 576 (1996), [doi:10.1086/178173](https://doi.org/10.1086/178173).
+Data: the FIRAS monopole spectrum from NASA LAMBDA (public domain); the
+blackbody is Planck's law at 2.725 K. Error bars are drawn at 400σ, as in the
+well-known version of the figure.
+[Script](../examples/published/cobe_firas_cmb/figure.py) ·
+[notes](../examples/published/cobe_firas_cmb/NOTES.md)
+
+## Seismology: the Gutenberg–Richter law
+
+![Cumulative yearly number of earthquakes against magnitude on a log scale, with the fitted b-value line](../gallery/published/gutenberg_richter.png)
+
+B. Gutenberg & C. F. Richter, "Frequency of earthquakes in California",
+*BSSA* 34, 185–188 (1944), [doi:10.1785/BSSA0340040185](https://doi.org/10.1785/BSSA0340040185).
+The 1944 paper has tables but no figure; this is the law's standard plot, built
+from the USGS global catalogue for 2016–2025 (public domain). The fit over
+5.0 ≤ M ≤ 7.5 gives b = 1.02.
+[Script](../examples/published/gutenberg_richter/figure.py) ·
+[notes](../examples/published/gutenberg_richter/NOTES.md)
+
+## Population ecology: hare and lynx cycles
+
+![Hudson's Bay Company hare and lynx pelt returns 1845–1935](../gallery/published/hare_lynx.png)
+
+MacLulich (1937) and C. Elton & M. Nicholson, "The ten-year cycle in numbers
+of the lynx in Canada", *J. Anim. Ecol.* 11, 215–244 (1942),
+[doi:10.2307/1358](https://doi.org/10.2307/1358), as plotted in Odum's
+*Fundamentals of Ecology*. Data: the yearly pelt counts, checked against two
+independent transcriptions. [Script](../examples/published/hare_lynx/figure.py) ·
+[notes](../examples/published/hare_lynx/NOTES.md)
+
+## Psychology: Ebbinghaus's forgetting curve
+
+![Percent savings against time since learning on a log axis, from 20 minutes to 31 days](../gallery/published/ebbinghaus_1885.png)
+
+H. Ebbinghaus, *Über das Gedächtnis* (1885; English translation 1913), the
+savings table, checked against the German text and against Murre & Dros,
+*PLoS ONE* 10, e0120644 (2015), [doi:10.1371/journal.pone.0120644](https://doi.org/10.1371/journal.pone.0120644).
+[Script](../examples/published/ebbinghaus_1885/figure.py) ·
+[notes](../examples/published/ebbinghaus_1885/NOTES.md)
+
+## Epidemiology: John Snow's cholera map
+
+![Street map of Soho with cholera deaths stacked at their addresses and the water pumps, centred on the Broad Street pump](../gallery/published/snow_cholera_1854.png)
+
+J. Snow, *On the Mode of Communication of Cholera*, 2nd ed. (1855), Map 1.
+Data: the digitization in the R package HistData (GPL; 578 deaths, 13 pumps),
+drawn at equal scale on both axes.
+[Script](../examples/published/snow_cholera_1854/figure.py) ·
+[notes](../examples/published/snow_cholera_1854/NOTES.md)
+
+## Physiology: the Hodgkin–Huxley action potential
+
+![Computed membrane potential against time for four stimulus strengths, two below and two above threshold](../gallery/published/hodgkin_huxley_1952.png)
+
+A. L. Hodgkin & A. F. Huxley, "A quantitative description of membrane current
+and its application to conduction and excitation in nerve", *J. Physiol.* 117,
+500–544 (1952), [doi:10.1113/jphysiol.1952.sp004764](https://doi.org/10.1113/jphysiol.1952.sp004764).
+Unlike the others, this figure is **computed** from the paper's equations and
+constants at 6.3 °C (RK4, 1 µs steps), in the paper's sign convention; it was
+not checked against the printed figure, which could not be accessed.
+[Script](../examples/published/hodgkin_huxley_1952/figure.py) ·
+[notes](../examples/published/hodgkin_huxley_1952/NOTES.md)
 
 ## Rebuild them
 
