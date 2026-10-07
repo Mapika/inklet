@@ -94,7 +94,11 @@ class CompiledFigure:
         return self._state.page.to_png(dpi=dpi, **kwargs)
 
     def save(self, *paths, **kwargs):
-        kwargs.setdefault('text', self.metadata.get('publication',{}).get('text','embed'))
+        profile = self.metadata.get('publication', {})
+        kwargs.setdefault('text', profile.get('text', 'embed'))
+        # PNG output takes the profile's resolution, as to_png does; the page's
+        # own default is 150, which is what slides get. Vector outputs drop dpi.
+        kwargs.setdefault('dpi', profile.get('dpi', 150))
         return self._state.page.save(*paths, **kwargs)
 
     def _repr_mimebundle_(self, include=None, exclude=None):

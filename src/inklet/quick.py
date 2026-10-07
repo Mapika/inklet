@@ -194,20 +194,30 @@ def _in_category_order(table, name, keys):
     return sorted(seen, key=lambda value: rank.get(value, len(rank)))
 
 
-def _groups(table, color, *columns):
+def _groups(table, color, *columns, gaps=False):
     """Split columns by the `color=` column: [(name or None, columns...)].
 
     Rows with a missing value in any column are dropped, so a gap in one
     column does not shift the others. Groups follow `_in_category_order`.
+
+    With `gaps`, rows missing a value after the first column are kept, the
+    None in place, so a line can break there (see `_runs`); a row missing
+    its first column (x) is still dropped.
     """
     keys = _column(table, color, 'color') if _is_column(table, color) else None
     rows = list(zip(*columns)) if columns else []
+    if gaps:
+        def dropped(row):
+            return row[0] is None
+    else:
+        def dropped(row):
+            return any(v is None for v in row)
     if keys is None:
-        kept = [row for row in rows if all(v is not None for v in row)]
+        kept = [row for row in rows if not dropped(row)]
         return [(None, *map(list, zip(*kept)))] if kept else [(None, *([] for _ in columns))]
     split = {}
     for key, row in zip(keys, rows):
-        if key is None or any(v is None for v in row):
+        if key is None or dropped(row):
             continue
         split.setdefault(key, []).append(row)
     return [(str(key), *map(list, zip(*split[key])))
@@ -242,6 +252,36 @@ def _ordered(xs, ys, err):
         return xs, ys, err
     xs, ys, err_sorted = (list(column) for column in zip(*rows)) if rows else ([], [], [])
     return xs, ys, (err_sorted if err is not None else None)
+
+
+def _runs(xs, ys, err):
+    """A line's rows split at missing values: [(xs, ys, err)], one per run.
+
+    A missing y, or a missing error when there is one, is a gap. Drawing each
+    run on its own stops a segment from bridging the gap, which would read as
+    data. Without gaps there is one run, and a series with no points at all
+    gives none.
+    """
+    runs, current = [], []
+    for k, y in enumerate(ys):
+        if y is None or (err is not None and err[k] is None):
+            if current:
+                runs.append(current)
+            current = []
+        else:
+            current.append(k)
+    if current:
+        runs.append(current)
+    return [([xs[k] for k in run], [ys[k] for k in run],
+             None if err is None else [err[k] for k in run]) for run in runs]
+
+
+def _label_text(value):
+    """A point's label text, or None for a blank one: no label, no leader line."""
+    if value is None:
+        return None
+    text = str(value)
+    return text if text.strip() else None
 
 
 def _continuous(values) -> bool:
@@ -372,35 +412,47 @@ class Chart(_Renderable):
     # Marks. Each mirrors the top-level function of the same name.
 
     def line(self, data=None, x=None, y=None, *, color=None, name=None, markers=False,
-             error_y=None, dash=None, linewidth=None, sort=True, **style):
+             error_y=None, dash=None, linewidth=None, sort=True, gaps='break', **style):
         """Lines through (x, y), one per `color` group or per `y` column.
 
         Points are joined in x order; `sort=False` keeps row order (a path
         that doubles back, such as a phase portrait). Without `y`, every
         numeric column is a series.
+
+        A row with a missing y (or error) is a gap. `gaps='break'`, the default,
+        leaves it open, so no segment bridges it; `gaps='bridge'` joins the
+        points either side as if the row were not there.
         """
+        if gaps not in ('break', 'bridge'):
+            raise ValueError(f"gaps must be 'break' or 'bridge', got {gaps!r}")
         table = _table(data)
         _check_color(color)
-        for label, xs, ys, err in self._series(table, x, y, color, error_y):
+        for label, xs, ys, err in self._series(table, x, y, color, error_y, gaps=gaps == 'break'):
             if sort:
                 xs, ys, err = _ordered(xs, ys, err)
-            points = list(zip(xs, ys))
             series = name or label
             options = self._style(table, color, style, dash=dash, stroke_width=linewidth,
                                   label=series, lone=True)
-            if err is not None and 'color' in options:
-                # Translucent, so where two groups' bands overlap both show.
-                # Unnamed: a key swatch has no opacity and would read solid.
-                spread = [(y - e, y + e) for y, e in zip(ys, err)]
-                self.spec.band(xs, [lo for lo, _ in spread], [hi for _, hi in spread],
-                               color=options['color'], fill=options['color'],
-                               fill_opacity=_BAND_OPACITY)
-            elif err is not None:
-                options['err'] = err
-            self.spec.line(points, name=series, **options)
-            if markers:
-                self.spec.scatter(points, name=series,
-                                  **self._style(table, color, {}, mark=True, label=series, lone=True))
+            # Each run is drawn alone, in the one colour; only the first is
+            # named, so the key has one entry for the series.
+            for number, (run_x, run_y, run_err) in enumerate(_runs(xs, ys, err)):
+                points = list(zip(run_x, run_y))
+                named = series if number == 0 else None
+                run_options = dict(options)
+                if run_err is not None and 'color' in options:
+                    # Translucent, so where two groups' bands overlap both show.
+                    # Unnamed: a key swatch has no opacity and would read solid.
+                    spread = [(y - e, y + e) for y, e in zip(run_y, run_err)]
+                    self.spec.band(run_x, [lo for lo, _ in spread], [hi for _, hi in spread],
+                                   color=options['color'], fill=options['color'],
+                                   fill_opacity=_BAND_OPACITY)
+                elif run_err is not None:
+                    run_options['err'] = run_err
+                self.spec.line(points, name=named, **run_options)
+                if markers:
+                    self.spec.scatter(points, name=named,
+                                      **self._style(table, color, {}, mark=True, label=series,
+                                                    lone=True))
         return self._labelled(x, y)
 
     def scatter(self, data=None, x=None, y=None, *, color=None, size=None, name=None,
@@ -444,10 +496,12 @@ class Chart(_Renderable):
             self._named += sum(1 for group in _groups(table, color, xs, ys) if group[0] is not None)
         if text is not None:
             labels = _column(table, text, 'text')
-            # Only points that were drawn: a row without a group is not.
+            # Only points that were drawn: a row without a group is not. A blank
+            # label is no label, so its point gets no leader line.
             keys = table[color] if _is_column(table, color) else [True] * len(labels)
-            rows = [(a, b, str(t)) for a, b, t, k in zip(xs, ys, labels, keys)
-                    if a is not None and b is not None and t is not None and k is not None]
+            rows = [(a, b, _label_text(t)) for a, b, t, k in zip(xs, ys, labels, keys)
+                    if a is not None and b is not None and _label_text(t) is not None
+                    and k is not None]
             if rows:
                 self.spec.label_points([(a, b) for a, b, _ in rows], [t for _, _, t in rows])
         return self._labelled(x, y)
@@ -997,11 +1051,12 @@ class Chart(_Renderable):
             options['stroke_width'] = stroke_width
         return options
 
-    def _series(self, table, x, y, color, error_y):
+    def _series(self, table, x, y, color, error_y, gaps=False):
         """[(name, xs, ys, err)], one per `color` group or per `y` column.
 
         Without `y`, every numeric column other than `x` is a series, as in
-        `DataFrame.plot()`.
+        `DataFrame.plot()`. `gaps` keeps rows with a missing y for `line`
+        to break its path at (see `_groups`).
         """
         if y is None and table is not None:
             y = [name for name, values in table.items()
@@ -1014,7 +1069,7 @@ class Chart(_Renderable):
         if ys_names:
             xs = _column(table, x, 'x') if x is not None else _index(table, ys_names[0])
             for col in ys_names:
-                for _, gx, gy in _groups(table, None, xs, table[col]):
+                for _, gx, gy in _groups(table, None, xs, table[col], gaps=gaps):
                     out.append((col, gx, gy, None))
             self._named += len(ys_names)
             self._labelled(x, None)
@@ -1025,7 +1080,7 @@ class Chart(_Renderable):
         xs = _column(table, x, 'x') if x is not None else _index(table, None, len(ys))
         err = _column(table, error_y, 'error_y') if error_y is not None else None
         columns = (xs, ys) if err is None else (xs, ys, err)
-        for group in _groups(table, color, *columns):
+        for group in _groups(table, color, *columns, gaps=gaps):
             label, gx, gy = group[0], group[1], group[2]
             out.append((label, gx, gy, group[3] if err is not None else None))
         self._named += sum(1 for item in out if item[0] is not None)
