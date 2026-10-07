@@ -20,13 +20,13 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from ..core import Diagram, EllipsePrim, PhantomPrim, Rect, Vec2, mm
+from ..core import Diagram, DiagramError, EllipsePrim, PhantomPrim, Rect, Vec2, mm
 from ..draw.coords import active_theme
 from ..draw.place import place as draw_place
 from ..typeset import shape
 
-__all__ = ["ANNOTATION_TARGET_KIND", "arrow_between", "callout", "rule_label",
-           "text_at"]
+__all__ = ["ANNOTATION_TARGET_KIND", "RULE_SIDES", "arrow_between", "callout",
+           "check_rule_side", "rule_label", "text_at"]
 
 TEXT_KIND = "label"
 ANNOTATION_TARGET_KIND = "datum"
@@ -40,6 +40,14 @@ _TARGET_OF_TYPE = 0.31
 #: larger than the panel's own furniture; the search only asks whether a
 #: candidate label overlaps one.
 _OUTSIDE = 1e4
+
+#: The sides a reference line's label may take, by the axis the rule is at. A
+#: horizontal rule (at a y) is labelled above ("n") or below ("s"); a vertical
+#: one (at an x) to the right ("e") or left ("w").
+RULE_SIDES = {"y": ("n", "s"), "x": ("e", "w")}
+
+#: Slack added to a rule label's search strip, in millimetres. See `rule_label`.
+_SLACK = 1e-6
 
 
 def text_at(panel, x, y, content: str | Diagram, *, anchor: str = "center",
@@ -78,15 +86,18 @@ def _text(content: str, size, style: dict, *, markup: bool = True) -> Diagram:
 def rule_label(panel, content: str | Diagram, *, x=None, y=None,
                span: Sequence | None = None, side: str | None = None,
                clear: float | str | None = None,
-               size: float | str | None = None, **style) -> Diagram:
-    """The name of a reference line, set at the far end of it and off it.
+               size: float | str | None = None, marks: Sequence = (),
+               **style) -> Diagram:
+    """The name of a reference line, set at an end of it and clear of the data.
 
     A threshold with no word against it is a line the reader has to be told
-    about in the caption. This is that word, placed the way `inklet.annotate`
-    places a callout: on the side with room, flipped to the other when there is
-    not. The rule is a straight line rather than a shape, so the side test is
-    the simple one -- is there a line height between the rule and the edge of
-    the plot area -- and there is no search to run.
+    about in the caption. This is that word. Candidates are tried in order: the
+    preferred side (the one with room, unless `side` forces one), then the
+    other side if `side` does not forbid it; on each side the labelled end of
+    the rule, the far end, then steps along the rule. The first candidate that
+    clears `marks` wins, found by the same search a legend uses
+    (`place_in_clear_space`). With `marks=()` the first candidate is taken, the
+    labelled end on the preferred side.
 
     Set at the *end* of the rule, not centred on it: the middle of a reference
     line is where the data crosses it, and a label there is read as a datum.
@@ -96,42 +107,70 @@ def rule_label(panel, content: str | Diagram, *, x=None, y=None,
     node = content if isinstance(content, Diagram) else _text(content, size, style)
     if isinstance(content, Diagram) and style:
         node = node.styled(**style)
+    if node.kind != TEXT_KIND:
+        # Every rule label is a label to lint and to the layout, whatever the
+        # Diagram it was given was made as.
+        node = Diagram(children=(node,), kind=TEXT_KIND)
     box = node.bbox
     area = panel.area
     if (x is None) == (y is None):
         raise ValueError("a rule label belongs to one x or one y, not both")
-    if y is not None:
+    axis = "y" if y is not None else "x"
+    check_rule_side(side, axis)
+    from ..layout.clear_space import place_in_clear_space
+    if axis == "y":
         at = panel.y.map(y)
-        end = _span_end(panel.x, span, area.x0, area.x1)
-        above = at - area.y0 >= box.height + 2 * gap
-        chosen = side or ("n" if above else "s")
-        centre = Vec2(end - gap - box.width / 2,
-                      at - gap - box.height / 2 if chosen == "n"
-                      else at + gap + box.height / 2)
+        low, high = _span_range(panel.x, span, area.x0, area.x1)
+        preferred = side or ("n" if at - area.y0 >= box.height + 2 * gap else "s")
+        order = [preferred] if side else [preferred, "s" if preferred == "n" else "n"]
+
+        def strip(chosen: str) -> Rect:
+            # The label's free coordinate is along the rule alone, so the strip
+            # is one label thick. The slack keeps rounding from emptying it.
+            top = at - 2 * gap - box.height if chosen == "n" else at
+            return Rect(low, top, high, top + 2 * gap + box.height + _SLACK)
     else:
         at = panel.x.map(x)
-        end = _span_end(panel.y, span, area.y1, area.y0)
-        right = area.x1 - at >= box.width + 2 * gap
-        chosen = side or ("e" if right else "w")
-        centre = Vec2(at + gap + box.width / 2 if chosen == "e"
-                      else at - gap - box.width / 2,
-                      end + gap + box.height / 2)
-    return draw_place([(centre, node)], origin=(0, 0), kind=TEXT_KIND)
+        low, high = _span_range(panel.y, span, area.y0, area.y1)
+        preferred = side or ("e" if area.x1 - at >= box.width + 2 * gap else "w")
+        order = [preferred] if side else [preferred, "w" if preferred == "e" else "e"]
+
+        def strip(chosen: str) -> Rect:
+            left = at - 2 * gap - box.width if chosen == "w" else at
+            return Rect(left, low, left + 2 * gap + box.width + _SLACK, high)
+
+    for chosen in order:
+        try:
+            return place_in_clear_space(node, within=strip(chosen),
+                                        avoid=marks, pad=gap)
+        except DiagramError:
+            continue
+    # Nothing clear on any side allowed: the labelled end on the preferred
+    # side, as drawn with no search at all. Lint reports the collision.
+    return place_in_clear_space(node, within=strip(order[0]), avoid=(), pad=gap)
 
 
-def _span_end(scale, span: Sequence | None, low: float, high: float) -> float:
-    """Where the labelled end of a rule is, in millimetres.
+def check_rule_side(side: str | None, axis: str) -> None:
+    """Refuse a `label_side` that a rule of this orientation does not have."""
+    if side is None or side in RULE_SIDES[axis]:
+        return
+    allowed = " or ".join(repr(s) for s in RULE_SIDES[axis])
+    kind = "hline" if axis == "y" else "vline"
+    raise ValueError(f"{kind} label_side must be {allowed}, not {side!r}")
 
-    `low` and `high` are the two ends of the plot area along the rule, in the
-    order the label prefers them: a horizontal rule is labelled at its right
-    end, a vertical one at its top. A rule with no `span` reaches the area's
-    edge; one with a span ends where the span does, and the label follows it in
-    rather than floating out over the axis.
+
+def _span_range(scale, span: Sequence | None, low: float,
+                high: float) -> tuple[float, float]:
+    """The stretch of a rule that its label may use, in millimetres, low first.
+
+    A rule with no `span` runs the whole plot area. One with a span runs where
+    the span does, and its label is searched only along that stretch, so it
+    follows the span in rather than floating out over the axis.
     """
     if span is None:
-        return high
+        return low, high
     ends = (scale.map(span[0]), scale.map(span[1]))
-    return max(ends) if high > low else min(ends)
+    return min(ends), max(ends)
 
 
 def arrow_between(panel, a: Sequence, b: Sequence, *, head: str = "triangle",

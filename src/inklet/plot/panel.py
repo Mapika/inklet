@@ -922,7 +922,7 @@ class Panel:
     # -- reference lines, in data coordinates ------------------------------
 
     @paint_keywords
-    def hline(self, y, *, span: tuple | None = None, front: bool = False,
+    def hline(self, y, *, span: tuple | None = None, front: bool | None = None,
               label: str | Diagram | None = None,
               label_side: str | None = None, **style) -> "Panel":
         """A horizontal rule at one **data** value of y.
@@ -930,43 +930,81 @@ class Panel:
         The reference a plot is read against: a zero line, a threshold, a
         control mean. `span=(x0, x1)` clips it to a range of x, also in data.
         It paints under the data unless `front=True`, because a rule is what
-        the data is compared to and not what covers it.
+        the data is compared to and not what covers it. A rule with a `label=`
+        defaults to `front=True` instead, since a named line is one the reader
+        is meant to see: a rule under a bar chart is otherwise invisible.
 
             p.hline(0).hline(threshold, stroke_dash=(1.0, 0.8))
 
-        `label=` names the line, set small at its right-hand end and clear of
-        it -- above where there is room, below where there is not, which is the
-        side logic `annotate` uses. `label_side="n"` or `"s"` forces it. A
+        `label=` names the line, set small near its right-hand end and clear of
+        the data. The search tries the side with room first, then the other,
+        and on each side the right end, the left end, then steps along the
+        line, taking the first spot that clears every mark drawn on the panel,
+        including marks drawn after this call. `label_side="n"` (above) or
+        `"s"` (below) keeps the label to that side; any other value raises. A
         threshold with no word against it is a line the caption has to explain.
 
             p.hline(0.05, label="p = 0.05", stroke_dash=(1.0, 0.8))
         """
         _color_as(style, "stroke")
         clip = _clip_flag(style)
+        _notes.check_rule_side(label_side, "y")
+        if front is None:
+            front = label is not None
         self._layer(_marks.rule(self, y=y, span=span, **style), front, clip)
         return self._rule_label(label, y=y, span=span, side=label_side)
 
     @paint_keywords
-    def vline(self, x, *, span: tuple | None = None, front: bool = False,
+    def vline(self, x, *, span: tuple | None = None, front: bool | None = None,
               label: str | Diagram | None = None,
               label_side: str | None = None, **style) -> "Panel":
         """A vertical rule at one **data** value of x -- stimulus onset, a
         dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
 
-        `label=` names it, at the top end and to the right of the line unless
-        the line is too near the right-hand edge, where it flips to the left.
-        `label_side="e"` or `"w"` forces the choice.
+        It paints under the data unless `front=True`, and a rule with a
+        `label=` defaults to `front=True`, as `hline` does: a named line over a
+        histogram is seen, an unnamed one under the bars is not.
+
+        `label=` names it, at the top end and clear of the data: to the right
+        of the line unless there is no room there, then to the left. The first
+        spot that clears every mark on the panel wins, so the label moves down
+        the line and off the bars rather than over them. `label_side="e"`
+        (right) or `"w"` (left) keeps it to that side; any other value raises.
+
+            p.vline(mean, label='mean 63.9')
         """
         _color_as(style, "stroke")
         clip = _clip_flag(style)
+        _notes.check_rule_side(label_side, "x")
+        if front is None:
+            front = label is not None
         self._layer(_marks.rule(self, x=x, span=span, **style), front, clip)
         return self._rule_label(label, x=x, span=span, side=label_side)
 
     def _rule_label(self, label, **kwargs) -> "Panel":
-        """The word against a reference line, over the data and never clipped."""
+        """The word against a reference line, clear of the marks, never clipped.
+
+        Placed at `build()`, like `label_points`, so marks drawn after the
+        rule are avoided as well. The rule itself is not in the way: its label
+        stands `gap` off the line, outside the clearance the search keeps.
+        """
         if label is None:
             return self
-        return self.over(_notes.rule_label(self, label, **kwargs), clip=False)
+        from .point_labels import PENDING_KIND
+        theme = active_theme()
+
+        def place(marks):
+            import inklet
+            token = inklet._theme_context.set(theme)
+            try:
+                return _notes.rule_label(self, label, marks=marks, **kwargs)
+            finally:
+                inklet._theme_context.reset(token)
+
+        holder = Diagram(kind=PENDING_KIND)
+        self._deferred[id(holder)] = place
+        self._over.append(holder)
+        return self._touched()
 
     @paint_keywords
     def vspan(self, x0, x1, *, front: bool = False, **style) -> "Panel":

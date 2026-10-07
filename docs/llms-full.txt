@@ -68,6 +68,14 @@ chart.save('dose.pdf')
 
 Text markup: `**bold**`, `//italic//`, `x^{2}`, `H_{2}O`, `{#c1121f|coloured}`.
 
+`hline(y, label=)` and `vline(x, label=)` name a reference line at its end, and
+the label is placed clear of the data: it is searched along the line and off
+every mark on the panel, including marks drawn after the rule, so it does not
+land on a bar. A labelled rule is drawn in front of the data (`front=True`
+unless you say otherwise), because a line under a bar chart cannot be seen.
+`label_side=` keeps the label to one side: `'n'` or `'s'` for an hline, `'e'`
+or `'w'` for a vline.
+
 ## Small multiples
 
 ```python
@@ -201,7 +209,7 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `hexbin(points, *, gridsize=24, min_count=1, ramp=None, scale=None, log=False, **style)`: Points counted in hexagons, each coloured by its count.
 - `hist(values, bins=10, *, range=None, density=False, baseline=0.0, orient='v', color=None, name=None, histtype=None, cumulative=False, **style)`: Binned counts as touching rectangles.
 - `hist2d(points, bins=20, *, range=None, density=False, min_count=1, ramp=None, scale=None, log=False, **style)`: A 2D histogram: points counted in rectangular bins on continuous axes, each bin coloured by its count.
-- `hline(y, *, span=None, front=False, label=None, label_side=None, **style)`: A horizontal rule at one **data** value of y.
+- `hline(y, *, span=None, front=None, label=None, label_side=None, **style)`: A horizontal rule at one **data** value of y.
 - `hspan(y0, y1, *, front=False, **style)`: A shaded stripe between two **data** values of y, full width.
 - `icicle(data, *, orient='h', root=None, gap=None, spacing=None, links=None, color=None, highlight=None, highlight_color=None, labels='fit', levels=False, counts=False, sort=False, size=None, **style)`: An icicle (partition) chart: one band per level of a hierarchy, each node spanning its share of its parent.
 - `inset(sub, **kwargs)`: Put a smaller panel in a corner of this one. See `plot.inset`.
@@ -251,7 +259,7 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `twin_x(scale=None, *, side='top', label=None, color=None, axis=True, **kwargs)`: A second x scale over the same area -- wavelength above frequency, or a second time base. `twin_y` explains the shape of it.
 - `twin_y(scale=None, *, side='right', label=None, color=None, axis=True, **kwargs)`: A second y scale over the same area, and a handle that draws in it.
 - `violin(groups, *, at=None, width=0.8, orient='v', bandwidth=None, samples=64, cut=2.0, median=True, color=None, **style)`: Mirrored kernel densities, one per group.
-- `vline(x, *, span=None, front=False, label=None, label_side=None, **style)`: A vertical rule at one **data** value of x -- stimulus onset, a dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
+- `vline(x, *, span=None, front=None, label=None, label_side=None, **style)`: A vertical rule at one **data** value of x -- stimulus onset, a dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
 - `volcano(fold, p, *, labels=None, top=None, fold_threshold=1.0, p_threshold=0.05, color=None, name=None, size=None, thresholds=True, label_options=None, highlight=None, q=None, **style)`: A volcano plot: log2 fold change on x against -log10 p on y.
 - `vspan(x0, x1, *, front=False, **style)`: A shaded stripe between two **data** values of x, full height.
 - `waffle(values, *, rows=10, columns=10, total=None, color=None, name=None, gap=0.18, order='column', **style)`: A waffle chart: shares of a whole as cells of a grid.
