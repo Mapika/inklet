@@ -147,14 +147,16 @@ def test_a_yearly_axis_writes_years() -> None:
     assert all(text.isdigit() and len(text) == 4 for text in labels(scale))
 
 
-def test_a_monthly_axis_inside_one_year_omits_the_year() -> None:
+def test_a_monthly_axis_inside_one_year_writes_the_year_once_on_the_first_tick() -> None:
     scale = dates(("2024-01-01", "2024-12-01"), (0.0, 100.0))
-    assert labels(scale)[0] == "Jan"
+    assert labels(scale)[0] == "Jan 2024"
+    assert all(not any(c.isdigit() for c in text) for text in labels(scale)[1:])
 
 
-def test_a_monthly_axis_across_two_years_keeps_it() -> None:
+def test_a_monthly_axis_across_two_years_writes_the_year_on_each_january() -> None:
     scale = dates(("2023-06-01", "2025-06-01"), (0.0, 100.0))
-    assert all(" " in text for text in labels(scale))
+    written = [text for text in labels(scale) if text[-4:].isdigit()]
+    assert written == ["Jul 2023", "Jan 2024", "Jan 2025"]
 
 
 def test_a_daily_axis_writes_the_day_and_the_month() -> None:
@@ -177,7 +179,7 @@ def test_the_labels_say_what_the_ticks_are_not_what_the_scale_guessed() -> None:
     """A caller's own ticks are read for coarseness the same way."""
     scale = dates(("2024-01-01", "2024-12-31"), (0.0, 100.0))
     given = [dt.datetime(2024, m, 1) for m in (1, 4, 7, 10)]
-    assert scale.tick_labels(given) == ("Jan", "Apr", "Jul", "Oct")
+    assert scale.tick_labels(given) == ("Jan 2024", "Apr", "Jul", "Oct")
 
 
 # --- the axis it builds ------------------------------------------------------

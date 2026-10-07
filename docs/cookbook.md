@@ -1523,12 +1523,14 @@ reason this is not a `linear` with a formatter: months are not 30 days, and an
 axis that ticks every 30.44 days puts a label three days into February. Ticks
 land on round units -- New Year, the first of the month, midnight, the hour --
 and the label is written at the coarseness of the ticks that were actually
-chosen: `2024`, `Mar`, `12 Mar`, `08:00`.
+chosen: years, months, days or clock times.
 
-**The year is written when a reader would otherwise meet the same month
-twice.** A twelve-month axis inside 2024 is labelled `Jan Apr Jul Oct`, and the
-year belongs in the axis name -- `x="2024"` above. Straddle New Year and every
-label gains its year, because `Jan` on its own would be ambiguous.
+**The year is written on the first tick, and again wherever it changes.** A
+twelve-month axis inside 2024 is labelled `Mar 2024 Apr May ...`, so the year
+is never left detached past the last tick. Straddle New Year and each January
+gains its year: `Oct 2023 Nov Dec Jan 2024`. A clock axis does the same with the
+date, which is written on the first tick and at each midnight: `3 May 2021 00:00
+06:00 12:00 18:00`.
 
 `inklet.dates(domain, range)` builds the scale directly when you want to share it
 between panels, and `minor=True` on the axis divides into the next unit down --

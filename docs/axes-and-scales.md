@@ -30,8 +30,9 @@ reading bar lengths as ratios when zero is outside the view.
 
 `count=5` requests approximately five intervals. `ticks=[...]` specifies values
 explicitly. `format` accepts a callable, a format string such as `'{:.1f}'`, or a
-suffix. `si=True` formats a shared SI prefix. Date axes can include an offset
-label such as the year; `offset=False` suppresses it.
+suffix. `si=True` formats a shared SI prefix. Date axes write the year on their
+first tick and wherever it changes, so they need no offset; `offset="text"`
+adds a note past the last tick, and `offset=False` adds nothing.
 
 Continuous scales thin labels when needed. Category labels remain visible by
 default. Pass `thin=False` to keep every requested tick, or `thin=True` to allow

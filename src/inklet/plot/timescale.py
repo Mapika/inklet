@@ -205,34 +205,6 @@ class Time(Scale):
             return out
         return ()
 
-    def offset_label(self, ticks: Sequence) -> str | None:
-        """The date these ticks are all inside, for writing once at the end.
-
-        `Jan Apr Jul Oct` is the right set of labels for a year of data and it
-        never says which year; the same axis in clock time says `09:00 12:00`
-        and never says which day. Rather than repeat the missing part on every
-        tick -- which is what makes a date axis unreadable -- an axis writes it
-        once, small, past the last tick. matplotlib calls it an offset
-        annotation, and it is the right answer.
-
-        None when the ticks say it themselves: a yearly axis writes the years,
-        and a set that crosses New Year already carries them.
-        """
-        values = [to_time(t) for t in ticks]
-        if not values:
-            return None
-        unit = _rung_of(values).unit
-        if unit in ("month", "week", "day"):
-            years = {t.year for t in values}
-            return f"{values[0].year}" if len(years) == 1 else None
-        if unit in ("hour", "minute", "second"):
-            days = {t.date() for t in values}
-            if len(days) != 1:
-                return None
-            day = values[0]
-            return f"{day.day} {_MONTH_NAMES[day.month - 1]} {day.year}"
-        return None
-
     def nice(self, count: int = 5) -> "Time":
         """The domain widened to whole ticks, so the axis ends on a labelled one."""
         rung = self.step(count)
@@ -392,26 +364,39 @@ def _labels(ticks: Sequence[_dt.datetime], rung: TimeStep,
             span_seconds: float) -> tuple[str, ...]:
     """What each tick is written as, given how coarse the set is.
 
-    The rule is that a label says everything the *set* does not already: a
-    monthly axis inside one year writes `Mar`, and the same axis spanning three
-    years writes `Mar 24`, because otherwise the reader meets `Mar` twice.
+    A label says what the *set* does not already say, and it says it where the
+    reader needs it. The year goes on the first tick and on each tick where the
+    year changes, so a monthly axis reads `Mar 2021 Apr May`, and one that
+    crosses New Year reads `Nov 2020 Dec Jan 2021 Feb`. An hourly axis does the
+    same with the date, written on the first tick and at each midnight:
+    `3 May 2021 00:00 06:00 12:00 18:00 4 May 00:00`. The year is written in
+    place, never after the last tick, so the reader is not left to re-attach it
+    to the wrong end of the axis.
     """
     unit = rung.unit
     if unit == "year":
         return tuple(f"{t.year}" for t in ticks)
-    if unit in ("month", "week", "day"):
-        # Whether the reader would meet the same month name twice. Counted off
-        # the ticks themselves rather than off the span, because a ten-month
-        # axis inside one year does not need the year on every label and an
-        # eight-month one that straddles New Year does.
-        crosses = len({t.year for t in ticks}) > 1
+    out: list[str] = []
+    for i, t in enumerate(ticks):
+        previous = ticks[i - 1] if i else None
+        new_year = previous is None or t.year != previous.year
+        month = _MONTH_NAMES[t.month - 1]
         if unit == "month":
-            return tuple(f"{_MONTH_NAMES[t.month - 1]} {t.year % 100:02d}"
-                         if crosses else _MONTH_NAMES[t.month - 1]
-                         for t in ticks)
-        return tuple(f"{t.day} {_MONTH_NAMES[t.month - 1]}" for t in ticks)
-    if unit == "hour":
-        return tuple(f"{t.hour:02d}:00" for t in ticks)
-    if unit == "minute":
-        return tuple(f"{t.hour:02d}:{t.minute:02d}" for t in ticks)
-    return tuple(f"{t.hour:02d}:{t.minute:02d}:{t.second:02d}" for t in ticks)
+            text = f"{month} {t.year}" if new_year else month
+        elif unit in ("week", "day"):
+            text = f"{t.day} {month}" + (f" {t.year}" if new_year else "")
+        else:
+            clock = {"hour": f"{t.hour:02d}:00",
+                     "minute": f"{t.hour:02d}:{t.minute:02d}",
+                     "second": f"{t.hour:02d}:{t.minute:02d}:{t.second:02d}"}[unit]
+            new_day = previous is None or t.date() != previous.date()
+            if new_day:
+                # A new day writes its date, and the year joins it wherever
+                # the year is new -- the first tick, or the first midnight of
+                # a New Year -- as it does on the coarser units.
+                date = f"{t.day} {month}" + (f" {t.year}" if new_year else "")
+                text = f"{date} {clock}"
+            else:
+                text = clock
+        out.append(text)
+    return tuple(out)
