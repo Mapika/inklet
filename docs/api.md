@@ -16,7 +16,7 @@ in parent nodes, so handles created before layout still resolve in the figure.
 
 ## One-call charts
 
-#### `class Chart(*, width='single', height=None, style='scientific.modern', palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None, xscale='linear', yscale='linear', legend='auto', grid=None, xticks=None, yticks=None, xminor=None, yminor=None, xformat=None, yformat=None)`
+#### `class Chart(*, width=None, height=None, style='scientific.modern', font_pt=None, palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None, xscale='linear', yscale='linear', legend='auto', grid=None, xticks=None, yticks=None, xminor=None, yminor=None, xformat=None, yformat=None)`
 
 One plot: marks on shared axes, with a size and a preset.
 

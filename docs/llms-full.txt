@@ -42,9 +42,10 @@ Chart options, accepted by every function above:
 
 | Option | Values |
 |---|---|
-| `width` | `'single'` (89 mm, default), `'double'` (183 mm), `'slide'`, or millimetres (`120`, `'120mm'`) |
+| `width` | `'single'` (89 mm, default), `'double'` (183 mm), `'slide'` (254 mm), or millimetres (`120`, `'120mm'`); unset, a Preset keeps its own page |
 | `height` | millimetres; default is about 0.62 x width, 45-75 mm |
-| `style` | preset: `'scientific.modern'` (default: colour-led marks, grey axes), `'scientific.general'`, `'scientific.nature'`, `'scientific.science'`, `'scientific.cell'`, `'educational.textbook'`, `'marketing.report'`, `'marketing.presentation'` |
+| `style` | preset name: `'scientific.modern'` (default: colour-led marks, grey axes), `'scientific.general'`, `'scientific.nature'`, `'scientific.science'`, `'scientific.cell'`, `'educational.textbook'`, `'marketing.report'`, `'marketing.presentation'`; or a Preset object, e.g. `i.preset('scientific.modern').customize(font_pt=12)` |
+| `font_pt` | the main type size in points; ticks and the key take 6/7 of it and titles 9/7 |
 | `palette` | `'okabe-ito'`, `'tol-bright'`, `'tol-muted'`, `'inklet'`, `'set2'`, `'dark2'`... or a list of colours |
 | `title`, `xlabel`, `ylabel` | axis titles default to the column names |
 | `xlim`, `ylim` | `(low, high)`; default fits the data. Explicit limits zoom: marks are cut at the axes |
@@ -102,6 +103,27 @@ fig.save('figure1.pdf', 'figure1.png')
 
 A row defaults to double-column width. Set the layout width with
 `i.Layout('row', [a, b], width='double')` when building one explicitly.
+If every chart in a row sets its width in millimetres, the row is as wide as
+they are together, with the gaps between them, and each panel keeps its width:
+`(i.line(df, x='t', y='y', width=60) | i.bar(df, x='g', y='v', width=120))` is
+186 mm. A chart width the layout cannot use (a different page width on a
+stacked layout, say) raises a `UserWarning`; set widths on the layout instead.
+
+## A figure for a slide
+
+`width='slide'` makes a 254 mm page, and its labels are 14 pt by default, so the
+figure reads from the back of a room without other changes:
+
+```python
+chart = i.line(df, x='time', y='signal', color='condition', width='slide')
+chart.save('slide.png')
+```
+
+For a presentation's look, with larger titles and labels (20 pt), use
+`style='marketing.presentation'`. To choose the size, pass `font_pt=`: the
+labels are that many points, with ticks and the key at 6/7 of it, so
+`font_pt=16` reads larger than the default on a slide. A slide page is 254 x 143 mm,
+which fits a 16:9 slide, so put the image in at its own size.
 
 ## Check the result (do this every time)
 

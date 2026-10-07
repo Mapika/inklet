@@ -374,7 +374,7 @@ class Chart(_Renderable):
     on it (`annotate`, `hline`, `inset`...) works here too and returns the chart.
     """
 
-    def __init__(self, *, width='single', height=None, style='scientific.modern',
+    def __init__(self, *, width=None, height=None, style='scientific.modern', font_pt=None,
                  palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None,
                  xscale='linear', yscale='linear', legend='auto', grid=None,
                  xticks=None, yticks=None, xminor=None, yminor=None, xformat=None, yformat=None):
@@ -386,7 +386,12 @@ class Chart(_Renderable):
             # The axis's own `format=` forms: a spec with `{}`, a suffix, or a callable.
             if value is not None and not (isinstance(value, str) or callable(value)):
                 raise TypeError(f"{name} must be a format string or a callable, got {value!r}")
-        self.width, self.style, self.palette, self.grid = width, style, palette, grid
+        if font_pt is not None and (isinstance(font_pt, bool) or not isinstance(font_pt, Real) or font_pt <= 0):
+            raise ValueError(f'font_pt is the main type size in points, a positive number; got {font_pt!r}')
+        # A width of None means "the style decides": a Preset keeps its own page, a name is a single column.
+        self.width, self.palette, self.grid = width, palette, grid
+        self.style = _check_style(style)
+        self.font_pt = font_pt
         self.height = height
         self.title, self.xlabel, self.ylabel = title, xlabel, ylabel
         self.legend_side = legend
@@ -925,7 +930,7 @@ class Chart(_Renderable):
             return component(_forest_figure, rows, options, label=self.xlabel or None)
         spec = self.spec.copy()
         if self._series_tokens or self._has_tokens():
-            theme = (profile or _preset(self.width, self.style, self.palette, self.grid)).theme
+            theme = (profile or self._profile()).theme
             spec._steps = [(key, method, args, _resolve_tokens(kwargs, theme.palette, theme.paper))
                            for key, method, args, kwargs in spec._steps]
         xlabel = self.xlabel if self.xlabel is not None else self._auto_labels.get('x')
@@ -977,11 +982,14 @@ class Chart(_Renderable):
 
         `rotate` holds ids of charts whose category labels must turn.
         """
-        profile = _preset(self.width, self.style, self.palette, self.grid)
+        profile = self._profile()
         doc = profile.document()
         doc.add('chart', self.plot(doc.width - 2 * doc.margin, profile, id(self) in rotate),
                 min_height=self._height(doc.width))
         return doc
+
+    def _profile(self):
+        return _preset(self.width, self.style, self.palette, self.grid, self.font_pt)
 
     def _height(self, page_width):
         if self.height is not None:
@@ -1248,14 +1256,58 @@ def _domain(lim, scale):
     return tuple(lim)
 
 
-def _preset(width, style, palette, grid):
+def _check_style(style):
+    """A preset name, checked at the call so a typo fails there; or a Preset object."""
+    from .document import Preset, preset_names
+    if isinstance(style, Preset):
+        return style
+    if not isinstance(style, str):
+        raise TypeError(f'style must be a preset name or a Preset, not {type(style).__name__}')
+    if style.strip().lower() not in preset_names():
+        raise ValueError(f'unknown style {style!r}; choose one of {", ".join(preset_names())}, '
+                         'or pass a Preset such as inklet.preset(...).customize(...)')
+    return style
+
+
+def _length(width):
+    """Millimetres for a length (120, '120mm'); None for a page name or an unset width."""
     from .core import mm
-    from .document import preset
+    if width is None or (isinstance(width, str) and width in _WIDTHS):
+        return None
+    return mm(width)
+
+
+def _width_mm(width):
+    """A width as millimetres, whether a page name ('double') or a length."""
+    from .document.presets import _FORMATS
     if isinstance(width, str) and width in _WIDTHS:
+        return _FORMATS[_WIDTHS[width]].width
+    return _length(width)
+
+
+def _preset(width, style, palette, grid, font_pt=None):
+    from .core import mm
+    from .document import Preset, preset
+    from .document.presets import _FORMATS
+    if isinstance(style, Preset):
+        # A Preset keeps its own page unless a width is asked for; a named page sets its size.
+        if width is None:
+            chosen = style
+        elif isinstance(width, str) and width in _WIDTHS:
+            page = _FORMATS[_WIDTHS[width]]
+            chosen = style.customize(width=page.width, height=page.height)
+        else:
+            chosen = style.customize(width=mm(width))
+    elif width is None:
+        chosen = preset(style, format='single-column')
+    elif isinstance(width, str) and width in _WIDTHS:
         chosen = preset(style, format=_WIDTHS[width])
     else:
-        chosen = preset(style, format='single-column')
-        chosen = chosen.customize(width=mm(width))
+        chosen = preset(style, format='single-column').customize(width=mm(width))
+    if font_pt is not None:
+        # The labels step down from the main size as the defaults do (7, 6 and 9 pt).
+        chosen = chosen.customize(font_pt=font_pt, small_font_pt=round(font_pt * 6 / 7 * 2) / 2,
+                                  title_font_pt=font_pt * 9 / 7)
     overrides = {}
     if palette is not None:
         overrides['palette'] = palette
@@ -1271,6 +1323,8 @@ class Layout(_Renderable):
     """Charts side by side (`a | b`) or stacked (`a / b`), with panel letters.
 
     `Layout('grid', charts, columns=3)` fills a grid row by row; facets use it.
+    A row whose charts all set a width in mm is as wide as they are, with
+    gaps between; otherwise the page takes `width=`, or the first chart's.
     """
 
     def __init__(self, direction, items, *, width=None, style=None, letters=True, columns=None):
@@ -1310,26 +1364,47 @@ class Layout(_Renderable):
         one grid, so every chart gets its own letter. Deeper nesting becomes
         subfigures.
         """
+        from .document import Preset
         first = self._first()
+        charts = list(self.charts())
         across = self.direction != 'column' or any(
             isinstance(item, Layout) for item in self.items)
-        width = self.width or ('double' if across and first.width == 'single' else first.width)
         style = self.style or first.style
-        profile = _preset(width, style, first.palette, first.grid)
+        sizes = self._column_sizes()
+        width = self.width
+        if width is None and sizes is None:
+            width = first.width
+            if width is None and across and not isinstance(style, Preset):
+                width = 'double'
+            elif width == 'single' and across:
+                width = 'double'
+        if width is None and sizes is not None:
+            # Each chart keeps its own width: the page is their sum and the gaps between them.
+            gap = _preset(sum(sizes), style, first.palette, first.grid).gap
+            width = sum(sizes) + gap * (len(sizes) - 1)
+        profile = _preset(width, style, first.palette, first.grid, first.font_pt)
+        # Only a chart's own width= is noticed; a width it inherits is the page's.
+        if sizes is None and any(c.width is not None and abs(_width_mm(c.width) - profile.format.width) > 1e-6
+                                 for c in charts):
+            warnings.warn('in a layout the page width comes from Layout(width=...) or the first chart; '
+                          'set widths on the layout', UserWarning, stacklevel=2)
         grid = self._grid()
         if grid is not None:
             columns, cells = grid
             # Facets share their scales, so their plot areas should line up too.
-            doc = profile.document(columns=columns, share_plot_margins=self.direction == 'grid')
-            track = (doc.width - doc.gap * (columns - 1)) / columns
+            doc = profile.document(columns=sizes if sizes is not None else columns,
+                                   share_plot_margins=self.direction == 'grid')
+            # Each track takes its share of the room by its column weight.
+            room = doc.width - doc.gap * (columns - 1)
+            tracks = [room * weight / sum(doc.columns) for weight in doc.columns]
             for index, (item, row, column, rowspan, colspan) in enumerate(cells):
-                cell_width = track * colspan + doc.gap * (colspan - 1)
+                cell_width = sum(tracks[column:column + colspan]) + doc.gap * (colspan - 1)
                 # A chart spanning columns keeps its row's height, not one
                 # proportional to its full width.
                 doc.add(f'p{index + 1}', item.plot(cell_width, profile, id(item) in rotate),
                         row=row, column=column,
                         rowspan=rowspan, colspan=colspan,
-                        min_height=item._height(track) if rowspan == 1 else None)
+                        min_height=item._height(tracks[column]) if rowspan == 1 else None)
         else:
             doc = profile.document(columns=len(self.items) if self.direction == 'row' else 1)
             self._fill(doc, doc.width, prefix='p', profile=profile, rotate=rotate)
@@ -1367,12 +1442,27 @@ class Layout(_Renderable):
         columns = span if self.direction == 'column' else len(groups)
         return columns, cells
 
+    def _column_sizes(self):
+        """Millimetre widths of a flat row whose charts all set a length, else None.
+
+        Such a row is laid out by its charts' own widths, as column weights.
+        """
+        if self.direction != 'row' or not all(isinstance(item, Chart) for item in self.items):
+            return None
+        sizes = [_length(item.width) for item in self.items]
+        return None if any(size is None for size in sizes) else sizes
+
     def _fill(self, doc, width, prefix, profile=None, rotate=frozenset()):
         from .document import subfigure
         count = len(self.items)
-        cell_width = (width - doc.gap * (count - 1)) / count if self.direction == 'row' else width
+        # A row's cells share the width in proportion to the document's column weights.
+        room = width - doc.gap * (count - 1)
         for index, item in enumerate(self.items):
             name = f'{prefix}{index + 1}'
+            if self.direction == 'row':
+                cell_width = room * doc.columns[index] / sum(doc.columns)
+            else:
+                cell_width = width
             place = dict(row=0, column=index) if self.direction == 'row' else dict(row=index, column=0)
             if isinstance(item, Chart):
                 doc.add(name, item.plot(cell_width, profile, id(item) in rotate),
@@ -1392,7 +1482,7 @@ class Layout(_Renderable):
 
 # -- top-level functions ----------------------------------------------------
 
-_CHART_OPTIONS = ('width', 'height', 'style', 'palette', 'title', 'xlabel', 'ylabel',
+_CHART_OPTIONS = ('width', 'height', 'style', 'font_pt', 'palette', 'title', 'xlabel', 'ylabel',
                   'xlim', 'ylim', 'xscale', 'yscale', 'legend', 'grid', 'xticks', 'yticks',
                   'xminor', 'yminor', 'xformat', 'yformat')
 
@@ -1535,8 +1625,9 @@ def _entry(method):
     make.__doc__ = (getattr(Chart, method).__doc__ or '') + '''
 
     Chart options: width ('single', 'double', 'slide' or mm), height (mm),
-    style (a preset name, default 'scientific.modern'), palette, title,
-    xlabel, ylabel, xlim, ylim, xscale/yscale ('linear' or 'log'), legend
+    style (a preset name, default 'scientific.modern', or a Preset object),
+    font_pt (the main type size in points), palette, title, xlabel, ylabel,
+    xlim, ylim, xscale/yscale ('linear' or 'log'), legend
     ('auto', 'direct', a side, a corner or False), grid (True, False, 'x' or
     'y'), xticks/yticks (the tick values to show), xminor/yminor (True, or
     how many minor-tick pieces each major step divides into), xformat/yformat
