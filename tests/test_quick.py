@@ -347,3 +347,9 @@ def test_bars_are_softened_series_colours():
     assert single.spec._steps[0][3]['color'] == '@soft0'
     resolved = next(k for _, m, _, k in single.plot()._steps if m == 'bars')
     assert resolved['color'].startswith('#') and resolved['stroke'] == 'none'
+
+
+def test_series_named_with_name_get_a_key():
+    chart = i.scatter({'x': [1, 2], 'y': [1, 2]}, x='x', y='y', color='#336699', name='fitted')
+    chart.line({'x': [1, 2], 'y': [1, 2]}, x='x', y='y', color='#993333', name='model')
+    assert 'legend' in {step[1] for step in chart.plot()._steps}

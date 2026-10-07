@@ -360,6 +360,7 @@ class Chart(_Renderable):
         self._x_categories = []
         self._tick_overrides = {}
         self._series_tokens = {}
+        self._series_names = set()
         self._legend_explicit = False
         self._hide_ticks = set()
         #: A lone chart's title reads from the left edge, like its y axis;
@@ -554,6 +555,7 @@ class Chart(_Renderable):
         values = groups if len(groups) > 1 else next(iter(groups.values()))
         if len(groups) == 1 and name:
             options['name'] = name
+            self._series_names.add(name)
         self.spec.hist(values, bins, density=density, cumulative=cumulative, **options)
         return self._labelled(x, 'density' if density else 'count')
 
@@ -881,7 +883,8 @@ class Chart(_Renderable):
             # An empty title is no title: it should not reserve a row.
             spec.axes(x=xlabel or None, y=ylabel or None, **({'x_options': x_options} if x_options else {}),
                       **({'y_options': y_options} if y_options else {}))
-        wants_key = self._named > 1 or (self._named and self._legend_explicit)
+        named = max(self._named, len(self._series_names))
+        wants_key = named > 1 or (named and self._legend_explicit)
         if wants_key and self.legend_side == 'direct' and methods & _LABELLED_CURVES:
             # Names at the curve ends, in their colours, instead of a key.
             spec.label_lines()
@@ -978,6 +981,10 @@ class Chart(_Renderable):
         a lone series (`lone=True`) -- the palette's lead colour, so a chart
         with one series is in colour like one with several."""
         options = dict(style)
+        if label is not None:
+            # Any named series earns a key entry, whether its name came from
+            # a `color=` column or from `name=`.
+            self._series_names.add(label)
         if (literal := _literal_color(table, color)) is not None:
             options.setdefault('color', literal)
         elif label is not None and 'color' not in options:
