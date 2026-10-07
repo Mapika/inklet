@@ -296,6 +296,22 @@ def _minus(label: str) -> str:
     return "\u2212" + label[1:] if label.startswith("-") else label
 
 
+def _group(label: str) -> str:
+    """`25000` as `25,000`: a separator every three figures in the integer part.
+
+    Five figures are where a reader stops seeing a number and starts counting
+    digits, so `5000` stays bare and `10000` gets its comma. The comma rather
+    than SI's thin space because English-language journals print it; an
+    exponent or a short label has no run of five digits and is returned as it
+    is. Applied after `_minus`, so the sign is already U+2212.
+    """
+    sign = "\u2212" if label.startswith("\u2212") else ""
+    whole, dot, fraction = label[len(sign):].partition(".")
+    if len(whole) < 5 or not whole.isdigit():
+        return label
+    return f"{sign}{int(whole):,}{dot}{fraction}"
+
+
 def _decimals(step: float) -> int:
     """How many decimal places `step` needs to be written exactly."""
     # Start at the step's magnitude: a fixed twelve-place ceiling collapses
@@ -418,6 +434,10 @@ class Linear(Scale):
 
     def ticks(self, count: int = 5) -> tuple[float, ...]:
         return nice_ticks(self.domain[0], self.domain[1], count)
+
+    def tick_labels(self, ticks: Sequence) -> tuple[str, ...]:
+        # Not `super()`: `slots=True` rebuilds the class, which breaks the zero-argument form.
+        return tuple(_group(label) for label in Scale.tick_labels(self, ticks))
 
     def minor_ticks(self, majors: Sequence, count: int | None = None,
                     clear: float = 0.0) -> tuple:
@@ -917,6 +937,10 @@ class Broken(Scale):
             if _fits(tuple(out), majors, self.map, clear):
                 return tuple(out)
         return ()
+
+    def tick_labels(self, ticks: Sequence) -> tuple[str, ...]:
+        # Each band is linear, so its numbers group like a linear axis's.
+        return tuple(_group(label) for label in Scale.tick_labels(self, ticks))
 
 
 def _band_place(value: float, lo: float, hi: float,

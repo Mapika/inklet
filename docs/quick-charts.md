@@ -67,6 +67,7 @@ Every function takes these:
 | `grid` | `True`, `False`, `'x'` or `'y'` |
 | `xticks`, `yticks` | The tick values to show, such as `xticks=[0, 5, 10, 15, 20]` |
 | `xminor`, `yminor` | `True` for unlabelled minor ticks between the major ones, or an integer: the number of pieces each step divides into |
+| `xformat`, `yformat` | How the tick numbers are written, as the axis `format=` takes it: a `'{}'` spec such as `'{:.0%}'` or `'{:,.0f}'`, a suffix such as `'%'`, or a callable. Not for `forest`, which draws its own axis |
 
 ## Layer, annotate and refine
 
