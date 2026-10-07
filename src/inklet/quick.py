@@ -925,15 +925,14 @@ class Chart(_Renderable):
         return self._once('colorbar', options, merge=True)
 
     def legend(self, **options):
-        """Draw the key, or replace the key already recorded.
+        """Draw the key, or update the key already recorded.
 
         Takes the keywords of `Panel.legend` (`corner=`, `side=`, `title=`...).
         A second call does not add a second key, which lint reports as
-        DUPLICATE_KEY when both key the same entries. Its keywords replace the
-        recorded key's options as a whole, so anything the first call set and
-        the second leaves out goes back to the default.
+        DUPLICATE_KEY when both key the same entries: its keywords are merged
+        into the recorded key's options, as `colorbar` does.
         """
-        return self._once('legend', options, merge=False)
+        return self._once('legend', options, merge=True)
 
     def _once(self, method, options, *, merge):
         """Record `method` on the spec, keeping one step of that kind.

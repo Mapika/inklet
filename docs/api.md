@@ -37,7 +37,7 @@ One plot: marks on shared axes, with a size and a preset.
 * `forest(data=None, label=None, estimate=None, lower=None, upper=None, *, weight=None, summary=None, left=('label',), right=('ci',), log=False, null=None, limits=None, measure='Estimate', digits=2, **style)` -- A forest plot: one row per study, with its estimate and confidence interval.
 * `labels(*, x=None, y=None, title=None)` -- Set axis titles and the chart title (all optional).
 * `colorbar(**options)` -- Draw the colour bar, or update the one already drawn.
-* `legend(**options)` -- Draw the key, or replace the key already recorded.
+* `legend(**options)` -- Draw the key, or update the key already recorded.
 * `size(width=None, height=None)` -- Width as 'single', 'double', 'slide' or millimetres; height in mm.
 * `plot(width=None, profile=None, rotate=False)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
 * `document(rotate=frozenset())` -- A `Document` holding this chart, sized and styled; add cells to grow it.

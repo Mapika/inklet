@@ -4,7 +4,7 @@
   a leader to bare paper (lint's ORPHAN_LEADER). The editor refuses to blank one.
 * A chart that already draws a colour bar (a heatmap, a continuous scatter)
   takes a later `colorbar(...)` as an update to that bar, not a second bar.
-  A second `legend(...)` replaces the first key's options.
+  A second `legend(...)` updates the first key's options.
 """
 
 from __future__ import annotations
@@ -80,11 +80,11 @@ def test_two_legend_calls_leave_one_key_with_the_second_options():
     assert _steps(chart, "legend") == [{"corner": "nw", "title": "series"}]
 
 
-def test_a_second_legend_call_does_not_keep_the_first_options():
+def test_a_second_legend_call_keeps_the_options_it_does_not_name():
     chart = i.line(x=[1, 2], y=[1, 2], name="a")
     chart.legend(corner="se", title="old")
     chart.legend(title="new")
-    assert _steps(chart, "legend") == [{"title": "new"}]
+    assert _steps(chart, "legend") == [{"corner": "se", "title": "new"}]
 
 
 def test_two_legend_calls_draw_one_key():
