@@ -400,7 +400,7 @@ def _series(ctx: LintContext, item: Item) -> str:
             return f"{notes['series_line']!r} ({item.id})"
         if node is not None and node.kind == "panel":
             break
-    return item.label
+    return f"{item.node.kind or 'stroke'} ({item.id})"
 
 
 def _corner_of(cover: Rect, area: Rect) -> str | None:

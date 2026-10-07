@@ -185,6 +185,24 @@ def _spoken_by(nodes: Mapping[str, Diagram], parent: Mapping[str, str | None],
     return None
 
 
+def node_phrase(node: Diagram, *, words: str | None = None,
+                fallback: str = "item") -> str:
+    """`the label 'mean 63.9' named 'ref' (label137)` -- a node as an author
+    would look for it, with its id last.
+
+    The kind leads because it is what the thing is, the quoted words (when the
+    node has some) because they are what the reader is looking for, and the id
+    because it is the only handle that leads back into the tree. Written first,
+    an id reads as the thing's name: "move cell-chart/0/2/0/0 'mean 63.9'" sent
+    an agent hunting for a node literally called that.
+    """
+    kind = node.kind or fallback
+    name = _written_name(node)
+    quoted = f" {words!r}" if words is not None else ""
+    named = f" named {name!r}" if name else ""
+    return f"the {kind}{quoted}{named} ({node.id})"
+
+
 # -- the resolved view a rule sees ---------------------------------------
 
 
@@ -266,6 +284,20 @@ class Item:
         return is_encoded_kind(self.node.kind)
 
     @property
+    def phrase(self) -> str:
+        """`the mark named 'x' (<id>)` -- see `node_phrase`."""
+        return self._named(None)
+
+    def _named(self, words: str | None) -> str:
+        # A carrier (see `_CARRIER_KINDS`) is described by the authored block
+        # it was cut from, because that is what the author wrote.
+        subject = self.node
+        if self.block is not None and _written_name(self.node) is None:
+            subject = self.block
+        return node_phrase(subject, words=words,
+                           fallback="text" if self.is_text else "item")
+
+    @property
     def described(self) -> str:
         prim = self.prim
         if not isinstance(prim, TextPrim) and self.block is not None:
@@ -273,15 +305,15 @@ class Item:
             # prim, but when it did they are what the reader is looking for.
             prim = self.block.prim
         if isinstance(prim, TextPrim):
-            return f"{self.label} {_text_excerpt(prim)!r}"
+            return self._named(_text_excerpt(prim))
         # No `TextPrim` anywhere: an outlined block. It wrote its own words
         # down on the way past for exactly this, on the node itself when it
         # kept one path and on the authored block above when the markup asked
         # for two colours and it kept none.
         words = _noted_words(self.node) or _noted_words(self.block)
         if words is not None:
-            return f"{self.label} {words!r}"
-        return self.label
+            return self._named(words)
+        return self.phrase
 
 
 @dataclass(frozen=True)
@@ -1044,7 +1076,7 @@ def rule_off_canvas(ctx: LintContext) -> list[Diagnostic]:
             message=message,
             targets=(item.id,),
             where=item.bbox,
-            hint=(f"move {item.label} back inside the page or grow the page by "
+            hint=(f"move {item.described} back inside the page or grow the page by "
                   f"{_mm(worst)} on the "
                   f"{max(sides, key=lambda s: sides[s])}"),
         ))
@@ -1416,7 +1448,7 @@ def rule_low_dpi(ctx: LintContext) -> list[Diagnostic]:
         out.append(Diagnostic(
             code="LOW_DPI",
             severity="warning",
-            message=(f"{item.label} ({prim.source}) is {pixels}px wide at "
+            message=(f"{item.phrase} from {prim.source} is {pixels}px wide at "
                      f"{_mm(printed_mm)} = {dpi:.0f}dpi, below {ctx.min_dpi:.0f}dpi"),
             targets=(item.id,),
             where=item.bbox,
@@ -2609,11 +2641,10 @@ def _is_container(ctx: LintContext, node_id: str) -> bool:
 
 
 def _mark_phrase(ctx: LintContext, mark: Item) -> str:
-    """`the mark <id> at x=.., y=..` -- a mark as an author can find it."""
+    """`the mark named 'x' (<id>) at x=.., y=..` -- a mark as an author can find it."""
     from .plot_rules import data_position
     at = data_position(ctx, mark)
-    name = _written_name(mark.node)
-    what = f"the mark {name!r} ({mark.id})" if name else f"the mark {mark.id}"
+    what = mark.phrase
     return f"{what} {at}" if at else what
 
 
@@ -3564,7 +3595,7 @@ def rule_empty_diagram(ctx: LintContext) -> list[Diagnostic]:
 # LintContext` -- at the top of this file the borrowed names would not exist
 # yet. A new rule module joins by adding its import beside these and one line
 # to the table below; nothing else in this file needs to know about it.
-from .key_rules import rule_key_mismatch                            # noqa: E402
+from .key_rules import rule_duplicate_key, rule_key_mismatch          # noqa: E402
 from .link_rules import (rule_coincident_shaft,                     # noqa: E402
                          rule_label_covers_shaft, rule_link_crosses_link)
 from .path_rules import (rule_path_crosses,                         # noqa: E402
@@ -3573,7 +3604,7 @@ from .plot_rules import (rule_data_outside, rule_off_panel,         # noqa: E402
                           rule_ticks_dropped)
 from .break_rules import rule_break_distorts                       # noqa: E402
 from .three_rules import rule_depth_order                           # noqa: E402
-from .label_rules import rule_label_unplaced                       # noqa: E402
+from .label_rules import rule_label_unplaced, rule_orphan_leader      # noqa: E402
 from .key_cover import rule_key_covers_data                         # noqa: E402
 
 RULES: dict[str, Rule] = {
@@ -3594,6 +3625,7 @@ RULES: dict[str, Rule] = {
     "INCONSISTENT_STROKE": rule_inconsistent_stroke,
     "CROWDING": rule_crowding,
     "LABEL_UNPLACED": rule_label_unplaced,
+    "ORPHAN_LEADER": rule_orphan_leader,
     "LINK_CROSSES": rule_link_crosses,
     "LINK_CROSSES_LINK": rule_link_crosses_link,
     "PATH_CROSSES": rule_path_crosses,
@@ -3604,6 +3636,7 @@ RULES: dict[str, Rule] = {
     "COINCIDENT_SHAFT": rule_coincident_shaft,
     "LABEL_COVERS_SHAFT": rule_label_covers_shaft,
     "KEY_MISMATCH": rule_key_mismatch,
+    "DUPLICATE_KEY": rule_duplicate_key,
     "KEY_COVERS_DATA": rule_key_covers_data,
     "DEPTH_ORDER": rule_depth_order,
     "EMPTY_DIAGRAM": rule_empty_diagram,

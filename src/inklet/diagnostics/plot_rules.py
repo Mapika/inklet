@@ -312,7 +312,7 @@ def _data_finding(ctx: LintContext, panel_id: str, box: Rect,
                 continue
         widen.append(f"widen the {axis} range at the {' and '.join(sides)}")
     count = len(marks)
-    what = (f"the mark {marks[0][0].label} reaches" if count == 1
+    what = (f"{marks[0][0].phrase} reaches" if count == 1
             else f"{count} marks reach")
     named = _panel_name(ctx, panel_id)
     message = f"data in {named} runs outside the axes: {what} {'; '.join(parts)}"

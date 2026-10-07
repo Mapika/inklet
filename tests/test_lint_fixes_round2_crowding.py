@@ -61,7 +61,8 @@ def test_a_point_label_against_a_bubble_names_the_bubble_not_the_panel():
     found = crowding(_compiled(p))
     assert found, "the label sits a hair off the bubble"
     (finding,) = found
-    assert "'Japan' and the mark " in finding.message
+    assert "the label 'Japan' (" in finding.message
+    assert "and the mark (" in finding.message
     assert "at x=5, y=5" in finding.message
     assert "and a are" not in finding.message
 
