@@ -117,6 +117,24 @@ width in millimetres, the row is as wide as they are together, with the gaps
 between them, and each panel keeps its own width. A width the layout cannot
 use raises a `UserWarning`; set the width on the layout instead.
 
+`style`, `font_pt` and `grid` describe the whole figure. Set them on the
+layout, or after the fact, where `options()` returns the layout:
+
+```python
+figure = (trace | spread).options(style='scientific.nature', grid=True)
+```
+
+Left unset, the charts decide. Charts that agree on one of these use their
+value. Charts that disagree raise one `UserWarning` per setting, naming the
+values, and the first chart's value is used.
+
+Palettes are per panel. Each chart's own `palette=` colours its own series, so
+`i.line(..., palette='tol-bright') | i.bar(..., palette='okabe-ito')` draws each
+panel in its own palette. A palette set on the layout overrides them all, and a
+chart without one takes the figure's. A series name keeps its palette slot
+across the panels, so a series called `control` is one colour in every panel
+that shares a palette.
+
 ## Check before you submit
 
 `save()` returns the compiled figure. `figure.report()` lists overlapping or
