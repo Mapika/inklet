@@ -106,8 +106,8 @@ figure = (i.line(data, x='time', y='signal', color='condition')
 figure.save('figure1.pdf')
 ```
 
-Eight [published figures recreated from their data](https://inklet.readthedocs.io/en/latest/published-figures/)
--- LIGO's first detection, Hubble 1929, the Keeling curve, Gapminder and more -- show
+Fourteen [published figures recreated from their data](https://inklet.readthedocs.io/en/latest/published-figures/)
+-- LIGO's first detection, Hubble 1929, the Keeling curve, the CMB spectrum, Snow's cholera map and more -- show
 what the finished output looks like. See [charts in one call](https://inklet.readthedocs.io/en/latest/quick-charts/) for every
 chart type and option, and [bringing matplotlib figures](https://inklet.readthedocs.io/en/latest/matplotlib/)
 for converting existing plotting code.
