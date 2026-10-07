@@ -3,7 +3,7 @@
 Inklet requires Python 3.11 or later and an installed TrueType/OpenType font.
 The core Python dependencies are HarfBuzz bindings and fontTools.
 
-This page covers stable **Inklet 4.2.0**. See the
+This page covers stable **Inklet 4.6.0**. See the
 [compatibility matrix](compatibility.md) for tested platforms and Blender versions.
 
 ## From PyPI

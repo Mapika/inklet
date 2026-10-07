@@ -451,7 +451,23 @@ class _Renderable:
         return Layout('column', (self, other))
 
 
-class Chart(_Renderable):
+class _Forwarding(type):
+    """Look up the plot methods a chart forwards on the class too.
+
+    A chart hands every method it does not define to its recipe (see
+    `Chart.__getattr__`), so `help(chart.vline)` works on an instance. This
+    makes `help(i.Chart.vline)` work as well, by answering with the `Panel`
+    method the call ends up in.
+    """
+
+    def __getattr__(cls, name):
+        from .plot.panel import Panel
+        if name.startswith('_') or not callable(getattr(Panel, name, None)):
+            raise AttributeError(f"type object {cls.__name__!r} has no attribute {name!r}")
+        return getattr(Panel, name)
+
+
+class Chart(_Renderable, metaclass=_Forwarding):
     """One plot: marks on shared axes, with a size and a preset.
 
     Build one with `inklet.line(...)`, `inklet.scatter(...)` and friends, add

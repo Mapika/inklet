@@ -359,3 +359,9 @@ def test_a_line_over_month_names_keeps_the_table_order():
     chart = i.line({'m': ['Jan', 'Feb', 'Mar'], 'v': [1, 2, 3]}, x='m', y='v')
     (step,) = [s for s in chart.spec._steps if s[1] == 'line']
     assert [x for x, _ in step[2][0]] == ['Jan', 'Feb', 'Mar']
+
+
+def test_forwarded_plot_methods_have_help_on_the_class():
+    assert i.Chart.vline.__doc__
+    with pytest.raises(AttributeError):
+        i.Chart.no_such_method
