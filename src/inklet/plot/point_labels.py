@@ -98,6 +98,33 @@ _STRETCH = 0.02
 #: Cost per step down the first ring's order of preference.
 _PREFERENCE = 0.02
 
+#: What a label pays per mark it sits within lint's clearance of, plus so
+#: much per millimetre short of it, up to `_CROWDED_MOST` in all (see
+#: `_crowding_cost`).
+_CROWDED = 0.5
+_CROWDED_PER_MM = 5.0
+_CROWDED_MOST = 1.5
+
+#: What a label beside its point pays for the leader it needs to be told
+#: apart from a neighbour: enough to prefer a free side of its own point,
+#: well under `Weights.leader`, so that it is not sent further out instead.
+_BESIDE_LEADER = 0.5
+
+#: Another point less than this many times as far from a label as the
+#: label's own point makes the label ambiguous without a leader.
+_AMBIGUOUS = 1.2
+
+#: A marker this fraction of a labelled point's width or wider is a point
+#: its label could be mistaken for (see `_needs_leader`).
+_PEER = 0.8
+
+#: The shortest leader drawn for a label next to its point that needs one to
+#: be told apart from a neighbour, past the standoff, in mm.
+_SHORTEST = 0.3
+
+#: Geometric slack, in mm.
+_EPS = 1e-6
+
 
 def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
                  size: float | str | None = None,
@@ -117,12 +144,14 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
     if "fill" in style:                 # text is coloured by text_fill
         style["text_fill"] = style.pop("fill")
     font = theme.font_size_small if size is None else mm(size)
-    gap = theme.gap("xs") if clear is None else mm(clear)
+    # The clearance lint's CROWDING rule checks text against, read from the
+    # rule itself so the two cannot drift; a theme asking for more gets more.
+    keep = max(theme.gap("xs"), lint_clearance())
+    gap = keep if clear is None else mm(clear)
     target = _TARGET_OF_TYPE * theme.font_size
     ring = _RING_OF_TYPE * font
-    # Two labels keep the theme's small gap between them, the clearance the
-    # linter's CROWDING rule checks text against.
-    spacing = theme.gap("xs")
+    # Two labels keep that clearance between them too.
+    spacing = keep
     far = 8 * font if reach is None else mm(reach)
     area = panel.area
     anchors = [panel.point(*p) for p in data]
@@ -155,29 +184,46 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
         field.add_target((a.x - r, a.y - r, a.x + r, a.y + r))
     nodes = [text_node(str(name), font, POINT_LABEL_KIND, markup=markup, **style)
              for name in names]
+    insets = [_ink_insets(node) for node in nodes]
+    # The clearance a label keeps from marks: lint's, or less when `clear=`
+    # asks for a tighter fit.
+    room = min(gap, keep)
     weights = Weights()
     options: list[list[Candidate]] = []
     for index, anchor in enumerate(anchors):
         width, height = nodes[index].bbox.width, nodes[index].bbox.height
         own = (index,)
+        r = radii[index]
+        drawn_here = set(own_marker[index])
+        own_box = Rect(anchor.x - r, anchor.y - r, anchor.x + r, anchor.y + r)
         found: list[tuple[float, int, Candidate]] = []
         for rank, (distance, angle, slide, first) in enumerate(_candidates(
-                gap + radii[index], ring, far, further=_FURTHER * far)):
+                gap + r, ring, far, further=_FURTHER * far)):
             box = _box_at(anchor, angle, distance, width, height, slide)
+            # A box set off on a diagonal can come nearer the marker's
+            # corner than the gap it was set off by; move it out along the
+            # same direction until its ink clears the marker as lint sees it.
+            box = _cleared(box, insets[index], own_box, angle, room)
             if not _within(box, area):
                 continue
             b = (box.x0, box.y0, box.x1, box.y1)
             cost, conflicts, covered = field.cost(
                 b, spacing=spacing, weights=weights, own=own,
                 own_boxes=own_marker[index])
+            glyphs = _inked(box, insets[index])
+            cost += _crowding_cost(glyphs, index_of, number_of, drawn_here,
+                                   room)
             line = None
-            if not first and leader:
-                line = _leader(anchor, box, radii[index] * _STANDOFF)
+            if leader and (not first or _needs_leader(
+                    anchor, glyphs, r + gap + ring / 2, _PEER * 2 * r,
+                    index_of, number_of, flags, drawn_here)):
+                line = _leader(anchor, box, r * _STANDOFF,
+                               shortest=_SHORTEST if first else None)
             seg = None
             if line is not None:
                 seg = (line[0].x, line[0].y, line[1].x, line[1].y)
                 lc, lk = field.leader_cost(seg, weights=weights, own=own)
-                cost += lc + weights.leader
+                cost += lc + (_BESIDE_LEADER if first else weights.leader)
                 conflicts += lk
             cost += weights.distance * distance
             # Past `reach` a leader costs more for every extra millimetre,
@@ -322,17 +368,175 @@ def _crowding(index: int, anchors: Sequence[Vec2], grid: "_Grid",
     return near + sum(1 for _ in grid.near(around))
 
 
-def _leader(anchor: Vec2, box: Rect, standoff: float) -> tuple[Vec2, Vec2] | None:
-    """From just outside the point to the nearest point of the label box."""
+def _leader(anchor: Vec2, box: Rect, standoff: float,
+            shortest: float | None = None) -> tuple[Vec2, Vec2] | None:
+    """From just outside the point to the nearest point of the label box.
+
+    None when the label is so close that a leader would be a stub: within
+    half the standoff again of the point, or within `shortest` of the
+    standoff when that is given (a leader the label needs to be told apart
+    from its neighbours is drawn however short it is, short of a speck).
+    """
     near = Vec2(min(max(anchor.x, box.x0), box.x1),
                 min(max(anchor.y, box.y0), box.y1))
     dx, dy = near.x - anchor.x, near.y - anchor.y
     length = math.hypot(dx, dy)
-    if length <= standoff * 1.5:
+    least = standoff * 1.5 if shortest is None else standoff + shortest
+    if length <= least:
         return None
     start = Vec2(anchor.x + dx / length * standoff,
                  anchor.y + dy / length * standoff)
     return start, near
+
+
+def lint_clearance() -> float:
+    """The clearance lint's CROWDING rule measures against, in mm.
+
+    Imported at call time, as `layout.labels` does: `diagnostics` imports
+    `plot`, and a module-level import here would close the cycle.
+    """
+    from ..diagnostics.rules import DEFAULT_MIN_CLEARANCE_MM
+
+    return DEFAULT_MIN_CLEARANCE_MM
+
+
+def _ink_insets(node: Diagram) -> tuple[float, float, float, float]:
+    """How far the glyphs sit inside a label's line box: left, top, right,
+    bottom, in mm.
+
+    Lint measures a label's clearance on its ink (`diagnostics.rules.
+    _ink_box`), and a line box carries empty ascender and descender room --
+    up to a millimetre above a row of digits. Placement measures on the same
+    ink so it neither crowds a mark lint will flag nor pushes a label away
+    for space nobody sees. Zero insets (the line box) for a label the shaper
+    did not build.
+    """
+    from ..core import TextPrim
+    from ..typeset.outline import text_to_paths
+
+    whole = node.bbox
+    ink: Rect | None = None
+    for placed in resolve(node).values():
+        prim = placed.diagram.prim
+        if not isinstance(prim, TextPrim):
+            continue
+        try:
+            paths = text_to_paths(prim)
+        except Exception:
+            return (0.0, 0.0, 0.0, 0.0)
+        for path, _ in paths:
+            try:
+                box = path.envelope().transform(placed.world).bbox()
+            except Exception:
+                continue
+            if box is not None:
+                ink = box if ink is None else ink.union(box)
+    if ink is None:
+        return (0.0, 0.0, 0.0, 0.0)
+    return (max(0.0, ink.x0 - whole.x0), max(0.0, ink.y0 - whole.y0),
+            max(0.0, whole.x1 - ink.x1), max(0.0, whole.y1 - ink.y1))
+
+
+def _inked(box: Rect, insets: tuple[float, float, float, float]) -> Rect:
+    """The ink box of a label whose line box is `box`."""
+    left, top, right, bottom = insets
+    return Rect(box.x0 + left, box.y0 + top, box.x1 - right, box.y1 - bottom)
+
+
+def _gap(a: Rect, b: Rect) -> float:
+    """Shortest distance between two boxes, 0 when they touch or overlap;
+    the measure lint's CROWDING rule uses."""
+    dx = max(a.x0 - b.x1, b.x0 - a.x1, 0.0)
+    dy = max(a.y0 - b.y1, b.y0 - a.y1, 0.0)
+    return math.hypot(dx, dy)
+
+
+def _to_box(point: Vec2, box: Rect) -> float:
+    """Distance from a point to the nearest point of a box."""
+    dx = max(box.x0 - point.x, 0.0, point.x - box.x1)
+    dy = max(box.y0 - point.y, 0.0, point.y - box.y1)
+    return math.hypot(dx, dy)
+
+
+def _cleared(box: Rect, insets: tuple[float, float, float, float],
+             marker: Rect, angle: float, keep: float) -> Rect:
+    """`box` moved out along `angle` until its ink is `keep` clear of the
+    marker box, or as it was when it already is.
+
+    Only the diagonals ever move: straight out from a side the box was set
+    off by the gap from the marker's edge already. Bisection, so the
+    result is deterministic and the gap lands on `keep` to a micrometre.
+    """
+    if _gap(_inked(box, insets), marker) >= keep - _EPS:
+        return box
+    radians = math.radians(angle)
+    ux, uy = math.cos(radians), math.sin(radians)
+
+    def moved(t: float) -> Rect:
+        return Rect(box.x0 + ux * t, box.y0 + uy * t,
+                    box.x1 + ux * t, box.y1 + uy * t)
+
+    low, high = 0.0, keep * 2 + marker.width
+    if _gap(_inked(moved(high), insets), marker) < keep - _EPS:
+        return box
+    for _ in range(30):
+        middle = (low + high) / 2
+        if _gap(_inked(moved(middle), insets), marker) >= keep - _EPS:
+            high = middle
+        else:
+            low = middle
+    return moved(high)
+
+
+def _crowding_cost(ink: Rect, grid: "_Grid", number_of: dict, mine: set,
+                   keep: float) -> float:
+    """What a label pays for sitting within `keep` of marks not its own.
+
+    `ObstacleField` keeps only a quarter of the spacing as padding round
+    marks, which lets a label settle where lint would call it crowded. Each
+    mark nearer than `keep` costs a fixed amount and more the nearer it is,
+    so that a free side of the point wins over a crowded one. The total is
+    capped below what a leader costs: inside a cloud every position is
+    crowded, and sending the label out of it on a long leader reads worse
+    than the crowding.
+    """
+    cost = 0.0
+    for other in grid.near(_grown(ink, keep)):
+        if number_of[id(other)] in mine:
+            continue
+        gap = _gap(ink, other)
+        if gap < keep - _EPS:
+            cost += _CROWDED + _CROWDED_PER_MM * (keep - gap)
+    return min(cost, _CROWDED_MOST)
+
+
+def _needs_leader(anchor: Vec2, ink: Rect, near: float, peer: float,
+                  grid: "_Grid", number_of: dict, flags: Sequence[bool],
+                  mine: set) -> bool:
+    """Whether a label beside its point still needs a leader to say whose
+    label it is.
+
+    It does when its ink is further than `near` from the point -- the
+    caller passes half a ring past the nearest a label may come, which a
+    wide label set off on a diagonal overshoots, ending up above or below
+    its point two millimetres or more away -- or when another data point
+    is nearly as near the label as its own point is (`_AMBIGUOUS`) -- a
+    label between two points names neither until a line says which. Only
+    markers at least `peer` wide count as such points: a smaller marker is
+    the background cloud a highlighted point was picked out of, and nobody
+    reads a label as naming it.
+    """
+    own = _to_box(anchor, ink)
+    if own > near:
+        return True
+    reach = _grown(ink, own * _AMBIGUOUS)
+    for other in grid.near(reach):
+        number = number_of[id(other)]
+        if number in mine or not flags[number] or other.width < peer:
+            continue
+        if _to_box(other.center, ink) < own * _AMBIGUOUS:
+            return True
+    return False
 
 
 def _segments_cross(a: Vec2, b: Vec2, c: Vec2, d: Vec2) -> bool:

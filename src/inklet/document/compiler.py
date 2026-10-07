@@ -389,6 +389,10 @@ class Document(BuildSpec):
     def save(self,*paths,**kwargs):
         return self.compile().save(*paths,**kwargs)
 
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        from ..notebook import mimebundle
+        return mimebundle(self.compile())
+
 
 def document(*, width=180, height=None, columns=1, margin=4, gap=6, row_gap=None, theme='nature', publication=None, share_plot_margins=False,
              pack=False):

@@ -51,7 +51,7 @@ def _resolve_palette(value: "str | Palette") -> tuple[str, ...]:
 HAIRLINE_FLOOR = 0.088
 
 ROLES: tuple[str, ...] = (
-    "arrowhead", "axis", "box", "code", "emphasis", "frame", "grid", "label",
+    "arrowhead", "axis", "axis-text", "box", "code", "emphasis", "frame", "grid", "label",
     "link", "mark", "mark-line", "muted", "panel-title", "plot-area", "root",
     "text",
 )
@@ -102,6 +102,10 @@ class Theme:
     space: tuple[float, ...]   # spacing scale, small to large
     arrow_size: float          # arrowhead length
     link_radius: float = 0.0   # elbow rounding on a connector; 0 is square
+    #: Axis spines and ticks, and axis numbers and names. None draws them in
+    #: the ink; a grey a step lighter lets the data be the darkest thing.
+    axis_ink: str | None = None
+    axis_text: str | None = None
 
     def __post_init__(self) -> None:
         if isinstance(self.palette, (str, Palette)):
@@ -187,9 +191,13 @@ class Theme:
                 # the spine overshoots the corner. Nobody would notice one; a
                 # reader notices a plot where every tick is blunt.
                 return Style(
-                    fill="none", stroke=self.ink, stroke_width=self.hairline,
+                    fill="none", stroke=self.axis_ink or self.ink,
+                    stroke_width=self.hairline,
                     stroke_linecap="butt", stroke_linejoin="miter",
                 )
+            case "axis-text":
+                # Tick numbers and axis names: labels, in the axis text colour.
+                return replace(self.style_for("label"), text_fill=self.axis_text or self.ink)
             case "plot-area":
                 # Opaque, so a panel dropped over other content occludes it,
                 # and unstroked -- the frame is the axis's job.

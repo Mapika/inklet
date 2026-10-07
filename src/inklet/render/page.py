@@ -29,6 +29,8 @@ def save_outputs(figure, *paths: str | Path, **kwargs) -> None:
             f"unknown text mode {mode!r}; expected one of "
             f"{', '.join(TEXT_MODES)}"
         )
+    # A raster resolution means nothing to the vector formats saved alongside.
+    vector = {k: v for k, v in kwargs.items() if k != "dpi"}
     for path in paths:
         target = Path(path)
         suffix = target.suffix.lower()
@@ -40,12 +42,12 @@ def save_outputs(figure, *paths: str | Path, **kwargs) -> None:
         if suffix == '.png':
             target.write_bytes(figure.to_png(**kwargs))
         elif suffix == ".pdf":
-            options = {k: v for k, v in kwargs.items() if k != "text"}
+            options = {k: v for k, v in vector.items() if k != "text"}
             if mode in PDF_TEXT_MODES:
                 options["text"] = mode
             target.write_bytes(figure.to_pdf(**options))
         else:
-            target.write_text(figure.to_svg(**kwargs), encoding="utf-8")
+            target.write_text(figure.to_svg(**vector), encoding="utf-8")
 
 
 @dataclass(frozen=True)

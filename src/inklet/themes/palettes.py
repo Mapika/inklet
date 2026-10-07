@@ -52,7 +52,7 @@ __all__ = [
     "TOL_NIGHTFALL", "TOL_PRGN", "TOL_WHORBR", "TOL_IRIDESCENT",
     "TOL_INCANDESCENT", "TOL_RAINBOW",
     "VIRIDIS", "CIVIDIS", "INFERNO", "PLASMA",
-    "INKLET", "INKLET_MUTED", "INKLET_PAIRS", "INKLET_DUO",
+    "INKLET", "INKLET_MUTED", "INKLET_PAIRS", "INKLET_DUO", "INKLET_VIVID",
 ]
 
 #: The four kinds of palette. "qualitative" is accepted as another spelling
@@ -770,6 +770,26 @@ INKLET_DUO = Palette(
     license=_INKLET_LICENSE,
     notes="Condition A, condition B, reference.",
 )
+# Hand-chosen hues (a deep blue lead, rust, teal, gold, plum, lavender,
+# forest, rose), each tuned within 15 degrees of hue by simulated annealing in
+# a mid-tone box (L 0.46-0.70, C 0.10-0.165) so every colour holds up as a thin
+# line or a small marker on paper. The score maximises the smallest CIEDE2000
+# distance, normal and under any dichromacy, for the first 3, 4, 6 and 8
+# colours in turn (tools/design_palette.py), so short series are the most
+# separable. Not greyscale-safe: eight mid tones cannot be.
+#   blue     0.500 0.142 250.5 | rust 0.483 0.164  34.8 | teal  0.700 0.119 181.4
+#   gold     0.700 0.129  81.1 | plum 0.459 0.113 324.1 | lavender 0.697 0.147 296.5
+#   forest   0.529 0.103 146.1 | rose 0.605 0.104  11.2
+# min ΔE00 (all pairs): normal 23.5; deutan 10.5, protan 11.0, tritan 8.4.
+# First four: normal 36.9, worst dichromacy 17.1.
+INKLET_VIVID = Palette(
+    name="inklet-vivid",
+    colors=("#0465b0", "#a72c09", "#25b6a3", "#c7952e",
+            "#763f7b", "#a788ed", "#407b46", "#b76672"),
+    source=_INKLET_SOURCE,
+    license=_INKLET_LICENSE,
+    notes="Eight mid-tone colours for lines and markers; the default of one-call charts.",
+)
 
 
 PALETTES: dict[str, Palette] = {
@@ -780,7 +800,7 @@ PALETTES: dict[str, Palette] = {
         TOL_SUNSET, TOL_NIGHTFALL, TOL_BURD, TOL_PRGN,
         VIRIDIS, CIVIDIS, INFERNO, PLASMA, MAGMA,
         *_CRAMERI, *_BREWER,
-        INKLET, INKLET_MUTED, INKLET_PAIRS, INKLET_DUO,
+        INKLET, INKLET_MUTED, INKLET_PAIRS, INKLET_DUO, INKLET_VIVID,
     )
 }
 

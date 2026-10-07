@@ -23,7 +23,7 @@ def make_document():
     doc = i.preset('scientific.general').customize(width=190, margin=6, gap=12).document(columns=2, row_gap=9).letters()
     a = i.panel(66, 47, x=(-4,4), y=(-3,3))
     points = [(rng.gauss((k%2)*1.6-.8,.8),rng.gauss((k%2)*.8-.4,.65)) for k in range(30000)]
-    a.scatter(points, size=.32, color='#245b8a', fill_opacity=.12, stroke='none')
+    a.scatter(points, size=.32, color='#245b8a', fill_opacity=.12, stroke='none', clip=True)
     a.axes(x='Coordinate x', y='Coordinate y')
     doc.add('density', a.build(), row=0, column=0)
     b = i.panel(66, 47, x=(0,10), y=(0,10))

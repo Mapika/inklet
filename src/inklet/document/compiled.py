@@ -97,6 +97,10 @@ class CompiledFigure:
         kwargs.setdefault('text', self.metadata.get('publication',{}).get('text','embed'))
         return self._state.page.save(*paths, **kwargs)
 
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        from ..notebook import mimebundle
+        return mimebundle(self)
+
     def export(self, directory, **kwargs):
         from ..render.bundle import export_bundle
         profile=self.metadata.get('publication')

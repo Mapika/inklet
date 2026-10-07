@@ -98,6 +98,7 @@ def worst_cvd(p: Palette) -> float:
     ("inklet-muted", 23.0, 12.5, 6.0),
     ("inklet-pairs", 15.0, 5.5, None),
     ("inklet-duo", 27.0, 24.0, 12.0),
+    ("inklet-vivid", 23.0, 8.0, None),
 ])
 def test_inklet_palettes_meet_their_stated_thresholds(name, normal, cvd, grey) -> None:
     p = palette(name)

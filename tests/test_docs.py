@@ -155,3 +155,15 @@ def test_the_classes_an_author_drives_document_their_methods():
                 missing.append(f"{class_name}.{name}")
 
     assert missing == []
+
+
+def test_llms_full_matches_the_packaged_guide():
+    """`docs/llms-full.txt` is `inklet guide --api`, published for web agents."""
+    import subprocess
+
+    root = Path(__file__).resolve().parent.parent
+    done = subprocess.run(
+        [sys.executable, str(root / "tools" / "gen_llms.py"), "--check"],
+        capture_output=True, text=True, cwd=root)
+
+    assert done.returncode == 0, done.stdout + done.stderr

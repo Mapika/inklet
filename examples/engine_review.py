@@ -34,7 +34,7 @@ def make_document():
     rng = random.Random(2026)
     points = [(rng.gauss(0,1),rng.gauss(0,1)) for _ in range(30000)]
     p = i.plot_spec(height=44,x=(-4,4),y=(-4,4))
-    p.scatter(points,raster=True,size=.6,color='#0072b2',fill_opacity=.3,dpi=300).axes(x='x',y='y')
+    p.scatter(points,raster=True,size=.6,color='#0072b2',fill_opacity=.3,dpi=300,clip=True).axes(x='x',y='y')
     doc.add('cloud',p,row=0,column=0)
     xs = [j/20 for j in range(121)]
     ys = [math.exp(-x/4)*math.sin(2*x) for x in xs]

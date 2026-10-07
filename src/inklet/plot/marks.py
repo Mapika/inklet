@@ -556,39 +556,54 @@ def boxplot(panel, groups, *, at=None, width: float = 0.6, orient: str = "v",
     given = style.pop("fill", None) if colors is None else colors
     fills = (series_colors(given, len(samples)) if given is not None
              else (theme.paper,) * len(samples))
+    inks = _edges(style.pop("edges", None), len(samples), theme)
     items: list = []
     for index, (where, sample) in enumerate(zip(places, samples)):
+        ink = inks[index]
         stats = box_stats(sample, whisker=whisker)
         lo, hi = _slot(position, where, width)
         middle = (lo + hi) / 2
         a, b = value.map(stats.q1), value.map(stats.q3)
         items.append(_rect(_point(orient, middle, (a + b) / 2),
                            *_extent(orient, abs(hi - lo), abs(b - a)),
-                           fills[index], theme.ink, theme.stroke))
+                           fills[index], ink, theme.stroke))
         # The median is the number the reader takes away, so it is the one
         # heavy line on the box rather than another hairline among four.
         at_median = value.map(stats.median)
         items.append(polyline((_point(orient, lo, at_median),
                                _point(orient, hi, at_median)),
-                              kind=MARK_LINE_KIND, stroke=theme.ink,
+                              kind=MARK_LINE_KIND, stroke=ink,
                               stroke_width=theme.thick, stroke_linecap="butt"))
         quarter = abs(hi - lo) / 4
         for end, box_edge in ((stats.low, stats.q1), (stats.high, stats.q3)):
             tip, root = value.map(end), value.map(box_edge)
             items.append(polyline((_point(orient, middle, root),
                                    _point(orient, middle, tip)),
-                                  kind=MARK_LINE_KIND, stroke=theme.ink,
+                                  kind=MARK_LINE_KIND, stroke=ink,
                                   stroke_width=theme.stroke))
             items.append(polyline((_point(orient, middle - quarter, tip),
                                    _point(orient, middle + quarter, tip)),
-                                  kind=MARK_LINE_KIND, stroke=theme.ink,
+                                  kind=MARK_LINE_KIND, stroke=ink,
                                   stroke_width=theme.stroke))
         if outliers:
             size = _OUTLIER_OF_TYPE * theme.font_size
+            dot = theme.muted if ink == theme.ink else ink
             for value_out in stats.outliers:
                 items.append((_point(orient, middle, value.map(value_out)),
-                              make_marker("circle", size, fill=theme.muted)))
+                              make_marker("circle", size, fill=dot)))
     return draw_place(items, **style)
+
+
+def _edges(edges, count: int, theme) -> tuple[str, ...]:
+    """The ink each group's outline, whiskers and median are drawn in.
+
+    None keeps the theme ink: a box is read by its edges, and black edges
+    read on any fill. One colour or one per group draws each group's
+    furniture in its own colour, which suits boxes tinted by group.
+    """
+    if edges is None:
+        return (theme.ink,) * count
+    return tuple(series_colors(edges, count))
 
 
 def violin(panel, groups, *, at=None, width: float = 0.8, orient: str = "v",
@@ -602,6 +617,7 @@ def violin(panel, groups, *, at=None, width: float = 0.8, orient: str = "v",
     given = style.pop("fill", None) if colors is None else colors
     fills = (series_colors(given, len(data)) if given is not None
              else (mix(theme.ink, theme.paper, _SINGLE_TINT),) * len(data))
+    inks = _edges(style.pop("edges", None), len(data), theme)
     if samples < 4:
         raise DiagramError(f"a violin needs at least 4 samples, got {samples}")
     items: list = []
@@ -625,14 +641,14 @@ def violin(panel, groups, *, at=None, width: float = 0.8, orient: str = "v",
         right = [_point(orient, middle + reach * d / peak, value.map(g))
                  for g, d in reversed(list(zip(grid, density)))]
         items.append(polygon(left + right, kind=MARK_KIND, fill=fills[index],
-                             stroke=theme.ink, stroke_width=theme.hairline))
+                             stroke=inks[index], stroke_width=theme.hairline))
         if median:
             at_median = quantile(sample, 0.5)
             span = reach * _at(grid, density, at_median) / peak
             items.append(polyline(
                 (_point(orient, middle - span, value.map(at_median)),
                  _point(orient, middle + span, value.map(at_median))),
-                kind=MARK_LINE_KIND, stroke=theme.ink, stroke_width=theme.stroke))
+                kind=MARK_LINE_KIND, stroke=inks[index], stroke_width=theme.stroke))
     if not items:
         raise DiagramError("violin() had nothing to draw")
     return draw_place(items, **style)

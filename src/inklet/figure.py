@@ -48,8 +48,8 @@ _ROLE_OF_KIND = {
     "axis": "axis",
     "spine": "axis",
     "tick": "axis",
-    "tick-label": "label",
-    "axis-label": "label",
+    "tick-label": "axis-text",
+    "axis-label": "axis-text",
     # Not "grid": that is `layout.grid`, a container, and styling it would
     # bleed a pale hairline onto every child that does not set its own.
     "gridline": "grid",
@@ -91,10 +91,12 @@ def apply_theme(root: Diagram, theme: Theme) -> Diagram:
                 defaults[key] = _without(theme.style_for(role), authored)
             style = node.style.over(defaults[key])
         if (isinstance(node.prim, TextPrim)
-                and node.style.text_fill is None and authored.text_fill is None):
+                and node.style.text_fill is None and authored.text_fill is None
+                and not (role == "axis-text" and theme.axis_text and behind == theme.paper)):
             # The theme's ink is picked against `paper`, but this glyph may be
             # sitting on a filled box. Nobody authored a colour here, so the
-            # theme is free to choose one that can actually be read.
+            # theme is free to choose one that can actually be read. Axis text
+            # on paper keeps the theme's axis colour, which was chosen for it.
             if behind not in text_colors:
                 text_colors[behind] = theme.text_on(behind)
             style = replace(style, text_fill=text_colors[behind])
@@ -363,6 +365,10 @@ class Figure:
         from .render.bundle import export_bundle
         return export_bundle(self, directory, name=name, dpi=dpi, text=text,
                              compare_pdf=compare_pdf, png_backend=png_backend,compare_to=compare_to)
+
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        from .notebook import mimebundle
+        return mimebundle(self)
 
     def save(self, *paths: str | Path, **kwargs) -> None:
         """Write the figure to SVG, PDF or PNG, following each filename suffix.

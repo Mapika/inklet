@@ -248,17 +248,63 @@ class PlotSpec(BuildSpec):
         self._record('twin_x', (child,), dict(scale=scale, **options), None)
         return child
 
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        # A bare recipe previews in a single-column document.
+        if not self._steps:
+            return {'text/plain': '<inklet plot_spec, no marks yet>'}
+        from .publication import publication
+        from ..notebook import mimebundle
+        doc = publication('single-column').document()
+        doc.add('plot', self, min_height=max(self.height, 45))
+        return mimebundle(doc.compile())
+
     def signature(self, trail=()):
         return ('plot', self.width, self.height, fingerprint(self.options, trail),
                 fingerprint(self._steps, trail))
 
     def render(self, context, width=None, height=None):
         from ..plot import panel
-        p = panel(self.width if width is None else width,
-                  self.height if height is None else height,
-                  **materialize(self.options, context))
+        width = self.width if width is None else width
+        height = self.height if height is None else height
+        options = self._fitted(materialize(self.options, context), context, width, height)
+        p = panel(width, height, **options)
         self._replay(p, context)
         return p.build()
+
+    def _fitted(self, options, context, width, height):
+        """Fill in x/y domains the recipe left to its data.
+
+        `x='auto'` (or `'log'`) always fits that axis to the marks. An axis
+        left out keeps the unit domain while the data fit inside it, and is
+        fitted when they do not, which is the case the unit default was
+        silently wrong for.
+        """
+        wants = {}
+        for name in ('x', 'y'):
+            given = options.get(name)
+            if given is None:
+                wants[name] = 'default'
+            elif isinstance(given, str) and given in ('auto', 'log'):
+                wants[name] = given
+        if not wants:
+            return options
+        from ..plot.autodomain import measure
+        from ..plot.scale import log as log_scale
+        steps = [(method, *materialize((args, kwargs), context))
+                 for _, method, args, kwargs in self._steps]
+        measured = dict(zip(('x', 'y'), measure(steps, width, height)))
+        options = dict(options)
+        for name, want in wants.items():
+            axis = measured[name]
+            options.pop(name, None)
+            if want == 'default' and axis.within_unit:
+                continue
+            domain = axis.domain(scale='log' if want == 'log' else 'linear')
+            if want == 'log':
+                options[name] = log_scale(domain or (1.0, 10.0))
+            elif domain is not None:
+                options[name] = domain
+        return options
 
     def _replay(self, panel, context):
         defaults = context.preset.plot if context.preset is not None else None

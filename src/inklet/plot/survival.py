@@ -318,7 +318,12 @@ def at_risk_table(panel, groups: Sequence[tuple[str | None, SurvivalEstimate, st
                    if area.x0 - 1e-6 <= panel.x.map(v) <= area.x1 + 1e-6)
     if not values:
         raise DiagramError("at_risk has no x tick inside the plot area to put a column under")
-    between = theme.gap("xs") * 0.5 if row_gap is None else mm(row_gap)
+    # By default the line boxes keep the clearance lint checks text against
+    # (or the theme's small gap, if larger), so a descender in one name
+    # never crowds the capitals of the next.
+    from .point_labels import lint_clearance
+    between = (max(theme.gap("xs"), lint_clearance()) if row_gap is None
+               else mm(row_gap))
     rows = []
     counts: list[list[int]] = []
     for name, estimate, color in groups:

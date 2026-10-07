@@ -90,7 +90,7 @@ def sheet(palettes, previews: bool = True) -> Diagram:
 
 
 SHEETS = {
-    "inklet": ("inklet", "inklet-muted", "inklet-pairs", "inklet-duo",
+    "inklet": ("inklet", "inklet-vivid", "inklet-muted", "inklet-pairs", "inklet-duo",
                "okabe-ito", "tol-bright", "tol-muted"),
     "categorical": tuple(n for n in palette_names("categorical")
                          if not n.startswith("inklet")),

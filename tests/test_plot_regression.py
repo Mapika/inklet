@@ -227,7 +227,7 @@ def test_regression_on_a_log_x_axis_fits_in_log_units():
 def test_qq_pp_and_bland_altman_panels_are_lint_clean():
     rng = random.Random(2)
     values = [rng.gauss(0, 1) for _ in range(80)]
-    q = inklet.panel(36, 36, x=(-3, 3), y=(-3, 3)).qq(values).axis("bottom").axis("left")
+    q = inklet.panel(36, 36, x=(-3, 3), y=(-4, 4)).qq(values).axis("bottom").axis("left")
     pp = inklet.panel(36, 36, x=(0, 1), y=(0, 1)).pp(values).axis("bottom").axis("left")
     truth = [rng.uniform(50, 150) for _ in range(60)]
     m1 = [t + rng.gauss(0, 4) for t in truth]

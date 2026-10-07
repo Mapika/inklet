@@ -1,6 +1,8 @@
 # Your first scientific figure
 
 Make a two-panel figure, revise its data, and save SVG/PDF exports.
+For a single chart from a table, [charts in one call](quick-charts.md) is
+quicker; this tutorial covers the document model those charts are built on.
 Use Python 3.11+ and the [core installation](installation.md). Run the Python
 blocks in order; only the optional review step needs rendering extras.
 All data are simulated.

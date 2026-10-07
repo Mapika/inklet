@@ -136,9 +136,13 @@ nav:
 - Overview: index.md
 - Get started:
   - Install Inklet: installation.md
+  - Charts in one call: quick-charts.md
   - First figure: quickstart.md
   - From CSV to a figure: csv-figure.md
   - How Inklet works: concepts.md
+  - Use with coding agents: coding-agents.md
+  - Bring matplotlib figures: matplotlib.md
+  - Inklet and matplotlib side by side: compare-matplotlib.md
 - Plots:
   - Plot type gallery: plot-types.md
   - Build and combine plots: plotting.md

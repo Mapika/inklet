@@ -14,7 +14,113 @@ millimetres. **Composition preserves child handles:** combinators wrap drawings
 in parent nodes, so handles created before layout still resolve in the figure.
 
 
-## Core authoring
+## One-call charts
+
+#### `class Chart(*, width='single', height=None, style='scientific.modern', palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None, xscale='linear', yscale='linear', legend='auto', grid=None)`
+
+One plot: marks on shared axes, with a size and a preset.
+
+* `line(data=None, x=None, y=None, *, color=None, name=None, markers=False, error_y=None, dash=None, linewidth=None, sort=True, **style)` -- Lines through (x, y), one per `color` group or per `y` column.
+* `scatter(data=None, x=None, y=None, *, color=None, size=None, name=None, marker='circle', palette=None, error_y=None, text=None, **style)` -- Points at (x, y). A numeric `color` column with many values is a ramp.
+* `bar(data=None, x=None, y=None, *, color=None, name=None, orient='v', stacked=False, error_y=None, labels=None, agg='sum', points=False, **style)` -- Bars of `y` at each `x` category; `color` groups side by side or stacked.
+* `hist(data=None, x=None, *, color=None, bins=20, density=False, name=None, cumulative=False, **style)` -- Histogram of `x`; one overlaid histogram per `color` group.
+* `kde(data=None, x=None, *, color=None, fill=False, name=None, **style)` -- Kernel density estimate of `x`, one curve per `color` group.
+* `ecdf(data=None, x=None, *, color=None, name=None, **style)` -- Empirical cumulative distribution of `x`, one step per `color` group.
+* `boxplot(data=None, x=None, y=None, *, color=None, points=False, **style)` -- Box plot of `y` in each `x` category.
+* `violin(data=None, x=None, y=None, *, color=None, points=False, **style)` -- Violin plot of `y` in each `x` category.
+* `strip(data=None, x=None, y=None, *, color=None, **style)` -- Jittered points of `y` in each `x` category.
+* `area(data=None, x=None, y=None, *, color=None, stacked=True, **style)` -- Filled areas under `y`; groups stack unless `stacked=False`.
+* `regression(data=None, x=None, y=None, *, color=None, method='linear', confidence=0.95, name=None, **style)` -- Points with a fitted line and its confidence band, per `color` group.
+* `heatmap(data=None, x=None, y=None, z=None, *, palette='viridis', center=None, colorbar=True, **style)` -- A matrix of colour cells. `colorbar` is True, False or the bar's title.
+* `labels(*, x=None, y=None, title=None)` -- Set axis titles and the chart title (all optional).
+* `size(width=None, height=None)` -- Width as 'single', 'double', 'slide' or millimetres; height in mm.
+* `plot(width=None, profile=None, rotate=False)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
+* `document(rotate=frozenset())` -- A `Document` holding this chart, sized and styled; add cells to grow it.
+* `compile()` -- Measure and place everything; returns a `CompiledFigure`.
+* `report(**options) -> 'str'` -- Layout and print diagnostics: overlaps, clipped text, small type.
+* `save(*paths, **options)` -- Save to each path; the extension picks SVG, PDF or PNG.
+* `show(path=None)` -- Display in a notebook, or write an SVG and print where it went.
+* `to_pdf(**options) -> 'bytes'`
+* `to_png(**options) -> 'bytes'`
+* `to_svg(**options) -> 'str'`
+
+#### `class Layout(direction, items, *, width=None, style=None, letters=True, columns=None)`
+
+Charts side by side (`a | b`) or stacked (`a / b`), with panel letters.
+
+* `charts()`
+* `document(rotate=frozenset())` -- A `Document` with one lettered cell per chart.
+* `compile()` -- Measure and place everything; returns a `CompiledFigure`.
+* `report(**options) -> 'str'` -- Layout and print diagnostics: overlaps, clipped text, small type.
+* `save(*paths, **options)` -- Save to each path; the extension picks SVG, PDF or PNG.
+* `show(path=None)` -- Display in a notebook, or write an SVG and print where it went.
+* `to_pdf(**options) -> 'bytes'`
+* `to_png(**options) -> 'bytes'`
+* `to_svg(**options) -> 'str'`
+
+#### `class LayoutWarning`
+
+A saved chart has layout problems; the message is its lint report.
+
+#### `chart(**options) -> 'Chart'`
+
+An empty chart to add marks to: `inklet.chart(title='...').line(...)`.
+
+#### `line(data=None, *args, **options)`
+
+Lines through (x, y), one per `color` group or per `y` column.
+
+#### `scatter(data=None, *args, **options)`
+
+Points at (x, y). A numeric `color` column with many values is a ramp.
+
+#### `bar(data=None, *args, **options)`
+
+Bars of `y` at each `x` category; `color` groups side by side or stacked.
+
+#### `hist(data=None, *args, **options)`
+
+Histogram of `x`; one overlaid histogram per `color` group.
+
+#### `boxplot(data=None, *args, **options)`
+
+Box plot of `y` in each `x` category.
+
+#### `violin(data=None, *args, **options)`
+
+Violin plot of `y` in each `x` category.
+
+#### `strip(data=None, *args, **options)`
+
+Jittered points of `y` in each `x` category.
+
+#### `kde(data=None, *args, **options)`
+
+Kernel density estimate of `x`, one curve per `color` group.
+
+#### `ecdf(data=None, *args, **options)`
+
+Empirical cumulative distribution of `x`, one step per `color` group.
+
+#### `area(data=None, *args, **options)`
+
+Filled areas under `y`; groups stack unless `stacked=False`.
+
+#### `heatmap(data=None, *args, **options)`
+
+A matrix of colour cells. `colorbar` is True, False or the bar's title.
+
+#### `regression(data=None, *args, **options)`
+
+Points with a fitted line and its confidence band, per `color` group.
+
+#### `from_matplotlib(figure, *, width=None, style='scientific.modern', palette=None, keep_colors=False, letters=True)`
+
+Convert a matplotlib `Figure` (or one `Axes`) into an inklet chart or layout.
+
+#### `class MatplotlibWarning`
+
+Parts of a matplotlib figure that the bridge did not convert.
 
 #### `rendering_capabilities()`
 
@@ -1137,7 +1243,7 @@ Figure(width: 'float' = 89.0, height: 'float | None' = None, theme: 'Theme' = <f
 
 Look up a theme by name. The default is the one built for print.
 
-#### `class Theme(name: 'str', ink: 'str', paper: 'str', muted: 'str', accent: 'str', grid: 'str', palette: 'tuple[str, ...]', font_family: 'str', font_mono: 'str', font_size: 'float', font_size_small: 'float', font_size_large: 'float', line_height: 'float', stroke: 'float', hairline: 'float', thick: 'float', radius: 'float', space: 'tuple[float, ...]', arrow_size: 'float', link_radius: 'float' = 0.0) -> None`
+#### `class Theme(name: 'str', ink: 'str', paper: 'str', muted: 'str', accent: 'str', grid: 'str', palette: 'tuple[str, ...]', font_family: 'str', font_mono: 'str', font_size: 'float', font_size_small: 'float', font_size_large: 'float', line_height: 'float', stroke: 'float', hairline: 'float', thick: 'float', radius: 'float', space: 'tuple[float, ...]', arrow_size: 'float', link_radius: 'float' = 0.0, axis_ink: 'str | None' = None, axis_text: 'str | None' = None) -> None`
 
 A complete set of design tokens.
 
@@ -1150,7 +1256,7 @@ A complete set of design tokens.
 * `gap(step: 'int | str') -> 'float'` -- A spacing value, by name ('xs' 's' 'm' 'l' 'xl') or by index.
 * `scaled(factor: 'float') -> "'Theme'"` -- The same design at a different physical size.
 
-#### `THEMES = {'nature': Theme(name='nature', ink='#1a1a1a', paper='#ffffff', muted='#5f6b7a', accent='#0072b2', grid='#e4e4e7', palette=('#1d57a0', '#df913e', '#418368', '#93190a', '#8bc4e5', '#56254c', '#fbe673', '#ad7591'), font_family='Helvetica Neue, Helvetica, Arial, sans-serif', font_mono='SF Mono, Menlo, Consolas, monospace', font_size=2.469444444444444, font_size_small=2.1166666666666663, font_size_large=2.822222222222222, line_height=1.25, stroke=0.25, hairline=0.13, thick=0.5, radius=1.0, space=(0.5, 1.0, 2.0, 3.0, 5.0, 8.0, 13.0), arrow_size=1.6, link_radius=0.0), 'slides': Theme(name='slides', ink='#111418', paper='#ffffff', muted='#4b5563', accent='#4477aa', grid='#d4d4d8', palette=('#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb'), font_family='Inter, Helvetica Neue, Helvetica, Arial, sans-serif', font_mono='JetBrains Mono, SF Mono, Menlo, monospace', font_size=4.938888888888888, font_size_small=3.880555555555555, font_size_large=7.055555555555555, line_height=1.3, stroke=0.6, hairline=0.3, thick=1.2, radius=2.0, space=(1.0, 2.0, 4.0, 6.0, 10.0, 16.0, 26.0), arrow_size=3.6, link_radius=0.0), 'notebook': Theme(name='notebook', ink='#1f2328', paper='#fcfcfa', muted='#57606a', accent='#332288', grid='#e6e4e0', palette=('#1d57a0', '#df913e', '#418368', '#93190a', '#8bc4e5', '#56254c', '#fbe673', '#ad7591'), font_family='Inter, Segoe UI, Roboto, Helvetica, sans-serif', font_mono='JetBrains Mono, SF Mono, Menlo, monospace', font_size=3.175, font_size_small=2.645833333333333, font_size_large=4.2333333333333325, line_height=1.4, stroke=0.35, hairline=0.18, thick=0.7, radius=1.8, space=(0.5, 1.5, 3.0, 4.5, 7.0, 11.0, 18.0), arrow_size=2.2, link_radius=0.0)}`
+#### `THEMES = {'nature': Theme(name='nature', ink='#1a1a1a', paper='#ffffff', muted='#5f6b7a', accent='#0072b2', grid='#e4e4e7', palette=('#1d57a0', '#df913e', '#418368', '#93190a', '#8bc4e5', '#56254c', '#fbe673', '#ad7591'), font_family='Helvetica Neue, Helvetica, Arial, sans-serif', font_mono='SF Mono, Menlo, Consolas, monospace', font_size=2.469444444444444, font_size_small=2.1166666666666663, font_size_large=2.822222222222222, line_height=1.25, stroke=0.25, hairline=0.13, thick=0.5, radius=1.0, space=(0.5, 1.0, 2.0, 3.0, 5.0, 8.0, 13.0), arrow_size=1.6, link_radius=0.0, axis_ink=None, axis_text=None), 'slides': Theme(name='slides', ink='#111418', paper='#ffffff', muted='#4b5563', accent='#4477aa', grid='#d4d4d8', palette=('#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb'), font_family='Inter, Helvetica Neue, Helvetica, Arial, sans-serif', font_mono='JetBrains Mono, SF Mono, Menlo, monospace', font_size=4.938888888888888, font_size_small=3.880555555555555, font_size_large=7.055555555555555, line_height=1.3, stroke=0.6, hairline=0.3, thick=1.2, radius=2.0, space=(1.0, 2.0, 4.0, 6.0, 10.0, 16.0, 26.0), arrow_size=3.6, link_radius=0.0, axis_ink=None, axis_text=None), 'notebook': Theme(name='notebook', ink='#1f2328', paper='#fcfcfa', muted='#57606a', accent='#332288', grid='#e6e4e0', palette=('#1d57a0', '#df913e', '#418368', '#93190a', '#8bc4e5', '#56254c', '#fbe673', '#ad7591'), font_family='Inter, Segoe UI, Roboto, Helvetica, sans-serif', font_mono='JetBrains Mono, SF Mono, Menlo, monospace', font_size=3.175, font_size_small=2.645833333333333, font_size_large=4.2333333333333325, line_height=1.4, stroke=0.35, hairline=0.18, thick=0.7, radius=1.8, space=(0.5, 1.5, 3.0, 4.5, 7.0, 11.0, 18.0), arrow_size=2.2, link_radius=0.0, axis_ink=None, axis_text=None)}`
 
 dict() -> new empty dictionary dict(mapping) -> new dictionary initialized from a mapping object's (key, value) pairs dict(iterable) -> new dictionary initialized as if via: d = {} for k, v in iterable: d[k] = v dict(**kwargs) -> new dictionary initialized with the name=value pairs in the keyword argument list. For example: dict(one=1, two=2)
 
@@ -1586,6 +1692,10 @@ Two links drawn along the same line, one hidden under the other.
 #### `CROWDING`
 
 Neighbours that clear each other but only just.
+
+#### `DATA_OUTSIDE`
+
+Data drawn past the axes of its panel: a range narrower than the data.
 
 #### `DEPTH_ORDER`
 

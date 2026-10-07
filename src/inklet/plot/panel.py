@@ -80,6 +80,18 @@ def _clip_flag(style: dict) -> bool | None:
     return style.pop("clip", None)
 
 
+def _one_size(size) -> float | None:
+    """A scatter's `size=` as one diameter in mm, or None when it is the
+    default or differs point by point."""
+    if isinstance(size, bool) or not isinstance(size, (int, float, str)):
+        return None
+    try:
+        value = mm(size)
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
 @dataclass
 class Panel:
     """A drawing region plus the scales that map data into it.
@@ -373,6 +385,7 @@ class Panel:
         raw data and uncertainty marks are unchanged. None or zero keeps every
         point. Reduction can change dash phase and sub-tolerance details.
         """
+        _color_as(style, "stroke")
         from .simplify import simplify_points, tolerance_mm
         tolerance = tolerance_mm(simplify)
         if tolerance and (smooth != 0 or closed):
@@ -404,23 +417,37 @@ class Panel:
         The confidence interval that belongs under a line. `lo` and `hi` are
         each a sequence the length of `x` or a single number, exactly as
         `fill_between` takes them -- this is that call with the paint decided:
-        a tint of `color` towards paper, pale enough that the line and the
-        gridlines read through it.
+        `color` at a low fill opacity, so that over paper it is a pale tint
+        the line and the gridlines read through, and where two groups' bands
+        overlap both stay visible. An explicit `fill=` is painted as given.
 
             p.band(t, lower, upper, color=TH.color(0), name="wild type")
             p.line(mean, stroke=TH.color(0), name="wild type")
 
         Both calls under one name make one key entry, drawn as a band with the
-        line across it.
+        line across it. Bands paint beneath every data mark, whatever order
+        they are called in, so no line is hidden under a later band.
         """
         clip = _clip_flag(style)
         theme = active_theme()
         color = self._series_color(name, color)
-        style.setdefault("fill", mix(color if color is not None else theme.ink,
-                                     theme.paper, _BAND_TINT))
-        self._note(name, "area", fill=style["fill"], color=color)
-        return self.draw(_marks.fill_between(self, x, lo, hi, **style),
-                         clip=clip)
+        ink = color if color is not None else theme.ink
+        if "fill" in style:
+            key_fill = style["fill"]
+        else:
+            # The series colour, see-through by the tint's share: over paper
+            # it is exactly `mix(ink, paper, _BAND_TINT)`, and where two
+            # groups' bands overlap both show instead of the later hiding the
+            # earlier. The key records the opaque tint it looks like: a
+            # swatch carries no opacity, and would otherwise be a solid block.
+            style["fill"] = ink
+            style.setdefault("fill_opacity", round(1.0 - _BAND_TINT, 6))
+            key_fill = mix(ink, theme.paper, _BAND_TINT)
+        self._note(name, "area", fill=key_fill, color=color)
+        # Under the data, so a band drawn after another series' line does not
+        # veil it.
+        return self._layer(_marks.fill_between(self, x, lo, hi, **style),
+                           front=False, clip=clip)
 
     def _spread_of(self, data: Sequence[Sequence], err, err_style: str,
                    name: str | None, style: dict,
@@ -483,7 +510,8 @@ class Panel:
         the optional Pillow dependency (`inklet[images]`).
 
         `name=` remembers the series for `legend()`; the swatch is this marker
-        in this colour, and a per-point `color=` sequence records nothing,
+        in this colour, at this `size` when it is one number (kept within the
+        key's row height), and a per-point `color=` sequence records nothing,
         since a legend row cannot stand for eighty colours.
         """
         clip = _clip_flag(style)
@@ -498,7 +526,8 @@ class Panel:
         elif color is None or isinstance(color, str):
             color = self._series_color(name, color)
         self._note(name, "marker", marker=marker,
-                   color=color if isinstance(color, str) else None)
+                   color=color if isinstance(color, str) else None,
+                   marker_size=_one_size(size))
         if not isinstance(raster, bool):
             raise ValueError("scatter raster must be True or False")
         direct_raster = raster and not {'anchor', 'origin'}.intersection(style)
@@ -710,6 +739,7 @@ class Panel:
         `cap` is the half-width of the end caps in millimetres; `cap=0` leaves
         them off. Draw these before the markers so the marker sits on top.
         """
+        _color_as(style, "stroke")
         clip = _clip_flag(style)
         return self.draw(_marks.errorbars(self, points, yerr=yerr, xerr=xerr,
                                           cap=cap, **style), clip=clip)
@@ -727,6 +757,7 @@ class Panel:
 
             p.fill(trace).line(trace)
         """
+        _color_as(style, "fill")
         clip = _clip_flag(style)
         self._note(name, "area",
                    fill=style.get("fill", _marks.default_area_fill()))
@@ -741,6 +772,7 @@ class Panel:
         for a flat edge, so a ribbon round a fit and a band above a threshold
         are the same call. `band()` is this with the paint already decided.
         """
+        _color_as(style, "fill")
         clip = _clip_flag(style)
         self._note(name, "area",
                    fill=style.get("fill", _marks.default_area_fill()))
@@ -790,6 +822,7 @@ class Panel:
 
         `name=` remembers the series for `legend()`.
         """
+        _color_as(style, "stroke")
         clip = _clip_flag(style)
         stroke = self._series_color(name, style.get("stroke"))
         if stroke is not None:
@@ -816,7 +849,8 @@ class Panel:
         The box is unfilled by default, so the median is the only heavy line in
         it. `inklet.plot.box_stats(sample)` returns the same five numbers if you
         want them in the caption. `color=` fills the boxes: one colour, or one
-        per group.
+        per group. `edges=` draws each box's outline, whiskers and median in
+        its own colour (one, or one per group) instead of the ink.
         """
         clip = _clip_flag(style)
         return self.draw(_marks.boxplot(
@@ -838,7 +872,8 @@ class Panel:
 
         A violin claims the density is smooth, so it needs enough data to
         support the claim -- under about twenty points per group, draw the
-        points. `color=` fills the violins: one colour, or one per group.
+        points. `color=` fills the violins: one colour, or one per group;
+        `edges=` colours their outlines and medians the same way.
         """
         clip = _clip_flag(style)
         return self.draw(_marks.violin(
@@ -867,6 +902,7 @@ class Panel:
 
             p.hline(0.05, label="p = 0.05", stroke_dash=(1.0, 0.8))
         """
+        _color_as(style, "stroke")
         clip = _clip_flag(style)
         self._layer(_marks.rule(self, y=y, span=span, **style), front, clip)
         return self._rule_label(label, y=y, span=span, side=label_side)
@@ -881,6 +917,7 @@ class Panel:
         the line is too near the right-hand edge, where it flips to the left.
         `label_side="e"` or `"w"` forces the choice.
         """
+        _color_as(style, "stroke")
         clip = _clip_flag(style)
         self._layer(_marks.rule(self, x=x, span=span, **style), front, clip)
         return self._rule_label(label, x=x, span=span, side=label_side)
@@ -898,12 +935,14 @@ class Panel:
         vertical band covering a range of x. The default is the house tint --
         a shade of the ink pale enough to read type over, and greyscale-safe.
         """
+        _color_as(style, "fill")
         clip = _clip_flag(style)
         return self._layer(_marks.span_node(self, x=(x0, x1), **style), front,
                            clip)
 
     def hspan(self, y0, y1, *, front: bool = False, **style) -> "Panel":
         """A shaded stripe between two **data** values of y, full width."""
+        _color_as(style, "fill")
         clip = _clip_flag(style)
         return self._layer(_marks.span_node(self, y=(y0, y1), **style), front,
                            clip)
@@ -1452,6 +1491,7 @@ class Panel:
         that came out of the data needs -- `p.text(x, y, sample_id,
         markup=False)`. Prose keeps markup, as it does everywhere else.
         """
+        _color_as(style, "fill")
         # Writing is never clipped, whatever the panel does with its data: a
         # word cut in half at the spine is not a shorter word.
         return self._layer(_notes.text_at(self, x, y, content, anchor=anchor,
@@ -1586,7 +1626,11 @@ class Panel:
         node, align, pad = self._title
         box = _union_box(children) or self.area
         text_box = node.bbox
-        top = box.y0 - pad - text_box.height / 2
+        # Reserve the half line a top tick number hangs above the plot area
+        # whether or not this panel draws one, so titles over a row of panels
+        # -- some with numbers on their y axis, some without -- line up.
+        reach = min(box.y0, self.area.y0 - _TITLE_RESERVE * active_theme().font_size_small)
+        top = reach - pad - text_box.height / 2
         if align == "start":
             at = Vec2(box.x0 + text_box.width / 2, top)
         elif align == "end":
@@ -1657,6 +1701,7 @@ class Panel:
         `width0=` and `width1=` are data too, read on whichever axis the flow
         crosses, so the band tapers the way the numbers do. See `plot.ribbon`.
         """
+        _color_as(kwargs, "fill")
         from .ribbon import panel_ribbon
 
         return self.draw(panel_ribbon(self, a, b, **kwargs))
@@ -1814,6 +1859,7 @@ class Panel:
         are left out. `name=` adds a line entry to `legend()`.
         `inklet.plot.ecdf(values)` returns the steps without drawing them.
         """
+        _color_as(style, "stroke")
         from .cumulative import ecdf as _ecdf, staircase
 
         values = list(values)
@@ -4069,6 +4115,23 @@ def _fit(spec, lo: float, hi: float, nice: bool = False) -> Scale:
     # Only a scale that can say what round bounds mean gets rounded; a band
     # scale has no bounds and a log one's are already powers.
     return scale.nice() if nice and hasattr(scale, "nice") else scale
+
+
+#: How far above the plot area a top tick number reaches, in its font size.
+_TITLE_RESERVE = 0.6
+
+
+def _color_as(style: dict, channel: str) -> dict:
+    """Read `color=` as the one channel a mark paints with.
+
+    Points and bars take `color=` for their fill; a line, a rule or a band
+    has one paint too, and a caller who writes `color=` for it means that
+    paint. An explicit `stroke=`/`fill=` still wins.
+    """
+    color = style.pop("color", None)
+    if color is not None:
+        style.setdefault(channel, color)
+    return style
 
 
 def _tinted(color: str | None, kwargs: dict) -> dict:

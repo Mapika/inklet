@@ -1085,11 +1085,17 @@ class PolarPanel:
         outer = self._track(list(zip(angles, hi)), shut, interpolate)
         inner = self._track(list(zip(angles, lo)), shut, interpolate)
         tint = self._series_color(name, color)
-        shade = mix(active_theme().ink if tint is None else tint,
-                    active_theme().paper, _BAND_TINT)
-        style.setdefault("fill", shade)
+        ink = active_theme().ink if tint is None else tint
+        if "fill" in style:
+            key_fill = style["fill"]
+        else:
+            # See-through, as `Panel.band`: the tint over paper, and
+            # overlapping bands blend. The key keeps the opaque tint.
+            style["fill"] = ink
+            style.setdefault("fill_opacity", round(1.0 - _BAND_TINT, 6))
+            key_fill = mix(ink, active_theme().paper, _BAND_TINT)
         style.setdefault("stroke", "none")
-        self._note(name, "band", fill=style["fill"], color=tint)
+        self._note(name, "band", fill=key_fill, color=tint)
         style.setdefault("kind", MARK_KIND)
         ring = outer + list(reversed(inner))
         return self.under(draw_path(ring, closed=True, filled=True, **style),

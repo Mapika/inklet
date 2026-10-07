@@ -169,11 +169,16 @@ _FORMATS = {
 }
 
 # The registry is private; callers receive immutable values through preset().
+#: Axis rules and ticks, and axis numbers and names, in `scientific.modern`:
+#: greys a step and two steps lighter than the ink.
+_MODERN_AXIS, _MODERN_AXIS_TEXT = '#7b818a', '#3f444c'
+
 _STYLES = {
     'scientific.general': ('double-column', 'Compact figures for papers and technical reports.'),
     'scientific.nature': ('double-column', 'Nature main-figure typography and column widths.'),
     'scientific.science': ('double-column', 'Scientific authoring style; Science guidance review pending.'),
     'scientific.cell': ('double-column', 'Dense multi-panel pages with 6/5 pt type and hairline strokes; Cell guidance review pending.'),
+    'scientific.modern': ('double-column', 'Colour-led marks on quiet grey axes with the inklet-vivid palette; the default of one-call charts.'),
     'educational.textbook': ('report', 'Readable labels and light horizontal guides for printed explanations.'),
     'educational.classroom': ('slide', 'Large projected labels and grids for teaching.'),
     'educational.worksheet': ('a4', 'Monochrome figures and grids for printed exercises.'),
@@ -251,6 +256,14 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
             'Main figures: 89/183 mm widths, 5–7 pt text, standard sans-serif fonts and editable embedded text. '
             'Column formats enforce a 7 pt maximum text size and 170 mm maximum height. '
             'Other formats use destination sizes without these journal print limits.'),)
+    elif name == 'scientific.modern':
+        # The data is the darkest thing on the page: axes step back to grey,
+        # and series take a palette chosen to read as thin lines on paper.
+        from ..themes.palettes import palette as _palette
+        palette = _palette('inklet-vivid').colors
+        # 0.7 pt data lines over 0.4 pt axis hairlines: the series carry the
+        # weight, the frame stays light.
+        stroke = .25
     elif name in ('scientific.science', 'scientific.cell'):
         journal = name.split('.')[1]
         letters = 'bold-upper'
@@ -283,6 +296,8 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
                    radius=radius, arrow_size=1.6 if family == 'scientific' else 2.2,
                    space=tuple(v*(spacing if family == 'scientific' else 1.3) for v in base.space),
                    muted='#525a65', grid='#dedee3').scaled(factor)
+    if name == 'scientific.modern':
+        base = replace(base, axis_ink=_MODERN_AXIS, axis_text=_MODERN_AXIS_TEXT)
     profile = PublicationProfile(name, chosen.width, font*factor, small*factor,
                                  stroke*factor, min_font*factor, min_stroke*factor,
                                  min_dpi=150 if chosen.name == 'slide' else 300,

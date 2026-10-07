@@ -51,18 +51,19 @@ def load_figure(script):
     sys.path.insert(0,str(path.parent))
     try:
         namespace=runpy.run_path(str(path),run_name='__inklet_build__')
-        for name in ('make_document','make_figure'):
+        for name in ('make_document','make_figure','make_chart'):
             if callable(namespace.get(name)):
                 result=namespace[name]()
                 break
         else:
-            result=namespace.get('doc',namespace.get('fig'))
+            result=next((namespace[n] for n in ('doc','fig','chart') if namespace.get(n) is not None),None)
         if result is None:
-            raise ValueError('author script must define make_document(), make_figure(), doc or fig')
+            raise ValueError('author script must define make_document(), make_figure(), make_chart(), doc, fig or chart')
         from .document import Document
-        if isinstance(result,Document):result=result.compile()
+        from .quick import Chart, Layout
+        if isinstance(result,(Document,Chart,Layout)):result=result.compile()
         if not all(hasattr(result,name) for name in ('save','export','lint')):
-            raise TypeError('author script must return a Document, CompiledFigure or Figure')
+            raise TypeError('author script must return a Document, Chart, CompiledFigure or Figure')
         return result
     finally:
         sys.path[:]=before
@@ -186,11 +187,50 @@ def watch(script,output,*,name='figure',dpi=None,port=8765,interval=.5,extra=(),
     return 0
 
 
+def check(script,*,png=None,as_json=False,strict=False):
+    """Build a script, report its diagnostics and return an exit status.
+
+    Exit 0 when clean, 1 when there are errors (or warnings with `strict`).
+    Meant for scripts and coding agents: the report says what to change.
+    """
+    figure=load_figure(script)
+    diagnostics=list(figure.lint())
+    if png is not None:
+        Path(png).parent.mkdir(parents=True,exist_ok=True)
+        figure.save(png)
+    failing={'error'} | ({'warning'} if strict else set())
+    failed=any(d.severity in failing for d in diagnostics)
+    if as_json:
+        root=figure.build()[0] if not hasattr(figure,'root') else figure.root
+        print(json.dumps({
+            'ok':not failed,
+            'size_mm':[round(root.bbox.width,2),round(root.bbox.height,2)],
+            'preview':str(Path(png).resolve()) if png is not None else None,
+            'diagnostics':[{'severity':d.severity,'code':d.code,'message':d.message,
+                            'targets':list(d.targets),'hint':d.hint} for d in diagnostics],
+        },indent=2))
+    else:
+        from .diagnostics import format_report
+        print(format_report(diagnostics))
+        if png is not None:print(f'preview: {Path(png).resolve()}')
+    return 1 if failed else 0
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser(prog='inklet',description=__doc__)
     sub=parser.add_subparsers(dest='command',required=True)
     doctor_parser=sub.add_parser('doctor',help='check optional preview dependencies')
     doctor_parser.add_argument('--devices',action='store_true',help='also probe Blender GPU devices')
+    check_parser=sub.add_parser('check',help='build a script and report layout problems; exit 1 on errors')
+    check_parser.add_argument('script',type=Path)
+    check_parser.add_argument('--png',type=Path,help='also write a PNG preview here')
+    check_parser.add_argument('--json',action='store_true',help='machine-readable output')
+    check_parser.add_argument('--strict',action='store_true',help='also fail on warnings')
+    guide_parser=sub.add_parser('guide',help='print the usage guide for coding agents')
+    guide_parser.add_argument('--api',action='store_true',help='list every plot method with its signature')
+    skill_parser=sub.add_parser('skill',help='install the guide as a coding-agent skill')
+    skill_parser.add_argument('directory',type=Path,nargs='?',default=Path('.claude/skills'),
+                              help='skills directory (default: .claude/skills)')
     for name in ('build','watch'):
         p=sub.add_parser(name)
         p.add_argument('script',type=Path)
@@ -210,6 +250,14 @@ def main(argv=None):
     try:
         if args.command=='doctor':
             print(json.dumps(doctor(devices=args.devices),indent=2));return 0
+        if args.command=='check':
+            return check(args.script,png=args.png,as_json=args.json,strict=args.strict)
+        if args.command=='guide':
+            from .agent import guide
+            print(guide(api=args.api));return 0
+        if args.command=='skill':
+            from .agent import install_skill
+            print(f'inklet: wrote {install_skill(args.directory)}');return 0
         from .render.bundle import validate_options
         validate_options(args.name,150 if args.dpi is None else args.dpi,'embed')
         if args.command=='build':

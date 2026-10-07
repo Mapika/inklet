@@ -174,9 +174,7 @@ def barplot(panel, at: Sequence, data, *, estimator: str = "mean",
                 offsets, drawn = _marks._swarm_fit(across, span * 0.8, dot, dot * 0.15)
                 for offset, along in zip(offsets, across):
                     dots.append((_marks._point(orient, mid + offset, along),
-                                 make_marker("circle", drawn, fill=ink,
-                                             stroke=theme.paper,
-                                             stroke_width=theme.hairline)))
+                                 make_marker("circle", drawn, fill=ink, stroke="none")))
             if down > 0 or up > 0:
                 a, b = value.map(centre - down), value.map(centre + up)
                 reach = span * 0.22 if cap is None else mm(cap)

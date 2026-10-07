@@ -443,8 +443,14 @@ from .render.brushes import LinearGradient, RadialGradient, Hatch, paint
 from .render.composite import blend, mask
 from .render.scene import RenderScene, compile_scene
 from .render.resources import rendering_capabilities
+from .mpl import from_matplotlib, MatplotlibWarning
+from .quick import (Chart, Layout, LayoutWarning, chart, line, scatter, bar, hist, boxplot, violin, strip,
+                    kde, ecdf, area, heatmap, regression)
 
 __all__ = [
+    # one-call charts
+    "Chart", "Layout", "LayoutWarning", "chart", "line", "scatter", "bar", "hist", "boxplot", "violin", "strip",
+    "kde", "ecdf", "area", "heatmap", "regression", "from_matplotlib", "MatplotlibWarning",
     "rendering_capabilities", "RenderScene", "compile_scene",
     "blend", "mask",
     "LinearGradient", "RadialGradient", "Hatch", "paint",

@@ -229,12 +229,12 @@ def make_case(*, width=360, cloud_points=30000):
     x=[10**(k/25) for k in range(101)]
     p=plot(x=i.log((1,1e4)),y=i.log((1e-5,2)))
     for j,slope in enumerate((.7,1,1.3)):
-        p.line([(v,v**-slope) for v in x],stroke=COLORS[j],name=f'α = {slope:g}')
+        p.line([(v,v**-slope) for v in x],stroke=COLORS[j],name=f'α = {slope:g}',clip=True)
     p.axes(x='Scale',y='Probability').legend(side='bottom',columns=3)
     add('loglog','Four-decade scaling laws',p)
 
     hours=list(range(25));temperature=[18+6*math.sin((h-6)*math.pi/12) for h in hours]
-    p=plot(x=(0,24),y=(0,5))
+    p=plot(x=(-.5,24.5),y=(0,5))
     p.bars(hours,[max(0,3*math.sin(h/4)+.8*math.cos(h)) for h in hours],width=.7,fill='#aacad9')
     p.axes(x='Hour',y='Rain / mm')
     p.twin_y((10,28),label='Temperature / °C',color=COLORS[1]).line(list(zip(hours,temperature)),stroke=COLORS[1])

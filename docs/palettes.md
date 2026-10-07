@@ -39,7 +39,7 @@ for each dichromacy. The categorical set is also kept apart in greyscale.
 The numbers below are asserted in `tests/test_palettes.py`. Okabe-Ito and
 two Tol sets are shown below them for comparison. In the table, the CVD columns are the worse of the two simulations; `report()` gives the Machado figures alone.
 
-![Inklet's four palettes and three references, each with deutan, protan, tritan and greyscale previews](assets/palettes/inklet.png)
+![Inklet's five palettes and three references, each with deutan, protan, tritan and greyscale previews](assets/palettes/inklet.png)
 
 | Palette | Colours | min ΔE00 normal | deutan | protan | tritan | min greyscale gap (L*) |
 |---|---|---|---|---|---|---|
@@ -47,6 +47,7 @@ two Tol sets are shown below them for comparison. In the table, the CVD columns 
 | `inklet-muted` | 7 | 23.5 | 13.4 | 13.9 | 12.9 | 6.5 |
 | `inklet-pairs` | 12 | 15.1 | 6.0 | 5.6 | 5.8 | – |
 | `inklet-duo` | 3 | 27.8 | 27.7 | 24.1 | 25.0 | 12.7 |
+| `inklet-vivid` | 8 | 23.5 | 10.5 | 11.0 | 8.4 | 1.5 |
 | `okabe-ito` | 8 | 21.7 | 11.5 | 12.3 | 0.6 | 0.8 |
 
 - **`inklet`** has eight colours: cobalt, amber, teal, brick, sky, plum,
@@ -63,6 +64,14 @@ two Tol sets are shown below them for comparison. In the table, the CVD columns 
   each condition. Twelve colours in pairs cannot all stay far apart under
   CVD: ColorBrewer's `paired` drops to 1.3 ΔE00 for a protanope. Let the
   pairing carry the meaning, and use direct labels.
+- **`inklet-vivid`** is the palette of one-call charts and the
+  `scientific.modern` preset: a deep blue lead, then rust, teal, gold, plum,
+  lavender, forest and rose. Every colour is a mid tone that holds up as a thin
+  line or a small marker on white, so a lone series can wear the lead blue.
+  The first four stay at least 36.9 ΔE00 apart in normal vision and 17.1 under
+  any dichromacy. Eight mid tones cannot also separate in greyscale; use
+  `inklet` when a figure may be printed in black and white.
+  [`tools/design_palette.py`](../tools/design_palette.py) reproduces the search.
 - **`inklet-duo`** is for two conditions (or sexes) plus a neutral reference.
   Blue and orange are the hue pair that every dichromat keeps apart, and the
   lightness step keeps them apart in greyscale too.

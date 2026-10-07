@@ -51,6 +51,9 @@ class SeriesKey:
     marker: str = "circle"
     dash: tuple[float, ...] | None = None
     width: float | None = None
+    #: The marker's diameter in mm when the series gave one size for every
+    #: point; None draws the swatch's own default marker.
+    marker_size: float | None = None
     #: A swatch the caller built themselves -- `marks(item, ...)` passes the
     #: very shape it placed, which is the most honest swatch there is.
     node: Diagram | None = field(default=None, compare=False)
@@ -68,6 +71,8 @@ class SeriesKey:
             color=self.color if self.color is not None else other.color,
             fill=self.fill if self.fill is not None else other.fill,
             marker=self.marker if "marker" in self.forms else other.marker,
+            marker_size=(self.marker_size if "marker" in self.forms
+                         else other.marker_size),
             dash=self.dash if self.dash is not None else other.dash,
             width=self.width if self.width is not None else other.width,
             node=self.node if self.node is not None else other.node,
@@ -127,7 +132,7 @@ def swatch_for(entry: SeriesKey, size: float) -> Diagram:
         parts.append(polyline(((-wide / 2, 0.0), (wide / 2, 0.0)),
                               kind="mark-line", **style))
     if "marker" in entry.forms:
-        node = make_marker(entry.marker, size * 0.9)
+        node = make_marker(entry.marker, _swatch_marker(entry.marker_size, size))
         if entry.color is not None:
             node = node.styled(fill=entry.color, stroke=entry.color)
         parts.append(node)
@@ -138,6 +143,21 @@ def swatch_for(entry: SeriesKey, size: float) -> Diagram:
     if len(parts) == 1:
         return _centred(parts[0])
     return Diagram(children=tuple(_centred(p) for p in parts), kind="swatch")
+
+
+#: A marker swatch drawn at the series' own size stays within these fractions
+#: of the swatch height: a bubble series does not stretch the key's rows, and
+#: a dust-fine scatter still shows its colour.
+_MARKER_SWATCH_RANGE = (1 / 3, 1.0)
+
+
+def _swatch_marker(given: float | None, size: float) -> float:
+    """The diameter of a marker swatch `size` tall: the series' marker when
+    it had one size, clamped to `_MARKER_SWATCH_RANGE`, else the default."""
+    if given is None:
+        return size * 0.9
+    low, high = _MARKER_SWATCH_RANGE
+    return min(max(given, low * size), high * size)
 
 
 def _centred(node: Diagram) -> Diagram:

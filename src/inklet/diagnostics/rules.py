@@ -1371,7 +1371,10 @@ def rule_overlap(ctx: LintContext) -> list[Diagnostic]:
        overlapping its own frame" guard, and it is geometric rather than
        structural on purpose: `Diagram(children=(rect, label))` puts the frame
        and the label side by side in the tree, so an ancestor test alone would
-       miss the most common way figures are built.
+       miss the most common way figures are built. It does not apply when
+       both sides are text: a short label set on the same point as a long
+       one nests inside it, and that is a collision, not a frame. Only the
+       same words over the same box are let through (`_same_words_same_place`).
     4. Unfilled `PathPrim`s are excluded entirely (see `_pairable`).
     5. A *filled* `PathPrim`, and a cut-out `ImagePrim`, are measured against
        their real outline rather than their box. A Sankey ribbon or a tapered
@@ -1417,7 +1420,14 @@ def rule_overlap(ctx: LintContext) -> list[Diagnostic]:
             # A frame around its label is not a collision -- but an image
             # with see-through stretches is marks, not a frame: a raster
             # scatter spans the plot, and every label in the plot sits in it.
-            if ((_contains(first.bbox, second.bbox) and not _sparse(first))
+            # Nor is one line of text a frame round another: two labels set
+            # at the same point nest, and that is the worst overlap there
+            # is, not the most innocent. Only the same words drawn twice in
+            # the same place are let through -- a reader sees one label.
+            if first.is_text and second.is_text:
+                if _same_words_same_place(first, second):
+                    continue
+            elif ((_contains(first.bbox, second.bbox) and not _sparse(first))
                     or (_contains(second.bbox, first.bbox) and not _sparse(second))):
                 continue
             area, intersection = _ink_overlap(first, second, intersection)
@@ -1441,6 +1451,19 @@ def rule_overlap(ctx: LintContext) -> list[Diagnostic]:
                   f"along the shorter axis"),
         ))
     return out
+
+
+def _same_words_same_place(first: Item, second: Item) -> bool:
+    """Two text items that print as one: the same words over the same box."""
+    a, b = first.prim, second.prim
+    if not isinstance(a, TextPrim) or not isinstance(b, TextPrim):
+        return False
+    if [line.text for line in a.lines] != [line.text for line in b.lines]:
+        return False
+    return (abs(first.bbox.x0 - second.bbox.x0) <= _EPS_MM
+            and abs(first.bbox.y0 - second.bbox.y0) <= _EPS_MM
+            and abs(first.bbox.x1 - second.bbox.x1) <= _EPS_MM
+            and abs(first.bbox.y1 - second.bbox.y1) <= _EPS_MM)
 
 
 def _marker_overlap(batch, text):
@@ -3361,7 +3384,7 @@ from .link_rules import (rule_coincident_shaft,                     # noqa: E402
                          rule_label_covers_shaft, rule_link_crosses_link)
 from .path_rules import (rule_path_crosses,                         # noqa: E402
                          stroke_near_misses)
-from .plot_rules import rule_off_panel                              # noqa: E402
+from .plot_rules import rule_data_outside, rule_off_panel           # noqa: E402
 from .break_rules import rule_break_distorts                       # noqa: E402
 from .three_rules import rule_depth_order                           # noqa: E402
 from .label_rules import rule_label_unplaced                       # noqa: E402
@@ -3370,6 +3393,7 @@ RULES: dict[str, Rule] = {
     "TEXT_OVERFLOW": rule_text_overflow,
     "OFF_CANVAS": rule_off_canvas,
     "OFF_PANEL": rule_off_panel,
+    "DATA_OUTSIDE": rule_data_outside,
     "BREAK_DISTORTS": rule_break_distorts,
     "TINY_TEXT": rule_tiny_text,
     "LARGE_TEXT": rule_large_text,
@@ -3418,5 +3442,9 @@ def run_rules(ctx: LintContext, selected: Mapping[str, Rule]) -> list[Diagnostic
                 where=None,
                 hint="report this as a inklet.lint bug; other rules still ran",
             ))
+    # A run of labels colliding pair by pair is one fault, said once. See
+    # `diagnostics.grouping`; imported here because it imports this module.
+    from .grouping import group_runs
+    out = group_runs(ctx, out)
     out.sort(key=lambda d: d.sort_key)
     return out

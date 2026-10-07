@@ -159,9 +159,7 @@ def slope(panel, values, *, at=None, labels: str = "both", format=None,
             lines.append(polyline(pts, kind=MARK_LINE_KIND, stroke=colors[s],
                                   stroke_width=width, **style))
         for p in pts:
-            dots.append((p, make_marker("circle", dot, fill=colors[s],
-                                        stroke=theme.paper,
-                                        stroke_width=theme.hairline)))
+            dots.append((p, make_marker("circle", dot, fill=colors[s], stroke="none")))
         first = next((i for i, v in enumerate(row) if v is not None), None)
         last = next((i for i in range(len(row) - 1, -1, -1) if row[i] is not None), None)
         if first is None:
@@ -257,9 +255,7 @@ def bump(panel, values, *, at=None, ranked: bool = False, labels: str = "both",
                                        stroke=colors[s], stroke_width=width,
                                        stroke_linecap="round", **style))
             for p, v in items:
-                dots.append((p, make_marker("circle", dot, fill=colors[s],
-                                            stroke=theme.paper,
-                                            stroke_width=theme.hairline)))
+                dots.append((p, make_marker("circle", dot, fill=colors[s], stroke="none")))
                 if numbers:
                     dots.append((p, label_text(f"{v:g}", number_size,
                                                text_fill=on_fill(colors[s]))))

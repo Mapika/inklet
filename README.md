@@ -7,9 +7,17 @@
 
 **Scientific figures from Python, with measured layout and editable SVG/PDF output.**
 
-Combine plots, diagrams, images and native 3D artwork on a page sized in
-millimetres. Keep data and labels live, compile the figure, and inspect its
-layout and print diagnostics before exporting.
+```python
+import inklet as i
+
+data = {'time': [0, 1, 2, 3], 'signal': [1, 3, 2, 4]}   # or a pandas/Polars DataFrame
+i.line(data, x='time', y='signal').save('signal.pdf', 'signal.svg')
+```
+
+One call gives you a chart sized for a journal column, with measured labels and
+vector output. Combine charts into lettered multi-panel figures with `|` and `/`,
+bring existing matplotlib figures across with `i.from_matplotlib(fig)`, and add
+diagrams, images and native 3D artwork on the same millimetre-sized page.
 
 [Get started](https://inklet.readthedocs.io/en/stable/quickstart/) · [Documentation](https://inklet.readthedocs.io/en/stable/) ·
 [Examples](https://inklet.readthedocs.io/en/stable/examples/) · [API reference](https://inklet.readthedocs.io/en/stable/api/)
@@ -73,9 +81,39 @@ use `compare_pdf=False` or `--no-pdf-preview` for a review without it.
 See [installation](https://inklet.readthedocs.io/en/stable/installation/) for system packages, Windows activation,
 optional dependencies and environment checks.
 
-## Your first figure
+## Your first chart
 
-Save this as `first_figure.py` and run `python first_figure.py`:
+```python
+import inklet as i
+
+data = {'time': [0, 1, 2, 3] * 2, 'signal': [1, 3, 2, 4, 2, 4, 3, 5],
+        'condition': ['control'] * 4 + ['treated'] * 4}
+
+chart = i.line(data, x='time', y='signal', color='condition')
+figure = chart.save('response.svg', 'response.pdf')
+print(figure.report())
+```
+
+`data` can also be a pandas or Polars DataFrame. Axes fit the data, axis titles
+come from the column names, and the legend appears because there are two groups.
+`line`, `scatter`, `bar`, `hist`, `kde`, `ecdf`, `boxplot`, `violin`, `strip`,
+`area`, `regression` and `heatmap` share these keywords. Put charts side by side
+with `|` and stack them with `/`:
+
+```python
+figure = (i.line(data, x='time', y='signal', color='condition')
+          | i.boxplot(data, x='condition', y='signal', points=True))
+figure.save('figure1.pdf')
+```
+
+See [charts in one call](https://inklet.readthedocs.io/en/latest/quick-charts/) for every
+chart type and option, and [bringing matplotlib figures](https://inklet.readthedocs.io/en/latest/matplotlib/)
+for converting existing plotting code.
+
+### The document model
+
+Charts are a front end to live documents, which also hold diagrams, images and
+3D scenes. Save this as `first_figure.py` and run `python first_figure.py`:
 
 ```python
 import inklet as i
@@ -125,10 +163,26 @@ support diagnostic filters, SVG highlights and comparisons with a saved revision
 For an environment without preview tools, use
 `inklet build first_figure.py --output out/review --vectors-only`.
 
+## With a coding agent
+
+```sh
+inklet guide                            # usage guide for agents, matching this version
+inklet skill                            # install it as .claude/skills/inklet/SKILL.md
+inklet check figure.py --png preview.png  # build, list layout problems, exit 1 on errors
+```
+
+The chart API follows the plotly express convention that agents already know.
+Every figure reports overlapping, clipped or undersized text in plain language
+with the fix, and `save()` raises a `LayoutWarning` when something needs
+attention. Nothing opens a window, and output is byte-for-byte deterministic. See
+[using Inklet with coding agents](https://inklet.readthedocs.io/en/latest/coding-agents/).
+
 ## What you can build
 
 | Task | Main tools | Guide |
 |---|---|---|
+| Charts from a table in one call | `line`, `scatter`, `bar`, `boxplot`, `heatmap`, `\|` and `/` layouts | [Charts in one call](https://inklet.readthedocs.io/en/latest/quick-charts/) |
+| Existing matplotlib figures | `from_matplotlib` | [Bring matplotlib figures](https://inklet.readthedocs.io/en/latest/matplotlib/) |
 | Scientific, educational and branded styles | `preset`, independent formats, live switching | [Presets](https://inklet.readthedocs.io/en/stable/presets/) |
 | Multi-panel figures | `document`, `subfigure`, weighted columns, spans, panel letters | [Layout](https://inklet.readthedocs.io/en/stable/layout/) |
 | Scientific plots | `plot_spec`, axes, bands, distributions, heatmaps, insets, polar plots | [Plotting](https://inklet.readthedocs.io/en/stable/plotting/) |

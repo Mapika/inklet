@@ -1,5 +1,79 @@
 # Changelog
 
+## Unreleased
+
+Charts in one call, a matplotlib bridge, notebook display and tooling for
+coding agents.
+
+### Added
+
+- One-call charts: `i.line`, `scatter`, `bar`, `hist`, `kde`, `ecdf`,
+  `boxplot`, `violin`, `strip`, `area`, `regression` and `heatmap` take a
+  DataFrame, mapping or list of records with `x=`, `y=` and `color=` column
+  names and return a `Chart`. Charts layer marks, accept every plot method,
+  and combine into lettered layouts with `|` and `/`. `save()` raises a
+  `LayoutWarning` carrying the lint report when the figure has errors or
+  warnings. Category labels are turned 45 degrees only when they would
+  collide upright.
+- Chart extras: `facet_col=`/`facet_row=`/`facet_col_wrap=` draw small
+  multiples on shared axes with one key; `legend='direct'` names lines at
+  their ends; `scatter(text=)` labels points clear of the marks;
+  `bar(agg='mean'|'median', error_y='sem'|'sd'|'ci95', points=True)` draws
+  estimates with error bars; `data=` may be a CSV/TSV path; `line()` joins
+  points in x order and, without `y`, draws every numeric column.
+- `i.from_matplotlib(fig)` redraws a matplotlib figure's lines, scatters,
+  bars, histograms, error bars, bands, rules, images, text, labels, scales
+  and subplot grid as Inklet charts. Unconverted artists are listed in a
+  `MatplotlibWarning`.
+- Notebook display: charts, layouts, documents, compiled figures, figures and
+  plot recipes render inline in Jupyter and VS Code.
+- `inklet guide [--api]` prints a usage guide for coding agents that matches
+  the installed version; `inklet skill [DIR]` installs it as an agent skill;
+  `inklet check SCRIPT [--png PATH] [--json] [--strict]` builds a script,
+  prints its diagnostics and exits 1 on errors. `inklet build` and `check`
+  also accept scripts that define `chart` or `make_chart()`.
+- The documentation publishes `llms.txt` and `llms-full.txt`.
+
+### Changed
+
+- `plot_spec()` without `x=`/`y=` fits each axis to the recorded marks when
+  the data fall outside the unit domain, instead of drawing them outside the
+  plot. `x='auto'` always fits, and `x='log'` fits a log scale. Points, rules
+  and bands are read directly; statistical marks are measured from a probe
+  drawing. Bars and histograms keep their baseline on the axis.
+- A new preset, `scientific.modern`, and palette, `inklet-vivid` (eight mid
+  tones tuned for lines and markers, `tools/design_palette.py`), are the
+  default of one-call charts and `from_matplotlib`: a lone series takes the
+  lead colour, bars have no outlines, boxes and violins are tinted with edges
+  in their hue, stacked areas are soft layers under crisp boundary lines,
+  scatter markers shrink and lighten as points multiply, and a single chart's
+  title is set flush left.
+- Themes take `axis_ink` and `axis_text` for axis rules and axis text (unset:
+  the ink, as before); `scientific.modern` uses greys a step lighter.
+- `boxplot` and `violin` take `edges=` to draw outlines, whiskers and medians
+  in each group's colour.
+- Panel titles reserve the space a top tick number takes, so titles over a
+  row of panels line up whether or not each panel numbers its y axis.
+- Lint reports `DATA_OUTSIDE` (warning) when data marks run past a panel's
+  axes, naming the range that would hold them; two different labels drawn on
+  one spot are now an `OVERLAP`; runs of colliding sibling labels (such as a
+  crowded axis) are reported as one finding with the fix instead of one line
+  per pair; curve-end names from `label_lines` are no longer `OFF_PANEL`.
+- Confidence bands are drawn in the series colour at a fill opacity that
+  matches the old tint, beneath every data mark, so overlapping bands (such as
+  Kaplan-Meier intervals) blend instead of hiding each other and no line is
+  covered. An explicit `fill=` paints as before.
+- Point labels (`label_points`, volcano plots) keep lint's clearance from
+  marks and get a leader when another point is nearly as close as their own;
+  the at-risk table's rows meet the same clearance.
+- Key markers follow a scatter's single `size=`.
+- Sample dots in `barplot`, `slope` and `bump` charts no longer have a white
+  outline.
+- `save(..., dpi=)` with SVG or PDF paths in the same call no longer fails.
+- `line`, `step`, `hline`, `vline`, `errorbars`, `ecdf`, `fill`,
+  `fill_between`, `hspan`, `vspan`, `ribbon` and `text` accept `color=`, like
+  the other marks. An explicit `stroke=` or `fill=` still takes precedence.
+
 ## 4.5.0 — 2026-09-29
 
 Pages that choose their own layout: `choose()` alternatives, experimental

@@ -1,0 +1,22 @@
+# Inklet
+
+> Inklet is a Python library for publication figures: plots, multi-panel layouts, diagrams and 3D, sized in millimetres with measured text, exported as editable SVG/PDF/PNG. One-call charts follow the plotly-express convention: `i.line(df, x='time', y='signal', color='group').save('fig.pdf')`.
+
+Install with `pip install inklet` (add `inklet[render]` for PNG). Run `inklet guide` for the complete agent guide matching the installed version, and `inklet check script.py --png preview.png` to build a figure and list its layout problems.
+
+## Docs
+
+- [Agent guide, full text](https://inklet.readthedocs.io/en/latest/llms-full.txt): one-call charts, layouts, checks and every plot method with its arguments
+- [Charts in one call](https://inklet.readthedocs.io/en/latest/quick-charts/): `line`, `scatter`, `bar`, `hist`, `boxplot`, `violin`, `heatmap`, `regression` and chart options
+- [Use Inklet with coding agents](https://inklet.readthedocs.io/en/latest/coding-agents/): the guide, skill installation and `inklet check`
+- [Bring matplotlib figures](https://inklet.readthedocs.io/en/latest/matplotlib/): `i.from_matplotlib(fig)`
+- [First figure](https://inklet.readthedocs.io/en/latest/quickstart/): the document model behind the charts
+- [Plot type gallery](https://inklet.readthedocs.io/en/latest/plot-types/): every plot family with rendered examples
+- [Presets](https://inklet.readthedocs.io/en/latest/presets/) and [palettes](https://inklet.readthedocs.io/en/latest/palettes/)
+- [API reference](https://inklet.readthedocs.io/en/latest/api/)
+
+## Optional
+
+- [Panel layout in millimetres](https://inklet.readthedocs.io/en/latest/layout/)
+- [Export and review](https://inklet.readthedocs.io/en/latest/export-review/)
+- [Diagrams](https://inklet.readthedocs.io/en/latest/diagrams-overview/)

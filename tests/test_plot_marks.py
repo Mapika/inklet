@@ -617,10 +617,17 @@ def test_a_band_is_paler_than_the_line_it_belongs_to() -> None:
 
     p = panel(40, 30, x=(0, 2), y=(0, 10))
     p.band([0, 1, 2], [2, 3, 2], [6, 8, 6], color="#0055aa")
-    fills = [n.style.fill for n in resolve(as_drawn(p.build())).values()
-             if n.style.fill]
-    assert fills
-    assert to_lab(parse_color(fills[0]))[0] > to_lab(parse_color("#0055aa"))[0]
+    painted = [n.style for n in resolve(as_drawn(p.build())).values()
+               if n.style.fill]
+    assert painted
+    # The band is the colour at a low fill opacity: what the reader sees is
+    # that over paper.
+    from inklet.draw.coords import active_theme
+    from inklet.themes.color import mix
+    style = painted[0]
+    seen = mix(style.fill, active_theme().paper,
+               1.0 - (1.0 if style.fill_opacity is None else style.fill_opacity))
+    assert to_lab(parse_color(seen))[0] > to_lab(parse_color("#0055aa"))[0]
 
 
 def test_err_shades_a_band_by_default() -> None:

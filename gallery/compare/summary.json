@@ -1,0 +1,196 @@
+{
+  "figures": {
+    "time_course": {
+      "title": "Time course with 95% CI bands",
+      "loc": {
+        "inklet": 9,
+        "matplotlib": 20
+      },
+      "seconds": {
+        "inklet": 0.58,
+        "matplotlib": 0.7
+      },
+      "size_mm": {
+        "inklet": [
+          89.0,
+          63.2
+        ],
+        "matplotlib": [
+          88.9,
+          63.1
+        ]
+      },
+      "inklet_lint": "inklet lint: clean, 0 diagnostics",
+      "side_by_side": "gallery/compare/time_course-side-by-side.png"
+    },
+    "grouped_bars": {
+      "title": "Grouped bars with error bars and points",
+      "loc": {
+        "inklet": 13,
+        "matplotlib": 36
+      },
+      "seconds": {
+        "inklet": 0.56,
+        "matplotlib": 0.72
+      },
+      "size_mm": {
+        "inklet": [
+          89.0,
+          63.2
+        ],
+        "matplotlib": [
+          88.9,
+          63.1
+        ]
+      },
+      "inklet_lint": "inklet lint: clean, 0 diagnostics",
+      "side_by_side": "gallery/compare/grouped_bars-side-by-side.png"
+    },
+    "dose_response": {
+      "title": "Dose-response with fitted curves",
+      "loc": {
+        "inklet": 11,
+        "matplotlib": 20
+      },
+      "seconds": {
+        "inklet": 0.6,
+        "matplotlib": 0.94
+      },
+      "size_mm": {
+        "inklet": [
+          89.0,
+          63.2
+        ],
+        "matplotlib": [
+          88.9,
+          63.1
+        ]
+      },
+      "inklet_lint": "inklet lint: clean, 0 diagnostics",
+      "side_by_side": "gallery/compare/dose_response-side-by-side.png"
+    },
+    "distributions": {
+      "title": "Violin and strip, four groups",
+      "loc": {
+        "inklet": 9,
+        "matplotlib": 30
+      },
+      "seconds": {
+        "inklet": 0.65,
+        "matplotlib": 0.8
+      },
+      "size_mm": {
+        "inklet": [
+          89.0,
+          63.2
+        ],
+        "matplotlib": [
+          88.9,
+          63.1
+        ]
+      },
+      "inklet_lint": "inklet lint: clean, 0 diagnostics",
+      "side_by_side": "gallery/compare/distributions-side-by-side.png"
+    },
+    "volcano": {
+      "title": "Volcano plot with labelled hits",
+      "loc": {
+        "inklet": 10,
+        "matplotlib": 33
+      },
+      "seconds": {
+        "inklet": 1.02,
+        "matplotlib": 0.92
+      },
+      "size_mm": {
+        "inklet": [
+          89.0,
+          63.2
+        ],
+        "matplotlib": [
+          88.9,
+          63.1
+        ]
+      },
+      "inklet_lint": "inklet lint: clean, 0 diagnostics",
+      "side_by_side": "gallery/compare/volcano-side-by-side.png"
+    },
+    "survival": {
+      "title": "Kaplan-Meier curves with number at risk",
+      "loc": {
+        "inklet": 12,
+        "matplotlib": 53
+      },
+      "seconds": {
+        "inklet": 0.56,
+        "matplotlib": 0.71
+      },
+      "size_mm": {
+        "inklet": [
+          89.0,
+          80.0
+        ],
+        "matplotlib": [
+          88.9,
+          79.9
+        ]
+      },
+      "inklet_lint": "inklet lint: clean, 0 diagnostics",
+      "side_by_side": "gallery/compare/survival-side-by-side.png"
+    },
+    "heatmap": {
+      "title": "Correlation heatmap",
+      "loc": {
+        "inklet": 8,
+        "matplotlib": 20
+      },
+      "seconds": {
+        "inklet": 0.57,
+        "matplotlib": 0.79
+      },
+      "size_mm": {
+        "inklet": [
+          89.0,
+          88.0
+        ],
+        "matplotlib": [
+          88.9,
+          87.9
+        ]
+      },
+      "inklet_lint": "inklet lint: clean, 0 diagnostics",
+      "side_by_side": "gallery/compare/heatmap-side-by-side.png"
+    },
+    "multi_panel": {
+      "title": "Four-panel double-column figure",
+      "loc": {
+        "inklet": 21,
+        "matplotlib": 64
+      },
+      "seconds": {
+        "inklet": 0.89,
+        "matplotlib": 1.3
+      },
+      "size_mm": {
+        "inklet": [
+          183.0,
+          123.8
+        ],
+        "matplotlib": [
+          182.9,
+          123.7
+        ]
+      },
+      "inklet_lint": "inklet lint: clean, 0 diagnostics",
+      "side_by_side": "gallery/compare/multi_panel-side-by-side.png"
+    }
+  },
+  "shared": {
+    "data.py": 135,
+    "journal.mplstyle": 23
+  },
+  "total_loc": {
+    "inklet": 93,
+    "matplotlib": 276
+  }
+}

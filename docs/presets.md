@@ -30,6 +30,7 @@ text. See [publication figure composition](publication-plots.md).
 | `scientific.nature` | Double column | Nature main figures; source guidance below |
 | `scientific.science` | Double column | Provisional style; guidelines not verified |
 | `scientific.cell` | Double column | Dense multi-panel pages; guidelines not verified |
+| `scientific.modern` | Double column | Colour-led marks on grey axes with `inklet-vivid`; the default of one-call charts |
 | `educational.textbook` | Report | Larger labels and horizontal guides |
 | `educational.classroom` | Slide | Projected text and both grid directions |
 | `educational.worksheet` | A4 | Monochrome figures and grids for printed exercises |
