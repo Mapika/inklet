@@ -47,6 +47,13 @@ coding agents.
   space (one per group, in its colour); one-call charts expose `chart.fits`.
 - `chart.colorbar(...)` and `chart.legend(...)` update the bar or key a chart
   already draws instead of adding a second one.
+- Documentation: the home page opens with a runnable one-call example; a
+  five-minute tutorial with a figure per step leads "Charts in one call"; a
+  "How do I…" page answers twelve common tasks; the chart gallery is a
+  thumbnail grid of every one-call chart. Every snippet on these pages runs
+  in the test suite and lints clean. `inklet guide` gains a chart-methods
+  table and the pitfalls agents hit most, and `help(i.Chart.vline)` describes
+  the forwarded plot method.
 - `plot_spec(..., aspect='equal')` keeps one data unit the same length on x
   and y, and `aspect=<number>` keeps the data area's height over its width.
   The plot is the largest region of that shape inside its cell, `align=`
