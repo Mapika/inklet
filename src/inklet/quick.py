@@ -323,7 +323,7 @@ class Chart(_Renderable):
         self.legend_side = legend
         self.xticks, self.yticks = xticks, yticks
         self.xminor, self.yminor = xminor, yminor
-        options ={'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
+        options = {'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
         if xlim is not None or ylim is not None:
             # Explicit limits zoom: marks past them are cut at the axes.
             options['clip'] = True
@@ -1296,7 +1296,7 @@ def _entry(method):
     make.__doc__ = (getattr(Chart, method).__doc__ or '') + '''
 
     Chart options: width ('single', 'double', 'slide' or mm), height (mm),
-    style (a preset name, default 'scientific.general'), palette, title,
+    style (a preset name, default 'scientific.modern'), palette, title,
     xlabel, ylabel, xlim, ylim, xscale/yscale ('linear' or 'log'), legend
     ('auto', 'direct', a side, a corner or False), grid (True, False, 'x' or
     'y'), xticks/yticks (the tick values to show), xminor/yminor (True, or
