@@ -29,7 +29,8 @@ from numbers import Real
 from pathlib import Path
 
 __all__ = ['Chart', 'Layout', 'LayoutWarning', 'chart', 'line', 'scatter', 'bar', 'hist', 'boxplot', 'violin',
-           'strip', 'kde', 'ecdf', 'area', 'heatmap', 'regression', 'survival', 'volcano', 'forest']
+           'strip', 'kde', 'ecdf', 'area', 'heatmap', 'regression', 'survival', 'volcano', 'forest',
+           'pie', 'lollipop', 'dumbbell', 'waterfall', 'slope']
 
 #: What `legend=` names besides off (False or None): a placement, a side, a corner.
 _LEGEND_SIDES = ('top', 'bottom', 'left', 'right')
@@ -429,6 +430,8 @@ class Chart(_Renderable):
         self.xformat, self.yformat = xformat, yformat
         #: A forest plot's rows and options; it is a Diagram, not Panel marks.
         self._forest = None
+        #: A pie's slices and labels; like a forest, a polar Diagram built per cell.
+        self._pie = None
         options = {'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
         if xlim is not None or ylim is not None:
             # Explicit limits zoom: marks past them are cut at the axes.
@@ -900,6 +903,192 @@ class Chart(_Renderable):
         self._forest = (rows, options)
         return self
 
+    def pie(self, data=None, names=None, values=None, *, hole=0, labels='percent'):
+        """A pie chart: one slice per row, sized by `values`, in row order.
+
+        `names=` names the slices and gives the key, which sits on the right
+        unless `legend=` puts it on another side (or False for none). Each
+        slice is labelled with its share; `labels=` takes `'value'`, a format
+        such as `'{share:.1%}'`, None or one string per slice. The slices run
+        clockwise from twelve o'clock in palette order. `hole=` makes a donut:
+        a fraction of the radius, so 0.5 leaves a hole half as wide as the
+        pie. The disc is sized to its cell, up to a limit.
+
+            i.pie(df, names='species', values='count')
+            i.pie(df, names='source', values='share', hole=0.5, legend='bottom')
+        """
+        if values is None:
+            raise ValueError('pie needs values=, the size of each slice')
+        if isinstance(hole, bool) or not isinstance(hole, Real) or not 0 <= hole < 1:
+            raise ValueError('hole= is a fraction of the radius, from 0 up to 1 (0.5 leaves a hole half '
+                             f'the radius of the pie); got {hole!r}')
+        if self.legend_side == 'direct' or self.legend_side in _LEGEND_CORNERS:
+            # A corner key lands on the disc, which is where a pie's slices are.
+            raise ValueError("a pie's key sits beside the disc: legend= is 'auto', a side "
+                             f"({', '.join(_LEGEND_SIDES)}) or False")
+        table = _table(data)
+        sizes = _column(table, values, 'values')
+        if any(v is None for v in sizes):
+            raise ValueError('pie values are missing in some rows; drop those rows first')
+        slices = None
+        if names is not None:
+            slices = [str(n) for n in _column(table, names, 'names')]
+            if len(slices) != len(sizes):
+                raise ValueError(f'pie has {len(slices)} names for {len(sizes)} values')
+        self._pie = (slices, sizes, hole, labels)
+        return self
+
+    def lollipop(self, data=None, x=None, y=None, *, color=None, orient='v', **style):
+        """One value per category as a dot on a stem from zero: a lighter bar chart.
+
+        `x` names the categories and `y` their values, one row per category;
+        a missing value draws nothing. `color=` is one colour, since a
+        lollipop is one series; to compare groups, split the chart with
+        `facet_col=`. `orient='h'` lays the stems across. Other keywords go to
+        `Panel.lollipop`: `baseline=`, `size=`, `marker=`, `stem=`.
+
+            i.lollipop(df, x='pathway', y='score')
+        """
+        table = _table(data)
+        _check_color(color)
+        if _is_column(table, color):
+            raise ValueError(f'lollipop draws one series, so color= is one colour such as "#24698c", '
+                             f'not the column {color!r}; use facet_col= to compare groups')
+        cats, heights = _one_per_category(table, x, y, 'lollipop')
+        options = self._style(table, color, style, lone=True)
+        if orient == 'v':
+            self._categories(cats)
+        else:
+            cats = [str(c) for c in cats]
+            self._rows_down(cats)
+        self.spec.lollipop(cats, heights, orient=orient, **options)
+        return self._labelled(x, y) if orient == 'v' else self._labelled(y, x)
+
+    def dumbbell(self, data=None, y=None, x=None, **style):
+        """Two values per category joined by a line: before and after, for instance.
+
+        `y` names the category column, one row per category, and `x=[start,
+        end]` the two value columns. Each category is a row of two dots on a
+        line between them, so the change is the line's length. The legend
+        names the dots after their columns, and the value axis is titled
+        with both. A missing value draws no dot. Other keywords go to
+        `Panel.dumbbell`: `name=`, `size=`, `marker=`, `connector=`, `color=`.
+
+            i.dumbbell(df, y='site', x=['before', 'after'])
+        """
+        if not (isinstance(x, (list, tuple)) and len(x) == 2 and all(isinstance(c, str) for c in x)):
+            raise ValueError('dumbbell needs x=[start, end], the names of the two value columns')
+        table = _table(data)
+        cats, starts = _one_per_category(table, y, x[0], 'dumbbell')
+        _, ends = _one_per_category(table, y, x[1], 'dumbbell')
+        options = dict(style)
+        # Each dot takes its series' palette slot, so the key and the dots agree.
+        options.setdefault('color', [f'{_TOKEN}{k}' for k in range(2)])
+        options.setdefault('name', list(x))
+        self._named += 2
+        names = [str(c) for c in cats]
+        self._rows_down(names)
+        self.spec.dumbbell(names, [starts, ends], orient='h', **options)
+        return self._labelled(' / '.join(x), y)
+
+    def _rows_down(self, names):
+        """Set a band y scale for categories laid down the chart, the first row at the top.
+
+        Reading down the page follows the table, as the heatmap's rows do. Without this the
+        band runs upwards and the first row lands at the bottom.
+        """
+        self.spec.configure(y=list(reversed(names)))
+
+    def waterfall(self, data=None, x=None, y=None, *, totals=(), labels=True, **style):
+        """Changes as bars floating on a running total: a waterfall chart.
+
+        `x` names the steps and `y` their changes, one row per step, drawn in
+        row order. `totals=` lists the steps that are totals: each stands on
+        the baseline at the running total, which a missing `y` shows and a
+        number resets (for a reported figure the changes do not add up to).
+        Increases, decreases and totals take the theme's green, red and grey,
+        and `labels=True` writes each change (`+45`, `-30`) past its bar. Other
+        keywords go to `Panel.waterfall`: `connectors=`, `baseline=`, `width=`.
+
+            i.waterfall(df, x='step', y='change', totals=['Start', 'End'])
+        """
+        if x is None or y is None:
+            raise ValueError('waterfall needs x= (the steps) and y= (the changes)')
+        table = _table(data)
+        steps = _column(table, x, 'x')
+        changes = _column(table, y, 'y')
+        if len(steps) != len(changes):
+            raise ValueError(f'waterfall has {len(steps)} steps for {len(changes)} changes')
+        if any(s is None for s in steps):
+            raise ValueError('waterfall needs a name for every step')
+        names = [str(s) for s in steps]
+        if len(set(names)) != len(names):
+            raise ValueError('waterfall needs a unique name for each step, since a step is a bar position')
+        totals = [totals] if isinstance(totals, str) else list(totals)
+        unknown = [t for t in totals if str(t) not in names]
+        if unknown:
+            raise ValueError(f'waterfall totals {", ".join(map(str, unknown))} are not steps in x=')
+        self._categories(names)
+        # The auto domains do not measure a waterfall, so the band scale and the
+        # y range that holds every bar are set here, unless ylim= set the range.
+        self.spec.configure(x=names)
+        if self.spec.options.get('y') == 'auto':
+            from .plot.waterfall import waterfall_steps
+            drawn = waterfall_steps(changes, [names.index(str(t)) for t in totals],
+                                    baseline=style.get('baseline', 0.0))
+            reached = [v for step in drawn for v in (step.start, step.end)]
+            low, high = min(0.0, min(reached)), max(0.0, max(reached))
+            self.spec.configure(y=(low, high + 0.05 * ((high - low) or 1.0)))
+        self.spec.waterfall(names, changes, totals=[str(t) for t in totals], labels=labels, **style)
+        return self._labelled(x, y)
+
+    def slope(self, data=None, x=None, y=None, group=None, *, labels='both', format=None,
+              highlight=None, **style):
+        """Each group's values at two or more time points, joined by a straight line.
+
+        `x` names the time column, `y` the values and `group=` the series. Time
+        points are drawn in order: numbers and dates ascend, and text keeps its
+        order. A series with no value at a time point has a gap there. Names
+        and values are written at the line ends (`labels='both'`, or `'left'`,
+        `'right'` or `'none'`), so there is no key. `highlight=` names the
+        series to emphasise and greys the rest; `format=` writes the values,
+        as `'{:.0f}%'` or a callable. Other keywords go to `Panel.slope`.
+
+            i.slope(df, x='year', y='share', group='country', format='{:.0f}%')
+        """
+        if x is None or y is None or group is None:
+            raise ValueError('slope needs x= (the time points), y= (the values) and group= (the series)')
+        table = _table(data)
+        times = _column(table, x, 'x')
+        values = _column(table, y, 'y')
+        groups = _column(table, group, 'group')
+        if not len(times) == len(values) == len(groups):
+            raise ValueError('slope needs the time, value and group columns to be the same length')
+        stamps = _in_category_order(table, x, times)
+        if all(isinstance(t, (Real, date)) and not isinstance(t, bool) for t in stamps):
+            stamps = sorted(stamps)
+        cells = {}
+        for t, g, v in zip(times, groups, values):
+            if t is None or g is None:
+                continue
+            if (g, t) in cells:
+                raise ValueError(f'slope needs one row per {group} and time point, but {g!r} at {t!r} '
+                                 'appears more than once')
+            cells[(g, t)] = v
+        series = {str(g): [cells.get((g, t)) for t in stamps]
+                  for g in _in_category_order(table, group, groups)}
+        self.spec.configure(x=[str(t) for t in stamps])
+        present = [v for v in values if v is not None]
+        if self.spec.options.get('y') == 'auto' and present:
+            # The auto domain does not measure a slope, so the range is fitted here,
+            # with a margin, unless ylim= set it. It need not start at zero: the lines are the point.
+            low, high = min(present), max(present)
+            pad = 0.08 * ((high - low) or abs(high) or 1.0)
+            self.spec.configure(y=(low - pad, high + pad))
+        self._labelled(x, y)
+        self.spec.slope(series, labels=labels, format=format, highlight=highlight, **style)
+        return self
+
     # Labels and layout.
 
     def labels(self, *, x=None, y=None, title=None):
@@ -1013,6 +1202,12 @@ class Chart(_Renderable):
             from .document.spec import component
             rows, options = self._forest
             return component(_forest_figure, rows, options, label=self.xlabel or None)
+        if self._pie is not None:
+            # A pie is a polar Diagram too. It is responsive: the cell's width sizes the disc.
+            from .document.spec import component
+            slices, sizes, hole, labels = self._pie
+            return component(_pie_figure, slices, sizes, hole, labels, self.legend_side, self.title,
+                             responsive=True)
         spec = self.spec.copy()
         if self._series_tokens or self._has_tokens():
             theme = (profile or self._profile()).theme
@@ -1082,8 +1277,8 @@ class Chart(_Renderable):
         if self.height is not None:
             from .core import mm
             return mm(self.height)
-        if self._forest is not None:
-            # A forest is as tall as its rows, not a plot's default height.
+        if self._forest is not None or self._pie is not None:
+            # A forest is as tall as its rows, and a pie as tall as its disc and key.
             return None
         return round(min(max(page_width * 0.62, 45.0), 75.0), 1)
 
@@ -1243,6 +1438,77 @@ def _forest_figure(rows, options, label=None):
     """The forest Diagram of a `Chart.forest`, drawn under the document theme."""
     from .plot.forest import forest
     return forest(rows, label=label, **options)
+
+
+#: The largest radius a one-call pie is drawn at, in mm: a single-column pie
+#: reads as a disc, and a double-column one would read as a plate.
+_PIE_MAX_RADIUS = 36.0
+
+#: How many times a pie's radius is reduced to fit its cell. Its labels and
+#: key do not shrink with it, so each pass gets nearer and two or three settle.
+_PIE_FIT_PASSES = 4
+
+
+def _pie_key(legend, names):
+    """Where a pie's key goes, as `PolarPanel.legend` keywords; None for no key."""
+    if names is None or legend in (False, None, 'none'):
+        return None
+    if legend in ('auto', 'best'):
+        return {'side': 'right'}
+    return {'side': legend}
+
+
+def _pie_figure(names, values, hole, labels, legend, title, width=None, height=None):
+    """The pie Diagram of a `Chart.pie`, drawn under the document theme.
+
+    The radius shrinks until the disc, its outside labels and its key fit the
+    cell's width and, when the chart sets one, its height.
+    """
+    from .plot.polar import polar
+    radius = _PIE_MAX_RADIUS
+    for _ in range(_PIE_FIT_PASSES):
+        panel = polar(radius, hole=hole * radius, zero='up', winding='cw')
+        panel.pie(values, name=names, labels=labels)
+        key = _pie_key(legend, names)
+        if key is not None:
+            panel.legend(**key)
+        if title:
+            panel.title(title)
+        node = panel.build()
+        fit = 1.0
+        if width is not None and node.bbox.width > width:
+            fit = min(fit, width / node.bbox.width)
+        if height is not None and node.bbox.height > height:
+            fit = min(fit, height / node.bbox.height)
+        if fit >= 1.0:
+            break
+        radius *= fit * 0.995
+    return node
+
+
+def _one_per_category(table, category, value, what):
+    """(categories, values): the `value` column for each category, one row per category.
+
+    Rows with no category are dropped, and a category that appears twice is
+    an error: a dot per category cannot show two values, and averaging them
+    is a choice for the author. The categories keep their order.
+    """
+    if category is None or value is None:
+        raise ValueError(f'{what} needs the category and value columns')
+    keys = _column(table, category, 'category')
+    values = _column(table, value, 'value')
+    if len(keys) != len(values):
+        raise ValueError(f'{what} has {len(keys)} categories for {len(values)} values')
+    by_key = {}
+    for key, item in zip(keys, values):
+        if key is None:
+            continue
+        if key in by_key:
+            raise ValueError(f'{what} needs one row per category, but {key!r} appears more than once; '
+                             'summarise the rows first, or use i.bar(..., agg="mean")')
+        by_key[key] = item
+    cats = _in_category_order(table, category, list(by_key))
+    return cats, [by_key[c] for c in cats]
 
 
 def _labels_collide(figure, categories) -> bool:
@@ -1818,12 +2084,16 @@ _FORWARDS = {
     'boxplot': ('boxplot', 'strip'), 'violin': ('violin', 'strip'), 'strip': ('strip',),
     'area': ('fill_between', 'stackarea'), 'regression': ('regression',),
     'heatmap': ('matrix',), 'survival': ('kaplan_meier',), 'volcano': ('volcano',),
+    'lollipop': ('lollipop',), 'dumbbell': ('dumbbell',), 'waterfall': ('waterfall',),
+    'slope': ('slope',),
 }
 
 #: A plain sequence where a table belongs, with the call that takes it.
 _BARE_EXAMPLE = {'hist': 'x=[1, 2, 3]', 'kde': 'x=[1, 2, 3]', 'ecdf': 'x=[1, 2, 3]',
                  'survival': 'time=[5, 8, 12], event=[1, 0, 1]',
-                 'forest': 'label=[...], estimate=[...], lower=[...], upper=[...]'}
+                 'forest': 'label=[...], estimate=[...], lower=[...], upper=[...]',
+                 'pie': 'names=[...], values=[...]',
+                 'slope': 'x=[...], y=[...], group=[...]'}
 
 
 def _accepted_options(method) -> tuple[set[str], set[str]]:
@@ -1926,3 +2196,8 @@ regression = _entry('regression')
 survival = _entry('survival')
 volcano = _entry('volcano')
 forest = _entry('forest')
+pie = _entry('pie')
+lollipop = _entry('lollipop')
+dumbbell = _entry('dumbbell')
+waterfall = _entry('waterfall')
+slope = _entry('slope')

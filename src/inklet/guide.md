@@ -31,6 +31,11 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 | `i.survival(df, time=, event=, color=)` | Kaplan-Meier curves, one per group; `event` is 1/True for an event, 0/False for censored | `at_risk=True` table, `pvalue=True` log-rank P for 2+ groups, `band='log-log'`; survival runs 0 to 1 |
 | `i.volcano(df, x=, y=)` | `x` log2 fold change, `y` raw p-value | `label='col'` and `highlight=['name', ...]`, `q='col'` adjusted p colours by FDR |
 | `i.quick.forest(df, label=, estimate=, lower=, upper=)` | one row per study with its interval | `weight='col'`, `summary='col'` for diamonds, `log=True`, `right=['ci', 'n']`; `i.forest(rows)` is the rows-list diagram |
+| `i.pie(df, names=, values=)` | one slice per row, sized by `values`, labelled with shares | `hole=0.5` for a donut (a fraction of the radius); `legend='bottom'` or False, not a corner; `labels='value'` or a format |
+| `i.lollipop(df, x=, y=)` | one dot per category on a stem from zero | `orient='h'` lays it across, rows top to bottom; `color=` is one colour; one row per category |
+| `i.dumbbell(df, y=, x=['before', 'after'])` | two dots per category joined by a line; `y` the category, `x` the two value columns | the legend names the dots after the columns; rows top to bottom; a missing value draws no dot |
+| `i.waterfall(df, x=, y=)` | changes as bars on a running total | `totals=['Start', 'End']` steps stand from zero; a missing change on a total shows the running total; `ylim=` overrides the fitted range |
+| `i.slope(df, x=, y=, group=)` | each group's values at two or more time points, joined | `labels='both'` names the lines at their ends (no key); `format='{:.0f}%'`; `highlight=['name']` |
 
 `color=` that is not a column name is a literal colour: `color='#c1121f'`.
 

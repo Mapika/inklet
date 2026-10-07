@@ -47,6 +47,11 @@ are turned 45 degrees to fit.
 | `i.survival(df, time=, event=, color=)` | Kaplan-Meier curves, one per group, with censor ticks, confidence bands, a number-at-risk table and a log-rank P. `event` is 1 or True for an event and 0 or False for a censored subject |
 | `i.volcano(df, x=, y=)` | Volcano plot: `x` the log2 fold change, `y` the raw p-value. `label=` names the features, `highlight=` names chosen ones, and `q=` classes the points by adjusted p |
 | `i.quick.forest(df, label=, estimate=, lower=, upper=)` | Forest plot, one row per study with its interval; `weight=` sizes the squares, `summary=` draws diamonds, and `right=` adds text columns. It is `inklet.quick.forest` because `inklet.forest(rows)` is the rows-list diagram |
+| `i.pie(df, names=, values=)` | Pie chart, one slice per row in palette order, labelled with its share and keyed by `names=`. `hole=0.5` makes a donut (the hole is a fraction of the radius); `legend=` takes a side or False, since a corner key would sit on the slices |
+| `i.lollipop(df, x=, y=)` | One dot per category on a stem from zero. `orient='h'` lays the stems across, with the rows read from the top |
+| `i.dumbbell(df, y=, x=['before', 'after'])` | Two dots per category joined by a line, for before and after or any pair of values. `y` names the categories and `x` the two value columns; the legend names the dots |
+| `i.waterfall(df, x=, y=)` | Changes as bars floating on a running total. `totals=` names the steps that stand from zero; a missing change on a total shows the running total, and `labels=True` writes each change |
+| `i.slope(df, x=, y=, group=)` | Each group's values at two or more time points, joined by a line, with the name and value written at the ends. `x` is the time column, `group=` the series |
 
 ## Chart options
 

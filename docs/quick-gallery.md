@@ -195,3 +195,63 @@ chart = (trace | spread) / i.hist(outcomes, x='response (a.u.)', color='group', 
 chart = i.line(df, x='time (h)', y='signal (a.u.)', color='condition',
                legend='direct')
 ```
+
+## Pie chart
+
+`df` has `cell type` and `cells (n)`, one row per type. The slices are sized by `values=`, labelled with their shares, and keyed by `names=`.
+
+![Cell types in one tissue sample as a pie: neurons take just over half of the disc, and the two smallest slices are labelled outside the rim](assets/quick-gallery/pie.svg)
+
+```python
+chart = i.pie(df, names='cell type', values='cells (n)')
+```
+
+## Donut chart
+
+`df` is the cell-type table from the pie chart. `hole=0.5` leaves a hole half the radius of the disc.
+
+![The same cell types as a donut, with the key at the bottom](assets/quick-gallery/donut.svg)
+
+```python
+chart = i.pie(df, names='cell type', values='cells (n)', hole=0.5, legend='bottom')
+```
+
+## Lollipop chart
+
+`df` has `pathway` and `score`, one row per pathway. `orient='h'` lays the stems across the page.
+
+![Enrichment score of five pathways as dots on stems from zero, one row per pathway, with the rows read from the top](assets/quick-gallery/lollipop.svg)
+
+```python
+chart = i.lollipop(df, x='pathway', y='score', orient='h')
+```
+
+## Dumbbell chart
+
+`df` has `site`, `before (%)` and `after (%)`, one row per site. `x=` names the two value columns.
+
+![Soil moisture at four sites before and after a dry season: each site is a line between its two dots, and the legend says which dot is which](assets/quick-gallery/dumbbell.svg)
+
+```python
+chart = i.dumbbell(df, y='site', x=['before (%)', 'after (%)'])
+```
+
+## Waterfall chart
+
+`df` has `step` and `change (k$)`. The two `totals=` steps stand from zero; a missing change on a total shows the running total.
+
+![A budget from its opening balance to its closing one: sales add, costs and tax take away, and the closing bar is the running total](assets/quick-gallery/waterfall.svg)
+
+```python
+chart = i.waterfall(df, x='step', y='change (k$)', totals=['Opening', 'Closing'])
+```
+
+## Slope chart
+
+`df` has `year`, `country` and `support (%)`: two time points per country. `format=` writes the values as percentages.
+
+![Support for a policy in four countries in 2015 and in 2025, each country a line with its name and value written at both ends](assets/quick-gallery/slope.svg)
+
+```python
+chart = i.slope(df, x='year', y='support (%)', group='country', format='{:.0f}%')
+```
