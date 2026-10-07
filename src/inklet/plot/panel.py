@@ -3402,6 +3402,7 @@ class Panel:
                    confidence: float | None = 0.95, prediction: bool = False,
                    scatter: bool = True, frac: float = 2 / 3,
                    iterations: int = 3, span: tuple | None = None,
+                   equation: bool | str = False,
                    color: str | None = None, size=None, name: str | None = None,
                    **style) -> "Panel":
         """Points with a fitted line and its confidence band.
@@ -3425,13 +3426,27 @@ class Panel:
         The line's node carries a `regression` note with the slope,
         intercept, r2, p-value and n; `inklet.plot.linear_fit` and
         `inklet.plot.lowess` compute them without drawing.
+
+        `equation=True` writes the fit on the plot, `y = 0.500x + 3.00,
+        R^{2} = 0.667`, in the line's colour, three significant figures each.
+        It is set in the first spot of the plot area that clears every mark,
+        found at build time, so the call can come before the marks it must
+        avoid. A string is a template for the text instead, filled by
+        `str.format` from `slope`, `intercept`, `r`, `r2`, `n` and `p`, with
+        literal braces doubled. Needs `method="linear"`. If no spot in the
+        plot is clear, the text is drawn anyway and lint reports it as
+        `LABEL_UNPLACED`.
         """
-        from .regression import regression_curve
+        from .regression import (defer_equation, equation_from, equation_text,
+                                 regression_curve)
 
         clip = _clip_flag(style)
         clip = True if clip is None else clip
         theme = active_theme()
         data = [tuple(p) for p in points]
+        if equation and method != "linear":
+            raise DiagramError('regression(equation=) writes the linear fit, so it needs '
+                               f'method="linear", not {method!r}')
         ink = self._series_color(name, color) or theme.ink
         curve = regression_curve(data, method=method, confidence=confidence,
                                  prediction=prediction, span=span, frac=frac,
@@ -3455,6 +3470,12 @@ class Panel:
             note.update(slope=fit.slope, intercept=fit.intercept, r2=fit.r2,
                         p=fit.p, n=fit.n)
         self._content[-1].notes["regression"] = note
+        if equation:
+            text = (equation_from(equation, fit) if isinstance(equation, str)
+                    else equation_text(fit, log_x=isinstance(self.x, Log)))
+            note["equation"] = text
+            defer_equation(self, text, ink)
+            return self._touched()
         return self
 
     def residuals(self, points: Iterable[Sequence], *, method: str = "linear",

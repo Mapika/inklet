@@ -26,7 +26,7 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 | `i.kde(df, x, color=)` / `i.ecdf(df, x, color=)` | | `fill=True` on kde |
 | `i.boxplot(df, x, y)` / `i.violin(df, x, y)` / `i.strip(df, x, y)` | `x` category column, `y` values | `points=True` overlays the samples |
 | `i.area(df, x, y, color=)` | groups stack (values must be >= 0) | `stacked=False` overlays |
-| `i.regression(df, x, y, color=)` | points + fitted line + confidence band | `method='linear'` or `'lowess'` |
+| `i.regression(df, x, y, color=)` | points + fitted line + confidence band | `method='linear'` or `'lowess'`; `equation=True` writes `y = 0.500x + 3.00, R^{2} = 0.667` on the plot, one per group in its colour; `chart.fits[group]` is each group's `LinearFit` (slope, intercept, r, r2, p, `slope_interval()`), known before save |
 | `i.heatmap(rows, x=col_labels, y=row_labels)` | or a long table: `i.heatmap(df, x=, y=, z=)` | first row is drawn at the top; `palette='viridis'` |
 | `i.survival(df, time=, event=, color=)` | Kaplan-Meier curves, one per group; `event` is 1/True for an event, 0/False for censored | `at_risk=True` table, `pvalue=True` log-rank P for 2+ groups, `band='log-log'`; survival runs 0 to 1 |
 | `i.volcano(df, x=, y=)` | `x` log2 fold change, `y` raw p-value | `label='col'` and `highlight=['name', ...]`, `q='col'` adjusted p colours by FDR |
@@ -307,7 +307,7 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `raincloud(groups, *, at=None, orient='h', width=0.9, bandwidth=None, samples=64, cut=2.0, whisker=1.5, points='jitter', size=None, seed=0, box=True, color=None, **style)`: A half violin, a narrow box and the observations, per group.
 - `rect(x0, y0, x1, y1, *, front=False, **style)`: A rectangle whose four sides are **data** values -- a gated region, the extent of an inset, a box round a cluster.
 - `region(x0, y0, x1, y1)`: Map two data corners to a normalized rectangle in panel coordinates.
-- `regression(points, *, method='linear', confidence=0.95, prediction=False, scatter=True, frac=0.6666666666666666, iterations=3, span=None, color=None, size=None, name=None, **style)`: Points with a fitted line and its confidence band.
+- `regression(points, *, method='linear', confidence=0.95, prediction=False, scatter=True, frac=0.6666666666666666, iterations=3, span=None, equation=False, color=None, size=None, name=None, **style)`: Points with a fitted line and its confidence band.
 - `residuals(points, *, method='linear', frac=0.6666666666666666, iterations=3, smooth=False, color=None, size=None, name=None, **style)`: The residuals of a fit against x, with a zero line.
 - `ribbon(a, b, **kwargs)`: A Sankey band from data point `a` to data point `b`.
 - `ridgeline(groups, *, at=None, overlap=1.5, bandwidth=None, samples=96, scale='shared', fit=True, color=None, **style)`: Overlapping kernel densities, one per category: a ridgeline plot.

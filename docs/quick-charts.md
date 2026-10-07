@@ -42,7 +42,7 @@ are turned 45 degrees to fit.
 | `i.boxplot(df, x, y)` | Box plots per category; `points=True` overlays the samples |
 | `i.violin(df, x, y)` / `i.strip(df, x, y)` | Violins and jittered points per category |
 | `i.area(df, x, y, color=)` | Stacked areas (`stacked=False` overlays) |
-| `i.regression(df, x, y, color=)` | Points with a fitted line and confidence band |
+| `i.regression(df, x, y, color=)` | Points with a fitted line and confidence band; `equation=True` writes each group's fit on the plot. `method='lowess'` draws a smoother instead. See [regression fits](#regression-fits) |
 | `i.heatmap(rows, x=, y=)` | Colour matrix with a colour bar, or a long table with `z=` |
 | `i.survival(df, time=, event=, color=)` | Kaplan-Meier curves, one per group, with censor ticks, confidence bands, a number-at-risk table and a log-rank P. `event` is 1 or True for an event and 0 or False for a censored subject |
 | `i.volcano(df, x=, y=)` | Volcano plot: `x` the log2 fold change, `y` the raw p-value. `label=` names the features, `highlight=` names chosen ones, and `q=` classes the points by adjusted p |
@@ -52,6 +52,32 @@ are turned 45 degrees to fit.
 | `i.dumbbell(df, y=, x=['before', 'after'])` | Two dots per category joined by a line, for before and after or any pair of values. `y` names the categories and `x` the two value columns; the legend names the dots |
 | `i.waterfall(df, x=, y=)` | Changes as bars floating on a running total. `totals=` names the steps that stand from zero; a missing change on a total shows the running total, and `labels=True` writes each change |
 | `i.slope(df, x=, y=, group=)` | Each group's values at two or more time points, joined by a line, with the name and value written at the ends. `x` is the time column, `group=` the series |
+
+## Regression fits
+
+`i.regression` fits each group by least squares, and `chart.fits` holds the
+result, keyed by the group's `color=` value (an ungrouped chart is keyed by
+`name=`, or `None` without it). The fits are made when the call is, so they
+are there before `save()`:
+
+```python
+chart = i.regression(df, x='dose', y='response', color='strain', equation=True)
+fit = chart.fits['wild type']
+fit.slope, fit.intercept, fit.r2, fit.p   # p: two-sided, against a slope of 0
+fit.slope_interval(0.95)                  # the 95% confidence interval of the slope
+```
+
+A `LinearFit` also has `r` (Pearson's, signed), `n`, `slope_se` and
+`sigma`. `method='lowess'` has no line to report, so it adds no entry.
+
+`equation=True` writes each group's line on the plot, in the group's colour,
+as `y = 0.500x + 3.00, R^{2} = 0.667`, three significant figures each. The
+text goes in the first clear spot of the plot area, found once every mark is
+drawn, so a crowded plot gets a `LABEL_UNPLACED` warning from lint rather
+than text laid over the data. On a log x axis the fit is of y on log10(x),
+and the equation writes `log_{10}(x)`. `equation=` also takes a template
+filled from `slope`, `intercept`, `r`, `r2`, `n` and `p`, such as
+`equation='slope {slope:.2f}'`; literal braces are doubled.
 
 ## Chart options
 
