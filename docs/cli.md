@@ -6,10 +6,17 @@ arguments.
 
 ## Author script contract
 
-A script should define `make_document()` returning a Document, or
-`make_figure()` returning a Figure. The loader also accepts a top-level `doc`
-or `fig`. A factory may return a CompiledFigure. It looks for these in that
-order, preferring `make_document()` over `make_figure()`.
+A script supplies its figure in one of two ways. Define a factory, `make_document()`
+returning a Document, `make_figure()` returning a Figure, or `make_chart()`
+returning a chart; the first one defined, in that order, is called. Or leave a
+top-level Document, Chart, Layout, CompiledFigure or Figure. The loader picks
+that object by type, so other top-level values, such as a matplotlib `fig` or a
+pandas DataFrame, are ignored. If there are several, a top-level name `chart`,
+`doc`, `fig` or `figure` is preferred, in that order. Without such a name the
+single inklet object is used. Two or more unnamed inklet objects are an error,
+and so is a script with none; the error lists the top-level names it found.
+If a factory returns anything else, the build fails and names the factory and
+the type it returned.
 
 ```python
 import inklet as i

@@ -13,7 +13,7 @@ inklet guide --api    # plus every plot method with its arguments
 ```
 
 The guide ships inside the package, so it always describes the installed
-version. Tell your agent to run `inklet guide` before plotting, or install it
+version; its first line names that version. Tell your agent to run `inklet guide` before plotting, or install it
 as a skill so the agent loads it on its own:
 
 ```sh
@@ -66,8 +66,10 @@ size in millimetres and the preview path. In Python, `chart.save()` raises a
 `LayoutWarning` carrying the report when something needs attention, so an agent
 sees problems in the script's output even if it never calls `report()`.
 
-The script can define `chart`, `fig` or `doc` at module level, or a
-`make_chart()`, `make_figure()` or `make_document()` function.
+The script's figure is chosen by type, so a matplotlib `fig` beside an inklet
+`chart` does not confuse the build. Name the inklet object `chart` (or define
+`make_chart()`). The [command-line reference](cli.md#author-script-contract)
+lists the accepted forms and the errors.
 
 ## Headless and deterministic
 

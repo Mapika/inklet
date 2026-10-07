@@ -16,6 +16,7 @@ import subprocess
 import sys
 import threading
 import time
+from types import ModuleType
 from urllib.parse import quote, urlsplit
 
 
@@ -44,29 +45,80 @@ def doctor(*, devices=False):
     return report
 
 
+#: Factories in the order they are tried; the first one defined is called.
+_FACTORIES=('make_document','make_figure','make_chart')
+#: Module-level names preferred when several inklet figures are defined.
+_FIGURE_NAMES=('chart','doc','fig','figure')
+
+
+def _figure_types():
+    from .document import CompiledFigure, Document
+    from .figure import Figure
+    from .quick import Chart, Layout
+    return (Document,Chart,Layout,CompiledFigure,Figure)
+
+
+def _describe(value):
+    kind=type(value)
+    return kind.__qualname__ if kind.__module__=='builtins' else f'{kind.__module__}.{kind.__qualname__}'
+
+
+def _module_figure(namespace):
+    """The inklet object a script leaves at module level.
+
+    Chosen by type, so a matplotlib `fig` beside an inklet `chart` is ignored.
+    Names are checked first, because an author who named an object meant it;
+    an unnamed object is used only when it is the only one.
+    """
+    types=_figure_types()
+    found={name:value for name,value in namespace.items() if not name.startswith('_') and isinstance(value,types)}
+    for name in _FIGURE_NAMES:
+        if name in found:return found[name]
+    if len(found)==1:return next(iter(found.values()))
+    if found:
+        raise ValueError(f'author script defines several unnamed inklet figures ({", ".join(found)}); '
+                         'name the one to build `chart`')
+    listed=[f'{name} ({_describe(value)})' for name,value in namespace.items()
+            if not name.startswith('_') and not callable(value) and not isinstance(value,ModuleType)]
+    raise ValueError('author script defines no figure. Define make_document(), make_figure() or make_chart() '
+                     'returning one, or assign a Document, Chart, Layout, CompiledFigure or Figure to a '
+                     'module-level name such as `chart = i.line(...)`.\n'
+                     f'Module-level names found: {", ".join(listed) or "none"}')
+
+
 def load_figure(script):
-    """Execute an author script and obtain its make_document()/make_figure()."""
+    """Execute an author script and obtain the figure it builds.
+
+    A `make_*` factory is used when one is defined, otherwise the module-level
+    inklet object (see `_module_figure`). The result is compiled when it is a
+    Document, Chart or Layout.
+    """
     path=Path(script).resolve()
     before=list(sys.path)
     sys.path.insert(0,str(path.parent))
     try:
         namespace=runpy.run_path(str(path),run_name='__inklet_build__')
-        for name in ('make_document','make_figure','make_chart'):
-            if callable(namespace.get(name)):
-                result=namespace[name]()
-                break
-        else:
-            result=next((namespace[n] for n in ('doc','fig','chart') if namespace.get(n) is not None),None)
-        if result is None:
-            raise ValueError('author script must define make_document(), make_figure(), make_chart(), doc, fig or chart')
+        factory=next((name for name in _FACTORIES if callable(namespace.get(name))),None)
+        result=namespace[factory]() if factory else _module_figure(namespace)
         from .document import Document
         from .quick import Chart, Layout
         if isinstance(result,(Document,Chart,Layout)):result=result.compile()
         if not all(hasattr(result,name) for name in ('save','export','lint')):
-            raise TypeError('author script must return a Document, Chart, CompiledFigure or Figure')
+            where=f'{factory}()' if factory else 'the script'
+            raise TypeError(f'{where} returned {_describe(result)}; author script must return a Document, '
+                            'Chart, Layout, CompiledFigure or Figure')
         return result
     finally:
         sys.path[:]=before
+
+
+def _version():
+    """The installed distribution's version; the package attribute for a source tree on PYTHONPATH."""
+    from importlib.metadata import PackageNotFoundError, version
+    try:return version('inklet')
+    except PackageNotFoundError:
+        from . import __version__
+        return __version__
 
 
 def build(script,output,name,dpi=None,vectors_only=False,compare_pdf=True,compare_to=None,png_backend='resvg'):
@@ -254,7 +306,9 @@ def main(argv=None):
             return check(args.script,png=args.png,as_json=args.json,strict=args.strict)
         if args.command=='guide':
             from .agent import guide
-            print(guide(api=args.api));return 0
+            # The version goes on the first line, not into guide.md, so the
+            # generated llms-full.txt (which is the guide text) stays version-free.
+            print(f'inklet {_version()}');print(guide(api=args.api));return 0
         if args.command=='skill':
             from .agent import install_skill
             print(f'inklet: wrote {install_skill(args.directory)}');return 0
