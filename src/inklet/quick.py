@@ -61,17 +61,27 @@ class LayoutWarning(UserWarning):
 # -- tables -----------------------------------------------------------------
 
 
+class _Table(dict):
+    """Columns as lists. `orders` maps a categorical column to its declared categories."""
+
+    orders = {}
+
+
 def _table(data) -> dict[str, list] | None:
     """Columns of a DataFrame, mapping or list of records, as Python lists."""
     if data is None:
         return None
+    if isinstance(data, _Table):
+        return data
     if isinstance(data, (str, Path)):
         return _read_table(Path(data))
     if hasattr(data, 'to_dict') and hasattr(data, 'columns') and hasattr(data, 'index'):
         # pandas: keep the index, which is the x of an index-keyed series.
         frame = data.reset_index() if _named_index(data) else data
-        columns = {str(name): _values(frame[name]) for name in frame.columns}
+        columns = _Table({str(name): _values(frame[name]) for name in frame.columns})
         columns.setdefault('index', _values(data.index))
+        columns.orders = {str(name): _values(frame[name].cat.categories)
+                          for name in frame.columns if hasattr(frame[name], 'cat')}
         return columns
     if hasattr(data, 'to_dict') and hasattr(data, 'columns') and hasattr(data, 'schema'):
         return {str(k): _values(v) for k, v in data.to_dict(as_series=False).items()}
@@ -84,11 +94,16 @@ def _table(data) -> dict[str, list] | None:
                     f'got {type(data).__name__}')
 
 
+#: Cell texts read as missing values, as R, pandas and most exports write them.
+_MISSING = frozenset({'', 'NA', 'N/A', 'NaN', 'nan', 'null', 'NULL'})
+
+
 def _read_table(path: Path) -> dict[str, list]:
     """A CSV or TSV file as columns; numbers and ISO dates are parsed.
 
     A column becomes numbers when every non-empty cell is one, and dates when
-    every non-empty cell is an ISO date; empty cells are missing values.
+    every non-empty cell is an ISO date; empty cells and `_MISSING` texts are
+    missing values. Blank lines are skipped.
     """
     import csv
     from datetime import datetime
@@ -96,21 +111,22 @@ def _read_table(path: Path) -> dict[str, list]:
         raise FileNotFoundError(f'no data file at {path}')
     delimiter = '\t' if path.suffix.lower() in ('.tsv', '.tab') else ','
     with path.open(newline='', encoding='utf-8-sig') as handle:
-        rows = list(csv.reader(handle, delimiter=delimiter))
+        rows = [row for row in csv.reader(handle, delimiter=delimiter) if any(cell.strip() for cell in row)]
     if not rows:
         raise ValueError(f'{path} is empty')
     header, body = rows[0], rows[1:]
     columns = {}
     for index, name in enumerate(header):
         cells = [row[index].strip() if index < len(row) else '' for row in body]
+        cells = [None if c in _MISSING else c for c in cells]
         for parse in (float, datetime.fromisoformat):
             try:
-                columns[name] = [parse(c) if c else None for c in cells]
+                columns[name] = [parse(c) if c is not None else None for c in cells]
                 break
             except ValueError:
                 continue
         else:
-            columns[name] = [c if c else None for c in cells]
+            columns[name] = cells
         present = [v for v in columns[name] if v is not None]
         if present and all(isinstance(v, float) and v.is_integer() for v in present):
             columns[name] = [None if v is None else int(v) for v in columns[name]]
@@ -166,26 +182,35 @@ def _label(name, fallback=None):
     return name if isinstance(name, str) else fallback
 
 
+def _in_category_order(table, name, keys):
+    """Distinct keys in first-appearance order, or in the declared order when
+    `name` is a categorical column. Declared categories no row uses are left out."""
+    seen = list(dict.fromkeys(k for k in keys if k is not None))
+    declared = getattr(table, 'orders', {}).get(name) if isinstance(name, str) else None
+    if not declared:
+        return seen
+    rank = {value: k for k, value in enumerate(declared)}
+    return sorted(seen, key=lambda value: rank.get(value, len(rank)))
+
+
 def _groups(table, color, *columns):
     """Split columns by the `color=` column: [(name or None, columns...)].
 
     Rows with a missing value in any column are dropped, so a gap in one
-    column does not shift the others.
+    column does not shift the others. Groups follow `_in_category_order`.
     """
     keys = _column(table, color, 'color') if _is_column(table, color) else None
     rows = list(zip(*columns)) if columns else []
     if keys is None:
         kept = [row for row in rows if all(v is not None for v in row)]
         return [(None, *map(list, zip(*kept)))] if kept else [(None, *([] for _ in columns))]
-    order, split = [], {}
+    split = {}
     for key, row in zip(keys, rows):
         if key is None or any(v is None for v in row):
             continue
-        if key not in split:
-            order.append(key)
-            split[key] = []
-        split[key].append(row)
-    return [(str(key), *map(list, zip(*split[key]))) for key in order]
+        split.setdefault(key, []).append(row)
+    return [(str(key), *map(list, zip(*split[key])))
+            for key in _in_category_order(table, color, split)]
 
 
 def _check_color(color):
@@ -440,11 +465,12 @@ class Chart(_Renderable):
             raise ValueError('bar() needs x=, the categories along the axis')
         heights = _column(table, y, 'y') if y is not None else None
         groups = _column(table, color, 'color') if _is_column(table, color) else None
-        cats = list(dict.fromkeys(v for v in at if v is not None))
+        cats = _in_category_order(table, x, at)
         if agg != 'sum':
             return self._estimated(table, x, y, at, heights, groups, cats, agg, error_y, points,
                                    color, name, orient, style)
-        series, names = _aggregate(at, heights, groups, cats)
+        names = _in_category_order(table, color, groups) if groups is not None else None
+        series, names = _aggregate(at, heights, groups, cats, names)
         options = dict(style)
         # Bars are filled shapes: no outline drawn round them.
         options.setdefault('stroke', 'none')
@@ -484,7 +510,7 @@ class Chart(_Renderable):
             raise ValueError(f"bar(agg='{agg}') needs y=, the values to average")
         if error_y is not None and error_y not in ('sem', 'sd', 'ci95', 'iqr'):
             raise ValueError("with agg='mean' or 'median', error_y is 'sem', 'sd', 'ci95' or 'iqr'")
-        names = list(dict.fromkeys(g for g in groups if g is not None)) if groups is not None else [None]
+        names = _in_category_order(table, color, groups) if groups is not None else [None]
         samples = {(c, g): [] for c in cats for g in names}
         for index, cat in enumerate(at):
             group = groups[index] if groups is not None else None
@@ -844,7 +870,7 @@ class Chart(_Renderable):
         if y is None and table is not None:
             y = [name for name, values in table.items()
                  if name not in (x, 'index', color) and _numeric(values)]
-        if not y:
+        if y is None or (hasattr(y, '__len__') and len(y) == 0):
             raise ValueError('this chart needs y=, a column name or a sequence of values')
         ys_names = list(y) if isinstance(y, (list, tuple)) and all(isinstance(v, str) for v in y) \
             and table is not None and all(v in table for v in y) else None
@@ -892,6 +918,8 @@ class Chart(_Renderable):
                 if key is None or value is None:
                     continue
                 groups.setdefault(str(key), []).append(value)
+            groups = {str(key): groups[str(key)] for key in _in_category_order(table, x, keys)
+                      if str(key) in groups}
         if style.get('orient', 'v') == 'v':
             self._categories(list(groups))
         getattr(self.spec, method)(groups, **self._style(table, color, style, lone=True))
@@ -968,9 +996,10 @@ def _index(table, column, length=None):
     return list(range(length))
 
 
-def _aggregate(at, heights, groups, cats):
+def _aggregate(at, heights, groups, cats, names=None):
     """Sum (or count) bar heights per category, per group."""
-    names = list(dict.fromkeys(g for g in groups if g is not None)) if groups is not None else [None]
+    if names is None:
+        names = list(dict.fromkeys(g for g in groups if g is not None)) if groups is not None else [None]
     totals = {(c, g): 0.0 for c in cats for g in names}
     for index, cat in enumerate(at):
         if cat is None:
@@ -1182,13 +1211,14 @@ def _facet(method, data, args, own, rest, facet_col, facet_row, wrap):
     else:
         cells, columns = [(r, None) for r in row_values], 1
     color = rest.get('color')
-    groups = (list(dict.fromkeys(str(v) for v in table[color] if v is not None))
+    groups = ([str(v) for v in _in_category_order(table, color, table[color])]
               if _is_column(table, color) else [])
     charts = []
     for row_value, col_value in cells:
         keep = [(rows_by is None or rows_by[k] == row_value) and
                 (cols_by is None or cols_by[k] == col_value) for k in range(len(next(iter(table.values()))))]
-        subset = {name: [v for v, k in zip(values, keep) if k] for name, values in table.items()}
+        subset = _Table({name: [v for v, k in zip(values, keep) if k] for name, values in table.items()})
+        subset.orders = getattr(table, 'orders', {})
         # A bare number says nothing; name the column it came from.
         title = ' · '.join(v if isinstance(v, str) else f'{name} = {v}'
                            for name, v in ((facet_row, row_value), (facet_col, col_value))
