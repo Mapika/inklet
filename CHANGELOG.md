@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.6.0 — 2026-10-07
 
 Charts in one call, a matplotlib bridge, notebook display and tooling for
 coding agents.
@@ -33,6 +33,20 @@ coding agents.
   prints its diagnostics and exits 1 on errors. `inklet build` and `check`
   also accept scripts that define `chart` or `make_chart()`.
 - The documentation publishes `llms.txt` and `llms-full.txt`.
+- More one-call charts: `i.pie` (and donuts with `hole=`), `lollipop`,
+  `dumbbell`, `waterfall` and `slope`, with `i.quick.forest` for forest plots.
+- `secondary_y=` on one-call `line` and `scatter` draws the named series
+  against a right-hand axis titled and coloured for them; each axis fits its
+  own data, and facets share one right-hand scale.
+- Layouts take `style=`, `palette=`, `font_pt=` and `grid=` (or
+  `layout.options(...)`); charts that disagree on a figure-wide setting warn
+  once and the first chart's value is used. A series name keeps one colour in
+  every panel of a layout.
+- Regression statistics: `LinearFit.r` and `slope_interval()`;
+  `regression(equation=True)` writes `y = 0.500x + 3.00, R² = 0.667` in clear
+  space (one per group, in its colour); one-call charts expose `chart.fits`.
+- `chart.colorbar(...)` and `chart.legend(...)` update the bar or key a chart
+  already draws instead of adding a second one.
 - `plot_spec(..., aspect='equal')` keeps one data unit the same length on x
   and y, and `aspect=<number>` keeps the data area's height over its width.
   The plot is the largest region of that shape inside its cell, `align=`
@@ -50,8 +64,9 @@ coding agents.
   plot. `x='auto'` always fits, and `x='log'` fits a log scale. Points, rules
   and bands are read directly; statistical marks are measured from a probe
   drawing. Bars and histograms keep their baseline on the axis.
-- Eight published figures recreated from their data (physics, astronomy,
-  climate, ecology, medicine, genomics, development, statistics) in
+- Fourteen published figures recreated from their data (physics, astronomy,
+  climate, ecology, medicine, genomics, epidemiology, neuroscience,
+  seismology, psychology, development, statistics) in
   `examples/published/`, with sources and licences; see the docs page
   "Published figures, recreated".
 - `scatter(hollow=True)`; `legend(names=[...])` orders and filters a key;
@@ -105,6 +120,14 @@ coding agents.
 - Sample dots in `barplot`, `slope` and `bump` charts no longer have a white
   outline.
 - `save(..., dpi=)` with SVG or PDF paths in the same call no longer fails.
+- `annotate()` with empty text raises at the call instead of drawing a leader
+  to nothing (lint's new `ORPHAN_LEADER` catches the cases that remain), and
+  lint reports `DUPLICATE_KEY` for two colour bars or keys of one series.
+- Lint folds one label lying over many marks into one finding, and names
+  links, containers and panels by their words with the id last.
+- A one-call line over text x values (month names) keeps the table's order
+  instead of sorting it alphabetically; `Panel.waterfall` and `Panel.slope`
+  fit their axes to their data and accept text positions.
 - `line`, `step`, `hline`, `vline`, `errorbars`, `ecdf`, `fill`,
   `fill_between`, `hspan`, `vspan`, `ribbon` and `text` accept `color=`, like
   the other marks. An explicit `stroke=` or `fill=` still takes precedence.

@@ -1,8 +1,8 @@
 """Release Inklet from master in one command.
 
-    python tools/release.py 4.5.0            # check, build, confirm, publish
-    python tools/release.py 4.5.0 --dry-run  # everything local; publish nothing
-    python tools/release.py 4.5.0 --yes      # no confirmation prompts
+    python tools/release.py 4.6.0            # check, build, confirm, publish
+    python tools/release.py 4.6.0 --dry-run  # everything local; publish nothing
+    python tools/release.py 4.6.0 --yes      # no confirmation prompts
 
 The version must already be committed on master: `pyproject.toml`,
 `inklet.__version__` and a `## X.Y.Z — date` heading in CHANGELOG.md. The
@@ -319,7 +319,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog="Steps: " + ", ".join(STEPS))
-    parser.add_argument("version", help="the version to release, e.g. 4.5.0")
+    parser.add_argument("version", help="the version to release, e.g. 4.6.0")
     parser.add_argument("--from", dest="start", choices=STEPS, default=STEPS[0],
                         help="skip the steps before this one")
     parser.add_argument("--yes", action="store_true", help="do not ask before publishing steps")
@@ -329,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="skip the local test suite (CI still runs it before tagging)")
     args = parser.parse_args(argv)
     if not re.fullmatch(r"\d+\.\d+\.\d+(?:(?:rc|\.dev)\d+)?", args.version):
-        parser.error(f"{args.version!r} is not a version such as 4.5.0, 5.0.0rc1 or 5.0.0.dev1")
+        parser.error(f"{args.version!r} is not a version such as 4.6.0, 5.0.0rc1 or 5.0.0.dev1")
 
     release = Release(args.version, assume_yes=args.yes, dry_run=args.dry_run, fast=args.fast)
     actions = {"preflight": release.preflight, "checks": release.checks, "build": release.build,

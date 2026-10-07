@@ -39,9 +39,11 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.5.0 is stable**. It lets a page choose among layout alternatives
-(`choose()`), packs panels without a grid (`document(pack=True)`, experimental),
-and keeps nested subfigures at their natural heights. The 4.4 series added about
+**4.6.0 is stable**. It adds charts in one call (`i.line(df, x=, y=,
+color=)` and about twenty more), a matplotlib bridge (`i.from_matplotlib`),
+inline notebook display, and tooling for coding agents (`inklet guide`,
+`inklet check`, `inklet skill`). 4.5 let a page choose among layout
+alternatives and pack panels without a grid. The 4.4 series added about
 60 plot types, 98 curated palettes with the new default `inklet` palette, and a
 label placement engine for direct labels and legends. 4.x is the deprecation
 series before 5.0: old spellings
