@@ -112,6 +112,8 @@ what the finished output looks like. See [charts in one call](https://inklet.rea
 chart type and option, and [bringing matplotlib figures](https://inklet.readthedocs.io/en/latest/matplotlib/)
 for converting existing plotting code.
 
+Try it in a notebook: examples/notebooks/quickstart.ipynb
+
 ### The document model
 
 Charts are a front end to live documents, which also hold diagrams, images and
