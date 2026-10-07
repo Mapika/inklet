@@ -35,6 +35,11 @@ One plot: marks on shared axes, with a size and a preset.
 * `survival(data=None, time=None, event=None, *, color=None, at_risk=True, pvalue=True, band='log-log', confidence=0.95, censors=True, **style)` -- Kaplan-Meier survival curves: `time` durations and `event` flags, one curve per `color` group.
 * `volcano(data=None, x=None, y=None, *, label=None, labels=None, highlight=None, q=None, **style)` -- A volcano plot: `x` the log2 fold change, `y` the raw p-value, one point per row.
 * `forest(data=None, label=None, estimate=None, lower=None, upper=None, *, weight=None, summary=None, left=('label',), right=('ci',), log=False, null=None, limits=None, measure='Estimate', digits=2, **style)` -- A forest plot: one row per study, with its estimate and confidence interval.
+* `pie(data=None, names=None, values=None, *, hole=0, labels='percent')` -- A pie chart: one slice per row, sized by `values`, in row order.
+* `lollipop(data=None, x=None, y=None, *, color=None, orient='v', **style)` -- One value per category as a dot on a stem from zero: a lighter bar chart.
+* `dumbbell(data=None, y=None, x=None, **style)` -- Two values per category joined by a line: before and after, for instance.
+* `waterfall(data=None, x=None, y=None, *, totals=(), labels=True, **style)` -- Changes as bars floating on a running total: a waterfall chart.
+* `slope(data=None, x=None, y=None, group=None, *, labels='both', format=None, highlight=None, **style)` -- Each group's values at two or more time points, joined by a straight line.
 * `labels(*, x=None, y=None, title=None)` -- Set axis titles and the chart title (all optional).
 * `size(width=None, height=None)` -- Width as 'single', 'double', 'slide' or millimetres; height in mm.
 * `plot(width=None, profile=None, rotate=False)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
@@ -124,6 +129,26 @@ Kaplan-Meier survival curves: `time` durations and `event` flags, one curve per 
 #### `volcano(data=None, *args, **options)`
 
 A volcano plot: `x` the log2 fold change, `y` the raw p-value, one point per row.
+
+#### `pie(data=None, *args, **options)`
+
+A pie chart: one slice per row, sized by `values`, in row order.
+
+#### `lollipop(data=None, *args, **options)`
+
+One value per category as a dot on a stem from zero: a lighter bar chart.
+
+#### `dumbbell(data=None, *args, **options)`
+
+Two values per category joined by a line: before and after, for instance.
+
+#### `waterfall(data=None, *args, **options)`
+
+Changes as bars floating on a running total: a waterfall chart.
+
+#### `slope(data=None, *args, **options)`
+
+Each group's values at two or more time points, joined by a straight line.
 
 #### `from_matplotlib(figure, *, width=None, style='scientific.modern', palette=None, keep_colors=False, letters=True)`
 

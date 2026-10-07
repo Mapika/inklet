@@ -211,6 +211,44 @@ def cytokines():
     return table
 
 
+def cell_types():
+    """Cells counted in one tissue sample, by type: one row per type."""
+    return {'cell type': ['Neurons', 'Glia', 'Vascular', 'Immune', 'Other'],
+            'cells (n)': [54, 28, 12, 4, 2]}
+
+
+def pathway_scores():
+    """Enrichment score of five pathways from one differential-expression run."""
+    return {'pathway': ['Interferon', 'Apoptosis', 'Cell cycle', 'Hypoxia', 'Lipid'],
+            'score': [2.4, -1.1, 0.6, -2.3, 1.2]}
+
+
+def sites():
+    """Mean soil moisture at four sites, before and after a dry season."""
+    return {'site': ['Ridge', 'Meadow', 'Marsh', 'Forest'],
+            'before (%)': [41, 52, 32, 61],
+            'after (%)': [56, 48, 44, 70]}
+
+
+def budget():
+    """Changes that take a budget from its opening to its closing balance, one row per step."""
+    return {'step': ['Opening', 'Sales', 'Costs', 'Tax', 'Grants', 'Closing'],
+            'change (k$)': [120, 45, -30, -12, 8, None]}
+
+
+def support():
+    """Support for a policy in four countries, measured in 2015 and in 2025."""
+    rng = random.Random(61)
+    table = {'year': [], 'country': [], 'support (%)': []}
+    for country, start, change in (('Denmark', 42, 19), ('Spain', 30, -2),
+                                   ('Italy', 25, 15), ('Chile', 36, 4)):
+        for year, share in ((2015, start), (2025, start + change)):
+            table['year'].append(year)
+            table['country'].append(country)
+            table['support (%)'].append(round(share + rng.gauss(0, 1.0)))
+    return table
+
+
 def viability():
     """Viability over 24 h of two cell lines treated with vehicle or a drug."""
     rng = random.Random(59)
@@ -412,6 +450,65 @@ EXAMPLES = [
         """
         chart = i.line(df, x='time (h)', y='signal (a.u.)', color='condition',
                        legend='direct')
+        """),
+    Example(
+        'pie', 'Pie chart',
+        'Cell types in one tissue sample as a pie: neurons take just over half of the '
+        'disc, and the two smallest slices are labelled outside the rim',
+        '`df` has `cell type` and `cells (n)`, one row per type. The slices are sized by '
+        '`values=`, labelled with their shares, and keyed by `names=`.',
+        {'df': cell_types},
+        """
+        chart = i.pie(df, names='cell type', values='cells (n)')
+        """),
+    Example(
+        'donut', 'Donut chart',
+        'The same cell types as a donut, with the key at the bottom',
+        '`df` is the cell-type table from the pie chart. `hole=0.5` leaves a hole half '
+        'the radius of the disc.',
+        {'df': cell_types},
+        """
+        chart = i.pie(df, names='cell type', values='cells (n)', hole=0.5, legend='bottom')
+        """),
+    Example(
+        'lollipop', 'Lollipop chart',
+        'Enrichment score of five pathways as dots on stems from zero, one row per '
+        'pathway, with the rows read from the top',
+        '`df` has `pathway` and `score`, one row per pathway. `orient=\'h\'` lays the '
+        'stems across the page.',
+        {'df': pathway_scores},
+        """
+        chart = i.lollipop(df, x='pathway', y='score', orient='h')
+        """),
+    Example(
+        'dumbbell', 'Dumbbell chart',
+        'Soil moisture at four sites before and after a dry season: each site is a line '
+        'between its two dots, and the legend says which dot is which',
+        '`df` has `site`, `before (%)` and `after (%)`, one row per site. `x=` names the '
+        'two value columns.',
+        {'df': sites},
+        """
+        chart = i.dumbbell(df, y='site', x=['before (%)', 'after (%)'])
+        """),
+    Example(
+        'waterfall', 'Waterfall chart',
+        'A budget from its opening balance to its closing one: sales add, costs and tax '
+        'take away, and the closing bar is the running total',
+        '`df` has `step` and `change (k$)`. The two `totals=` steps stand from zero; a '
+        'missing change on a total shows the running total.',
+        {'df': budget},
+        """
+        chart = i.waterfall(df, x='step', y='change (k$)', totals=['Opening', 'Closing'])
+        """),
+    Example(
+        'slope', 'Slope chart',
+        'Support for a policy in four countries in 2015 and in 2025, each country a line '
+        'with its name and value written at both ends',
+        '`df` has `year`, `country` and `support (%)`: two time points per country. '
+        '`format=` writes the values as percentages.',
+        {'df': support},
+        """
+        chart = i.slope(df, x='year', y='support (%)', group='country', format='{:.0f}%')
         """),
 ]
 
