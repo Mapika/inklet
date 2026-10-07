@@ -24,7 +24,8 @@ from typing import Callable
 
 from ..core.style import Style
 
-__all__ = ["DASHES", "dash_pattern", "check_style", "paint_keywords"]
+__all__ = ["DASHES", "dash_pattern", "check_style", "is_paint", "keyword_hint",
+           "paint_keywords"]
 
 #: Named dash patterns, as `(on, off, ...)` lengths in millimetres.
 #: "solid" is accepted too and means no dash.
@@ -37,10 +38,11 @@ DASHES: dict[str, tuple[float, ...]] = {
 _STYLE_FIELDS = frozenset(f.name for f in fields(Style))
 
 #: Keywords a mark's `**style` may carry that are not paint: they are read on
-#: the way down (`clip` by the panel, `color` as the mark's one paint, the rest
-#: by `inklet.draw.path` and `inklet.draw.place`).
+#: the way down (`clip` by the panel, `color` as the mark's one paint, `edges`
+#: by the box and violin marks, the rest by `inklet.draw.path` and
+#: `inklet.draw.place`).
 _PASSED_THROUGH = frozenset({
-    "clip", "color", "dash", "kind", "anchor", "origin", "closed", "curves",
+    "clip", "color", "dash", "edges", "kind", "anchor", "origin", "closed", "curves",
     "holes", "filled", "fill_rule",
 })
 
@@ -77,19 +79,32 @@ def dash_pattern(value) -> tuple[float, ...] | None:
     return pattern
 
 
+def is_paint(name: str) -> bool:
+    """Whether `name` is a keyword a mark may take as paint: a Style field or a pass-through."""
+    return name in _STYLE_FIELDS or name in _PASSED_THROUGH
+
+
+def keyword_hint(name: str, candidates=()) -> str | None:
+    """The spelling `name` was probably meant to be: a foreign name, or a close match.
+
+    `candidates` are further valid names for the caller's own keywords.
+    """
+    better = _FOREIGN.get(name)
+    if better is None:
+        close = difflib.get_close_matches(
+            name, sorted(_STYLE_FIELDS | _PASSED_THROUGH | set(candidates)), n=1, cutoff=0.75)
+        better = close[0] if close else None
+    return better
+
+
 def check_style(where: str, style: dict) -> None:
     """Raise a `TypeError` naming any keyword in `style` that is not paint."""
-    unknown = sorted(k for k in style if k not in _STYLE_FIELDS
-                     and k not in _PASSED_THROUGH)
+    unknown = sorted(k for k in style if not is_paint(k))
     if not unknown:
         return
     hints = []
     for key in unknown:
-        better = _FOREIGN.get(key)
-        if better is None:
-            close = difflib.get_close_matches(
-                key, sorted(_STYLE_FIELDS | _PASSED_THROUGH), n=1, cutoff=0.75)
-            better = close[0] if close else None
+        better = keyword_hint(key)
         hints.append(f"{key}= (did you mean {better}=?)" if better else f"{key}=")
     raise TypeError(
         f"{where}() got unknown keyword{'s' if len(unknown) > 1 else ''} "

@@ -45,6 +45,7 @@ from .matrix import (_RASTER_ABOVE_CELLS, matrix_centers, matrix_layer,
                      prepare_matrix, default_coloring)
 from .scale import Band, Linear, Log, Scale, linear
 from .metadata import declare_domain as _declare_domain
+from .choices import choices
 from .paint import paint_keywords
 from .series import (SeriesKey, merge_keys, select_keys, series_color,
                      series_names, swatch_for)
@@ -256,6 +257,7 @@ class Panel:
         self._note(name, "marker", node=item.copy())
         return self.draw(draw_place(placed, **style), clip=clip)
 
+    @paint_keywords
     def matrix(self, values: Sequence[Sequence[float]], *, ramp=None,
                scale: Scale | None = None, center: float | None = None,
                x: Sequence | None = None, y: Sequence | None = None,
@@ -607,6 +609,7 @@ class Panel:
         return [ramp(unit.map(v)) for v in numbers], scale
 
     @renamed_keywords(colors="color", names="name")
+    @paint_keywords
     def bars(self, at: Sequence, heights, *, width: float = 0.8,
              baseline: float = 0.0, orient: str = "v",
              stacked: bool | None = None, grouped: bool | None = None,
@@ -710,6 +713,7 @@ class Panel:
         return self
 
     @renamed_keywords(colors="color")
+    @paint_keywords
     def hist(self, values: Sequence[float], bins: int | Sequence[float] = 10, *,
              range: tuple[float, float] | None = None, density: bool = False,
              baseline: float = 0.0, orient: str = "v", color=None,
@@ -817,6 +821,7 @@ class Panel:
                          clip=clip)
 
     @renamed_keywords(colors="color", names="name")
+    @paint_keywords
     def stackarea(self, x: Sequence, values, *, baseline=0.0, color=None,
                   name: str | Sequence[str] | None = None, **style) -> "Panel":
         """Stack non-negative series over shared x values, in supplied order.
@@ -871,6 +876,7 @@ class Panel:
                                                 **style), name), clip=clip)
 
     @renamed_keywords(colors="color")
+    @paint_keywords
     def boxplot(self, groups, *, at=None, width: float = 0.6,
                 orient: str = "v", whisker: float = 1.5,
                 outliers: bool = True, color=None, **style) -> "Panel":
@@ -896,6 +902,7 @@ class Panel:
             outliers=outliers, colors=color, **style), clip=clip)
 
     @renamed_keywords(colors="color")
+    @paint_keywords
     def violin(self, groups, *, at=None, width: float = 0.8,
                orient: str = "v", bandwidth: float | None = None,
                samples: int = 64, cut: float = 2.0, median: bool = True,
@@ -922,6 +929,7 @@ class Panel:
     # -- reference lines, in data coordinates ------------------------------
 
     @paint_keywords
+    @choices(label_side=(None, "n", "s"))
     def hline(self, y, *, span: tuple | None = None, front: bool | None = None,
               label: str | Diagram | None = None,
               label_side: str | None = None, **style) -> "Panel":
@@ -955,6 +963,7 @@ class Panel:
         return self._rule_label(label, y=y, span=span, side=label_side)
 
     @paint_keywords
+    @choices(label_side=(None, "e", "w"))
     def vline(self, x, *, span: tuple | None = None, front: bool | None = None,
               label: str | Diagram | None = None,
               label_side: str | None = None, **style) -> "Panel":
@@ -1308,6 +1317,8 @@ class Panel:
         """
         return tuple(merge_keys(self._keys))
 
+    @choices(corner=(None, "auto", "best", "nw", "ne", "sw", "se"),
+             side=(None, "top", "bottom", "left", "right"))
     def legend(self, *, corner: str | None = "ne", side: str | None = None,
                entries: Sequence[tuple[str, object]] | None = None,
                columns: int | str | None = None, max_width: float | str | None = None,
@@ -1575,6 +1586,7 @@ class Panel:
 
     # -- writing on the plot, in data coordinates --------------------------
 
+    @choices(anchor=("c", "center", "n", "s", "e", "w", "ne", "nw", "se", "sw"))
     def text(self, x, y, content: str | Diagram, *, anchor: str = "center",
              offset: Sequence[float] = (0.0, 0.0),
              size: float | str | None = None, markup: bool = True,
@@ -2641,6 +2653,7 @@ class Panel:
         return self.draw(node, clip=clip)
 
     @renamed_keywords(colors="color", names="name")
+    @paint_keywords
     def volcano(self, fold: Sequence[float], p: Sequence[float], *,
                 labels: Sequence[str] | None = None, top: int | None = None,
                 fold_threshold: float = 1.0, p_threshold: float = 0.05,
@@ -3211,6 +3224,7 @@ class Panel:
     # density.py, regression.py, probability.py, agreement.py,
     # letter_values.py and strip.py.
 
+    @paint_keywords
     def kde(self, values, *, bandwidth="scott", adjust: float = 1.0,
             cut: float = 3.0, samples: int = 200, fill: bool = False,
             stat: str = "density", orient: str = "v", color=None,
@@ -3383,6 +3397,7 @@ class Panel:
         last.notes["density_scatter"] = {"bandwidth_mm": h, "points": len(kept)}
         return self
 
+    @paint_keywords
     def regression(self, points: Iterable[Sequence], *, method: str = "linear",
                    confidence: float | None = 0.95, prediction: bool = False,
                    scatter: bool = True, frac: float = 2 / 3,
@@ -3621,6 +3636,7 @@ class Panel:
                               size=size, **style)
         return self.draw(node, clip=clip)
 
+    @paint_keywords
     def strip(self, groups, *, at=None, width: float = 0.8, jitter: float = 0.5,
               orient: str = "v", size=None, seed: int = 0, color=None,
               marker: str = "circle", **style) -> "Panel":
@@ -4167,6 +4183,7 @@ class Panel:
         self._scale_domain = note["scale"]
         return self.draw(node, clip=clip)
 
+    @paint_keywords
     def barplot(self, at: Sequence, data, *, estimator: str = "mean",
                 error="sem", points: bool = True, width: float = 0.8,
                 gap: float = 0.12, orient: str = "v", color=None,

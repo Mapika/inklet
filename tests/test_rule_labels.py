@@ -150,14 +150,14 @@ def test_label_side_keeps_the_label_on_its_side_when_that_side_is_full():
 @pytest.mark.parametrize("bad", ["right", "left", "n", "top", "E"])
 def test_vline_refuses_a_side_it_does_not_have(bad):
     p = panel(40, 30, x=(0, 10), y=(0, 10))
-    with pytest.raises(ValueError, match="'e' or 'w'"):
+    with pytest.raises(ValueError, match="'e'.*'w'"):
         p.vline(5.0, label="stim", label_side=bad)
 
 
 @pytest.mark.parametrize("bad", ["e", "w", "right", "north"])
 def test_hline_refuses_a_side_it_does_not_have(bad):
     p = panel(40, 30, x=(0, 10), y=(0, 10))
-    with pytest.raises(ValueError, match="'n' or 's'"):
+    with pytest.raises(ValueError, match="'n'.*'s'"):
         p.hline(5.0, label="thr", label_side=bad)
 
 
