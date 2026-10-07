@@ -308,7 +308,12 @@ def main(argv=None):
             from .agent import guide
             # The version goes on the first line, not into guide.md, so the
             # generated llms-full.txt (which is the guide text) stays version-free.
-            print(f'inklet {_version()}');print(guide(api=args.api));return 0
+            try:
+                print(f'inklet {_version()}');print(guide(api=args.api))
+            except BrokenPipeError:
+                # `inklet guide | head` closes the pipe early; that is not an error.
+                os.dup2(os.open(os.devnull,os.O_WRONLY),sys.stdout.fileno())
+            return 0
         if args.command=='skill':
             from .agent import install_skill
             print(f'inklet: wrote {install_skill(args.directory)}');return 0

@@ -74,6 +74,9 @@ def install_skill(directory: str | Path = '.claude/skills') -> Path:
     target = Path(directory) / 'inklet' / 'SKILL.md'
     target.parent.mkdir(parents=True, exist_ok=True)
     body = guide()
-    target.write_text(f'---\nname: inklet\ndescription: {SKILL_DESCRIPTION}\n---\n\n{body}',
-                      encoding='utf-8')
+    from .cli import _version
+    # The version says which inklet the instructions describe; rerun
+    # `inklet skill` after upgrading when it no longer matches.
+    target.write_text(f'---\nname: inklet\ndescription: {SKILL_DESCRIPTION}\n---\n\n'
+                      f'<!-- written for inklet {_version()} -->\n\n{body}', encoding='utf-8')
     return target
