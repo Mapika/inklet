@@ -51,6 +51,7 @@ Chart options, accepted by every function above:
 | `grid` | `True`, `False`, `'x'`, `'y'` |
 | `xticks`, `yticks` | the tick values to show, e.g. `xticks=[0, 5, 10, 15, 20]` |
 | `xminor`, `yminor` | `True` for unlabelled minor ticks, or an integer: how many pieces each major step divides into |
+| `xformat`, `yformat` | how tick numbers are written, as the axis `format=`: a `'{}'` spec such as `'{:.0%}'` or `'{:,.0f}'`, a suffix such as `'%'`, or a callable. Not for `forest` |
 
 ## Layering and annotating
 

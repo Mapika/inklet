@@ -337,17 +337,22 @@ class Chart(_Renderable):
     def __init__(self, *, width='single', height=None, style='scientific.modern',
                  palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None,
                  xscale='linear', yscale='linear', legend='auto', grid=None,
-                 xticks=None, yticks=None, xminor=None, yminor=None):
+                 xticks=None, yticks=None, xminor=None, yminor=None, xformat=None, yformat=None):
         from .document import plot_spec
         for name, value in (('xscale', xscale), ('yscale', yscale)):
             if value not in ('linear', 'log'):
                 raise ValueError(f"{name} must be 'linear' or 'log', got {value!r}")
+        for name, value in (('xformat', xformat), ('yformat', yformat)):
+            # The axis's own `format=` forms: a spec with `{}`, a suffix, or a callable.
+            if value is not None and not (isinstance(value, str) or callable(value)):
+                raise TypeError(f"{name} must be a format string or a callable, got {value!r}")
         self.width, self.style, self.palette, self.grid = width, style, palette, grid
         self.height = height
         self.title, self.xlabel, self.ylabel = title, xlabel, ylabel
         self.legend_side = legend
         self.xticks, self.yticks = xticks, yticks
         self.xminor, self.yminor = xminor, yminor
+        self.xformat, self.yformat = xformat, yformat
         #: A forest plot's rows and options; it is a Diagram, not Panel marks.
         self._forest = None
         options = {'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
@@ -791,6 +796,9 @@ class Chart(_Renderable):
             rows.append(row)
         if not rows:
             raise ValueError('forest has no rows with a label, an estimate and both bounds')
+        if self.xformat is not None or self.yformat is not None:
+            # A forest draws its own estimate axis, and `inklet.forest` takes no format.
+            raise ValueError('forest does not take xformat= or yformat=; its axis is drawn by inklet.forest')
         options = {'log': log, 'null': null, 'limits': limits, 'left': tuple(left),
                    'right': tuple(right), 'measure': measure, 'digits': digits, **style}
         self._forest = (rows, options)
@@ -882,6 +890,11 @@ class Chart(_Renderable):
                 x_options['minor'] = self.xminor
             if self.yminor is not None:
                 y_options['minor'] = self.yminor
+            # `format=` as the axis takes it: a '{}' spec, a suffix or a callable.
+            if self.xformat is not None:
+                x_options['format'] = self.xformat
+            if self.yformat is not None:
+                y_options['format'] = self.yformat
             if 'x' in self._hide_ticks:
                 x_options['labels'] = False
             if 'y' in self._hide_ticks:
@@ -1326,7 +1339,7 @@ class Layout(_Renderable):
 
 _CHART_OPTIONS = ('width', 'height', 'style', 'palette', 'title', 'xlabel', 'ylabel',
                   'xlim', 'ylim', 'xscale', 'yscale', 'legend', 'grid', 'xticks', 'yticks',
-                  'xminor', 'yminor')
+                  'xminor', 'yminor', 'xformat', 'yformat')
 
 
 def chart(**options) -> Chart:
@@ -1471,7 +1484,9 @@ def _entry(method):
     xlabel, ylabel, xlim, ylim, xscale/yscale ('linear' or 'log'), legend
     ('auto', 'direct', a side, a corner or False), grid (True, False, 'x' or
     'y'), xticks/yticks (the tick values to show), xminor/yminor (True, or
-    how many minor-tick pieces each major step divides into).
+    how many minor-tick pieces each major step divides into), xformat/yformat
+    (how the tick numbers are written: a '{}' spec such as '{:.0%}', a suffix
+    such as '%', or a callable).
     Facets: `facet_col=` / `facet_row=` name columns to split into a grid
     of charts on shared axes; `facet_col_wrap=` sets the columns per row.
     `facet_order=` lists the facet values in the order they are drawn: a
