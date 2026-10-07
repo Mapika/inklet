@@ -1616,9 +1616,13 @@ class Layout(_Renderable):
     def _agreed(self, name, charts):
         """A figure option the charts did not set on the layout: the value they agree on.
 
-        Where they disagree, the first chart's value is used and one warning names the values.
+        A chart that leaves it unset (None) defers to the others. Where the
+        ones that set it disagree, the first such chart's value is used and one
+        warning names the values.
         """
-        values = [getattr(chart, name) for chart in charts]
+        values = [value for value in (getattr(chart, name) for chart in charts) if value is not None]
+        if not values:
+            return None
         distinct = []
         for value in values:
             if value not in distinct:

@@ -114,10 +114,10 @@ def test_charts_that_disagree_warn_once_per_setting_and_the_first_chart_wins():
     assert doc.preset.plot.grid == 'both'
 
 
-def test_a_chart_without_a_font_size_disagrees_with_one_that_sets_it():
-    layout = _chart('a', font_pt=8) | _chart('b')
+def test_a_chart_without_a_font_size_takes_the_size_another_sets():
+    layout = _chart('a') | _chart('b', font_pt=8)
     doc, notes = _disagreements(layout.document)
-    assert len(notes) == 1 and 'font_pt' in notes[0]
+    assert notes == []
     assert doc.preset.publication.font_pt == 8
 
 
@@ -176,3 +176,4 @@ def test_a_series_name_keeps_its_colour_in_a_grid_and_in_nested_layouts():
 def test_a_single_chart_colours_its_series_as_before():
     panels = _panels(_chart('treatment', 'control', palette='okabe-ito'))
     assert list(panels[0].values()) == ['#000000', '#e69f00']
+
