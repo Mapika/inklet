@@ -33,8 +33,8 @@ are turned 45 degrees to fit.
 
 | Function | What it draws |
 |---|---|
-| `i.line(df, x, y, color=)` | Lines joined in x order; `y` may be a list of columns, and without `y` every numeric column is drawn. A missing y leaves a gap, so the line breaks there; `gaps='bridge'` joins the points either side instead. `markers=True`, `error_y=` (band), `dash=`, `linewidth=` |
-| `i.scatter(df, x, y, color=, size=)` | Points; a numeric `color` column with many values uses a colour ramp and a colour bar. `text='col'` labels points clear of the marks; blank or missing labels are skipped, so those points get no leader line |
+| `i.line(df, x, y, color=)` | Lines joined in x order; `y` may be a list of columns, and without `y` every numeric column is drawn. A missing y leaves a gap, so the line breaks there; `gaps='bridge'` joins the points either side instead. `markers=True`, `error_y=` (band), `dash=`, `linewidth=`, `secondary_y=` (a right-hand axis, below) |
+| `i.scatter(df, x, y, color=, size=)` | Points; a numeric `color` column with many values uses a colour ramp and a colour bar. `text='col'` labels points clear of the marks; blank or missing labels are skipped, so those points get no leader line. `secondary_y=` names a colour group for the right-hand axis |
 | `i.bar(df, x, y, color=)` | Bars per category, grouped or `stacked=True`; rows are summed, or `agg='mean'`/`'median'` with `error_y='sem'`, `'sd'` or `'ci95'` and `points=True`. Without `y`, counts rows. `orient='h'` |
 | `i.hist(df, x, color=, bins=)` | Histogram, overlaid per group; `density=`, `cumulative=` |
 | `i.kde(df, x, color=)` | Kernel density curves; `fill=True` |
@@ -90,6 +90,26 @@ chart.labels(x='Dose / mg kg^{-1}', y='Response')
 
 A series name keeps its colour across calls, so a line and the points it
 was fitted to match.
+
+## A second y axis
+
+`secondary_y=` names the series to draw against a right-hand y axis: a column,
+a list of them, or for `scatter` a `color=` group.
+
+```python
+i.line(df, x='month', y=['rain', 'temp'], secondary_y='temp')
+
+chart = i.bar(df, x='month', y='rain')                       # rain as bars, left
+chart.line(df, x='month', y='temp', secondary_y='temp')      # temperature line, right
+chart.labels(y='Rainfall / mm', y2='Mean temperature / °C')
+```
+
+The right axis is titled with its column (or `labels(y2=)`), takes the series
+colour when one series is on it, and fits its own data; the left axis fits
+only the rest. The legend lists every series. Two charts or small multiples
+are often clearer than two y scales, so use this when the quantities must
+share one x axis. `chart.twin_y()` is refused on a quick chart; this is its
+replacement.
 
 ## Small multiples
 

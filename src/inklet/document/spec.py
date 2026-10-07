@@ -257,7 +257,11 @@ class PlotSpec(BuildSpec):
         return self._record('series', (series,), dict(kind=kind, uncertainty=uncertainty, **style), key)
 
     def twin_y(self, scale=None, **options):
-        """Record a second y-axis; returned instructions share the parent area."""
+        """Record a second y-axis; returned instructions share the parent area.
+
+        Without `scale`, the axis fits its own marks and never the parent's,
+        so each axis reads its own series.
+        """
         child = PlotSpec()
         self._record('twin_y', (child,), dict(scale=scale, **options), None)
         return child
@@ -310,9 +314,13 @@ class PlotSpec(BuildSpec):
             return options
         from ..plot.autodomain import measure
         from ..plot.scale import log as log_scale
-        steps = [(method, *materialize((args, kwargs), context))
-                 for _, method, args, kwargs in self._steps]
+        steps = _materialized(self, context)
         measured = dict(zip(('x', 'y'), measure(steps, width, height)))
+        # A twin axis shares this x scale, so x must reach its data too; y must
+        # not, or the twin's numbers would stretch this axis.
+        twins = _twin_steps(self, context)
+        if twins:
+            measured['x'] = measure(steps + twins, width, height)[0]
         options = dict(options)
         for name, want in wants.items():
             axis = measured[name]
@@ -345,7 +353,10 @@ class PlotSpec(BuildSpec):
                            **{dimension+'_options':{k:options[k] for k in ('format','si','rotate','font_size','tick_font_size','font_family','font_weight','font_style','tnum','thin') if k in options}})
         for _, method, args, kwargs in sorted(self._steps, key=lambda s: _PHASE.get(s[1], 0)):
             if method in ('twin_x', 'twin_y'):
-                twin = getattr(panel, method)(**materialize(kwargs, context))
+                options = materialize(kwargs, context)
+                if options.get('scale') is None:
+                    options['scale'] = _twin_domain(args[0], context, panel, method == 'twin_x')
+                twin = getattr(panel, method)(**options)
                 args[0]._replay(twin, context)
                 continue
             args, kwargs = materialize(args, context), materialize(kwargs, context)
@@ -379,6 +390,35 @@ class PlotSpec(BuildSpec):
                     # A deprecated keyword warned when the call was recorded.
                     warnings.simplefilter('ignore', InkletDeprecationWarning)
                     getattr(panel, method)(*args, **kwargs)
+
+
+def _materialized(spec, context):
+    return [(method, *materialize((args, kwargs), context))
+            for _, method, args, kwargs in spec._steps]
+
+
+def _twin_steps(spec, context):
+    """The steps of every twin axis a recipe records, nested ones included."""
+    steps = []
+    for _, method, args, _ in spec._steps:
+        if method in ('twin_x', 'twin_y'):
+            steps.extend(_materialized(args[0], context))
+            steps.extend(_twin_steps(args[0], context))
+    return steps
+
+
+def _twin_domain(child, context, panel, horizontal):
+    """The domain a twin axis with no `scale=` fits to its own marks.
+
+    The same rule the parent uses: a domain the data already fill in the unit
+    square is kept, so a probability axis is still 0 to 1. None when the twin
+    has no numbers, which leaves `Panel` its unit default.
+    """
+    from ..plot.autodomain import measure
+    axis = measure(_materialized(child, context), panel.width, panel.height)[0 if horizontal else 1]
+    if axis.within_unit:
+        return None
+    return axis.domain()
 
 
 def _recorded_signature(method):

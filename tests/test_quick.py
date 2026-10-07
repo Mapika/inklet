@@ -353,3 +353,9 @@ def test_series_named_with_name_get_a_key():
     chart = i.scatter({'x': [1, 2], 'y': [1, 2]}, x='x', y='y', color='#336699', name='fitted')
     chart.line({'x': [1, 2], 'y': [1, 2]}, x='x', y='y', color='#993333', name='model')
     assert 'legend' in {step[1] for step in chart.plot()._steps}
+
+
+def test_a_line_over_month_names_keeps_the_table_order():
+    chart = i.line({'m': ['Jan', 'Feb', 'Mar'], 'v': [1, 2, 3]}, x='m', y='v')
+    (step,) = [s for s in chart.spec._steps if s[1] == 'line']
+    assert [x for x, _ in step[2][0]] == ['Jan', 'Feb', 'Mar']

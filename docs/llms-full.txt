@@ -19,8 +19,8 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 
 | Function | Columns | Notes |
 |---|---|---|
-| `i.line(df, x, y, color=)` | `y` may be a list of columns; no `y` plots every numeric column; points are joined in x order (`sort=False` keeps row order) | `markers=True`, `error_y='col'` draws a band, `dash='dashed'`, `linewidth=` (mm); a missing y breaks the line there (`gaps='bridge'` joins across the gap instead) |
-| `i.scatter(df, x, y, color=, size=)` | numeric `color` column with many values gets a colour ramp and colour bar | `error_y='col'`, `text='col'` labels points clear of the marks (blank or missing labels are skipped) |
+| `i.line(df, x, y, color=)` | `y` may be a list of columns; no `y` plots every numeric column; points are joined in x order (`sort=False` keeps row order) | `markers=True`, `error_y='col'` draws a band, `dash='dashed'`, `linewidth=` (mm); a missing y breaks the line there (`gaps='bridge'` joins across the gap instead); `secondary_y='col'` puts series on a right-hand axis (see below) |
+| `i.scatter(df, x, y, color=, size=)` | numeric `color` column with many values gets a colour ramp and colour bar | `error_y='col'`, `text='col'` labels points clear of the marks (blank or missing labels are skipped); `secondary_y='group'` puts a colour group on the right |
 | `i.bar(df, x, y, color=)` | `x` categories; rows with the same `x` are summed; no `y` counts rows | `agg='mean'` with `error_y='sem'`/`'sd'`/`'ci95'` and `points=True`; `stacked=True`, `orient='h'` |
 | `i.hist(df, x, color=, bins=20)` | | `density=True`, `cumulative=True` |
 | `i.kde(df, x, color=)` / `i.ecdf(df, x, color=)` | | `fill=True` on kde |
@@ -78,6 +78,16 @@ chart.save('dose.pdf')
 ```
 
 Text markup: `**bold**`, `//italic//`, `x^{2}`, `H_{2}O`, `{#c1121f|coloured}`.
+
+Two quantities in different units go on one chart with `secondary_y=`, a
+column or a list of them (for `scatter`, colour groups):
+`i.line(df, x='month', y=['rain', 'temp'], secondary_y='temp')`. That series
+is drawn against a right-hand axis titled `temp`, in its colour when it is the
+only series there, and the left axis fits only the rest. `labels(y2=)` retitles
+the right axis. Two charts or small multiples are often clearer than two y
+scales, so use it only when the quantities must share one x axis. A bar chart
+with a line on the right is two calls: `i.bar(df, x, y='rain')`, then
+`.line(df, x, y='temp', secondary_y='temp')` on the same chart.
 
 `hline(y, label=)` and `vline(x, label=)` name a reference line at its end, and
 the label is placed clear of the data: it is searched along the line and off
@@ -219,6 +229,8 @@ networks, ternary...) with its signature.
 - Bars **sum** rows that share an `x` value. For a mean with an error bar use
   `i.bar(df, x='group', y='value', agg='mean', error_y='sem', points=True)`.
 - `area` stacks; stacked values must be non-negative.
+- `chart.twin_y(...)` is refused on a quick chart. For a second y scale use
+  `secondary_y=`, as above.
 - Do not call `plt.show()`-style display code; save files and inspect them.
 - In the full model, `plot_spec(x=..., y=...)` does **not** clip: data past
   the domain are drawn outside the axes and reported as `DATA_OUTSIDE`. Leave

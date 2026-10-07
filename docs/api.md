@@ -20,8 +20,8 @@ in parent nodes, so handles created before layout still resolve in the figure.
 
 One plot: marks on shared axes, with a size and a preset.
 
-* `line(data=None, x=None, y=None, *, color=None, name=None, markers=False, error_y=None, dash=None, linewidth=None, sort=True, gaps='break', **style)` -- Lines through (x, y), one per `color` group or per `y` column.
-* `scatter(data=None, x=None, y=None, *, color=None, size=None, name=None, marker='circle', palette=None, error_y=None, text=None, **style)` -- Points at (x, y). A numeric `color` column with many values is a ramp.
+* `line(data=None, x=None, y=None, *, color=None, name=None, markers=False, error_y=None, dash=None, linewidth=None, sort=True, gaps='break', secondary_y=None, **style)` -- Lines through (x, y), one per `color` group or per `y` column.
+* `scatter(data=None, x=None, y=None, *, color=None, size=None, name=None, marker='circle', palette=None, error_y=None, text=None, secondary_y=None, **style)` -- Points at (x, y). A numeric `color` column with many values is a ramp.
 * `bar(data=None, x=None, y=None, *, color=None, name=None, orient='v', stacked=False, error_y=None, labels=None, agg='sum', points=False, **style)` -- Bars of `y` at each `x` category; `color` groups side by side or stacked.
 * `hist(data=None, x=None, *, color=None, bins=20, density=False, name=None, cumulative=False, **style)` -- Histogram of `x`; one overlaid histogram per `color` group.
 * `kde(data=None, x=None, *, color=None, fill=False, name=None, **style)` -- Kernel density estimate of `x`, one curve per `color` group.
@@ -40,9 +40,11 @@ One plot: marks on shared axes, with a size and a preset.
 * `dumbbell(data=None, y=None, x=None, **style)` -- Two values per category joined by a line: before and after, for instance.
 * `waterfall(data=None, x=None, y=None, *, totals=(), labels=True, **style)` -- Changes as bars floating on a running total: a waterfall chart.
 * `slope(data=None, x=None, y=None, group=None, *, labels='both', format=None, highlight=None, **style)` -- Each group's values at two or more time points, joined by a straight line.
-* `labels(*, x=None, y=None, title=None)` -- Set axis titles and the chart title (all optional).
+* `labels(*, x=None, y=None, title=None, y2=None)` -- Set axis titles and the chart title (all optional).
 * `colorbar(**options)` -- Draw the colour bar, or update the one already drawn.
 * `legend(**options)` -- Draw the key, or update the key already recorded.
+* `twin_y(*args, **kwargs)` -- Not on a quick chart: use `secondary_y=` for a right-hand axis.
+* `twin_x(*args, **kwargs)` -- Refused, for the same reason as `twin_y`: a quick chart has one x axis.
 * `size(width=None, height=None)` -- Width as 'single', 'double', 'slide' or millimetres; height in mm.
 * `plot(width=None, profile=None, rotate=False, colours=None, slots=None)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
 * `document(rotate=frozenset())` -- A `Document` holding this chart, sized and styled; add cells to grow it.
