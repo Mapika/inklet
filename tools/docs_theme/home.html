@@ -3,17 +3,30 @@
 <section class="hero" aria-labelledby="hero-title">
   <h1 id="hero-title">Scientific figures in Python, laid out in millimetres.</h1>
   <div class="hero-side">
-    <p class="hero-lead">Inklet places plots, diagrams, images and 3D scenes on a page with physical dimensions. It measures labels, ticks and legends before fitting the data, then writes SVG, PDF and PNG from the same geometry.</p>
-    <div class="hero-actions"><a class="button primary" href="{{ 'quickstart/'|url }}">Make your first figure</a><a class="button" href="{{ 'plot-types/'|url }}">Plot types</a><a class="button" href="{{ 'examples/'|url }}">Figure gallery</a></div>
+    <p class="hero-lead">Inklet draws a chart from a table in one call and sets it in physical millimetres. It measures labels, ticks and legends before placing the data, then writes SVG, PDF and PNG from the same geometry.</p>
+    <div class="hero-actions"><a class="button primary" href="{{ 'quick-charts/'|url }}">Charts in one call</a><a class="button" href="{{ 'quick-gallery/'|url }}">Chart gallery</a><a class="button" href="{{ 'coding-agents/'|url }}">Use with coding agents</a></div>
     <div class="install-command"><span aria-hidden="true">$</span><code>pip install inklet</code><button type="button" data-copy="pip install inklet" aria-label="Copy installation command">Copy</button></div>
     <p class="install-note">Requires Python 3.11 or later. See <a href="{{ 'installation/'|url }}">installation options</a> for rendering extras.</p>
   </div>
-  <figure class="plate plate-hero">
-    <div class="dim dim-x" aria-hidden="true"><span>240 mm</span></div>
-    <div class="dim dim-y" aria-hidden="true"><span>116 mm</span></div>
-    <a class="plate-paper" href="{{ 'scientific-gallery/'|url }}">{{ preview('assets/scientific/olfactory-detail.png', '(max-width: 1023px) 100vw, 1180px', 'alt="Detail of an Inklet figure: fly-brain anatomy, neuron projection routes, local arbors and a weighted receptor-to-target network" width="1920" height="928" fetchpriority="high"') }}</a>
-    <figcaption>Detail of a fly-brain plate built with Inklet: anatomy renders, projection routes, local arbors and a weighted connectivity network. <a href="{{ 'scientific-gallery/'|url }}">Full figure and source</a></figcaption>
-  </figure>
+  <div class="hero-demo">
+    <div class="example-code hero-code"><div class="code-title"><span>growth.py</span></div>{{ home_chart }}</div>
+    <figure class="plate plate-hero">
+      <div class="dim dim-x" aria-hidden="true"><span>89 mm</span></div>
+      <div class="dim dim-y" aria-hidden="true"><span>63 mm</span></div>
+      <div class="plate-paper"><img src="{{ 'assets/home/growth.svg'|url }}" alt="Line chart of signal against day: the treated series rises from 0 to 6.5 and the control series from 0 to 2.2, each with markers and a legend" width="890" height="632" fetchpriority="high"></div>
+      <figcaption>Output of the code: <code>growth.svg</code>, 89 × 63 mm. <a href="{{ 'assets/home/growth.svg'|url }}">Open the SVG</a></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="home-band home-why" aria-labelledby="why-title">
+  <div class="section-head"><h2 id="why-title">Why inklet</h2></div>
+  <ul class="facts why-facts">
+    <li><p>Journal widths in millimetres: 89 mm single column and 183 mm double column.</p></li>
+    <li><p><code>inklet check</code> reports overlaps, text overflow, off-page marks and low contrast.</p></li>
+    <li><p>For coding agents: <code>inklet guide</code> prints the usage guide, and <code>inklet skill</code> installs it.</p></li>
+    <li><p>Matplotlib figures come across with <code>i.from_matplotlib(fig)</code>.</p></li>
+  </ul>
 </section>
 
 <section class="home-band home-dense" aria-labelledby="dense-title">
