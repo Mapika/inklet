@@ -455,7 +455,8 @@ def test_two_overlapping_labels_collide():
     assert diag.severity == "error"
     assert diag.targets == tuple(sorted((a.id, b.children[0].id)))
     assert "40% of the smaller box" in diag.message
-    assert numbers(diag.message)[0] == pytest.approx(22.58, abs=0.05)
+    # The first number in the message is an id now; the area follows " over ".
+    assert numbers(diag.message.split(" over ")[1])[0] == pytest.approx(22.58, abs=0.05)
 
 
 def test_text_inside_its_own_nested_frame_never_collides():
@@ -530,7 +531,7 @@ def test_a_label_on_the_subject_itself_is_still_an_overlap():
 
     diag = only(lint(group([photo(), caption])), "OVERLAP")
 
-    assert "mouse overlaps tag 'titanium headplate'" in diag.message
+    assert "overlaps the text 'titanium headplate' named 'tag'" in diag.message
 
 
 # -- 8. INCONSISTENT_STROKE -----------------------------------------------
@@ -993,7 +994,8 @@ def test_a_shaft_through_a_bystander_is_reported():
 
     assert diag.severity == "warning"
     assert diag.targets == (link_in(figure).id, mid.id)
-    assert "runs through mid for 8.00mm" in diag.message
+    assert "runs through the box named 'mid'" in diag.message
+    assert "for 8.00mm" in diag.message
     assert "move mid off the line between a -> b" in diag.hint
 
 
@@ -1005,7 +1007,7 @@ def test_a_crossed_label_is_an_error_and_is_folded_into_its_box():
 
     assert diag.severity == "error"
     assert diag.targets == (link_in(figure).id, mid.id, caption.id)
-    assert "cutting through bystander 'INNOCENT BYSTANDER'" in diag.message
+    assert "cutting through the text 'INNOCENT BYSTANDER' named 'bystander'" in diag.message
 
 
 def test_a_link_only_touching_its_own_endpoints_is_silent():
@@ -1166,7 +1168,7 @@ def test_a_pass_through_is_not_an_end_of_the_arrow():
     diag = only(lint(figure), "LINK_CROSSES")
 
     assert "(a -> b)" in diag.message
-    assert "runs through victim" in diag.message
+    assert "runs through the box named 'victim'" in diag.message
 
 
 def test_link_crosses_is_deterministic():

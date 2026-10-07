@@ -295,7 +295,7 @@ def test_a_line_along_the_side_of_a_shape_is_reported_once():
     found = crowding(inklet.place([picture, line]))
 
     assert len(found) == 1, [d.message for d in found]
-    assert "passes within 0.30mm of protein" in found[0].message
+    assert "passes within 0.30mm of the box named 'protein'" in found[0].message
     assert found[0].targets == tuple(sorted(found[0].targets))
 
 

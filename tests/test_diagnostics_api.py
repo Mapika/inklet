@@ -89,7 +89,9 @@ def test_a_single_colour_block_is_untouched_by_the_walk():
     found = [d for d in lint(outlined.translated(200.0, 0.0), page=PAGE)
              if d.code == "OFF_CANVAS"]
 
-    assert [d.message.split(" is ")[0] for d in found] == ["caption 'plain words'"]
-    assert [d.message.split(" is ")[0]
+    assert [d.message.split(" is ")[0].rsplit(" (", 1)[0] for d in found] == [
+        "the text 'plain words' named 'caption'"]
+    assert [d.message.split(" is ")[0].rsplit(" (", 1)[0]
             for d in lint(block.translated(200.0, 0.0), page=PAGE)
-            if d.code == "OFF_CANVAS"] == ["caption 'plain words'"]
+            if d.code == "OFF_CANVAS"] == [
+        "the text 'plain words' named 'caption'"]

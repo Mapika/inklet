@@ -24,6 +24,7 @@ label texts quoted in the message the way the pairwise messages quote them.
 
 from __future__ import annotations
 
+import math
 from typing import Sequence
 
 from ..core import Rect
@@ -167,10 +168,78 @@ def _describe_run(ctx: LintContext, parent: str,
         ys = [i.bbox.center.y for i in items]
         if max(xs) - min(xs) >= max(ys) - min(ys):
             return (f"x-axis tick labels{within}",
-                    "rotate them (axes(x_options={'rotate': 45})), shorten "
-                    "them, or widen the plot")
+                    _x_tick_fix(ctx, parent, items))
         return (f"y-axis tick labels{within}",
                 "show fewer ticks (axes(y_options={'count': 4})), shorten "
                 "them, or make the plot taller")
-    return (f"labels in {ctx.label(parent)}",
-            "spread them apart, shorten them, or show fewer of them")
+    label = ctx.label(parent)
+    # `ctx.label` falls back to the bare id for an unnamed node; say what the
+    # node is, with its id after it, rather than leading with the id.
+    what = (f"labels in {label}" if label != parent
+            else f"labels in the {(node.kind if node else None) or 'figure'} ({parent})")
+    return (what, "spread them apart, shorten them, or show fewer of them")
+
+
+#: The angle the hint offers for crowded category labels, in degrees.
+_TURN_DEGREES = 45.0
+
+#: Below this sine a label reads as upright: nearly flat text is still laid
+#: along the axis, so it needs the horizontal slot and the turn does not apply.
+_UPRIGHT_SIN = 0.2
+
+
+def _x_tick_fix(ctx: LintContext, axis_id: str, items: list[Item]) -> str:
+    """The fix for crowded x tick labels, leading with the one that would work.
+
+    A label turned to an angle `a` stacks its lines `line / sin(a)` apart along
+    the axis, plus clearance, so what decides whether turning helps is the slot
+    each label gets along the axis (axis length over count), not the length of
+    the label. When the 45 degree slot fits at this width, turning leads. When
+    it does not, the hint names the width at which it would fit and says that
+    the turn goes with it: a turn offered at a width where it cannot work sends
+    the agent round again. Shortening a label does not change its line height,
+    so it is not offered for the turn.
+
+    The estimate is deliberately generous. The overlap test measures the turned
+    ink, which spans more than the line box, so it clears at a slot somewhat
+    under the estimate; a width a little too large costs some room, while one
+    too small leaves the finding in place and sends the agent round again.
+    """
+    count = sum(1 for item in ctx.items
+                if item.is_text and item.node.kind == _TICK_LABEL_KIND
+                and axis_id in ctx.ancestors(item.id))
+    spines = [ctx.placements[node.id] for node in ctx.nodes.values()
+              if node.kind == "spine" and node.id in ctx.placements
+              and axis_id in ctx.ancestors(node.id)]
+    if not count or not spines:
+        return "spread them apart, shorten them, or show fewer of them"
+    slot = spines[0].bbox.width / count
+    # Every label on one axis shares a font, so the tallest line is the slot's
+    # measure. `ascent + descent` is the block's own height, which is what a
+    # turned line stacks on, whether or not the label is turned yet.
+    line = max(item.prim.ascent + item.prim.descent for item in items)  # type: ignore[attr-defined]
+    world = items[0].world
+    turned = abs(world.b) / max(math.hypot(world.a, world.b), 1e-9)
+    if turned < _UPRIGHT_SIN:
+        sine = math.sin(math.radians(_TURN_DEGREES))
+        turn = f"rotate them (axes(x_options={{'rotate': {_TURN_DEGREES:g}}}))"
+    else:
+        sine = turned
+        turn = None
+    needed = (line + 2 * ctx.min_clearance_mm) / sine
+    if slot >= needed:
+        if turn is None:
+            return "spread them apart, shorten them, or show fewer of them"
+        return (f"{turn}, which fits this width (each label has {slot:.1f}mm "
+                f"and a turned one needs {needed:.1f}mm)")
+    extra = count * (needed - slot)
+    prefix = (f"each turned label needs {needed:.1f}mm of axis and has "
+              f"{slot:.1f}mm; ")
+    if ctx.page is None:
+        widen = f"widen the plot by at least {extra:.0f}mm"
+    else:
+        wide = math.ceil(ctx.page.width + extra)
+        widen = f"widen the plot to at least {wide}mm (width={wide})"
+    if turn is None:
+        return prefix + widen
+    return prefix + f"{widen} and {turn}"

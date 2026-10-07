@@ -1712,6 +1712,10 @@ Data drawn past the axes of its panel: a range narrower than the data.
 
 Report a scene part drawn over another part that is geometrically in front of it.
 
+#### `DUPLICATE_KEY`
+
+Two colour bars, or two legends, in one panel for the same series.
+
 #### `EMPTY_DIAGRAM`
 
 Nodes that draw nothing, and figures that draw nothing at all.
@@ -1787,6 +1791,10 @@ Anything drawable that leaves the page.
 #### `OFF_PANEL`
 
 Text that leaves the plot box of the panel it was placed in.
+
+#### `ORPHAN_LEADER`
+
+Leaders drawn to a label with no text in it.
 
 #### `OVERLAP`
 

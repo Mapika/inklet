@@ -232,9 +232,15 @@ def grid_cells(count: int = 4, **kwargs) -> inklet.Diagram:
 
 
 def crowded_pairs(node: inklet.Diagram) -> list[str]:
+    """`'a and b'` for each CROWDING pair, by the names the nodes were given.
+
+    A message names a node as `the box named 'a' (box12)`, so the names are
+    read out of it rather than the whole phrase being compared.
+    """
     fig = inklet.figure(width=60)
     fig.add(node)
-    return sorted(d.message.split(" are only")[0]
+    return sorted(" and ".join(re.findall(r"named '([^']+)'",
+                                          d.message.split(" are only")[0]))
                   for d in fig.lint() if d.code == "CROWDING")
 
 

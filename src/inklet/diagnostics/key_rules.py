@@ -44,9 +44,11 @@ from ..plot.key import BAND_KIND, COLORBAR_KIND, LEGEND_KIND
 from ..plot.panel import AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND
 from ..plot.raster import MATRIX_KIND
 from ..themes.color import ColorError, parse_color, to_hex, to_lab
-from .rules import Diagnostic, Item, LintContext, _gap, _opaque_fill
+from .plot_rules import _panel_name
+from .rules import (Diagnostic, Item, LintContext, _gap, _opaque_fill,
+                    node_phrase)
 
-__all__ = ["rule_key_mismatch"]
+__all__ = ["rule_key_mismatch", "rule_duplicate_key"]
 
 #: CIE76 distance at which two colours are the same colour. Just-noticeable is
 #: about 2.3; both sides of every comparison here come from the same arithmetic
@@ -139,6 +141,83 @@ def rule_key_mismatch(ctx: LintContext) -> list[Diagnostic]:
         else:
             out.extend(_legend_findings(ctx, key_id, panel_id, key, panel, where))
     return out
+
+
+def rule_duplicate_key(ctx: LintContext) -> list[Diagnostic]:
+    """Two colour bars, or two legends, in one panel for the same series.
+
+    A heatmap built with `colorbar=True` already carries its bar, and a later
+    `colorbar()` on the same chart adds a second one. Nothing collides and
+    nothing overflows -- both are tidy bars, and the lint report said clean.
+    The reader sees two keys for one ramp, and one of them will go stale the
+    next time the scale changes. The same goes for two legends that each key
+    the same colour.
+
+    "The same series" is read off the paint, the only thing both keys leave in
+    the tree: two colour bars whose bands run through the same colours (one
+    ramp), and two legends with a swatch in the same colour. Two bars on
+    different ramps in one panel are two series and are left alone.
+
+    **Grade: warning.** The figure is not wrong, but it says the same thing twice.
+    """
+    by_panel: dict[str, list[str]] = {}
+    for node_id, node in ctx.nodes.items():
+        if node.kind not in _KEY_KINDS:
+            continue
+        panel = next((step for step in ctx.ancestors(node_id)
+                      if getattr(ctx.nodes.get(step), "kind", None) == PANEL_KIND),
+                     None)
+        if panel is not None:
+            by_panel.setdefault(panel, []).append(node_id)
+
+    out: list[Diagnostic] = []
+    for panel_id in sorted(by_panel):
+        keys = sorted(by_panel[panel_id])
+        if len(keys) < 2:
+            continue
+        members = _members(ctx, keys)
+        for index, first in enumerate(keys):
+            for second in keys[index + 1:]:
+                if ctx.nodes[first].kind != ctx.nodes[second].kind:
+                    continue
+                finding = _duplicate_pair(ctx, panel_id, first, second, members)
+                if finding is not None:
+                    out.append(finding)
+    return out
+
+
+def _duplicate_pair(ctx: LintContext, panel_id: str, first: str, second: str,
+                    members: dict[str, list[Item]]) -> Diagnostic | None:
+    kind = ctx.nodes[first].kind
+    where = None
+    for key_id in (first, second):
+        box = ctx.placements[key_id].bbox if key_id in ctx.placements else None
+        where = _union(where, box)
+    panel = _panel_name(ctx, panel_id)
+    a, b = node_phrase(ctx.nodes[first]), node_phrase(ctx.nodes[second])
+    if kind == COLORBAR_KIND:
+        ramp = _ramp_colours(members[first])
+        if not ramp or ramp != _ramp_colours(members[second]):
+            return None
+        message = (f"{a} and {b} are two colour bars for the same {len(ramp)}-colour "
+                   f"ramp in {panel}")
+        hint = ("keep one -- a heatmap's colorbar= and a later colorbar() call "
+                "each draw one, so drop whichever is redundant")
+    else:
+        mine = _swatches(ctx, first, members[first])
+        theirs = _swatches(ctx, second, members[second])
+        shared = sorted(set(mine) & set(theirs))
+        if not shared:
+            return None
+        names = sorted({mine[c] or theirs[c] or c for c in shared})
+        noun = "entry" if len(names) == 1 else "entries"
+        message = (f"{a} and {b} both key the same {len(names)} {noun} "
+                   f"({', '.join(repr(n) for n in names[:4])}) in {panel}")
+        hint = ("merge them into one legend, or drop the repeated entries from "
+                "one of them")
+    return Diagnostic(
+        code="DUPLICATE_KEY", severity="warning", message=message,
+        targets=tuple(sorted((first, second))), where=where, hint=hint)
 
 
 # -- pairing --------------------------------------------------------------
