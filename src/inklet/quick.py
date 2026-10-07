@@ -54,6 +54,7 @@ _SOFT, _SOFT_AMOUNT = '@soft', 0.45
 #: Opacity of a grouped series' error band.
 _BAND_OPACITY = 0.22
 
+from .core import DiagramError
 from .plot.paint import DASHES as _DASHES
 
 #: A categorical `color=` column with more distinct numeric values than this
@@ -430,6 +431,11 @@ class Chart(_Renderable):
         self.xformat, self.yformat = xformat, yformat
         #: A forest plot's rows and options; it is a Diagram, not Panel marks.
         self._forest = None
+        #: `regression` fits by group: the group's value to its `LinearFit` (or
+        #: `name=` for an ungrouped chart), known as soon as the mark is
+        #: recorded, before any compile.
+        self.fits = {}
+        self._log_x = xscale == 'log'
         options = {'x': _domain(xlim, xscale), 'y': _domain(ylim, yscale)}
         if xlim is not None or ylim is not None:
             # Explicit limits zoom: marks past them are cut at the axes.
@@ -718,13 +724,33 @@ class Chart(_Renderable):
         return self._labelled(x, y)
 
     def regression(self, data=None, x=None, y=None, *, color=None, method='linear',
-                   confidence=0.95, name=None, **style):
-        """Points with a fitted line and its confidence band, per `color` group."""
+                   confidence=0.95, equation=False, name=None, **style):
+        """Points with a fitted line and its confidence band, per `color` group.
+
+        `equation=True` writes each group's fit on the plot in the group's
+        colour (`equation=` a template string also works; see
+        `Panel.regression`). Each group's `LinearFit` is kept in `fits`.
+        """
+        from .plot.regression import regression_curve
+
+        # Refused now, not at save(): the marks are only drawn at compile time.
+        if equation and method != 'linear':
+            raise DiagramError('regression(equation=) writes the linear fit, so it needs '
+                               f'method="linear", not {method!r}')
         table = _table(data)
         _check_color(color)
         for label, xs, ys, _ in self._series(table, x, y, color, None):
-            self.spec.regression(list(zip(xs, ys)), method=method, confidence=confidence,
-                                 name=name or label,
+            points = list(zip(xs, ys))
+            if method == 'linear':
+                # The fit the panel draws: of y on log10(x) on a log x axis, so
+                # the number here and the line on the page agree. Keyed by the
+                # group, so `name=` (which merges the groups in the key) cannot
+                # make one group's fit overwrite another's.
+                fit = regression_curve(points, method=method, confidence=None,
+                                       log_x=self._log_x)['fit']
+                self.fits[label if label is not None else name] = fit
+            self.spec.regression(points, method=method, confidence=confidence,
+                                 equation=equation, name=name or label,
                                  **self._style(table, color, style, label=name or label,
                                                lone=True))
         return self._labelled(x, y)

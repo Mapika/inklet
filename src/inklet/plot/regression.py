@@ -9,8 +9,10 @@ and the prediction interval for a new observation, which adds 1 under the
 square root. `lowess` is Cleveland's locally weighted regression as R's
 `lowess()` computes it (tricube weights over the nearest `frac` of the
 points, a local line, and `iterations` robustness passes with bisquare
-weights), so its output can be checked against R. Both draw nothing;
-`Panel.regression` and `Panel.residuals` draw with them.
+weights), so its output can be checked against R. The fits draw nothing;
+`Panel.regression` and `Panel.residuals` draw with them. An equation is
+formatted here (`equation_text`) and placed at build time (`defer_equation`),
+clear of the marks it would otherwise sit on.
 
 Student's t quantile is computed here from the regularized incomplete beta
 function (a continued fraction), so the core needs no SciPy.
@@ -19,10 +21,10 @@ function (a continued fraction), so the core needs no SciPy.
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Sequence
 
-from ..core import DiagramError
+from ..core import Diagram, DiagramError, PathPrim
 
 __all__ = ["LinearFit", "linear_fit", "lowess", "t_cdf", "t_quantile"]
 
@@ -110,13 +112,16 @@ def t_quantile(p: float, df: float) -> float:
 class LinearFit:
     """An ordinary least-squares line `y = intercept + slope * x`.
 
-    `r2` is the coefficient of determination, `sigma` the residual standard
+    `r` is Pearson's correlation (signed, so it carries the slope's sign)
+    and `r2` the coefficient of determination, `sigma` the residual standard
     error on `n - 2` degrees of freedom, `slope_se` and `intercept_se` the
     standard errors, and `p` the two-sided p-value of the slope against 0.
+    `r` is NaN for a flat y, where the correlation is undefined.
     """
 
     slope: float
     intercept: float
+    r: float
     r2: float
     sigma: float
     slope_se: float
@@ -129,6 +134,16 @@ class LinearFit:
     def predict(self, x: float) -> float:
         """The fitted value at `x`."""
         return self.intercept + self.slope * x
+
+    def slope_interval(self, confidence: float = 0.95) -> tuple[float, float]:
+        """`(low, high)` of the confidence interval for the slope: the slope
+        plus or minus `t * slope_se` on `n - 2` degrees of freedom."""
+        if not 0.0 < confidence < 1.0:
+            raise DiagramError(f"confidence is between 0 and 1, got {confidence!r}")
+        if self.n < 3:
+            raise DiagramError("a slope interval needs at least three points")
+        half = t_quantile(0.5 + confidence / 2.0, self.n - 2) * self.slope_se
+        return self.slope - half, self.slope + half
 
     def band(self, x: float, confidence: float = 0.95, *,
              prediction: bool = False) -> tuple[float, float]:
@@ -179,6 +194,7 @@ def linear_fit(points: Sequence[Sequence[float]]) -> LinearFit:
     intercept = my - slope * mx
     sse = math.fsum((y - intercept - slope * x) ** 2 for x, y in zip(xs, ys))
     r2 = 1.0 - sse / syy if syy > 0 else 1.0
+    r = sxy / math.sqrt(sxx * syy) if syy > 0 else math.nan
     if n > 2:
         sigma = math.sqrt(sse / (n - 2))
         slope_se = sigma / math.sqrt(sxx)
@@ -192,7 +208,7 @@ def linear_fit(points: Sequence[Sequence[float]]) -> LinearFit:
     else:
         sigma = slope_se = intercept_se = math.nan
         p = math.nan
-    return LinearFit(slope=slope, intercept=intercept, r2=r2, sigma=sigma,
+    return LinearFit(slope=slope, intercept=intercept, r=r, r2=r2, sigma=sigma,
                      slope_se=slope_se, intercept_se=intercept_se, p=p, n=n,
                      x_mean=mx, sxx=sxx)
 
@@ -328,6 +344,136 @@ def _clowess(x, y, f, nsteps, delta):
             else:
                 rw[k] = 0.0
     return ys
+
+
+# -- the equation on a plot ------------------------------------------------------
+
+#: The minus sign, U+2212: a hyphen is too short to read as the sign of a number.
+MINUS = "−"
+
+#: Significant figures written for the slope, intercept and R^2.
+EQUATION_DIGITS = 3
+
+#: The note on an equation's label; `inklet.lint` reads its `unresolved` list.
+EQUATION_NOTE = "regression_equation"
+
+
+def figure(value: float, digits: int = EQUATION_DIGITS) -> str:
+    """`value` to `digits` significant figures, with a true minus sign.
+
+    Three figures give 0.500, 3.00 and 0.667, the widths a fitted line is
+    quoted at, whatever the magnitude. Zero has no sign.
+    """
+    if not math.isfinite(value):
+        return str(value)
+    magnitude = abs(value)
+    exponent = math.floor(math.log10(magnitude)) if magnitude > 0 else 0
+    text = f"{magnitude:.{max(digits - 1 - exponent, 0)}f}"
+    return MINUS + text if value < 0 else text
+
+
+def equation_text(fit: LinearFit, *, log_x: bool = False) -> str:
+    """The fit as a markup label, `y = 0.500x + 3.00, R^{2} = 0.667`.
+
+    The variables are italic, as a figure sets them. On a log x axis the fit
+    is of y on log10(x), so the term reads `log_{10}(x)` and the slope is per
+    decade.
+    """
+    term = "log_{10}(//x//)" if log_x else "//x//"
+    slope = figure(fit.slope)
+    intercept = figure(fit.intercept)
+    sign = MINUS if intercept.startswith(MINUS) else "+"
+    space = " " if log_x else ""
+    return (f"//y// = {slope}{space}{term} {sign} {intercept.lstrip(MINUS)}, "
+            f"//R//^{{2}} = {figure(fit.r2)}")
+
+
+def equation_from(template: str, fit: LinearFit) -> str:
+    """A caller's own equation: `template` filled from the fit by `str.format`.
+
+    The fields are `slope`, `intercept`, `r`, `r2`, `n` and `p`, each with
+    any format spec (`{slope:.2f}`). Literal braces are doubled, as in
+    `R^{{2}}`, because the template is markup.
+    """
+    try:
+        return template.format(slope=fit.slope, intercept=fit.intercept, r=fit.r,
+                               r2=fit.r2, n=fit.n, p=fit.p)
+    except (KeyError, IndexError, ValueError) as exc:
+        raise DiagramError(
+            f"regression equation {template!r} does not format: {exc}; its fields are "
+            "slope, intercept, r, r2, n and p, and literal braces are doubled") from None
+
+
+def defer_equation(panel, text: str, color: str | None) -> None:
+    """Hold an equation's place until the panel is built, then set it clear of
+    every mark drawn, as `rule_label` places a rule's name.
+
+    It takes the first clear spot in the plot area (corners first, then a grid).
+    Equations from earlier calls count as marks, so several stack without
+    touching. With no clear spot it is drawn in the top-right corner anyway and
+    listed in its note's `unresolved`, which `inklet.lint` reports, rather than
+    dropped or silently laid over the data.
+    """
+    from .point_labels import PENDING_KIND
+    from ..draw.coords import active_theme
+
+    theme = active_theme()
+
+    def place(marks):
+        import inklet
+        token = inklet._theme_context.set(theme)
+        try:
+            # The layer under the content is the regression band (and any
+            # reference line drawn beneath the data); the placer never sees it
+            # otherwise, so the equation would sit on a band's edge.
+            under = [_outlined(node) for node in panel._under]
+            return _place_equation(panel, text, color, [*under, *marks])
+        finally:
+            inklet._theme_context.reset(token)
+
+    holder = Diagram(kind=PENDING_KIND)
+    panel._deferred[id(holder)] = place
+    panel._over.append(holder)
+
+
+def _outlined(node: Diagram) -> Diagram:
+    """`node` with its filled shapes made outlines.
+
+    The placer keeps a filled shape's whole bounding box clear, which for a
+    confidence band is most of the plot; an outline keeps it to the band's
+    edges, which is what a reader's eye follows.
+    """
+    if node.children:
+        node = replace(node, children=tuple(_outlined(c) for c in node.children),
+                       _cache={}, anchors=dict(node.anchors), notes=dict(node.notes))
+    filled = isinstance(node.prim, PathPrim) and node.prim.filled
+    return node.styled(fill="none") if filled else node
+
+
+def _place_equation(panel, text: str, color: str | None, marks) -> Diagram:
+    from ..draw.coords import active_theme
+    from ..layout.clear_space import place_in_clear_space
+    from ..themes.color import readable
+    from .axis import text_node
+    from .notes import TEXT_KIND
+    from .point_labels import lint_clearance
+
+    theme = active_theme()
+    gap = theme.gap("xs")
+    # Ink on the paper, darkened or lightened only as far as it reads, as a
+    # line's own name is set.
+    node = text_node(text, theme.font_size_small, TEXT_KIND, align="left",
+                     text_fill=readable(color or theme.ink, theme.paper))
+    note = {"count": 1, "unresolved": []}
+    try:
+        # Lint's CROWDING rule asks for more room than the default clearance, so
+        # the search keeps the same gap lint measures.
+        placed = place_in_clear_space(node, within=panel.area, avoid=marks, pad=gap,
+                                      clearance=lint_clearance())
+    except DiagramError:
+        note["unresolved"] = [text.replace("//", "")]
+        placed = place_in_clear_space(node, within=panel.area, avoid=(), pad=gap)
+    return placed.note(EQUATION_NOTE, note)
 
 
 # -- what Panel.regression draws ---------------------------------------------------

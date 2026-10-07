@@ -26,7 +26,7 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 | `i.kde(df, x, color=)` / `i.ecdf(df, x, color=)` | | `fill=True` on kde |
 | `i.boxplot(df, x, y)` / `i.violin(df, x, y)` / `i.strip(df, x, y)` | `x` category column, `y` values | `points=True` overlays the samples |
 | `i.area(df, x, y, color=)` | groups stack (values must be >= 0) | `stacked=False` overlays |
-| `i.regression(df, x, y, color=)` | points + fitted line + confidence band | `method='linear'` or `'lowess'` |
+| `i.regression(df, x, y, color=)` | points + fitted line + confidence band | `method='linear'` or `'lowess'`; `equation=True` writes `y = 0.500x + 3.00, R^{2} = 0.667` on the plot, one per group in its colour; `chart.fits[group]` is each group's `LinearFit` (slope, intercept, r, r2, p, `slope_interval()`), known before save |
 | `i.heatmap(rows, x=col_labels, y=row_labels)` | or a long table: `i.heatmap(df, x=, y=, z=)` | first row is drawn at the top; `palette='viridis'` |
 | `i.survival(df, time=, event=, color=)` | Kaplan-Meier curves, one per group; `event` is 1/True for an event, 0/False for censored | `at_risk=True` table, `pvalue=True` log-rank P for 2+ groups, `band='log-log'`; survival runs 0 to 1 |
 | `i.volcano(df, x=, y=)` | `x` log2 fold change, `y` raw p-value | `label='col'` and `highlight=['name', ...]`, `q='col'` adjusted p colours by FDR |

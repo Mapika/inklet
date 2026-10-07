@@ -23,6 +23,8 @@ PLACER_NOTES = {
     "point_labels": "label_points",
     "line_labels": "label_lines",
     "place_labels": "place_labels",
+    # `Panel.regression(equation=True)`, placed by `plot.regression.defer_equation`.
+    "regression_equation": "regression",
 }
 
 
