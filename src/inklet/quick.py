@@ -403,7 +403,8 @@ class Chart(_Renderable):
     def __init__(self, *, width=None, height=None, style='scientific.modern', font_pt=None,
                  palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None,
                  xscale='linear', yscale='linear', legend='auto', grid=None,
-                 xticks=None, yticks=None, xminor=None, yminor=None, xformat=None, yformat=None):
+                 xticks=None, yticks=None, xminor=None, yminor=None, xformat=None, yformat=None,
+                 aspect=None):
         from .document import plot_spec
         for name, value in (('xscale', xscale), ('yscale', yscale)):
             if value not in ('linear', 'log'):
@@ -434,6 +435,10 @@ class Chart(_Renderable):
         if xlim is not None or ylim is not None:
             # Explicit limits zoom: marks past them are cut at the axes.
             options['clip'] = True
+        if aspect is not None:
+            # plot_spec validates it: 'equal' or a positive height/width number.
+            options['aspect'] = aspect
+        self._aspect = aspect
         self.spec = plot_spec(**options)
         self._named = 0
         self._auto_labels = {}
@@ -972,6 +977,8 @@ class Chart(_Renderable):
             rows, options = self._forest
             return component(_forest_figure, rows, options, label=self.xlabel or None)
         spec = self.spec.copy()
+        if self._aspect is not None and width is not None:
+            spec.configure(height=self._aspect_cap(width))
         if self._series_tokens or self._has_tokens():
             theme = (profile or self._profile()).theme
             spec._steps = [(key, method, args, _resolve_tokens(kwargs, theme.palette, theme.paper))
@@ -1034,7 +1041,29 @@ class Chart(_Renderable):
     def _profile(self):
         return _preset(self.width, self.style, self.palette, self.grid, self.font_pt)
 
+    def _aspect_cap(self, width):
+        """Height cap for an aspect chart's plot: `height=` if given, else its width.
+
+        A tall aspect (height over width above one) takes that taller cap, so
+        the plot can grow to its shape. An 'auto' or log domain is not known
+        until render, so the cap is set far above any plausible shape; render
+        still fits the aspect, and the chart is as wide as its cell.
+        """
+        if self.height is not None:
+            from .core import mm
+            return mm(self.height)
+        from .document.spec import _ratio
+        try:
+            ratio = _ratio(self._aspect, {name: self.spec.options.get(name) for name in ('x', 'y')})
+        except ValueError:
+            return width * 10
+        return width * max(1.0, ratio)
+
     def _height(self, page_width):
+        if self._aspect is not None and self._forest is None:
+            # The plot's height follows its width (see _aspect_cap), so the row
+            # only needs a floor; a fixed minimum would leave a wide plot blank.
+            return 5.0
         if self.height is not None:
             from .core import mm
             return mm(self.height)
@@ -1527,7 +1556,7 @@ class Layout(_Renderable):
 
 _CHART_OPTIONS = ('width', 'height', 'style', 'font_pt', 'palette', 'title', 'xlabel', 'ylabel',
                   'xlim', 'ylim', 'xscale', 'yscale', 'legend', 'grid', 'xticks', 'yticks',
-                  'xminor', 'yminor', 'xformat', 'yformat')
+                  'xminor', 'yminor', 'xformat', 'yformat', 'aspect')
 
 
 def chart(**options) -> Chart:
@@ -1738,7 +1767,8 @@ def _entry(method):
     'y'), xticks/yticks (the tick values to show), xminor/yminor (True, or
     how many minor-tick pieces each major step divides into), xformat/yformat
     (how the tick numbers are written: a '{}' spec such as '{:.0%}', a suffix
-    such as '%', or a callable).
+    such as '%', or a callable), aspect ('equal' for one data unit the same
+    length on both axes, or the plot area's height over its width).
     Facets: `facet_col=` / `facet_row=` name columns to split into a grid
     of charts on shared axes; `facet_col_wrap=` sets the columns per row.
     `facet_order=` lists the facet values in the order they are drawn: a

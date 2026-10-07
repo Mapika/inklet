@@ -43,7 +43,7 @@ Chart options, accepted by every function above:
 | Option | Values |
 |---|---|
 | `width` | `'single'` (89 mm, default), `'double'` (183 mm), `'slide'` (254 mm), or millimetres (`120`, `'120mm'`); unset, a Preset keeps its own page |
-| `height` | millimetres; default is about 0.62 x width, 45-75 mm |
+| `height` | millimetres; default is about 0.62 x width, 45-75 mm. With `aspect=`, the default follows the width instead |
 | `style` | preset name: `'scientific.modern'` (default: colour-led marks, grey axes), `'scientific.general'`, `'scientific.nature'`, `'scientific.science'`, `'scientific.cell'`, `'educational.textbook'`, `'marketing.report'`, `'marketing.presentation'`; or a Preset object, e.g. `i.preset('scientific.modern').customize(font_pt=12)` |
 | `font_pt` | the main type size in points; ticks and the key take 6/7 of it and titles 9/7 |
 | `palette` | `'okabe-ito'`, `'tol-bright'`, `'tol-muted'`, `'inklet'`, `'set2'`, `'dark2'`... or a list of colours |
@@ -57,6 +57,7 @@ Chart options, accepted by every function above:
 | `xticks`, `yticks` | the tick values to show, e.g. `xticks=[0, 5, 10, 15, 20]` |
 | `xminor`, `yminor` | `True` for unlabelled minor ticks, or an integer: how many pieces each major step divides into |
 | `xformat`, `yformat` | how tick numbers are written, as the axis `format=`: a `'{}'` spec such as `'{:.0%}'` or `'{:,.0f}'`, a suffix such as `'%'`, or a callable. Not for `forest` |
+| `aspect` | `'equal'` makes one data unit the same length on x and y (maps, equal-scale plots); a number is the plot area's height over its width. The plot is the largest of that shape inside its cell, centred, and `height` caps it. `'equal'` needs linear scales. Not for `forest` |
 
 ## Layering and annotating
 

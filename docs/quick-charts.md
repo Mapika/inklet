@@ -55,7 +55,7 @@ Every function takes these:
 | Option | Values |
 |---|---|
 | `width` | `'single'` (89 mm), `'double'` (183 mm), `'slide'` (254 mm), or millimetres. Unset, a row defaults to double and a Preset keeps its own page; see [multi-panel figures](#multi-panel-figures) |
-| `height` | Millimetres. The default is about 0.62 × width, kept between 45 and 75 mm |
+| `height` | Millimetres. The default is about 0.62 × width, kept between 45 and 75 mm. With `aspect=`, the default follows the width instead |
 | `style` | A [preset](presets.md) name; default `'scientific.modern'`: marks in the `inklet-vivid` palette on grey axes. Or a Preset object, such as `i.preset('scientific.modern').customize(font_pt=12)` |
 | `font_pt` | The main type size in points. Ticks and the key are 6/7 of it, titles 9/7 |
 | `palette` | A [palette name](palettes.md) such as `'okabe-ito'` or `'tol-muted'`, or a list of colours |
@@ -69,6 +69,7 @@ Every function takes these:
 | `xticks`, `yticks` | The tick values to show, such as `xticks=[0, 5, 10, 15, 20]` |
 | `xminor`, `yminor` | `True` for unlabelled minor ticks between the major ones, or an integer: the number of pieces each step divides into |
 | `xformat`, `yformat` | How the tick numbers are written, as the axis `format=` takes it: a `'{}'` spec such as `'{:.0%}'` or `'{:,.0f}'`, a suffix such as `'%'`, or a callable. Not for `forest`, which draws its own axis |
+| `aspect` | `'equal'` makes one data unit the same length on x and y, as maps need; a number is the plot area's height over its width. The plot is the largest of that shape that fits its cell, and `height` caps it. `'equal'` needs linear scales. Not for `forest` |
 
 ## Layer, annotate and refine
 

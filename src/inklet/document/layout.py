@@ -101,6 +101,11 @@ def _natural_sizes(request, context, x_prefix, height, decorate):
         natural = context.build(cell.item, width,
                                 cell.item.height if isinstance(cell.item, PlotSpec) else None)
         node = decorate(natural, cell)
+        if isinstance(cell.item, PlotSpec) and 'aspect' in cell.item.options:
+            # An aspect region fits inside the cell less its furniture, which
+            # only the first build reveals: its height is measured from a second.
+            left, right = plot_margins(node)[:2]
+            node = decorate(context.build(cell.item, width-left-right, cell.item.height), cell)
         heights[cell.name] = node.height
         if isinstance(cell.item, PlotSpec):
             plots[cell.name] = (plot_area(node).height, *plot_margins(node)[2:])
@@ -329,6 +334,13 @@ def _to_cell_corner(node, box, dx, dy):
     return replace(node, children=(content, letter.translated(shift_x, shift_y)))
 
 
+def _fractions(align):
+    """Where a compass `align` puts a slack: 0 at the start, 1 at the end, else centred."""
+    fx = 0. if align in ('w', 'nw', 'sw') else 1. if align in ('e', 'ne', 'se') else .5
+    fy = 0. if align in ('n', 'nw', 'ne') else 1. if align in ('s', 'sw', 'se') else .5
+    return fx, fy
+
+
 def _place_cells(cells, nodes, boxes, margins, corner_letters=False):
     placed, handles = [], {}
     for cell in cells:
@@ -337,20 +349,19 @@ def _place_cells(cells, nodes, boxes, margins, corner_letters=False):
         if actual.width > box.width+.02 or actual.height > box.height+.02:
             raise LayoutError(f'cell {cell.name!r} contains {actual.width:.2f} × {actual.height:.2f} mm '
                               f'but has {box.width:.2f} × {box.height:.2f} mm. Increase its cell size.')
+        fx, fy = _fractions(cell.align)
         if isinstance(cell.item, PlotSpec):
+            # A plot's data region fills its cell less furniture, so the only slack
+            # is an aspect's; the furniture moves with the region it surrounds.
             area = plot_area(node)
-            left, _, top, _ = margins[cell.name]
-            dx, dy = box.x0+left-area.x0, box.y0+top-area.y0
+            left, right, top, bottom = margins[cell.name]
+            slack_x = max(0., box.width-left-right-area.width)
+            slack_y = max(0., box.height-top-bottom-area.height)
+            dx = box.x0+left+slack_x*fx-area.x0
+            dy = box.y0+top+slack_y*fy-area.y0
         else:
-            dx, dy = box.center.x-actual.center.x, box.center.y-actual.center.y
-            if cell.align in ('w', 'nw', 'sw'):
-                dx = box.x0-actual.x0
-            elif cell.align in ('e', 'ne', 'se'):
-                dx = box.x1-actual.x1
-            if cell.align in ('n', 'nw', 'ne'):
-                dy = box.y0-actual.y0
-            elif cell.align in ('s', 'sw', 'se'):
-                dy = box.y1-actual.y1
+            dx = box.x0+(box.width-actual.width)*fx-actual.x0
+            dy = box.y0+(box.height-actual.height)*fy-actual.y0
         if corner_letters:
             node = _to_cell_corner(node, box, dx, dy)
         handles[cell.name] = node
@@ -483,7 +494,8 @@ def _layout_report(request, heights, widths, natural_heights, boxes, handles):
 
     A cell sets its rows when its natural height, or its `min_height`, fills
     them: shortening it is the only way to shorten those rows. A plot fills
-    its cell; other content is measured against its box.
+    its cell unless an aspect leaves slack; other content, and an aspect plot,
+    is measured against its box.
     """
     rows = []
     for index, height in enumerate(heights):
@@ -500,7 +512,7 @@ def _layout_report(request, heights, widths, natural_heights, boxes, handles):
     cells = {}
     for cell in request.cells:
         box = boxes[cell.name]
-        if isinstance(cell.item, PlotSpec):
+        if isinstance(cell.item, PlotSpec) and 'aspect' not in cell.item.options:
             cells[cell.name] = {'unused_width': 0., 'unused_height': 0.}
             continue
         ink = handles[cell.name].bbox
