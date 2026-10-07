@@ -330,7 +330,8 @@ def _data_finding(ctx: LintContext, panel_id: str, box: Rect,
 
 
 def _panel_name(ctx: LintContext, panel_id: str) -> str:
-    """The panel as its author would find it: its name, or its cell's."""
+    """The panel as its author would find it: its name, or its cell's, with
+    its id last so the words lead."""
     node = ctx.nodes.get(panel_id)
     if node is not None and node.name:
         return f"panel {node.name!r}"
@@ -342,7 +343,7 @@ def _panel_name(ctx: LintContext, panel_id: str) -> str:
             break
         if above.kind == "document-cell" and above.name:
             return f"cell {above.name!r} ({panel_id})"
-    return panel_id
+    return f"the panel ({panel_id})"
 
 
 def _framed(ctx: LintContext, panel_id: str) -> bool:

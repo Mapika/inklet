@@ -1026,11 +1026,13 @@ def rule_text_overflow(ctx: LintContext) -> list[Diagnostic]:
         horizontal = sides.get("left", 0.0) + sides.get("right", 0.0)
         vertical = sides.get("top", 0.0) + sides.get("bottom", 0.0)
         fixes = []
+        # `described` leads with what the container is, so an unnamed box reads
+        # as "the box (box14)", not "box14" alone.
         if horizontal > 0:
-            fixes.append(f"widen {container.label} by {_mm(horizontal)} "
+            fixes.append(f"widen {container.described} by {_mm(horizontal)} "
                          f"(to {_mm(container.bbox.width + horizontal)})")
         if vertical > 0:
-            fixes.append(f"heighten {container.label} by {_mm(vertical)} "
+            fixes.append(f"heighten {container.described} by {_mm(vertical)} "
                          f"(to {_mm(container.bbox.height + vertical)})")
         shrink = ""
         if horizontal > 0 and item.bbox.width > 0:
@@ -1040,7 +1042,7 @@ def rule_text_overflow(ctx: LintContext) -> list[Diagnostic]:
         out.append(Diagnostic(
             code="TEXT_OVERFLOW",
             severity="error",
-            message=(f"{item.described} overflows {container.label} by "
+            message=(f"{item.described} overflows {container.described} by "
                      f"{_sides_phrase(sides)}"),
             targets=(item.id, container.id),
             where=item.bbox,
@@ -3174,7 +3176,10 @@ def _crossings(ctx: LintContext, owner: str, endpoints: Sequence[str],
             code="LINK_CROSSES",
             severity=("error" if texts or any(p.is_text for p in parts)
                       else "warning"),
-            message=f"{ctx.label(owner)} ({between}) runs through {through}{note}",
+            # The route quoted as the words it reads as, with the link's id
+            # last: a bare "link376 (a -> b)" leads with the id.
+            message=(f"{node_phrase(ctx.nodes[owner], words=between)} "
+                     f"runs through {through}{note}"),
             targets=(owner,) + tuple(sorted(p.id for p in parts)) + texts,
             where=where,
             # Moving the shape leads, because it is the fix that always

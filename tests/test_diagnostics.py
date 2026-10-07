@@ -91,7 +91,8 @@ def test_text_overflow_reports_millimetres_per_side():
     assert diag.severity == "error"
     assert diag.targets == (label.id, frame.id)
     assert sides(diag.message) == pytest.approx({"left": 1.5, "right": 1.5}, abs=0.01)
-    assert "widen enc by 3.00mm" in diag.hint
+    assert "widen the box named 'enc'" in diag.hint
+    assert "by 3.00mm" in diag.hint
     assert diag.where.width == pytest.approx(23.0)
 
 
@@ -1167,7 +1168,7 @@ def test_a_pass_through_is_not_an_end_of_the_arrow():
 
     diag = only(lint(figure), "LINK_CROSSES")
 
-    assert "(a -> b)" in diag.message
+    assert "the link 'a -> b'" in diag.message
     assert "runs through the box named 'victim'" in diag.message
 
 
