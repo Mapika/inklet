@@ -320,11 +320,10 @@ EXAMPLES = [
         'ecdf', 'Cumulative distributions',
         'Cumulative proportion against latency for sham and treated animals; the '
         'treated curve rises earlier',
-        '`df` has `group` and `latency (ms)`, 50 animals per group. The axis is fixed '
-        'with `xlim=`.',
+        '`df` has `group` and `latency (ms)`, 50 animals per group.',
         {'df': latency},
         """
-        chart = i.ecdf(df, x='latency (ms)', color='group', xlim=(0, 600))
+        chart = i.ecdf(df, x='latency (ms)', color='group')
         """),
     Example(
         'boxplot', 'Box plots with points',

@@ -319,6 +319,14 @@ def _read_direct(method, arguments, x: _Axis, y: _Axis) -> bool:
         y.extend([arguments.get('y0'), arguments.get('y1')])
     elif method == 'vspan':
         x.extend([arguments.get('x0'), arguments.get('x1')])
+    elif method == 'ecdf' and _is_samples(arguments.get('values')):
+        # Read, not probed: with `extend` the steps run to the edges of
+        # whatever domain they are drawn against, so a probe would measure
+        # its own placeholder and the fitted axis would keep widening.
+        values = [v for v in arguments['values'] if v is not None]
+        x.extend(values)
+        y.add(0.0, hard=True)
+        y.add(1.0 if arguments.get('normalize', True) else float(len(values)), hard=True)
     elif method in ('text', 'annotate'):
         x.add(arguments.get('x'))
         y.add(arguments.get('y'))

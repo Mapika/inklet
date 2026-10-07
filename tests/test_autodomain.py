@@ -138,3 +138,10 @@ def test_bands_paint_beneath_lines_drawn_before_them():
     panel.line([(0, 1), (2, 3)])
     panel.band([0, 2], [0, 0], [4, 4])
     assert len(panel._content) == 1 and len(panel._under) == 1
+
+
+def test_an_extended_ecdf_is_fitted_to_its_samples():
+    values = [50.0, 120.0, 260.0, 400.0]
+    x, y = _fit(('ecdf', (values,), {}))
+    assert 0 <= x[0] <= 50 and 400 <= x[1] <= 450
+    assert y == (0.0, 1.0)

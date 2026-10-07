@@ -92,12 +92,12 @@ chart = i.kde(df, x='expression (log2)', color='genotype', fill=True)
 
 ## Cumulative distributions
 
-`df` has `group` and `latency (ms)`, 50 animals per group. The axis is fixed with `xlim=`.
+`df` has `group` and `latency (ms)`, 50 animals per group.
 
 ![Cumulative proportion against latency for sham and treated animals; the treated curve rises earlier](assets/quick-gallery/ecdf.svg)
 
 ```python
-chart = i.ecdf(df, x='latency (ms)', color='group', xlim=(0, 600))
+chart = i.ecdf(df, x='latency (ms)', color='group')
 ```
 
 ## Box plots with points
