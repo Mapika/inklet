@@ -56,10 +56,10 @@ def test_records_and_dataframes_are_tables():
     _clean(chart)
 
 
-def test_missing_values_are_dropped_not_shifted():
+def test_missing_y_breaks_the_line_and_missing_x_is_dropped():
     chart = i.line({'x': [0, 1, 2, 3], 'y': [1.0, float('nan'), 2.0, None]}, x='x', y='y')
-    points = chart.spec._steps[0][2][0]
-    assert points == ((0, 1.0), (2, 2.0))
+    runs = [step[2][0] for step in chart.spec._steps if step[1] == 'line']
+    assert runs == [((0, 1.0),), ((2, 2.0),)]
 
 
 def test_unknown_columns_name_the_columns_there_are():

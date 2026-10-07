@@ -110,7 +110,8 @@ def test_pandas_nullable_dtypes_drop_missing_rows():
     chart = i.line(frame, x='time', y='signal', color='group')
     _clean(chart)
     assert list(chart.spec._steps[0][2][0]) == [(0, 1.0), (1, 2.0)]
-    assert list(chart.spec._steps[1][2][0]) == [(4, 5.0), (6, 7.0), (7, 8.0)]
+    assert list(chart.spec._steps[1][2][0]) == [(4, 5.0)]
+    assert list(chart.spec._steps[2][2][0]) == [(6, 7.0), (7, 8.0)]
 
 
 # -- CSV and TSV -------------------------------------------------------------
@@ -163,7 +164,8 @@ def test_numpy_arrays_as_x_and_y():
     y = np.array([1.0, 3.0, np.nan, 5.0])
     chart = i.line(x=x, y=y)
     _clean(chart)
-    assert list(chart.spec._steps[0][2][0]) == [(0, 1.0), (1, 3.0), (3, 5.0)]
+    assert list(chart.spec._steps[0][2][0]) == [(0, 1.0), (1, 3.0)]
+    assert list(chart.spec._steps[1][2][0]) == [(3, 5.0)]
 
     _clean(i.scatter(x=x, y=np.array([2.0, 4.0, 3.0, 5.0])))
 

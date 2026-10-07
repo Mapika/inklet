@@ -33,8 +33,8 @@ are turned 45 degrees to fit.
 
 | Function | What it draws |
 |---|---|
-| `i.line(df, x, y, color=)` | Lines joined in x order; `y` may be a list of columns, and without `y` every numeric column is drawn. `markers=True`, `error_y=` (band), `dash=`, `linewidth=` |
-| `i.scatter(df, x, y, color=, size=)` | Points; a numeric `color` column with many values uses a colour ramp and a colour bar. `text='col'` labels points clear of the marks |
+| `i.line(df, x, y, color=)` | Lines joined in x order; `y` may be a list of columns, and without `y` every numeric column is drawn. A missing y leaves a gap, so the line breaks there; `gaps='bridge'` joins the points either side instead. `markers=True`, `error_y=` (band), `dash=`, `linewidth=` |
+| `i.scatter(df, x, y, color=, size=)` | Points; a numeric `color` column with many values uses a colour ramp and a colour bar. `text='col'` labels points clear of the marks; blank or missing labels are skipped, so those points get no leader line |
 | `i.bar(df, x, y, color=)` | Bars per category, grouped or `stacked=True`; rows are summed, or `agg='mean'`/`'median'` with `error_y='sem'`, `'sd'` or `'ci95'` and `points=True`. Without `y`, counts rows. `orient='h'` |
 | `i.hist(df, x, color=, bins=)` | Histogram, overlaid per group; `density=`, `cumulative=` |
 | `i.kde(df, x, color=)` | Kernel density curves; `fill=True` |
@@ -120,6 +120,10 @@ clipped text, type below the print minimum and similar problems, with the
 change that would fix each one. If there are errors or warnings, `save()`
 also raises a `LayoutWarning` with the report, so problems are visible even
 when no one prints it.
+
+`save()` writes PNG at the preset's resolution: 300 dpi for print presets and
+150 for slides. Pass `dpi=600` for a higher resolution. SVG and PDF are vector
+and ignore `dpi`.
 
 In Jupyter and VS Code notebooks a chart displays itself. Outside a notebook,
 `chart.show()` writes an SVG and returns its path; nothing opens a window.

@@ -19,8 +19,8 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 
 | Function | Columns | Notes |
 |---|---|---|
-| `i.line(df, x, y, color=)` | `y` may be a list of columns; no `y` plots every numeric column; points are joined in x order (`sort=False` keeps row order) | `markers=True`, `error_y='col'` draws a band, `dash='dashed'`, `linewidth=` (mm) |
-| `i.scatter(df, x, y, color=, size=)` | numeric `color` column with many values gets a colour ramp and colour bar | `error_y='col'`, `text='col'` labels points clear of the marks |
+| `i.line(df, x, y, color=)` | `y` may be a list of columns; no `y` plots every numeric column; points are joined in x order (`sort=False` keeps row order) | `markers=True`, `error_y='col'` draws a band, `dash='dashed'`, `linewidth=` (mm); a missing y breaks the line there (`gaps='bridge'` joins across the gap instead) |
+| `i.scatter(df, x, y, color=, size=)` | numeric `color` column with many values gets a colour ramp and colour bar | `error_y='col'`, `text='col'` labels points clear of the marks (blank or missing labels are skipped) |
 | `i.bar(df, x, y, color=)` | `x` categories; rows with the same `x` are summed; no `y` counts rows | `agg='mean'` with `error_y='sem'`/`'sd'`/`'ci95'` and `points=True`; `stacked=True`, `orient='h'` |
 | `i.hist(df, x, color=, bins=20)` | | `density=True`, `cumulative=True` |
 | `i.kde(df, x, color=)` / `i.ecdf(df, x, color=)` | | `fill=True` on kde |
@@ -33,6 +33,10 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 | `i.quick.forest(df, label=, estimate=, lower=, upper=)` | one row per study with its interval | `weight='col'`, `summary='col'` for diamonds, `log=True`, `right=['ci', 'n']`; `i.forest(rows)` is the rows-list diagram |
 
 `color=` that is not a column name is a literal colour: `color='#c1121f'`.
+
+PNG output is at the preset's resolution: 300 dpi for print presets, 150 for
+slides. For more, pass `chart.save('fig.png', dpi=600)`. SVG and PDF are
+vector and ignore `dpi`.
 
 Chart options, accepted by every function above:
 
