@@ -25,12 +25,12 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 | `i.hist(df, x, color=, bins=20)` | | `density=True`, `cumulative=True` |
 | `i.kde(df, x, color=)` / `i.ecdf(df, x, color=)` | | `fill=True` on kde |
 | `i.boxplot(df, x, y)` / `i.violin(df, x, y)` / `i.strip(df, x, y)` | `x` category column, `y` values | `points=True` overlays the samples |
-| `i.area(df, x, y, color=)` | groups stack (values must be >= 0) | `stacked=False` overlays |
+| `i.area(df, x, y, color=)` | `y` may be a list of columns; groups stack (values must be >= 0) | `stacked=False` overlays |
 | `i.regression(df, x, y, color=)` | points + fitted line + confidence band | `method='linear'` or `'lowess'`; `equation=True` writes `y = 0.500x + 3.00, R^{2} = 0.667` on the plot, one per group in its colour; `chart.fits[group]` is each group's `LinearFit` (slope, intercept, r, r2, p, `slope_interval()`), known before save |
-| `i.heatmap(rows, x=col_labels, y=row_labels)` | or a long table: `i.heatmap(df, x=, y=, z=)` | first row is drawn at the top; `palette='viridis'` |
+| `i.heatmap(rows, x=col_labels, y=row_labels)` | or a long table: `i.heatmap(df, x=, y=, z=)` | first row is drawn at the top; `palette='viridis'`; diverging `palette='rdbu'` (also `'brbg'`, `'piyg'`, `'rdylbu'`, `'spectral'`) with `center=0`; `colorbar_title='log2 FC'` names the bar, `colorbar=False` drops it |
 | `i.survival(df, time=, event=, color=)` | Kaplan-Meier curves, one per group; `event` is 1/True for an event, 0/False for censored | `at_risk=True` table, `pvalue=True` log-rank P for 2+ groups, `band='log-log'`; survival runs 0 to 1 |
 | `i.volcano(df, x=, y=)` | `x` log2 fold change, `y` raw p-value | `label='col'` and `highlight=['name', ...]`, `q='col'` adjusted p colours by FDR |
-| `i.quick.forest(df, label=, estimate=, lower=, upper=)` | one row per study with its interval | `weight='col'`, `summary='col'` for diamonds, `log=True`, `right=['ci', 'n']`; `i.forest(rows)` is the rows-list diagram |
+| `i.quick.forest(df, label=, estimate=, lower=, upper=)` | one row per study with its interval | `weight='col'` sizes the squares (all equal without it); `summary='col'` for diamonds, `log=True`, `right=['ci', 'n']`; `i.forest(rows)` is a different function, the rows-list diagram |
 | `i.pie(df, names=, values=)` | one slice per row, sized by `values`, labelled with shares | `hole=0.5` for a donut (a fraction of the radius); `legend='bottom'` or False, not a corner; `labels='value'` or a format |
 | `i.lollipop(df, x=, y=)` | one dot per category on a stem from zero | `orient='h'` lays it across, rows top to bottom; `color=` is one colour; one row per category |
 | `i.dumbbell(df, y=, x=['before', 'after'])` | two dots per category joined by a line; `y` the category, `x` the two value columns | the legend names the dots after the columns; rows top to bottom; a missing value draws no dot |
@@ -60,7 +60,7 @@ Chart options, accepted by every function above:
 | `style` | preset name: `'scientific.modern'` (default: colour-led marks, grey axes), `'scientific.general'`, `'scientific.nature'`, `'scientific.science'`, `'scientific.cell'`, `'educational.textbook'`, `'marketing.report'`, `'marketing.presentation'`; or a Preset object, e.g. `i.preset('scientific.modern').customize(font_pt=12)` |
 | `font_pt` | the main type size in points; ticks and the key take 6/7 of it and titles 9/7 |
 | `palette` | `'okabe-ito'`, `'tol-bright'`, `'tol-muted'`, `'inklet'`, `'set2'`, `'dark2'`... or a list of colours |
-| `title`, `xlabel`, `ylabel` | axis titles default to the column names |
+| `title`, `xlabel`, `ylabel` | axis titles default to the raw column names, so set them for a publication. `xlabel` is always the horizontal axis, also with `orient='h'` (where it names the values) |
 | `xlim`, `ylim` | `(low, high)`; default fits the data. Explicit limits zoom: marks are cut at the axes |
 | `xscale`, `yscale` | `'linear'` or `'log'` |
 | `legend` | `'auto'` (default), `'direct'` (names at the line ends, no key), `'top'`, `'bottom'`, `'left'`, `'right'`, a corner `'ne'`, or `False` |
@@ -74,8 +74,8 @@ Chart options, accepted by every function above:
 
 ## Layering and annotating
 
-Chart methods have the same names and arguments as the functions; each returns
-the chart so calls chain:
+Mark methods (`line`, `scatter`...) take the same arguments as the functions.
+Every chart method changes the chart in place and returns it, so calls chain:
 
 ```python
 chart = i.scatter(df, x='dose', y='response', color='strain')
@@ -85,6 +85,27 @@ chart.annotate(3.0, 0.9, 'saturation')             # text placed clear of the da
 chart.labels(x='Dose / mg kg^{-1}', y='Response', title='Dose response')
 chart.save('dose.pdf')
 ```
+
+| Method | Use |
+|---|---|
+| `hline(y, label=)`, `vline(x, label=)` | rule at a data value; `span=(lo, hi)` limits it; `label_side=` |
+| `hspan(y0, y1)`, `vspan(x0, x1)` | shaded stripe between two data values |
+| `annotate(x, y, text, side=)` | callout on a data point, with a leader; `dot=True` marks the point |
+| `text(x, y, content)` | words at a data point; `decorative=True` skips the contrast check |
+| `bracket(a, b, '***')` | significance bracket between two categories; `text=` also works |
+| `brackets([(a, b, p), ...])` | several at once, stacked clear; `format='p'` writes P values; `hide_ns=True` drops "ns" |
+| `band(x, lo, hi)`, `fill_between(x, y0, y1)` | shaded envelope between two curves |
+| `label_points(points, labels)`, `label_lines()` | name points, or each curve at its end, instead of a key |
+| `labels(x=, y=, title=, y2=)` | axis titles and the chart title |
+| `legend(corner=, side=, title=)` | the key; updates the one already drawn |
+| `colorbar(title=, side=)` | the bar of a heatmap or numeric scatter; a chart without one raises |
+| `size(width=, height=)` | set the size after creation |
+| `spec` | the PlotSpec under the chart; every other `Panel` method |
+
+`grid` and `title` are options (`grid=True`, `labels(title=)`), not methods:
+`chart.grid(...)` raises TypeError. `help(chart.vline)` shows a method's
+arguments; `help(i.Chart.vline)` raises AttributeError, so use `help(i.Panel.vline)`
+for the signature without a chart.
 
 Text markup: `**bold**`, `//italic//`, `x^{2}`, `H_{2}O`, `{#c1121f|coloured}`.
 
@@ -119,6 +140,7 @@ and drop repeated tick numbers and axis titles on inner panels.
 ## Multi-panel figures
 
 `|` puts charts side by side, `/` stacks them. Panels get letters a, b, c...
+(a chart title of just `'a'` doubles the letter; `i.Layout(..., letters=False)` turns them off).
 
 ```python
 fig = (i.line(df, x='t', y='y') | i.boxplot(df, x='group', y='y')) / i.hist(df, x='y')
@@ -173,6 +195,7 @@ which fits a 16:9 slide, so put the image in at its own size.
    check skips it.
 2. Look at the PNG. If you can view images, open it. Labels are measured, so
    overlaps are rare. Check that the right data are plotted, not just that it ran.
+   A passing check is not a visual check.
 3. From a shell: `inklet check script.py --png preview.png` builds the script,
    prints the report, writes a preview, and exits 1 when there are errors
    (`--strict` also fails on warnings, `--json` gives machine-readable output).
@@ -228,9 +251,11 @@ manhattan, survival curves, ridgelines, raincloud, sankey, upset, treemap,
 networks, ternary...) with its signature.
 
 - `i.from_matplotlib(fig)` redraws a matplotlib figure's data as Inklet charts,
-  in Inklet's type and layout. What it does not carry (hatches, RGB images,
-  figure-level text, twin axes, inset axes, and more) is listed in a
-  `MatplotlibWarning`; `docs/matplotlib.md` has the full list.
+  in Inklet's type and layout. Matplotlib's default colour cycle becomes the
+  Inklet palette unless `keep_colors=True`; colours set explicitly are kept.
+  What it does not carry (hatches, RGB images, figure-level text, twin axes,
+  inset axes, and more) is listed in a `MatplotlibWarning`;
+  `docs/matplotlib.md` has the full list.
 
 ## Common mistakes
 
@@ -238,6 +263,9 @@ networks, ternary...) with its signature.
 - Bars **sum** rows that share an `x` value. For a mean with an error bar use
   `i.bar(df, x='group', y='value', agg='mean', error_y='sem', points=True)`.
 - `area` stacks; stacked values must be non-negative.
+- `$...$` is not mathtext: `$\alpha$` prints the dollar signs. Use Unicode
+  (`α`, `x²`) or markup (`x^{2}`, `H_{2}O`).
+- `i.brackets` does not exist; significance brackets are `chart.brackets([...])`.
 - `chart.twin_y(...)` is refused on a quick chart. For a second y scale use
   `secondary_y=`, as above.
 - Do not call `plt.show()`-style display code; save files and inspect them.
