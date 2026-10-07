@@ -48,12 +48,12 @@ def from_matplotlib(figure, *, width=None, style='scientific.modern', palette=No
     axes and a lettered `Layout` for a grid of them.
     """
     from .quick import Layout
-    axes_list, fig = _axes(figure)
+    axes_list, fig, notes = _axes(figure)
     if not axes_list:
         raise ValueError('the matplotlib figure has no axes to convert')
     width = width or _width(fig)
     cycle = {} if keep_colors else _cycle_colors()
-    charts, skipped = {}, []
+    charts, skipped = {}, list(notes)
     for ax in axes_list:
         chart = _convert(ax, cycle, style=style, palette=palette)
         skipped.extend(f'{_where(ax)}: {item}' for item in chart.skipped)
@@ -65,11 +65,15 @@ def from_matplotlib(figure, *, width=None, style='scientific.modern', palette=No
         chart.size(width=width)
         return chart
     rows = _rows(axes_list)
-    built = []
-    for row in rows:
-        items = [charts[ax] for ax in row]
-        built.append(items[0] if len(items) == 1 else Layout('row', items))
-    layout = built[0] if len(built) == 1 else Layout('column', built)
+    if len(rows) > 1 and len(rows[0]) > 1 and len({len(row) for row in rows}) == 1:
+        # A regular grid keeps its shape, and its plot areas line up.
+        layout = Layout('grid', [charts[ax] for row in rows for ax in row], columns=len(rows[0]))
+    else:
+        built = []
+        for row in rows:
+            items = [charts[ax] for ax in row]
+            built.append(items[0] if len(items) == 1 else Layout('row', items))
+        layout = built[0] if len(built) == 1 else Layout('column', built)
     if isinstance(layout, Layout):
         layout.width, layout.letters = width, letters
     return layout
@@ -79,19 +83,40 @@ def from_matplotlib(figure, *, width=None, style='scientific.modern', palette=No
 
 
 def _axes(figure):
+    """The axes to convert, their figure, and what the figure holds besides them.
+
+    Figure text and legends belong to no axes, so they are noted here. A second
+    axes sitting exactly over another is a twin axes (`twinx()`), which the
+    bridge does not draw.
+    """
     if hasattr(figure, 'get_axes') and hasattr(figure, 'savefig'):
         fig = figure
-        axes = [ax for ax in figure.get_axes() if ax.get_visible() and not _is_colorbar(ax)]
+        notes = [f'figure text {text.get_text()[:30]!r}' for text in fig.texts
+                 if text.get_text().strip()]
+        notes += ['figure legend' for _ in fig.legends]
+        candidates = [ax for ax in figure.get_axes() if ax.get_visible() and not _is_colorbar(ax)]
     elif hasattr(figure, 'get_figure') and hasattr(figure, 'plot'):
         fig = figure.get_figure()
-        axes = [figure]
+        notes, candidates = [], [figure]
     else:
         raise TypeError('from_matplotlib() needs a matplotlib Figure or Axes')
-    return axes, fig
+    axes = []
+    for ax in candidates:
+        twin = next((other for other in axes if _same_place(ax, other)), None)
+        if twin is None:
+            axes.append(ax)
+        else:
+            notes.append(f'{_where(ax)}: a twin axes drawn over another axes is not converted')
+    return axes, fig, notes
 
 
 def _is_colorbar(ax):
     return ax.get_label() == '<colorbar>' or hasattr(ax, '_colorbar')
+
+
+def _same_place(a, b):
+    return all(abs(p - q) < 1e-9 for p, q in
+               zip(a.get_position(original=True).bounds, b.get_position(original=True).bounds))
 
 
 def _width(fig):
@@ -103,22 +128,23 @@ def _width(fig):
 
 
 def _rows(axes_list):
-    """Axes grouped into rows by their grid position, top to bottom."""
-    def place(ax):
-        spec = ax.get_subplotspec() if hasattr(ax, 'get_subplotspec') else None
-        if spec is not None:
-            return spec.rowspan.start, spec.colspan.start
-        box = ax.get_position()
-        return -round(box.y1, 2), round(box.x0, 2)
-    ordered = sorted(axes_list, key=place)
-    rows, current = [], None
-    for ax in ordered:
-        row = place(ax)[0]
-        if row != current:
-            rows.append([])
-            current = row
-        rows[-1].append(ax)
-    return rows
+    """Axes grouped into rows, top to bottom, each row left to right.
+
+    Grouped by where each axes is drawn, not by its subplotspec: a colour bar
+    made with `ax=` gives its parent a grid of its own, whose row numbers do
+    not line up with the figure's, and axes made without a subplotspec have
+    none. Two axes share a row when their tops lie within half a typical height.
+    """
+    boxes = {ax: ax.get_position(original=True) for ax in axes_list}
+    heights = sorted(box.height for box in boxes.values())
+    tolerance = heights[len(heights) // 2] / 2
+    rows = []
+    for ax in sorted(axes_list, key=lambda ax: -boxes[ax].y1):
+        if rows and boxes[rows[-1][0]].y1 - boxes[ax].y1 < tolerance:
+            rows[-1].append(ax)
+        else:
+            rows.append([ax])
+    return [sorted(row, key=lambda ax: boxes[ax].x0) for row in rows]
 
 
 def _where(ax):
@@ -144,20 +170,40 @@ def _convert(ax, cycle, *, style, palette):
     from matplotlib.container import BarContainer, ErrorbarContainer
     from .quick import Chart
     xlim = ax.get_xlim() if not ax.get_autoscalex_on() else None
-    ylim = ax.get_ylim() if not ax.get_autoscaley_on() else None
+    # An inverted y axis (imshow's default, or invert_yaxis) is kept as one, even
+    # when it was autoscaled: its rows and marks run top to bottom.
+    ylim = ax.get_ylim() if not ax.get_autoscaley_on() or ax.yaxis_inverted() else None
     chart = Chart(style=style, palette=palette, title=ax.get_title() or None,
                   xlabel=ax.get_xlabel() or None, ylabel=ax.get_ylabel() or None,
                   xlim=xlim, ylim=ylim, xscale=_scale(ax.get_xscale()),
-                  yscale=_scale(ax.get_yscale()), legend=_legend(ax))
+                  yscale=_scale(ax.get_yscale()), legend=_legend(ax), grid=_gridlines(ax))
     if ax.get_xscale() not in ('linear', 'log'):
         chart.skipped.append(f'{ax.get_xscale()} x scale (drawn linear)')
     if ax.get_yscale() not in ('linear', 'log'):
         chart.skipped.append(f'{ax.get_yscale()} y scale (drawn linear)')
+    if ax.get_aspect() != 'auto' and not ax.images:
+        # imshow asks for equal sides itself, and its cells fill the panel anyway.
+        chart.skipped.append('set_aspect (panels are not forced to a fixed aspect ratio)')
+    legend = ax.get_legend()
+    if legend is not None and legend.get_title().get_text():
+        chart.skipped.append(f'legend title {legend.get_title().get_text()!r}')
+    if legend is not None:
+        # The key takes its names from the artists' labels; a legend given its own
+        # strings shows those instead, so the difference is said.
+        shown = [text.get_text() for text in legend.get_texts()]
+        if shown != ax.get_legend_handles_labels()[1]:
+            chart.skipped.append('legend labels given by hand (the key uses the artists\' labels)')
+    if getattr(ax, 'child_axes', None):
+        chart.skipped.append(f'{len(ax.child_axes)} inset axes')
     spec, used = chart.spec, set()
     named = 0
+    # Images sit under everything else in matplotlib (zorder 0), and marks are
+    # layered in the order they are added, so they are drawn first here.
+    for image in ax.images:
+        _image(spec, image, chart.skipped)
     for container in ax.containers:
         if isinstance(container, BarContainer):
-            named += _bars(spec, container, cycle)
+            named += _bars(spec, container, cycle, chart.skipped)
             used.update(id(p) for p in container.patches)
         elif isinstance(container, ErrorbarContainer):
             _errorbars(spec, container, cycle)
@@ -176,18 +222,26 @@ def _convert(ax, cycle, *, style, palette):
     for patch in ax.patches:
         if id(patch) not in used and patch.get_visible():
             chart.skipped.append(type(patch).__name__)
-    for image in ax.images:
-        _image(spec, image)
+    for artist in (*ax.artists, *ax.tables):
+        if artist.get_visible():
+            chart.skipped.append(type(artist).__name__)
     for text in ax.texts:
         _text(ax, spec, text, chart.skipped)
     _ticks(ax, chart)
     chart._named = named
-    chart._legend_explicit = ax.get_legend() is not None
+    chart._legend_explicit = legend is not None
     return chart
 
 
 def _scale(name):
     return 'log' if name == 'log' else 'linear'
+
+
+def _gridlines(ax):
+    """'both', 'x' or 'y' for the gridlines matplotlib draws, else None: the preset decides."""
+    x = any(line.get_visible() for line in ax.xaxis.get_gridlines())
+    y = any(line.get_visible() for line in ax.yaxis.get_gridlines())
+    return {(True, True): 'both', (True, False): 'x', (False, True): 'y'}.get((x, y))
 
 
 def _legend(ax):
@@ -219,7 +273,49 @@ def _color(value, cycle):
     return f'{_TOKEN}{cycle[hexed]}' if hexed in cycle else hexed
 
 
+def _rgba(value):
+    """An RGBA tuple for a matplotlib colour; 'none' is fully transparent."""
+    from matplotlib.colors import to_rgba
+    try:
+        return to_rgba(value)
+    except (ValueError, TypeError):
+        return (0.0, 0.0, 0.0, 1.0)
+
+
+def _norm_note(norm):
+    """What a colour scale that is not plain linear is drawn as, or None."""
+    from matplotlib.colors import Normalize
+    if norm is None or type(norm) is Normalize:
+        return None
+    return f'{type(norm).__name__} colour scale drawn linear'
+
+
+def _ramp(name, skipped):
+    from .plot.ramp import ramp
+    try:
+        ramp(name)
+        return name
+    except Exception:
+        skipped.append(f'colour map {name!r} drawn as viridis')
+        return 'viridis'
+
+
+def _colorbar_title(mappable):
+    """The label of the colour bar drawn for `mappable`, or None.
+
+    matplotlib keeps a colour bar as an axes of its own, and its label on that
+    axes; the mappable points back to it through `_colorbar`.
+    """
+    for other in mappable.figure.axes:
+        bar = getattr(other, '_colorbar', None)
+        if bar is not None and bar.mappable is mappable:
+            label = other.get_xlabel() if bar.orientation == 'horizontal' else other.get_ylabel()
+            return label or None
+    return None
+
+
 def _style(artist, cycle, *, kind='line'):
+    from matplotlib import rcParams
     options = {}
     if kind == 'line':
         color = _color(artist.get_color(), cycle)
@@ -232,6 +328,9 @@ def _style(artist, cycle, *, kind='line'):
             options['stroke_dash'] = (0.3, 0.6)
         elif style in ('-.', 'dashdot'):
             options['stroke_dash'] = (1.6, 0.6, 0.3, 0.6)
+        # A width left at matplotlib's default is inklet's own line width.
+        if artist.get_linewidth() != rcParams['lines.linewidth']:
+            options['stroke_width'] = artist.get_linewidth() / _PT
     alpha = artist.get_alpha()
     if alpha is not None and alpha < 1:
         options['opacity'] = float(alpha)
@@ -252,12 +351,15 @@ def _points(xs, ys):
 
 def _axes_coords(ax, artist):
     """'x' or 'y' when the artist spans the axes along that direction (axhline...)."""
+    # Identity, not ==: matplotlib's transforms compare equal whenever their
+    # matrices agree, and an axes whose limits are 0 to 1 makes data and axes
+    # coordinates agree.
     transform = artist.get_transform()
-    if transform == ax.transData:
+    if transform is ax.transData:
         return None
-    if transform == ax.get_yaxis_transform():
+    if transform is ax.get_yaxis_transform():
         return 'x'      # x in axes fraction, y in data: a horizontal rule
-    if transform == ax.get_xaxis_transform():
+    if transform is ax.get_xaxis_transform():
         return 'y'
     return 'other'
 
@@ -282,15 +384,35 @@ def _line(ax, spec, line, cycle, skipped):
     has_line = line.get_linestyle() not in ('None', 'none', '', ' ')
     has_marker = marker not in (None, 'None', 'none', '', ' ')
     options = _style(line, cycle)
+    if line.get_drawstyle() != 'default':
+        skipped.append(f'line drawn {line.get_drawstyle()!r} (as straight segments here)')
     if has_line:
         spec.line(points, name=name, **options)
     if has_marker:
         points = _every(points, line.get_markevery())
-        shape = _MARKERS.get(marker, 'circle')
+        if marker not in _MARKERS:
+            skipped.append(f'marker {marker!r} drawn as a circle')
         size = line.get_markersize() / _PT
-        spec.scatter(points, marker=shape, size=size, name=name,
-                     **{k: v for k, v in options.items() if k != 'stroke_dash'})
+        hollow = _marker_paint(line, skipped)
+        spec.scatter(points, marker=_MARKERS.get(marker, 'circle'), size=size, name=name,
+                     hollow=hollow, **_marker_options(options))
     return 1 if name else 0
+
+
+def _marker_options(options):
+    """A line's options as markers take them: colour and opacity, not dashes or widths."""
+    return {k: v for k, v in options.items() if k not in ('stroke_dash', 'stroke_width')}
+
+
+def _marker_paint(line, skipped):
+    """Whether the markers are hollow; notes it when their colours differ from the line's."""
+    from matplotlib.colors import to_hex
+    line_colour = to_hex(line.get_color())
+    face, edge = _rgba(line.get_markerfacecolor()), _rgba(line.get_markeredgecolor())
+    hollow = face[3] == 0
+    if (not hollow and to_hex(face) != line_colour) or (edge[3] > 0 and to_hex(edge) != line_colour):
+        skipped.append('marker colours other than the line colour (drawn in the line colour)')
+    return hollow
 
 
 def _every(points, every):
@@ -309,8 +431,18 @@ def _every(points, every):
         return points
 
 
+def _outlined(faces, edges, widths):
+    """Whether markers have a visible outline that is not one of their fills."""
+    if not any(w > 0 for w in widths):
+        return False
+    lines = {tuple(e) for e in edges if e[3] > 0}
+    fills = {tuple(f) for f in faces}
+    return bool(lines) and not lines <= fills
+
+
 def _collection(ax, spec, collection, cycle, skipped):
     from matplotlib.collections import PathCollection, PolyCollection, LineCollection
+    from .plot.scale import linear
     kind = type(collection).__name__
     name = _label(collection)
     if isinstance(collection, PathCollection):
@@ -320,17 +452,32 @@ def _collection(ax, spec, collection, cycle, skipped):
             return 0
         options = {}
         array = collection.get_array()
-        faces = collection.get_facecolors()
+        faces, edges = collection.get_facecolors(), collection.get_edgecolors()
+        # scatter(facecolors='none') leaves no face colours at all: it draws rings,
+        # coloured by their edges.
+        hollow = all(f[3] == 0 for f in faces)
+        shade = edges if hollow else faces
+        if hollow:
+            options['hollow'] = True
+        norm = collection.norm
         if array is not None and len(array) == len(points):
             options['color'] = [float(v) for v in array]
             cmap = collection.get_cmap()
-            options['ramp'] = _ramp(cmap.name if cmap is not None else 'viridis')
-        elif len(faces) == 1:
-            color = _color(faces[0], cycle)
+            options['ramp'] = _ramp(cmap.name if cmap is not None else 'viridis', skipped)
+            if norm is not None and norm.vmin is not None and norm.vmax is not None \
+                    and norm.vmax > norm.vmin:
+                options['scale'] = linear((float(norm.vmin), float(norm.vmax)))
+            note = _norm_note(norm)
+            if note:
+                skipped.append(note)
+        elif len(shade) == 1:
+            color = _color(shade[0], cycle)
             if color:
                 options['color'] = color
-        elif len(faces) == len(points):
-            options['color'] = [_color(f, {}) for f in faces]
+        elif len(shade) == len(points):
+            options['color'] = [_color(f, {}) for f in shade]
+        if not hollow and _outlined(faces, edges, collection.get_linewidths()):
+            skipped.append('marker outlines in their own colour (drawn without them)')
         sizes = collection.get_sizes()
         if len(sizes):
             # matplotlib sizes are marker areas in points squared.
@@ -341,10 +488,12 @@ def _collection(ax, spec, collection, cycle, skipped):
             options['opacity'] = float(alpha)
         spec.scatter(points, name=name, **options)
         if 'ramp' in options:
-            spec.colorbar()
+            spec.colorbar(title=_colorbar_title(collection))
         return 1 if name else 0
     if isinstance(collection, PolyCollection):
         drew = False
+        if collection.get_hatch():
+            skipped.append(f'hatched band ({collection.get_hatch()!r}) drawn solid')
         for path in collection.get_paths():
             vertices = [tuple(map(float, v)) for v in path.vertices]
             band = _band(vertices)
@@ -367,11 +516,27 @@ def _collection(ax, spec, collection, cycle, skipped):
                 skipped.append(f'{kind} that is not a band between two curves')
         return 1 if (name and drew) else 0
     if isinstance(collection, LineCollection):
-        for segment in collection.get_segments():
+        colours = list(collection.get_colors())
+        uniform = len({tuple(c) for c in colours}) <= 1
+        if any(dash is not None for _, dash in collection.get_linestyle()):
+            skipped.append('dashed lines drawn solid')
+        if name and not uniform:
+            skipped.append('labelled lines in several colours (label dropped)')
+        named = False
+        for index, segment in enumerate(collection.get_segments()):
             points = _points(segment[:, 0], segment[:, 1])
-            if len(points) >= 2:
-                spec.line(points)
-        return 0
+            if len(points) < 2:
+                continue
+            options = {}
+            if colours:
+                color = _color(colours[index % len(colours)], cycle)
+                if color:
+                    options['color'] = color
+            if name and uniform and not named:
+                options['name'] = name
+                named = True
+            spec.line(points, **options)
+        return 1 if named else 0
     skipped.append(kind)
     return 0
 
@@ -396,7 +561,7 @@ def _band(vertices):
     return xs, [min(at[x]) for x in xs], [max(at[x]) for x in xs]
 
 
-def _bars(spec, container, cycle):
+def _bars(spec, container, cycle, skipped):
     patches = [p for p in container.patches if p.get_visible()]
     if not patches:
         return 0
@@ -412,9 +577,25 @@ def _bars(spec, container, cycle):
         width = patches[0].get_width()
         baseline = patches[0].get_y()
     options = {}
-    color = _color(patches[0].get_facecolor(), cycle)
-    if color:
-        options['color'] = color
+    faces = [p.get_facecolor() for p in patches]
+    fills = [_color(f, cycle) if f[3] > 0 else None for f in faces]
+    if None in fills:
+        skipped.append('bars with no fill drawn in the default colour')
+    elif len(set(fills)) == 1:
+        if fills[0]:
+            options['color'] = fills[0]
+    else:
+        # One colour per bar: a series' colours are per series, so these go per category.
+        options['bar_colors'] = fills
+    alphas = {round(float(f[3]), 6) for f in faces if f[3] > 0}
+    if len(alphas) > 1:
+        skipped.append('bars at several transparencies (drawn opaque)')
+    elif alphas and min(alphas) < 1:
+        options['opacity'] = min(alphas)
+    for hatch in sorted({str(p.get_hatch()) for p in patches if p.get_hatch()}):
+        skipped.append(f'bars with hatch {hatch!r} drawn solid')
+    if any(p.get_edgecolor()[3] > 0 and p.get_linewidth() > 0 for p in patches):
+        skipped.append('bar outlines (edge colour) not kept')
     name = _label(container)
     spec.bars(at, heights, width=width, baseline=baseline, orient='h' if horizontal else 'v',
               name=name, **options)
@@ -455,8 +636,10 @@ def _errorbars(spec, container, cycle):
         color = _color(bars[0].get_colors()[0], cycle) if len(bars[0].get_colors()) else None
         if color:
             options['color'] = color
+    # capsize is the half-width of the caps in points, and they are markers of twice that size.
+    cap = float(caps[0].get_markersize()) / 2 / _PT if len(caps) else 0
     if kwargs:
-        spec.errorbars(points, **kwargs, **options)
+        spec.errorbars(points, **kwargs, cap=cap, **options)
     if line is None:
         return
     if line.get_linestyle() not in ('None', 'none', '', ' '):
@@ -467,64 +650,77 @@ def _errorbars(spec, container, cycle):
                      size=line.get_markersize() / _PT, name=name, **options)
 
 
-def _image(spec, image):
+def _image(spec, image, skipped):
     data = image.get_array()
-    if data is None or getattr(data, 'ndim', 0) != 2:
+    if data is None:
+        return
+    if getattr(data, 'ndim', 0) != 2:
+        skipped.append('colour image (RGB or RGBA pixels) not kept')
         return
     rows = [[float(v) for v in row] for row in data]
     norm = image.norm
     from .plot.scale import linear
+    note = _norm_note(norm)
+    if note:
+        skipped.append(note)
     lo = norm.vmin if norm.vmin is not None else min(min(r) for r in rows)
     hi = norm.vmax if norm.vmax is not None else max(max(r) for r in rows)
     origin_upper = image.origin == 'upper'
     left, right, bottom, top = image.get_extent()
     columns = len(rows[0])
     step_x = (right - left) / columns
-    step_y = (top - bottom) / len(rows)
+    # Row 0 sits on the edge the origin names, and matplotlib's y axis runs
+    # top to bottom for an upper origin, which _convert keeps as an inverted axis.
+    start, step_y = (top, (bottom - top) / len(rows)) if origin_upper \
+        else (bottom, (top - bottom) / len(rows))
     xs = [left + step_x * (k + 0.5) for k in range(columns)]
-    ys = [bottom + step_y * (k + 0.5) for k in range(len(rows))]
-    if origin_upper:
-        # imshow's default puts row 0 at the top of an inverted y axis.
-        ys = ys[::-1]
+    ys = [start + step_y * (k + 0.5) for k in range(len(rows))]
     cmap = image.get_cmap()
-    spec.matrix(rows, x=xs, y=ys, ramp=_ramp(cmap.name if cmap else 'viridis'),
+    spec.matrix(rows, x=xs, y=ys, ramp=_ramp(cmap.name if cmap else 'viridis', skipped),
                 scale=linear((lo, hi if hi > lo else lo + 1)))
-    spec.colorbar()
-
-
-def _ramp(name):
-    from .plot.ramp import ramp
-    try:
-        ramp(name)
-        return name
-    except Exception:
-        return 'viridis'
+    spec.colorbar(title=_colorbar_title(image))
 
 
 def _text(ax, spec, text, skipped):
+    from matplotlib.text import Annotation
     content = text.get_text()
     if not content.strip():
         return
-    if text.get_transform() != ax.transData:
+    if isinstance(text, Annotation):
+        # An annotation's transform is in display units; what matters is what its
+        # arrow points at. Its label is placed by inklet, clear of that point.
+        if text.xycoords == 'data':
+            x, y = text.xy
+            spec.annotate(float(x), float(y), content)
+        else:
+            skipped.append(f'annotation {content[:20]!r} pointing at {text.xycoords!r} '
+                           'coordinates, not data')
+        return
+    if text.get_transform() is not ax.transData:
         skipped.append(f'text {content[:20]!r} placed in axes coordinates')
         return
+    if text.get_rotation():
+        skipped.append(f'text {content[:20]!r} rotated {text.get_rotation():g} degrees '
+                       '(drawn level)')
     x, y = text.get_position()
-    if hasattr(text, 'xy') and getattr(text, 'arrow_patch', None) is not None:
-        spec.annotate(float(text.xy[0]), float(text.xy[1]), content)
-        return
     anchor = {('left', 'center'): 'w', ('right', 'center'): 'e', ('center', 'bottom'): 's',
               ('center', 'top'): 'n'}.get((text.get_ha(), text.get_va()), 'center')
     spec.text(float(x), float(y), content, anchor=anchor)
 
 
 def _ticks(ax, chart):
-    """Keep category names on an axis matplotlib built from strings."""
+    """Keep category names on an axis matplotlib built from strings, and ticks set by hand."""
     from matplotlib.category import StrCategoryConverter
+    from matplotlib.ticker import FixedLocator
     for axis, name, limits in ((ax.xaxis, 'x', ax.get_xlim()), (ax.yaxis, 'y', ax.get_ylim())):
         converter = axis.get_converter() if hasattr(axis, 'get_converter') else axis.converter
-        if not isinstance(converter, StrCategoryConverter):
-            continue
         lo, hi = sorted(limits)
+        if not isinstance(converter, StrCategoryConverter):
+            # Ticks the script placed (set_xticks, with or without labels) are kept;
+            # the ones matplotlib chose for itself are left to inklet.
+            if isinstance(axis.get_major_locator(), FixedLocator):
+                _placed_ticks(chart, name, axis, lo, hi)
+            continue
         pairs = [(float(loc), tick.get_text()) for loc, tick in
                  zip(axis.get_ticklocs(), axis.get_ticklabels()) if lo <= loc <= hi]
         if not pairs:
@@ -534,3 +730,18 @@ def _ticks(ax, chart):
             chart._categories([label for _, label in pairs])
         chart._tick_overrides[name] = {'ticks': [loc for loc, _ in pairs],
                                        'format': lambda v, table=table: table.get(v, '')}
+
+
+def _placed_ticks(chart, name, axis, lo, hi):
+    locations = list(axis.get_ticklocs())
+    if not locations:
+        # set_xticks([]) asks for no tick labels.
+        chart._hide_ticks.add(name)
+        return
+    labels = [tick.get_text() for tick in axis.get_ticklabels()]
+    pairs = [(float(loc), label) for loc, label in zip(locations, labels) if lo <= loc <= hi]
+    if not pairs:
+        return
+    table = dict(pairs)
+    chart._tick_overrides[name] = {'ticks': [loc for loc, _ in pairs],
+                                   'format': lambda v, table=table: table.get(v, '')}
