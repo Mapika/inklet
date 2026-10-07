@@ -66,7 +66,8 @@ packages = ["src/inklet"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["acceptance: complete import/edit/reopen/revision/export workflows"]
+markers = ["acceptance: complete import/edit/reopen/revision/export workflows",
+           "slow: a generous wall-clock bound on a big-data path; deselect with -m 'not slow'"]
 # Inklet's own code never uses a deprecated spelling; tests that exercise one
 # say so with pytest.warns or a filterwarnings mark.
 filterwarnings = ["error::inklet._compat.InkletDeprecationWarning"]

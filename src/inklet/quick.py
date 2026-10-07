@@ -60,6 +60,20 @@ from .plot.paint import DASHES as _DASHES
 #: is read as a continuous variable and drawn with a colour ramp.
 _MAX_GROUPS = 12
 
+#: A scatter panel with more points than this is drawn as one raster image of
+#: its markers. Measured at 300 dpi a vector point costs about 125 bytes of SVG,
+#: so 20,000 points is 2.5 MB against about 0.7 MB for the image; under about
+#: 5,000 points the two are the same size, and the cloud stays vector.
+_RASTER_POINTS = 20_000
+
+#: A line longer than this many points per millimetre of chart width is thinned
+#: by `simplify='auto'`: 40 points per mm is four per 0.1 mm.
+_SIMPLIFY_PER_MM = 40
+
+#: The tolerance `simplify='auto'` uses, in millimetres: points that stay within
+#: it of the line through the kept points are dropped. About a quarter of a pixel at 300 dpi.
+_SIMPLIFY_MM = 0.02
+
 
 class LayoutWarning(UserWarning):
     """A saved chart has layout problems; the message is its lint report."""
@@ -294,6 +308,20 @@ def _runs(xs, ys, err):
              None if err is None else [err[k] for k in run]) for run in runs]
 
 
+def _simplify_for(simplify, points, options, limit):
+    """The `simplify=` one run of a line is drawn with.
+
+    `'auto'` thins a run only past `limit` points, and never a smooth or closed
+    run, which `Panel.line` draws as curves and cannot simplify. Anything else
+    is the caller's own choice, with False and None meaning every point.
+    """
+    if simplify != 'auto':
+        return simplify or None
+    if options.get('smooth') or options.get('closed') or len(points) <= limit:
+        return None
+    return _SIMPLIFY_MM
+
+
 def _label_text(value):
     """A point's label text, or None for a blank one: no label, no leader line."""
     if value is None:
@@ -452,7 +480,8 @@ class Chart(_Renderable):
     # Marks. Each mirrors the top-level function of the same name.
 
     def line(self, data=None, x=None, y=None, *, color=None, name=None, markers=False,
-             error_y=None, dash=None, linewidth=None, sort=True, gaps='break', **style):
+             error_y=None, dash=None, linewidth=None, sort=True, gaps='break',
+             simplify='auto', **style):
         """Lines through (x, y), one per `color` group or per `y` column.
 
         Points are joined in x order; `sort=False` keeps row order (a path
@@ -462,11 +491,23 @@ class Chart(_Renderable):
         A row with a missing y (or error) is a gap. `gaps='break'`, the default,
         leaves it open, so no segment bridges it; `gaps='bridge'` joins the
         points either side as if the row were not there.
+
+        `simplify='auto'`, the default, drops points that stay within 0.02 mm
+        of the line drawn through the kept points, but only where the line has
+        more than 40 points per mm of chart width. That is invisible in print
+        and shrinks a smooth 100,000-point trace to a few hundred points or a
+        few thousand. `None` or `False` keeps every point; a number is the
+        tolerance in millimetres.
         """
         if gaps not in ('break', 'bridge'):
             raise ValueError(f"gaps must be 'break' or 'bridge', got {gaps!r}")
+        if simplify != 'auto' and simplify is not None and simplify is not False and (
+                isinstance(simplify, bool) or not isinstance(simplify, Real)):
+            raise ValueError(f"simplify must be 'auto', None, False or a tolerance in mm, got {simplify!r}")
         table = _table(data)
         _check_color(color)
+        # The most points a line of this chart may have before 'auto' thins it.
+        limit = _SIMPLIFY_PER_MM * self._profile().publication.width if simplify == 'auto' else 0
         for label, xs, ys, err in self._series(table, x, y, color, error_y, gaps=gaps == 'break'):
             if sort:
                 xs, ys, err = _ordered(xs, ys, err)
@@ -479,6 +520,7 @@ class Chart(_Renderable):
                 points = list(zip(run_x, run_y))
                 named = series if number == 0 else None
                 run_options = dict(options)
+                run_options['simplify'] = _simplify_for(simplify, points, run_options, limit)
                 if run_err is not None and 'color' in options:
                     # Translucent, so where two groups' bands overlap both show.
                     # Unnamed: a key swatch has no opacity and would read solid.
@@ -491,16 +533,22 @@ class Chart(_Renderable):
                 self.spec.line(points, name=named, **run_options)
                 if markers:
                     self.spec.scatter(points, name=named,
+                                      **self._raster_keywords(None, len(points), {}),
                                       **self._style(table, color, {}, mark=True, label=series,
                                                     lone=True))
         return self._labelled(x, y)
 
     def scatter(self, data=None, x=None, y=None, *, color=None, size=None, name=None,
-                marker='circle', palette=None, error_y=None, text=None, **style):
+                marker='circle', palette=None, error_y=None, text=None, raster=None, **style):
         """Points at (x, y). A numeric `color` column with many values is a ramp.
 
         `size` is a diameter in mm or a column of them; `text` names a column
         of point labels (None for unlabelled points), placed clear of the marks.
+
+        `raster=None`, the default, draws a panel of more than 20,000 points as
+        one image of its markers at the preset's dpi (300 for print, 150 for
+        slides). The axes, labels and key stay vector, so the file is still
+        editable apart from the points. `raster=True` or `False` overrides that.
         """
         table = _table(data)
         _check_color(color)
@@ -512,14 +560,18 @@ class Chart(_Renderable):
             columns = [xs, ys, table[color]] + ([sizes] if sizes else [])
             _, *kept = _groups(None, None, *columns)[0]
             options = {'size': kept[3]} if sizes else _size(size, table)
+            paint = self._raster_keywords(raster, len(kept[0]), style)
             self.spec.scatter(list(zip(kept[0], kept[1])), color=kept[2],
                               ramp=palette or 'viridis', marker=marker, name=name,
-                              **options, **style)
+                              **options, **paint, **style)
             self.spec.colorbar(title=color)
         else:
             err = _column(table, error_y, 'error_y') if error_y is not None else None
             columns = [xs, ys] + ([err] if err else []) + ([sizes] if sizes else [])
-            for label, *kept in _groups(table, color, *columns):
+            groups = list(_groups(table, color, *columns))
+            # One decision for the panel: its groups are drawn as one cloud or not at all.
+            paint = self._raster_keywords(raster, sum(len(kept[0]) for _, *kept in groups), style)
+            for label, *kept in groups:
                 points = list(zip(kept[0], kept[1]))
                 series = name or label
                 if not points:
@@ -530,7 +582,7 @@ class Chart(_Renderable):
                 options = {'size': kept[-1]} if sizes else _size(size, table)
                 if 'size' not in options:
                     options.update(_marker_look(len(points), len(xs)))
-                self.spec.scatter(points, name=series, marker=marker, **options,
+                self.spec.scatter(points, name=series, marker=marker, **options, **paint,
                                   **self._style(table, color, style, mark=True, label=series,
                                                 lone=True))
             self._named += sum(1 for group in _groups(table, color, xs, ys) if group[0] is not None)
@@ -1098,6 +1150,22 @@ class Chart(_Renderable):
         if label not in self._series_tokens:
             self._series_tokens[label] = f'{_TOKEN}{len(self._series_tokens)}'
         return self._series_tokens[label]
+
+    def _raster_keywords(self, raster, count, style):
+        """`raster=` and, when rasterising, `dpi=` for the scatter layers of one panel.
+
+        `None` rasterises past `_RASTER_POINTS`, unless the markers have dashed
+        outlines, which a raster cannot draw. The dpi is the preset's, read here
+        because the page is known at the call; a `dpi=` the caller gave wins.
+        """
+        if raster is None:
+            raster = count > _RASTER_POINTS and 'stroke_dash' not in style
+        elif not isinstance(raster, bool):
+            raise ValueError(f'scatter raster= is None, True or False, got {raster!r}')
+        keywords = {'raster': raster}
+        if raster and 'dpi' not in style:
+            keywords['dpi'] = self._profile().publication.dpi
+        return keywords
 
     def _style(self, table, color, style, *, mark=False, dash=None, stroke_width=None, label=None,
                lone=False):

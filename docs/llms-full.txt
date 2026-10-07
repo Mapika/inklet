@@ -36,7 +36,15 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 
 PNG output is at the preset's resolution: 300 dpi for print presets, 150 for
 slides. For more, pass `chart.save('fig.png', dpi=600)`. SVG and PDF are
-vector and ignore `dpi`.
+vector and ignore `dpi`, except a rasterised scatter layer, which is embedded
+at the preset's dpi.
+
+Big tables need no options. A scatter panel with more than 20,000 points is
+drawn as one raster image of its markers (`raster=None` is the default;
+`raster=True` or `False` overrides it); axes, labels and key stay vector, and
+dashed marker outlines stay vector. A line thins itself with `simplify='auto'`
+(drops points within 0.02 mm of the kept line, only past 40 points per mm of width);
+`simplify=None` keeps every point, and a number is a tolerance in mm.
 
 Chart options, accepted by every function above:
 

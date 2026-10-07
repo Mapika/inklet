@@ -20,8 +20,8 @@ in parent nodes, so handles created before layout still resolve in the figure.
 
 One plot: marks on shared axes, with a size and a preset.
 
-* `line(data=None, x=None, y=None, *, color=None, name=None, markers=False, error_y=None, dash=None, linewidth=None, sort=True, gaps='break', **style)` -- Lines through (x, y), one per `color` group or per `y` column.
-* `scatter(data=None, x=None, y=None, *, color=None, size=None, name=None, marker='circle', palette=None, error_y=None, text=None, **style)` -- Points at (x, y). A numeric `color` column with many values is a ramp.
+* `line(data=None, x=None, y=None, *, color=None, name=None, markers=False, error_y=None, dash=None, linewidth=None, sort=True, gaps='break', simplify='auto', **style)` -- Lines through (x, y), one per `color` group or per `y` column.
+* `scatter(data=None, x=None, y=None, *, color=None, size=None, name=None, marker='circle', palette=None, error_y=None, text=None, raster=None, **style)` -- Points at (x, y). A numeric `color` column with many values is a ramp.
 * `bar(data=None, x=None, y=None, *, color=None, name=None, orient='v', stacked=False, error_y=None, labels=None, agg='sum', points=False, **style)` -- Bars of `y` at each `x` category; `color` groups side by side or stacked.
 * `hist(data=None, x=None, *, color=None, bins=20, density=False, name=None, cumulative=False, **style)` -- Histogram of `x`; one overlaid histogram per `color` group.
 * `kde(data=None, x=None, *, color=None, fill=False, name=None, **style)` -- Kernel density estimate of `x`, one curve per `color` group.

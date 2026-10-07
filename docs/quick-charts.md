@@ -117,6 +117,31 @@ width in millimetres, the row is as wide as they are together, with the gaps
 between them, and each panel keeps its own width. A width the layout cannot
 use raises a `UserWarning`; set the width on the layout instead.
 
+## Large data
+
+Big tables need no options. Two defaults keep the figure small:
+
+- **Scatter points are rasterised past 20,000 per panel.** A panel with more
+  points is drawn as one image of its markers at the preset's dpi (300 for
+  print, 150 for slides). A vector point is about 125 bytes of SVG, so 20,000
+  points is 2.5 MB; the image is about 0.7 MB whatever the count. Axes, labels,
+  the key and every other mark stay vector, so the file is still editable apart
+  from the points. `raster=True` rasterises a smaller panel and `raster=False`
+  keeps a large one vector. A dashed marker outline stays vector, since an image
+  cannot draw one. Facets count each panel on its own.
+- **Lines thin themselves.** `simplify='auto'` is the default: a line with more
+  than 40 points per millimetre of chart width drops points that stay within
+  0.02 mm of the line through the kept points, about a quarter of a pixel at
+  300 dpi. A smooth 100,000-point trace drops to a few hundred or a few
+  thousand points and looks the same. `simplify=None` keeps every point, and a number sets the tolerance in
+  millimetres. Smooth lines are never thinned.
+
+```python
+i.scatter(df, x='x', y='y', color='group')               # raster when past 20,000 points
+i.scatter(df, x='x', y='y', color='group', raster=False)  # keep every point as vector
+i.line(df, x='t', y='signal', simplify=None)              # keep every point
+```
+
 ## Check before you submit
 
 `save()` returns the compiled figure. `figure.report()` lists overlapping or
@@ -127,7 +152,8 @@ when no one prints it.
 
 `save()` writes PNG at the preset's resolution: 300 dpi for print presets and
 150 for slides. Pass `dpi=600` for a higher resolution. SVG and PDF are vector
-and ignore `dpi`.
+and ignore `dpi`, except that a rasterised scatter layer ([large data](#large-data))
+is embedded at the preset's dpi.
 
 In Jupyter and VS Code notebooks a chart displays itself. Outside a notebook,
 `chart.show()` writes an SVG and returns its path; nothing opens a window.
