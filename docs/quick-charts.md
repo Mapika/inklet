@@ -5,7 +5,8 @@ PDF or PNG. Each chart is a regular Inklet plot in a preset document, so
 layout, typography and diagnostics work exactly as they do elsewhere, and
 you can move to the [full document model](quickstart.md) when a figure
 needs more. The [chart gallery](quick-gallery.md) shows every chart type
-with the code that drew it.
+with the code that drew it, and [How do I…](how-to.md) answers common tasks
+such as a centred heatmap, a second axis or significance brackets.
 
 ```python
 import inklet as i
