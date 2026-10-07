@@ -73,6 +73,14 @@ chart.save('dose.pdf')
 
 Text markup: `**bold**`, `//italic//`, `x^{2}`, `H_{2}O`, `{#c1121f|coloured}`.
 
+`hline(y, label=)` and `vline(x, label=)` name a reference line at its end, and
+the label is placed clear of the data: it is searched along the line and off
+every mark on the panel, including marks drawn after the rule, so it does not
+land on a bar. A labelled rule is drawn in front of the data (`front=True`
+unless you say otherwise), because a line under a bar chart cannot be seen.
+`label_side=` keeps the label to one side: `'n'` or `'s'` for an hline, `'e'`
+or `'w'` for a vline.
+
 ## Small multiples
 
 ```python
