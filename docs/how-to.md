@@ -111,8 +111,8 @@ per group would draw a bar about eight times the mean. `error_y` also takes
 ## Draw horizontal bars
 
 Pass `orient='h'`. The category column (`x=`) runs down the left, and the values
-(`y=`) run along the bottom. The rows are drawn from the bottom up, so the first
-row is at the bottom; list them in reverse to read the table from the top.
+(`y=`) run along the bottom. The first row is at the top, so the chart reads down
+the table in the order it was written.
 
 ```python
 import inklet as i
@@ -126,7 +126,7 @@ chart = i.bar(table, x='pathway', y='score', orient='h',
 chart.save('pathways.pdf')
 ```
 
-![Horizontal bars of four pathway scores, Glycolysis at the top and the longest](assets/how-to/pathways.svg)
+![Horizontal bars of four pathway scores, Autophagy at the top and the shortest](assets/how-to/pathways.svg)
 
 `xlabel` always titles the horizontal axis and `ylabel` the vertical one, whatever
 the orientation. So with `orient='h'` the value name goes in `xlabel`. Without

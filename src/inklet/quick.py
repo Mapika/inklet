@@ -684,6 +684,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
             stacked=False, error_y=None, labels=None, agg='sum', points=False, **style):
         """Bars of `y` at each `x` category; `color` groups side by side or stacked.
 
+        `orient='h'` lays the bars across, with the first category at the top,
+        as the table reads.
+
         Rows sharing a category are combined by `agg`: `'sum'` (default),
         `'mean'` or `'median'`. Without `y`, bars count the rows. With a mean or
         median, `error_y` may be `'sem'`, `'sd'` or `'ci95'` (computed from the
@@ -724,6 +727,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
             options['labels'] = labels
         if orient == 'v':
             self._categories(cats)
+        else:
+            cats = [str(c) for c in cats]
+            self._rows_down(cats)
         heights_arg = series[0] if len(series) == 1 else series
         self.spec.bars(cats, heights_arg, orient=orient, **options)
         if error_y is not None and len(series) == 1:
@@ -763,6 +769,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
             options['name'] = name
         if orient == 'v':
             self._categories(cats)
+        else:
+            cats = [str(c) for c in cats]
+            self._rows_down(cats)
         options.setdefault('stroke', 'none')
         if points and 'size' not in options:
             # Dots shrink as a bar holds more of them, so the swarm stays a
@@ -806,23 +815,23 @@ class Chart(_Renderable, metaclass=_Forwarding):
         return self._labelled(x, 'proportion')
 
     def boxplot(self, data=None, x=None, y=None, *, color=None, points=False, **style):
-        """Box plot of `y` in each `x` category."""
+        """Box plot of `y` in each `x` category; `orient='h'` lays the boxes across."""
         self._grouped('boxplot', data, x, y, color, _tinted_shape(style, color))
         if points:
             self._grouped('strip', data, x, y, color, _dots(style))
-        return self._labelled(x, y)
+        return self._category_titles(style.get('orient', 'v'), x, y)
 
     def violin(self, data=None, x=None, y=None, *, color=None, points=False, **style):
-        """Violin plot of `y` in each `x` category."""
+        """Violin plot of `y` in each `x` category; `orient='h'` lays the violins across."""
         self._grouped('violin', data, x, y, color, _tinted_shape(style, color))
         if points:
             self._grouped('strip', data, x, y, color, _dots(style))
-        return self._labelled(x, y)
+        return self._category_titles(style.get('orient', 'v'), x, y)
 
     def strip(self, data=None, x=None, y=None, *, color=None, **style):
-        """Jittered points of `y` in each `x` category."""
+        """Jittered points of `y` in each `x` category; `orient='h'` lays them across."""
         self._grouped('strip', data, x, y, color, {**_dots({}), **style})
-        return self._labelled(x, y)
+        return self._category_titles(style.get('orient', 'v'), x, y)
 
     def area(self, data=None, x=None, y=None, *, color=None, stacked=True, **style):
         """Filled areas under `y`; groups stack unless `stacked=False`."""
@@ -1018,8 +1027,11 @@ class Chart(_Renderable, metaclass=_Forwarding):
         diamonds. `left` and `right` are the text columns beside the plot:
         "label", "ci" (the estimate and interval), "estimate", "weight" or
         any other column of the table. Rows missing a label, estimate or
-        bound are dropped. The chart's `xlabel` names the axis; other keywords
-        (`width=`, `color=`, `summary_line=`) go to `inklet.plot.forest`.
+        bound are dropped. The columns keep their type size, so when they
+        are too wide for the cell the plot narrows to make room (to 20 mm at
+        least) before the chart is refused. The chart's `xlabel` names the
+        axis; other keywords (`width=`, `color=`, `summary_line=`) go to
+        `inklet.plot.forest`.
 
             i.quick.forest(df, label='study', estimate='or', lower='lo', upper='hi',
                      weight='n', log=True, measure='OR', right=['ci', 'n'])
@@ -1246,6 +1258,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
     def labels(self, *, x=None, y=None, title=None, y2=None):
         """Set axis titles and the chart title (all optional).
 
+        `x` and `y` name the physical axes, whatever the chart draws: with `orient='h'`
+        the values run along x, so the value title is `x`.
+
         `y2` titles the right-hand axis that `secondary_y=` makes; it defaults
         to the names of the series on it.
         """
@@ -1374,6 +1389,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
             # A forest is a Diagram, built under the document's theme at compile.
             from .document.spec import component
             rows, options = self._forest
+            if width is not None:
+                options = _fit_forest(rows, options, width, (profile or self._profile()).theme)
             return component(_forest_figure, rows, options, label=self.xlabel or None)
         if self._pie is not None:
             # A pie is a polar Diagram too. It is responsive: the cell's width sizes the disc.
@@ -1516,6 +1533,20 @@ class Chart(_Renderable, metaclass=_Forwarding):
             if isinstance(name, str) and axis not in self._auto_labels:
                 self._auto_labels[axis] = name
         return self
+
+    def _category_titles(self, orient, x, y):
+        """Titles for values drawn in categories: the category column on the category
+        axis, the value column on the value axis.
+
+        Vertically the categories run along x; horizontally they run down y and the
+        values across x, so the two titles swap physical axes. With no `y` the values
+        are `x` alone (one distribution), and they stay on the value axis either way.
+        """
+        if orient == 'v':
+            return self._labelled(x, y)
+        if y is None:
+            return self._labelled(x, None)
+        return self._labelled(y, x)
 
     def _recipe(self, label, secondary, colour):
         """The recipe a series is drawn into: the right-hand axis's when
@@ -1703,6 +1734,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
                       if str(key) in groups}
         if style.get('orient', 'v') == 'v':
             self._categories(list(groups))
+        else:
+            self._rows_down(list(groups))
         getattr(self.spec, method)(groups, **self._style(table, color, style, lone=True))
 
 
@@ -1710,6 +1743,45 @@ def _forest_figure(rows, options, label=None):
     """The forest Diagram of a `Chart.forest`, drawn under the document theme."""
     from .plot.forest import forest
     return forest(rows, label=label, **options)
+
+
+#: The narrowest plot a forest is narrowed to, in mm, to make room for its text
+#: columns. Its columns are set in type, so they do not shrink with the cell;
+#: below this the estimates are too cramped to read, and the columns must give way.
+_FOREST_MIN_PLOT = 20.0
+
+#: How many times a forest is measured again while its plot is narrowed. The
+#: columns are fixed, so one step is nearly exact; the rest absorb rounding.
+_FOREST_FIT_PASSES = 3
+
+
+def _fit_forest(rows, options, width, theme):
+    """The forest's options, with its plot narrowed until the drawing fits `width` mm.
+
+    Measured under the chart's own theme, as the document will draw it, so the
+    layout never meets a forest wider than its cell. A forest whose text columns
+    alone overflow the cell raises a LayoutError that names the fix.
+    """
+    from .document.errors import LayoutError
+    from .document.spec import themed
+    plot = options.get('width', 36.0)
+    if isinstance(plot, str):
+        # A named width is the forest's own business; nothing here narrows it.
+        return options
+    floor = min(plot, _FOREST_MIN_PLOT)
+    with themed(theme):
+        node = _forest_figure(rows, {**options, 'width': plot})
+        for _ in range(_FOREST_FIT_PASSES):
+            over = node.bbox.width - width
+            if over <= 0.01 or plot <= floor:
+                break
+            plot = max(floor, plot - over - 0.05)
+            node = _forest_figure(rows, {**options, 'width': plot})
+    if node.bbox.width > width + 0.01:
+        raise LayoutError(f'forest needs {node.bbox.width:.1f} mm for its plot and text columns, but its '
+                          f'cell is {width:.1f} mm wide, and the plot cannot narrow below {floor:g} mm; '
+                          "use fewer right= columns or width='double'")
+    return {**options, 'width': plot}
 
 
 #: The largest radius a one-call pie is drawn at, in mm: a single-column pie
@@ -1812,8 +1884,15 @@ def _tinted_shape(style, color):
 
 
 def _dots(style):
-    """Samples over a box or violin: small, slightly translucent points."""
-    return {'size': style.get('point_size', 0.9), 'fill_opacity': 0.75}
+    """Samples over a box or violin: small, slightly translucent points.
+
+    They take the box's `orient=`: a horizontal box needs horizontal dots,
+    or their categories are read as values along the other axis.
+    """
+    dots = {'size': style.get('point_size', 0.9), 'fill_opacity': 0.75}
+    if 'orient' in style:
+        dots['orient'] = style['orient']
+    return dots
 
 
 def _marker_look(count, total):
@@ -1964,9 +2043,14 @@ def _preset(width, style, palette, grid, font_pt=None):
     else:
         chosen = preset(style, format='single-column').customize(width=mm(width))
     if font_pt is not None:
-        # The labels step down from the main size as the defaults do (7, 6 and 9 pt).
-        chosen = chosen.customize(font_pt=font_pt, small_font_pt=round(font_pt * 6 / 7 * 2) / 2,
-                                  title_font_pt=font_pt * 9 / 7)
+        # Each size keeps the preset's own ratio to the main size. A fixed 9/7 put a
+        # nature layout's panel letters at 11.6 pt where its titles are the main size,
+        # so the letters were the only text a layout drew larger than a single chart.
+        publication = chosen.publication
+        title = publication.title_font_pt if publication.title_font_pt is not None else publication.font_pt + 1
+        small = publication.small_font_pt / publication.font_pt
+        chosen = chosen.customize(font_pt=font_pt, small_font_pt=round(font_pt * small * 2) / 2,
+                                  title_font_pt=font_pt * title / publication.font_pt)
     overrides = {}
     if palette is not None:
         overrides['palette'] = palette

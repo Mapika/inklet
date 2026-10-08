@@ -26,9 +26,9 @@ One plot: marks on shared axes, with a size and a preset.
 * `hist(data=None, x=None, *, color=None, bins=20, density=False, name=None, cumulative=False, **style)` -- Histogram of `x`; one overlaid histogram per `color` group.
 * `kde(data=None, x=None, *, color=None, fill=False, name=None, **style)` -- Kernel density estimate of `x`, one curve per `color` group.
 * `ecdf(data=None, x=None, *, color=None, name=None, **style)` -- Empirical cumulative distribution of `x`, one step per `color` group.
-* `boxplot(data=None, x=None, y=None, *, color=None, points=False, **style)` -- Box plot of `y` in each `x` category.
-* `violin(data=None, x=None, y=None, *, color=None, points=False, **style)` -- Violin plot of `y` in each `x` category.
-* `strip(data=None, x=None, y=None, *, color=None, **style)` -- Jittered points of `y` in each `x` category.
+* `boxplot(data=None, x=None, y=None, *, color=None, points=False, **style)` -- Box plot of `y` in each `x` category; `orient='h'` lays the boxes across.
+* `violin(data=None, x=None, y=None, *, color=None, points=False, **style)` -- Violin plot of `y` in each `x` category; `orient='h'` lays the violins across.
+* `strip(data=None, x=None, y=None, *, color=None, **style)` -- Jittered points of `y` in each `x` category; `orient='h'` lays them across.
 * `area(data=None, x=None, y=None, *, color=None, stacked=True, **style)` -- Filled areas under `y`; groups stack unless `stacked=False`.
 * `regression(data=None, x=None, y=None, *, color=None, method='linear', confidence=0.95, equation=False, name=None, **style)` -- Points with a fitted line and its confidence band, per `color` group.
 * `heatmap(data=None, x=None, y=None, z=None, *, palette='viridis', center=None, colorbar=True, colorbar_title=None, **style)` -- A matrix of colour cells. `colorbar` is True, False or the bar's title.
@@ -97,15 +97,15 @@ Histogram of `x`; one overlaid histogram per `color` group.
 
 #### `boxplot(data=None, *args, **options)`
 
-Box plot of `y` in each `x` category.
+Box plot of `y` in each `x` category; `orient='h'` lays the boxes across.
 
 #### `violin(data=None, *args, **options)`
 
-Violin plot of `y` in each `x` category.
+Violin plot of `y` in each `x` category; `orient='h'` lays the violins across.
 
 #### `strip(data=None, *args, **options)`
 
-Jittered points of `y` in each `x` category.
+Jittered points of `y` in each `x` category; `orient='h'` lays them across.
 
 #### `kde(data=None, *args, **options)`
 
