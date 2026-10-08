@@ -16,7 +16,7 @@
     own.
   - `TEX_MATH` (warning): `$...$` LaTeX in any text, which inklet prints
     literally. The hint gives the inklet spelling (`'$R^2$'` → `'R^{2}'`,
-    `'$\\mu$m'` → `'µm'`). Currency such as `'$5'` or `'Cost ($)'` is left alone.
+    `'$\mu$m'` → `'µm'`). Currency such as `'$5'` or `'Cost ($)'` is left alone.
 - Errors at the call instead of at `save()`: misspelled keywords on
   `annotate`, `legend`, `colorbar`, `label_points`, `axes` and the twin axes
   name the closest valid one; bad `side=` values list the choices;
