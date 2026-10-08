@@ -189,7 +189,9 @@ which fits a 16:9 slide, so put the image in at its own size.
    `print(figure.report())` lists overlapping labels, clipped or tiny text, and
    data running outside the axes (`DATA_OUTSIDE`, with the range to set), a key
    drawn over data (`KEY_COVERS_DATA`, with the corners that are clear), and
-   supplied ticks dropped for lack of room (`TICKS_DROPPED`), each with a
+   supplied ticks dropped for lack of room (`TICKS_DROPPED`), and a series
+   squashed flat beside a much taller one on the same axis
+   (`SERIES_FLATTENED`, with the axis to give it), each with a
    suggested fix. `inklet lint: clean` means no problems. Mark ornamental text
    such as a pale watermark with `text(..., decorative=True)` so the contrast
    check skips it.

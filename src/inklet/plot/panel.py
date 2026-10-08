@@ -49,6 +49,7 @@ from .choices import choices
 from .paint import paint_keywords
 from .series import (SeriesKey, merge_keys, select_keys, series_color,
                      series_names, swatch_for)
+from .series_span import declare_series, record_series
 from .._compat import renamed_keywords, resolve_renamed
 from .timescale import dates, is_time_like
 
@@ -138,6 +139,9 @@ class Panel:
     #: `legend()` is a rendering of this list; see `plot.series`.
     _keys: list[SeriesKey] = field(default_factory=list, repr=False,
                                    compare=False)
+    #: The y extent of each line and scatter drawn, for `build()` to publish
+    #: and `SERIES_FLATTENED` to read. Shared with twins, like `_keys`.
+    _spans: list = field(default_factory=list, repr=False, compare=False)
 
     _insets: list = field(default_factory=list, repr=False, compare=False)
     _inset_state: tuple = field(default=(), repr=False, compare=False)
@@ -405,6 +409,7 @@ class Panel:
         self._note(name, "line", color=style.get("stroke"),
                    dash=style.get("stroke_dash"), width=style.get("stroke_width"))
         mapped = self.map(data)
+        record_series(self._spans, name, (p[1] for p in data), self.y)
         if smooth > 0:
             return self.draw(tag_series(draw_curve(
                 mapped, smooth=smooth, closed=closed, **style), name), clip=clip)
@@ -531,6 +536,9 @@ class Panel:
         gets a visible ring in the key too.
         """
         clip = _clip_flag(style)
+        points = list(points)           # read twice: once for the record below
+        record_series(self._spans, name, (p[1] for p in points if len(p) > 1),
+                      self.y)
         theme = active_theme()
         marker_paint: dict = {}
         if hollow:
@@ -1257,6 +1265,7 @@ class Panel:
         twin._over = self._over
         twin._insets = self._insets
         twin._keys = self._keys
+        twin._spans = self._spans
         twin._brackets = self._brackets
         twin._deferred = self._deferred
         twin._parent = self
@@ -1741,6 +1750,7 @@ class Panel:
         self._inset_state = inset_nodes
         self._built = drawn_group(children, PANEL_KIND)
         declare_area(self._built, self.area)
+        declare_series(self._built, self._spans, self.area)
         _declare_domain(self._built, self._scale_domain)
         return self._built
 
