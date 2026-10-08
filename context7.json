@@ -8,7 +8,7 @@
   "rules": [
     "Make a chart in one call: i.line(df, x='time', y='signal', color='group'); df may be a DataFrame, a dict of columns, a list of row dicts or a CSV path.",
     "Use the one-call functions (i.line, i.scatter, i.bar, i.hist, i.boxplot, i.heatmap, ...) and chart.line(...) etc. to layer on an existing chart; combine panels with | and /.",
-    "Bars sum rows that share an x value; for a mean with error bars use i.bar(df, x=, y=, agg='mean', error_y='sem').",
+    "Bars sum rows that share an x value and warn ROWS_COMBINED unless agg='sum' is passed; for replicates use i.bar(df, x=, y=, agg='mean', error_y='sem').",
     "Text is not mathtext: write x^{2}, H_{2}O or Unicode (x²). $...$ prints the dollar signs.",
     "Sizes are millimetres: width='single' (89 mm), 'double' (183 mm), 'slide' or a number; font sizes are points via i.pt(8).",
     "After saving, figure = chart.save('fig.pdf', 'fig.png') then print(figure.report()); fix every finding it lists, since a clean report means no layout problems.",
