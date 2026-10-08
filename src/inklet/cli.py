@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import argparse
-from functools import partial
+from contextlib import contextmanager
+from functools import partial, wraps
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
 import json
@@ -81,25 +82,56 @@ def _module_figure(namespace):
     listed=[f'{name} ({_describe(value)})' for name,value in namespace.items()
             if not name.startswith('_') and not callable(value) and not isinstance(value,ModuleType)]
     raise ValueError('author script defines no figure. Define make_document(), make_figure() or make_chart() '
-                     'returning one, or assign a Document, Chart, Layout, CompiledFigure or Figure to a '
-                     'module-level name such as `chart = i.line(...)`.\n'
+                     'returning one, or save a chart in the script (`chart.save("fig.pdf")`), or assign a '
+                     'Document, Chart, Layout, CompiledFigure or Figure to a module-level name such as '
+                     '`chart = i.line(...)`.\n'
                      f'Module-level names found: {", ".join(listed) or "none"}')
+
+
+@contextmanager
+def _recording_saves(saved):
+    """Append each inklet object whose `save()` the script calls to `saved`.
+
+    The methods are wrapped only while the script runs, and restored after.
+    The script's own saves still write their files; this only notes them.
+    """
+    from .document.compiled import CompiledFigure
+    from .document.compiler import Document
+    from .figure import Figure
+    from .quick import _Renderable
+    owners=[cls for cls in (_Renderable,Figure,Document,CompiledFigure) if 'save' in cls.__dict__]
+    originals={cls:cls.__dict__['save'] for cls in owners}
+    def recording(original):
+        @wraps(original)
+        def save(self,*args,**kwargs):
+            saved.append(self)
+            return original(self,*args,**kwargs)
+        return save
+    for cls in owners:setattr(cls,'save',recording(originals[cls]))
+    try:yield
+    finally:
+        for cls in owners:setattr(cls,'save',originals[cls])
 
 
 def load_figure(script):
     """Execute an author script and obtain the figure it builds.
 
-    A `make_*` factory is used when one is defined, otherwise the module-level
+    A `make_*` factory is used when one is defined. Otherwise the figure the
+    script last saved is used (see `_recording_saves`), then the module-level
     inklet object (see `_module_figure`). The result is compiled when it is a
     Document, Chart or Layout.
     """
     path=Path(script).resolve()
     before=list(sys.path)
     sys.path.insert(0,str(path.parent))
+    saved=[]
     try:
-        namespace=runpy.run_path(str(path),run_name='__inklet_build__')
+        with _recording_saves(saved):
+            namespace=runpy.run_path(str(path),run_name='__inklet_build__')
         factory=next((name for name in _FACTORIES if callable(namespace.get(name))),None)
-        result=namespace[factory]() if factory else _module_figure(namespace)
+        if factory:result=namespace[factory]()
+        elif saved:result=saved[-1]
+        else:result=_module_figure(namespace)
         from .document import Document
         from .quick import Chart, Layout
         if isinstance(result,(Document,Chart,Layout)):result=result.compile()
@@ -113,12 +145,16 @@ def load_figure(script):
 
 
 def _version():
-    """The installed distribution's version; the package attribute for a source tree on PYTHONPATH."""
+    """The version of the package being imported, so a source tree reports itself.
+
+    The installed distribution's metadata can be stale next to a source tree
+    on PYTHONPATH; it is used only when the package does not carry a version.
+    """
+    package_version=getattr(sys.modules[__package__],'__version__',None)
+    if package_version:return package_version
     from importlib.metadata import PackageNotFoundError, version
     try:return version('inklet')
-    except PackageNotFoundError:
-        from . import __version__
-        return __version__
+    except PackageNotFoundError:return 'unknown'
 
 
 def build(script,output,name,dpi=None,vectors_only=False,compare_pdf=True,compare_to=None,png_backend='resvg'):
@@ -274,7 +310,8 @@ def main(argv=None):
     doctor_parser=sub.add_parser('doctor',help='check optional preview dependencies')
     doctor_parser.add_argument('--devices',action='store_true',help='also probe Blender GPU devices')
     check_parser=sub.add_parser('check',help='build a script and report layout problems; exit 1 on errors')
-    check_parser.add_argument('script',type=Path)
+    check_parser.add_argument('script',type=Path,
+                              help='author script; a figure it saves is checked, and its own save() calls still write their files')
     check_parser.add_argument('--png',type=Path,help='also write a PNG preview here')
     check_parser.add_argument('--json',action='store_true',help='machine-readable output')
     check_parser.add_argument('--strict',action='store_true',help='also fail on warnings')

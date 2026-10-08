@@ -38,7 +38,7 @@ from ..core import MarkerBatchPrim, Rect
 from .plot_rules import _panel_name
 from .rules import (
     Diagnostic, Item, LintContext, _SEVERITY_RANK, _ink_overlap, _marker_overlap,
-    _mm, _text_excerpt, node_phrase,
+    _mm, _orient_clause, _text_excerpt, node_phrase,
 )
 
 __all__ = ["group_runs", "GROUPED_CODES"]
@@ -295,7 +295,7 @@ def _describe_run(ctx: LintContext, parent: str,
         ys = [i.bbox.center.y for i in items]
         if max(xs) - min(xs) >= max(ys) - min(ys):
             return (f"x-axis tick labels{within}",
-                    _x_tick_fix(ctx, parent, items))
+                    _x_tick_fix(ctx, parent, items) + _orient_clause(items))
         return (f"y-axis tick labels{within}",
                 "show fewer ticks (axes(y_options={'count': 4})), shorten "
                 "them, or make the plot taller")

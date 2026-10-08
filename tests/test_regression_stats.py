@@ -138,6 +138,43 @@ def test_r_is_signed_and_undefined_for_a_flat_y():
     assert math.isnan(linear_fit([(x, 3.0) for x in range(5)]).r)
 
 
+def test_a_flat_y_has_no_r_squared_and_no_p_value():
+    # Every y is 3, so the total variation is zero and R^2 divides by nothing.
+    # The slope is exactly 0, which is a fact, not an undefined value.
+    fit = linear_fit([(x, 3.0) for x in range(5)])
+    assert fit.slope == 0.0 and fit.intercept == pytest.approx(3.0)
+    assert math.isnan(fit.r2) and math.isnan(fit.r)
+    assert math.isnan(fit.p)
+    assert fit.slope_interval() == (0.0, 0.0)
+    assert fit.predict(10) == pytest.approx(3.0)
+
+
+def test_a_flat_y_writes_its_equation_without_an_r_squared_term():
+    fit = linear_fit([(x, 3.0) for x in range(5)])
+    assert equation_text(fit) == "//y// = 0.00//x// + 3.00"
+    assert "R" not in equation_text(fit)
+    assert equation_from("{r2}", fit) == "nan"
+
+
+def test_a_perfect_line_keeps_its_r_squared_term_and_a_zero_p_value():
+    fit = linear_fit([(x, 2 * x + 1) for x in range(6)])
+    assert fit.p == 0.0 and fit.r2 == pytest.approx(1.0)
+    assert equation_text(fit) == "//y// = 2.00//x// + 1.00, //R//^{2} = 1.00"
+
+
+def test_a_flat_y_on_a_plot_is_drawn_without_an_r_squared_term():
+    p = inklet.panel(60, 45, x=(0, 6), y=(0, 6))
+    p.regression([(x, 3.0) for x in range(1, 6)], equation=True)
+    node = p.axis("bottom").axis("left").build()
+    assert _notes(node, "regression")[0]["equation"] == "//y// = 0.00//x// + 3.00"
+    assert _notes(node, "regression_equation")[0]["unresolved"] == []
+
+
+def test_x_with_no_spread_is_a_value_error_that_names_the_problem():
+    with pytest.raises(ValueError, match='every x is the same'):
+        linear_fit([(4, 1), (4, 2), (4, 3)])
+
+
 # -- the equation text --------------------------------------------------------------
 
 def test_equation_text_writes_three_figures_and_r_squared():

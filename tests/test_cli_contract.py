@@ -112,17 +112,28 @@ def test_a_script_with_no_module_level_names_says_none(tmp_path):
         load_figure(empty)
 
 
-def test_the_guide_starts_with_the_installed_version(capsys):
+def test_the_guide_starts_with_the_package_version(capsys):
     assert main(['guide']) == 0
     first = capsys.readouterr().out.splitlines()[0]
-    assert first == f'inklet {importlib.metadata.version("inklet")}'
+    assert first == f'inklet {inklet.__version__}'
 
 
-def test_the_guide_version_falls_back_to_the_package_attribute(monkeypatch):
+def test_the_guide_reports_the_source_tree_not_a_stale_install(monkeypatch):
     from inklet import cli
+
+    monkeypatch.setattr(importlib.metadata, 'version', lambda name: '0.0.1')
+    assert cli._version() == inklet.__version__
+
+
+def test_the_guide_version_falls_back_to_metadata_without_a_package_version(monkeypatch):
+    from inklet import cli
+
+    monkeypatch.delattr(inklet, '__version__')
+    monkeypatch.setattr(importlib.metadata, 'version', lambda name: '9.9.9')
+    assert cli._version() == '9.9.9'
 
     def missing(name):
         raise importlib.metadata.PackageNotFoundError(name)
 
     monkeypatch.setattr(importlib.metadata, 'version', missing)
-    assert cli._version() == inklet.__version__
+    assert cli._version() == 'unknown'
