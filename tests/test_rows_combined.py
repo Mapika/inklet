@@ -130,3 +130,8 @@ def test_the_finding_survives_copying_the_chart_spec():
     assert copied._findings == chart.spec._findings
     assert copied._findings is not chart.spec._findings
 
+
+
+def test_a_line_in_row_order_may_pass_one_x_twice():
+    loop = i.line({'x': [0, 1, 1, 0, 0], 'y': [0, 0, 1, 1, 0]}, x='x', y='y', sort=False)
+    assert not [d for d in loop.compile().lint() if d.code == 'ROWS_COMBINED']

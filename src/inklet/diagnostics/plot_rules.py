@@ -850,8 +850,9 @@ def _rows_combined_finding(node_id, box, finding):
         x = finding.get("x")
         message = (f"line {quantity}{within} has {rows} rows at x={x!r}; "
                    f"the line zigzags through them")
-        hint = ("average them first, or draw them with scatter() / "
-                "i.bar(..., agg='mean', points=True)")
+        hint = ("average the rows at each x first (a mean line, with error_y= for "
+                "their spread), or draw the replicates with scatter(); sort=False "
+                "if the rows are a path in order")
     else:
         return None
     return Diagnostic(

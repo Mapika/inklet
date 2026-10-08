@@ -582,7 +582,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
         self._check_secondary(secondary, [_matchable(label, y) for label, *_ in drawn])
         # The most points a line of this chart may have before 'auto' thins it.
         limit = _SIMPLIFY_PER_MM * self._profile().publication.width if simplify == 'auto' else 0
-        self._note_repeated_x(drawn, y, color)
+        if sort:
+            # Row order is a path (a loop, a phase portrait) that may pass one x twice.
+            self._note_repeated_x(drawn, y, color)
         for label, xs, ys, err in drawn:
             if sort:
                 xs, ys, err = _ordered(xs, ys, err)
