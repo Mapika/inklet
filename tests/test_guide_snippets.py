@@ -24,7 +24,8 @@ def _namespace():
     """The tables and objects the guide's fragments assume the reader has."""
     rows = 24
     df = pd.DataFrame({
-        'time': [t % 12 for t in range(rows)],
+        # Each time once per condition: a repeated x would be a lint finding.
+        'time': list(range(rows)),
         'signal': [0.5 + 0.1 * (t % 7) for t in range(rows)],
         'condition': ['control', 'treated'] * (rows // 2),
         'drug': ['A', 'B', 'C'] * (rows // 3),
@@ -33,7 +34,7 @@ def _namespace():
         'strain': ['wt', 'ko', 'wt', 'ko'] * (rows // 4),
         'dose': [1, 2, 4, 8] * (rows // 4),
         'response': [1.0, 2.2, 3.1, 4.8] * (rows // 4),
-        't': [t % 12 for t in range(rows)],
+        't': list(range(rows)),
         'y': [1.0 + 0.2 * (t % 5) for t in range(rows)],
         'group': ['control', 'treated'] * (rows // 2),
     })

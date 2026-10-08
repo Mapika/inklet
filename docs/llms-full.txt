@@ -21,7 +21,7 @@ Instead of a table, pass sequences: `i.line(x=[1, 2, 3], y=[2, 4, 3])`.
 |---|---|---|
 | `i.line(df, x, y, color=)` | `y` may be a list of columns; no `y` plots every numeric column; points are joined in x order (`sort=False` keeps row order) | `markers=True`, `error_y='col'` draws a band, `dash='dashed'`, `linewidth=` (mm); a missing y breaks the line there (`gaps='bridge'` joins across the gap instead); `secondary_y='col'` puts series on a right-hand axis (see below) |
 | `i.scatter(df, x, y, color=, size=)` | numeric `color` column with many values gets a colour ramp and colour bar | `error_y='col'`, `text='col'` labels points clear of the marks (blank or missing labels are skipped); `secondary_y='group'` puts a colour group on the right |
-| `i.bar(df, x, y, color=)` | `x` categories; rows with the same `x` are summed; no `y` counts rows | `agg='mean'` with `error_y='sem'`/`'sd'`/`'ci95'` and `points=True`; `stacked=True`, `orient='h'` |
+| `i.bar(df, x, y, color=)` | `x` categories; rows with the same `x` are summed (and `ROWS_COMBINED` says so unless you pass `agg='sum'`); no `y` counts rows | `agg='mean'` with `error_y='sem'`/`'sd'`/`'ci95'` and `points=True`; `stacked=True`, `orient='h'` |
 | `i.hist(df, x, color=, bins=20)` | | `density=True`, `cumulative=True` |
 | `i.kde(df, x, color=)` / `i.ecdf(df, x, color=)` | | `fill=True` on kde |
 | `i.boxplot(df, x, y)` / `i.violin(df, x, y)` / `i.strip(df, x, y)` | `x` category column, `y` values | `points=True` overlays the samples |
@@ -189,7 +189,8 @@ which fits a 16:9 slide, so put the image in at its own size.
    `print(figure.report())` lists overlapping labels, clipped or tiny text, and
    data running outside the axes (`DATA_OUTSIDE`, with the range to set), a key
    drawn over data (`KEY_COVERS_DATA`, with the corners that are clear), and
-   supplied ticks dropped for lack of room (`TICKS_DROPPED`), each with a
+   supplied ticks dropped for lack of room (`TICKS_DROPPED`), and replicate
+   rows that a bar sums or a line zigzags through (`ROWS_COMBINED`), each with a
    suggested fix. `inklet lint: clean` means no problems. Mark ornamental text
    such as a pale watermark with `text(..., decorative=True)` so the contrast
    check skips it.
@@ -262,6 +263,11 @@ networks, ternary...) with its signature.
 - `i.box` is a diagram box, not a box plot. Use `i.boxplot`.
 - Bars **sum** rows that share an `x` value. For a mean with an error bar use
   `i.bar(df, x='group', y='value', agg='mean', error_y='sem', points=True)`.
+  The default is a sum, but lint reports it as `ROWS_COMBINED` whenever a
+  category has more than one row. Pass `agg='sum'` only when the rows are parts
+  of a total.
+- A line through repeated x values in one series zigzags through them. Average
+  the rows first, or draw them with `scatter()`; lint reports it as `ROWS_COMBINED`.
 - `area` stacks; stacked values must be non-negative.
 - `$...$` is not mathtext: `$\alpha$` prints the dollar signs. Use Unicode
   (`α`, `x²`) or markup (`x^{2}`, `H_{2}O`).

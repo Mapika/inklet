@@ -39,7 +39,7 @@ def test_polars_frame_nulls_datetimes_and_categoricals():
     points = [step[2][0] for step in chart.spec._steps]
     assert [list(p) for p in points] == [[(datetime(2024, 1, 1, 9), 1.0), (datetime(2024, 1, 1, 10), 2.0)],
                                          [(datetime(2024, 1, 1, 13), 5.0), (datetime(2024, 1, 1, 14), 6.0)]]
-    _clean(i.bar(frame, x='stage', y='signal', color='group'))
+    _clean(i.bar(frame, x='stage', y='signal', color='group', agg='sum'))
 
 
 # -- pandas categoricals -----------------------------------------------------
@@ -51,7 +51,7 @@ def test_pandas_categorical_x_keeps_declared_order():
                           categories=['low', 'mid', 'high'])
     frame = pd.DataFrame({'dose': dose, 'resp': [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]})
 
-    bar = i.bar(frame, x='dose', y='resp')
+    bar = i.bar(frame, x='dose', y='resp', agg='sum')
     assert list(bar.spec._steps[0][2][0]) == ['low', 'mid', 'high']
     _clean(bar)
 
@@ -63,7 +63,8 @@ def test_pandas_categorical_x_keeps_declared_order():
 def test_pandas_categorical_colour_keeps_declared_order():
     pd = pytest.importorskip('pandas')
     group = pd.Categorical(['b', 'a', 'b', 'a'], categories=['a', 'b'])
-    frame = pd.DataFrame({'t': [0, 1, 0, 1], 'v': [1.0, 2.0, 3.0, 4.0], 'grp': group})
+    # Each (t, grp) once: the test is about the order of the colour groups.
+    frame = pd.DataFrame({'t': [0, 1, 2, 3], 'v': [1.0, 2.0, 3.0, 4.0], 'grp': group})
 
     line = i.line(frame, x='t', y='v', color='grp')
     assert [step[3]['name'] for step in line.spec._steps] == ['a', 'b']

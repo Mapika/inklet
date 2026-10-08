@@ -184,6 +184,10 @@ class PlotSpec(BuildSpec):
     height: float = 30
     options: dict = field(default_factory=dict)
     _steps: list = field(default_factory=list, repr=False)
+    # Facts about the data that the drawing method (quick's `bar`, `line`)
+    # noticed, as (note key, mapping) pairs. Nothing draws them: `render`
+    # puts them on the panel as notes, where lint reads them.
+    _findings: list = field(default_factory=list, repr=False)
 
     def __post_init__(self):
         self.width = length(self.width, 'plot width')
@@ -218,6 +222,16 @@ class PlotSpec(BuildSpec):
         record.__signature__ = _recorded_signature(method)
         record.__wrapped__ = method
         return record
+
+    def _finding(self, note, value):
+        """Record a finding about the data, for lint to report on the panel.
+
+        `note` is the notes key lint's rule reads, and `value` a mapping of
+        what it found. A finding is not a mark: it draws nothing and changes
+        no layout, so a chart with findings looks exactly as it would without.
+        """
+        self._findings.append((note, dict(value)))
+        return self
 
     def _record(self, name, args, kwargs, key):
         if key is not None and any(step[0] == key for step in self._steps):
@@ -255,6 +269,7 @@ class PlotSpec(BuildSpec):
                 keys.append(key)
             added.append((key,method,args,kwargs))
         self._steps.extend(added)
+        self._findings.extend(other.copy()._findings)
         return self
 
     def style(self, key, **options):
@@ -341,7 +356,7 @@ class PlotSpec(BuildSpec):
 
     def signature(self, trail=()):
         return ('plot', self.width, self.height, fingerprint(self.options, trail),
-                fingerprint(self._steps, trail))
+                fingerprint(self._steps, trail), fingerprint(self._findings, trail))
 
     def render(self, context, width=None, height=None):
         from ..plot import panel
@@ -356,7 +371,11 @@ class PlotSpec(BuildSpec):
             width, height = _fit_aspect(width, height, _ratio(aspect, options))
         p = panel(width, height, **options)
         self._replay(p, context)
-        return p.build()
+        node = p.build()
+        for note, value in self._findings:
+            # A list per key: two calls on one chart each add their own finding.
+            node.notes.setdefault(note, []).append(dict(value))
+        return node
 
     def _fitted(self, options, context, width, height):
         """Fill in x/y domains the recipe left to its data.
@@ -515,6 +534,7 @@ def _copy_plot_value(value, memo):
             memo[id(value)] = result
             result.options = _copy_plot_value(value.options, memo)
             result._steps = _copy_plot_value(value._steps, memo)
+            result._findings = _copy_plot_value(value._findings, memo)
         return memo[id(value)]
     if isinstance(value, dict): return {key:_copy_plot_value(item,memo) for key,item in value.items()}
     if isinstance(value, list): return [_copy_plot_value(item,memo) for item in value]
