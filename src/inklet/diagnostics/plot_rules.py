@@ -826,7 +826,9 @@ FLAT_SPAN = 0.03
 #: The height a reference series must span to flatten its neighbours.
 TALL_SPAN = 0.30
 #: How much a series must change, as a fraction of its mean absolute value.
-VARIES = 0.01
+#: A series steady to within a few per cent (hydro generation year on year)
+#: reads correctly as a flat line; the rule is for one whose changes matter.
+VARIES = 0.05
 
 
 def rule_series_flattened(ctx: LintContext) -> list[Diagnostic]:
