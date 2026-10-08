@@ -23,6 +23,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 import inspect
 import math
+import re
 import warnings
 from datetime import date
 from numbers import Real
@@ -43,6 +44,13 @@ _WIDTHS = {'single': 'single-column', 'double': 'double-column', 'slide': 'slide
 
 #: Marks `label_lines` can name at their ends.
 _LABELLED_CURVES = frozenset({'line', 'step', 'ecdf'})
+
+#: A title that is only a panel letter: `a`, `(a)`, `A.`, `b:`.
+_PANEL_LETTER = re.compile(r'^\(?[A-Za-z]\)?[.:]?$')
+#: A title that opens with one: `(a) Growth`, `a. Growth`, `A: Growth`, `b)`.
+#: A bare letter is left alone (`a big effect` is an article), and so is a
+#: capital with a full stop (`E. coli growth` is a genus).
+_PANEL_LEAD = re.compile(r'^(?:\([A-Za-z]\)|[a-z][.:)]|[A-Z][:)])\s+(?=\S)')
 
 #: Prefix of a palette slot recorded before the palette is known.
 _TOKEN = '@series'
@@ -1362,14 +1370,18 @@ class Chart(_Renderable, metaclass=_Forwarding):
 
     # The finished recipe.
 
-    def plot(self, width=None, profile=None, rotate=False, colours=None, slots=None):
+    def plot(self, width=None, profile=None, rotate=False, colours=None, slots=None, title=None):
         """The `PlotSpec` with axes, legend and title applied, for a document cell.
 
         `width` (mm) and `profile` (the `Preset`) let crowded category labels
         be turned to fit. `colours` is the palette this chart's series are
         drawn in (default: the profile's), and `slots` maps every series name
         to its palette position across a layout, so one name keeps one colour.
+        `title` shows this title instead of the chart's own, for the figure
+        only: a layout uses it to drop a title that repeats its panel letter,
+        and the Chart itself is left as the user made it. None keeps its title.
         """
+        shown = self.title if title is None else title
         if self._forest is not None:
             # A forest is a Diagram, built under the document's theme at compile.
             from .document.spec import component
@@ -1379,7 +1391,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
             # A pie is a polar Diagram too. It is responsive: the cell's width sizes the disc.
             from .document.spec import component
             slices, sizes, hole, labels = self._pie
-            return component(_pie_figure, slices, sizes, hole, labels, self.legend_side, self.title,
+            return component(_pie_figure, slices, sizes, hole, labels, self.legend_side, shown,
                              responsive=True)
         spec = self.spec.copy()
         if self._secondary is not None:
@@ -1432,8 +1444,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
                 spec.legend(side=self.legend_side)
             else:
                 spec.legend(corner=self.legend_side)
-        if self.title:
-            spec.title(self.title, align=self._title_align)
+        if shown:
+            spec.title(shown, align=self._title_align)
         return spec
 
     def document(self, rotate=frozenset()):
@@ -2098,7 +2110,8 @@ class Layout(_Renderable):
                                  for c in charts):
             warnings.warn('in a layout the page width comes from Layout(width=...) or the first chart; '
                           'set widths on the layout', UserWarning, stacklevel=2)
-        plotting = self._plotting(charts)
+        titles = self._shown_titles(charts)
+        plotting = self._plotting(charts, titles)
         grid_cells = self._grid()
         if grid_cells is not None:
             columns, cells = grid_cells
@@ -2123,7 +2136,7 @@ class Layout(_Renderable):
         if self.letters and len(list(self.charts())) > 1:
             # Beside a chart title the letter shares its line; otherwise it
             # hangs off the plot area.
-            titled = any(chart.title for chart in self.charts())
+            titled = any(titles.values())
             doc.letters(anchor='cell') if titled else doc.letters()
         return doc
 
@@ -2185,7 +2198,38 @@ class Layout(_Renderable):
                           UserWarning, stacklevel=3)
         return values[0]
 
-    def _plotting(self, charts):
+    def _shown_titles(self, charts):
+        """Per chart (by id), the title its panel shows once the layout letters it.
+
+        The layout draws a panel letter on every chart, so a title that is only
+        that letter (`'a'`, `'(a)'`) would show it twice and is dropped; one that
+        opens with it (`'(a) Growth'`) keeps the rest. Only a lettered layout
+        does this, and one warning names every change.
+        """
+        shown = {id(chart): chart.title for chart in charts}
+        if not self.letters or len(charts) < 2:
+            return shown
+        notes = []
+        for chart in charts:
+            title = chart.title
+            if not isinstance(title, str) or not title:
+                continue
+            if _PANEL_LETTER.match(title):
+                kept = ''
+            else:
+                lead = _PANEL_LEAD.match(title)
+                if lead is None:
+                    continue
+                kept = title[lead.end():]
+            shown[id(chart)] = kept
+            action = f'kept {kept!r}' if kept else 'dropped it'
+            notes.append(f'chart title {title!r} repeats the panel letter the layout adds; {action} '
+                         f'(Layout(letters=False) to letter them yourself)')
+        if notes:
+            warnings.warn('; '.join(notes), UserWarning, stacklevel=3)
+        return shown
+
+    def _plotting(self, charts, titles):
         """Per chart, the `plot()` keywords that colour its series.
 
         A chart with its own palette keeps it, unless the layout sets one.
@@ -2203,7 +2247,7 @@ class Layout(_Renderable):
             colours = None
             if not layout_palette and chart.palette is not None:
                 colours = chart._profile().theme.palette
-            plotting[id(chart)] = {'colours': colours, 'slots': slots}
+            plotting[id(chart)] = {'colours': colours, 'slots': slots, 'title': titles[id(chart)]}
         return plotting
 
     def _fill(self, doc, width, prefix, profile, rotate, plotting):

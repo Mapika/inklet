@@ -158,6 +158,7 @@ def shape(
         # shaper was handed. Anything reshaping this block afterwards reads it
         # off the prim instead of being told again and told wrong.
         **({"features": otf} if _PRIM_TAKES_FEATURES else {}),
+        source=text,
     )
 
 

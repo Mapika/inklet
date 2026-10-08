@@ -19,6 +19,7 @@ Two properties matter as much as the rules themselves:
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, field
 from typing import Callable, Iterable, Mapping, Sequence
 
@@ -1129,6 +1130,87 @@ def rule_large_text(ctx: LintContext) -> list[Diagnostic]:
             message=f'{item.described} renders at {_pts(effective)}, above the {_pts(ctx.max_font_pt)} maximum',
             targets=(item.id,), where=item.bbox,
             hint='Reduce the authored text size or choose a profile for this destination.',
+        ))
+    return out
+
+
+# -- LaTeX written into text ----------------------------------------------
+
+#: A `$...$` pair. The closing dollar is required, so `Cost ($)` and `US$
+#: millions` have nothing to match, and a range such as `$5-$10` is two currency
+#: signs whose insides are not TeX (see `_tex_span`).
+_MATH_SPAN = re.compile(r"\$([^$\n]+)\$")
+#: TeX symbol names and their Unicode. The set is what an agent writes both as
+#: a command (`\alpha`) and bare (`$mu$`), so both forms are recognised.
+_TEX_SYMBOLS = {
+    "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ", "epsilon": "ε",
+    "mu": "\u00b5", "sigma": "σ", "lambda": "λ", "pi": "π", "theta": "θ",
+    "rho": "ρ", "tau": "τ", "phi": "φ", "omega": "ω",
+    "Delta": "Δ", "Sigma": "Σ", "Omega": "Ω",
+    "pm": "±", "times": "×", "cdot": "·", "circ": "°", "degree": "°",
+    "approx": "≈", "leq": "≤", "geq": "≥", "neq": "≠", "infty": "∞",
+}
+#: Superscript and subscript arguments: `^2`, `^{-1}`, `_x`, `^\circ`. TeX takes
+#: one character without braces, so `^2` is `^{2}` and the rest of `10^10` stays.
+_TEX_SCRIPT = re.compile(r"([\^_])(\{[^{}]*\}|\\[A-Za-z]+|[+-]?[A-Za-z0-9])")
+_TEX_TYPEFACE = re.compile(r"\\(?:mathrm|mathbf|mathit|textrm|text|operatorname)\{([^{}]*)\}")
+_TEX_COMMAND = re.compile(r"\\([A-Za-z]+)")
+
+
+def _tex_span(inside: str) -> bool:
+    """Whether the inside of a `$...$` pair is TeX rather than money or prose.
+
+    A backslash, a `^`, a `_` or a brace cannot be money, and a bare symbol
+    name (`$mu$`) is the one letter-only form that is not an ordinary word.
+    Anything else -- `$5`, `$5 and $10` -- is left alone.
+    """
+    if any(mark in inside for mark in ("\\", "^", "_", "{")):
+        return True
+    return inside.strip() in _TEX_SYMBOLS
+
+
+def _tex_to_markup(inside: str) -> str:
+    """The inklet text a TeX span stands for: markup for scripts, Unicode for symbols.
+
+    Written as the suggested fix, so it must read back as the same thing: the
+    typeface wrappers go because inklet's text is upright already, scripts take
+    inklet's braces, and symbols become the characters they name.
+    """
+    word = inside.strip()
+    if word in _TEX_SYMBOLS:
+        return _TEX_SYMBOLS[word]
+    text = _TEX_TYPEFACE.sub(r"\1", inside)
+    text = _TEX_SCRIPT.sub(
+        lambda m: m.group(1) + (m.group(2) if m.group(2).startswith("{") else "{" + m.group(2) + "}"),
+        text)
+    return _TEX_COMMAND.sub(lambda m: _TEX_SYMBOLS.get(m.group(1), m.group(0)), text)
+
+
+def rule_tex_math(ctx: LintContext) -> list[Diagnostic]:
+    """LaTeX written into a label, which inklet prints literally.
+
+    An agent trained on matplotlib writes `'$R^2$'` by reflex, and inklet has
+    no mathtext: the dollar signs and the backslashes reach the page as typed,
+    and nothing else says so. The fix is short and known, so the hint carries
+    the rewrite rather than a pointer to the guide.
+    """
+    out: list[Diagnostic] = []
+    for item in ctx.items:
+        if not item.is_text or not item.draws:
+            continue
+        typed = item.prim.source or item.prim.text  # type: ignore[union-attr]
+        if not any(_tex_span(m.group(1)) for m in _MATH_SPAN.finditer(typed)):
+            continue
+        rewrite = _MATH_SPAN.sub(
+            lambda m: _tex_to_markup(m.group(1)) if _tex_span(m.group(1)) else m.group(0),
+            typed)
+        out.append(Diagnostic(
+            code="TEX_MATH", severity="warning",
+            message=(f"{item.phrase} is set as {_excerpt(typed)!r}; inklet has no "
+                     f"mathtext, so the $ signs and the TeX are printed literally"),
+            targets=(item.id,), where=item.bbox,
+            hint=(f"write {rewrite!r}: inklet's markup is x^{{2}} and H_{{2}}O, "
+                  f"and Unicode such as α also works"),
         ))
     return out
 
@@ -3636,6 +3718,7 @@ RULES: dict[str, Rule] = {
     "BREAK_DISTORTS": rule_break_distorts,
     "TINY_TEXT": rule_tiny_text,
     "LARGE_TEXT": rule_large_text,
+    "TEX_MATH": rule_tex_math,
     "PAGE_TOO_TALL": rule_page_too_tall,
     "HAIRLINE": rule_hairline,
     "LOW_CONTRAST": rule_low_contrast,

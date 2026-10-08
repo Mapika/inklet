@@ -205,6 +205,11 @@ class TextPrim(Prim):
     # rather than merely documented. Empty means "the shaper's defaults", which
     # is every block anyone has written so far.
     features: tuple[tuple[str, bool | int], ...] = ()
+    # The string as it was typed, markup and all. `text` is what is left once
+    # the markup is read, so `$x^{2}$` reads as `$x2$` there; a linter that
+    # wants to see the TeX someone wrote needs the typed form. Not part of the
+    # value: two blocks that print the same are the same block.
+    source: str = field(default="", compare=False, repr=False)
 
     @property
     def text(self) -> str:
