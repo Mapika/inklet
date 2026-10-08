@@ -49,7 +49,8 @@ from .rules import (
 )
 
 __all__ = ["rule_off_panel", "rule_data_outside", "rule_ticks_dropped",
-           "rule_series_flattened", "TICKS_DROPPED_NOTE"]
+           "rule_series_flattened", "rule_rows_combined", "TICKS_DROPPED_NOTE",
+           "ROWS_COMBINED_NOTE"]
 
 #: Containers the plot layer places itself, whose contents sit where the layer
 #: put them. A `side="top"` legend is above the plot box by construction and a
@@ -782,6 +783,88 @@ def rule_ticks_dropped(ctx: LintContext) -> list[Diagnostic]:
                   f"the thinning and silences this"),
         ))
     return out
+
+
+# -- ROWS_COMBINED -------------------------------------------------------------
+#
+# `bar` sums the rows that share a category, and `line` draws a zigzag through
+# the rows that share an x. A usability test had an agent pass three replicate
+# measurements per group to `i.bar(df, x='group', y='value')`: every bar was
+# the sum of its replicates, triple the real value, and the check passed clean,
+# because the figure was tidy. Nothing in the picture says the rows were
+# combined, so the drawing method records what it saw and this rule reports it.
+#
+# `quick.Chart` writes one finding per call on the panel, under this note, as a
+# list of mappings:
+#
+#     {"kind": "bar", "y": "value", "rows": 3, "category": "ctrl", "group": None}
+#     {"kind": "line", "y": "value", "rows": 3, "x": 2, "group": "drug"}
+#
+# `group` is the `color=` group the rows are in, or None. The bar finding names
+# the worst category, the line finding the worst x. A bar finding is recorded
+# only for the default `agg=None`: an explicit `agg='sum'` says the sum is meant.
+#
+# **Grade: warning.** The figure is not wrong about the rows it was given, but
+# the reader will take a replicate sum or a zigzag for the measurement, and the
+# fix is one argument.
+
+#: Read defensively: the panel may predate the note, and then says nothing.
+ROWS_COMBINED_NOTE = "rows_combined"
+
+
+def rule_rows_combined(ctx: LintContext) -> list[Diagnostic]:
+    """Bars that summed repeated rows, and lines that zigzag through them."""
+    noted = {}
+    for node_id, node in ctx.nodes.items():
+        notes = getattr(node, "notes", None)
+        found = notes.get(ROWS_COMBINED_NOTE) if isinstance(notes, Mapping) else None
+        if isinstance(found, list):
+            found = [item for item in found if isinstance(item, Mapping)]
+            if found:
+                noted[node_id] = found
+    # As for TICKS_DROPPED: a single-child wrapper inherits its child's notes,
+    # so report at the deepest holder only.
+    wrappers = {step for node_id in noted for step in ctx.ancestors(node_id)}
+    out: list[Diagnostic] = []
+    for node_id in sorted(noted):
+        if node_id in wrappers:
+            continue
+        placed = ctx.placements.get(node_id)
+        box = None if placed is None else placed.bbox
+        for finding in noted[node_id]:
+            diagnostic = _rows_combined_finding(node_id, box, finding)
+            if diagnostic is not None:
+                out.append(diagnostic)
+    return out
+
+
+def _rows_combined_finding(node_id, box, finding):
+    y, rows, group = finding.get("y"), finding.get("rows"), finding.get("group")
+    quantity = repr(y) if y is not None else "the values"
+    within = f" in group {group!r}" if group is not None else ""
+    if finding.get("kind") == "bar":
+        category = finding.get("category")
+        message = (f"bars of {quantity} sum {rows} rows per category "
+                   f"({category!r} has {rows}{within}); replicates read as one total")
+        hint = ("pass agg='mean' (with error_y='sem') for replicates, or agg='sum' "
+                "if the rows are parts of a total")
+    elif finding.get("kind") == "line":
+        x = finding.get("x")
+        message = (f"line {quantity}{within} has {rows} rows at x={x!r}; "
+                   f"the line zigzags through them")
+        hint = ("average the rows at each x first (a mean line, with error_y= for "
+                "their spread), or draw the replicates with scatter(); sort=False "
+                "if the rows are a path in order")
+    else:
+        return None
+    return Diagnostic(
+        code="ROWS_COMBINED",
+        severity="warning",
+        message=message,
+        targets=(node_id,),
+        where=box,
+        hint=hint,
+    )
 
 
 def _tick_word(value) -> str:

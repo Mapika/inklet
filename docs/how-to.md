@@ -105,8 +105,9 @@ chart.save('response.pdf')
 ![Three bars of group means with standard error whiskers, and each measurement drawn as a dot](assets/how-to/response-sem.svg)
 
 Without `agg=`, `bar` sums the rows that share a category. Eight measurements
-per group would draw a bar about eight times the mean. `error_y` also takes
-`'sd'` and `'ci95'`.
+per group would draw a bar about eight times the mean, so lint reports
+`ROWS_COMBINED` for any category with more than one row. Pass `agg='sum'` when
+the rows really are parts of a total. `error_y` also takes `'sd'` and `'ci95'`.
 
 ## Draw horizontal bars
 

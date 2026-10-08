@@ -25,7 +25,7 @@ def _clean(chart):
 @pytest.mark.parametrize('make', [
     lambda: i.line(DATA, x='time', y='signal', color='cond'),
     lambda: i.scatter(DATA, x='time', y='signal', color='cond'),
-    lambda: i.bar(DATA, x='cond', y='signal'),
+    lambda: i.bar(DATA, x='cond', y='signal', agg='sum'),
     lambda: i.bar(DATA, x='time', y='signal', color='cond', stacked=True),
     lambda: i.hist(DATA, x='signal', color='cond', bins=4),
     lambda: i.kde(DATA, x='signal'),
@@ -38,7 +38,7 @@ def _clean(chart):
     lambda: i.heatmap([[1, 2], [3, 4]], x=['a', 'b'], y=['r1', 'r2']),
     lambda: i.heatmap(DATA, x='time', y='cond', z='signal'),
     lambda: i.line(x=[1, 2, 3], y=[2, 4, 3]),
-    lambda: i.line(DATA, x='time', y='signal', error_y='signal'),
+    lambda: i.line(x=[0, 1, 2, 3], y=[1.0, 3.0, 2.0, 4.0], error_y=[0.5, 0.5, 0.5, 0.5]),
 ])
 def test_every_chart_compiles_cleanly(make):
     _clean(make())
@@ -87,7 +87,8 @@ def test_bars_without_y_count_rows():
 
 
 def test_layering_and_panel_methods_chain():
-    chart = i.scatter(DATA, x='time', y='signal').line(DATA, x='time', y='signal')
+    once = {'time': [0, 1, 2, 3], 'signal': [1.0, 3.0, 2.0, 4.0]}
+    chart = i.scatter(DATA, x='time', y='signal').line(once, x='time', y='signal')
     assert chart.hline(2.5) is chart
     assert [step[1] for step in chart.spec._steps] == ['scatter', 'line', 'hline']
     _clean(chart)
@@ -157,7 +158,7 @@ def test_notebook_bundles_hold_an_isolated_image():
 
 def test_show_outside_a_notebook_writes_a_file(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
-    path = i.line(DATA, x='time', y='signal').show()
+    path = i.line(DATA, x='time', y='signal', color='cond').show()
     assert path.exists() and 'wrote' in capsys.readouterr().out
 
 

@@ -684,6 +684,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
         self._check_secondary(secondary, [_matchable(label, y) for label, *_ in drawn])
         # The most points a line of this chart may have before 'auto' thins it.
         limit = _SIMPLIFY_PER_MM * self._profile().publication.width if simplify == 'auto' else 0
+        if sort:
+            # Row order is a path (a loop, a phase portrait) that may pass one x twice.
+            self._note_repeated_x(drawn, y, color)
         for label, xs, ys, err in drawn:
             if sort:
                 xs, ys, err = _ordered(xs, ys, err)
@@ -715,6 +718,27 @@ class Chart(_Renderable, metaclass=_Forwarding):
                                    **self._style(table, color, {'color': options['color']},
                                                  mark=True, label=series, lone=True))
         return self._labelled(x, y)
+
+    def _note_repeated_x(self, drawn, y, color):
+        """Record the series whose most-repeated x is on the most rows, if any repeats.
+
+        `line` has no option that combines rows, so any repeat is a finding:
+        the path zigzags through the rows that share an x.
+        """
+        worst = None
+        for label, xs, ys, _ in drawn:
+            found = _most_rows([x for x, value in zip(xs, ys) if x is not None and value is not None])
+            if found is not None and (worst is None or found[1] > worst[1][1]):
+                worst = (label, found)
+        if worst is None:
+            return
+        label, (x, rows) = worst
+        from .diagnostics.plot_rules import ROWS_COMBINED_NOTE
+        # The series name is the y column, or the colour group when there is one.
+        quantity = y if isinstance(y, str) else label
+        group = label if isinstance(y, str) and color is not None else None
+        self.spec._finding(ROWS_COMBINED_NOTE, {'kind': 'line', 'y': quantity, 'rows': rows,
+                                                'x': x, 'group': group})
 
     def scatter(self, data=None, x=None, y=None, *, color=None, size=None, name=None,
                 marker='circle', palette=None, error_y=None, text=None, secondary_y=None,
@@ -785,18 +809,28 @@ class Chart(_Renderable, metaclass=_Forwarding):
         return self._labelled(x, y)
 
     def bar(self, data=None, x=None, y=None, *, color=None, name=None, orient='v',
-            stacked=False, error_y=None, labels=None, agg='sum', points=False, **style):
+            stacked=False, error_y=None, labels=None, agg=None, points=False, **style):
         """Bars of `y` at each `x` category; `color` groups side by side or stacked.
 
-        Rows sharing a category are combined by `agg`: `'sum'` (default),
-        `'mean'` or `'median'`. Without `y`, bars count the rows. With a mean or
-        median, `error_y` may be `'sem'`, `'sd'` or `'ci95'` (computed from the
-        rows) and `points=True` shows every row as a dot.
+        Rows sharing a category are combined by `agg`: `'sum'`, `'mean'` or
+        `'median'`. Without `y`, bars count the rows. With a mean or median,
+        `error_y` may be `'sem'`, `'sd'` or `'ci95'` (computed from the rows)
+        and `points=True` shows every row as a dot.
+
+        The default, `agg=None`, draws the sum, but a category with more than
+        one row (within each `color` group) is reported by lint as
+        `ROWS_COMBINED`, since replicates summed into one bar are usually
+        not meant to be a total. Pass `agg='sum'` to say the sum is meant, or
+        `agg='mean'` with `error_y='sem'` for replicates. Counting rows, with
+        no `y`, is never reported.
         """
         table = _table(data)
         _check_color(color)
-        if agg not in ('sum', 'mean', 'median'):
+        if agg is not None and agg not in ('sum', 'mean', 'median'):
             raise ValueError("bar(agg=) is 'sum', 'mean' or 'median'")
+        implicit_sum = agg is None
+        if implicit_sum:
+            agg = 'sum'
         at = _column(table, x, 'x')
         if at is None:
             raise ValueError('bar() needs x=, the categories along the axis')
@@ -831,6 +865,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
             self._categories(cats)
         heights_arg = series[0] if len(series) == 1 else series
         self.spec.bars(cats, heights_arg, orient=orient, **options)
+        if implicit_sum and heights is not None:
+            self._note_summed_rows(at, heights, groups, y)
         if error_y is not None and len(series) == 1:
             err = _column(table, error_y, 'error_y')
             mean_err = _aggregate(at, err, None, cats)[0][0]
@@ -840,6 +876,24 @@ class Chart(_Renderable, metaclass=_Forwarding):
             self.spec.errorbars(points, **{key: mean_err})
         value = y if y is not None else 'count'
         return self._labelled(x, value) if orient == 'v' else self._labelled(value, x)
+
+    def _note_summed_rows(self, at, heights, groups, y):
+        """Record the category, within its colour group, that sums the most rows.
+
+        Only rows that add to the bar count: a missing category, group or value
+        does not. A bar of one row is a value, so nothing is recorded unless some
+        category has two or more.
+        """
+        keys = [(cat, groups[i] if groups is not None else None) for i, cat in enumerate(at)
+                if cat is not None and heights[i] is not None
+                and (groups is None or groups[i] is not None)]
+        found = _most_rows(keys)
+        if found is None:
+            return
+        (category, group), rows = found
+        from .diagnostics.plot_rules import ROWS_COMBINED_NOTE
+        self.spec._finding(ROWS_COMBINED_NOTE, {'kind': 'bar', 'y': y if isinstance(y, str) else None,
+                                                'rows': rows, 'category': category, 'group': group})
 
     def _estimated(self, table, x, y, at, heights, groups, cats, agg, error_y, points,
                    color, name, orient, style):
@@ -2031,6 +2085,20 @@ def _index(table, column, length=None):
     if length is None:
         length = len(table[column])
     return list(range(length))
+
+
+def _most_rows(keys):
+    """(key, rows) for the key on the most rows, when some key is on two or more; else None.
+
+    Ties go to the key seen first, so the report names the same one each run.
+    """
+    counts = {}
+    for key in keys:
+        counts[key] = counts.get(key, 0) + 1
+    if not counts:
+        return None
+    key = max(counts, key=counts.__getitem__)
+    return (key, counts[key]) if counts[key] > 1 else None
 
 
 def _aggregate(at, heights, groups, cats, names=None):

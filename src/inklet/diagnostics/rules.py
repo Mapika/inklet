@@ -3761,7 +3761,7 @@ from .link_rules import (rule_coincident_shaft,                     # noqa: E402
 from .path_rules import (rule_path_crosses,                         # noqa: E402
                          stroke_near_misses)
 from .plot_rules import (rule_data_outside, rule_off_panel,         # noqa: E402
-                          rule_series_flattened, rule_ticks_dropped)
+                          rule_series_flattened, rule_rows_combined, rule_ticks_dropped)
 from .break_rules import rule_break_distorts                       # noqa: E402
 from .three_rules import rule_depth_order                           # noqa: E402
 from .label_rules import rule_label_unplaced, rule_orphan_leader      # noqa: E402
@@ -3774,6 +3774,7 @@ RULES: dict[str, Rule] = {
     "DATA_OUTSIDE": rule_data_outside,
     "TICKS_DROPPED": rule_ticks_dropped,
     "SERIES_FLATTENED": rule_series_flattened,
+    "ROWS_COMBINED": rule_rows_combined,
     "BREAK_DISTORTS": rule_break_distorts,
     "TINY_TEXT": rule_tiny_text,
     "LARGE_TEXT": rule_large_text,
