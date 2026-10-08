@@ -1,0 +1,13 @@
+{
+  "name": "inklet",
+  "owner": {
+    "name": "Mapika"
+  },
+  "plugins": [
+    {
+      "name": "inklet",
+      "source": "./plugins/inklet",
+      "description": "Publication-quality figures from Python with inklet: one-call charts, measured layout, and SVG/PDF/PNG export."
+    }
+  ]
+}
