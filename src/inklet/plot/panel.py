@@ -24,7 +24,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Iterable, Mapping, Sequence
 
-from ..core import Diagram, DiagramError, Rect, RectPrim, Vec2, mm
+from ..core import Diagram, DiagramError, PathPrim, Rect, RectPrim, Vec2, mm, resolve
 from ..core.diagram import union_bounds as _union_box
 from ..draw.clip import clip as draw_clip
 from ..draw.coords import (active_theme, as_drawn, declare_area,
@@ -932,7 +932,8 @@ class Panel:
     @choices(label_side=(None, "n", "s"))
     def hline(self, y, *, span: tuple | None = None, front: bool | None = None,
               label: str | Diagram | None = None,
-              label_side: str | None = None, **style) -> "Panel":
+              label_side: str | None = None, label_offset: float | None = None,
+              **style) -> "Panel":
         """A horizontal rule at one **data** value of y.
 
         The reference a plot is read against: a zero line, a threshold, a
@@ -951,6 +952,9 @@ class Panel:
         including marks drawn after this call. `label_side="n"` (above) or
         `"s"` (below) keeps the label to that side; any other value raises. A
         threshold with no word against it is a line the caption has to explain.
+        `label_offset=` (mm) sets how far the word stands off the line and how
+        much clear space it keeps from the marks; the default is the theme's
+        extra-small gap.
 
             p.hline(0.05, label="p = 0.05", stroke_dash=(1.0, 0.8))
         """
@@ -960,13 +964,15 @@ class Panel:
         if front is None:
             front = label is not None
         self._layer(_marks.rule(self, y=y, span=span, **style), front, clip)
-        return self._rule_label(label, y=y, span=span, side=label_side)
+        return self._rule_label(label, y=y, span=span, side=label_side,
+                                offset=label_offset)
 
     @paint_keywords
     @choices(label_side=(None, "e", "w"))
     def vline(self, x, *, span: tuple | None = None, front: bool | None = None,
               label: str | Diagram | None = None,
-              label_side: str | None = None, **style) -> "Panel":
+              label_side: str | None = None, label_offset: float | None = None,
+              **style) -> "Panel":
         """A vertical rule at one **data** value of x -- stimulus onset, a
         dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
 
@@ -979,6 +985,10 @@ class Panel:
         spot that clears every mark on the panel wins, so the label moves down
         the line and off the bars rather than over them. `label_side="e"`
         (right) or `"w"` (left) keeps it to that side; any other value raises.
+        `label_offset=` (mm) sets how far the word stands off the line and how
+        much clear space it keeps from the marks; the default is the theme's
+        extra-small gap. The domain is given room above the tallest mark for
+        the word when there is none (see `autodomain`).
 
             p.vline(mean, label='mean 63.9')
         """
@@ -988,14 +998,17 @@ class Panel:
         if front is None:
             front = label is not None
         self._layer(_marks.rule(self, x=x, span=span, **style), front, clip)
-        return self._rule_label(label, x=x, span=span, side=label_side)
+        return self._rule_label(label, x=x, span=span, side=label_side,
+                                offset=label_offset)
 
-    def _rule_label(self, label, **kwargs) -> "Panel":
+    def _rule_label(self, label, *, offset: float | None = None,
+                    **kwargs) -> "Panel":
         """The word against a reference line, clear of the marks, never clipped.
 
         Placed at `build()`, like `label_points`, so marks drawn after the
         rule are avoided as well. The rule itself is not in the way: its label
         stands `gap` off the line, outside the clearance the search keeps.
+        `offset` (mm) replaces that gap when given.
         """
         if label is None:
             return self
@@ -1006,7 +1019,8 @@ class Panel:
             import inklet
             token = inklet._theme_context.set(theme)
             try:
-                return _notes.rule_label(self, label, marks=marks, **kwargs)
+                return _notes.rule_label(self, label, marks=marks, clear=offset,
+                                         **kwargs)
             finally:
                 inklet._theme_context.reset(token)
 
@@ -2105,8 +2119,9 @@ class Panel:
         label that had to move further out gets a hairline leader back to
         the point. Placement waits for `build()`, so the labels avoid every
         mark in the panel's content and over layers, including marks drawn
-        after this call. Several calls are placed in call order, each clear
-        of the labels before it.
+        after this call, and the reference rules and bands under the data
+        (`hline`, `vspan`...). Several calls are placed in call order, each
+        clear of the labels before it.
 
             p.scatter(cloud, color=TH.muted)
             p.label_points(hits, names)
@@ -2130,7 +2145,8 @@ class Panel:
             import inklet
             token = inklet._theme_context.set(theme)
             try:
-                return _label_points(self, data, names, marks=marks, **kwargs)
+                return _label_points(self, data, names, marks=marks,
+                                     under=self._reference_layer(), **kwargs)
             finally:
                 inklet._theme_context.reset(token)
 
@@ -2138,6 +2154,26 @@ class Panel:
         self._deferred[id(holder)] = place
         self._over.append(holder)
         return self._touched()
+
+    def _reference_layer(self) -> list[Diagram]:
+        """The reference rules and bands painted under the data, for placers.
+
+        `hline`, `vline`, `hspan`, `vspan` and `rect` paint beneath the data
+        unless `front=True`, so they live in `_under`, which the placers'
+        `marks` leave out. A label set across one of them reads as struck
+        through. The plot's background and its gridlines are furniture the
+        data is read against, not reference lines, so they stay out; so does
+        anything that is not pure geometry (a raster, a blank placeholder).
+        """
+        out: list[Diagram] = []
+        for node in self._under:
+            if node.kind in (AREA_KIND, GRID_KIND):
+                continue
+            if all(isinstance(placed.diagram.prim, PathPrim)
+                   for placed in resolve(node).values()
+                   if placed.diagram.prim is not None):
+                out.append(node)
+        return out
 
     def label_lines(self, name: str | Sequence[str] | None = None,
                     **kwargs) -> "Panel":

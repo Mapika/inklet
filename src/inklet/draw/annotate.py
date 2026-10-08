@@ -178,6 +178,11 @@ def annotate(target: Diagram | AnchorRef, text: str | Diagram, *,
     on the target's real boundary -- the silhouette of a cut-out image, the
     outline of a projected mesh part, the round of a rounded rectangle.
 
+    `shoulder=` (mm) bends the leader into a callout: a leg off the point and
+    a flat run of that length into the label, which reads well for a label
+    set on a figure's own baseline. `shoulder=0` is one straight segment from
+    the text's edge to the point, which is what a plot's callouts use.
+
     `target` may be any Diagram, including a part of a `inklet.model` or
     `inklet.scene` found with `.find()`, or an `AnchorRef` naming an exact spot.
     Annotating a part rather than a whole needs the frame it lives in: pass it

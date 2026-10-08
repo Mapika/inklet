@@ -438,7 +438,54 @@ def measure(steps, width, height):
         probes.append((method, args, kwargs))
     for method, args, kwargs in probes:
         _probe(method, args, kwargs, x, y, width, height)
+    _rule_headroom(steps, y, height)
     return x, y
+
+
+#: The word on a labelled vline sits at its top end, so the y-domain keeps
+#: this many type-size-and-gap units of air above the tallest mark for it.
+_HEADROOM_GAPS = 2
+
+
+def _rule_headroom(steps, y: _Axis, height: float) -> None:
+    """Give a labelled vline's word room above the tallest mark.
+
+    A `vline(x, label=...)` sets its word at the top of the rule, and the
+    word is searched for clear of the data. When the fitted domain stops
+    just above the tallest mark (the usual case: a histogram's tallest bar
+    is the mode, and the rule runs the full height), no clear spot is left
+    up there and the word is pressed against the bar. So when the air above
+    the data is less than a label's height plus its gaps, the domain is
+    extended by the difference, measured in millimetres of the plot height.
+    Nothing is added where the air is already enough, and a rule without a
+    label does nothing here.
+    """
+    from ..draw.coords import active_theme
+    if not y.numeric or y.categories or y.times or y.hi <= y.lo:
+        return
+    labelled = False
+    for method, args, kwargs in steps:
+        if method != 'vline':
+            continue
+        arguments = _bind(method, args, kwargs)
+        if arguments is not None and arguments.get('label') is not None:
+            labelled = True
+            break
+    if not labelled or height <= 0:
+        return
+    domain = y.domain()
+    if not isinstance(domain, tuple):
+        return
+    lo, hi = domain
+    span = hi - lo
+    if span <= 0:
+        return
+    theme = active_theme()
+    need = theme.font_size_small * theme.line_height + _HEADROOM_GAPS * theme.gap("xs")
+    air = (hi - y.hi) / span * height
+    if air >= need:
+        return
+    y.add((need - air) * (y.hi - y.lo) / height + y.hi)
 
 
 def _group_samples(groups):

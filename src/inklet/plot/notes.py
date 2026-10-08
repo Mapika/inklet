@@ -242,6 +242,9 @@ def callout(panel, x, y, text: str | Diagram, *, side: str = "n",
               else target.styled(fill="none", stroke="none"))
     blockers = list(avoid) + (_outside(panel.area) if inside else [])
     gap = theme.gap("xs") if clear is None else mm(clear)
+    # A bent leader off a data point reads as a stray "L" when the label sits
+    # off the point's diagonal; a plot's callout is one straight segment.
+    kwargs.setdefault("shoulder", 0.0)
     return draw_annotate(target, text, side=side, clear=gap, leader=leader,
                          avoid=blockers, **kwargs)
 
