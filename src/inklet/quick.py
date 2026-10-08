@@ -527,6 +527,10 @@ class Chart(_Renderable, metaclass=_Forwarding):
         self._x_categories = []
         self._tick_overrides = {}
         self._series_tokens = {}
+        #: Palette slots this chart's series have taken so far: the next free one.
+        #: Named and unnamed series draw from it, so an overlay never reuses a
+        #: slot another series of the chart already has.
+        self._slots = 0
         self._series_names = set()
         self._legend_explicit = False
         self._hide_ticks = set()
@@ -607,10 +611,11 @@ class Chart(_Renderable, metaclass=_Forwarding):
                     run_options['err'] = run_err
                 recipe.line(points, name=named, **run_options)
                 if markers:
+                    # The line's own colour: a markers layer is the same series.
                     recipe.scatter(points, name=named,
                                    **self._raster_keywords(None, len(points), {}),
-                                   **self._style(table, color, {}, mark=True, label=series,
-                                                 lone=True))
+                                   **self._style(table, color, {'color': options['color']},
+                                                 mark=True, label=series, lone=True))
         return self._labelled(x, y)
 
     def scatter(self, data=None, x=None, y=None, *, color=None, size=None, name=None,
@@ -664,9 +669,10 @@ class Chart(_Renderable, metaclass=_Forwarding):
                 options = {'size': kept[-1]} if sizes else _size(size, table)
                 if 'size' not in options:
                     options.update(_marker_look(len(points), len(xs)))
+                # Its dots take the colour of their errorbars and ink, the same series.
                 recipe.scatter(points, name=series, marker=marker, **options, **paint,
-                               **self._style(table, color, style, mark=True, label=series,
-                                             lone=True))
+                               **self._style(table, color, {'color': ink['color'], **style},
+                                             mark=True, label=series, lone=True))
             self._named += sum(1 for group in _groups(table, color, xs, ys) if group[0] is not None)
         if text is not None:
             labels = _column(table, text, 'text')
@@ -711,9 +717,10 @@ class Chart(_Renderable, metaclass=_Forwarding):
             options['color'] = literal
         elif len(series) == 1:
             # A bar is a large area: a softened series colour, not a block.
-            options.setdefault('color', f'{_SOFT}0')
+            options.setdefault('color', f'{_SOFT}{self._claim()}')
         else:
-            options.setdefault('color', [f'{_SOFT}{k}' for k in range(len(series))])
+            first = self._claim(len(series))
+            options.setdefault('color', [f'{_SOFT}{first + k}' for k in range(len(series))])
         if len(series) > 1:
             options['stacked' if stacked else 'grouped'] = True
             options['name'] = names
@@ -755,7 +762,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
         if (literal := _literal_color(table, color)) is not None:
             options['color'] = literal
         elif groups is None:
-            options.setdefault('color', f'{_TOKEN}0')
+            options.setdefault('color', f'{_TOKEN}{self._claim()}')
         if groups is not None:
             options['name'] = [str(g) for g in names]
             self._named += len(names)
@@ -807,17 +814,37 @@ class Chart(_Renderable, metaclass=_Forwarding):
 
     def boxplot(self, data=None, x=None, y=None, *, color=None, points=False, **style):
         """Box plot of `y` in each `x` category."""
-        self._grouped('boxplot', data, x, y, color, _tinted_shape(style, color))
+        shape, dots = self._shape(style, color)
+        self._grouped('boxplot', data, x, y, color, shape)
         if points:
-            self._grouped('strip', data, x, y, color, _dots(style))
+            self._grouped('strip', data, x, y, color, dots)
         return self._labelled(x, y)
 
     def violin(self, data=None, x=None, y=None, *, color=None, points=False, **style):
         """Violin plot of `y` in each `x` category."""
-        self._grouped('violin', data, x, y, color, _tinted_shape(style, color))
+        shape, dots = self._shape(style, color)
+        self._grouped('violin', data, x, y, color, shape)
         if points:
-            self._grouped('strip', data, x, y, color, _dots(style))
+            self._grouped('strip', data, x, y, color, dots)
         return self._labelled(x, y)
+
+    def _shape(self, style, color):
+        """A box's or violin's style, and its points' style, in one palette slot.
+
+        Without a colour column the shape is a pale fill with edges in the
+        series' slot, and its points take that slot's colour too, so the box
+        and the dots over it read as one series.
+        """
+        shape, dots = dict(style), _dots(style)
+        if color is None:
+            slot = self._claim()
+            dots.setdefault('color', f'{_TOKEN}{slot}')
+            if 'edges' not in shape:
+                shape.setdefault('color', f'{_TINT}{slot}')
+                shape['edges'] = f'{_TOKEN}{slot}'
+        elif isinstance(color, str) and color.startswith('#'):
+            shape.setdefault('edges', color)
+        return shape, dots
 
     def strip(self, data=None, x=None, y=None, *, color=None, **style):
         """Jittered points of `y` in each `x` category."""
@@ -1135,7 +1162,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
         _, ends = _one_per_category(table, y, x[1], 'dumbbell')
         options = dict(style)
         # Each dot takes its series' palette slot, so the key and the dots agree.
-        options.setdefault('color', [f'{_TOKEN}{k}' for k in range(2)])
+        if 'color' not in options:
+            first = self._claim(2)
+            options['color'] = [f'{_TOKEN}{first + k}' for k in range(2)]
         options.setdefault('name', list(x))
         self._named += 2
         names = [str(c) for c in cats]
@@ -1362,13 +1391,15 @@ class Chart(_Renderable, metaclass=_Forwarding):
 
     # The finished recipe.
 
-    def plot(self, width=None, profile=None, rotate=False, colours=None, slots=None):
+    def plot(self, width=None, profile=None, rotate=False, colours=None, slots=None, shared_key=False):
         """The `PlotSpec` with axes, legend and title applied, for a document cell.
 
         `width` (mm) and `profile` (the `Preset`) let crowded category labels
         be turned to fit. `colours` is the palette this chart's series are
         drawn in (default: the profile's), and `slots` maps every series name
         to its palette position across a layout, so one name keeps one colour.
+        `shared_key` is set by a layout when this chart's series name is drawn
+        in another panel too, so a lone series still gets its key entry.
         """
         if self._forest is not None:
             # A forest is a Diagram, built under the document's theme at compile.
@@ -1421,7 +1452,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
             spec.axes(x=xlabel or None, y=ylabel or None, **({'x_options': x_options} if x_options else {}),
                       **({'y_options': y_options} if y_options else {}))
         named = max(self._named, len(self._series_names))
-        wants_key = named > 1 or (named and self._legend_explicit)
+        wants_key = named > 1 or (named and (self._legend_explicit or shared_key))
         if wants_key and self.legend_side == 'direct' and methods & _LABELLED_CURVES:
             # Names at the curve ends, in their colours, instead of a key.
             spec.label_lines()
@@ -1587,17 +1618,43 @@ class Chart(_Renderable, metaclass=_Forwarding):
         if label is None:
             return None
         if label not in self._series_tokens:
-            self._series_tokens[label] = f'{_TOKEN}{len(self._series_tokens)}'
+            self._series_tokens[label] = f'{_TOKEN}{self._claim()}'
         return self._series_tokens[label]
+
+    def _claim(self, count=1):
+        """The first of `count` palette slots for new series, and the next free ones.
+
+        Every series of a chart takes its slot here, named or not, so a bar
+        with a line laid over it draws the line in the next colour. A single
+        series is still the first slot.
+        """
+        first = self._slots
+        self._slots += count
+        return first
 
     def _slot_index(self, slots):
         """This chart's palette positions mapped to the layout's, by series name.
 
-        None outside a layout, where a position is its own palette slot.
+        None outside a layout, where a position is its own palette slot. A
+        slot no name holds (an overlay's, or a bar's) keeps its own position
+        unless a name of this chart already has that layout position; it then
+        takes the next free one, so no two series of a chart share a colour.
         """
         if slots is None:
             return None
-        return {int(token[len(_TOKEN):]): slots[label] for label, token in self._series_tokens.items()}
+        index = {int(token[len(_TOKEN):]): slots[label] for label, token in self._series_tokens.items()}
+        taken = set(index.values())
+        for slot in range(self._slots):
+            if slot in index:
+                continue
+            position = slot
+            if position in taken:
+                position = 0
+                while position in taken:
+                    position += 1
+            index[slot] = position
+            taken.add(position)
+        return index
 
     def _raster_keywords(self, raster, count, style):
         """`raster=` and, when rasterising, `dpi=` for the scatter layers of one panel.
@@ -1630,7 +1687,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
         elif label is not None and 'color' not in options:
             options['color'] = self._token(label)
         elif lone and 'color' not in options:
-            options['color'] = f'{_TOKEN}0'
+            options['color'] = f'{_TOKEN}{self._claim()}'
         if dash is not None:
             options['stroke_dash'] = _DASHES.get(dash, dash) if isinstance(dash, str) else tuple(dash)
         if stroke_width is not None:
@@ -1798,17 +1855,6 @@ def _labels_collide(figure, categories) -> bool:
         if len(hits) >= 2:
             return True
     return False
-
-
-def _tinted_shape(style, color):
-    """Boxes and violins: a pale fill with edges, whiskers and median in the colour."""
-    options = dict(style)
-    if color is None and 'edges' not in options:
-        options.setdefault('color', f'{_TINT}0')
-        options['edges'] = f'{_TOKEN}0'
-    elif isinstance(color, str) and color.startswith('#'):
-        options.setdefault('edges', color)
-    return options
 
 
 def _dots(style):
@@ -2197,13 +2243,21 @@ class Layout(_Renderable):
         for chart in charts:
             for label in chart._series_tokens:
                 slots.setdefault(label, len(slots))
+        # A name drawn in more than one panel is a key entry in each of them.
+        # A layout has no shared key, so a panel whose only series is such a
+        # name would otherwise leave its colour unexplained.
+        panels = {}
+        for chart in charts:
+            for label in chart._series_names:
+                panels[label] = panels.get(label, 0) + 1
         layout_palette = self._explicit('palette') is not None
         plotting = {}
         for chart in charts:
             colours = None
             if not layout_palette and chart.palette is not None:
                 colours = chart._profile().theme.palette
-            plotting[id(chart)] = {'colours': colours, 'slots': slots}
+            shared = any(panels[label] > 1 for label in chart._series_names)
+            plotting[id(chart)] = {'colours': colours, 'slots': slots, 'shared_key': shared}
         return plotting
 
     def _fill(self, doc, width, prefix, profile, rotate, plotting):
@@ -2318,6 +2372,7 @@ def _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_orde
         chart._title_align = 'center'
         # The same group keeps its colour in every facet, even where absent.
         chart._series_tokens = {g: f'{_TOKEN}{k}' for k, g in enumerate(groups)}
+        chart._slots = len(groups)
         getattr(chart, method)(subset, *args, **rest)
         charts.append(chart)
     _share_domains(charts, own)
