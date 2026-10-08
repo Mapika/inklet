@@ -68,19 +68,20 @@ def test_a_layout_strips_the_panel_letter_from_the_front_of_a_title():
     assert a.title == '(a) Growth'
 
 
-@pytest.mark.parametrize('title, kept', [('a. Growth', 'Growth'), ('A: Growth', 'Growth'), ('a Growth', 'Growth')])
+@pytest.mark.parametrize('title, kept', [('a. Growth', 'Growth'), ('A: Growth', 'Growth'), ('b) Growth', 'Growth')])
 def test_other_panel_letter_forms_are_stripped(title, kept):
     with pytest.warns(UserWarning, match=f'kept {kept!r}'):
         svg = (_line(title=title) | _line()).compile().to_svg(text='names')
     assert kept in svg
 
 
-def test_a_capital_article_at_the_front_of_a_title_is_kept():
+@pytest.mark.parametrize('title', ['A comparison', 'a big effect', 'E. coli growth'])
+def test_an_article_or_a_genus_at_the_front_of_a_title_is_kept(title):
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter('always')
-        svg = (_line(title='A comparison') | _line()).compile().to_svg(text='names')
+        svg = (_line(title=title) | _line()).compile().to_svg(text='names')
     assert not [w for w in caught if 'panel letter' in str(w.message)]
-    assert 'comparison' in svg
+    assert title.split()[-1] in svg
 
 
 def test_letters_false_keeps_the_title():

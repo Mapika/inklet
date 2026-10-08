@@ -47,10 +47,10 @@ _LABELLED_CURVES = frozenset({'line', 'step', 'ecdf'})
 
 #: A title that is only a panel letter: `a`, `(a)`, `A.`, `b:`.
 _PANEL_LETTER = re.compile(r'^\(?[A-Za-z]\)?[.:]?$')
-#: A title that opens with one: `(a) Growth`, `a. Growth`, `A: Growth`, or a
-#: lower-case `a Growth`. A capital with no punctuation is left alone, because
-#: `A comparison of...` is an article far more often than a panel letter.
-_PANEL_LEAD = re.compile(r'^(?:\([A-Za-z]\)|[A-Za-z][.:)]|[a-z])\s+(?=\S)')
+#: A title that opens with one: `(a) Growth`, `a. Growth`, `A: Growth`, `b)`.
+#: A bare letter is left alone (`a big effect` is an article), and so is a
+#: capital with a full stop (`E. coli growth` is a genus).
+_PANEL_LEAD = re.compile(r'^(?:\([A-Za-z]\)|[a-z][.:)]|[A-Z][:)])\s+(?=\S)')
 
 #: Prefix of a palette slot recorded before the palette is known.
 _TOKEN = '@series'
