@@ -166,7 +166,7 @@ def annotate(target: Diagram | AnchorRef, text: str | Diagram, *,
              avoid: Sequence[Diagram | Rect] = (),
              within: Diagram | None = None, size: float | str | None = None,
              align: str = "center", name: str | None = None,
-             head: str = "none", shoulder: float | str | None = 0.0,
+             head: str = "none", shoulder: float | str | None = None,
              through: Sequence[Diagram] = (),
              leader_style: dict | None = None, search: bool = True,
              **style) -> Diagram:
@@ -178,11 +178,10 @@ def annotate(target: Diagram | AnchorRef, text: str | Diagram, *,
     on the target's real boundary -- the silhouette of a cut-out image, the
     outline of a projected mesh part, the round of a rounded rectangle.
 
-    By default the leader is one straight segment from the text's edge to the
-    point. `shoulder=` (mm) bends it into a callout instead: a leg off the
-    point and a flat run of that length into the label, which reads well for
-    a label set on a figure's own baseline and reads as a stray "L" when the
-    label sits off the point's diagonal. `shoulder=0` is the straight line.
+    `shoulder=` (mm) bends the leader into a callout: a leg off the point and
+    a flat run of that length into the label, which reads well for a label
+    set on a figure's own baseline. `shoulder=0` is one straight segment from
+    the text's edge to the point, which is what a plot's callouts use.
 
     `target` may be any Diagram, including a part of a `inklet.model` or
     `inklet.scene` found with `.find()`, or an `AnchorRef` naming an exact spot.
