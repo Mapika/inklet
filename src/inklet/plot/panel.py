@@ -34,7 +34,7 @@ from ..draw.place import place as draw_place
 from ..themes.color import mix
 from . import marks as _marks
 from . import notes as _notes
-from .axis import SIDES, SPINE_KIND, axis, text_node, tick_values
+from .axis import SIDES, SPINE_KIND, axis, axis as axis_sink, text_node, tick_values
 from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
                         into_corner as _into_corner, origin_of as _origin_of,
                         plated as _plated)
@@ -43,10 +43,12 @@ from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
 from .line_labels import tag_series
 from .matrix import (_RASTER_ABOVE_CELLS, matrix_centers, matrix_layer,
                      prepare_matrix, default_coloring)
+from .point_labels import checked, label_points as label_points_sink
 from .scale import Band, Linear, Log, Scale, linear
 from .metadata import declare_domain as _declare_domain
-from .choices import choices
-from .paint import paint_keywords
+from .choices import choices, recorded
+from .paint import forwarded_keywords, paint_keywords
+from ..draw.annotate import ANNOTATE_SIDES, annotate as annotate_sink
 from .series import (SeriesKey, merge_keys, select_keys, series_color,
                      series_names, swatch_for)
 from .._compat import renamed_keywords, resolve_renamed
@@ -93,6 +95,17 @@ def _one_size(size) -> float | None:
     except (TypeError, ValueError):
         return None
     return value if value > 0 else None
+
+
+def _label_arguments(arguments) -> None:
+    """Refuse a label list that cannot pair with its points, when it is recorded.
+
+    Only lists and tuples are measured here: a generator is consumed by the
+    check, and the draw call checks it again in full.
+    """
+    points, labels = arguments.get('points'), arguments.get('labels')
+    if isinstance(points, (list, tuple)) and isinstance(labels, (list, tuple)):
+        checked(points, labels)
 
 
 @dataclass
@@ -1126,6 +1139,7 @@ class Panel:
         self._over.append(as_drawn(node))
         return self._touched()
 
+    @forwarded_keywords()
     def grid(self, *, x: bool = True, y: bool = True, count: int = 5,
              x_options: dict | None = None, y_options: dict | None = None,
              **style) -> "Panel":
@@ -1153,6 +1167,7 @@ class Panel:
         self._under.extend(as_drawn(line) for line in lines)
         return self._touched()
 
+    @forwarded_keywords(axis_sink)
     def axis(self, side: str = "bottom", *, at=None, **kwargs) -> "Panel":
         """Hang an axis off one edge, built from this panel's own scale.
 
@@ -1195,6 +1210,7 @@ class Panel:
             return Vec2(0.0, self.y.map(at))
         return Vec2(self.x.map(at), 0.0)
 
+    @forwarded_keywords(axis_sink)
     def axes(self, x: str | None = None, y: str | None = None, *,
              x_options: dict | None = None, y_options: dict | None = None,
              **kwargs) -> "Panel":
@@ -1210,6 +1226,7 @@ class Panel:
         self.axis("bottom", **({'label':x} | kwargs | (x_options or {})))
         return self.axis("left", **({'label':y} | kwargs | (y_options or {})))
 
+    @forwarded_keywords(axis_sink)
     def twin_y(self, scale=None, *, side: str = "right",
                label: str | Diagram | None = None, color: str | None = None,
                axis: bool = True, **kwargs) -> "Panel":
@@ -1242,6 +1259,7 @@ class Panel:
             twin.axis(side, label=label, **_tinted(color, kwargs))
         return twin
 
+    @forwarded_keywords(axis_sink)
     def twin_x(self, scale=None, *, side: str = "top",
                label: str | Diagram | None = None, color: str | None = None,
                axis: bool = True, **kwargs) -> "Panel":
@@ -1333,6 +1351,7 @@ class Panel:
 
     @choices(corner=(None, "auto", "best", "nw", "ne", "sw", "se"),
              side=(None, "top", "bottom", "left", "right"))
+    @forwarded_keywords(make_legend)
     def legend(self, *, corner: str | None = "ne", side: str | None = None,
                entries: Sequence[tuple[str, object]] | None = None,
                columns: int | str | None = None, max_width: float | str | None = None,
@@ -1491,6 +1510,8 @@ class Panel:
         return [(entry.name, swatch_for(entry, size))
                 for entry in select_keys(self.keys, names)]
 
+    @choices(side=SIDES)
+    @forwarded_keywords(make_colorbar)
     def colorbar(self, *, side: str = "right", source=None, corner: str | None = None,
                  scale: Scale | None = None, length: float | str | None = None,
                  pad: float | str | None = None, plate: bool = False, title: str | None = None, **kwargs) -> "Panel":
@@ -1652,6 +1673,8 @@ class Panel:
         self._content.append(carrier)
         return self._layer(routed, front, clip=False)
 
+    @choices(side=ANNOTATE_SIDES)
+    @forwarded_keywords(_notes.callout, annotate_sink)
     def annotate(self, x, y, text: str | Diagram, *, side: str = "n",
                  clear: float | str | None = None, leader: bool = True,
                  inside: bool = True, dot: bool = False, front: bool = True,
@@ -2110,6 +2133,8 @@ class Panel:
                                 seed=seed, box=box, colors=color, **style)
         return self.draw(node, clip=clip)
 
+    @recorded(_label_arguments)
+    @forwarded_keywords(label_points_sink)
     def label_points(self, points: Iterable[Sequence], labels: Sequence[str],
                      **kwargs) -> "Panel":
         """Label many data points at once, clear of the marks and each other.

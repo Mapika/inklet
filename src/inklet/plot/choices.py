@@ -12,7 +12,7 @@ from __future__ import annotations
 import functools
 from typing import Callable
 
-__all__ = ["choices"]
+__all__ = ["choices", "recorded"]
 
 
 def choices(**allowed) -> Callable:
@@ -39,4 +39,18 @@ def choices(**allowed) -> Callable:
 
         wrapper.__option_check__ = check
         return wrapper
+    return decorate
+
+
+def recorded(check: Callable) -> Callable:
+    """Run `check(arguments)` when a recipe records a call to the method.
+
+    `arguments` maps each parameter name to the value the call binds to it,
+    so a check can read `labels` whether it was passed by position or by
+    keyword. Only what can be known from the call is checked here: the
+    method itself still checks the same things when it draws.
+    """
+    def decorate(func: Callable) -> Callable:
+        func.__record_check__ = check
+        return func
     return decorate

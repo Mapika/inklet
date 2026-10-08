@@ -97,20 +97,70 @@ def keyword_hint(name: str, candidates=()) -> str | None:
     return better
 
 
-def check_style(where: str, style: dict) -> None:
-    """Raise a `TypeError` naming any keyword in `style` that is not paint."""
-    unknown = sorted(k for k in style if not is_paint(k))
+def check_style(where: str, style: dict, takes: frozenset = frozenset()) -> None:
+    """Raise a `TypeError` naming any keyword in `style` that is not paint.
+
+    `takes` are further keywords the call may use by name (see
+    `forwarded_keywords`); when given, the message lists them.
+    """
+    unknown = sorted(k for k in style if k not in takes and not is_paint(k))
     if not unknown:
         return
     hints = []
     for key in unknown:
-        better = keyword_hint(key)
+        better = keyword_hint(key, takes)
         hints.append(f"{key}= (did you mean {better}=?)" if better else f"{key}=")
-    raise TypeError(
-        f"{where}() got unknown keyword{'s' if len(unknown) > 1 else ''} "
-        f"{', '.join(hints)}; its paint keywords are Style fields such as "
-        "stroke, stroke_width, stroke_dash, fill, opacity, plus color= and "
-        "dash= ('dashed', 'dotted', 'dashdot' or (on, off) in mm)")
+    plural = 's' if len(unknown) > 1 else ''
+    if takes:
+        tail = (f"; it takes {', '.join(sorted(takes))}, and paint keywords such as "
+                "stroke=, fill=, opacity=")
+    else:
+        tail = ("; its paint keywords are Style fields such as stroke, stroke_width, "
+                "stroke_dash, fill, opacity, plus color= and dash= ('dashed', 'dotted', "
+                "'dashdot' or (on, off) in mm)")
+    raise TypeError(f"{where}() got unknown keyword{plural} {', '.join(hints)}{tail}")
+
+
+def _named(func: Callable, kinds: tuple) -> frozenset[str]:
+    """The parameter names of `func` a caller may pass by keyword, of the given kinds.
+
+    A method's `self` is not a keyword, so it is left out.
+    """
+    names = set()
+    for index, parameter in enumerate(inspect.signature(func).parameters.values()):
+        if parameter.kind in kinds and not (index == 0 and parameter.name == "self"):
+            names.add(parameter.name)
+    return frozenset(names)
+
+
+def forwarded_keywords(*sinks: Callable) -> Callable[[Callable], Callable]:
+    """Check a method's keywords at the call when it passes `**kwargs` on to `sinks`.
+
+    A method that ends in `**style` hands its unnamed keywords down a chain
+    that finishes in `Style`, which refuses anything it does not know. So a
+    keyword is accepted here when the method names it, when a sink it forwards
+    to names it keyword-only (the sinks take their options that way), or when
+    it is paint. Only those are taken, so an unknown name is refused where it
+    is written, not when the page compiles, and a keyword the chain really
+    accepts still works.
+
+    The check is exposed as `__style_check__`, as `paint_keywords` does, so a
+    recipe runs it when the call is recorded.
+    """
+    keyword_only = (inspect.Parameter.KEYWORD_ONLY,)
+    named = (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+
+    def decorate(func: Callable) -> Callable:
+        own = _named(func, named)
+        takes = own.union(*(_named(sink, keyword_only) for sink in sinks))
+        title = func.__name__
+
+        def check(kwargs) -> None:
+            check_style(title, kwargs, takes)
+
+        func.__style_check__ = check
+        return func
+    return decorate
 
 
 def paint_keywords(func: Callable) -> Callable:
