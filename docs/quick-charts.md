@@ -181,7 +181,7 @@ are turned 45 degrees to fit.
 |---|---|
 | `i.line(df, x, y, color=)` | Lines joined in x order; `y` may be a list of columns, and without `y` every numeric column is drawn. A missing y leaves a gap, so the line breaks there; `gaps='bridge'` joins the points either side instead. `markers=True`, `error_y=` (band), `dash=`, `linewidth=`, `secondary_y=` (a right-hand axis, below) |
 | `i.scatter(df, x, y, color=, size=)` | Points; a numeric `color` column with many values uses a colour ramp and a colour bar. `text='col'` labels points clear of the marks; blank or missing labels are skipped, so those points get no leader line. `secondary_y=` names a colour group for the right-hand axis |
-| `i.bar(df, x, y, color=)` | Bars per category, grouped or `stacked=True`; rows are summed (reported as `ROWS_COMBINED` unless you pass `agg='sum'`), or `agg='mean'`/`'median'` with `error_y='sem'`, `'sd'` or `'ci95'` and `points=True`. Without `y`, counts rows. `orient='h'` |
+| `i.bar(df, x, y, color=)` | Bars per category, grouped or `stacked=True`; rows are summed (reported as `ROWS_COMBINED` unless you pass `agg='sum'`), or `agg='mean'`/`'median'` with `error_y='sem'`, `'sd'` or `'ci95'` and `points=True`. Without `y`, counts rows. `orient='h'` lays the bars across, with the rows read from the top |
 | `i.hist(df, x, color=, bins=)` | Histogram, overlaid per group; `density=`, `cumulative=` |
 | `i.kde(df, x, color=)` | Kernel density curves; `fill=True` |
 | `i.ecdf(df, x, color=)` | Empirical cumulative distributions |

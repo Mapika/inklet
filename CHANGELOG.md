@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Horizontal category charts list the first category at the top, as
+  `lollipop(orient='h')`, `dumbbell` and `heatmap` already did. This covers
+  `bar(orient='h')` in every form (sums, `agg='mean'`/`'median'`, stacked and
+  grouped), and `boxplot`, `violin` and `strip` with `orient='h'`. A chart
+  that read a table top-down now matches it; code that reordered its rows to
+  compensate should drop that reordering. Its `points=` dots follow the box's
+  `orient=` too.
+- `Chart.labels(x=, y=)` names the physical axes, so with `orient='h'` the
+  value title is `x`. The automatic titles already did this for bars and
+  lollipops.
+
+### Fixed
+
+- `boxplot`, `violin` and `strip` with `orient='h'` put the category name on
+  the value axis and the values on the category axis. They also drew
+  `boxplot(points=True)` dots vertically, which failed to compile.
+- `forest` with two right-hand columns, such as `right=['ci', 'participants']`,
+  raised a `LayoutError` at single width when a column header was wide (for
+  example `measure='Hazard ratio'`). The plot now narrows, to 20 mm at least,
+  to make room; a forest whose columns alone overflow the cell raises a
+  `LayoutError` that names `fewer right= columns or width='double'`.
+- `font_pt=` scales every size from the preset's own proportions. Panel letters
+  in a layout were set at 9/7 of the main size whatever the preset, so with
+  `style='scientific.nature'` and `font_pt=9` they came out at 11.6 pt, larger
+  than the chart's own title. The letters now match the title size.
+
 ## 4.6.0 — 2026-10-07
 
 Charts in one call, a matplotlib bridge, notebook display and tooling for
