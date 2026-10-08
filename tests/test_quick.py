@@ -336,7 +336,7 @@ def test_tick_values_and_letters_beside_titles():
     chart = i.line(DATA, x='time', y='signal', xticks=[0, 1, 2, 3], yticks=[1, 3, 5])
     axes = next(k for _, m, _, k in chart.plot()._steps if m == 'axes')
     assert axes['x_options']['ticks'] == (0, 1, 2, 3) and axes['y_options']['ticks'] == (1, 3, 5)
-    titled = i.line(DATA, x='time', y='signal', title='A') | i.line(DATA, x='time', y='signal')
+    titled = i.line(DATA, x='time', y='signal', title='Growth') | i.line(DATA, x='time', y='signal')
     assert titled.document()._letters.get('anchor') == 'cell'
     plain = i.line(DATA, x='time', y='signal') | i.line(DATA, x='time', y='signal')
     assert 'anchor' not in plain.document()._letters

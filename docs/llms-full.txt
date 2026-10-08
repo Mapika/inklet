@@ -108,6 +108,7 @@ arguments; `help(i.Chart.vline)` raises AttributeError, so use `help(i.Panel.vli
 for the signature without a chart.
 
 Text markup: `**bold**`, `//italic//`, `x^{2}`, `H_{2}O`, `{#c1121f|coloured}`.
+There is no `$...$` math: write Unicode (`α`, `µm`) or that markup instead.
 
 Two quantities in different units go on one chart with `secondary_y=`, a
 column or a list of them (for `scatter`, colour groups):
