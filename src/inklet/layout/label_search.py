@@ -216,6 +216,7 @@ class ObstacleField:
         self.segments: list[Seg] = []
         self.areas: list[tuple[Box, tuple[tuple[float, float], ...]]] = []
         self.edges: list[Seg] = []
+        self.edge_costs: list[float | None] = []
         self._box_grid = _Grid(self.cell)
         self._seg_grid = _Grid(self.cell)
         self._target_grid = _Grid(self.cell)
@@ -240,7 +241,11 @@ class ObstacleField:
         self._target_grid.add(len(self.targets), b)
         self.targets.append(b)
 
-    def add_area(self, poly: Sequence[tuple[float, float]]) -> None:
+    def add_area(self, poly: Sequence[tuple[float, float]], *,
+                 edge: float | None = None) -> None:
+        """Index a filled outline. `edge` is what a label pays per outline
+        edge it straddles; None means `Weights.area`, the house figure for a
+        shaded area."""
         xs = [p[0] for p in poly]
         ys = [p[1] for p in poly]
         b = (min(xs), min(ys), max(xs), max(ys))
@@ -249,9 +254,10 @@ class ObstacleField:
         for k in range(len(poly)):
             x0, y0 = poly[k]
             x1, y1 = poly[(k + 1) % len(poly)]
-            edge = (x0, y0, x1, y1)
-            self._edge_grid.add(len(self.edges), _seg_box(edge))
-            self.edges.append(edge)
+            seg = (x0, y0, x1, y1)
+            self._edge_grid.add(len(self.edges), _seg_box(seg))
+            self.edges.append(seg)
+            self.edge_costs.append(edge)
 
     # -- queries --------------------------------------------------------
 
@@ -316,7 +322,8 @@ class ObstacleField:
         for n in self._edge_grid.near(box):
             s = self.edges[n]
             if segment_hits_box(s[0], s[1], s[2], s[3], box):
-                cost += weights.area
+                edge = self.edge_costs[n]
+                cost += weights.area if edge is None else edge
         return cost + weights.conflict * conflicts, conflicts, covered
 
     def leader_cost(self, seg: Seg, *, weights: Weights,

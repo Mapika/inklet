@@ -30,8 +30,10 @@ A label still in conflict is listed as unresolved in the node's
 sits on a background mark is listed under `covering_marks`.
 
 `Panel.label_points` defers the placement to `Panel.build`, so the labels
-avoid every mark on the panel, including marks drawn after the call. Labels
-from several calls are placed in call order, each clear of the ones before.
+avoid every mark on the panel, including marks drawn after the call, and the
+reference rules and bands painted under the data (`hline`, `vspan` and the
+like, which a label would otherwise sit across). Labels from several calls
+are placed in call order, each clear of the ones before.
 With nothing drawn after the call the result is the same as placing at once.
 """
 
@@ -133,11 +135,16 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
                  leader: bool = True, markup: bool = False,
                  avoid: Sequence[Diagram] = (),
                  leader_style: dict | None = None,
-                 marks: Sequence[Diagram] | None = None, **style) -> Diagram:
+                 marks: Sequence[Diagram] | None = None,
+                 under: Sequence[Diagram] | None = None,
+                 **style) -> Diagram:
     """Place one label per point. See `Panel.label_points`.
 
     `marks` are the drawn nodes to keep clear of; the default is what the
-    panel holds now, in its content and over layers.
+    panel holds now, in its content and over layers. `under` are the
+    reference rules and bands painted beneath the data (see
+    `Panel._reference_layer`), kept clear of as well; the default is the
+    panel's own.
     """
     data, names = checked(points, labels)
     theme = active_theme()
@@ -157,7 +164,21 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
     anchors = [panel.point(*p) for p in data]
     if marks is None:
         marks = [*panel._content, *panel._over]
+    if under is None:
+        under = panel._reference_layer()
+    weights = Weights()
     boxes, segments, polygons, flags = _obstacles([*marks, *avoid], split=True)
+    # Reference rules are stroked lines, as a `hline` drawn over the data is.
+    # Reference bands are filled shapes, measured on their outline and costed
+    # as areas rather than as solid boxes: a label may sit inside a band when
+    # there is no room outside it, which it may not do across a bar. Each
+    # edge of a band a label straddles costs as much as a line crossing it
+    # (`Weights.crossing`), not as much as a shaded area's edge: lint reports
+    # text across a band's edge, so the search should prefer inside or out.
+    ref_boxes, ref_segments, ref_polygons, ref_flags = _obstacles(
+        under, split=True, bands=True)
+    boxes, flags = [*boxes, *ref_boxes], [*flags, *ref_flags]
+    segments = [*segments, *ref_segments]
     field = ObstacleField(cell=max(ring * 2, 1.0))
     for box, flag in zip(boxes, flags):
         field.add_box((box.x0, box.y0, box.x1, box.y1), mark=flag)
@@ -165,6 +186,8 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
         field.add_segment((a.x, a.y, b.x, b.y))
     for poly in polygons:
         field.add_area(poly)
+    for poly in ref_polygons:
+        field.add_area(poly, edge=weights.crossing)
     index_of = _Grid(boxes, max(ring * 2, 1.0))
     # The markers drawn at each labelled point (there may be two: a grey
     # cloud and a highlight drawn over it).
@@ -188,7 +211,6 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
     # The clearance a label keeps from marks: lint's, or less when `clear=`
     # asks for a tighter fit.
     room = min(gap, keep)
-    weights = Weights()
     options: list[list[Candidate]] = []
     for index, anchor in enumerate(anchors):
         width, height = nodes[index].bbox.width, nodes[index].bbox.height
@@ -565,7 +587,8 @@ def _segment_hits(a: Vec2, b: Vec2, box: Rect) -> bool:
     return True
 
 
-def _obstacles(nodes: Sequence[Diagram], split: bool = False):
+def _obstacles(nodes: Sequence[Diagram], split: bool = False,
+               bands: bool = False):
     """Boxes of filled shapes and text, and segments of stroked paths.
 
     A stroked line is represented by its segments rather than its bounding
@@ -578,6 +601,10 @@ def _obstacles(nodes: Sequence[Diagram], split: bool = False):
     box -- a band's box covers most of a panel it only crosses -- and one
     flag per box, true for a data marker (a batch record or a marker-sized
     shape) and false for text, bars and plates.
+
+    With `bands=True` (reference bands, not bars) every filled shape larger
+    than a marker is a polygon, rectangles included, so the search costs it
+    as an area rather than as a solid box that a label may not cover.
     """
     boxes: list[Rect] = []
     flags: list[bool] = []
@@ -597,7 +624,8 @@ def _obstacles(nodes: Sequence[Diagram], split: bool = False):
                         continue
                     if filled:
                         hull = Rect.hull(pts)
-                        if split and not _boxlike(pts, hull):
+                        if split and (not _small(hull) if bands
+                                      else not _boxlike(pts, hull)):
                             polygons.append(tuple((v.x, v.y) for v in pts))
                         else:
                             boxes.append(hull)
