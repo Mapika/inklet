@@ -467,6 +467,90 @@ class _Forwarding(type):
         return getattr(Panel, name)
 
 
+def _assign(chart, name, value):
+    """`chart.title(value)` and friends: set the attribute and return the chart."""
+    setattr(chart, name, value)
+    return chart
+
+
+class _Text(str):
+    """A chart's title or axis label, read as the text it holds.
+
+    It is a `str`, so it compares, prints and concatenates as the text does.
+    It is also callable, so `chart.title('Growth')` -- matplotlib's habit --
+    sets the title and returns the chart, rather than failing on a string.
+    """
+
+    def __new__(cls, value, chart, name):
+        text = super().__new__(cls, value)
+        text._chart, text._name = chart, name
+        return text
+
+    def __call__(self, value):
+        return _assign(self._chart, self._name, value)
+
+
+class _Setting:
+    """A chart's grid or other non-text setting, read as its value.
+
+    Used for values that are not text (`grid=True`, `grid='x'`, or None). It
+    compares, tests and prints as the value it holds, and is callable like
+    `_Text`: `chart.grid(True)` sets the grid.
+    """
+    __slots__ = ('_value', '_chart', '_name')
+
+    def __init__(self, value, chart, name):
+        self._value, self._chart, self._name = value, chart, name
+
+    def __call__(self, value):
+        return _assign(self._chart, self._name, value)
+
+    def __bool__(self):
+        return bool(self._value)
+
+    def __eq__(self, other):
+        return self._value == (other._value if isinstance(other, _Setting) else other)
+
+    def __hash__(self):
+        return hash(self._value)
+
+    def __repr__(self):
+        return repr(self._value)
+
+    def __str__(self):
+        return str(self._value)
+
+
+class _Labelled:
+    """A chart attribute stored on `_<name>` and read through `_Text` or `_Setting`.
+
+    Assignment still stores the plain value (`chart.title = 'x'`), and the
+    chart's own code reads the private slot, so the callable wrapper never
+    reaches a drawing call.
+    """
+
+    def __set_name__(self, owner, name):
+        self.name, self.slot = name, '_' + name
+
+    def __get__(self, chart, owner=None):
+        if chart is None:
+            return self
+        value = getattr(chart, self.slot)
+        if isinstance(value, str):
+            return _Text(value, chart, self.name)
+        return _Setting(value, chart, self.name)
+
+    def __set__(self, chart, value):
+        setattr(chart, self.slot, value)
+
+
+def _held(chart, name):
+    """The value a chart holds for `name`, not the wrapper a labelled attribute reads as."""
+    if isinstance(getattr(type(chart), name, None), _Labelled):
+        return getattr(chart, '_' + name)
+    return getattr(chart, name)
+
+
 class Chart(_Renderable, metaclass=_Forwarding):
     """One plot: marks on shared axes, with a size and a preset.
 
@@ -475,6 +559,12 @@ class Chart(_Renderable, metaclass=_Forwarding):
     with `save()`. `spec` is the underlying `PlotSpec`; every `Panel` method
     on it (`annotate`, `hline`, `inset`...) works here too and returns the chart.
     """
+
+    # Read as the value, and callable to set it: `chart.title('Growth')`.
+    title = _Labelled()
+    xlabel = _Labelled()
+    ylabel = _Labelled()
+    grid = _Labelled()
 
     def __init__(self, *, width=None, height=None, style='scientific.modern', font_pt=None,
                  palette=None, title=None, xlabel=None, ylabel=None, xlim=None, ylim=None,
@@ -495,11 +585,11 @@ class Chart(_Renderable, metaclass=_Forwarding):
                 raise TypeError(f"{name} must be a format string or a callable, got {value!r}")
         _check_font_pt(font_pt)
         # A width of None means "the style decides": a Preset keeps its own page, a name is a single column.
-        self.width, self.palette, self.grid = width, palette, grid
+        self.width, self.palette, self._grid = width, palette, grid
         self.style = _check_style(style)
         self.font_pt = font_pt
         self.height = height
-        self.title, self.xlabel, self.ylabel = title, xlabel, ylabel
+        self._title, self._xlabel, self._ylabel = title, xlabel, ylabel
         self.legend_side = legend
         self.xticks, self.yticks = xticks, yticks
         self.xminor, self.yminor = xminor, yminor
@@ -1250,11 +1340,11 @@ class Chart(_Renderable, metaclass=_Forwarding):
         to the names of the series on it.
         """
         if x is not None:
-            self.xlabel = x
+            self._xlabel = x
         if y is not None:
-            self.ylabel = y
+            self._ylabel = y
         if title is not None:
-            self.title = title
+            self._title = title
         if y2 is not None:
             self.y2label = y2
         return self
@@ -1267,8 +1357,18 @@ class Chart(_Renderable, metaclass=_Forwarding):
         one for the same ramp is the DUPLICATE_KEY lint reports. So this never
         adds a bar when one is recorded: the new keywords are merged into the
         recorded bar's options, and the ones it did not name keep their values.
+        A bar needs a colour scale to show, so with no heatmap or coloured
+        scatter recorded, the call fails here rather than when the chart draws.
         """
+        if 'source' not in options and not self._has_ramp():
+            raise ValueError('colorbar() needs a colour scale: draw a heatmap, or a scatter '
+                             'with color= a numeric column')
         return self._once('colorbar', options, merge=True)
+
+    def _has_ramp(self):
+        """Whether a colour ramp is recorded: a matrix, or marks coloured through `ramp=`."""
+        return any(name == 'matrix' or kwargs.get('ramp') is not None
+                   for _, name, _, kwargs in self.spec._steps)
 
     def legend(self, **options):
         """Draw the key, or update the key already recorded.
@@ -1374,12 +1474,12 @@ class Chart(_Renderable, metaclass=_Forwarding):
             # A forest is a Diagram, built under the document's theme at compile.
             from .document.spec import component
             rows, options = self._forest
-            return component(_forest_figure, rows, options, label=self.xlabel or None)
+            return component(_forest_figure, rows, options, label=self._xlabel or None)
         if self._pie is not None:
             # A pie is a polar Diagram too. It is responsive: the cell's width sizes the disc.
             from .document.spec import component
             slices, sizes, hole, labels = self._pie
-            return component(_pie_figure, slices, sizes, hole, labels, self.legend_side, self.title,
+            return component(_pie_figure, slices, sizes, hole, labels, self.legend_side, self._title,
                              responsive=True)
         spec = self.spec.copy()
         if self._secondary is not None:
@@ -1392,8 +1492,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
             theme = (profile or self._profile()).theme
             palette = theme.palette if colours is None else colours
             _resolve_steps(spec, palette, theme.paper, self._slot_index(slots))
-        xlabel = self.xlabel if self.xlabel is not None else self._auto_labels.get('x')
-        ylabel = self.ylabel if self.ylabel is not None else self._auto_labels.get('y')
+        xlabel = self._xlabel if self._xlabel is not None else self._auto_labels.get('x')
+        ylabel = self._ylabel if self._ylabel is not None else self._auto_labels.get('y')
         methods = {step[1] for step in spec._steps}
         if 'axes' not in methods:
             x_options = {**self._tick_overrides.get('x', {}), **(self._tick_options(width, profile, rotate) or {})}
@@ -1432,8 +1532,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
                 spec.legend(side=self.legend_side)
             else:
                 spec.legend(corner=self.legend_side)
-        if self.title:
-            spec.title(self.title, align=self._title_align)
+        if self._title:
+            spec.title(self._title, align=self._title_align)
         return spec
 
     def document(self, rotate=frozenset()):
@@ -1448,7 +1548,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
         return doc
 
     def _profile(self):
-        return _preset(self.width, self.style, self.palette, self.grid, self.font_pt)
+        return _preset(self.width, self.style, self.palette, self._grid, self.font_pt)
 
     def _aspect_cap(self, width):
         """Height cap for an aspect chart's plot: `height=` if given, else its width.
@@ -2123,7 +2223,7 @@ class Layout(_Renderable):
         if self.letters and len(list(self.charts())) > 1:
             # Beside a chart title the letter shares its line; otherwise it
             # hangs off the plot area.
-            titled = any(chart.title for chart in self.charts())
+            titled = any(chart._title for chart in self.charts())
             doc.letters(anchor='cell') if titled else doc.letters()
         return doc
 
@@ -2171,7 +2271,7 @@ class Layout(_Renderable):
         ones that set it disagree, the first such chart's value is used and one
         warning names the values.
         """
-        values = [value for value in (getattr(chart, name) for chart in charts) if value is not None]
+        values = [value for value in (_held(chart, name) for chart in charts) if value is not None]
         if not values:
             return None
         distinct = []
@@ -2327,10 +2427,10 @@ def _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_orde
         below = index + columns < count
         if column:
             chart._hide_ticks.add('y')
-            chart.ylabel = ''
+            chart._ylabel = ''
         if below:
             chart._hide_ticks.add('x')
-            chart.xlabel = ''
+            chart._xlabel = ''
         if index != min(columns, count) - 1:
             chart.legend_side = False
     return Layout('grid', charts, columns=columns, letters=False, width=own.get('width'))

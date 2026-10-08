@@ -68,7 +68,8 @@ def test_colorbar_update_keeps_options_it_does_not_name():
 
 
 def test_colorbar_without_an_earlier_bar_records_one():
-    chart = i.line(x=[1, 2], y=[1, 2])
+    # A heatmap with no bar of its own still has a ramp, so the call records one.
+    chart = i.heatmap([[1, 2], [3, 4]], colorbar=False)
     chart.colorbar(title="r")
     assert _steps(chart, "colorbar") == [{"title": "r"}]
 

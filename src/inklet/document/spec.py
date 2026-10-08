@@ -197,17 +197,13 @@ class PlotSpec(BuildSpec):
         if name.startswith('_') or name in forbidden or not callable(method):
             raise AttributeError(name)
         def record(*args, key=None, **kwargs):
-            inspect.signature(method).bind(None, *args, **kwargs)
-            # Paint keywords are checked now, at the line that wrote them,
-            # rather than by Style when the document compiles.
-            check = getattr(method, '__style_check__', None)
-            if check is not None:
-                aliases = getattr(method, '__deprecated_keywords__', {})
-                check({k: v for k, v in kwargs.items() if k not in aliases})
-            # So are options that take one of a few named values.
-            option_check = getattr(method, '__option_check__', None)
-            if option_check is not None:
-                option_check(kwargs)
+            bound = inspect.signature(method).bind(None, *args, **kwargs)
+            _check_recorded(method, kwargs)
+            # Arguments that mean something to the recipe, such as a label
+            # list that must pair with its points, are checked the same way.
+            arguments_check = getattr(method, '__record_check__', None)
+            if arguments_check is not None:
+                arguments_check(bound.arguments)
             warn_renamed(method, kwargs, stacklevel=2)
             return self._record(name, args, kwargs, key)
         # help() and inspect.signature() should show the Panel method's own
@@ -302,6 +298,7 @@ class PlotSpec(BuildSpec):
         # Refused here, at the line that wrote it, not when the page compiles.
         from ..draw.annotate import check_annotation_text
         check_annotation_text(text)
+        _check_recorded(Panel.annotate, options)
         return self._record('annotate', (x,y,text), dict(_avoid_marks=avoid_marks, **options), key)
 
     def group_labels(self, categories, *, key=None, **kwargs):
@@ -319,12 +316,14 @@ class PlotSpec(BuildSpec):
         Without `scale`, the axis fits its own marks and never the parent's,
         so each axis reads its own series.
         """
+        _check_recorded(Panel.twin_y, options)
         child = PlotSpec()
         self._record('twin_y', (child,), dict(scale=scale, **options), None)
         return child
 
     def twin_x(self, scale=None, **options):
         """Record a second x-axis; returned instructions share the parent area."""
+        _check_recorded(Panel.twin_x, options)
         child = PlotSpec()
         self._record('twin_x', (child,), dict(scale=scale, **options), None)
         return child
@@ -453,6 +452,23 @@ class PlotSpec(BuildSpec):
                     # A deprecated keyword warned when the call was recorded.
                     warnings.simplefilter('ignore', InkletDeprecationWarning)
                     getattr(panel, method)(*args, **kwargs)
+
+
+def _check_recorded(method, kwargs):
+    """Refuse a keyword or option value the Panel method would reject, at the call.
+
+    Paint keywords and forwarded keywords are checked against what the chain
+    takes; options that take one of a few named values are checked against
+    their choices. Both used to surface only when the document compiled, far
+    from the line that wrote the call.
+    """
+    check = getattr(method, '__style_check__', None)
+    if check is not None:
+        aliases = getattr(method, '__deprecated_keywords__', {})
+        check({k: v for k, v in kwargs.items() if k not in aliases})
+    option_check = getattr(method, '__option_check__', None)
+    if option_check is not None:
+        option_check(kwargs)
 
 
 def _materialized(spec, context):

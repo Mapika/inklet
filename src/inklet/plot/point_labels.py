@@ -275,7 +275,9 @@ def label_points(panel, points: Sequence[Sequence], labels: Sequence[str], *,
 
 def checked(points: Sequence[Sequence], labels: Sequence[str]) -> tuple[list, list]:
     """The points as tuples and the labels as a list, or an error when they
-    do not pair up."""
+    do not pair up or a label is blank."""
+    from ..draw.annotate import check_annotation_text
+
     data = [tuple(p) for p in points]
     names = list(labels)
     if len(data) != len(names):
@@ -283,6 +285,10 @@ def checked(points: Sequence[Sequence], labels: Sequence[str]) -> tuple[list, li
             f"label_points() got {len(names)} labels for {len(data)} points")
     if not data:
         raise DiagramError("label_points() was given no points")
+    # An empty label would draw a leader to bare paper, so it is refused here,
+    # with the index of the entry that is empty.
+    for index, text in enumerate(names):
+        check_annotation_text(text, where="label_points()", name=f"labels[{index}]")
     return data, names
 
 
