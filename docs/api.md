@@ -46,7 +46,7 @@ One plot: marks on shared axes, with a size and a preset.
 * `twin_y(*args, **kwargs)` -- Not on a quick chart: use `secondary_y=` for a right-hand axis.
 * `twin_x(*args, **kwargs)` -- Refused, for the same reason as `twin_y`: a quick chart has one x axis.
 * `size(width=None, height=None)` -- Width as 'single', 'double', 'slide' or millimetres; height in mm.
-* `plot(width=None, profile=None, rotate=False, colours=None, slots=None, title=None)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
+* `plot(width=None, profile=None, rotate=False, colours=None, slots=None, title=None, shared_key=False)` -- The `PlotSpec` with axes, legend and title applied, for a document cell.
 * `document(rotate=frozenset())` -- A `Document` holding this chart, sized and styled; add cells to grow it.
 * `compile()` -- Measure and place everything; returns a `CompiledFigure`.
 * `report(**options) -> 'str'` -- Layout and print diagnostics: overlaps, clipped text, small type.
