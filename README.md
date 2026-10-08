@@ -83,6 +83,18 @@ use `compare_pdf=False` or `--no-pdf-preview` for a review without it.
 See [installation](https://inklet.readthedocs.io/en/stable/installation/) for system packages, Windows activation,
 optional dependencies and environment checks.
 
+## Use with coding agents
+
+- `inklet guide` prints the agent guide for the installed version; `inklet skill` writes it as `.claude/skills/inklet/SKILL.md`.
+- In Claude Code, install the same skill as a plugin:
+
+  ```text
+  /plugin marketplace add Mapika/inklet
+  /plugin install inklet@inklet
+  ```
+
+- Other agents can read [llms.txt](https://inklet.readthedocs.io/en/stable/llms.txt) or [llms-full.txt](https://inklet.readthedocs.io/en/stable/llms-full.txt) from the documentation site.
+
 ## Your first chart
 
 ```python
