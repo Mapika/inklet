@@ -43,12 +43,13 @@ from ..plot.axis import (AXIS_KIND, AXIS_LABEL_KIND, SPINE_KIND, TICK_KIND,
                          TICK_LABEL_KIND)
 from ..plot.key import COLORBAR_KIND, LEGEND_KIND
 from ..plot.line_labels import LINE_LABELS_KIND
+from ..plot.series_span import SERIES_SPAN_NOTE
 from .rules import (
     Diagnostic, Item, LintContext, _mm, _outside, _sides_phrase,
 )
 
 __all__ = ["rule_off_panel", "rule_data_outside", "rule_ticks_dropped",
-           "TICKS_DROPPED_NOTE"]
+           "rule_series_flattened", "TICKS_DROPPED_NOTE"]
 
 #: Containers the plot layer places itself, whose contents sit where the layer
 #: put them. A `side="top"` legend is above the plot box by construction and a
@@ -799,3 +800,98 @@ def _axis_owner(ctx: LintContext, node_id: str) -> str:
     if len(panels) > 1 and not ctx.nodes[panels[0]].name:
         return f"the inset {panels[0]} in {_panel_name(ctx, panels[1])}"
     return _panel_name(ctx, panels[0])
+
+
+# -- SERIES_FLATTENED ----------------------------------------------------------
+#
+# Two series on one y axis, one ranging 0..5000 and the other 0.2..0.9. The
+# panel fits its axis to the first, so the second is a line along the floor:
+# faithful, unreadable, and `inklet check` was clean. A usability-test agent
+# plotted exactly that and could not see the second series at all. The
+# geometry is not wrong -- a flat line is a fine line -- so the rule reads what
+# the panel recorded about the data (`plot/series_span.py`) and judges it.
+#
+# A series is flattened when its own drawn height is under FLAT_SPAN of the
+# plot height, its data really changes (more than VARIES of its mean absolute
+# value, so a constant or noise-level series is not reported), and a series
+# on the same y scale spans more than TALL_SPAN. A twin-axis series is judged
+# against its own axis, so `secondary_y=` or `twin_y` silences it by
+# construction. Only named series are reported: the message names one.
+#
+# **Grade: warning.** The series the author drew to be read is invisible, and
+# the fix is one argument.
+
+#: The most of the plot height a series may span and still be flattened.
+FLAT_SPAN = 0.03
+#: The height a reference series must span to flatten its neighbours.
+TALL_SPAN = 0.30
+#: How much a series must change, as a fraction of its mean absolute value.
+#: A series steady to within a few per cent (hydro generation year on year)
+#: reads correctly as a flat line; the rule is for one whose changes matter.
+VARIES = 0.05
+
+
+def rule_series_flattened(ctx: LintContext) -> list[Diagnostic]:
+    """A named series squashed flat by a much taller one on the same axis."""
+    noted = {}
+    for node_id, node in ctx.nodes.items():
+        notes = getattr(node, "notes", None)
+        value = notes.get(SERIES_SPAN_NOTE) if isinstance(notes, Mapping) else None
+        if isinstance(value, Mapping) and value.get("series"):
+            noted[node_id] = value
+    # A wrapper with one child inherits the child's notes (`carry_notes`), so
+    # the same series list turns up on it. The deepest holder is the panel.
+    wrappers = {step for node_id, value in noted.items()
+                for step in ctx.ancestors(node_id)
+                if noted.get(step) == value}
+    out: list[Diagnostic] = []
+    for node_id in sorted(noted):
+        if node_id in wrappers:
+            continue
+        series = [s for s in noted[node_id]["series"] if isinstance(s, Mapping)]
+        for flat in series:
+            if not _flattened(flat):
+                continue
+            tall = [s for s in series
+                    if s.get("axis") == flat["axis"] and s.get("name") != flat["name"]
+                    and _note_number(s.get("span")) > TALL_SPAN]
+            if not tall:
+                continue
+            ref = max(tall, key=lambda s: s["span"])
+            placed = ctx.placements.get(node_id)
+            box = None if placed is None else placed.bbox
+            beside = (repr(ref["name"]) if ref.get("name") is not None
+                      else "an unnamed series")
+            out.append(Diagnostic(
+                code="SERIES_FLATTENED",
+                severity="warning",
+                message=(f"series {flat['name']!r} spans {_extent(flat['span'])} of "
+                         f"the plot height next to {beside} ({_extent(ref['span'])}); "
+                         f"its changes are invisible"),
+                targets=(node_id,),
+                where=box,
+                hint=("give it its own axis (secondary_y=True in i.line/scatter; "
+                      "Panel.twin_y), a log scale, or a panel of its own"),
+            ))
+    return out
+
+
+def _flattened(series: Mapping) -> bool:
+    """Named, drawn under FLAT_SPAN of the height, and really varying."""
+    if series.get("name") is None or _note_number(series.get("span")) >= FLAT_SPAN:
+        return False
+    lo, hi = _note_number(series.get("lo")), _note_number(series.get("hi"))
+    change = hi - lo
+    return change > 0 and change > VARIES * _note_number(series.get("mean_abs"))
+
+
+def _note_number(value) -> float:
+    """A note's number, or NaN when it is missing: every comparison with NaN is
+    false, so a malformed entry is never reported."""
+    return float(value) if isinstance(value, (int, float)) else math.nan
+
+
+def _extent(fraction: float) -> str:
+    """A share of the plot height, as a reader would say it."""
+    percent = fraction * 100
+    return "under 1%" if percent < 1 else f"{percent:.0f}%"
