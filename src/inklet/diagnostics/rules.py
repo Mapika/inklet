@@ -1581,9 +1581,29 @@ def rule_overlap(ctx: LintContext) -> list[Diagnostic]:
             where=intersection,
             hint=(f"separate them by at least "
                   f"{_mm(min(intersection.width, intersection.height) + ctx.min_clearance_mm)} "
-                  f"along the shorter axis"),
+                  f"along the shorter axis"
+                  + (_orient_clause([first, second]) if both_text and
+                     first.node.kind == second.node.kind == "tick-label" else "")),
         ))
     return out
+
+
+#: Category names at least this long are too wide for their slot along a
+#: horizontal axis; bars drawn across put them on the vertical one instead.
+_LONG_NAME_CHARS = 12
+
+
+def _orient_clause(items: Sequence[Item]) -> str:
+    """The horizontal-bar option, offered only when long category names are
+    what crowds the labels. Numbers, which have no letters, never qualify."""
+    for item in items:
+        if not isinstance(item.prim, TextPrim):
+            continue
+        words = " ".join(item.prim.text.split())
+        if len(words) >= _LONG_NAME_CHARS and any(ch.isalpha() for ch in words):
+            return ("; for long category names, orient='h' draws the bars across "
+                    "so the names stack down the axis")
+    return ""
 
 
 def _same_words_same_place(first: Item, second: Item) -> bool:
@@ -2690,6 +2710,11 @@ def _crowded_pair(first: Item, second: Item, gap: float,
     )
 
 
+#: The plot-level knobs that usually open a gap between crowded labels.
+_LABEL_KNOBS = ("; for crowded labels, label_side=, a wider ylim= or "
+                "width='double' usually opens it up")
+
+
 def _crowding_hint(first: Item, second: Item, gap: float,
                    clearance: float, *, named: str | None = None) -> str:
     """What to do about it -- which depends on whether this is a layout at all.
@@ -2714,9 +2739,10 @@ def _crowding_hint(first: Item, second: Item, gap: float,
     geometry and withheld from type and from axis parts, and in those cases the
     separation really is the fix.
     """
+    knobs = _LABEL_KNOBS if (first.is_text or second.is_text) else ""
     computed = [item for item in (first, second) if item.is_computed]
     if len(computed) != 1:
-        return f"add {_mm(clearance - gap)} of separation or padding"
+        return f"add {_mm(clearance - gap)} of separation or padding{knobs}"
     drawn = second if computed[0] is first else first
     # `named` is the object the computed side belongs to, when the caller has
     # already decided to talk about that instead of the facet.
@@ -2724,11 +2750,11 @@ def _crowding_hint(first: Item, second: Item, gap: float,
     room = f"add {_mm(clearance - gap)} of separation"
     if drawn.is_text or drawn.node.kind in _FURNITURE_KINDS:
         return (f"{mark} was positioned by data, so move "
-                f"{drawn.described} rather than the mark -- {room}")
+                f"{drawn.described} rather than the mark -- {room}{knobs}")
     return (f"{mark} was positioned by data, so moving it "
             f"changes what the figure says -- if {drawn.described} is data too, "
             f"pass kind=\"mark\" when you build it and this pair goes quiet; "
-            f"otherwise {room}")
+            f"otherwise {room}{knobs}")
 
 
 #: Parts placed *around* the computed thing rather than by it. Named here only
@@ -3184,7 +3210,8 @@ def _crossings(ctx: LintContext, owner: str, endpoints: Sequence[str],
             where=where,
             # Moving the shape leads, because it is the fix that always
             # works. The elbow is only offered when it could actually turn.
-            hint=_crossing_hint(label, between, elbow_helps),
+            hint=_crossing_hint(_hint_name(ctx, _object_of(ctx, parts[0].id)),
+                                between, elbow_helps),
         ))
     return out
 
@@ -3207,6 +3234,37 @@ def _elbow_has_room(ctx: LintContext, endpoints: tuple[str, ...]) -> bool:
     first, second = (box.center for box in boxes)   # type: ignore[union-attr]
     return (abs(first.x - second.x) > _ELBOW_SLACK_MM
             and abs(first.y - second.y) > _ELBOW_SLACK_MM)
+
+
+def _hint_name(ctx: LintContext, object_id: str) -> str:
+    """What a hint calls an object: its name, else the words written on it.
+
+    A labelled box with no name of its own came out as `move box8 off the
+    line`, which sends an author hunting for an id. The words are what they
+    wrote, so they are quoted, with the kind in front as `node_phrase` does.
+    """
+    name = ctx.label(object_id)
+    if name != object_id:
+        return name
+    node = ctx.nodes.get(object_id)
+    if node is None:
+        return object_id
+    # A box's label is usually a sibling of its rectangle, not a child, so the
+    # words are looked for in the tree first and then among the text that sits
+    # inside the box's own bounds, first in reading order.
+    words = next((_excerpt(part.prim.text) for part in node.walk()
+                  if isinstance(part.prim, TextPrim) and part.prim.text.strip()), None)
+    placement = ctx.placements.get(object_id)
+    if words is None and placement is not None and placement.bbox is not None:
+        inside = sorted((item for item in ctx.items if item.is_text
+                         and _contains(placement.bbox, item.bbox)
+                         and item.prim.text.strip()),  # type: ignore[attr-defined]
+                        key=lambda item: (round(item.bbox.y0, 1), item.bbox.x0))
+        if inside:
+            words = _excerpt(inside[0].prim.text)  # type: ignore[attr-defined]
+    if words is None:
+        return object_id
+    return f"the {node.kind or 'item'} '{words}'"
 
 
 def _crossing_hint(label: str, between: str, elbow_helps: bool) -> str:

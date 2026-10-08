@@ -116,7 +116,9 @@ class LinearFit:
     and `r2` the coefficient of determination, `sigma` the residual standard
     error on `n - 2` degrees of freedom, `slope_se` and `intercept_se` the
     standard errors, and `p` the two-sided p-value of the slope against 0.
-    `r` is NaN for a flat y, where the correlation is undefined.
+    `r` and `r2` are NaN for a flat y, where the correlation is undefined
+    (the slope is then exactly 0), and `p` is NaN too: a flat line tests
+    nothing. A perfect line has `p` of 0.
     """
 
     slope: float
@@ -187,13 +189,14 @@ def linear_fit(points: Sequence[Sequence[float]]) -> LinearFit:
     mx, my = math.fsum(xs) / n, math.fsum(ys) / n
     sxx = math.fsum((x - mx) ** 2 for x in xs)
     if sxx <= 0:
-        raise DiagramError("a linear fit needs at least two distinct x values")
+        raise ValueError("a linear fit needs at least two distinct x values: every x is the same, "
+                         "so there is no slope to fit")
     sxy = math.fsum((x - mx) * (y - my) for x, y in zip(xs, ys))
     syy = math.fsum((y - my) ** 2 for y in ys)
     slope = sxy / sxx
     intercept = my - slope * mx
     sse = math.fsum((y - intercept - slope * x) ** 2 for x, y in zip(xs, ys))
-    r2 = 1.0 - sse / syy if syy > 0 else 1.0
+    r2 = 1.0 - sse / syy if syy > 0 else math.nan
     r = sxy / math.sqrt(sxx * syy) if syy > 0 else math.nan
     if n > 2:
         sigma = math.sqrt(sse / (n - 2))
@@ -203,8 +206,10 @@ def linear_fit(points: Sequence[Sequence[float]]) -> LinearFit:
             t = slope / slope_se
             # Both tails directly, not 1 - cdf, which cancels for small p.
             p = _betainc((n - 2) / 2.0, 0.5, (n - 2) / (n - 2 + t * t))
+        elif slope != 0:
+            p = 0.0  # a perfect line: the slope is certainly not 0
         else:
-            p = 0.0
+            p = math.nan  # a flat y: there is no slope to test
     else:
         sigma = slope_se = intercept_se = math.nan
         p = math.nan
@@ -374,6 +379,7 @@ def figure(value: float, digits: int = EQUATION_DIGITS) -> str:
 
 def equation_text(fit: LinearFit, *, log_x: bool = False) -> str:
     """The fit as a markup label, `y = 0.500x + 3.00, R^{2} = 0.667`.
+    The R^2 term is omitted when it is undefined (a flat y).
 
     The variables are italic, as a figure sets them. On a log x axis the fit
     is of y on log10(x), so the term reads `log_{10}(x)` and the slope is per
@@ -384,8 +390,9 @@ def equation_text(fit: LinearFit, *, log_x: bool = False) -> str:
     intercept = figure(fit.intercept)
     sign = MINUS if intercept.startswith(MINUS) else "+"
     space = " " if log_x else ""
-    return (f"//y// = {slope}{space}{term} {sign} {intercept.lstrip(MINUS)}, "
-            f"//R//^{{2}} = {figure(fit.r2)}")
+    # A flat y has no R^2 (its total variation is zero), so the term is left out.
+    rsquared = "" if math.isnan(fit.r2) else f", //R//^{{2}} = {figure(fit.r2)}"
+    return f"//y// = {slope}{space}{term} {sign} {intercept.lstrip(MINUS)}{rsquared}"
 
 
 def equation_from(template: str, fit: LinearFit) -> str:

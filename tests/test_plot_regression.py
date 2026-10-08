@@ -90,7 +90,7 @@ def test_linear_fit_matches_scipy_linregress():
 def test_linear_fit_needs_two_points_and_spread():
     with pytest.raises(DiagramError):
         linear_fit([(0, 1)])
-    with pytest.raises(DiagramError):
+    with pytest.raises(ValueError, match='distinct x values'):
         linear_fit([(1, 1), (1, 2), (1, 3)])
 
 
