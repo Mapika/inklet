@@ -39,7 +39,7 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.7.0 is stable**. It adds free per-facet scales (`facet_scales='free_y'`),
+**4.8.0 is stable**. It adds free per-facet scales (`facet_scales='free_y'`),
 reference lines on faceted layouts (`grid.hline(...)`), lint checks for figures
 that draw the wrong data, errors at the call for misspelled keywords, and a
 Claude Code plugin. 4.6 added charts in one call (`i.line(df, x=, y=,

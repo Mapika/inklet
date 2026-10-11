@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 4.8.0 — 2026-10-11
+
+Nature-ready figures: 8 pt panel letters checked against their own limit, forests
+that fit narrow cells, font files and expected-font lint, colour maps for series,
+marker sizes, ink direct labels and thinned crowded categories.
 
 Nature figures without workarounds: 8 pt panel letters, forests that fit
 narrow cells, font control and checks.
