@@ -45,7 +45,7 @@ a compiled export preserves.
 [Troubleshooting](troubleshooting.md) · [Compatibility](compatibility.md) ·
 [Migration](migration.md)
 
-The default install is stable **4.6.0**. The [compatibility page](compatibility.md)
+The default install is stable **4.7.0**. The [compatibility page](compatibility.md)
 states the supported API and saved-file policy, and the
 [migration guide](migration.md#from-31-to-40) covers existing recipes.
 Release process, engine studies and earlier guides are in the

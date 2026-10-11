@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 4.7.0 — 2026-10-11
+
+Free facet scales, reference lines on faceted layouts, lint for figures that
+draw the wrong data, errors at the call, clearer title layout errors and a
+Claude Code plugin.
 
 ### Added
 
