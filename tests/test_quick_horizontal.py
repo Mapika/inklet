@@ -157,6 +157,39 @@ def test_forest_in_a_narrow_nature_cell_drops_its_ci_column_instead_of_failing()
     assert min(size for _, size in texts.items()) >= 5.0
 
 
+# Two forests side by side in a Nature double row, with long labels: each
+# forest used to fit the page's share of the row (88.5 mm), not its cell
+# inside the page margins, and without its panel letter (4.8.0).
+LONG = {'lab': [f'open branches, k = 64 (det.) {k}' for k in range(11)],
+        'r': [0.1 * k - 0.3 for k in range(11)], 'lo': [0.1 * k - 0.5 for k in range(11)],
+        'hi': [0.1 * k - 0.1 for k in range(11)]}
+
+
+def _long_forest(**options):
+    return quick.forest(LONG, label='lab', estimate='r', lower='lo', upper='hi', style='scientific.nature',
+                        left=[('Metric', 'label')], right=['ci'], measure='r', xlabel='r', **options)
+
+
+@pytest.mark.parametrize('options', [{}, {'width': 91.5}])
+def test_two_forests_in_a_row_fit_their_cells_with_their_letters(options):
+    layout = i.Layout('row', [_long_forest(**options), _long_forest(**options)], width='double',
+                      style='scientific.nature')
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        figure = layout.compile()
+    assert not [d.code for d in figure.lint() if d.severity == 'error']
+    assert figure.root.bbox.width <= 183.0 + 0.01
+
+
+def test_a_dropped_ci_column_warns_when_the_type_is_set_smaller_too():
+    chart = _long_forest()
+    rows, options = chart._forest
+    profile = chart._profile()
+    with pytest.warns(UserWarning, match="dropped the right='ci' text column"):
+        fitted = quick._fit_forest(rows, options, 50.0, profile.theme, profile.publication.min_font_pt)
+    assert fitted['right'] == () and 'text_size' in fitted
+
+
 def test_forest_fit_closes_gaps_then_drops_plotted_columns_then_shrinks_type():
     chart = _feature_forest()
     rows, options = chart._forest

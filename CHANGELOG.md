@@ -6,6 +6,13 @@ Fixes found porting Nature-style figures to 4.8.0.
 
 ### Fixed
 
+- Forests in a layout row fit the cells they are given. A forest was
+  fitted to its share of the whole page, without the page margins or its
+  panel letter, so two forests side by side in a double-column row raised
+  `LayoutError` ("width requires at least 190.19 mm") instead of narrowing
+  their plots, closing gaps, dropping the `'ci'` column and setting smaller
+  type as a narrow cell's forest does. The dropped-column warning is now
+  also given when the type had to be set smaller as well.
 - `bar()` honours a `palette={series name: colour}` mapping, alone and in a
   layout: grouped, stacked and named bars are filled in the mapped colours as
   given (unmapped bars keep their softened palette colours), and `agg='mean'`

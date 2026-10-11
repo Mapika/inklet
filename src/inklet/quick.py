@@ -1605,7 +1605,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
     # The finished recipe.
 
     def plot(self, width=None, profile=None, rotate=False, colours=None, slots=None, title=None,
-             shared_key=False):
+             shared_key=False, lettered=False, cell=None):
         """The `PlotSpec` with axes, legend and title applied, for a document cell.
 
         `width` (mm) and `profile` (the `Preset`) let crowded category labels
@@ -1619,6 +1619,11 @@ class Chart(_Renderable, metaclass=_Forwarding):
         and the Chart itself is left as the user made it. None keeps its title.
         `shared_key` is set by a layout when this chart's series name is drawn
         in another panel too, so a lone series still gets its key entry.
+        `lettered` is set by a layout that letters its panels: a forest then
+        fits its cell with the panel letter beside it, as the cell measures it.
+        `cell` is the width (mm) the layout's cell really has, inside the page
+        margins, where `width` is its share of the whole page; a forest, which
+        cannot stretch, fits `cell`.
         """
         shown = self._title if title is None else title
         if self._forest is not None:
@@ -1627,7 +1632,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
             rows, options = self._forest
             if width is not None:
                 chosen = profile or self._profile()
-                options = _fit_forest(rows, options, width, chosen.theme, chosen.publication.min_font_pt)
+                options = _fit_forest(rows, options, width if cell is None else cell, chosen.theme,
+                                      chosen.publication.min_font_pt,
+                                      label=self._xlabel or None, letter=chosen if lettered else None)
             return component(_forest_figure, rows, options, label=self._xlabel or None)
         if self._pie is not None:
             # A pie is a polar Diagram too. It is responsive: the cell's width sizes the disc.
@@ -2046,7 +2053,23 @@ _FOREST_PLOTTED = ('ci', 'estimate')
 _FOREST_TYPE_STEP_PT = 0.25
 
 
-def _fit_forest(rows, options, width, theme, min_font_pt=None):
+def _letter_beside(node, profile):
+    """`node` with a panel letter as a lettered layout sets it, to measure the pair.
+
+    The widest lowercase letter stands in for the panel's own, so the room
+    kept for it is enough for any.
+    """
+    from .core import pt
+    from .draw.annotate import letters
+    options = {'style': profile.letter_style}
+    if profile.letter_pad is not None:
+        options['pad'] = profile.letter_pad
+    if profile.publication.letter_font_pt is not None:
+        options['size'] = pt(profile.publication.letter_font_pt)
+    return letters([node], start='m', **options)[0]
+
+
+def _fit_forest(rows, options, width, theme, min_font_pt=None, label=None, letter=None):
     """The forest's options, fitted so the drawing fits `width` mm.
 
     Measured under the chart's own theme, as the document will draw it, so the
@@ -2056,8 +2079,10 @@ def _fit_forest(rows, options, width, theme, min_font_pt=None):
     repeat what the plot draws (`'ci'` and `'estimate'`) are dropped, with a
     warning naming them; then the remaining columns' type is set smaller, in
     quarter-point steps down to `min_font_pt` (the profile's legibility floor).
-    Options the caller gave (`gap=`, `text_size=`) are kept. A forest that
-    overflows even then raises a LayoutError that says what was tried and
+    Options the caller gave (`gap=`, `text_size=`) are kept. `label` is the
+    axis title, and `letter` the preset of a layout that letters its panels:
+    the forest is then measured with its letter, which the cell must hold too.
+    A forest that overflows even then raises a LayoutError that says what was tried and
     names the fix.
     """
     from .core import pt
@@ -2072,7 +2097,8 @@ def _fit_forest(rows, options, width, theme, min_font_pt=None):
     tried = []
     with themed(theme):
         def measure():
-            return _forest_figure(rows, {**fitted, 'width': plot}).bbox.width
+            node = _forest_figure(rows, {**fitted, 'width': plot}, label)
+            return (node if letter is None else _letter_beside(node, letter)).bbox.width
 
         wide = measure()
         for _ in range(_FOREST_FIT_PASSES):
@@ -2094,11 +2120,6 @@ def _fit_forest(rows, options, width, theme, min_font_pt=None):
             wide = measure()
             dropped = ', '.join(repr(c) for c in repeats)
             tried.append(f'the {dropped} column dropped')
-            if wide <= width + 0.01:
-                warnings.warn(f'forest: dropped the right={dropped} text column to fit its '
-                              f'{width:.1f} mm cell; the plot still draws each estimate and interval. '
-                              "Pass right=[] to say so, or give the forest a wider cell",
-                              UserWarning, stacklevel=2)
         small = theme.font_size_small
         if wide > width + 0.01 and 'text_size' not in options and min_font_pt is not None:
             size, lowest = small, pt(min_font_pt)
@@ -2111,6 +2132,12 @@ def _fit_forest(rows, options, width, theme, min_font_pt=None):
         raise LayoutError(f'forest needs {wide:.1f} mm for its plot and text columns, but its '
                           f'cell is {width:.1f} mm wide, after {", ".join(tried)}; '
                           "use fewer right= columns or width='double', or shorten the labels")
+    if fitted.get('right', right) != right:
+        # Said whether or not the type was set smaller after the column went.
+        warnings.warn(f'forest: dropped the right={dropped} text column to fit its '
+                      f'{width:.1f} mm cell; the plot still draws each estimate and interval. '
+                      "Pass right=[] to say so, or give the forest a wider cell",
+                      UserWarning, stacklevel=2)
     return {**fitted, 'width': plot}
 
 
@@ -2568,18 +2595,22 @@ class Layout(_Renderable):
             # Each track takes its share of the room by its column weight.
             room = doc.width - doc.gap * (columns - 1)
             tracks = [room * weight / sum(doc.columns) for weight in doc.columns]
+            # The tracks as laid out, inside the page margins: what a forest must fit.
+            inner = [(room - 2 * doc.margin) * weight / sum(doc.columns) for weight in doc.columns]
             for index, (item, row, column, rowspan, colspan) in enumerate(cells):
                 cell_width = sum(tracks[column:column + colspan]) + doc.gap * (colspan - 1)
+                cell = sum(inner[column:column + colspan]) + doc.gap * (colspan - 1)
                 # A chart spanning columns keeps its row's height, not one
                 # proportional to its full width.
                 doc.add(f'p{index + 1}', item.plot(cell_width, profile, _turn(rotate, item),
-                                                   **plotting[id(item)]),
+                                                   cell=cell, **plotting[id(item)]),
                         row=row, column=column,
                         rowspan=rowspan, colspan=colspan,
                         min_height=item._height(tracks[column]) if rowspan == 1 else None)
         else:
             doc = profile.document(columns=len(self.items) if self.direction == 'row' else 1)
-            self._fill(doc, doc.width, prefix='p', profile=profile, rotate=rotate, plotting=plotting)
+            self._fill(doc, doc.width, prefix='p', profile=profile, rotate=rotate, plotting=plotting,
+                       inner=doc.width - 2 * doc.margin)
         if self.letters and len(list(self.charts())) > 1:
             # Beside a chart title the letter shares its line; otherwise it
             # hangs off the plot area.
@@ -2697,6 +2728,8 @@ class Layout(_Renderable):
                 panels[label] = panels.get(label, 0) + 1
         explicit = self._explicit('palette')
         layout_palette = explicit is not None
+        # As `document()` letters them: a forest leaves room for its letter.
+        lettered = bool(self.letters) and len(charts) > 1
         plotting = {}
         for chart in charts:
             colours = None
@@ -2709,29 +2742,34 @@ class Layout(_Renderable):
                 colours = chart._profile().theme.palette
             shared = any(panels[label] > 1 for label in chart._series_names)
             plotting[id(chart)] = {'colours': colours, 'slots': slots, 'title': titles[id(chart)] if titles else None,
-                                   'shared_key': shared}
+                                   'shared_key': shared, 'lettered': lettered}
         return plotting
 
-    def _fill(self, doc, width, prefix, profile, rotate, plotting):
+    def _fill(self, doc, width, prefix, profile, rotate, plotting, inner=None):
+        """Add this layout's cells to `doc`, `width` mm wide; `inner` is the
+        width its cells really share, inside the page margins (default `width`)."""
         from .document import subfigure
         count = len(self.items)
+        inner = width if inner is None else inner
         # A row's cells share the width in proportion to the document's column weights.
         room = width - doc.gap * (count - 1)
         for index, item in enumerate(self.items):
             name = f'{prefix}{index + 1}'
             if self.direction == 'row':
                 cell_width = room * doc.columns[index] / sum(doc.columns)
+                cell = (inner - doc.gap * (count - 1)) * doc.columns[index] / sum(doc.columns)
             else:
-                cell_width = width
+                cell_width, cell = width, inner
             place = dict(row=0, column=index) if self.direction == 'row' else dict(row=index, column=0)
             if isinstance(item, Chart):
-                doc.add(name, item.plot(cell_width, profile, _turn(rotate, item), **plotting[id(item)]),
+                doc.add(name, item.plot(cell_width, profile, _turn(rotate, item), cell=cell,
+                                        **plotting[id(item)]),
                         min_height=item._height(cell_width), **place)
             else:
                 sub = subfigure(width=cell_width, gap=doc.gap,
                                 columns=len(item.items) if item.direction == 'row' else 1)
                 item._fill(sub, cell_width, prefix=name + '_', profile=profile, rotate=rotate,
-                           plotting=plotting)
+                           plotting=plotting, inner=cell)
                 doc.add(name, sub, **place)
 
     def hline(self, y, *, data=None, **options):
