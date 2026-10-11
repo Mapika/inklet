@@ -246,7 +246,7 @@ Every function takes these:
 | `title`, `xlabel`, `ylabel` | Text; [markup](axes-and-scales.md) such as `x^{2}` works |
 | `xlim`, `ylim` | `(low, high)`. Explicit limits zoom, and marks beyond them are clipped |
 | `xscale`, `yscale` | `'linear'` or `'log'` |
-| `legend` | `'auto'`, `'direct'` (names at the ends of the lines instead of a key), a side (`'bottom'`), a corner (`'ne'`) or `False` |
+| `legend` | `'auto'`, `'direct'` (names at the ends of the lines, in their colours, instead of a key), `'direct-ink'` (the names in ink, each after a short line in its curve's colour, for journals that avoid coloured text), `'best'` (the clearest spot inside the plot, else beside it), a side (`'bottom'`), a corner (`'ne'`) or `False` |
 | `facet_col`, `facet_row` | Columns to split into a grid of charts on shared axes; `facet_col_wrap=` sets charts per row |
 | `facet_order` | The facet values in draw order: a list for every facet, or a dict from column name to list. Numbers and dates default to ascending, text to first appearance; a list must name every value |
 | `facet_scales` | `'fixed'` (default), `'free_y'`, `'free_x'` or `'free'`. A free axis fits each panel's own rows, and every panel writes its tick numbers |

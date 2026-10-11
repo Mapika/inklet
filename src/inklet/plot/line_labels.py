@@ -40,12 +40,17 @@ from ..themes.color import readable
 from .axis import text_node
 
 __all__ = ["LINE_LABEL_KIND", "LINE_LEADER_KIND", "LINE_LABELS_KIND",
-           "SERIES_NOTE", "label_lines", "tag_series"]
+           "LINE_SWATCH_KIND", "SERIES_NOTE", "label_lines", "tag_series"]
 
 #: Kind of each name.
 LINE_LABEL_KIND = "line-label"
 #: Kind of each leader from a curve end to its name.
 LINE_LEADER_KIND = "label-leader"
+#: Kind of the short line in a curve's colour before an ink name (`swatch=True`).
+LINE_SWATCH_KIND = "line-label-swatch"
+#: Length of that line, and the space after it, as multiples of the type size.
+_SWATCH_OF_TYPE = 1.4
+_SWATCH_GAP_OF_TYPE = 0.35
 #: Kind of the group holding one call's names and leaders.
 LINE_LABELS_KIND = "line-labels"
 #: Note on a drawn curve naming its series, for `label_lines` to find.
@@ -154,7 +159,8 @@ def label_lines(panel, name: str | Sequence[str] | None = None, *,
                 gap: float | str | None = None, leader: bool = True,
                 color: bool = True, markup: bool = True,
                 leader_style: dict | None = None,
-                marks: Sequence[Diagram] | None = None, **style) -> Diagram:
+                marks: Sequence[Diagram] | None = None, swatch: bool = False,
+                **style) -> Diagram:
     """Name each curve at the curve. See `Panel.label_lines`."""
     from .point_labels import _obstacles
 
@@ -196,6 +202,8 @@ def label_lines(panel, name: str | Sequence[str] | None = None, *,
             own["text_fill"] = readable(colours[n], theme.paper)
         nodes[n] = text_node(n, font, LINE_LABEL_KIND, align="left",
                              markup=markup, **own)
+        if swatch and colours.get(n):
+            nodes[n] = _swatched(nodes[n], colours[n], font, theme)
     boxes, segments, polygons, flags = _obstacles(list(marks), split=True)
     field = ObstacleField(cell=max(2 * font, 1.0))
     for b, flag in zip(boxes, flags):
@@ -234,6 +242,21 @@ def label_lines(panel, name: str | Sequence[str] | None = None, *,
                              key=list(names).index),
     }
     return node
+
+
+def _swatched(name: Diagram, colour: str, font: float, theme) -> Diagram:
+    """`name` after a short line in its curve's `colour`, as one node.
+
+    A key entry set at the curve: the name stays in ink, as Nature asks of
+    text, and the line says which curve it names.
+    """
+    box = name.bbox
+    length, gap = _SWATCH_OF_TYPE * font, _SWATCH_GAP_OF_TYPE * font
+    y = box.center.y
+    line = polyline(((box.x0 - gap - length, y), (box.x0 - gap, y)),
+                    kind=LINE_SWATCH_KIND, stroke=colour,
+                    stroke_width=max(theme.stroke * 1.5, theme.hairline))
+    return draw_place([line, name], origin=(0, 0), kind="line-label-entry")
 
 
 def _at_ends(names, paths, nodes, field, weights, area, font, clear, spacing,

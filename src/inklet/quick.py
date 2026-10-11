@@ -36,7 +36,7 @@ __all__ = ['Chart', 'Layout', 'LayoutWarning', 'chart', 'line', 'scatter', 'bar'
 #: What `legend=` names besides off (False or None): a placement, a side, a corner.
 _LEGEND_SIDES = ('top', 'bottom', 'left', 'right')
 _LEGEND_CORNERS = ('nw', 'ne', 'sw', 'se')
-_LEGEND_NAMES = ('auto', 'direct', 'best', 'none', *_LEGEND_SIDES, *_LEGEND_CORNERS)
+_LEGEND_NAMES = ('auto', 'direct', 'direct-ink', 'best', 'none', *_LEGEND_SIDES, *_LEGEND_CORNERS)
 
 #: Named widths, with the formats they select.
 _WIDTHS = {'single': 'single-column', 'double': 'double-column', 'slide': 'slide',
@@ -594,7 +594,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
             if value not in ('linear', 'log'):
                 raise ValueError(f"{name} must be 'linear' or 'log', got {value!r}")
         if not (legend is None or legend is False or legend in _LEGEND_NAMES):
-            raise ValueError(f"legend must be False, 'auto', 'direct', 'best', a side "
+            raise ValueError(f"legend must be False, 'auto', 'direct', 'direct-ink', 'best', a side "
                              f"({', '.join(_LEGEND_SIDES)}) or a corner "
                              f"({', '.join(_LEGEND_CORNERS)}); got {legend!r}")
         for name, value in (('xformat', xformat), ('yformat', yformat)):
@@ -1289,7 +1289,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
         if isinstance(hole, bool) or not isinstance(hole, Real) or not 0 <= hole < 1:
             raise ValueError('hole= is a fraction of the radius, from 0 up to 1 (0.5 leaves a hole half '
                              f'the radius of the pie); got {hole!r}')
-        if self.legend_side == 'direct' or self.legend_side in _LEGEND_CORNERS:
+        if self.legend_side in ('direct', 'direct-ink') or self.legend_side in _LEGEND_CORNERS:
             # A corner key lands on the disc, which is where a pie's slices are.
             raise ValueError("a pie's key sits beside the disc: legend= is 'auto', a side "
                              f"({', '.join(_LEGEND_SIDES)}) or False")
@@ -1677,8 +1677,11 @@ class Chart(_Renderable, metaclass=_Forwarding):
         if wants_key and self.legend_side == 'direct' and methods & _LABELLED_CURVES:
             # Names at the curve ends, in their colours, instead of a key.
             spec.label_lines()
+        elif wants_key and self.legend_side == 'direct-ink' and methods & _LABELLED_CURVES:
+            # Names in ink, each after a short line in its curve's colour.
+            spec.label_lines(color=False, swatch=True)
         elif wants_key and self.legend_side not in (False, None, 'none') and 'legend' not in methods:
-            if self.legend_side in ('auto', 'direct'):
+            if self.legend_side in ('auto', 'direct', 'direct-ink'):
                 spec.legend()
             elif self.legend_side in ('top', 'bottom', 'left', 'right'):
                 spec.legend(side=self.legend_side)
@@ -3102,7 +3105,7 @@ def _entry(method):
     style (a preset name, default 'scientific.modern', or a Preset object),
     font_pt (the main type size in points), palette, title, xlabel, ylabel,
     xlim, ylim, xscale/yscale ('linear' or 'log'), legend
-    ('auto', 'direct', a side, a corner or False), grid (True, False, 'x' or
+    ('auto', 'direct', 'direct-ink', 'best', a side, a corner or False), grid (True, False, 'x' or
     'y'), xticks/yticks (the tick values to show), xminor/yminor (True, or
     how many minor-tick pieces each major step divides into), xformat/yformat
     (how the tick numbers are written: a '{}' spec such as '{:.0%}', a suffix

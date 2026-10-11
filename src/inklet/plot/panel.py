@@ -2228,8 +2228,10 @@ class Panel:
             p.label_lines()
 
         Keywords: `size`, `gap` (curve end to name, mm), `leader=False`,
-        `color=False` (names in ink), `markup`, `leader_style=` and any text
-        style. Placed at `build()`, like `label_points`; names that collide
+        `color=False` (names in ink), `swatch=True` (a short line in the
+        curve's colour before each name; with `color=False` it keeps text in
+        ink, as Nature asks, and still says which curve is which), `markup`,
+        `leader_style=` and any text style. Placed at `build()`, like `label_points`; names that collide
         anyway are listed under `unresolved` in the `line_labels` note and
         reported by lint. See `plot.line_labels`.
         """

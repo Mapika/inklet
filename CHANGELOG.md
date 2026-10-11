@@ -46,6 +46,11 @@ narrow cells, font control and checks.
 - `line(..., markers=True, marker_size=, marker=)`: the point markers'
   diameter in mm and shape, without a separate `scatter` layer.
 
+- `legend='direct-ink'` on one-call line charts, and `label_lines(swatch=True)`
+  on panels: each curve's name is set in ink after a short line in the
+  curve's colour, a key entry at the curve. Nature asks for keys rather than
+  coloured text; `legend='direct'` still sets the names in their colours.
+
 ### Changed
 
 - `scientific.nature` sets panel letters in 8 pt bold lowercase, as the Nature
