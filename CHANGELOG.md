@@ -37,6 +37,10 @@ Fixes found porting Nature-style figures to 4.8.0.
   in a narrow cell (a quarter of a double-column row) sets the key below
   the plot, with a warning, instead of `compile()` and `save()` raising
   `LayoutError`. A key that fits nowhere still raises the first error.
+- A forest in a layout row sits at the top of its cell, so its panel letter
+  shares a line with the letters of the plots beside it. A forest shorter
+  than its row used to be centred in the cell, its letter lower than its
+  neighbours'.
 
 ## 4.8.0 — 2026-10-11
 

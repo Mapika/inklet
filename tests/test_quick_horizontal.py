@@ -181,6 +181,19 @@ def test_two_forests_in_a_row_fit_their_cells_with_their_letters(options):
     assert figure.root.bbox.width <= 183.0 + 0.01
 
 
+def test_a_short_forest_beside_a_plot_shares_its_letter_line():
+    from inklet.core import resolve
+    line = i.line({'x': [0, 1], 'y': [0, 1]}, x='x', y='y', style='scientific.nature')
+    short = quick.forest({k: v[:4] for k, v in LONG.items()}, label='lab', estimate='r', lower='lo',
+                         upper='hi', style='scientific.nature', right=['ci'], measure='r')
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        figure = i.Layout('row', [line, short], width='double', style='scientific.nature').compile()
+    placed = resolve(figure.root)
+    tops = {n.prim.text: placed[n.id].bbox.y1 for n in figure.root.walk() if n.kind == 'letter'}
+    assert set(tops) == {'a', 'b'} and tops['a'] == pytest.approx(tops['b'], abs=0.01)
+
+
 def test_a_dropped_ci_column_warns_when_the_type_is_set_smaller_too():
     chart = _long_forest()
     rows, options = chart._forest

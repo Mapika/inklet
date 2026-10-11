@@ -1745,6 +1745,15 @@ class Chart(_Renderable, metaclass=_Forwarding):
                 min_height=self._height(doc.width))
         return doc
 
+    def _align(self):
+        """Where this chart sits in a layout cell taller than it is.
+
+        A forest is drawn at its own height, so a row of plots leaves it
+        slack; it sits at the top, so its panel letter shares a line with
+        the letters of the plots beside it, rather than centred lower down.
+        """
+        return 'n' if self._forest is not None else 'center'
+
     def _profile(self):
         return _preset(self.width, self.style, self.palette, self._grid, self.font_pt)
 
@@ -2645,7 +2654,8 @@ class Layout(_Renderable):
                                                               cell=cell, **plotting[id(item)]), item, below),
                         row=row, column=column,
                         rowspan=rowspan, colspan=colspan,
-                        min_height=item._height(tracks[column]) if rowspan == 1 else None)
+                        min_height=item._height(tracks[column]) if rowspan == 1 else None,
+                        align=item._align())
         else:
             doc = profile.document(columns=len(self.items) if self.direction == 'row' else 1)
             self._fill(doc, doc.width, prefix='p', profile=profile, rotate=rotate, plotting=plotting,
@@ -2803,7 +2813,7 @@ class Layout(_Renderable):
             if isinstance(item, Chart):
                 doc.add(name, _key_below(item.plot(cell_width, profile, _turn(rotate, item), cell=cell,
                                                    **plotting[id(item)]), item, below),
-                        min_height=item._height(cell_width), **place)
+                        min_height=item._height(cell_width), align=item._align(), **place)
             else:
                 sub = subfigure(width=cell_width, gap=doc.gap,
                                 columns=len(item.items) if item.direction == 'row' else 1)
