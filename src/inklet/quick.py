@@ -63,6 +63,11 @@ _RIGHT_AXIS = 'secondary_y'
 _TINT, _TINT_AMOUNT = '@tint', 0.72
 _SOFT, _SOFT_AMOUNT = '@soft', 0.45
 
+#: A palette slot drawn in the theme's fill colours (`marks.fill_palette`),
+#: the default of `barplot`'s groups; and a bar's slot, softened like `_SOFT`
+#: unless a `palette=` mapping names its colour, which it is drawn in as given.
+_FILL, _BAR = '@fill', '@bar'
+
 #: Opacity of a grouped series' error band.
 _BAND_OPACITY = 0.22
 
@@ -872,10 +877,11 @@ class Chart(_Renderable, metaclass=_Forwarding):
             options['color'] = literal
         elif len(series) == 1:
             # A bar is a large area: a softened series colour, not a block.
-            options.setdefault('color', f'{_SOFT}{self._claim()}')
+            options.setdefault('color', f'{_BAR}{self._slot(name)}' if name else f'{_SOFT}{self._claim()}')
         else:
-            first = self._claim(len(series))
-            options.setdefault('color', [f'{_SOFT}{first + k}' for k in range(len(series))])
+            # Each group's slot is its name's, so a `palette=` mapping and a
+            # layout colour the bars of a name as they colour its line.
+            options.setdefault('color', [f'{_BAR}{self._slot(n)}' for n in names])
         if len(series) > 1:
             options['stacked' if stacked else 'grouped'] = True
             options['name'] = names
@@ -941,6 +947,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
             options['color'] = literal
         elif groups is None:
             options.setdefault('color', f'{_TOKEN}{self._claim()}')
+        else:
+            # The groups' fill colours, by name, as `bar()` without `agg` takes them.
+            options.setdefault('color', [f'{_FILL}{self._slot(g)}' for g in names])
         if groups is not None:
             options['name'] = [str(g) for g in names]
             self._named += len(names)
@@ -1843,7 +1852,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
     def _has_tokens(self):
         def token(value):
             if isinstance(value, str):
-                return value.startswith((_TOKEN, _TINT, _SOFT))
+                return value.startswith((_TOKEN, _TINT, _SOFT, _FILL, _BAR))
             return isinstance(value, (list, tuple)) and any(token(v) for v in value)
 
         def tokens_in(spec):
@@ -1863,6 +1872,10 @@ class Chart(_Renderable, metaclass=_Forwarding):
         if label not in self._series_tokens:
             self._series_tokens[label] = f'{_TOKEN}{self._claim()}'
         return self._series_tokens[label]
+
+    def _slot(self, label):
+        """The palette position of a named series's slot (see `_token`)."""
+        return int(self._token(label)[len(_TOKEN):])
 
     def _claim(self, count=1):
         """The first of `count` palette slots for new series, and the next free ones.
@@ -2243,16 +2256,25 @@ def _resolve_tokens(kwargs, palette, paper='#ffffff', index=None, fixed=None):
     """
     from .themes import mix
 
-    def colour_of(value, prefix):
+    def colour_of(value, prefix, colours=palette):
         slot = int(value[len(prefix):])
         if fixed and slot in fixed:
             return fixed[slot]
         position = index.get(slot, slot) if index is not None else slot
-        return palette[position % len(palette)]
+        return colours[position % len(colours)]
 
     def resolve(value):
         if isinstance(value, str) and value.startswith(_TOKEN):
             return colour_of(value, _TOKEN)
+        if isinstance(value, str) and value.startswith(_FILL):
+            from types import SimpleNamespace
+            from .plot.marks import fill_palette
+            return colour_of(value, _FILL, fill_palette(SimpleNamespace(palette=palette, paper=paper)))
+        if isinstance(value, str) and value.startswith(_BAR):
+            # A bar is softened, unless a `palette=` mapping names its colour.
+            if fixed and int(value[len(_BAR):]) in fixed:
+                return fixed[int(value[len(_BAR):])]
+            return mix(colour_of(value, _BAR), paper, _SOFT_AMOUNT)
         for prefix, amount in ((_TINT, _TINT_AMOUNT), (_SOFT, _SOFT_AMOUNT)):
             if isinstance(value, str) and value.startswith(prefix):
                 return mix(colour_of(value, prefix), paper, amount)

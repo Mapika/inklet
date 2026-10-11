@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.8.1 — 2026-10-11
+
+Fixes found porting Nature-style figures to 4.8.0.
+
+### Fixed
+
+- `bar()` honours a `palette={series name: colour}` mapping, alone and in a
+  layout: grouped, stacked and named bars are filled in the mapped colours as
+  given (unmapped bars keep their softened palette colours), and `agg='mean'`
+  or `'median'` groups take the mapping too. Bars used to draw their palette
+  slots whatever the mapping said, and a bar group's name now keeps one
+  colour across a layout's panels as a line's does.
+
 ## 4.8.0 — 2026-10-11
 
 Nature-ready figures: 8 pt panel letters checked against their own limit, forests

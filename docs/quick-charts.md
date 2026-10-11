@@ -410,7 +410,8 @@ from one figure to the next. To give a name the same colour in every figure,
 map it: `palette={'chess': '#0072b2', 'othello': '#009e73'}` on a chart or a
 layout draws those series in those colours whatever order they come in.
 Names the mapping does not list take the preset's palette, without the
-mapped colours.
+mapped colours. Bars of a mapped name are filled in its colour as given,
+where unmapped bars take a softened palette colour.
 
 ```python
 import inklet as i

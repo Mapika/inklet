@@ -45,3 +45,49 @@ def test_a_layout_mapping_colours_every_panel():
 def test_a_bad_colour_in_the_mapping_is_refused_at_the_call():
     with pytest.raises(ValueError):
         i.line(ROWS, x='n', y='loss', color='domain', palette={'chess': 'not a colour'})
+
+
+BARS = [{'model': m, 'part': p, 'share': v} for m in ('A', 'B')
+        for p, v in (('Top head', 0.9), ('Other heads', 0.05), ('MLP', 0.05))]
+PARTS = {'Top head': '#0072b2', 'Other heads': '#7fb8d8', 'MLP': '#7a7a7a'}
+
+
+def _bar_colours(chart, method='bars', **plotting):
+    step = next(s for s in chart.plot(**plotting)._steps if s[1] == method)
+    return dict(zip(step[3]['name'], step[3]['color']))
+
+
+def test_grouped_bars_take_the_mapped_colours_as_given():
+    chart = i.bar(BARS, x='model', y='share', color='part', palette=PARTS, style='scientific.nature')
+    assert _bar_colours(chart) == PARTS
+    assert all(c in chart.compile().to_svg() for c in PARTS.values())
+
+
+def test_bars_in_a_layout_take_the_mapping_too():
+    line = i.line([dict(x=0, y=0), dict(x=1, y=1)], x='x', y='y', style='scientific.nature')
+    bars = i.bar(BARS, x='model', y='share', color='part', palette=PARTS, style='scientific.nature')
+    layout = i.Layout('row', [line, bars], width='double', style='scientific.nature')
+    assert _bar_colours(bars, **layout._plotting([line, bars])[id(bars)]) == PARTS
+    svg = layout.compile().to_svg()
+    assert all(c in svg for c in PARTS.values())
+
+
+def test_averaged_bars_take_the_mapping():
+    rows = BARS + [dict(r, share=r['share'] / 2) for r in BARS]
+    chart = i.bar(rows, x='model', y='share', color='part', agg='mean', palette=PARTS)
+    assert _bar_colours(chart, 'barplot') == PARTS
+
+
+def test_unmapped_bars_keep_their_soft_palette_colours():
+    from inklet.themes import mix
+    chart = i.bar(BARS, x='model', y='share', color='part', palette={'MLP': '#7a7a7a'})
+    colours = _bar_colours(chart)
+    palette = [c for c in chart._profile().theme.palette if c != '#7a7a7a']
+    paper = chart._profile().theme.paper
+    assert colours['MLP'] == '#7a7a7a'
+    assert colours['Top head'] == mix(palette[0], paper, 0.45)
+
+
+def test_a_named_single_bar_takes_its_mapped_colour():
+    chart = i.bar({'c': ['a', 'b'], 'v': [1, 2]}, x='c', y='v', name='MLP', palette=PARTS)
+    assert next(k for _, m, _, k in chart.plot()._steps if m == 'bars')['color'] == '#7a7a7a'
