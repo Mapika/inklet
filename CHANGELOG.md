@@ -43,6 +43,9 @@ narrow cells, font control and checks.
   figures. Unlisted names take the preset's palette, without the mapped
   colours. A colour that does not parse is refused at the call.
 
+- `line(..., markers=True, marker_size=, marker=)`: the point markers'
+  diameter in mm and shape, without a separate `scatter` layer.
+
 ### Changed
 
 - `scientific.nature` sets panel letters in 8 pt bold lowercase, as the Nature

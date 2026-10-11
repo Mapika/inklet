@@ -292,3 +292,17 @@ def test_new_charts_are_exported_documented_and_listed(name):
     assert getattr(i, name) is getattr(quick, name)
     assert name in i.__all__ and name in quick.__all__
     assert (getattr(i, name).__doc__ or '').strip()
+
+
+def test_line_markers_take_a_size_and_a_shape():
+    data = {'x': [0, 1, 2], 'y': [1, 3, 2]}
+    chart = i.line(data, x='x', y='y', markers=True, marker_size=2.0, marker='square')
+    (step,) = [s for s in chart.spec._steps if s[1] == 'scatter']
+    assert step[3]['size'] == 2.0 and step[3]['marker'] == 'square'
+    plain = i.line(data, x='x', y='y', markers=True)
+    (step,) = [s for s in plain.spec._steps if s[1] == 'scatter']
+    assert 'size' not in step[3]
+    with pytest.raises(ValueError, match='markers=True'):
+        i.line(data, x='x', y='y', marker_size=2.0)
+    figure = chart.compile()
+    assert not [d for d in figure.lint() if d.severity == 'error']

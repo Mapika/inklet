@@ -660,8 +660,13 @@ class Chart(_Renderable, metaclass=_Forwarding):
 
     def line(self, data=None, x=None, y=None, *, color=None, name=None, markers=False,
              error_y=None, dash=None, linewidth=None, sort=True, gaps='break',
-             secondary_y=None, simplify='auto', **style):
+             secondary_y=None, simplify='auto', marker_size=None, marker=None, **style):
         """Lines through (x, y), one per `color` group or per `y` column.
+
+        `markers=True` marks each point in the line's colour; `marker_size=`
+        is their diameter in mm and `marker=` their shape ('circle',
+        'square', 'triangle', ... as `scatter` takes), both only with
+        `markers=True`.
 
         Points are joined in x order; `sort=False` keeps row order (a path
         that doubles back, such as a phase portrait). Without `y`, every
@@ -684,6 +689,10 @@ class Chart(_Renderable, metaclass=_Forwarding):
         """
         if gaps not in ('break', 'bridge'):
             raise ValueError(f"gaps must be 'break' or 'bridge', got {gaps!r}")
+        if not markers and (marker_size is not None or marker is not None):
+            raise ValueError('marker_size= and marker= style the point markers, so they need markers=True')
+        dots = {**({} if marker_size is None else {'size': marker_size}),
+                **({} if marker is None else {'marker': marker})}
         if simplify != 'auto' and simplify is not None and simplify is not False and (
                 isinstance(simplify, bool) or not isinstance(simplify, Real)):
             raise ValueError(f"simplify must be 'auto', None, False or a tolerance in mm, got {simplify!r}")
@@ -724,7 +733,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
                 recipe.line(points, name=named, **run_options)
                 if markers:
                     # The line's own colour: a markers layer is the same series.
-                    recipe.scatter(points, name=named,
+                    recipe.scatter(points, name=named, **dots,
                                    **self._raster_keywords(None, len(points), {}),
                                    **self._style(table, color, {'color': options['color']},
                                                  mark=True, label=series, lone=True))

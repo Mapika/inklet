@@ -50,7 +50,8 @@ from the start.
 ### 2. Add error bands
 
 `error_y` names the column of half-widths. Each line gets a translucent band
-either side of it, and `markers=True` marks each reading.
+either side of it, and `markers=True` marks each reading (`marker_size=` sets
+their diameter in mm and `marker=` their shape).
 
 ```python
 chart = i.line(df, x='hour', y='od', color='condition', error_y='sd', markers=True)
