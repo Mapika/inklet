@@ -12,6 +12,10 @@ Fixes found porting Nature-style figures to 4.8.0.
   or `'median'` groups take the mapping too. Bars used to draw their palette
   slots whatever the mapping said, and a bar group's name now keeps one
   colour across a layout's panels as a line's does.
+- `quick.forest` fills `(header, column)` tuple columns: `right=[('Hits',
+  'hits')]` writes the column's values under its header, as
+  `inklet.forest` documents. Only plain column names used to collect their
+  values, so a tuple drew its header over an empty column.
 
 ## 4.8.0 — 2026-10-11
 

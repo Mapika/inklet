@@ -1234,7 +1234,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
         weight; `summary=` names a column of flags that draws those rows as
         diamonds. `left` and `right` are the text columns beside the plot:
         "label", "ci" (the estimate and interval), "estimate", "weight" or
-        any other column of the table. Rows missing a label, estimate or
+        any other column of the table, or a `(header, column)` tuple that
+        names its header too, as `inklet.forest` takes them. Rows missing a label, estimate or
         bound are dropped. When the columns are too wide for the cell, the
         plot narrows to make room (to 20 mm at least), then the gaps between
         columns close, then right-hand `"ci"` and `"estimate"` columns are
@@ -1255,7 +1256,9 @@ class Chart(_Renderable, metaclass=_Forwarding):
                                       ((label, 'label'), (estimate, 'estimate'), (lower, 'lower'), (upper, 'upper')))
         weights = _column(table, weight, 'weight')
         flags = _column(table, summary, 'summary')
-        extra = [name for name in dict.fromkeys([*left, *right]) if isinstance(name, str)
+        # A column is a key, or a (header, key[, align]) tuple whose key may name a column too.
+        keys = [c[1] if isinstance(c, (tuple, list)) and len(c) >= 2 else c for c in [*left, *right]]
+        extra = [name for name in dict.fromkeys(keys) if isinstance(name, str)
                  and name not in ('label', 'ci', 'estimate', 'weight', 'low', 'high', 'summary')]
         extras = {name: _column(table, name, 'left or right') for name in extra}
         rows = []

@@ -194,6 +194,16 @@ def test_forest_marks_summaries_and_keeps_text_columns():
     assert options['right'] == ('ci', 'n')
 
 
+def test_forest_header_tuples_collect_their_columns():
+    chart = quick.forest(FOREST, label='study', estimate='or', lower='lo', upper='hi',
+                         left=[('Study', 'label')], right=[('Hits', 'n'), ('Weight', 'w', 'left')])
+    rows, options = chart._forest
+    assert rows[0]['n'] == 812 and rows[1]['w'] == 9.4
+    assert options['right'] == (('Hits', 'n'), ('Weight', 'w', 'left'))
+    svg = _clean(chart).to_svg()
+    assert 'Hits' in svg and '812' in svg and '1377' in svg
+
+
 def test_forest_takes_its_axis_title_from_xlabel():
     chart = quick.forest(FOREST, label='study', estimate='or', lower='lo', upper='hi').labels(x='Odds ratio')
     _clean(chart)
