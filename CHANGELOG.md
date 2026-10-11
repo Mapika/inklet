@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.8.1 — 2026-10-11
+## 4.8.1 — 2026-10-12
 
 Fixes found porting Nature-style figures to 4.8.0.
 
