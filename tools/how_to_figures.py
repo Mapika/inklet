@@ -76,8 +76,22 @@ def run(snippet: Snippet):
 
 
 def problems(compiled) -> list:
-    """The lint diagnostics that are errors or warnings."""
-    return [d for d in compiled.lint() if d.severity in ('error', 'warning')]
+    """The lint diagnostics that are errors or warnings.
+
+    A journal preset's expected-font finding (Nature's Arial or Helvetica) is
+    left out on a machine that has neither: it describes the machine, not the
+    recipe, and CI's fonts are DejaVu and Noto.
+    """
+    return [d for d in compiled.lint() if d.severity in ('error', 'warning')
+            and not machine_font(d)]
+
+
+def machine_font(diagnostic) -> bool:
+    """Whether `diagnostic` only says this machine lacks a preset's expected font."""
+    if diagnostic.code != 'FONT_SUBSTITUTED' or 'publication profile expects' not in diagnostic.message:
+        return False
+    from inklet.typeset.fonts import find_font
+    return find_font('Arial, Helvetica').family.casefold() not in ('arial', 'helvetica')
 
 
 def shorthand(method) -> str:

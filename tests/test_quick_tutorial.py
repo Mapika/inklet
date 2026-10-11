@@ -19,7 +19,16 @@ spec.loader.exec_module(tutorial)
 
 
 def serious(figure):
-    return [d for d in figure.lint() if d.severity in ('error', 'warning')]
+    return [d for d in figure.lint() if d.severity in ('error', 'warning') and not machine_font(d)]
+
+
+def machine_font(diagnostic):
+    """A journal preset's expected-font finding on a machine without that font
+    (CI has DejaVu and Noto): it describes the machine, not the tutorial."""
+    if diagnostic.code != 'FONT_SUBSTITUTED' or 'publication profile expects' not in diagnostic.message:
+        return False
+    from inklet.typeset.fonts import find_font
+    return find_font('Arial, Helvetica').family.casefold() not in ('arial', 'helvetica')
 
 
 def test_the_tutorial_has_its_python_blocks_and_the_data_it_reads():
