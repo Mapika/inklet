@@ -19,6 +19,24 @@ narrow cells, font control and checks.
 - `inklet.forest(text_size=)`: the type size of the text columns and their
   header line (default: the theme's small size, as before).
 
+- Font files in family lists: `font_family='/fonts/Arial.ttf, Arial,
+  Helvetica, sans-serif'` uses the file when it exists and skips it when it
+  does not; bold and italic come from the same family's files in that
+  directory (a single font file used to give regular type for bold letters).
+  A font file is no longer reported as a substitution of itself.
+- `PublicationProfile.expected_fonts` (preset option and `lint()` keyword of
+  the same name): the families a destination asks for. `FONT_SUBSTITUTED`
+  then also reports text set in any other family, monospaced faces excepted.
+  `scientific.nature` column formats expect `('Arial', 'Helvetica')`, so a
+  Nature figure built without Arial installed now warns that its text is in
+  Liberation Sans (or whatever replaced it), and the hint shows how to name
+  Arial's file.
+- `inklet.FontEmbeddingWarning`: a PDF exported with embedded text
+  (`text='embed'`, the default) warns when a face is CFF-flavoured OpenType
+  and its text has to be outlined. TrueType faces are embedded as
+  CIDFontType2 with `/FontFile2` subsets, the equivalent of matplotlib's
+  `pdf.fonttype = 42`; the [export guide](docs/export.md) now says so.
+
 ### Changed
 
 - `scientific.nature` sets panel letters in 8 pt bold lowercase, as the Nature
@@ -26,6 +44,8 @@ narrow cells, font control and checks.
   preset's `sources` now cite it). They were 7 pt. Letters of 8 pt pass the
   preset's checks; other text over 7 pt is still an error. Pages with panel
   letters may grow by a fraction of a millimetre per lettered row.
+- `scientific.nature` figures report `FONT_SUBSTITUTED` (a warning) when their
+  text is not set in Arial or Helvetica; see `expected_fonts` above.
 
 - A one-call forest (`i.quick.forest`) in a cell too narrow for its text
   columns no longer raises once its plot is at 20 mm: the gaps between

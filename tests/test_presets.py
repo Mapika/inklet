@@ -34,7 +34,9 @@ def test_complete_destination_examples_retain_physical_size(name, width, height)
         assert compiled.root.height == height
     else:
         assert compiled.root.height <= 170
-    assert not compiled.diagnostics
+    # The journal preset expects Arial or Helvetica; a machine without them
+    # (CI has DejaVu and Noto) reports the substitute, which is not a layout fault.
+    assert not [d for d in compiled.diagnostics if d.code != 'FONT_SUBSTITUTED']
     import re
     pdf = compiled.to_pdf()
     box = re.search(rb'/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]', pdf)

@@ -48,7 +48,9 @@ class CompiledFigure:
     def lint(self, **kwargs):
         if not kwargs: return list(self.diagnostics)
         profile=self.metadata.get('publication',{})
-        defaults={k:profile[k] for k in ('min_font_pt','min_stroke_mm','min_dpi','max_font_pt','max_height_mm','max_letter_pt') if k in profile}
+        defaults={k:profile[k] for k in ('min_font_pt','min_stroke_mm','min_dpi','max_font_pt','max_height_mm','max_letter_pt','expected_fonts') if k in profile}
+        if defaults.get('expected_fonts') is not None:
+            defaults['expected_fonts'] = tuple(defaults['expected_fonts'])
         options = defaults | kwargs
         options.setdefault('page_fill', self._state.paper)
         return lint(self.root, page=self.root.bbox, placements=self._state.placements, **options)

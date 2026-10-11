@@ -26,7 +26,7 @@ getting.
 
 from __future__ import annotations
 
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Sequence
 
 from ..core import Diagram, Placement, Rect, resolve
 from .abut import abutting, is_abutting_kind
@@ -84,6 +84,7 @@ def lint(
     max_font_pt: float | None = None,
     max_height_mm: float | None = None,
     max_letter_pt: float | None = None,
+    expected_fonts: Sequence[str] | None = None,
 ) -> list[Diagnostic]:
     """Check a figure and return its diagnostics, deterministically ordered.
 
@@ -103,7 +104,9 @@ def lint(
     `max_letter_pt` is the limit for panel letters (`inklet.letters`), which
     are then checked against it, or against `max_font_pt` if that is larger,
     instead of against `max_font_pt` alone: Nature sets panel letters at 8 pt
-    and all other text at 7 pt or less.
+    and all other text at 7 pt or less. `expected_fonts` names the families
+    the destination asks for; FONT_SUBSTITUTED then also reports text set in
+    any other family, monospaced faces excepted.
     """
     _must_be_a_diagram(root)
     if placements is None:
@@ -116,6 +119,7 @@ def lint(
         max_stroke_widths=max_stroke_widths,
         max_font_pt=max_font_pt, max_height_mm=max_height_mm,
         max_letter_pt=max_letter_pt,
+        expected_fonts=None if expected_fonts is None else tuple(expected_fonts),
     )
     return run_rules(ctx, _select(rules))
 

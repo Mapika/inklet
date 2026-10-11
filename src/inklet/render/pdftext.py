@@ -28,9 +28,12 @@ modes the same picture.
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
+from pathlib import Path
 
-from .fontembed import SfntSubset, embeddable, sfnt_widths, subset_sfnt
+from .fontembed import (FontEmbeddingWarning, SfntSubset, embeddable, sfnt_widths,
+                        subset_sfnt)
 from .glyphs import PlacedGlyph
 
 __all__ = ["FontShelf", "FontUse", "text_runs", "TextRunGroup"]
@@ -77,12 +80,21 @@ class FontShelf:
 
     def __init__(self) -> None:
         self.faces: dict[tuple[str, int], FontUse] = {}
+        #: Faces already reported as outlined, so each warns once per document.
+        self.outlined: set[tuple[str, int]] = set()
 
     def use(self, path: str, index: int) -> FontUse | None:
         key = (path, index)
         got = self.faces.get(key)
         if got is None:
             if not embeddable(path, index):
+                if key not in self.outlined:
+                    self.outlined.add(key)
+                    warnings.warn(
+                        f"{Path(path).name} is not a TrueType face, so the PDF outlines its "
+                        "text instead of embedding it as editable text; set this text in a "
+                        "TrueType (.ttf) font to keep it live", FontEmbeddingWarning,
+                        stacklevel=2)
                 return None
             got = self.faces[key] = FontUse(f"F{len(self.faces)}", path, index)
         return got

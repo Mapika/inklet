@@ -13,6 +13,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, fields, replace
 from functools import lru_cache
+from pathlib import Path
 from typing import Mapping
 
 import uharfbuzz as hb
@@ -285,6 +286,13 @@ def _requested_family(font, face: FontFace) -> str | None:
         return None
     names = [name.strip().strip("'\"") for name in str(font).split(",")]
     names = [name for name in names if name]
+    # A font file names a face, not a family: the face read from it is what
+    # was asked for, and a missing file is a fallback the chain allows.
+    from .fonts import _looks_like_path
+    if any(_looks_like_path(name) and str(Path(name).expanduser()) == face.path
+           for name in names):
+        return None
+    names = [name for name in names if not _looks_like_path(name)]
     if not names:
         return None
     if any(name.lower() == face.family.lower() for name in names):

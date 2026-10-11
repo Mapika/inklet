@@ -111,7 +111,7 @@ class Preset:
         profile_fields = {'font_pt', 'small_font_pt', 'title_font_pt', 'stroke_mm',
                           'min_font_pt', 'min_stroke_mm', 'min_dpi', 'dpi', 'text',
                           'max_font_pt', 'max_height_mm', 'letter_font_pt',
-                          'max_letter_pt'}
+                          'max_letter_pt', 'expected_fonts'}
         other_fields = {'width', 'height', 'margin', 'gap', 'letter_style', 'letter_pad',
                         'grid', 'legend_side', 'tick_count', 'bar_fill'}
         unknown = set(options) - theme_fields - profile_fields - other_fields
@@ -231,6 +231,7 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
     min_font, min_stroke = 6., .1
     sources = ()
     max_font, max_height, letter_font, max_letter = None, None, None, None
+    expected_fonts = None
     legend, ticks, letter_pad, spacing = 'bottom', 5, None, 1.
     if family == 'educational':
         font, small, title, stroke, radius = 10., 9., 13., .25, 1.5
@@ -253,6 +254,7 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
         radius = 0.
         if chosen.name in ('single-column', 'double-column'):
             max_font, max_height, max_letter = 7., 170., 8.
+            expected_fonts = ('Arial', 'Helvetica')
         sources = (GuidelineSource(
             'Nature research figure guide',
             'https://research-figure-guide.nature.com/figures/building-and-exporting-figure-panels/',
@@ -316,7 +318,7 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
                                  base_theme=base, title_font_pt=title*factor,
                                  max_font_pt=max_font, max_height_mm=max_height,
                                  letter_font_pt=None if letter_font is None else letter_font*factor,
-                                 max_letter_pt=max_letter)
+                                 max_letter_pt=max_letter, expected_fonts=expected_fonts)
     bar_fill = 'accent' if family in ('educational', 'marketing') and not name.endswith('worksheet') else 'neutral'
     return Preset(name, description, chosen, profile,
                   PlotDefaults(grid, legend, ticks, bar_fill=bar_fill),

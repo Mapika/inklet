@@ -60,6 +60,29 @@ embedded as searchable, editable text by default; `text='outline'` converts it
 to paths. Page dimensions are millimetres, and preview DPI changes only the
 PNG pixel size.
 
+In a PDF, embedded text is written as one CIDFontType2 font per TrueType face,
+with a `/FontFile2` subset of the glyphs the page uses. This is what
+matplotlib's `pdf.fonttype = 42` produces and what journals call TrueType
+(Type 42) embedding. A CFF-flavoured OpenType face (an `.otf` with PostScript
+outlines) cannot be embedded that way; its text is outlined and the export
+warns with `inklet.FontEmbeddingWarning`.
+
+A family list can name a font file, which is used when it exists and skipped
+when it does not; bold and italic come from the same family's files in that
+directory:
+
+```python
+style = i.preset('scientific.nature',
+                 font_family='~/fonts/Arial.ttf, Arial, Helvetica, Liberation Sans, sans-serif')
+```
+
+`compiled.metadata['fonts']` lists the font files the page used. A preset
+whose `expected_fonts` is set (`('Arial', 'Helvetica')` for
+`scientific.nature`) reports text set in any other family as
+`FONT_SUBSTITUTED`, so a figure built where Arial is not installed says so
+instead of silently using a metric-compatible substitute such as Liberation
+Sans. Pass `expected_fonts=None` to accept the substitute.
+
 ```python
 figure = doc.compile()
 figure.save('figure.svg', 'figure.pdf')

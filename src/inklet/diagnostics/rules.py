@@ -18,6 +18,7 @@ Two properties matter as much as the rules themselves:
 
 from __future__ import annotations
 
+import functools
 import math
 import re
 from dataclasses import dataclass, field
@@ -339,6 +340,8 @@ class LintContext:
     max_height_mm: float | None = None
     #: The limit for panel letters, when it differs from `max_font_pt`.
     max_letter_pt: float | None = None
+    #: Families the destination asks for; see `rule_font_substituted`.
+    expected_fonts: tuple[str, ...] | None = None
     #: {node id: the ids it was built to touch}, from `Diagram.attached_to`.
     attachments: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
     _by_id: dict[str, Item] = field(default_factory=dict, repr=False, compare=False)
@@ -724,6 +727,7 @@ def build_context(
     max_font_pt: float | None = None,
     max_height_mm: float | None = None,
     max_letter_pt: float | None = None,
+    expected_fonts: tuple[str, ...] | None = None,
 ) -> LintContext:
     for name, value in (('max_font_pt', max_font_pt), ('max_height_mm', max_height_mm),
                         ('max_letter_pt', max_letter_pt)):
@@ -791,7 +795,7 @@ def build_context(
         min_overlap_fraction=min_overlap_fraction,
         max_stroke_widths=max_stroke_widths,
         max_font_pt=max_font_pt, max_height_mm=max_height_mm,
-        max_letter_pt=max_letter_pt,
+        max_letter_pt=max_letter_pt, expected_fonts=expected_fonts,
         attachments=attachments,
     )
 
@@ -3669,6 +3673,35 @@ def rule_font_substituted(ctx: LintContext) -> list[Diagnostic]:
         groups.setdefault((requested, actual), []).append(item.id)
 
     out: list[Diagnostic] = []
+    reported = {i for ids in groups.values() for i in ids}
+    if ctx.expected_fonts:
+        wanted = {_family_key(f) for f in ctx.expected_fonts}
+        others: dict[str, list[str]] = {}
+        for item in ctx.items:
+            if not item.is_text or not item.draws or item.id in reported:
+                continue
+            actual = item.prim.font_family  # type: ignore[union-attr]
+            if _family_key(actual) in wanted or _fixed_pitch(item.prim.font_path):  # type: ignore[union-attr]
+                continue
+            others.setdefault(actual, []).append(item.id)
+        names = " or ".join(repr(f) for f in ctx.expected_fonts)
+        chain = ", ".join(ctx.expected_fonts)
+        for actual, ids in others.items():
+            ids.sort()
+            shown = ", ".join(ctx.label(i) for i in ids[:3])
+            if len(ids) > 3:
+                shown += f", +{len(ids) - 3} more"
+            out.append(Diagnostic(
+                code="FONT_SUBSTITUTED",
+                severity="warning",
+                message=(f"{len(ids)} text prim(s) are set in {actual!r}, not in {names} "
+                         f"as this publication profile expects: {shown}"),
+                targets=tuple(ids),
+                where=None,
+                hint=(f"install {ctx.expected_fonts[0]!r}, or put its font file first in the "
+                      f"family: preset(..., font_family='/path/to/{ctx.expected_fonts[0]}.ttf, "
+                      f"{chain}, sans-serif'); expected_fonts=None accepts {actual!r}"),
+            ))
     for (requested, actual), ids in groups.items():
         ids.sort()
         shown = ", ".join(ctx.label(i) for i in ids[:3])
@@ -3688,7 +3721,29 @@ def rule_font_substituted(ctx: LintContext) -> list[Diagnostic]:
 
 
 def _same_family(a: str, b: str) -> bool:
-    return " ".join(a.split()).casefold() == " ".join(b.split()).casefold()
+    return _family_key(a) == _family_key(b)
+
+
+def _family_key(name: str) -> str:
+    return " ".join(name.split()).casefold()
+
+
+def _fixed_pitch(path: str | None) -> bool:
+    """Whether a font file is monospaced (`post.isFixedPitch`): code and
+    sequences are set in one on purpose, outside a destination's text fonts."""
+    if not path:
+        return False
+    return _fixed_pitch_file(path)
+
+
+@functools.lru_cache(maxsize=128)
+def _fixed_pitch_file(path: str) -> bool:
+    try:
+        from fontTools.ttLib import TTFont
+        with TTFont(path, lazy=True, fontNumber=0) as font:
+            return bool(font["post"].isFixedPitch) if "post" in font else False
+    except Exception:  # an unreadable file is reported elsewhere
+        return False
 
 
 def rule_missing_glyphs(ctx: LintContext) -> list[Diagnostic]:

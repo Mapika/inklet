@@ -74,17 +74,42 @@ def find_font(family: str, weight: str = "regular", italic: bool = False) -> Fon
     """Resolve a family name to a usable font file.
 
     `family` is a generic name (`sans`, `serif`, `mono`), an installed family
-    name, or a path to a font file. `weight` is a CSS-ish name (`regular`,
-    `medium`, `semibold`, `bold`, ...) or a number as a string.
+    name, a path to a font file, or a CSS-style list of these, tried in order.
+    `weight` is a CSS-ish name (`regular`, `medium`, `semibold`, `bold`, ...)
+    or a number as a string.
 
-    Raises FontNotFoundError when the machine has nothing to offer, and
-    ValueError for an unknown weight name. With fontconfig present a family
-    name that does not exist resolves to a substitute rather than raising, so
-    check `FontFace.family` when the exact face matters.
+    A font file in a list is used when it exists and skipped when it does not,
+    so `"/fonts/Arial.ttf, Arial, Helvetica, sans-serif"` uses that file where
+    it is and the installed families elsewhere; a family named before a file
+    is used only when it is installed under that name. A bold or italic of a
+    font file comes from a file of the same family in the same directory
+    (`Arial Bold.ttf` beside `Arial.ttf`), or is the file itself when there
+    is none.
+
+    Raises FontNotFoundError when the machine has nothing to offer, or for a
+    single font file that does not exist, and ValueError for an unknown weight
+    name. With fontconfig present a family name that does not exist resolves
+    to a substitute rather than raising, so check `FontFace.family` when the
+    exact face matters.
     """
     number = weight_number(weight)
-    if _looks_like_path(family):
-        return load_face(str(Path(family).expanduser()))
+    if _looks_like_path(family) and "," not in family:
+        return _file_face(str(Path(family.strip()).expanduser()), number, italic)
+    names = [name.strip().strip("'\"") for name in family.split(",") if name.strip()]
+    if any(_looks_like_path(name) for name in names):
+        rest = []
+        for name in names:
+            if _looks_like_path(name):
+                path = Path(name).expanduser()
+                if path.is_file():
+                    return _file_face(str(path), number, italic)
+                continue
+            if _GENERIC_FAMILIES.get(name.lower()) is None:
+                face = find_font(name, weight, italic)
+                if face.family.casefold() == name.casefold():
+                    return face
+            rest.append(name)
+        family = ", ".join(rest) or "sans-serif"
 
     located = _fc_match(family, number, italic) or _scan_match(family, number, italic)
     if located is None:
@@ -96,6 +121,34 @@ def find_font(family: str, weight: str = "regular", italic: bool = False) -> Fon
             f"an explicit path to find_font()."
         )
     return load_face(*located)
+
+
+@lru_cache(maxsize=64)
+def _file_face(path: str, weight: int, italic: bool) -> FontFace:
+    """The face in `path`, or the same family's face in that directory that is
+    closer to the weight and slant asked for."""
+    face = load_face(path)
+    if face.italic == italic and abs(face.weight - weight) < 100:
+        return face
+    best, score = face, _style_distance(face, weight, italic)
+    for other in sorted(Path(path).parent.iterdir()):
+        if other.suffix.lower() not in FONT_SUFFIXES or str(other) == path:
+            continue
+        try:
+            candidate = load_face(str(other))
+        except FontNotFoundError:
+            continue
+        if candidate.family.casefold() != face.family.casefold():
+            continue
+        distance = _style_distance(candidate, weight, italic)
+        if distance < score:
+            best, score = candidate, distance
+    return best
+
+
+def _style_distance(face: FontFace, weight: int, italic: bool) -> float:
+    """Slant mismatches outweigh any weight difference, as in `_match_score`."""
+    return (0.0 if face.italic == italic else _SLANT_PENALTY) + abs(face.weight - weight) / 100.0
 
 
 @lru_cache(maxsize=256)

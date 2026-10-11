@@ -171,7 +171,8 @@ its options. It accepts:
   `letter_font_pt`, the letter size in points (None uses the title size).
   `max_letter_pt` is the largest letter the checks accept.
 - Export and checks: `dpi`, `text` (`embed` or `outline`), `min_font_pt`,
-  `min_stroke_mm`, `min_dpi`, `max_font_pt` and `max_height_mm`.
+  `min_stroke_mm`, `min_dpi`, `max_font_pt`, `max_height_mm` and
+  `expected_fonts` (family names; text in other families is reported).
 
 An `accent` override updates the first automatic series colour unless you
 supply a `palette`. Explicitly coloured series and data-bound category encodings
@@ -209,10 +210,16 @@ The Nature preset's widths and typography were reviewed against the
 on **2026-09-05**: 89/183 mm columns, standard sans-serif text at 5–7 pt, and
 editable embedded text. Inklet chooses 7 pt body/title text and 6 pt labels.
 The guide's [specifications page](https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications/),
-reviewed on **2026-10-11**, asks for panel letters in 8 pt bold, upright
+reviewed on **2026-10-11**, asks for Arial or Helvetica, text embedded as
+TrueType (Type 2 or 42) rather than outlined, and panel letters in 8 pt bold, upright
 lowercase (a, b, c) and at most 7 pt for all other text, so the preset sets
 panel letters at 8 pt (`letter_font_pt=8` on its publication profile)
 and, in column formats, checks them against 8 pt (`max_letter_pt=8`).
+Its font list is `Arial, Helvetica, Liberation Sans, DejaVu Sans, sans-serif`,
+and in column formats `expected_fonts=('Arial', 'Helvetica')` reports text set
+in any other family (monospaced faces excepted) as a `FONT_SUBSTITUTED`
+warning. Without Arial installed, put its file first in `font_family=` (see
+[Export](export.md)) or pass `expected_fonts=None` to accept the substitute.
 For Nature single- and double-column formats, compilation checks the 170 mm
 maximum page height (`PAGE_TOO_TALL`) and the 7 pt maximum effective text size
 (`LARGE_TEXT`); panel letters are checked against 8 pt instead. These checks include enclosing transforms and automatic page

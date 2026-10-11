@@ -187,6 +187,10 @@ A compiled native scene shared by SVG, PDF and PNG exports.
 
 Resolve a drawing for all native backends, reusing an optional revision.
 
+#### `class FontEmbeddingWarning`
+
+A PDF asked for live text drew some of it as outlines.
+
 #### `blend(node, mode='multiply')`
 
 Blend an isolated group with the artwork behind it, natively in SVG/PDF.
@@ -318,7 +322,7 @@ Freeze one expensive layer as pixels, preserving its size and anchors.
 
 ## Live documents
 
-#### `class PublicationProfile(name: str, width: float, font_pt: float = 8, small_font_pt: float = 7, stroke_mm: float = 0.18, min_font_pt: float = 6, min_stroke_mm: float = 0.1, min_dpi: float = 300, dpi: float = 300, text: str = 'embed', base_theme: inklet.themes.theme.Theme | str = 'nature', title_font_pt: float | None = None, max_font_pt: float | None = None, max_height_mm: float | None = None, letter_font_pt: float | None = None, max_letter_pt: float | None = None) -> None`
+#### `class PublicationProfile(name: str, width: float, font_pt: float = 8, small_font_pt: float = 7, stroke_mm: float = 0.18, min_font_pt: float = 6, min_stroke_mm: float = 0.1, min_dpi: float = 300, dpi: float = 300, text: str = 'embed', base_theme: inklet.themes.theme.Theme | str = 'nature', title_font_pt: float | None = None, max_font_pt: float | None = None, max_height_mm: float | None = None, letter_font_pt: float | None = None, max_letter_pt: float | None = None, expected_fonts: tuple[str, ...] | None = None) -> None`
 
 An editable set of physical page, typography, stroke and export defaults.
 
@@ -1346,7 +1350,7 @@ All findings plus a numbered overlay, without altering the source figure.
 
 Run figure checks and return an inspectable numbered diagnostic overlay.
 
-#### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3, max_font_pt: 'float | None' = None, max_height_mm: 'float | None' = None, max_letter_pt: 'float | None' = None) -> 'list[Diagnostic]'`
+#### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3, max_font_pt: 'float | None' = None, max_height_mm: 'float | None' = None, max_letter_pt: 'float | None' = None, expected_fonts: 'Sequence[str] | None' = None) -> 'list[Diagnostic]'`
 
 Check a figure and return its diagnostics, deterministically ordered.
 

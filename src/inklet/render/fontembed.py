@@ -35,7 +35,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from io import BytesIO
 
-__all__ = ["WOFF2", "FontSubset", "SfntSubset", "UnembeddableFont",
+__all__ = ["WOFF2", "FontSubset", "SfntSubset", "UnembeddableFont", "FontEmbeddingWarning",
            "subset_face", "subset_sfnt", "sfnt_widths", "embeddable",
            "face_rule", "readable"]
 
@@ -74,6 +74,18 @@ class FontSubset:
     def data_uri(self) -> str:
         payload = base64.b64encode(self.data).decode("ascii")
         return f"data:font/{self.flavor};base64,{payload}"
+
+
+class FontEmbeddingWarning(UserWarning):
+    """A PDF asked for live text drew some of it as outlines.
+
+    `to_pdf(text="embed")` writes each TrueType face as a CIDFontType2 with
+    a `/FontFile2` subset -- what matplotlib's `pdf.fonttype = 42` produces,
+    and what journals mean by "TrueType (Type 42)" embedding. A CFF-flavoured
+    OpenType face (`.otf` with PostScript outlines) cannot be written that
+    way, so its text is outlined: the same picture, but not editable text.
+    Choose a TrueType (`.ttf`) face to keep it live.
+    """
 
 
 @lru_cache(maxsize=64)

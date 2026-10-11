@@ -19,6 +19,11 @@ class PublicationProfile:
     are checked against it (or `max_font_pt`, if larger) instead of against
     `max_font_pt`, since journals such as Nature set panel letters above their
     limit for other text.
+
+    `expected_fonts` lists the families the destination asks for, such as
+    ('Arial', 'Helvetica'). Text set in any other family (monospaced faces
+    excepted) is reported as FONT_SUBSTITUTED, which is how a missing Arial
+    that fontconfig quietly replaced with a metric-compatible face shows up.
     """
     name: str
     width: float
@@ -36,6 +41,7 @@ class PublicationProfile:
     max_height_mm: float | None = None
     letter_font_pt: float | None = None
     max_letter_pt: float | None = None
+    expected_fonts: tuple[str, ...] | None = None
 
     def __post_init__(self):
         for name in ('width','font_pt','small_font_pt','stroke_mm','min_font_pt','min_stroke_mm','min_dpi','dpi'):
@@ -46,6 +52,13 @@ class PublicationProfile:
         if self.title_font_pt is not None: length(self.title_font_pt, 'title_font_pt')
         for name in ('max_font_pt', 'max_height_mm', 'letter_font_pt', 'max_letter_pt'):
             if getattr(self, name) is not None: length(getattr(self, name), name)
+        if self.expected_fonts is not None:
+            if isinstance(self.expected_fonts, str):
+                raise TypeError("expected_fonts must be a sequence of family names, such as ('Arial', 'Helvetica')")
+            fonts = tuple(self.expected_fonts)
+            if not fonts or not all(isinstance(f, str) and f.strip() for f in fonts):
+                raise ValueError('expected_fonts must be non-empty family names')
+            object.__setattr__(self, 'expected_fonts', fonts)
         if self.max_font_pt is not None and self.max_font_pt < self.min_font_pt:
             raise ValueError('max_font_pt must be at least min_font_pt')
 
@@ -60,7 +73,8 @@ class PublicationProfile:
     @property
     def checks(self):
         checks = dict(min_font_pt=self.min_font_pt,min_stroke_mm=self.min_stroke_mm,min_dpi=self.min_dpi)
-        checks.update({name: getattr(self, name) for name in ('max_font_pt', 'max_height_mm', 'max_letter_pt')
+        checks.update({name: getattr(self, name) for name in ('max_font_pt', 'max_height_mm', 'max_letter_pt',
+                                                              'expected_fonts')
                        if getattr(self, name) is not None})
         return checks
 
