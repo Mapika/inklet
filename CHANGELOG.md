@@ -27,6 +27,12 @@ Fixes found porting Nature-style figures to 4.8.0.
   as its curve is drawn: a dashed curve gets a dashed swatch, and a curve
   with markers shows its marker on the swatch. Every swatch used to be a
   solid line.
+- Explicit ticks beyond the data are no longer drawn past the end of the
+  axis line. An axis fitted to the data (any one-call chart without
+  `xlim`/`ylim`) now reaches its outermost tick, as it reaches a `hline`
+  or `vline` beyond the data; on an axis with a fixed domain
+  (`xlim`/`ylim`, or `axis(scale, ticks=)`), ticks outside the domain are
+  left out, as matplotlib leaves out ticks outside its view limits.
 
 ## 4.8.0 — 2026-10-11
 

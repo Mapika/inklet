@@ -696,3 +696,11 @@ def test_without_at_an_axis_is_still_on_the_edge() -> None:
     p.axis("bottom")
     spine = boxes(p.build(), SPINE_KIND)[0]
     assert spine.center.y == pytest.approx(p.area.y1, abs=1e-6)
+
+
+def test_explicit_ticks_outside_the_domain_are_left_out():
+    from inklet.plot.axis import TICK_LABEL_KIND
+    node = axis(linear((1.0, 3.0)), length=40.0, ticks=(0, 1, 2, 3, 4))
+    labels = sorted(n.prim.text for n in node.walk() if n.kind == TICK_LABEL_KIND)
+    assert labels == ['1', '2', '3']
+    assert node.bbox.width <= 40.0 + 3.0

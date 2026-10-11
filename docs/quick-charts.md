@@ -251,7 +251,7 @@ Every function takes these:
 | `facet_order` | The facet values in draw order: a list for every facet, or a dict from column name to list. Numbers and dates default to ascending, text to first appearance; a list must name every value |
 | `facet_scales` | `'fixed'` (default), `'free_y'`, `'free_x'` or `'free'`. A free axis fits each panel's own rows, and every panel writes its tick numbers |
 | `grid` | `True`, `False`, `'x'` or `'y'` |
-| `xticks`, `yticks` | The tick values to show, such as `xticks=[0, 5, 10, 15, 20]` |
+| `xticks`, `yticks` | The tick values to show, such as `xticks=[0, 5, 10, 15, 20]`. An axis fitted to the data is widened to reach ticks beyond them, as it is for a `hline` there; under `xlim`/`ylim`, ticks outside the limits are left out |
 | `xminor`, `yminor` | `True` for unlabelled minor ticks between the major ones, or an integer: the number of pieces each step divides into |
 | `xformat`, `yformat` | How the tick numbers are written, as the axis `format=` takes it: a `'{}'` spec such as `'{:.0%}'` or `'{:,.0f}'`, a suffix such as `'%'`, or a callable. Not for `forest`, which draws its own axis |
 | `aspect` | `'equal'` makes one data unit the same length on x and y, as maps need; a number is the plot area's height over its width. The plot is the largest of that shape that fits its cell, and `height` caps it. `'equal'` needs linear scales. Not for `forest` |

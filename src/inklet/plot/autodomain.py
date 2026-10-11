@@ -414,6 +414,7 @@ def measure(steps, width, height):
     `steps` are `(method, args, kwargs)` triples with live data materialised.
     """
     x, y = _Axis(), _Axis()
+    ticks = _explicit_ticks(steps)
     steps = [(m, a, k) for m, a, k in steps if m not in _FURNITURE]
     _categories(steps, x, y)
     probes = []
@@ -439,7 +440,37 @@ def measure(steps, width, height):
     for method, args, kwargs in probes:
         _probe(method, args, kwargs, x, y, width, height)
     _rule_headroom(steps, y, height)
+    for axis, values in zip((x, y), ticks):
+        _reach_ticks(axis, values)
     return x, y
+
+
+def _explicit_ticks(steps):
+    """The tick values `axes`/`axis` steps give each of (x, y), as lists."""
+    found = ([], [])
+    for method, args, kwargs in steps:
+        if method == 'axes':
+            common = kwargs.get('ticks')
+            for index, name in enumerate(('x_options', 'y_options')):
+                own = kwargs.get(name) or {}
+                values = own.get('ticks', common)
+                found[index].extend(values or ())
+        elif method == 'axis':
+            side = args[0] if args else kwargs.get('side', 'bottom')
+            found[0 if side in ('bottom', 'top') else 1].extend(kwargs.get('ticks') or ())
+    return found
+
+
+def _reach_ticks(axis: _Axis, values) -> None:
+    """Widen a numeric axis to its explicit ticks beyond the data, as a rule
+    beyond them widens it: the axis ends at the outermost tick, so no tick is
+    drawn past the end of the axis line."""
+    if axis.categories or axis.times or not axis.numeric:
+        return
+    for value in values:
+        if isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(value) \
+                and not axis.lo <= value <= axis.hi:
+            axis.add(value, hard=True)
 
 
 #: The word on a labelled vline sits at its top end, so the y-domain keeps

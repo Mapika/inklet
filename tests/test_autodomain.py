@@ -157,3 +157,23 @@ def test_a_slope_chart_fits_its_values_and_takes_string_time_points():
     chart = i.chart()
     chart.spec.slope({'A': [10, 20], 'B': [30, 15]}, at=['2015', '2025'])
     assert [d.code for d in chart.compile().lint()] == []
+
+
+def test_explicit_ticks_beyond_the_data_widen_the_axis_to_them():
+    line = ('line', ([(1, 0.1), (3, 0.5)],), {})
+    axes = ('axes', (), {'x_options': {'ticks': (0, 1, 2, 3, 4)}, 'y_options': {'ticks': (0, 0.5, 1.0)}})
+    x, y = _fit(line, axes)
+    assert x == (0, 4) and y == (0, 1.0)
+    # Ticks inside the data leave the fit as it was.
+    inside = ('axes', (), {'x_options': {'ticks': (2,)}})
+    assert _fit(line, inside) == _fit(line)
+
+
+def test_quick_ticks_beyond_the_data_end_the_axis_line():
+    from inklet.plot.axis import TICK_LABEL_KIND
+    chart = i.line([dict(x=1, y=0.1), dict(x=3, y=0.5)], x='x', y='y', xticks=[0, 2, 4],
+                   yticks=[0, 0.5, 1.0])
+    figure = chart.compile()
+    labels = {n.prim.text for n in figure.root.walk() if n.kind == TICK_LABEL_KIND}
+    assert {'0', '2', '4', '1.0'} <= labels
+    assert figure.root.bbox.height < 80

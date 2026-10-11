@@ -147,7 +147,8 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
     along x, "left" and "right" along y. `length`, if given, re-ranges the
     scale to that many millimetres, running left to right or bottom to top.
 
-    `ticks` overrides the values shown. `format` overrides how they are
+    `ticks` overrides the values shown; a value outside the scale's domain
+    is left out rather than drawn past the end of the spine. `format` overrides how they are
     written, and takes any of three forms:
 
     * a callable, `value -> str`, for anything the others cannot say;
@@ -455,6 +456,10 @@ def _tick_set(scale: Scale, count: int, ticks, format, si: bool, size: float,
     """
     values = outside_breaks(
         scale, tuple(scale.ticks(count)) if ticks is None else tuple(ticks))
+    if ticks is not None:
+        # A tick the caller gave beyond the scale's domain would be drawn past
+        # the end of the axis line; it is left out, as the axis has no such value.
+        values = tuple(v for v in values if _on_axis(scale, v))
     texts = tick_texts(scale, values, format, si)
     features = {"tnum": True} if tnum else None
     # Read off the scale rather than assumed: only a scale that writes its own
@@ -470,6 +475,17 @@ def _tick_set(scale: Scale, count: int, ticks, format, si: bool, size: float,
         if not horizontal:
             extents = [n.bbox.height for n in nodes]
     return values, nodes, extents
+
+
+def _on_axis(scale: Scale, value) -> bool:
+    """Whether `value` lands on the axis line, within the scale's range."""
+    try:
+        where = scale.map(value)
+        lo, hi = sorted(scale.range)
+    except Exception:
+        return True  # what the scale cannot place, its own drawing reports
+    slack = 1e-6 * max(1.0, hi - lo)
+    return lo - slack <= where <= hi + slack
 
 
 def _extent(box, horizontal: bool, rotate: float) -> float:
