@@ -1,6 +1,6 @@
 {
   "name": "inklet",
-  "version": "4.8.0",
+  "version": "4.8.1",
   "description": "Publication-quality figures from Python with inklet: one-call charts, measured layout, and SVG/PDF/PNG export, with the agent guide as a skill.",
   "author": {
     "name": "Mapika"
