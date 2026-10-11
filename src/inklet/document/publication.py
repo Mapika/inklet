@@ -13,6 +13,12 @@ class PublicationProfile:
 
     These are general authoring presets, not journal submission certifications.
     Thresholds are applied to the final transformed artwork at its export size.
+
+    `letter_font_pt` is the size of panel letters; None sets them at the title
+    size. `max_letter_pt` is the largest panel letter the checks accept; letters
+    are checked against it (or `max_font_pt`, if larger) instead of against
+    `max_font_pt`, since journals such as Nature set panel letters above their
+    limit for other text.
     """
     name: str
     width: float
@@ -28,6 +34,8 @@ class PublicationProfile:
     title_font_pt: float | None = None
     max_font_pt: float | None = None
     max_height_mm: float | None = None
+    letter_font_pt: float | None = None
+    max_letter_pt: float | None = None
 
     def __post_init__(self):
         for name in ('width','font_pt','small_font_pt','stroke_mm','min_font_pt','min_stroke_mm','min_dpi','dpi'):
@@ -36,7 +44,7 @@ class PublicationProfile:
         if isinstance(self.base_theme, str): get_theme(self.base_theme)
         elif not isinstance(self.base_theme, Theme): raise TypeError('base_theme must be a Theme or theme name')
         if self.title_font_pt is not None: length(self.title_font_pt, 'title_font_pt')
-        for name in ('max_font_pt', 'max_height_mm'):
+        for name in ('max_font_pt', 'max_height_mm', 'letter_font_pt', 'max_letter_pt'):
             if getattr(self, name) is not None: length(getattr(self, name), name)
         if self.max_font_pt is not None and self.max_font_pt < self.min_font_pt:
             raise ValueError('max_font_pt must be at least min_font_pt')
@@ -52,7 +60,7 @@ class PublicationProfile:
     @property
     def checks(self):
         checks = dict(min_font_pt=self.min_font_pt,min_stroke_mm=self.min_stroke_mm,min_dpi=self.min_dpi)
-        checks.update({name: getattr(self, name) for name in ('max_font_pt', 'max_height_mm')
+        checks.update({name: getattr(self, name) for name in ('max_font_pt', 'max_height_mm', 'max_letter_pt')
                        if getattr(self, name) is not None})
         return checks
 

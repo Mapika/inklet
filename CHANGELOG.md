@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+Nature figures without workarounds: 8 pt panel letters, forests that fit
+narrow cells, font control and checks.
+
+### Added
+
+- `PublicationProfile.letter_font_pt` and `max_letter_pt` (and the preset
+  options of the same names): the size of panel letters (None, the default,
+  keeps them at the title size) and the largest letter the checks accept.
+  Panel letters are checked against `max_letter_pt` (or `max_font_pt`, if
+  larger) instead of `max_font_pt`, so a journal's larger panel letters are not
+  reported as `LARGE_TEXT`; other text is still checked against `max_font_pt`.
+  `lint()` and `compiled.lint()` take `max_letter_pt=` too. A layout's
+  `font_pt=` scales the letters with the rest of the type.
+
+### Changed
+
+- `scientific.nature` sets panel letters in 8 pt bold lowercase, as the Nature
+  research figure guide's specifications page asks (reviewed 2026-10-11; the
+  preset's `sources` now cite it). They were 7 pt. Letters of 8 pt pass the
+  preset's checks; other text over 7 pt is still an error. Pages with panel
+  letters may grow by a fraction of a millimetre per lettered row.
+
 ## 4.7.0 — 2026-10-11
 
 Free facet scales, reference lines on faceted layouts, lint for figures that

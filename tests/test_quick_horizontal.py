@@ -132,7 +132,9 @@ def _large(figure):
     return [d.message for d in figure.lint() if d.code == 'LARGE_TEXT']
 
 
-def test_nature_layout_letters_are_no_larger_than_its_titles_at_font_pt_9():
+def test_nature_layout_letters_keep_the_preset_ratio_at_font_pt_9():
+    # Nature's letters are 8 pt over 7 pt text; at font_pt=9 they keep that
+    # 8/7 ratio (10.3 pt) rather than a fixed size, as titles and ticks do.
     # A one-letter title would be taken for the panel letter and dropped.
     scatter = dict(style='scientific.nature', font_pt=9, title='Trial')
     d = {'x': [1, 2, 3], 'y': [2, 1, 3]}
@@ -140,7 +142,7 @@ def test_nature_layout_letters_are_no_larger_than_its_titles_at_font_pt_9():
     layout = _large((i.scatter(d, x='x', y='y', **scatter) | i.scatter(d, x='x', y='y', **scatter))
                     .options(style='scientific.nature', font_pt=9).compile())
     letters = [m for m in layout if m.startswith("the letter")]
-    assert letters and all('renders at 9.0pt' in m for m in letters), letters
+    assert letters and all('renders at 10.3pt' in m for m in letters), letters
     others = [m for m in layout if not m.startswith("the letter")]
     assert len(others) == 2 * len(single)
 

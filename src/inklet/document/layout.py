@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 from itertools import accumulate
 from typing import TYPE_CHECKING, Mapping, NamedTuple
 
-from ..core import Affine, Diagram, DiagramError, Rect, resolve
+from ..core import Affine, Diagram, DiagramError, Rect, pt, resolve
 from ..core.prims import TextPrim
 from ..draw.coords import plot_area
 from ..plot.furniture import TITLE_KIND
@@ -212,6 +212,9 @@ def _decorator(request, context):
             options.setdefault('style', context.preset.letter_style)
             if context.preset.letter_pad is not None:
                 options.setdefault('pad', context.preset.letter_pad)
+        publication = getattr(context, 'publication', None)
+        if publication is not None and publication.letter_font_pt is not None:
+            options.setdefault('size', pt(publication.letter_font_pt))
         start = chr(ord(options.pop('start')) + indices[cell.name])
         with themed(context.theme):
             tagged = letters([node], start=start, **options)[0]

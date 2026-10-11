@@ -40,9 +40,11 @@ class Cell:
 
 
 class BuildContext:
-    def __init__(self, theme, cache, preset=None):
+    def __init__(self, theme, cache, preset=None, publication=None):
         self.theme, self.cache = theme, cache
         self.preset = preset
+        self.publication = publication if publication is not None else (
+            None if preset is None else preset.publication)
         self.active = []
         self.hits = self.misses = 0
         # Specs do not change during one compile, and fingerprinting large
@@ -333,7 +335,7 @@ class Document(BuildSpec):
         height=None if self.height is None else length(self.height,'document height')
         theme=get_theme(self.theme) if isinstance(self.theme,str) else self.theme
         if not self._cells: raise LayoutError('cannot compile an empty document')
-        context=BuildContext(theme,self._cache,self.preset)
+        context=BuildContext(theme,self._cache,self.preset,self.publication)
         signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,c.grow,
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram,Panel,PolarPanel)) else id(context.build(c.item)))
                          for c in self._cells)

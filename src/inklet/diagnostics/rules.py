@@ -33,6 +33,7 @@ from ..core import (
 # width to be data.
 from ..draw.clip import area_within, polygon_area
 from ..draw.path import is_encoded_kind
+from ..draw.annotate import LETTER_KIND
 # A raster whose pixels are the samples says so with this kind, and the back
 # ends read the same constant to turn smoothing off. LOW_DPI has to know.
 from ..plot.raster import MATRIX_KIND
@@ -336,6 +337,8 @@ class LintContext:
     max_stroke_widths: int = DEFAULT_MAX_STROKE_WIDTHS
     max_font_pt: float | None = None
     max_height_mm: float | None = None
+    #: The limit for panel letters, when it differs from `max_font_pt`.
+    max_letter_pt: float | None = None
     #: {node id: the ids it was built to touch}, from `Diagram.attached_to`.
     attachments: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
     _by_id: dict[str, Item] = field(default_factory=dict, repr=False, compare=False)
@@ -720,8 +723,10 @@ def build_context(
     max_stroke_widths: int = DEFAULT_MAX_STROKE_WIDTHS,
     max_font_pt: float | None = None,
     max_height_mm: float | None = None,
+    max_letter_pt: float | None = None,
 ) -> LintContext:
-    for name, value in (('max_font_pt', max_font_pt), ('max_height_mm', max_height_mm)):
+    for name, value in (('max_font_pt', max_font_pt), ('max_height_mm', max_height_mm),
+                        ('max_letter_pt', max_letter_pt)):
         if value is not None and (not math.isfinite(value) or value <= 0):
             raise ValueError(f'{name} must be finite and positive')
     nodes: dict[str, Diagram] = {}
@@ -786,6 +791,7 @@ def build_context(
         min_overlap_fraction=min_overlap_fraction,
         max_stroke_widths=max_stroke_widths,
         max_font_pt=max_font_pt, max_height_mm=max_height_mm,
+        max_letter_pt=max_letter_pt,
         attachments=attachments,
     )
 
@@ -1113,21 +1119,33 @@ def rule_tiny_text(ctx: LintContext) -> list[Diagnostic]:
 
 
 def rule_large_text(ctx: LintContext) -> list[Diagnostic]:
-    """Text above an optional publication maximum after enclosing transforms."""
-    if ctx.max_font_pt is None: return []
+    """Text above an optional publication maximum after enclosing transforms.
+
+    Panel letters answer to `max_letter_pt` when it is set (or `max_font_pt`,
+    if that is larger): a journal can ask for 8 pt panel letters and at most
+    7 pt for everything else, as Nature does.
+    """
+    if ctx.max_font_pt is None and ctx.max_letter_pt is None: return []
+    letter_cap = (ctx.max_font_pt if ctx.max_letter_pt is None
+                  else max(ctx.max_letter_pt, ctx.max_font_pt or 0.))
     out = []
     for item in ctx.items:
         if not item.is_text or not item.draws: continue
+        letter = item.node.kind == LETTER_KIND or (
+            item.block is not None and item.block.kind == LETTER_KIND)
+        cap = letter_cap if letter else ctx.max_font_pt
+        if cap is None: continue
         # The largest singular value catches enlargement along either axis,
         # including shear; an area-average scale can hide stretched lettering.
         a, b, c, d = item.world.a, item.world.b, item.world.c, item.world.d
         xx, yy, xy = a*a+b*b, c*c+d*d, a*c+b*d
         scale = math.sqrt(max(0., (xx+yy+math.hypot(xx-yy, 2*xy))/2))
         effective = to_pt(item.prim.font_size*scale)
-        if effective <= ctx.max_font_pt + 1e-9: continue
+        if effective <= cap + 1e-9: continue
+        kind = 'panel-letter maximum' if letter and ctx.max_letter_pt is not None else 'maximum'
         out.append(Diagnostic(
             code='LARGE_TEXT', severity='error',
-            message=f'{item.described} renders at {_pts(effective)}, above the {_pts(ctx.max_font_pt)} maximum',
+            message=f'{item.described} renders at {_pts(effective)}, above the {_pts(cap)} {kind}',
             targets=(item.id,), where=item.bbox,
             hint='Reduce the authored text size or choose a profile for this destination.',
         ))

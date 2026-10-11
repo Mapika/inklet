@@ -110,7 +110,8 @@ class Preset:
                         'ink', 'muted', 'radius', 'line_height', 'grid_color'}
         profile_fields = {'font_pt', 'small_font_pt', 'title_font_pt', 'stroke_mm',
                           'min_font_pt', 'min_stroke_mm', 'min_dpi', 'dpi', 'text',
-                          'max_font_pt', 'max_height_mm'}
+                          'max_font_pt', 'max_height_mm', 'letter_font_pt',
+                          'max_letter_pt'}
         other_fields = {'width', 'height', 'margin', 'gap', 'letter_style', 'letter_pad',
                         'grid', 'legend_side', 'tick_count', 'bar_fill'}
         unknown = set(options) - theme_fields - profile_fields - other_fields
@@ -229,7 +230,7 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
     grid, letters, margin, gap = 'none', 'bold-lower', 4., 6.
     min_font, min_stroke = 6., .1
     sources = ()
-    max_font, max_height = None, None
+    max_font, max_height, letter_font, max_letter = None, None, None, None
     legend, ticks, letter_pad, spacing = 'bottom', 5, None, 1.
     if family == 'educational':
         font, small, title, stroke, radius = 10., 9., 13., .25, 1.5
@@ -246,16 +247,26 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
         if name.endswith('infographic'): title, grid = 18., 'none'
     elif name == 'scientific.nature':
         font, small, title, min_font = 7., 6., 7., 5.
+        # Panel letters are 8 pt bold upright lowercase; all other text 5-7 pt
+        # (research-figure-guide.nature.com, 'Preparing figures', reviewed 2026-10-11).
+        letter_font = 8.
         radius = 0.
         if chosen.name in ('single-column', 'double-column'):
-            max_font, max_height = 7., 170.
+            max_font, max_height, max_letter = 7., 170., 8.
         sources = (GuidelineSource(
             'Nature research figure guide',
             'https://research-figure-guide.nature.com/figures/building-and-exporting-figure-panels/',
             '2026-09-05', 'reviewed',
             'Main figures: 89/183 mm widths, 5–7 pt text, standard sans-serif fonts and editable embedded text. '
             'Column formats enforce a 7 pt maximum text size and 170 mm maximum height. '
-            'Other formats use destination sizes without these journal print limits.'),)
+            'Other formats use destination sizes without these journal print limits.'),
+            GuidelineSource(
+            'Nature research figure guide: preparing figures, our specifications',
+            'https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications/',
+            '2026-10-11', 'reviewed',
+            'Panel letters 8 pt bold, upright and lowercase; all other text 5–7 pt; Arial or Helvetica; '
+            'text not outlined, fonts embedded as TrueType (Type 2 or 42). Panel letters are set at 8 pt '
+            'and checked against an 8 pt limit, everything else against 7 pt.'))
     elif name == 'scientific.modern':
         # The data is the darkest thing on the page: axes step back to grey,
         # and series take a palette chosen to read as thin lines on paper.
@@ -303,7 +314,9 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
                                  min_dpi=150 if chosen.name == 'slide' else 300,
                                  dpi=150 if chosen.name == 'slide' else 300,
                                  base_theme=base, title_font_pt=title*factor,
-                                 max_font_pt=max_font, max_height_mm=max_height)
+                                 max_font_pt=max_font, max_height_mm=max_height,
+                                 letter_font_pt=None if letter_font is None else letter_font*factor,
+                                 max_letter_pt=max_letter)
     bar_fill = 'accent' if family in ('educational', 'marketing') and not name.endswith('worksheet') else 'neutral'
     return Preset(name, description, chosen, profile,
                   PlotDefaults(grid, legend, ticks, bar_fill=bar_fill),

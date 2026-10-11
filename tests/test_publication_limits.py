@@ -50,3 +50,61 @@ def test_nonuniform_scaling_cannot_hide_oversized_type():
 def test_invalid_publication_limits_fail_early(options):
     with pytest.raises(ValueError):
         i.preset('scientific.nature', **options)
+
+
+def _letters(root):
+    """Every panel letter in a compiled page, as (text, font size in pt, weight)."""
+    found, stack = [], [root]
+    while stack:
+        node = stack.pop()
+        if node.kind == 'letter' and node.prim is not None:
+            found.append((node.prim.text, round(node.prim.font_size / i.pt(1), 3),
+                          node.style.font_weight if node.style else None))
+        stack.extend(node.children)
+    return sorted(found)
+
+
+def _two_panels(**options):
+    rows = [dict(x=k, y=k * k) for k in range(5)]
+    return i.Layout('row', [i.line(rows, x='x', y='y', style='scientific.nature'),
+                            i.scatter(rows, x='x', y='y', style='scientific.nature')],
+                    style='scientific.nature', **options)
+
+
+def test_nature_panel_letters_are_8pt_bold_lowercase_and_pass_lint():
+    # Nature: panel labels 8 pt bold upright lowercase; all other text 5-7 pt.
+    profile = i.preset('scientific.nature').publication
+    assert (profile.letter_font_pt, profile.max_letter_pt) == (8, 8)
+    assert i.preset('scientific.nature', format='slide').publication.max_letter_pt is None
+    compiled = _two_panels().compile()
+    assert _letters(compiled.root) == [('a', 8.0, 'bold'), ('b', 8.0, 'bold')]
+    assert not any(d.code == 'LARGE_TEXT' for d in compiled.lint())
+    assert not any(d.code == 'LARGE_TEXT' for d in compiled.lint(min_font_pt=5))
+
+
+def test_nature_lint_accepts_explicit_8pt_letters_but_not_larger():
+    doc = _two_panels().document()
+    doc.letters(size=i.pt(8))
+    assert not any(d.code == 'LARGE_TEXT' for d in doc.compile().lint())
+    doc.letters(size=i.pt(9))
+    large = [d for d in doc.compile().lint() if d.code == 'LARGE_TEXT']
+    assert len(large) == 2
+    assert 'panel-letter maximum' in large[0].message and '8.0pt' in large[0].message
+
+
+def test_letter_exemption_does_not_cover_other_8pt_text():
+    doc = i.preset('scientific.nature').document()
+    doc.add('label', i.text('Measured label', size=i.pt(8)))
+    assert 'LARGE_TEXT' in codes(doc.compile())
+    assert 'LARGE_TEXT' in {d.code for d in doc.compile().lint(max_letter_pt=8)}
+
+
+def test_letter_size_follows_quick_font_pt_and_slide_scale():
+    assert i.preset('scientific.nature', format='slide').publication.letter_font_pt == 16
+    compiled = _two_panels(font_pt=6).compile()
+    assert {size for _, size, _ in _letters(compiled.root)} == {round(8 * 6 / 7, 3)}
+
+
+def test_profiles_without_a_letter_size_keep_title_sized_letters():
+    assert i.preset('scientific.general').publication.letter_font_pt is None
+    assert i.publication().letter_font_pt is None

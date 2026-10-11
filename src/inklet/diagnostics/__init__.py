@@ -83,6 +83,7 @@ def lint(
     max_stroke_widths: int = DEFAULT_MAX_STROKE_WIDTHS,
     max_font_pt: float | None = None,
     max_height_mm: float | None = None,
+    max_letter_pt: float | None = None,
 ) -> list[Diagnostic]:
     """Check a figure and return its diagnostics, deterministically ordered.
 
@@ -99,6 +100,10 @@ def lint(
 
     Optional max_font_pt and max_height_mm enforce publication limits at final
     physical size. Neither upper limit is applied unless explicitly supplied.
+    `max_letter_pt` is the limit for panel letters (`inklet.letters`), which
+    are then checked against it, or against `max_font_pt` if that is larger,
+    instead of against `max_font_pt` alone: Nature sets panel letters at 8 pt
+    and all other text at 7 pt or less.
     """
     _must_be_a_diagram(root)
     if placements is None:
@@ -110,6 +115,7 @@ def lint(
         min_overlap_fraction=min_overlap_fraction,
         max_stroke_widths=max_stroke_widths,
         max_font_pt=max_font_pt, max_height_mm=max_height_mm,
+        max_letter_pt=max_letter_pt,
     )
     return run_rules(ctx, _select(rules))
 

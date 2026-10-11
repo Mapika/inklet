@@ -2276,8 +2276,10 @@ def _preset(width, style, palette, grid, font_pt=None):
         publication = chosen.publication
         title = publication.title_font_pt if publication.title_font_pt is not None else publication.font_pt + 1
         small = publication.small_font_pt / publication.font_pt
+        letter = ({} if publication.letter_font_pt is None else
+                  {'letter_font_pt': font_pt * publication.letter_font_pt / publication.font_pt})
         chosen = chosen.customize(font_pt=font_pt, small_font_pt=round(font_pt * small * 2) / 2,
-                                  title_font_pt=font_pt * title / publication.font_pt)
+                                  title_font_pt=font_pt * title / publication.font_pt, **letter)
     overrides = {}
     if palette is not None:
         overrides['palette'] = palette

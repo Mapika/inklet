@@ -167,7 +167,9 @@ its options. It accepts:
 - Single-series bars: `bar_fill` (`neutral` or `accent`). Educational and
   marketing presets use the accent; scientific and worksheet presets use neutral.
 - Lettering: `letter_style` (`bold-lower`, `lower`, `upper`, `bold-upper`, `paren`)
-  and `letter_pad`, the distance in millimetres between a letter and its panel.
+  `letter_pad`, the distance in millimetres between a letter and its panel, and
+  `letter_font_pt`, the letter size in points (None uses the title size).
+  `max_letter_pt` is the largest letter the checks accept.
 - Export and checks: `dpi`, `text` (`embed` or `outline`), `min_font_pt`,
   `min_stroke_mm`, `min_dpi`, `max_font_pt` and `max_height_mm`.
 
@@ -206,13 +208,22 @@ The Nature preset's widths and typography were reviewed against the
 [Nature research figure guide](https://research-figure-guide.nature.com/figures/building-and-exporting-figure-panels/)
 on **2026-09-05**: 89/183 mm columns, standard sans-serif text at 5–7 pt, and
 editable embedded text. Inklet chooses 7 pt body/title text and 6 pt labels.
+The guide's [specifications page](https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications/),
+reviewed on **2026-10-11**, asks for panel letters in 8 pt bold, upright
+lowercase (a, b, c) and at most 7 pt for all other text, so the preset sets
+panel letters at 8 pt (`letter_font_pt=8` on its publication profile)
+and, in column formats, checks them against 8 pt (`max_letter_pt=8`).
 For Nature single- and double-column formats, compilation checks the 170 mm
 maximum page height (`PAGE_TOO_TALL`) and the 7 pt maximum effective text size
-(`LARGE_TEXT`). These checks include enclosing transforms and automatic page
+(`LARGE_TEXT`); panel letters are checked against 8 pt instead. These checks include enclosing transforms and automatic page
 heights, and are retained by `compiled.lint()`. They report errors without
 silently resizing artwork. Slides, posters and other destinations omit these
 print limits. Set `max_font_pt=None` or `max_height_mm=None` on a custom preset
-to disable the corresponding maximum.
+to disable the corresponding maximum. `letter_font_pt=` sets the panel-letter
+size of any preset (None, the default elsewhere, uses the title size), and
+`max_letter_pt=` the largest letter the checks accept; letters are checked
+against it, or against `max_font_pt` if that is larger, instead of against
+`max_font_pt`. `lint()` takes the same `max_letter_pt=`.
 Palettes, spacing, line weights and the default 300 DPI are Inklet design choices.
 
 The [Science author instructions](https://www.science.org/content/page/instructions-preparing-initial-manuscript)
@@ -232,4 +243,4 @@ record describe the actual document/export settings.
 Use `theme()` for drawing defaults, `publication()` for a physical page and
 export policy, or `preset()` for a named combination of both with lettering and
 destination-specific checks. Publication profiles also accept `base_theme=`, `title_font_pt=`,
-`max_font_pt=` and `max_height_mm=`.
+`max_font_pt=`, `max_height_mm=`, `letter_font_pt=` and `max_letter_pt=`.
