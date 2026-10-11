@@ -63,6 +63,8 @@ Charts side by side (`a | b`) or stacked (`a / b`), with panel letters.
 * `options(**settings)` -- Set this layout's options and return it: `(a | b).options(style='scientific.nature', palette='okabe-ito', font_pt=8)`.
 * `charts()`
 * `document(rotate=frozenset())` -- A `Document` with one lettered cell per chart.
+* `hline(y, *, data=None, **options)` -- A horizontal reference line in every panel, or a value per facet; returns the layout.
+* `vline(x, *, data=None, **options)` -- A vertical reference line in every panel, or a value per facet; returns the layout.
 * `compile()` -- Measure and place everything; returns a `CompiledFigure`.
 * `report(**options) -> 'str'` -- Layout and print diagnostics: overlaps, clipped text, small type.
 * `save(*paths, **options)` -- Save to each path; the extension picks SVG, PDF or PNG.

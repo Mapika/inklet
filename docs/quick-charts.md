@@ -339,8 +339,26 @@ for metric, scale in (('accuracy', 0.01), ('loss', 1.0), ('weight norm', 40.0)):
         metrics['step'].append(step)
         metrics['value'].append(scale * (10 + step * (1 if metric != 'loss' else -1)))
 
-i.line(metrics, x='step', y='value', facet_col='metric', facet_scales='free_y')
+grid = i.line(metrics, x='step', y='value', facet_col='metric', facet_scales='free_y')
 ```
+
+A faceted call returns a `Layout`. Its `hline` and `vline` draw a reference
+line in every panel, and take the keywords of a chart's `hline` (`label=`,
+`stroke_dash=`...). A line outside the data widens the shared axis, as it
+would on one chart. The value can also differ by panel:
+
+```python
+grid.hline(10)                                    # every panel
+grid.hline({'loss': 8, 'accuracy': [0.11, 0.14]}) # by facet value; others get none
+targets = {'metric': ['loss', 'weight norm'], 'target': [6, 500]}
+grid.hline('target', data=targets, label='target', stroke_dash=(1.0, 0.8))
+```
+
+A dict maps facet values to a number or a list of numbers; with both
+`facet_row=` and `facet_col=`, a key is a row value, a column value or a
+`(row, column)` pair. A column name draws a line at each distinct value of that
+column among the panel's rows: from the faceted table itself, or from `data=`,
+whose rows are matched to the panels by their facet columns.
 
 ### Multi-panel figures
 

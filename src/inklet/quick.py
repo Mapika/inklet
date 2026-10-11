@@ -2582,6 +2582,62 @@ class Layout(_Renderable):
                            plotting=plotting)
                 doc.add(name, sub, **place)
 
+    def hline(self, y, *, data=None, **options):
+        """A horizontal reference line in every panel, or a value per facet; returns the layout.
+
+        A number draws the same line in every chart: `grid.hline(0)`. In a
+        faceted layout `y` can also differ by panel:
+
+        - a dict from facet value to a number or a list of numbers,
+          `grid.hline({'loss': 2.3, 'accuracy': [0.5, 0.9]})`. A panel the
+          dict does not name gets no line. With both `facet_row=` and
+          `facet_col=`, a key is a row value, a column value or a
+          `(row, column)` pair.
+        - a column name, `grid.hline('chance')`: each panel draws a line at
+          every distinct value of that column among its own rows. `data=`
+          reads the column from another table instead, matched to the panels
+          by their facet columns, as ggplot's `geom_hline(data=...)` does.
+
+        The other keywords are `hline`'s (`label=`, `stroke_dash=`,
+        `label_side=`...) and apply to every line. A line outside the data
+        widens the shared axis of every facet, as it would a single chart's.
+        """
+        return self._rules('hline', 'y', y, data, options)
+
+    def vline(self, x, *, data=None, **options):
+        """A vertical reference line in every panel, or a value per facet; returns the layout.
+
+        `x` takes the forms `hline` describes for `y`: a number for every
+        panel, a dict from facet value to numbers, or a column name read
+        from each panel's rows (or from `data=`).
+        """
+        return self._rules('vline', 'x', x, data, options)
+
+    def _rules(self, method, axis, value, data, options):
+        """Draw `method` in each chart at its share of `value`, then refit the shared axis."""
+        charts = list(self.charts())
+        facets = self._facets
+        if facets is None:
+            if isinstance(value, Mapping) or data is not None:
+                raise TypeError(f'{method}() takes a dict of values or data= only on a faceted layout '
+                                f'(facet_col= or facet_row=); pass one {axis} value for every panel')
+            per_chart = [[value]] * len(charts)
+        elif isinstance(value, Mapping):
+            per_chart = facets.from_mapping(value, method)
+        elif isinstance(value, str) and facets.names_column(value, data):
+            per_chart = facets.from_column(value, data, method)
+        elif data is not None:
+            raise ValueError(f'{method}(data=...) needs {axis}= to be a column of that table, '
+                             f'got {value!r}')
+        else:
+            per_chart = [[value]] * len(charts)
+        for chart, values in zip(charts, per_chart):
+            for one in values:
+                getattr(chart, method)(one, **options)
+        if facets is not None:
+            facets.refit(charts, axis)
+        return self
+
     def __repr__(self):
         if self.direction == 'grid':
             return f'<inklet.Layout grid of {len(self.items)} charts, {self.columns} columns>'
@@ -2725,6 +2781,66 @@ class _FacetGrid:
     def __init__(self, table, row, col, keys, own, share_x, share_y):
         self.table, self.row, self.col, self.keys = table, row, col, keys
         self.own, self.share_x, self.share_y = own, share_x, share_y
+
+    def _facet_names(self):
+        return [name for name in (self.row, self.col) if name is not None]
+
+    def _shown(self):
+        values = [v for key in self.keys for v in key if v is not None]
+        return ', '.join(repr(v) for v in dict.fromkeys(values))
+
+    def from_mapping(self, mapping, method):
+        """Per chart, the values a {facet value: number(s)} dict gives it."""
+        known = set()
+        for row_value, col_value in self.keys:
+            known.update(v for v in (row_value, col_value) if v is not None)
+            if row_value is not None and col_value is not None:
+                known.add((row_value, col_value))
+        unknown = [k for k in mapping if k not in known]
+        if unknown:
+            raise ValueError(f'{method}() names {", ".join(map(repr, unknown))}, which is no facet; '
+                             f'the facets are {self._shown()}')
+        out = []
+        for row_value, col_value in self.keys:
+            values = []
+            for key in ((row_value, col_value), row_value, col_value):
+                if key is None or isinstance(key, tuple) and None in key or key not in mapping:
+                    continue
+                found = mapping[key]
+                values.extend(found if isinstance(found, (list, tuple)) else [found])
+            out.append(values)
+        return out
+
+    def names_column(self, name, data):
+        table = self.table if data is None else _table(data)
+        return table is not None and name in table
+
+    def from_column(self, name, data, method):
+        """Per chart, the distinct values of column `name` among its rows."""
+        table = self.table if data is None else _table(data)
+        if data is not None:
+            missing = [f for f in self._facet_names() if f not in table]
+            if missing:
+                raise ValueError(f'{method}(data=...) needs the facet column '
+                                 f'{" and ".join(map(repr, missing))} to match its rows to panels')
+        columns = {f: table[f] for f in self._facet_names()}
+        values = table[name]
+        out = []
+        for row_value, col_value in self.keys:
+            wanted = {f: v for f, v in ((self.row, row_value), (self.col, col_value)) if f is not None}
+            here = [v for k, v in enumerate(values)
+                    if v is not None and all(columns[f][k] == w for f, w in wanted.items())]
+            out.append(list(dict.fromkeys(here)))
+        return out
+
+    def refit(self, charts, axis):
+        """Refit the shared `axis` to the data and the reference lines just added."""
+        if not (self.share_x if axis == 'x' else self.share_y) or self.own.get(axis + 'lim') is not None:
+            return
+        start = _domain(None, self.own.get(axis + 'scale', 'linear'))
+        for chart in charts:
+            chart.spec.configure(**{axis: start})
+        _share_domains(charts, self.own, x=axis == 'x', y=axis == 'y')
 
 
 def _share_domains(charts, own, x=True, y=True):

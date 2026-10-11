@@ -152,6 +152,17 @@ panel's y axis to its own rows; `'free_x'` and `'free'` free x or both:
 i.line(df, x='step', y='value', color='run', facet_col='metric', facet_scales='free_y')
 ```
 
+A faceted call returns a `Layout`; its `hline`/`vline` draw in every panel.
+A dict gives a value per facet, and a column name reads each panel's value
+from its own rows (or from `data=`, matched by the facet column):
+
+```python
+grid = i.line(df, x='step', y='value', facet_col='metric', facet_scales='free_y')
+grid.hline(0)                                     # every panel
+grid.hline({'loss': 2.3, 'accuracy': [0.5, 0.9]}) # per facet; unnamed panels get none
+grid.hline('chance', label='chance')              # df['chance'] within each panel
+```
+
 ## Multi-panel figures
 
 `|` puts charts side by side, `/` stacks them. Panels get letters a, b, c...

@@ -8,6 +8,13 @@
   `'free'` fits that axis to each panel's own rows, as ggplot's
   `scales='free_y'` does, and every panel writes its own tick numbers on it.
   The default, `'fixed'`, keeps every panel on the same axes.
+- `hline` and `vline` on a faceted layout (and on any `Layout`): a number
+  draws the line in every panel; a dict gives values per facet
+  (`grid.hline({'loss': 2.3})`); a column name reads each panel's values from
+  its own rows or from `data=`, matched by the facet columns. Faceted calls
+  return a `Layout`, which had no `hline`, so `grid.hline(0)` raised
+  `AttributeError` and a reference line meant one chart per panel. A line
+  outside the data widens the shared axis of every panel.
 - Lint catches figures that draw the wrong data without looking broken:
   - `ROWS_COMBINED` (warning): `bar()` summed repeated rows per category
     (replicates read as one total), or `line()` zigzags through rows that share
