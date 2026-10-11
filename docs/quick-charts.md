@@ -241,7 +241,7 @@ Every function takes these:
 | `height` | Millimetres. The default is about 0.62 × width, kept between 45 and 75 mm. With `aspect=`, the default follows the width instead |
 | `style` | A [preset](presets.md) name; default `'scientific.modern'`: marks in the `inklet-vivid` palette on grey axes. Or a Preset object, such as `i.preset('scientific.modern').customize(font_pt=12)` |
 | `font_pt` | The main type size in points. Ticks and the key are 6/7 of it, titles 9/7 |
-| `palette` | A [palette name](palettes.md) such as `'okabe-ito'` or `'tol-muted'`, or a list of colours |
+| `palette` | A [palette name](palettes.md) such as `'okabe-ito'` or `'tol-muted'`, a list of colours, or a `{series name: colour}` mapping |
 | `title`, `xlabel`, `ylabel` | Text; [markup](axes-and-scales.md) such as `x^{2}` works |
 | `xlim`, `ylim` | `(low, high)`. Explicit limits zoom, and marks beyond them are clipped |
 | `xscale`, `yscale` | `'linear'` or `'log'` |
@@ -403,6 +403,24 @@ panel in its own palette. A palette set on the layout overrides them all, and a
 chart without one takes the figure's. A series name keeps its palette slot
 across the panels, so a series called `control` is one colour in every panel
 that shares a palette.
+
+A slot depends on which names a figure draws, so it cannot carry a meaning
+from one figure to the next. To give a name the same colour in every figure,
+map it: `palette={'chess': '#0072b2', 'othello': '#009e73'}` on a chart or a
+layout draws those series in those colours whatever order they come in.
+Names the mapping does not list take the preset's palette, without the
+mapped colours.
+
+```python
+import inklet as i
+
+rows = [{'n': n, 'loss': 3 - n / 4 - k, 'domain': d}
+        for k, d in enumerate(['chess', 'othello', 'dyck']) for n in range(4)]
+colours = {'chess': '#0072b2', 'othello': '#009e73'}
+a = i.line(rows, x='n', y='loss', color='domain', style='scientific.nature')
+b = i.scatter(rows[4:], x='n', y='loss', color='domain', style='scientific.nature')
+figure = (a | b).options(palette=colours).compile()
+```
 
 ### Large data
 

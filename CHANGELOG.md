@@ -37,6 +37,12 @@ narrow cells, font control and checks.
   CIDFontType2 with `/FontFile2` subsets, the equivalent of matplotlib's
   `pdf.fonttype = 42`; the [export guide](docs/export.md) now says so.
 
+- `palette=` on one-call charts and layouts takes a `{series name: colour}`
+  mapping: those series are drawn in those colours in every panel and
+  whatever order they are drawn in, so a name can keep one colour across
+  figures. Unlisted names take the preset's palette, without the mapped
+  colours. A colour that does not parse is refused at the call.
+
 ### Changed
 
 - `scientific.nature` sets panel letters in 8 pt bold lowercase, as the Nature

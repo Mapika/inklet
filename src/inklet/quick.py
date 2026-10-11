@@ -602,6 +602,7 @@ class Chart(_Renderable, metaclass=_Forwarding):
             if value is not None and not (isinstance(value, str) or callable(value)):
                 raise TypeError(f"{name} must be a format string or a callable, got {value!r}")
         _check_font_pt(font_pt)
+        _check_colour_map(palette)
         # A width of None means "the style decides": a Preset keeps its own page, a name is a single column.
         self.width, self.palette, self._grid = width, palette, grid
         self.style = _check_style(style)
@@ -1590,6 +1591,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
         be turned to fit. `colours` is the palette this chart's series are
         drawn in (default: the profile's), and `slots` maps every series name
         to its palette position across a layout, so one name keeps one colour.
+        `colours` may also be a {series name: colour} mapping (a `palette=`
+        mapping), which colours those names and leaves the rest to the palette.
         `title` shows this title instead of the chart's own, for the figure
         only: a layout uses it to drop a title that repeats its panel letter,
         and the Chart itself is left as the user made it. None keeps its title.
@@ -1620,8 +1623,18 @@ class Chart(_Renderable, metaclass=_Forwarding):
             spec.configure(height=self._aspect_cap(width))
         if self._series_tokens or self._has_tokens():
             theme = (profile or self._profile()).theme
-            palette = theme.palette if colours is None else colours
-            _resolve_steps(spec, palette, theme.paper, self._slot_index(slots))
+            named = colours if isinstance(colours, Mapping) else (
+                self.palette if colours is None and isinstance(self.palette, Mapping) else None)
+            palette = theme.palette if colours is None or named is not None else colours
+            fixed = None
+            if named:
+                # Listed names take their colours; the rest share the palette
+                # without the listed colours, so no two series look alike.
+                fixed = {int(token[len(_TOKEN):]): named[label]
+                         for label, token in self._series_tokens.items() if label in named}
+                taken = {colour.lower() for colour in named.values()}
+                palette = tuple(c for c in palette if c.lower() not in taken) or palette
+            _resolve_steps(spec, palette, theme.paper, self._slot_index(slots), fixed)
         xlabel = self._xlabel if self._xlabel is not None else self._auto_labels.get('x')
         ylabel = self._ylabel if self._ylabel is not None else self._auto_labels.get('y')
         methods = {step[1] for step in spec._steps}
@@ -2157,6 +2170,17 @@ def _turn(rotate, chart):
     return id(chart) in rotate
 
 
+def _check_colour_map(palette):
+    """Refuse a `palette=` mapping with a name that is not text or a colour that does not parse."""
+    if not isinstance(palette, Mapping):
+        return
+    from .themes.color import parse_color
+    for name, colour in palette.items():
+        if not isinstance(colour, str):
+            raise TypeError(f'palette= maps series names to colours; {name!r} maps to {colour!r}')
+        parse_color(colour)
+
+
 def _labels_collide(figure, categories) -> bool:
     """Whether the lint report has two of these category labels touching.
 
@@ -2199,41 +2223,44 @@ def _marker_look(count, total):
     return {'size': 0.8, 'fill_opacity': 0.55}
 
 
-def _resolve_tokens(kwargs, palette, paper='#ffffff', index=None):
+def _resolve_tokens(kwargs, palette, paper='#ffffff', index=None, fixed=None):
     """Replace palette slots (`@series2`, `@tint2`) with colours, in nested values too.
 
-    `index` maps a slot to the palette position to use (see `Chart._slot_index`).
+    `index` maps a slot to the palette position to use (see `Chart._slot_index`),
+    and `fixed` maps a slot to a colour of its own (a `palette=` mapping).
     """
     from .themes import mix
 
-    def position(value, prefix):
+    def colour_of(value, prefix):
         slot = int(value[len(prefix):])
-        return index.get(slot, slot) if index is not None else slot
+        if fixed and slot in fixed:
+            return fixed[slot]
+        position = index.get(slot, slot) if index is not None else slot
+        return palette[position % len(palette)]
 
     def resolve(value):
         if isinstance(value, str) and value.startswith(_TOKEN):
-            return palette[position(value, _TOKEN) % len(palette)]
+            return colour_of(value, _TOKEN)
         for prefix, amount in ((_TINT, _TINT_AMOUNT), (_SOFT, _SOFT_AMOUNT)):
             if isinstance(value, str) and value.startswith(prefix):
-                colour = palette[position(value, prefix) % len(palette)]
-                return mix(colour, paper, amount)
+                return mix(colour_of(value, prefix), paper, amount)
         if isinstance(value, (list, tuple)):
             return type(value)(resolve(v) for v in value)
         return value
     return {key: resolve(value) for key, value in kwargs.items()}
 
 
-def _resolve_steps(spec, palette, paper, index=None):
+def _resolve_steps(spec, palette, paper, index=None, fixed=None):
     """Colour a recipe's palette slots in place, and those of its twin axes too.
 
     A twin's marks are recorded in their own recipe, so resolving only the
     parent's steps would leave their `@series` names in the drawing.
     """
-    spec._steps = [(key, method, args, _resolve_tokens(kwargs, palette, paper, index))
+    spec._steps = [(key, method, args, _resolve_tokens(kwargs, palette, paper, index, fixed))
                    for key, method, args, kwargs in spec._steps]
     for _, method, args, _ in spec._steps:
         if method in ('twin_x', 'twin_y'):
-            _resolve_steps(args[0], palette, paper, index)
+            _resolve_steps(args[0], palette, paper, index, fixed)
 
 
 def _index(table, column, length=None):
@@ -2359,7 +2386,9 @@ def _preset(width, style, palette, grid, font_pt=None):
         chosen = chosen.customize(font_pt=font_pt, small_font_pt=round(font_pt * small * 2) / 2,
                                   title_font_pt=font_pt * title / publication.font_pt, **letter)
     overrides = {}
-    if palette is not None:
+    if palette is not None and not isinstance(palette, Mapping):
+        # A {name: colour} mapping colours series by name in `plot()`; the
+        # preset keeps its palette for the names it does not list.
         overrides['palette'] = palette
     if grid is not None:
         overrides['grid'] = {True: 'both', False: 'none'}.get(grid, grid)
@@ -2629,11 +2658,17 @@ class Layout(_Renderable):
         for chart in charts:
             for label in chart._series_names:
                 panels[label] = panels.get(label, 0) + 1
-        layout_palette = self._explicit('palette') is not None
+        explicit = self._explicit('palette')
+        layout_palette = explicit is not None
         plotting = {}
         for chart in charts:
             colours = None
-            if not layout_palette and chart.palette is not None:
+            if isinstance(explicit, Mapping):
+                # The figure's {name: colour} mapping, over each panel's own.
+                colours = explicit
+            elif not layout_palette and isinstance(chart.palette, Mapping):
+                colours = chart.palette
+            elif not layout_palette and chart.palette is not None:
                 colours = chart._profile().theme.palette
             shared = any(panels[label] > 1 for label in chart._series_names)
             plotting[id(chart)] = {'colours': colours, 'slots': slots, 'title': titles[id(chart)] if titles else None,
@@ -3044,7 +3079,8 @@ def _entry(method):
             raise ValueError('facet_order= orders facet values, so it needs facet_col= or facet_row=')
         if facet_scales is not None:
             raise ValueError('facet_scales= frees the axes of facets, so it needs facet_col= or facet_row=')
-        if method == 'scatter' and 'palette' in own and _is_column(_table(data), rest.get('color')):
+        if (method == 'scatter' and 'palette' in own and not isinstance(own['palette'], Mapping)
+                and _is_column(_table(data), rest.get('color'))):
             rest['palette'] = own['palette']
         if method == 'heatmap' and 'palette' in own:
             rest['palette'] = own.pop('palette')
