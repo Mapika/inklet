@@ -68,6 +68,10 @@ narrow cells, font control and checks.
   third of a Nature double-column row with 16 categories reported an
   `OVERLAP` error. Ten or fewer categories are never thinned.
 
+- The `KEY_COVERS_DATA` hint names `corner='best'` (`legend='best'` on a
+  one-call chart) first among the alternatives: it takes the clearest spot
+  inside the plot and, failing that, sets the key beside it.
+
 ### Fixed
 
 - Forest `'ci'` and `'estimate'` text writes negative numbers with a minus

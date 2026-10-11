@@ -345,9 +345,10 @@ def _finding(ctx: LintContext, key_id: str, unit_id: str, panel_id: str,
         room = (f"extend the y range {'upward' if where[0] == 'n' else 'downward'}"
                 f" to make room for it")
     joiner = "; or" if clear else ""
-    hint = (f"{first}{joiner} pass corner='auto' to search the plot for clear "
-            f"space, side='right' (or another side) to set it outside the plot, "
-            f"or {room}")
+    hint = (f"{first}{joiner} pass corner='best' (legend='best' on a one-call "
+            f"chart) to take the clearest spot or, failing that, a place beside or "
+            f"below the plot; corner='auto' to search the plot for clear space; "
+            f"side='right' (or another side) to set it outside the plot; or {room}")
     targets = {unit_id}
     targets.update(h.item.id for h in hidden)
     return Diagnostic(

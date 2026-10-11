@@ -52,6 +52,7 @@ def test_a_legend_plate_over_a_line_is_a_warning_naming_the_series():
     # How much of the line is gone, in millimetres.
     assert "mm of line" in finding.message
     assert "corner='auto'" in finding.hint and "side=" in finding.hint
+    assert "corner='best'" in finding.hint and "legend='best'" in finding.hint
     assert "y range downward" in finding.hint
 
 
