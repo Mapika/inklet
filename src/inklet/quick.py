@@ -2312,6 +2312,8 @@ class Layout(_Renderable):
         if direction == 'grid' and not (isinstance(columns, int) and columns >= 1):
             raise ValueError('a grid layout needs columns=, a positive integer')
         self.columns = columns
+        #: How a faceted grid was split (`_FacetGrid`); None for other layouts.
+        self._facets = None
         flat = []
         for item in items:
             if isinstance(item, Layout) and item.direction == direction != 'grid':
@@ -2625,13 +2627,29 @@ def _facet_values(values, what, name, facet_order):
     return present
 
 
-def _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_order=None):
+#: `facet_scales=` values: which axes each panel fits to its own data.
+_FACET_SCALES = {'fixed': (True, True), 'free_x': (False, True),
+                 'free_y': (True, False), 'free': (False, False)}
+
+
+def _facet_sharing(scales):
+    """(share_x, share_y) for a `facet_scales=` value."""
+    if scales not in _FACET_SCALES:
+        raise ValueError(f"facet_scales must be 'fixed', 'free_x', 'free_y' or 'free', got {scales!r}")
+    return _FACET_SCALES[scales]
+
+
+def _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_order=None,
+           scales='fixed'):
     """One chart per facet value, on shared scales, in a grid.
 
     Every facet is the same chart drawn from its subset of rows: same axes,
     same colour for the same group, one key. Inner panels keep their ticks
     and drop the numbers and axis titles their neighbours already show.
+    `scales` frees an axis (`'free_y'`, `'free_x'` or `'free'`): each panel
+    then fits that axis to its own rows and writes its own tick numbers.
     """
+    share_x, share_y = _facet_sharing(scales)
     table = _table(data)
     if table is None:
         raise ValueError('facets need data=, a table with the facet column')
@@ -2656,7 +2674,7 @@ def _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_orde
     color = rest.get('color')
     groups = ([str(v) for v in _in_category_order(table, color, table[color])]
               if _is_column(table, color) else [])
-    charts = []
+    charts, keys = [], []
     for row_value, col_value in cells:
         keep = [(rows_by is None or rows_by[k] == row_value) and
                 (cols_by is None or cols_by[k] == col_value) for k in range(len(next(iter(table.values()))))]
@@ -2673,24 +2691,47 @@ def _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_orde
         chart._slots = len(groups)
         getattr(chart, method)(subset, *args, **rest)
         charts.append(chart)
-    _share_domains(charts, own)
+        keys.append((row_value, col_value))
+    _share_domains(charts, own, x=share_x, y=share_y)
     count = len(charts)
     for index, chart in enumerate(charts):
         column = index % columns
         below = index + columns < count
+        # A free axis has its own numbers in every panel; only the repeated
+        # axis title goes.
         if column:
-            chart._hide_ticks.add('y')
+            if share_y:
+                chart._hide_ticks.add('y')
             chart._ylabel = ''
         if below:
-            chart._hide_ticks.add('x')
+            if share_x:
+                chart._hide_ticks.add('x')
             chart._xlabel = ''
         if index != min(columns, count) - 1:
             chart.legend_side = False
-    return Layout('grid', charts, columns=columns, letters=False, width=own.get('width'))
+    layout = Layout('grid', charts, columns=columns, letters=False, width=own.get('width'))
+    layout._facets = _FacetGrid(table, facet_row, facet_col, keys, own, share_x, share_y)
+    return layout
 
 
-def _share_domains(charts, own):
-    """Set every facet's axes to the union of all their data."""
+class _FacetGrid:
+    """What a faceted layout was split by, so marks added later reach the right panels.
+
+    `keys` holds each chart's (row value, column value), None where that
+    facet is unset. `own` and the two sharing flags are what `_share_domains`
+    needs to refit the shared axes after a reference line is added.
+    """
+
+    def __init__(self, table, row, col, keys, own, share_x, share_y):
+        self.table, self.row, self.col, self.keys = table, row, col, keys
+        self.own, self.share_x, self.share_y = own, share_x, share_y
+
+
+def _share_domains(charts, own, x=True, y=True):
+    """Set every facet's axes to the union of all their data.
+
+    `x=False` or `y=False` leaves that axis to each chart, fitted to its own data.
+    """
     from .plot.autodomain import measure
     from .plot.scale import log as log_scale
     steps, right = [], []
@@ -2701,8 +2742,9 @@ def _share_domains(charts, own):
         if chart._secondary is not None:
             right.extend((method, args, _resolve_tokens(kwargs, neutral))
                          for _, method, args, kwargs in chart._secondary._steps)
+    shared = {'x': x, 'y': y}
     x, y = measure(steps, 60, 40)
-    if right:
+    if right and shared['y']:
         # The right-hand axis shares x with the left, and its own y is the
         # union of the right-hand series alone, never the left's.
         x = measure(steps + right, 60, 40)[0]
@@ -2713,7 +2755,7 @@ def _share_domains(charts, own):
                     chart.spec.style(_RIGHT_AXIS, scale=domain)
     for name, axis, lim, scale in (('x', x, 'xlim', own.get('xscale', 'linear')),
                                    ('y', y, 'ylim', own.get('yscale', 'linear'))):
-        if own.get(lim) is not None:
+        if own.get(lim) is not None or not shared[name]:
             continue
         domain = axis.domain(scale=scale)
         if domain is None:
@@ -2724,7 +2766,7 @@ def _share_domains(charts, own):
                 chart.spec.configure(**{name: value})
 
 
-_FACET_OPTIONS = ('facet_col', 'facet_row', 'facet_col_wrap', 'facet_order')
+_FACET_OPTIONS = ('facet_col', 'facet_row', 'facet_col_wrap', 'facet_order', 'facet_scales')
 
 #: The Panel methods each one-call function hands its extra keywords to. A
 #: keyword none of them takes is refused at the call, not by Style at compile.
@@ -2791,6 +2833,7 @@ def _entry(method):
         facet_row = options.pop('facet_row', None)
         wrap = options.pop('facet_col_wrap', None)
         facet_order = options.pop('facet_order', None)
+        facet_scales = options.pop('facet_scales', None)
         own, rest = _split(options)
         if _bare_values(data) and method != 'heatmap':
             example = _BARE_EXAMPLE.get(method, 'x=[...], y=[...]')
@@ -2799,9 +2842,12 @@ def _entry(method):
                             f'named argument instead, e.g. i.{method}({example})')
         _check_options(method, rest)
         if facet_col is not None or facet_row is not None:
-            return _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_order)
+            return _facet(method, data, args, own, rest, facet_col, facet_row, wrap, facet_order,
+                          'fixed' if facet_scales is None else facet_scales)
         if facet_order is not None:
             raise ValueError('facet_order= orders facet values, so it needs facet_col= or facet_row=')
+        if facet_scales is not None:
+            raise ValueError('facet_scales= frees the axes of facets, so it needs facet_col= or facet_row=')
         if method == 'scatter' and 'palette' in own and _is_column(_table(data), rest.get('color')):
             rest['palette'] = own['palette']
         if method == 'heatmap' and 'palette' in own:
@@ -2826,7 +2872,10 @@ def _entry(method):
     `facet_order=` lists the facet values in the order they are drawn: a
     list for every facet, or a dict of column name to list when both
     facets are set. Numbers and dates default to ascending, text to first
-    appearance; an explicit list must name every value.
+    appearance; an explicit list must name every value. `facet_scales=`
+    is 'fixed' (the default: every panel on the same x and y), 'free_y',
+    'free_x' or 'free', which fit that axis to each panel's own rows and
+    write its tick numbers in every panel.
     Returns a `Chart` (a `Layout` when faceted); call `.save('figure.pdf')`.
     '''
     return make

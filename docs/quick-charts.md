@@ -243,6 +243,7 @@ Every function takes these:
 | `legend` | `'auto'`, `'direct'` (names at the ends of the lines instead of a key), a side (`'bottom'`), a corner (`'ne'`) or `False` |
 | `facet_col`, `facet_row` | Columns to split into a grid of charts on shared axes; `facet_col_wrap=` sets charts per row |
 | `facet_order` | The facet values in draw order: a list for every facet, or a dict from column name to list. Numbers and dates default to ascending, text to first appearance; a list must name every value |
+| `facet_scales` | `'fixed'` (default), `'free_y'`, `'free_x'` or `'free'`. A free axis fits each panel's own rows, and every panel writes its tick numbers |
 | `grid` | `True`, `False`, `'x'` or `'y'` |
 | `xticks`, `yticks` | The tick values to show, such as `xticks=[0, 5, 10, 15, 20]` |
 | `xminor`, `yminor` | `True` for unlabelled minor ticks between the major ones, or an integer: the number of pieces each step divides into |
@@ -321,6 +322,25 @@ Facets share both axes, so panels can be compared at a glance. A group keeps
 its colour in every panel, a single key serves the grid, and inner panels drop
 the tick numbers and axis titles their neighbours already show. Numeric facet
 values are titled with their column (`rep = 2`).
+
+When the panels hold quantities on different scales, such as one metric per
+panel, a shared y axis flattens all but the largest. `facet_scales='free_y'`
+fits each panel's y axis to its own rows, and every panel then writes its own y
+tick numbers; the y title is still written once. `'free_x'` frees x instead and
+`'free'` frees both. An explicit `xlim=` or `ylim=` still applies to every
+panel. Panels on free scales cannot be compared by position across panels, so
+keep the default when the panels show the same quantity.
+
+```python
+metrics = {'metric': [], 'step': [], 'value': []}
+for metric, scale in (('accuracy', 0.01), ('loss', 1.0), ('weight norm', 40.0)):
+    for step in range(6):
+        metrics['metric'].append(metric)
+        metrics['step'].append(step)
+        metrics['value'].append(scale * (10 + step * (1 if metric != 'loss' else -1)))
+
+i.line(metrics, x='step', y='value', facet_col='metric', facet_scales='free_y')
+```
 
 ### Multi-panel figures
 

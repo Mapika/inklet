@@ -66,6 +66,7 @@ Chart options, accepted by every function above:
 | `legend` | `'auto'` (default), `'direct'` (names at the line ends, no key), `'top'`, `'bottom'`, `'left'`, `'right'`, a corner `'ne'`, or `False` |
 | `facet_col`, `facet_row` | column names: one chart per value, on shared axes, in a grid; `facet_col_wrap=3` wraps |
 | `facet_order` | the facet values in draw order: a list for every facet, or a dict of column name to list. Default: numbers and dates ascending, text in first-appearance order; a list must name every value |
+| `facet_scales` | `'fixed'` (default: every panel on the same axes), `'free_y'`, `'free_x'` or `'free'`: that axis fits each panel's own rows and every panel writes its numbers |
 | `grid` | `True`, `False`, `'x'`, `'y'` |
 | `xticks`, `yticks` | the tick values to show, e.g. `xticks=[0, 5, 10, 15, 20]` |
 | `xminor`, `yminor` | `True` for unlabelled minor ticks, or an integer: how many pieces each major step divides into |
@@ -136,7 +137,13 @@ i.scatter(df, x='dose', y='response', facet_row='replicate', facet_col='strain')
 ```
 
 Facets share both axes, keep one colour per group across panels, show one key,
-and drop repeated tick numbers and axis titles on inner panels.
+and drop repeated tick numbers and axis titles on inner panels. For panels whose
+values differ in scale (one metric per panel), `facet_scales='free_y'` fits each
+panel's y axis to its own rows; `'free_x'` and `'free'` free x or both:
+
+```python
+i.line(df, x='step', y='value', color='run', facet_col='metric', facet_scales='free_y')
+```
 
 ## Multi-panel figures
 

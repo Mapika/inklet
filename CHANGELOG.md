@@ -4,6 +4,10 @@
 
 ### Added
 
+- `facet_scales=` on every faceted function: `'free_y'`, `'free_x'` or
+  `'free'` fits that axis to each panel's own rows, as ggplot's
+  `scales='free_y'` does, and every panel writes its own tick numbers on it.
+  The default, `'fixed'`, keeps every panel on the same axes.
 - Lint catches figures that draw the wrong data without looking broken:
   - `ROWS_COMBINED` (warning): `bar()` summed repeated rows per category
     (replicates read as one total), or `line()` zigzags through rows that share
