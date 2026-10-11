@@ -1206,11 +1206,15 @@ class Chart(_Renderable, metaclass=_Forwarding):
         diamonds. `left` and `right` are the text columns beside the plot:
         "label", "ci" (the estimate and interval), "estimate", "weight" or
         any other column of the table. Rows missing a label, estimate or
-        bound are dropped. The columns keep their type size, so when they
-        are too wide for the cell the plot narrows to make room (to 20 mm at
-        least) before the chart is refused. The chart's `xlabel` names the
-        axis; other keywords (`width=`, `color=`, `summary_line=`) go to
-        `inklet.plot.forest`.
+        bound are dropped. When the columns are too wide for the cell, the
+        plot narrows to make room (to 20 mm at least), then the gaps between
+        columns close, then right-hand `"ci"` and `"estimate"` columns are
+        dropped with a warning (the plot still draws them), and then the
+        columns' type is set smaller, down to the preset's minimum text size
+        (5 pt for `scientific.nature`), before the chart is refused. The chart's `xlabel` names the axis; other keywords
+        (`width=`, `color=`, `summary_line=`, `gap=`, `text_size=`) go to
+        `inklet.plot.forest`, and a `gap=` or `text_size=` given there is
+        kept as given.
 
             i.quick.forest(df, label='study', estimate='or', lower='lo', upper='hi',
                      weight='n', log=True, measure='OR', right=['ci', 'n'])
@@ -1588,7 +1592,8 @@ class Chart(_Renderable, metaclass=_Forwarding):
             from .document.spec import component
             rows, options = self._forest
             if width is not None:
-                options = _fit_forest(rows, options, width, (profile or self._profile()).theme)
+                chosen = profile or self._profile()
+                options = _fit_forest(rows, options, width, chosen.theme, chosen.publication.min_font_pt)
             return component(_forest_figure, rows, options, label=self._xlabel or None)
         if self._pie is not None:
             # A pie is a polar Diagram too. It is responsive: the cell's width sizes the disc.
@@ -1978,14 +1983,28 @@ _FOREST_MIN_PLOT = 20.0
 #: columns are fixed, so one step is nearly exact; the rest absorb rounding.
 _FOREST_FIT_PASSES = 3
 
+#: Forest text columns that repeat what the plot draws, dropped to fit a cell.
+_FOREST_PLOTTED = ('ci', 'estimate')
 
-def _fit_forest(rows, options, width, theme):
-    """The forest's options, with its plot narrowed until the drawing fits `width` mm.
+#: The step, in points, by which a forest's columns are set smaller to fit.
+_FOREST_TYPE_STEP_PT = 0.25
+
+
+def _fit_forest(rows, options, width, theme, min_font_pt=None):
+    """The forest's options, fitted so the drawing fits `width` mm.
 
     Measured under the chart's own theme, as the document will draw it, so the
-    layout never meets a forest wider than its cell. A forest whose text columns
-    alone overflow the cell raises a LayoutError that names the fix.
+    layout never meets a forest wider than its cell. The plot narrows first, to
+    `_FOREST_MIN_PLOT`. If the text columns still overflow, the space between
+    columns closes to the theme's 'xs' gap; then the right-hand columns that
+    repeat what the plot draws (`'ci'` and `'estimate'`) are dropped, with a
+    warning naming them; then the remaining columns' type is set smaller, in
+    quarter-point steps down to `min_font_pt` (the profile's legibility floor).
+    Options the caller gave (`gap=`, `text_size=`) are kept. A forest that
+    overflows even then raises a LayoutError that says what was tried and
+    names the fix.
     """
+    from .core import pt
     from .document.errors import LayoutError
     from .document.spec import themed
     plot = options.get('width', 36.0)
@@ -1993,19 +2012,50 @@ def _fit_forest(rows, options, width, theme):
         # A named width is the forest's own business; nothing here narrows it.
         return options
     floor = min(plot, _FOREST_MIN_PLOT)
+    fitted = dict(options)
+    tried = []
     with themed(theme):
-        node = _forest_figure(rows, {**options, 'width': plot})
+        def measure():
+            return _forest_figure(rows, {**fitted, 'width': plot}).bbox.width
+
+        wide = measure()
         for _ in range(_FOREST_FIT_PASSES):
-            over = node.bbox.width - width
+            over = wide - width
             if over <= 0.01 or plot <= floor:
                 break
             plot = max(floor, plot - over - 0.05)
-            node = _forest_figure(rows, {**options, 'width': plot})
-    if node.bbox.width > width + 0.01:
-        raise LayoutError(f'forest needs {node.bbox.width:.1f} mm for its plot and text columns, but its '
-                          f'cell is {width:.1f} mm wide, and the plot cannot narrow below {floor:g} mm; '
-                          "use fewer right= columns or width='double'")
-    return {**options, 'width': plot}
+            wide = measure()
+        if wide > width + 0.01:
+            tried.append(f'the plot narrowed to {plot:g} mm')
+        if wide > width + 0.01 and 'gap' not in options:
+            fitted['gap'] = theme.gap('xs')
+            wide = measure()
+            tried.append(f"the gaps between columns closed to {fitted['gap']:.1f} mm")
+        right = tuple(fitted.get('right', ('ci',)))
+        repeats = [c for c in right if c in _FOREST_PLOTTED]
+        if wide > width + 0.01 and repeats:
+            fitted['right'] = tuple(c for c in right if c not in _FOREST_PLOTTED)
+            wide = measure()
+            dropped = ', '.join(repr(c) for c in repeats)
+            tried.append(f'the {dropped} column dropped')
+            if wide <= width + 0.01:
+                warnings.warn(f'forest: dropped the right={dropped} text column to fit its '
+                              f'{width:.1f} mm cell; the plot still draws each estimate and interval. '
+                              "Pass right=[] to say so, or give the forest a wider cell",
+                              UserWarning, stacklevel=2)
+        small = theme.font_size_small
+        if wide > width + 0.01 and 'text_size' not in options and min_font_pt is not None:
+            size, lowest = small, pt(min_font_pt)
+            while wide > width + 0.01 and size > lowest + 1e-9:
+                size = max(lowest, size - pt(_FOREST_TYPE_STEP_PT))
+                fitted['text_size'] = size
+                wide = measure()
+            tried.append(f"the columns set at {size / pt(1):g} pt")
+    if wide > width + 0.01:
+        raise LayoutError(f'forest needs {wide:.1f} mm for its plot and text columns, but its '
+                          f'cell is {width:.1f} mm wide, after {", ".join(tried)}; '
+                          "use fewer right= columns or width='double', or shorten the labels")
+    return {**fitted, 'width': plot}
 
 
 #: The largest radius a one-call pie is drawn at, in mm: a single-column pie

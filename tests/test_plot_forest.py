@@ -144,3 +144,18 @@ def test_forest_lints_clean_and_exports() -> None:
     doc = inklet.document(width=120)
     doc.add("forest", node)
     assert "<path" in doc.compile().to_svg()
+
+
+def test_ci_text_uses_minus_signs_and_says_to_between_negative_bounds() -> None:
+    node = inklet.forest([
+        {"label": "Negative", "estimate": -0.02, "low": -0.03, "high": -0.01},
+        {"label": "Crossing", "estimate": 0.01, "low": -0.04, "high": 0.06},
+        {"label": "Positive", "estimate": 0.72, "low": 0.55, "high": 0.94},
+    ], right=["ci", "estimate"])
+    shown = texts(node)
+    assert "−0.02 (−0.03 to −0.01)" in shown
+    assert "0.01 (−0.04 to 0.06)" in shown
+    # Positive intervals keep the en dash.
+    assert "0.72 (0.55–0.94)" in shown
+    assert "−0.02" in shown
+    assert not any(t and "--" in t for t in shown)

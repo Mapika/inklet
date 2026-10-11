@@ -123,7 +123,84 @@ def test_forest_narrows_its_plot_only_as_far_as_its_columns_need():
 
 def test_forest_with_too_many_columns_names_the_fix():
     with pytest.raises(i.LayoutError, match="fewer right= columns or width='double'"):
-        _forest(right=['ci', 'participants', 'participants', 'participants', 'participants']).compile()
+        _forest(right=['participants'] * 8).compile()
+
+
+# A third of a Nature double-column row (57 mm) with a label column of
+# feature-set names and the estimate and interval on the right: 59.2 mm in 4.7.
+FEATURES = {'features': ['loss', 'detection', 'use', 'all mechanism', 'loss + detection',
+                         'loss + use', 'loss + all mechanism'],
+            'mae': [0.316, 0.927, 0.609, 0.584, 0.319, 0.318, 0.322],
+            'lo': [0.281, 0.810, 0.503, 0.479, 0.284, 0.283, 0.287],
+            'hi': [0.351, 1.050, 0.729, 0.705, 0.356, 0.354, 0.360]}
+
+
+def _feature_forest():
+    return quick.forest(FEATURES, label='features', estimate='mae', lower='lo', upper='hi',
+                        style='scientific.nature', left=[('Features', 'label')], right=['ci'],
+                        measure='MAE', xlabel='Out-of-fold MAE, invalid log-odds')
+
+
+def _narrow_row(forest):
+    d = {'x': [1, 2, 3], 'y': [2, 1, 3]}
+    side = dict(style='scientific.nature')
+    return i.Layout('row', [i.scatter(d, x='x', y='y', **side), i.scatter(d, x='x', y='y', **side),
+                            forest], width='double', style='scientific.nature')
+
+
+def test_forest_in_a_narrow_nature_cell_drops_its_ci_column_instead_of_failing():
+    with pytest.warns(UserWarning, match="dropped the right='ci' text column"):
+        figure = _narrow_row(_feature_forest()).compile()
+    assert not [d.code for d in figure.lint() if d.severity == 'error']
+    texts = _sized_texts(figure.root)
+    assert 'loss + all mechanism' in texts and 'MAE (95% CI)' not in texts
+    assert min(size for _, size in texts.items()) >= 5.0
+
+
+def test_forest_fit_closes_gaps_then_drops_plotted_columns_then_shrinks_type():
+    chart = _feature_forest()
+    rows, options = chart._forest
+    profile = chart._profile()
+    floor = profile.publication.min_font_pt
+    with pytest.warns(UserWarning):
+        fitted = quick._fit_forest(rows, options, 57.0, profile.theme, floor)
+    assert fitted['width'] == quick._FOREST_MIN_PLOT
+    assert fitted['right'] == () and 'gap' in fitted and 'text_size' not in fitted
+    # A label column alone too wide for the cell is set smaller, not dropped.
+    lone = {**options, 'right': ()}
+    small = quick._fit_forest(rows, lone, 40.0, profile.theme, floor)
+    assert i.pt(5.0) - 1e-9 <= small['text_size'] < i.pt(6.0)
+    from inklet.document.spec import themed
+    with themed(profile.theme):
+        assert quick._forest_figure(rows, small).bbox.width <= 40.0 + 0.01
+    # A cell that fits keeps the columns, type and gaps as they were.
+    roomy = quick._fit_forest(rows, options, 89.0, profile.theme, floor)
+    assert roomy['right'] == ('ci',) and 'text_size' not in roomy and 'gap' not in roomy
+
+
+def test_forest_keeps_a_gap_and_type_size_the_caller_chose():
+    chart = quick.forest(FEATURES, label='features', estimate='mae', lower='lo', upper='hi',
+                         style='scientific.nature', right=[], gap=2, text_size=i.pt(6))
+    rows, options = chart._forest
+    with pytest.raises(i.LayoutError, match='plot narrowed to 20 mm'):
+        quick._fit_forest(rows, options, 30.0, chart._profile().theme, 5)
+
+
+def test_forest_that_cannot_fit_even_at_the_floor_names_what_was_tried():
+    with pytest.raises(i.LayoutError, match=r'columns set at 5 pt'):
+        quick.forest(FEATURES, label='features', estimate='mae', lower='lo', upper='hi',
+                     style='scientific.nature', left=[('Features', 'label')],
+                     right=[('Upper bound', 'hi')], measure='MAE', width=40).compile()
+
+
+def _sized_texts(node):
+    found, stack = {}, [node]
+    while stack:
+        item = stack.pop()
+        if item.prim is not None and hasattr(item.prim, 'font_size'):
+            found[item.prim.text] = round(item.prim.font_size / i.pt(1), 2)
+        stack.extend(item.children)
+    return found
 
 
 # -- layouts -----------------------------------------------------------------

@@ -16,6 +16,9 @@ narrow cells, font control and checks.
   `lint()` and `compiled.lint()` take `max_letter_pt=` too. A layout's
   `font_pt=` scales the letters with the rest of the type.
 
+- `inklet.forest(text_size=)`: the type size of the text columns and their
+  header line (default: the theme's small size, as before).
+
 ### Changed
 
 - `scientific.nature` sets panel letters in 8 pt bold lowercase, as the Nature
@@ -23,6 +26,21 @@ narrow cells, font control and checks.
   preset's `sources` now cite it). They were 7 pt. Letters of 8 pt pass the
   preset's checks; other text over 7 pt is still an error. Pages with panel
   letters may grow by a fraction of a millimetre per lettered row.
+
+- A one-call forest (`i.quick.forest`) in a cell too narrow for its text
+  columns no longer raises once its plot is at 20 mm: the gaps between
+  columns close, then a right-hand `'ci'` or `'estimate'` column is dropped
+  with a `UserWarning` (the plot still draws every estimate and interval),
+  and then the remaining columns are set smaller, down to the preset's
+  minimum text size (5 pt for `scientific.nature`). Only a forest still too
+  wide raises, and the error lists what was tried. A third of a Nature
+  double-column row (57 mm) with `right=['ci']` needed 59.2 mm and raised.
+
+### Fixed
+
+- Forest `'ci'` and `'estimate'` text writes negative numbers with a minus
+  sign (U+2212) and joins a negative bound with "to": `−0.02 (−0.03 to
+  −0.01)` instead of `-0.02 (-0.03--0.01)`.
 
 ## 4.7.0 — 2026-10-11
 

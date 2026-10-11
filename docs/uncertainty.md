@@ -137,11 +137,20 @@ until the next summary. With weights, the square areas follow the weights.
 line of no effect at 1; on a linear axis it is at 0. `limits=` fixes the x
 range, and an interval that runs past it ends in an arrowhead at the limit.
 `left=` and `right=` list the text columns on each side: `'label'`, `'ci'`
-(the estimate and interval as text, with `digits` decimals), `'estimate'`,
+(the estimate and interval as text, with `digits` decimals: `0.72
+(0.55–0.94)`, or `−0.02 (−0.03 to −0.01)` with minus signs and "to" when a
+bound is negative), `'estimate'`,
 `'weight'`, any other key of the row mappings, or a `(header, key or
 function)` pair. Numbers are right-aligned. `measure` names the estimate in
 the column headers. `inklet.plot.forest_layout` returns the parsed rows,
-limits and clipped interval ends without drawing.
+limits and clipped interval ends without drawing. `text_size=` sets the
+columns' type size and `gap=` the space between them.
+
+`i.quick.forest` fits its cell: the plot narrows to 20 mm, the gaps between
+columns close, then a right-hand `'ci'` or `'estimate'` column is dropped
+with a warning (the plot still draws every estimate and interval), and then
+the columns' type is set smaller, down to the preset's minimum text size. A
+forest that is still too wide raises a `LayoutError` listing these steps.
 
 ```python
 import inklet as i

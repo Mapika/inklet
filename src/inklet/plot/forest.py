@@ -252,6 +252,27 @@ def _number(value, digits: int) -> str:
     return f"{float(value):.{digits}f}"
 
 
+def _signed(value: float, digits: int) -> str:
+    """`value` to `digits` decimals with a true minus sign (U+2212), as the
+    axis numbers are written; a value that rounds to zero has no sign."""
+    text = f"{value:.{digits}f}"
+    if text.startswith("-"):
+        text = text[1:] if float(text) == 0 else "\u2212" + text[1:]
+    return text
+
+
+def _interval_text(estimate: float, low: float, high: float, digits: int) -> str:
+    """"0.72 (0.55–0.94)", or "−0.02 (−0.03 to −0.01)" when a bound is negative.
+
+    An en dash between two numbers is a range only while neither carries a
+    sign; "−0.03–−0.01" reads as a subtraction, so a negative bound is joined
+    with "to".
+    """
+    lo, hi = _signed(low, digits), _signed(high, digits)
+    joint = " to " if "\u2212" in lo + hi else "\u2013"
+    return f"{_signed(estimate, digits)} ({lo}{joint}{hi})"
+
+
 def _column(spec, measure: str, digits: int) -> tuple[str, Callable, str]:
     """`(header, text of a row, align)` for one column spec."""
     align = None
@@ -282,10 +303,9 @@ def _column(spec, measure: str, digits: int) -> tuple[str, Callable, str]:
         if row.kind == "header":
             return ""
         if key == "ci":
-            return (f"{row.estimate:.{digits}f} "
-                    f"({row.low:.{digits}f}\u2013{row.high:.{digits}f})")
+            return _interval_text(row.estimate, row.low, row.high, digits)
         if key == "estimate":
-            return f"{row.estimate:.{digits}f}"
+            return _signed(row.estimate, digits)
         if key == "weight":
             return "" if row.weight is None else f"{row.weight:g}"
         return _number(row.values.get(key), digits)
@@ -305,7 +325,8 @@ def forest(rows: Sequence, *, log: bool = False,
            width: float | str = 36, row_height: float | str | None = None,
            color: str | None = None, summary_color: str | None = None,
            size: float | str | None = None, summary_line: bool = False,
-           gap: float | str | None = None, count: int = 5) -> Diagram:
+           gap: float | str | None = None, count: int = 5,
+           text_size: float | str | None = None) -> Diagram:
     """A forest plot: one estimate and confidence interval per row, with
     aligned text columns beside it.
 
@@ -333,7 +354,9 @@ def forest(rows: Sequence, *, log: bool = False,
 
     `left` and `right` are the text columns on each side of the plot, from
     left to right. A column is a key -- `"label"`, `"ci"` (the estimate and
-    interval as "0.72 (0.55–0.94)", with `digits` decimals), `"estimate"`,
+    interval as "0.72 (0.55–0.94)", with `digits` decimals; negative numbers
+    take a minus sign, and a negative bound is joined with "to": "−0.02
+    (−0.03 to −0.01)"), `"estimate"`,
     `"weight"` or any key of the row mappings -- or a tuple `(header, key)`
     or `(header, function of the ForestRow)`, optionally with `"left"` or
     `"right"` alignment as a third item. The label column is left-aligned
@@ -344,7 +367,9 @@ def forest(rows: Sequence, *, log: bool = False,
     (default 1.6 times the small type size). `color` is the ink of the
     studies and `summary_color` of the diamonds. `summary_line=True` draws a
     dashed line at the last summary's estimate. `gap` is the space between
-    columns.
+    columns. `text_size` is the type size of the text columns and their
+    header line (default: the theme's small size, as the axis numbers);
+    `inklet.quick.forest` lowers it, and `gap`, to fit a narrow cell.
 
     Returns one diagram whose plot area is the rows (including the header
     line), so `letters` and `row` place it like a panel. It carries a
@@ -440,7 +465,10 @@ def forest(rows: Sequence, *, log: bool = False,
 
     # Text columns: one node per row, set flush left or flush right in a
     # column as wide as its widest entry.
-    indent = _INDENT_OF_TYPE * small
+    columns_size = small if text_size is None else mm(text_size)
+    if columns_size <= 0:
+        raise DiagramError("forest text_size must be positive")
+    indent = _INDENT_OF_TYPE * columns_size
     texts: list = []
 
     def cells(column) -> tuple[list, Diagram | None, float]:
@@ -452,12 +480,12 @@ def forest(rows: Sequence, *, log: bool = False,
                 continue
             is_label = content == row.label
             bold = is_label and row.kind in ("header", "summary")
-            node = text_node(content, small, TICK_LABEL_KIND, markup=False,
+            node = text_node(content, columns_size, TICK_LABEL_KIND, markup=False,
                              features={"tnum": True},
                              **({"font_weight": "bold"} if bold else {}))
             shift = indent if (row.indent and is_label and align == "left") else 0.0
             found.append((index, node, shift))
-        head = (text_node(header, small, TICK_LABEL_KIND, markup=False,
+        head = (text_node(header, columns_size, TICK_LABEL_KIND, markup=False,
                           font_weight="bold") if headers and header else None)
         widest = max([n.bbox.width + s for _, n, s in found]
                      + ([head.bbox.width] if head is not None else []), default=0.0)

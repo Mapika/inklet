@@ -981,7 +981,7 @@ Bin edges and the height of each bin: `(edges, heights)`.
 
 An UpSet plot: intersection sizes as bars over a membership matrix.
 
-#### `forest(rows: 'Sequence', *, log: 'bool' = False, limits: 'tuple[float, float] | None' = None, null: 'float | None' = None, left: 'Sequence' = ('label',), right: 'Sequence' = ('ci',), headers: 'bool' = True, measure: 'str' = 'Estimate', digits: 'int' = 2, label: 'str | None' = None, ticks: 'Sequence[float] | None' = None, width: 'float | str' = 36, row_height: 'float | str | None' = None, color: 'str | None' = None, summary_color: 'str | None' = None, size: 'float | str | None' = None, summary_line: 'bool' = False, gap: 'float | str | None' = None, count: 'int' = 5) -> 'Diagram'`
+#### `forest(rows: 'Sequence', *, log: 'bool' = False, limits: 'tuple[float, float] | None' = None, null: 'float | None' = None, left: 'Sequence' = ('label',), right: 'Sequence' = ('ci',), headers: 'bool' = True, measure: 'str' = 'Estimate', digits: 'int' = 2, label: 'str | None' = None, ticks: 'Sequence[float] | None' = None, width: 'float | str' = 36, row_height: 'float | str | None' = None, color: 'str | None' = None, summary_color: 'str | None' = None, size: 'float | str | None' = None, summary_line: 'bool' = False, gap: 'float | str | None' = None, count: 'int' = 5, text_size: 'float | str | None' = None) -> 'Diagram'`
 
 A forest plot: one estimate and confidence interval per row, with aligned text columns beside it.
 
