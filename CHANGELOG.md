@@ -59,6 +59,17 @@
 
 ### Fixed
 
+- A plot title too long for its cell raised `LayoutError: cell 'p1' leaves only
+  3.30 × 42.05 mm for data after labels`, a figure that named neither the
+  title nor any real measurement. The title's reach past the data area is
+  horizontal margin; one that cannot fit grew that margin by its overflow
+  each measurement pass, and the error reported wherever the data width
+  stopped (sometimes negative). The layout now stops at the first pass that
+  proves the title cannot fit and names the title, its width and the cell's
+  (or, for a title that starts at its own axis labels inside the cell, where
+  it starts and the width left), and suggests the title broken over lines
+  with `\n`. The "leaves only ... mm for data" error that remains lists the
+  margin each side's furniture takes.
 - `label_points` and the other placers avoid reference lines and bands
   (`hline`, `vspan`...), which they used to letter straight across.
 - A labelled `vline` gets headroom above the tallest mark, so its word is no

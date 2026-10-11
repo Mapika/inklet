@@ -295,6 +295,8 @@ networks, ternary...) with its signature.
 - `i.brackets` does not exist; significance brackets are `chart.brackets([...])`.
 - `chart.twin_y(...)` is refused on a quick chart. For a second y scale use
   `secondary_y=`, as above.
+- Titles are not wrapped. A title too wide for its panel raises a `LayoutError`
+  that names it and suggests a break; put `\n` in the title (or shorten it).
 - Do not call `plt.show()`-style display code; save files and inspect them.
 - In the full model, `plot_spec(x=..., y=...)` does **not** clip: data past
   the domain are drawn outside the axes and reported as `DATA_OUTSIDE`. Leave

@@ -6,7 +6,9 @@ from itertools import accumulate
 from typing import TYPE_CHECKING, Mapping, NamedTuple
 
 from ..core import Affine, Diagram, DiagramError, Rect, resolve
+from ..core.prims import TextPrim
 from ..draw.coords import plot_area
+from ..plot.furniture import TITLE_KIND
 from ..figure import Figure
 from ..links import route_all
 from .errors import LayoutError
@@ -45,6 +47,156 @@ def plot_margins(node):
         return (0., 0., 0., 0.)
     return (max(0., area.x0-box.x0), max(0., box.x1-area.x1),
             max(0., area.y0-box.y0), max(0., box.y1-area.y1))
+
+
+def _parts(node, transform=None):
+    """(part, its box in the frame `node.bbox` is in) for every node under `node`."""
+    transform = node.transform if transform is None else transform @ node.transform
+    box = node.local_envelope.transform(transform).bbox()
+    yield node, box
+    for child in node.children:
+        yield from _parts(child, transform)
+
+
+def _titles(node):
+    """The title nodes in a built plot, each with its box in `node.bbox`'s frame."""
+    return [(part, box) for part, box in _parts(node)
+            if part.kind == TITLE_KIND and box is not None]
+
+
+def _title_text(part):
+    prim = part.prim
+    if isinstance(prim, TextPrim):
+        return '\n'.join(line.text for line in prim.lines)
+    texts = [line.text for child in part.walk() if isinstance(child.prim, TextPrim)
+             for line in child.prim.lines]
+    return ' '.join(texts) if texts else None
+
+
+def _ink_without_titles(node):
+    """The box around everything in a built plot but its titles."""
+    box, skip = None, set()
+    for part, here in _parts(node):
+        if part.kind == TITLE_KIND:
+            skip.update(id(child) for child in part.walk())
+        if id(part) in skip or part.prim is None or here is None:
+            continue
+        box = here if box is None else box.union(here)
+    return box
+
+
+def _wrapped(part, width):
+    """The title's text broken into lines no wider than `width` mm, or None."""
+    prim = part.prim
+    if not isinstance(prim, TextPrim) or width <= 0:
+        return None
+    from ..typeset import shape
+    text = ' '.join(line.text for line in prim.lines)
+    try:
+        lines = shape(text, font=prim.font_path or prim.font_family, size=prim.font_size,
+                      width=width, markup=False).lines
+    except Exception:  # a suggestion must never hide the real error
+        return None
+    if len(lines) < 2 or max(line.advance for line in lines) > width + 1e-6:
+        return None
+    return '\n'.join(line.text for line in lines)
+
+
+def _title_offsets(node):
+    """Where each title starts relative to its data area's left edge, or None."""
+    area = plot_area(node) if node is not None else None
+    if area is None:
+        return None
+    return [extent.x0-area.x0 for _, extent in _titles(node)]
+
+
+def _title_too_wide(cell, node, box, left, previous=None):
+    """The LayoutError for a plot title that cannot fit across its cell, or None.
+
+    A title is furniture like the tick labels: what it reaches past the data
+    area is margin. One that cannot fit makes that margin grow by the
+    overflow every pass, so the data width the loop would report falls
+    towards nothing -- a symptom, not the cause. Two cases are certain:
+
+    - the title is wider than the whole cell;
+    - the title starts at a fixed place relative to the data area (the
+      same offset as in the `previous` pass's node, as a start-aligned
+      title over its own axis labels does), and from there, with the left
+      margin `left` already reserved, its far end passes the cell's right
+      edge. Margins only grow, so it never will fit.
+
+    The error names the title, its width and the width it has, and a
+    spelling broken over lines that fits over the data.
+    """
+    area = plot_area(node)
+    before = _title_offsets(previous)
+    for index, (part, extent) in enumerate(_titles(node)):
+        text = _title_text(part)
+        named = f'title {text!r}' if text else 'title'
+        if extent.width > box.width + .01:
+            message = (f'cell {cell.name!r}: its {named} is {extent.width:.1f} mm wide, '
+                       f'but the cell is only {box.width:.1f} mm wide, so no data width can '
+                       'make room for it')
+        elif area is not None and before is not None and index < len(before):
+            offset = extent.x0-area.x0
+            start = max(0., left+offset)
+            if abs(offset-before[index]) > .01 or start+extent.width <= box.width+.01:
+                continue
+            message = (f'cell {cell.name!r}: its {named} is {extent.width:.1f} mm wide, '
+                       f'but it starts {start:.1f} mm in from the cell\'s left edge, with this '
+                       "plot's axis labels, which leaves it "
+                       f'{box.width-start:.1f} mm of the {box.width:.1f} mm cell')
+        else:
+            continue
+        message += '. Shorten it, widen the cell or figure, or break it over lines'
+        ink = _ink_without_titles(node)
+        room = box.width
+        if area is not None and ink is not None:
+            # Room over the data alone fits a title whatever its alignment.
+            room -= max(0., left, area.x0-ink.x0) + max(0., ink.x1-area.x1)
+        wrapped = _wrapped(part, room)
+        if wrapped is not None:
+            message += f' with \\n, for example {wrapped!r}'
+        return LayoutError(message + '.')
+    return None
+
+
+def _no_room_for_data(cell, box, margins, width, height, node):
+    """The LayoutError for a plot whose furniture leaves (almost) no data area.
+
+    Lists what each side's furniture takes. When a title reaches past the
+    data further than the other furniture on a side, so that it sets that
+    margin, the error names it with its width and the width it has: from
+    where it starts to the cell's right edge. That is how a title narrower
+    than its cell still fails: a stacked panel's wider tick labels set a
+    shared left margin, the title starts at this plot's own labels to the
+    right of the cell edge, and its far end no longer fits.
+    """
+    left, right, top, bottom = margins
+    message = (f'cell {cell.name!r} leaves only {width:.2f} × {height:.2f} mm for data after labels: '
+               f'of its {box.width:.2f} × {box.height:.2f} mm, the furniture takes '
+               f'{left:.2f} mm left, {right:.2f} mm right, {top:.2f} mm above and '
+               f'{bottom:.2f} mm below')
+    area = plot_area(node) if node is not None else None
+    ink = _ink_without_titles(node) if area is not None else None
+    causes = []
+    if area is not None and ink is not None:
+        for part, extent in _titles(node):
+            text = _title_text(part)
+            named = f'title {text!r}' if text else 'title'
+            sets_width = (extent.x1-area.x1 > max(0., ink.x1-area.x1)+.5
+                          or area.x0-extent.x0 > max(0., area.x0-ink.x0)+.5)
+            if sets_width:
+                start = max(0., left+extent.x0-area.x0)
+                causes.append(f'The {named} is {extent.width:.1f} mm wide, but it starts '
+                              f'{start:.1f} mm in from the cell\'s left edge, which leaves it '
+                              f'{box.width-start:.1f} mm; shorten it or break it over lines with \\n')
+            elif area.y0-extent.y0 > max(0., area.y0-ink.y0)+.5 and extent.height > box.height/2:
+                causes.append(f'The {named} is {extent.height:.1f} mm tall in a '
+                              f'{box.height:.1f} mm cell; shorten it or give the figure more height')
+    if causes:
+        return LayoutError(message + '. ' + '; '.join(causes) + '.')
+    return LayoutError(message + '. Increase its size.')
 
 
 def _decorator(request, context):
@@ -196,7 +348,9 @@ def _cell_boxes(request, x_prefix, heights):
         for c in request.cells}
 
 
-def _measure_cells(request, context, boxes, margins, decorate):
+def _measure_cells(request, context, boxes, margins, decorate, previous=None):
+    """Build every cell inside its margins; `previous` holds the last pass's
+    nodes, which say what furniture set the margins when no room is left."""
     nodes = {}
     for cell in request.cells:
         box = boxes[cell.name]
@@ -205,8 +359,13 @@ def _measure_cells(request, context, boxes, margins, decorate):
         if isinstance(cell.item, PlotSpec):
             # Tracks are sums of floats; a plot authored at the minimum must fit.
             if width < 5-1e-6 or height < 5-1e-6:
-                raise LayoutError(f'cell {cell.name!r} leaves only {width:.2f} × {height:.2f} mm for data after labels. Increase its size.')
+                raise _no_room_for_data(cell, box, margins[cell.name], width, height,
+                                        (previous or {}).get(cell.name))
             nodes[cell.name] = context.build(cell.item, round(width, 6), round(height, 6))
+            too_wide = _title_too_wide(cell, nodes[cell.name], box, left,
+                                       (previous or {}).get(cell.name))
+            if too_wide is not None:
+                raise too_wide
         else:
             if width <= 0 or height <= 0:
                 raise LayoutError(f'cell {cell.name!r} has no space after panel letters')
@@ -460,10 +619,10 @@ def _layout_once(request, context, width, height):
         heights = _fit_rows(request, rows, heights, natural_heights, natural_plots, height)
     boxes = _cell_boxes(request, x_prefix, heights)
     margins = {c.name: (0., 0., 0., 0.) for c in request.cells}
-    steps = {}
+    steps, nodes = {}, None
     # Tick selection depends on width; grow furniture and tracks to a stable fit.
     for iteration in range(24):
-        nodes, measured = _measure_cells(request, context, boxes, margins, decorate)
+        nodes, measured = _measure_cells(request, context, boxes, margins, decorate, nodes)
         _share_margins(request, measured, margins)
         if natural_plots and _grow_natural_heights(request, natural_plots, measured, natural_heights):
             heights = _row_tracks(request, rows, natural_heights)

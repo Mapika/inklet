@@ -29,6 +29,16 @@ or move legends/insets. A fixed `Diagram` does not resize merely because its
 cell is narrower. Use a `PlotSpec` or a responsive component when it should
 adapt to available dimensions.
 
+A plot title is not wrapped automatically. The part of a title that reaches
+past the data area is margin, like tick labels, so a title that cannot fit
+across its cell raises a `LayoutError` that names the title, gives its width
+and the width it has, and suggests the same title broken over lines with `\n`.
+A title starts at its own plot's axis labels, so in a column whose lower panel
+has wider tick labels it can start a few millimetres inside the cell and
+overrun it while still narrower than the cell. A `LayoutError` saying a cell
+"leaves only ... mm for data after labels" lists the margin each side's
+furniture takes, so the largest one shows what to shorten.
+
 Plot margin sharing is opt-in: set `share_plot_margins=True` on the document or
 subfigure that owns the grid. Independently nested grids need their own
 alignment settings. Explicit compositions should use
