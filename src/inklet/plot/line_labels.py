@@ -192,7 +192,8 @@ def label_lines(panel, name: str | Sequence[str] | None = None, *,
     paths = {n: _visible(found[n], area) for n in names}
     hidden = [n for n in names if not paths[n]]
     shown = [n for n in names if paths[n]]
-    colours = {k.name: k.color for k in panel.keys}
+    entries = {k.name: k for k in panel.keys}
+    colours = {n: k.color for n, k in entries.items()}
     nodes = {}
     for n in shown:
         own = dict(style)
@@ -203,7 +204,7 @@ def label_lines(panel, name: str | Sequence[str] | None = None, *,
         nodes[n] = text_node(n, font, LINE_LABEL_KIND, align="left",
                              markup=markup, **own)
         if swatch and colours.get(n):
-            nodes[n] = _swatched(nodes[n], colours[n], font, theme)
+            nodes[n] = _swatched(nodes[n], entries[n], font, theme)
     boxes, segments, polygons, flags = _obstacles(list(marks), split=True)
     field = ObstacleField(cell=max(2 * font, 1.0))
     for b, flag in zip(boxes, flags):
@@ -244,19 +245,33 @@ def label_lines(panel, name: str | Sequence[str] | None = None, *,
     return node
 
 
-def _swatched(name: Diagram, colour: str, font: float, theme) -> Diagram:
-    """`name` after a short line in its curve's `colour`, as one node.
+def _swatched(name: Diagram, entry, font: float, theme) -> Diagram:
+    """`name` after a short line drawn as its curve is, as one node.
 
     A key entry set at the curve: the name stays in ink, as Nature asks of
-    text, and the line says which curve it names.
+    text, and the line says which curve it names. `entry` is the series'
+    `SeriesKey`: the line takes its colour and dash, and its marker sits on
+    the line; a series drawn as markers only shows the marker alone.
     """
+    from dataclasses import replace
+    from .key import SWATCH_OF_TYPE
+    from .series import swatch_for
     box = name.bbox
     length, gap = _SWATCH_OF_TYPE * font, _SWATCH_GAP_OF_TYPE * font
     y = box.center.y
-    line = polyline(((box.x0 - gap - length, y), (box.x0 - gap, y)),
-                    kind=LINE_SWATCH_KIND, stroke=colour,
-                    stroke_width=max(theme.stroke * 1.5, theme.hairline))
-    return draw_place([line, name], origin=(0, 0), kind="line-label-entry")
+    x0, x1 = box.x0 - gap - length, box.x0 - gap
+    parts: list = []
+    if "line" in entry.forms or "marker" not in entry.forms:
+        style = {"stroke": entry.color,
+                 "stroke_width": max(theme.stroke * 1.5, theme.hairline)}
+        if entry.dash is not None:
+            style["stroke_dash"] = entry.dash
+        parts.append(polyline(((x0, y), (x1, y)), kind=LINE_SWATCH_KIND, **style))
+    if "marker" in entry.forms:
+        dot = swatch_for(replace(entry, forms=frozenset(("marker",)), node=None),
+                         SWATCH_OF_TYPE * font)
+        parts.append((Vec2((x0 + x1) / 2, y), Diagram(children=(dot,), kind=LINE_SWATCH_KIND)))
+    return draw_place([*parts, name], origin=(0, 0), kind="line-label-entry")
 
 
 def _at_ends(names, paths, nodes, field, weights, area, font, clear, spacing,

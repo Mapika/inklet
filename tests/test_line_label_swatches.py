@@ -55,3 +55,28 @@ def test_quick_direct_ink_legend_uses_swatches():
     assert step[3] == {'color': False, 'swatch': True}
     with pytest.raises(ValueError, match='direct-ink'):
         i.line(rows, x='x', y='y', color='g', legend='direct-blue')
+
+
+def test_a_dashed_curve_gets_a_dashed_swatch():
+    i.use_theme('nature')
+    p = i.plot.panel(50, 30, x=(0, 10), y=(0, 10))
+    p.line([(0, 2), (10, 4)], stroke=COLOURS['control'], name='control')
+    p.line([(0, 5), (10, 8)], stroke=COLOURS['treated'], stroke_dash=(1.0, 0.8), name='treated')
+    p.label_lines(color=False, swatch=True)
+    root = p.build()
+    placed = resolve(root)
+    dashes = {placed[n.id].style.stroke: placed[n.id].style.stroke_dash for n in root.walk()
+              if n.kind == LINE_SWATCH_KIND}
+    assert dashes[COLOURS['treated']] and not dashes[COLOURS['control']]
+
+
+def test_a_curve_with_markers_shows_its_marker_on_the_swatch():
+    rows = [{'x': x, 'y': x * k, 'g': g} for k, g in ((1, 'control'), (2, 'treated')) for x in range(5)]
+    chart = i.line(rows, x='x', y='y', color='g', legend='direct-ink', markers=True, marker='square',
+                   style='scientific.nature')
+    root = chart.compile().root
+    swatches = [n for n in root.walk() if n.kind == LINE_SWATCH_KIND]
+    lines = [n for n in swatches if n.prim is not None]
+    squares = [m for n in swatches for m in n.walk() if type(m.prim).__name__ == 'RectPrim']
+    # Each name has its line and, on it, the curve's square marker.
+    assert len(lines) == 2 and len(squares) == 2

@@ -23,6 +23,10 @@ Fixes found porting Nature-style figures to 4.8.0.
   'hits')]` writes the column's values under its header, as
   `inklet.forest` documents. Only plain column names used to collect their
   values, so a tuple drew its header over an empty column.
+- `legend='direct-ink'` (and `label_lines(swatch=True)`) draws each swatch
+  as its curve is drawn: a dashed curve gets a dashed swatch, and a curve
+  with markers shows its marker on the swatch. Every swatch used to be a
+  solid line.
 
 ## 4.8.0 — 2026-10-11
 
