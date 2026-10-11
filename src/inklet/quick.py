@@ -386,12 +386,22 @@ class _Renderable:
 
         Category labels are set upright first. A chart whose labels then
         collide is built again with them turned 45 degrees, so labels turn
-        only when they have to.
+        only when they have to. A chart of more than ten categories whose
+        turned labels still collide labels every second, third... category
+        from the first, the smallest stride that clears; every bar is still
+        drawn. Ten or fewer are never thinned, and lint reports the overlap.
         """
         figure = self.document().compile()
-        crowded = frozenset(id(chart) for chart in self._chart_list()
-                            if chart._x_categories and _labels_collide(figure, chart._x_categories))
-        return self.document(rotate=crowded).compile() if crowded else figure
+        charts = self._chart_list()
+        crowded = {id(chart): True for chart in charts
+                   if chart._x_categories and _labels_collide(figure, chart._x_categories)}
+        if not crowded:
+            return figure
+        figure = self.document(rotate=crowded).compile()
+        dense = {id(chart): 'thin' for chart in charts if id(chart) in crowded
+                 and len(chart._x_categories) > _THIN_CATEGORIES
+                 and _labels_collide(figure, chart._x_categories)}
+        return self.document(rotate=crowded | dense).compile() if dense else figure
 
     def save(self, *paths, **options):
         """Save to each path; the extension picks SVG, PDF or PNG.
@@ -1659,11 +1669,12 @@ class Chart(_Renderable, metaclass=_Forwarding):
     def document(self, rotate=frozenset()):
         """A `Document` holding this chart, sized and styled; add cells to grow it.
 
-        `rotate` holds ids of charts whose category labels must turn.
+        `rotate` holds ids of charts whose category labels must turn, or maps
+        them to True (turn) or 'thin' (turn and label every n-th category).
         """
         profile = self._profile()
         doc = profile.document()
-        doc.add('chart', self.plot(doc.width - 2 * doc.margin, profile, id(self) in rotate),
+        doc.add('chart', self.plot(doc.width - 2 * doc.margin, profile, _turn(rotate, self)),
                 min_height=self._height(doc.width))
         return doc
 
@@ -1714,10 +1725,14 @@ class Chart(_Renderable, metaclass=_Forwarding):
     def _tick_options(self, width, profile, rotate=False):
         """Turn category labels 45 degrees when they cannot fit upright.
 
-        `rotate=True` comes from a compiled figure whose labels collided.
-        Otherwise this is a measured first guess that turns only labels
-        clearly wider than their slot; `compile()` catches the rest.
+        `rotate=True` comes from a compiled figure whose labels collided, and
+        `rotate='thin'` from one whose turned labels still collided: the axis
+        then labels every n-th category. Otherwise this is a measured first
+        guess that turns only labels clearly wider than their slot;
+        `compile()` catches the rest.
         """
+        if rotate == 'thin':
+            return {'rotate': 45, 'thin': True}
         if rotate:
             return {'rotate': 45}
         if not self._x_categories or width is None or profile is None:
@@ -2129,6 +2144,19 @@ def _one_per_category(table, category, value, what):
     return cats, [by_key[c] for c in cats]
 
 
+#: A category axis with more labels than this may label every n-th category
+#: when even turned labels collide; with fewer, every label is a name the
+#: reader needs, and an overlap is reported instead.
+_THIN_CATEGORIES = 10
+
+
+def _turn(rotate, chart):
+    """How a chart's category labels are set: False, True (turned) or 'thin'."""
+    if isinstance(rotate, Mapping):
+        return rotate.get(id(chart), False)
+    return id(chart) in rotate
+
+
 def _labels_collide(figure, categories) -> bool:
     """Whether the lint report has two of these category labels touching.
 
@@ -2478,7 +2506,7 @@ class Layout(_Renderable):
                 cell_width = sum(tracks[column:column + colspan]) + doc.gap * (colspan - 1)
                 # A chart spanning columns keeps its row's height, not one
                 # proportional to its full width.
-                doc.add(f'p{index + 1}', item.plot(cell_width, profile, id(item) in rotate,
+                doc.add(f'p{index + 1}', item.plot(cell_width, profile, _turn(rotate, item),
                                                    **plotting[id(item)]),
                         row=row, column=column,
                         rowspan=rowspan, colspan=colspan,
@@ -2625,7 +2653,7 @@ class Layout(_Renderable):
                 cell_width = width
             place = dict(row=0, column=index) if self.direction == 'row' else dict(row=index, column=0)
             if isinstance(item, Chart):
-                doc.add(name, item.plot(cell_width, profile, id(item) in rotate, **plotting[id(item)]),
+                doc.add(name, item.plot(cell_width, profile, _turn(rotate, item), **plotting[id(item)]),
                         min_height=item._height(cell_width), **place)
             else:
                 sub = subfigure(width=cell_width, gap=doc.gap,

@@ -173,7 +173,12 @@ appears when there is more than one group. Charts are drawn in colour from the
 start: a single series takes the palette's lead blue, bars and boxes have no
 outlines, boxes and violins are a pale tint with edges in the same hue, and the
 axes are a quiet grey so the data is the darkest thing on the page. Category labels that would collide
-are turned 45 degrees to fit.
+are turned 45 degrees to fit. When a chart has more than ten categories and
+even turned labels collide, every second (third, ...) category from the first
+is labelled; every bar is still drawn. Ten or fewer are never thinned, and
+`report()` lists the overlap instead. Turning and thinning happen in
+`compile()` and `save()`, which build the figure again; a figure compiled from
+`chart.document()` keeps upright labels.
 
 ### Chart types
 

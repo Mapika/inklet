@@ -131,6 +131,40 @@ def test_crowded_categories_turn_to_fit():
     assert chart._tick_options(80, profile) is None
 
 
+def _layer_bars(count):
+    return i.bar({'layer': [f'layer{k:02d}' for k in range(count)],
+                  'v': [1 + k % 5 for k in range(count)]}, x='layer', y='v', style='scientific.nature')
+
+
+def _category_labels(figure, count):
+    names = {f'layer{k:02d}' for k in range(count)}
+    found, stack = [], [figure.root]
+    while stack:
+        node = stack.pop()
+        if node.prim is not None and getattr(node.prim, 'text', None) in names:
+            found.append(node.prim.text)
+        stack.extend(node.children)
+    return sorted(found)
+
+
+def test_more_than_ten_crowded_categories_are_labelled_at_a_stride():
+    line = i.line({'x': [0, 1], 'y': [0, 1]}, x='x', y='y', style='scientific.nature')
+    figure = (_layer_bars(16) | line | line).options(style='scientific.nature').compile()
+    assert not [d for d in figure.lint() if d.code in ('OVERLAP', 'CROWDING')
+                and 'layer' in d.message], figure.report()
+    shown = _category_labels(figure, 16)
+    # Every bar is still drawn; its labels keep a regular rhythm from the first.
+    assert 'layer00' in shown and 2 <= len(shown) < 16
+    step = int(shown[1][-2:]) - int(shown[0][-2:])
+    assert shown == [f'layer{k:02d}' for k in range(0, 16, step)]
+
+
+def test_ten_or_fewer_categories_are_never_thinned():
+    line = i.line({'x': [0, 1], 'y': [0, 1]}, x='x', y='y', style='scientific.nature')
+    figure = (_layer_bars(10) | line | line | line | line).options(style='scientific.nature').compile()
+    assert len(_category_labels(figure, 10)) == 10
+
+
 def _crowded():
     # Explicit axes skip the automatic label rotation, so the labels collide.
     labels = [f'a long category label {n}' for n in range(8)]

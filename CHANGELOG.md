@@ -56,6 +56,12 @@ narrow cells, font control and checks.
   wide raises, and the error lists what was tried. A third of a Nature
   double-column row (57 mm) with `right=['ci']` needed 59.2 mm and raised.
 
+- A one-call chart with more than ten categories whose labels collide even
+  when turned 45 degrees now labels every second (third, ...) category from
+  the first, the smallest stride that clears; every bar is still drawn. A
+  third of a Nature double-column row with 16 categories reported an
+  `OVERLAP` error. Ten or fewer categories are never thinned.
+
 ### Fixed
 
 - Forest `'ci'` and `'estimate'` text writes negative numbers with a minus
