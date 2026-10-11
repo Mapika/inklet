@@ -33,6 +33,10 @@ Fixes found porting Nature-style figures to 4.8.0.
   or `vline` beyond the data; on an axis with a fixed domain
   (`xlim`/`ylim`, or `axis(scale, ticks=)`), ticks outside the domain are
   left out, as matplotlib leaves out ticks outside its view limits.
+- `legend='best'` with no clear spot inside the plot and no room beside it
+  in a narrow cell (a quarter of a double-column row) sets the key below
+  the plot, with a warning, instead of `compile()` and `save()` raising
+  `LayoutError`. A key that fits nowhere still raises the first error.
 
 ## 4.8.0 — 2026-10-11
 

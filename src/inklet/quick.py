@@ -395,18 +395,38 @@ class _Renderable:
         turned labels still collide labels every second, third... category
         from the first, the smallest stride that clears; every bar is still
         drawn. Ten or fewer are never thinned, and lint reports the overlap.
+
+        A `legend='best'` key with no clear spot inside its plot goes beside
+        it. When that leaves a cell no room for its data, the figure is built
+        again with those charts' keys below their plots, with a warning,
+        rather than refused.
         """
-        figure = self.document().compile()
+        from .document.errors import LayoutError
         charts = self._chart_list()
+        below = frozenset()
+        try:
+            figure = self.document().compile()
+        except LayoutError as error:
+            below = frozenset(id(chart) for chart in charts if chart.legend_side == 'best')
+            if not below:
+                raise
+            try:
+                figure = self.document(below=below).compile()
+            except (LayoutError, ValueError):
+                # A key too wide even below its plot: the first error says why.
+                raise error from None
+            warnings.warn("legend='best': no clear spot inside the plot and no room beside it in "
+                          "its cell, so the key is set below the plot. Pass legend='bottom' to "
+                          'say so, or give the chart a wider cell', UserWarning, stacklevel=2)
         crowded = {id(chart): True for chart in charts
                    if chart._x_categories and _labels_collide(figure, chart._x_categories)}
         if not crowded:
             return figure
-        figure = self.document(rotate=crowded).compile()
+        figure = self.document(rotate=crowded, below=below).compile()
         dense = {id(chart): 'thin' for chart in charts if id(chart) in crowded
                  and len(chart._x_categories) > _THIN_CATEGORIES
                  and _labels_collide(figure, chart._x_categories)}
-        return self.document(rotate=crowded | dense).compile() if dense else figure
+        return self.document(rotate=crowded | dense, below=below).compile() if dense else figure
 
     def save(self, *paths, **options):
         """Save to each path; the extension picks SVG, PDF or PNG.
@@ -1710,15 +1730,18 @@ class Chart(_Renderable, metaclass=_Forwarding):
             spec.title(shown, align=self._title_align)
         return spec
 
-    def document(self, rotate=frozenset()):
+    def document(self, rotate=frozenset(), below=frozenset()):
         """A `Document` holding this chart, sized and styled; add cells to grow it.
 
         `rotate` holds ids of charts whose category labels must turn, or maps
         them to True (turn) or 'thin' (turn and label every n-th category).
+        `below` holds ids of charts whose `legend='best'` key is set below
+        the plot (see `compile`).
         """
         profile = self._profile()
         doc = profile.document()
-        doc.add('chart', self.plot(doc.width - 2 * doc.margin, profile, _turn(rotate, self)),
+        doc.add('chart', _key_below(self.plot(doc.width - 2 * doc.margin, profile, _turn(rotate, self)),
+                                    self, below),
                 min_height=self._height(doc.width))
         return doc
 
@@ -2218,6 +2241,22 @@ def _one_per_category(table, category, value, what):
 _THIN_CATEGORIES = 10
 
 
+def _key_below(spec, chart, below):
+    """`spec` with a `legend='best'` key set below the plot when `chart` is in `below`.
+
+    A 'best' key that finds no clear spot inside the plot goes beside it,
+    which a narrow cell may have no room for; `compile()` then builds the
+    figure again with such keys below, where they wrap to the cell's width.
+    """
+    if id(chart) not in below:
+        return spec
+    from .document.spec import freeze
+    spec._steps = [(key, method, args, freeze({**kwargs, 'corner': None, 'side': 'bottom'}))
+                   if method == 'legend' and kwargs.get('corner') == 'best' else (key, method, args, kwargs)
+                   for key, method, args, kwargs in spec._steps]
+    return spec
+
+
 def _turn(rotate, chart):
     """How a chart's category labels are set: False, True (turned) or 'thin'."""
     if isinstance(rotate, Mapping):
@@ -2541,7 +2580,7 @@ class Layout(_Renderable):
     def _chart_list(self):
         return list(self.charts())
 
-    def document(self, rotate=frozenset()):
+    def document(self, rotate=frozenset(), below=frozenset()):
         """A `Document` with one lettered cell per chart.
 
         Two levels -- rows of charts stacked, or columns side by side -- share
@@ -2602,15 +2641,15 @@ class Layout(_Renderable):
                 cell = sum(inner[column:column + colspan]) + doc.gap * (colspan - 1)
                 # A chart spanning columns keeps its row's height, not one
                 # proportional to its full width.
-                doc.add(f'p{index + 1}', item.plot(cell_width, profile, _turn(rotate, item),
-                                                   cell=cell, **plotting[id(item)]),
+                doc.add(f'p{index + 1}', _key_below(item.plot(cell_width, profile, _turn(rotate, item),
+                                                              cell=cell, **plotting[id(item)]), item, below),
                         row=row, column=column,
                         rowspan=rowspan, colspan=colspan,
                         min_height=item._height(tracks[column]) if rowspan == 1 else None)
         else:
             doc = profile.document(columns=len(self.items) if self.direction == 'row' else 1)
             self._fill(doc, doc.width, prefix='p', profile=profile, rotate=rotate, plotting=plotting,
-                       inner=doc.width - 2 * doc.margin)
+                       inner=doc.width - 2 * doc.margin, below=below)
         if self.letters and len(list(self.charts())) > 1:
             # Beside a chart title the letter shares its line; otherwise it
             # hangs off the plot area.
@@ -2745,7 +2784,7 @@ class Layout(_Renderable):
                                    'shared_key': shared, 'lettered': lettered}
         return plotting
 
-    def _fill(self, doc, width, prefix, profile, rotate, plotting, inner=None):
+    def _fill(self, doc, width, prefix, profile, rotate, plotting, inner=None, below=frozenset()):
         """Add this layout's cells to `doc`, `width` mm wide; `inner` is the
         width its cells really share, inside the page margins (default `width`)."""
         from .document import subfigure
@@ -2762,14 +2801,14 @@ class Layout(_Renderable):
                 cell_width, cell = width, inner
             place = dict(row=0, column=index) if self.direction == 'row' else dict(row=index, column=0)
             if isinstance(item, Chart):
-                doc.add(name, item.plot(cell_width, profile, _turn(rotate, item), cell=cell,
-                                        **plotting[id(item)]),
+                doc.add(name, _key_below(item.plot(cell_width, profile, _turn(rotate, item), cell=cell,
+                                                   **plotting[id(item)]), item, below),
                         min_height=item._height(cell_width), **place)
             else:
                 sub = subfigure(width=cell_width, gap=doc.gap,
                                 columns=len(item.items) if item.direction == 'row' else 1)
                 item._fill(sub, cell_width, prefix=name + '_', profile=profile, rotate=rotate,
-                           plotting=plotting, inner=cell)
+                           plotting=plotting, inner=cell, below=below)
                 doc.add(name, sub, **place)
 
     def hline(self, y, *, data=None, **options):
