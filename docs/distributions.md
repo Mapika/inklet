@@ -44,6 +44,23 @@ doc.save('hist.svg', 'hist.pdf')
 *Rendered from the code above. Ninety-six simulated durations are grouped into
 12 half-second bins; the bars show counts, not a fitted distribution.*
 
+**Counts that are already binned.** `hist` bins whatever it is given, so a
+table of counts per bin, such as a source-data file, would be counted again.
+`prebinned=True` draws the counts as they are: `values` are the counts, and
+`bins` the edges, one more than the counts. `orient='h'` turns the bars across
+the page, for a marginal beside a 2D plot, and `density=True` divides the
+counts by their total and by each bin's width.
+
+```python
+import inklet as i
+p = i.plot_spec(x=(0, 1), y=(0, 120), height=44)
+p.hist([12, 40, 88, 61], bins=[0, .25, .5, .75, 1], prebinned=True, color='#24698c')
+p.axes(x='Fraction', y='Count')
+doc = i.document(width=110)
+doc.add('binned', p)
+doc.save('binned.svg', 'binned.pdf')
+```
+
 ## Boxplots
 
 Boxplots show the median, quartiles and Tukey whiskers.

@@ -15,6 +15,9 @@ A colour key describes the same mapping as the matrix.
 `colorbar()` reuses the matrix ramp and scale. Pass explicit row coordinates
 to associate each row with its y category. The first category is at the bottom;
 the next section shows a top-first display. Missing cells use an explicit colour.
+`colorbar(label=)` names the bar along its length, turned to read upward beside
+a vertical bar, which is how journals set a colour bar's name; `colorbar(title=)`
+sets the name horizontally above the bar instead.
 
 ```python
 import inklet as i

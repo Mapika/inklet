@@ -85,6 +85,29 @@ columns give equal data areas. This is
 opt-in; equal cell sizes alone do not guarantee equal data-area sizes when
 labels take different amounts of space.
 
+## One name for a grid
+
+A grid of panels repeats its numbers on every cell, but the name of the
+quantity belongs once. `doc.label(x=, y=)` centres the x name under the whole
+grid's plot areas and turns the y name beside them, so a 4 x 2 grid gets one
+"Month Year" and one "P-score (%)". The cells keep their own ticks. The grid
+makes room for the names, and a fixed page height is shared with the x name.
+
+```python
+import inklet as i
+doc = i.preset('scientific.nature', format='single-column').document(columns=2)
+for k in range(8):
+    p = i.plot_spec(38, 22, x=(0, 12), y=(0, 100))
+    p.line([(m, 20 + 5 * k + 3 * m) for m in range(12)])
+    p.axes(x_options=dict(ticks=[0, 6, 12]), y_options=dict(ticks=[0, 50, 100]))
+    doc.add(f'c{k}', p, row=k // 2, column=k % 2)
+doc.label(x='Month Year', y='P-score (%)')
+doc.save('grid.svg', 'grid.pdf')
+```
+
+`inklet.facets(panels, x_label=, y_label=)` does the same for a grid built as one
+drawing, with the panels' own shared axes.
+
 ## Align fixed artwork
 
 Fixed artwork can align to a cell edge or corner:

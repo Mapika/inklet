@@ -496,7 +496,9 @@ class Log(Scale):
         if value <= 0:
             raise ScaleError(
                 f"a log scale cannot place {value}; the logarithm is undefined "
-                "at or below zero -- use symlog() for data that goes there"
+                "at or below zero. An error bar that reaches zero is drawn to the "
+                "axis floor by errorbars(); symlog() instead changes the whole "
+                "axis to one that reaches zero, and loses the log scale"
             )
         d0, d1 = (_log(v, self.base) for v in self.domain)
         span = d1 - d0

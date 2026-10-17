@@ -43,7 +43,7 @@
   },
   {
     "page": "layout.md",
-    "block": 3,
+    "block": 4,
     "object": "page",
     "image": "layout-3.png",
     "alt": "Two panels in a nested subfigure with measured panel letters"
@@ -575,28 +575,28 @@
   },
   {
     "page": "distributions.md",
-    "block": 2,
+    "block": 3,
     "object": "doc",
     "image": "plots-boxplot.png",
     "alt": "Boxplots"
   },
   {
     "page": "distributions.md",
-    "block": 3,
+    "block": 4,
     "object": "doc",
     "image": "plots-violin.png",
     "alt": "Violins"
   },
   {
     "page": "distributions.md",
-    "block": 4,
+    "block": 5,
     "object": "doc",
     "image": "plots-swarm.png",
     "alt": "Swarms"
   },
   {
     "page": "distributions.md",
-    "block": 5,
+    "block": 6,
     "object": "doc",
     "image": "plots-ecdf.png",
     "alt": "Cumulative distributions"
@@ -617,14 +617,14 @@
   },
   {
     "page": "uncertainty.md",
-    "block": 3,
+    "block": 4,
     "object": "doc",
     "image": "plots-line-errors.png",
     "alt": "Line with errors"
   },
   {
     "page": "uncertainty.md",
-    "block": 4,
+    "block": 5,
     "object": "doc",
     "image": "plots-series.png",
     "alt": "Reusable series"
@@ -666,14 +666,14 @@
   },
   {
     "page": "distributions.md",
-    "block": 6,
+    "block": 7,
     "object": "doc",
     "image": "plots-ridgeline.png",
     "alt": "Ridgelines"
   },
   {
     "page": "distributions.md",
-    "block": 7,
+    "block": 8,
     "object": "doc",
     "image": "plots-raincloud.png",
     "alt": "Rainclouds"
@@ -736,14 +736,14 @@
   },
   {
     "page": "distributions.md",
-    "block": 8,
+    "block": 9,
     "object": "fig",
     "image": "plots-survival.png",
     "alt": "Survival curves"
   },
   {
     "page": "uncertainty.md",
-    "block": 5,
+    "block": 6,
     "object": "doc",
     "image": "plots-forest.png",
     "alt": "Forest plot"
@@ -757,14 +757,14 @@
   },
   {
     "page": "distributions.md",
-    "block": 9,
+    "block": 10,
     "object": "doc",
     "image": "plots-split-violin.png",
     "alt": "Split violins"
   },
   {
     "page": "distributions.md",
-    "block": 10,
+    "block": 11,
     "object": "doc",
     "image": "plots-brackets.png",
     "alt": "Significance brackets"
@@ -792,35 +792,35 @@
   },
   {
     "page": "distributions.md",
-    "block": 11,
+    "block": 12,
     "object": "doc",
     "image": "plots-hist-groups.png",
     "alt": "Overlaid histograms and cumulative fractions"
   },
   {
     "page": "distributions.md",
-    "block": 12,
+    "block": 13,
     "object": "doc",
     "image": "plots-kde.png",
     "alt": "Kernel density curves"
   },
   {
     "page": "distributions.md",
-    "block": 13,
+    "block": 14,
     "object": "doc",
     "image": "plots-boxen.png",
     "alt": "Letter-value plots"
   },
   {
     "page": "distributions.md",
-    "block": 14,
+    "block": 15,
     "object": "doc",
     "image": "plots-strip-sina.png",
     "alt": "Strip and sina plots"
   },
   {
     "page": "distributions.md",
-    "block": 15,
+    "block": 16,
     "object": "doc",
     "image": "plots-qq.png",
     "alt": "QQ and PP plots"
@@ -848,28 +848,28 @@
   },
   {
     "page": "relationships.md",
-    "block": 4,
+    "block": 5,
     "object": "doc",
     "image": "plots-regression.png",
     "alt": "Regression and residuals"
   },
   {
     "page": "relationships.md",
-    "block": 5,
+    "block": 6,
     "object": "doc",
     "image": "plots-bland-altman.png",
     "alt": "Bland-Altman plot"
   },
   {
     "page": "relationships.md",
-    "block": 6,
+    "block": 7,
     "object": "doc",
     "image": "plots-pairplot.png",
     "alt": "Pair plot"
   },
   {
     "page": "relationships.md",
-    "block": 7,
+    "block": 8,
     "object": "doc",
     "image": "plots-jointplot.png",
     "alt": "Joint plot"

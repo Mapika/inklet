@@ -384,10 +384,28 @@ def _convolve(row: Sequence[float], kernel: Sequence[float]) -> list[float]:
     return out
 
 
-def mass_levels(density: Density2D, masses: Sequence[float]) -> tuple[float, ...]:
-    """The density thresholds whose superlevel sets hold `masses` of the
-    estimated probability, one per mass (each strictly between 0 and 1)."""
-    flat = sorted((v for row in density.values for v in row), reverse=True)
+def mass_levels(density, masses: Sequence[float]) -> tuple[float, ...]:
+    """The highest-density thresholds holding `masses` of the total, one per
+    mass (each strictly between 0 and 1).
+
+    `density` is a `Density2D` or a grid of rows, `grid[j][i]`, of counts or
+    densities. Missing cells (None or NaN) are left out of the total. A
+    threshold `t` gives the region `value >= t`, which holds at least the
+    share asked for; ties at `t` can hold a little more. This is the step
+    behind `Panel.contour(hdr=...)`, which draws those regions.
+    """
+    rows = density.values if isinstance(density, Density2D) else density
+    flat = []
+    for row in rows:
+        for v in row:
+            if v is None or math.isnan(float(v)):
+                continue
+            if not 0.0 <= float(v) < math.inf:
+                raise DiagramError(f"mass levels need finite values of zero or more, got {v!r}")
+            flat.append(float(v))
+    flat.sort(reverse=True)
+    if not flat:
+        raise DiagramError("mass levels need at least one value")
     total = math.fsum(flat)
     if not total > 0:
         raise DiagramError("the density is zero everywhere")

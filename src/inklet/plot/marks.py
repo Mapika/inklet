@@ -38,7 +38,7 @@ from ..draw.path import polygon, polyline
 from ..draw.place import place as draw_place
 from ..draw.shapes import MARK_KIND, MARK_LINE_KIND, marker as make_marker
 from ..themes.color import contrast_ratio, mix, to_oklch
-from .scale import Band, Scale
+from .scale import Band, Log, Scale
 from .statistics import (
     BoxStats, _bandwidth, _bin_edges, _bin_of, box_stats, histogram, kde, quantile,
 )
@@ -376,6 +376,38 @@ def hist(panel, values: Sequence[float], bins: int | Sequence[float] = 10, *,
                      colors=colors, **style)
 
 
+def counted_bins(panel, edges, counts, *, density: bool = False,
+                 baseline: float = 0.0, orient: str = "v", colors=None,
+                 **style) -> Diagram:
+    """Rectangles from bin edges and the counts already made of them.
+
+    The same drawing as `hist`, for a histogram that someone else binned:
+    `counts[k]` is the height of the bin from `edges[k]` to `edges[k + 1]`.
+    With `density=True` the counts are divided by their total and by each bin's
+    width, so the bars integrate to one as `hist(density=True)` does.
+    """
+    heights = [float(c) for c in counts]
+    bounds = [float(e) for e in edges]
+    if len(bounds) != len(heights) + 1:
+        raise DiagramError(
+            f"{len(bounds)} edges do not bound {len(heights)} bins; "
+            "prebinned counts need one more edge than counts")
+    if not all(math.isfinite(e) for e in bounds):
+        raise DiagramError("hist(prebinned=True) bin edges must be finite")
+    if any(b <= a for a, b in zip(bounds, bounds[1:])):
+        raise DiagramError("hist(prebinned=True) bin edges must strictly increase")
+    if not all(math.isfinite(h) and h >= 0 for h in heights):
+        raise DiagramError("hist(prebinned=True) counts must be finite and zero or more")
+    if density:
+        total = math.fsum(heights)
+        if not total > 0:
+            raise DiagramError("hist(prebinned=True, density=True) needs a count above zero")
+        heights = [h / (total * (b - a))
+                   for h, a, b in zip(heights, bounds, bounds[1:])]
+    return bins_node(panel, bounds, heights, baseline=baseline, orient=orient,
+                     colors=colors, **style)
+
+
 def bins_node(panel, edges: Sequence[float], heights: Sequence[float], *,
               baseline: float = 0.0, orient: str = "v", colors=None,
               **style) -> Diagram:
@@ -408,18 +440,20 @@ def bins_node(panel, edges: Sequence[float], heights: Sequence[float], *,
 
 
 def errorbars(panel, points: Sequence[Sequence], *, yerr=None, xerr=None,
-              cap: float | None = None, **style) -> Diagram:
+              cap: float | None = None, floor: str = "arrow", **style) -> Diagram:
     """Whiskers through each point. See `Panel.errorbars`."""
     data = [tuple(p) for p in points]
     if yerr is None and xerr is None:
         raise DiagramError("errorbars() needs yerr=, xerr= or both")
+    if floor not in _FLOORS:
+        raise DiagramError(f'errorbars floor= is "arrow" or "none", not {floor!r}')
     items: list[Diagram] = []
     for axis, spread in (("y", yerr), ("x", xerr)):
         if spread is None:
             continue
         reach = _cap_reach(panel, data, axis) if cap is None else float(cap)
         for (x, y), (low, high) in zip(data, error_pairs(spread, len(data), axis)):
-            items.extend(_whisker(panel, x, y, low, high, axis, reach))
+            items.extend(_whisker(panel, x, y, low, high, axis, reach, floor))
     if not items:
         raise DiagramError("errorbars() had nothing to draw")
     return draw_place(items, **style)
@@ -469,19 +503,63 @@ def _packing(panel, data: Sequence[Sequence], axis: str) -> float:
     return min(gaps) if gaps else math.inf
 
 
+#: What `errorbars(floor=)` may say about a whisker that reaches zero on a log
+#: axis: an open arrowhead at the axis floor, or nothing at all.
+_FLOORS = ("arrow", "none")
+#: The arms of that arrowhead reach this far back, as a share of the type size,
+#: or as far as a cap's half-width where the caps are larger, so an end with
+#: its cap off still has an arrowhead to read.
+_ARROW_OF_TYPE = 0.5
+
+
+def _placeable(scale: Scale, value: float) -> bool:
+    """False for a value a log scale cannot place: zero and below."""
+    return not isinstance(scale, Log) or value > 0
+
+
 def _whisker(panel, x, y, low: float, high: float, axis: str,
-             cap: float) -> list[Diagram]:
-    if axis == "y":
-        ends = (panel.point(x, y - low), panel.point(x, y + high))
-        across = Vec2(cap, 0.0)
-    else:
-        ends = (panel.point(x - low, y), panel.point(x + high, y))
-        across = Vec2(0.0, cap)
+             cap: float, floor: str = "arrow") -> list[Diagram]:
+    """One whisker, from `y - low` to `y + high` (or the x equivalent).
+
+    An end a log axis cannot place, a bound at or below zero, runs to the
+    axis floor instead, with an open arrowhead (`floor="arrow"`) to show the
+    whisker continues past the axis; `floor="none"` runs it to the floor bare.
+    The point itself must be placeable, so the error stays for a point at zero.
+    """
+    scale = panel.y if axis == "y" else panel.x
+    centre = y if axis == "y" else x
+
+    def place(value: float) -> Vec2:
+        return panel.point(x, value) if axis == "y" else panel.point(value, y)
+
+    place(centre)
+    ends, open_ends = [], []
+    for value in (centre - low, centre + high):
+        if _placeable(scale, value):
+            ends.append(place(value))
+            open_ends.append(False)
+        else:
+            ends.append(place(min(scale.domain)))
+            open_ends.append(True)
     out = [polyline(ends, kind=MARK_LINE_KIND)]
     if cap > 0:
+        across = Vec2(cap, 0.0) if axis == "y" else Vec2(0.0, cap)
         out.extend(polyline((end - across, end + across), kind=MARK_LINE_KIND)
-                   for end in ends)
+                   for end, open_end in zip(ends, open_ends) if not open_end)
+    if floor == "arrow":
+        size = max(cap, _ARROW_OF_TYPE * active_theme().font_size)
+        for k, (end, open_end) in enumerate(zip(ends, open_ends)):
+            if open_end:
+                out.append(_arrowhead(end, ends[1 - k], size))
     return out
+
+
+def _arrowhead(tip: Vec2, toward: Vec2, size: float) -> Diagram:
+    """An open arrowhead at `tip`, pointing away from `toward`."""
+    along = (tip - toward).normalized()
+    back = tip - along * size
+    side = along.perp() * size
+    return polyline((back + side, tip, back - side), kind=MARK_LINE_KIND)
 
 
 # -- areas and steps ------------------------------------------------------

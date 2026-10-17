@@ -116,6 +116,38 @@ doc.save('kde2d.svg', 'kde2d.pdf')
 *Rendered from the code above. The contours hold 25%, 50%, 75% and 95% of
 the estimated density of 900 simulated points from two clusters.*
 
+## Contours of a gridded field
+
+`contour(x, y, z, ...)` draws lines through a field that is already sampled
+on a grid, such as the counts of a 2D histogram or a simulated surface. `z[j][i]`
+is the value at `(x[i], y[j])`, the same layout as `matrix()`. Give the values
+in `levels=`, or give the shares of the total that the regions should hold in
+`hdr=`: `hdr=(0.683, 0.954)` draws the highest-density regions holding 68.3%
+and 95.4% of the counts. `inklet.plot.mass_levels(z, (0.683, 0.954))` returns
+the values behind those regions for a grid, without drawing.
+
+```python
+import inklet as i
+import random
+from inklet.plot import histogram2d
+rng = random.Random(611)
+points = [(rng.gauss(0, 1.1), rng.gauss(0, .8)) for _ in range(1200)]
+x_edges, y_edges, counts = histogram2d(points, bins=(16, 16), range=((-3, 3), (-3, 3)))
+x = [(a + b) / 2 for a, b in zip(x_edges, x_edges[1:])]
+y = [(a + b) / 2 for a, b in zip(y_edges, y_edges[1:])]
+p = i.plot_spec(x=(-3, 3), y=(-3, 3), height=60)
+p.contour(x, y, counts, hdr=(0.683, 0.954), color=['#24698c', '#b8512e'])
+p.axes(x='Component 1', y='Component 2')
+doc = i.document(width=110)
+doc.add('contours', p)
+doc.save('contours.svg', 'contours.pdf')
+```
+
+Contours follow a log axis as the axis bends, and the lines are cut to the
+plot area unless `clip=False`. A missing value (`None`) lies outside every
+level, so a contour closes round a gap instead of through it. A level outside
+the range of `z` draws nothing, and if none is inside it the call fails.
+
 ## Regression and residuals
 
 `regression` draws the points, a least-squares line and its 95% confidence

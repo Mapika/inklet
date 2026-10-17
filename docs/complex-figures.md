@@ -64,6 +64,10 @@ grid = i.facets(panels, cols=2, share_x=True, share_y=True,
 Supply panels without pre-existing axes when asking `facets` to create them.
 Use `axes=False` when each panel already owns its furniture.
 
+A `document()` built from separately added cells, which is how letters and
+per-cell alignment are set, takes the same single names from `doc.label(x=,
+y=)`; see [one name for a grid](layout.md#one-name-for-a-grid).
+
 ## Keys and labels that follow the plot
 
 ```python
