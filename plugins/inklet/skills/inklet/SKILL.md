@@ -221,8 +221,7 @@ which fits a 16:9 slide, so put the image in at its own size.
    bar sums or a line zigzags through (`ROWS_COMBINED`), bars wider than
    their axis (`BAR_WIDTH_OUT_OF_SCALE`), a plot narrower than the width it was
    given (`PLOT_WIDTH_OVERRIDDEN`), and a y-axis title that runs into its
-   neighbours (`AXIS_TITLE_OVERHANG`), each with a suggested fix.
-   `inklet lint: clean` means no problems. Mark ornamental text
+   neighbours (`AXIS_TITLE_OVERHANG`), each with a suggested fix. `inklet lint: clean` means no problems. Mark ornamental text
    such as a pale watermark with `text(..., decorative=True)` so the contrast
    check skips it.
 2. Look at the PNG. If you can view images, open it. Labels are measured, so
