@@ -86,7 +86,12 @@ Transit depth is absolute (Rp/Rs)², as the bundle README states.
 | `fig3_best_fit.csv` (217 rows) | `ZENODO/MODEL_FITS/ScCHIMERA_MODEL.txt`; `wl [um]`→`wavelength_um`, `Depth`→`transit_depth` | Fig 3 top: "All opacity" curve (cropped to the data range); improved panel a "Best fit" |
 | `fig3_remove_one_gas.csv` (95 rows) | `ZENODO/MODEL_FITS/ScCHIMERA_MODEL_no{H2O,CO,CO2,CH4,H2S,cloud}.txt`, each `Depth` column: `no_H2O`, `no_CO`, `no_CO2`, `no_CH4`, `no_H2S`, `no_cloud`; `wavelength_um` = the FIREFLY `wv_center` (identical to every variant file) | Fig 3 top: the six "No X" curves; improved panel b (strips) |
 
-The Figure 3 bottom panel and the scale-height axis have no file in the bundle.
+| `fig3_cross_sections.csv` (102 rows) | **Computed, not from the bundle**: `cross_sections.py` from the HITRAN2020 line lists (H₂O, CO₂, CO, CH₄, H₂S, main isotopologues, 1,750–3,500 cm⁻¹, fetched with `hitran-api` 1.3.0 on 2026-10-17); columns `wavelength_um` (bin centre) and `log10_sigma_<gas>` (cm² per molecule, mean over a 0.025 µm bin at 1,170 K) | Fig 3 bottom: the five cross-section curves |
+
+The Figure 3 bottom panel has no file in the bundle, so it is computed (above).
+Line data: I. E. Gordon *et al.*, "The HITRAN2020 molecular spectroscopic
+database", *J. Quant. Spectrosc. Radiat. Transf.* **277**, 107949 (2022),
+https://hitran.org. The scale-height axis has no data and is not drawn.
 
 ## Processing done in the scripts
 
@@ -97,9 +102,14 @@ The Figure 3 bottom panel and the scale-height axis have no file in the bundle.
    equal the variant files' wavelengths exactly.
 2. **Units.** Values are multiplied by 100 in the scripts only, to plot transit
    depth in per cent as the published axis does (`PCT = 100`).
-3. **Faithful figure (`fig3.py`).** Best-fit curve cropped to the observed
-   wavelength range (3.014–5.548 µm), as in the published figure, where it spans
-   the data only. Nothing is smoothed, binned or interpolated.
+3. **Faithful figure (`fig3.py`).** The best-fit curve is averaged over each of
+   the 95 FIREFLy bins (centre ± half `bin_width_um`, 50 interpolated samples per
+   bin), as the caption says the published curve is binned to the data's
+   resolution. The bottom panel's cross-sections are computed by
+   `cross_sections.py`: each HITRAN line intensity is scaled from 296 K to
+   1,170 K with the HITRAN partition sums, the intensities in each 0.025 µm bin
+   are summed and divided by the bin's width in cm⁻¹, and the log₁₀ is stored.
+   Bins with no lines (CO below 4.3 µm) are left empty.
 4. **Improved figure (`fig3_improved.py`).** The best fit is linearly interpolated
    (`numpy.interp`) onto the 95 data wavelengths, because the remove-one-gas models
    are on that grid and the best fit is not. Each strip is

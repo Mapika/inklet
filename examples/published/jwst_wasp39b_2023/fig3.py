@@ -5,8 +5,9 @@ JWST Transiting Exoplanet Community Early Release Science Team (Ahrer et al.),
 649-652 (2023), Figure 3 (top panel). The FIREFLy reduction (points with 1-sigma
 error bars), the ScCHIMERA best fit (all opacity sources) and the six
 remove-one-gas spectra. Data are the Zenodo 10.5281/zenodo.6809899 bundle (see
-SOURCE.md). The bottom panel (molecular absorption cross-sections) is not in
-the bundle and is left out.
+SOURCE.md). The authors did not release the bottom panel's molecular
+cross-sections; they are computed here from HITRAN by `cross_sections.py`
+(see NOTES.md), so that panel is a derivation, not the published curves.
 """
 from pathlib import Path
 
@@ -30,6 +31,7 @@ PCT = 100.0   # the published axis is transit depth in per cent; files are absol
 firefly = pd.read_csv(HERE / "data" / "fig3_firefly_data.csv")
 best = pd.read_csv(HERE / "data" / "fig3_best_fit.csv")
 ablation = pd.read_csv(HERE / "data" / "fig3_remove_one_gas.csv")
+cross = pd.read_csv(HERE / "data" / "fig3_cross_sections.csv")
 
 points = list(zip(firefly.wavelength_um, firefly.transit_depth * PCT))
 sigma = (firefly.transit_depth_1sigma * PCT).tolist()
@@ -66,7 +68,8 @@ KEY_ORDER = [name for name, _, _ in REMOVED[:4]] + [
 # inward ticks on the bottom and left axes only (axes="frame"). The original
 # top panel is 862 x 318.5 px of an 1052 px wide image, so at 89 mm its plot box
 # is 72.9 x 26.9 mm; x and y limits are read from its frame and tick marks.
-doc = i.preset("scientific.nature", format="single-column", axes="frame").document()
+doc = i.preset("scientific.nature", format="single-column", axes="frame").document(
+    columns=1, row_gap=0, share_plot_margins=True)
 p = i.plot_spec(72.9, 26.9, x=(2.89, 5.67), y=(2.057, 2.311), clip=True)
 
 for name, column, colour in REMOVED:
@@ -78,12 +81,31 @@ p.line(list(zip(firefly.wavelength_um, best_binned * PCT)),
 p.errorbars(points, yerr=sigma, stroke=DATA_BAR, stroke_width=0.2, cap=0)
 p.scatter(points, size=0.9, color=DATA_DOT, name="Data")
 
-p.axes(x="Wavelength (µm)", y="Transit depth (%)",
-       x_options=dict(ticks=[3.0, 3.5, 4.0, 4.5, 5.0, 5.5], format="{:.1f}"),
+XTICKS = [3.0, 3.5, 4.0, 4.5, 5.0, 5.5]
+p.axes(x=None, y="Transit depth (%)",
+       x_options=dict(ticks=XTICKS, labels=False),
        y_options=dict(ticks=[2.10, 2.15, 2.20, 2.25, 2.30], format="{:.2f}"))
 p.legend(corner="nw", names=KEY_ORDER, order="column", columns=2, row_gap=0.2, pad=0.6)
 
-doc.add("fig3", p)
+doc.add("spectrum", p, row=0)
+
+# -- bottom panel: cross-sections -------------------------------------------------
+# The original's lower panel is 862 x 130 px, so 72.9 x 11 mm at 89 mm; it shares
+# the wavelength axis and abuts the upper panel. The y range runs lower than the
+# original's -26 because HITRAN, a 296 K list, lacks the hot lines that fill the
+# windows between bands (CO2 falls to -28 there); it runs higher to leave the
+# key clear of the CO2 peak.
+GASES = [("H_{2}O", "H2O", NAVY), ("CO", "CO", RED), ("CO_{2}", "CO2", BLACK),
+         ("CH_{4}", "CH4", LIGHT_BLUE), ("H_{2}S", "H2S", ORANGE)]
+q = i.plot_spec(72.9, 15, x=(2.89, 5.67), y=(-29, -13), clip=True)
+for name, column, colour in GASES:
+    curve = cross[["wavelength_um", f"log10_sigma_{column}"]].dropna()
+    q.line(curve.to_numpy().tolist(), stroke=colour, stroke_width=0.25, name=name)
+q.axes(x="Wavelength (µm)", y="log_{10}//σ//\n(cm^{2} mol^{−1})",
+       x_options=dict(ticks=XTICKS, format="{:.1f}"),
+       y_options=dict(ticks=[-25, -20, -15]))
+q.legend(corner="nw", columns=5, row_gap=0.2, pad=0.4, col_gap=1.5)
+doc.add("cross", q, row=1)
 figure = doc.compile()
 
 OUT.mkdir(parents=True, exist_ok=True)

@@ -34,6 +34,9 @@ behind their figures released. Each figure is drawn twice:
 JWST Transiting Exoplanet Community ERS Team, "Identification of carbon dioxide
 in an exoplanet atmosphere", *Nature* 614, 649–652 (2023),
 [doi:10.1038/s41586-022-05269-w](https://doi.org/10.1038/s41586-022-05269-w), Fig. 3.
+The authors released the spectrum and models but not the bottom panel's
+cross-sections, so those are computed from HITRAN line lists
+([`cross_sections.py`](../examples/published/jwst_wasp39b_2023/cross_sections.py)).
 The improved version replaces seven overlapping model curves with one strip per
 gas, on a shared scale, showing how much each adds to the spectrum.
 [Faithful](../examples/published/jwst_wasp39b_2023/fig3.py) ·

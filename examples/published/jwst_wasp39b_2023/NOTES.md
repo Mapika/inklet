@@ -1,13 +1,13 @@
-# Notes: JWST WASP-39b, Figure 3 (top panel)
+# Notes: JWST WASP-39b, Figure 3
 
 ## Outputs
 
 | File | Size | Content |
 |---|---|---|
-| `gallery/published/jwst_wasp39b_2023_fig3.{svg,pdf,png}` | 89 × 54.6 mm (single column) | `fig3.py`, faithful |
+| `gallery/published/jwst_wasp39b_2023_fig3.{svg,pdf,png}` | 89 × 57.2 mm (single column) | `fig3.py`, faithful, both panels |
 | `gallery/published/jwst_wasp39b_2023_fig3_improved.{svg,pdf,png}` | 89 × 122.4 mm (single column) | `fig3_improved.py`, redesign |
 
-PNG at dpi=200. `fig3.py` is 76 lines, `fig3_improved.py` 116 lines.
+PNG at dpi=200. `fig3.py` is 114 lines, `fig3_improved.py` 116 lines.
 
 ## Print width (pass 2)
 
@@ -23,10 +23,10 @@ Measured on `original-fig3.png` (1052 × 549 px):
   frame and the inward tick marks: x 2.89–5.67 µm (3.0 at px 161.5, 5.5 at px
   934.5, 309.2 px per µm), y 2.057–2.311 % (2.30 at px 14.5, 2.10 at px 265.5).
 
-The original's aspect ratio (549/1052) would give 46.4 mm for the whole figure.
-This pass draws only the top panel, so the height follows the top panel's
-proportions (the plot box is the original's top panel size), not the whole
-figure's. The bottom panel is not in the bundle.
+The original's aspect ratio (549/1052) gives 46.4 mm for the whole figure; ours
+is 57.2 mm. The top plot box is the original's (72.9 × 26.9 mm); the bottom one
+is 15 mm against the original's 11 mm, to hold the computed curves' wider range
+(see "Differs") with the key clear of them.
 
 ## Lint
 
@@ -45,7 +45,8 @@ none.
 
 Figure 3 is the one with the measured spectrum, the model fits and the
 remove-one-gas variants. Figure 2 has the four reductions and Spitzer points
-only. Fig. 3's top panel is reproduced; its bottom panel is not (see below).
+only. Fig. 3's top panel is reproduced from the released data; its bottom
+panel is computed (see below).
 
 ## Matches the original
 
@@ -79,9 +80,19 @@ only. Fig. 3's top panel is reproduced; its bottom panel is not (see below).
 
 ## Differs, and why
 
-* **No bottom panel (molecular cross-sections).** The bundle has no cross-section
-  data, and digitising the published curves is not allowed. The figure is the top
-  panel only, so its height is that of the top panel.
+* **The bottom panel is computed, not released.** The authors did not release
+  the cross-section curves (the bundle README says it recreates "the top panel
+  of Figure 3"). `cross_sections.py` derives them from the HITRAN2020 line lists
+  at 1,170 K (WASP-39b's equilibrium temperature) as the mean cross-section in
+  0.025 µm bins, and writes `data/fig3_cross_sections.csv`. Band positions and
+  peak values agree with the original to within about half a decade (CO₂ peaks
+  at −18.1 here, −17.5 in the original; CH₄ −19.0 at 3.3 µm; H₂S −21.6). HITRAN
+  is a 296 K list without the hot lines of the ExoMol and HITEMP lists the
+  paper's model used, so the windows between bands are lower than published
+  (CO₂ falls to −28 at 3.7 µm, where the original shows about −25), and the
+  y axis runs from −29 to −13 rather than the original's −26 to −15 so that
+  nothing is clipped. The temperature and pressure behind the published panel
+  are not stated in the paper.
 * **No right-hand "Scale heights" axis.** The bundle gives no zero point (the
   1-bar reference radius). The Fig. 2 caption gives 800 km per scale height, but
   that alone does not fix the offset, so the axis cannot be placed from the data.
@@ -197,8 +208,9 @@ the top panel are clean: no overlapping text, and no label over a line or point.
 
 The faithful version reproduces the top panel at the original's print width
 (89 mm), with a closed black frame, inward ticks, the same data, series, colours
-and scales. It omits the bottom cross-section panel and the scale-height axis,
-which the bundle cannot supply, and its key sits above the frame. The improved
+and scales, and adds the bottom cross-section panel, computed from HITRAN
+because the authors did not release it. It omits the scale-height axis, which
+the bundle cannot place. The improved
 version uses the same data and message: a clean observed-versus-model panel and
 six colour-blind-safe strips that make each source's contribution comparable.
 It keeps every error bar, and every explanation is in the caption.
