@@ -1308,7 +1308,10 @@ class Panel:
         """A heading over the panel, clear of whatever is already in it.
 
         `align` is `center` (over the data area), `start`/`left` or
-        `end`/`right` (flush with the panel's furniture).
+        `end`/`right` (flush with the panel's furniture). It places the heading
+        block; it does not set the lines within a multi-line heading, which stay
+        centred on one another. For a flush left heading over several lines,
+        pass `inklet.text(..., align="start")` as `content`.
         """
         align = {"left": "start", "right": "end"}.get(align, align)
         if align not in ("center", "start", "end"):
@@ -1637,12 +1640,23 @@ class Panel:
              front: bool = True, decorative: bool = False, **style) -> "Panel":
         """Words at one **data** point.
 
-        `anchor` is the compass point of the *label* that lands on the datum,
-        so `anchor="w"` writes eastward from it -- the same word `inklet.place`
-        uses. `offset` is a nudge in millimetres afterwards, because a
-        typographic clearance is a length and not a quantity.
+        `anchor` is the point of the *label* that lands on the datum. It is one
+        of `"c"` (or `"center"`), `"n"`, `"ne"`, `"e"`, `"se"`, `"s"`, `"sw"`,
+        `"w"` or `"nw"`, read off the label's box: `anchor="w"` puts the middle
+        of its west edge on the datum, so the words run eastward from it, the
+        same word `inklet.place` uses. `anchor="nw"` puts its top-left corner
+        there, so the words hang below and to the right of the datum.
+
+        `offset=(dx, dy)` is a nudge in millimetres applied afterwards, because
+        a typographic clearance is a length and not a quantity. `dx` moves the
+        label right and `dy` moves it **down**, since y grows downward on the
+        page; `offset=(0, -1)` lifts it 1 mm.
 
             p.text(2020, 41.5, "onset", anchor="w", offset=(1, 0))
+
+        `align=` sets how the lines of a multi-line label sit against each
+        other, as `inklet.text` does. The default centres them on one another;
+        `align="start"` gives a flush left edge.
 
         `markup=False` sets the string exactly as typed, which is what a label
         that came out of the data needs -- `p.text(x, y, sample_id,
@@ -1695,7 +1709,9 @@ class Panel:
         envelope. The label is kept **inside the plot area** by default, since
         a callout that escapes over the spine reads as belonging to the panel
         above. `dot=True` marks the point itself, for a curve with no marker
-        there already.
+        there already. A multi-line label takes `align=` as `inklet.text`
+        does: centred on its own lines by default, `align="start"` for a flush
+        left edge.
 
             p.annotate(peak_t, peak_v, "peak", side="ne")
         """
