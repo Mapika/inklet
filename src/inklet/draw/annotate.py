@@ -247,10 +247,14 @@ def annotate(target: Diagram | AnchorRef, text: str | Diagram, *,
     reach, centre = _reach_of(here, target)
     blockers = ((_blockers(avoid, placements) + _placed_labels(root, placements))
                 if search else [])
+    # A slid label must not land on the datum it names, so the datum, inflated
+    # by the clearance, is an obstacle to the slide only.
+    datum = None
+    if keep is not None and here.bbox is not None:
+        box = here.bbox
+        datum = Rect(box.x0 - gap, box.y0 - gap, box.x1 + gap, box.y1 + gap)
     chosen, at = _pick_side(side, body, reach, centre, gap, blockers,
-                            search=search)
-    if keep is not None:
-        at = _kept_within(at, body, keep)
+                            search=search, keep=keep, datum=datum)
 
     offset = at - body.bbox.center
     placed = Diagram(children=(body.translated(offset.x, offset.y),),
@@ -394,24 +398,42 @@ def _reach_of(here: Placement, target: Diagram | AnchorRef):
 
 def _pick_side(side: str, body: Diagram, reach, centre: Vec2, gap: float,
                blockers: Sequence[Rect], *,
-               search: bool = True) -> tuple[str, Vec2]:
+               search: bool = True, keep: Rect | None = None,
+               datum: Rect | None = None) -> tuple[str, Vec2]:
     """The first candidate side that is clear, or the least blocked of them.
 
     `search=False` turns the walk off and takes the requested side as given:
     `inklet.place_labels` has already weighed all eight against every other label
     on the page, and a second, local opinion here would undo it.
+
+    `keep` asks for a side that is clear with the label slid inside `keep`. If
+    no side is clear that way, the search below runs as it would without `keep`:
+    a crowded corner keeps the label where it always went, rather than sliding
+    it onto the datum it names.
     """
+    order = _side_order(side) if search else (side,)
+    if keep is not None:
+        inside = list(blockers) + ([datum] if datum is not None else [])
+        for candidate in order:
+            at = _kept_within(_label_centre(body, reach, centre, gap,
+                                            _DIRECTION[candidate]), body, keep)
+            if _blocked_area(body, at, inside) <= 0.0:
+                return candidate, at
     best: tuple[float, str, Vec2] | None = None
-    for candidate in (_side_order(side) if search else (side,)):
-        direction = _DIRECTION[candidate]
-        at = _label_centre(body, reach, centre, gap, direction)
-        spot = Rect.from_size(body.width, body.height, at)
-        blocked = sum(_overlap_area(spot, other) for other in blockers)
+    for candidate in order:
+        at = _label_centre(body, reach, centre, gap, _DIRECTION[candidate])
+        blocked = _blocked_area(body, at, blockers)
         if blocked <= 0.0:
             return candidate, at
         if best is None or blocked < best[0]:
             best = (blocked, candidate, at)
     return best[1], best[2]
+
+
+def _blocked_area(body: Diagram, at: Vec2, blockers: Sequence[Rect]) -> float:
+    """How much of `blockers` a label centred at `at` would cover."""
+    spot = Rect.from_size(body.width, body.height, at)
+    return sum(_overlap_area(spot, other) for other in blockers)
 
 
 def _kept_within(at: Vec2, body: Diagram, keep: Rect) -> Vec2:

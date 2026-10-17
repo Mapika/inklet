@@ -167,6 +167,7 @@ def test_callout_keeps_a_clear_side_where_it_asked():
     p.axes(x="x", y="y")
     p.annotate(5, 5, "c", side="ne", leader=False)
     (box,), area = _placed_labels(p)
-    assert box.center.x > area.center.x and box.center.y < area.center.y
+    datum = p.point(5, 5)
+    assert box.center.x > datum.x and box.center.y < datum.y    # up and to the right
     assert area.x0 <= box.x0 and box.x1 <= area.x1
     assert area.y0 <= box.y0 and box.y1 <= area.y1
