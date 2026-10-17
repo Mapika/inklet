@@ -56,12 +56,18 @@ only. Fig. 3's top panel is reproduced; its bottom panel is not (see below).
   no cloud) and the all-opacity best fit, all from the ScCHIMERA files.
 * Key: the same eight entries in the same order and two-column layout
   (column-major: No H₂O, No CO, No CO₂, No H₂S | No CH₄, No cloud, All opacity,
-  Data). It sits above the frame (see "Differs").
+  Data), inside the top-left corner as in the original. Its rows are packed
+  close (`row_gap=0.2`, `pad=0.6`) so it clears the first points at 3.0 µm.
 * Colours: sampled from the legend swatches of the published PNG (No H₂O
   #000080, No CO #ff0000, No CO₂ #000000, No H₂S #ffa500, No CH₄ #add8e6,
   No cloud #808080, All opacity #0000ff).
-* Axes: a closed black frame with inward major and minor ticks
-  (`axes="box"`, `scientific.nature`), no grid. Ticks as the original:
+* Axes: a closed black frame whose top and right edges are plain lines, with
+  inward major and minor ticks on the bottom and left axes only
+  (`axes="frame"`, `scientific.nature`), no grid. (The first pass used
+  `axes="box"`, which mirrors ticks onto the top and right edges; the original
+  has none there.)
+* Data points: 0.9 mm across, as in the original (11 px of a 1052 px image
+  printed at 89 mm), with 0.2 mm error bars. Ticks as the original:
   x every 0.5 µm from 3.0 to 5.5, y every 0.05 % from 2.10 to 2.30.
 * Caption checks, from the data: best-fit header in `ScCHIMERA_MODEL.txt` gives
   [M/H] = +1 (10× solar), C/O = 0.35, log K_cld = −2.15 cm² g⁻¹ (≈ 7 × 10⁻³,
@@ -76,19 +82,14 @@ only. Fig. 3's top panel is reproduced; its bottom panel is not (see below).
 * **No bottom panel (molecular cross-sections).** The bundle has no cross-section
   data, and digitising the published curves is not allowed. The figure is the top
   panel only, so its height is that of the top panel.
-* **Key above the frame, not inside it.** At the original's proportions the
-  plot is 26.9 mm tall. Inside the top-left corner, the eight-entry key covers
-  the data points at 3.0–3.05 µm (2.168–2.17 %). `corner="best"` avoided that
-  but moved the key beside the plot and drew the plot 42.5 mm wide. The key now
-  sits above the frame with `side="top"`, so the plot keeps its size and
-  nothing is covered.
 * **No right-hand "Scale heights" axis.** The bundle gives no zero point (the
   1-bar reference radius). The Fig. 2 caption gives 800 km per scale height, but
   that alone does not fix the offset, so the axis cannot be placed from the data.
-* **The best-fit line is the high-resolution model, not a binned one.** The
-  caption says the blue curve is binned to the data resolution. The bundle has
-  only the unbinned 217-point curve (2.80–6.64 µm), so it is drawn over the data
-  range only. The "No X" curves are binned to the data grid.
+* **The best fit is binned here, by us.** The caption says the blue curve is
+  binned to the data resolution, but the bundle has only the unbinned
+  217-point curve (2.80–6.64 µm). `fig3.py` averages it over each of the 95
+  data bins (centre ± half the `bin_width_um` of FIREFLy), the grid the "No X"
+  curves come on, so all seven curves are smooth at the same resolution.
 * **Fonts.** Liberation Sans in place of Arial (see Lint).
 
 ## Improved version

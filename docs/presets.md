@@ -132,8 +132,12 @@ are on all four sides, and an explicit call still wins: `plot.axes(minor=False)`
 or `x_options=dict(tick_size=1)` override the preset for that axis. A heatmap
 gets the frame with no ticks over its cells.
 
-Use it for physics, astronomy and chemistry figures, and for any journal whose
-house style boxes its plots. Keep the default `'open'` for the usual
+`axes='frame'` closes the plot the same way but keeps the ticks to the
+labelled bottom and left axes: the top and right edges are plain black lines.
+Many astronomy figures, JWST's among them, are drawn like this.
+
+Use either for physics, astronomy and chemistry figures, and for any journal
+whose house style boxes its plots. Keep the default `'open'` for the usual
 bottom-and-left style of biology and most scientific journals.
 
 ## Keep style and format separate

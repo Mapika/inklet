@@ -82,8 +82,8 @@ def test_axes_option_is_stored_on_the_preset_and_defaults_to_open():
 
 
 def test_axes_option_rejects_unknown_values():
-    with pytest.raises(ValueError, match='axes must be open or box'):
-        i.preset('scientific.nature', axes='frame')
+    with pytest.raises(ValueError, match='axes must be open, box or frame'):
+        i.preset('scientific.nature', axes='boxed')
 
 
 @pytest.mark.parametrize('name', ['scientific.nature', 'educational.textbook', 'marketing.report'])
@@ -107,6 +107,32 @@ def test_open_draws_only_the_bottom_and_left_spines():
     runs = _frame(_compiled('open'))
     assert len(runs['horizontal']) == 1
     assert len(runs['vertical']) == 1
+
+
+def test_frame_closes_the_plot_but_ticks_only_the_labelled_sides():
+    # JWST's Fig. 3 style: a closed black frame whose top and right edges are
+    # plain lines, with inward ticks on the bottom and left axes only.
+    compiled = _compiled('frame')
+    runs, vertical_ticks, horizontal_ticks = _sides(compiled)
+    assert len({round(b.y0, 6) for b in runs['horizontal']}) == 2
+    assert len({round(b.x0, 6) for b in runs['vertical']}) == 2
+    top = min(b.y0 for b in runs['horizontal'])
+    bottom = max(b.y1 for b in runs['horizontal'])
+    left = min(b.x0 for b in runs['vertical'])
+    right = max(b.x1 for b in runs['vertical'])
+    assert vertical_ticks and horizontal_ticks
+    assert not any(abs(b.y0 - top) < EPS or abs(b.y1 - top) < EPS for b in vertical_ticks)
+    assert not any(abs(b.x0 - right) < EPS or abs(b.x1 - right) < EPS for b in horizontal_ticks)
+    for box in vertical_ticks:
+        assert box.y0 >= top - EPS and box.y1 <= bottom + EPS, 'bottom ticks point inward'
+    for box in horizontal_ticks:
+        assert box.x0 >= left - EPS, 'left ticks point inward'
+
+
+def test_frame_is_black_like_box():
+    styles = [style for node, style in _effective(_compiled('frame').root)
+              if node.kind == SPINE_KIND]
+    assert styles and all(style.stroke == BLACK for style in styles)
 
 
 def test_default_is_open():

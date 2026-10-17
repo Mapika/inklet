@@ -66,7 +66,7 @@ Chart options, accepted by every function above:
 | `height` | millimetres; default is about 0.62 x width, 45-75 mm. With `aspect=`, the default follows the width instead |
 | `style` | preset name: `'scientific.modern'` (default: colour-led marks, grey axes), `'scientific.general'`, `'scientific.nature'`, `'scientific.science'`, `'scientific.cell'`, `'educational.textbook'`, `'marketing.report'`, `'marketing.presentation'`; or a Preset object, e.g. `i.preset('scientific.modern').customize(font_pt=12)` |
 | `font_pt` | the main type size in points; ticks and the key take 6/7 of it and titles 9/7 |
-| `axes` | a preset option, e.g. `style=i.preset('scientific.nature', axes='box')`: a closed black frame with inward major and minor ticks on all four sides, as in physics and astronomy journals. The default `'open'` draws the bottom and left axes only |
+| `axes` | a preset option, e.g. `style=i.preset('scientific.nature', axes='box')`: a closed black frame with inward major and minor ticks on all four sides, as in physics and astronomy journals; `'frame'` closes the plot but ticks only the labelled bottom and left axes. The default `'open'` draws the bottom and left axes only |
 | `palette` | `'okabe-ito'`, `'tol-bright'`, `'tol-muted'`, `'inklet'`, `'set2'`, `'dark2'`... or a list of colours |
 | `title`, `xlabel`, `ylabel` | axis titles default to the raw column names, so set them for a publication. `xlabel` is always the horizontal axis, also with `orient='h'` (where it names the values) |
 | `xlim`, `ylim` | `(low, high)`; default fits the data. Explicit limits zoom: marks are cut at the axes |

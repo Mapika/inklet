@@ -44,8 +44,8 @@ class PlotDefaults:
             raise ValueError('tick_count must be an integer >= 2')
         if self.bar_fill not in ('neutral', 'accent'):
             raise ValueError('bar_fill must be neutral or accent')
-        if self.axes not in ('open', 'box'):
-            raise ValueError('axes must be open or box')
+        if self.axes not in ('open', 'box', 'frame'):
+            raise ValueError('axes must be open, box or frame')
 
 
 @dataclass(frozen=True)
@@ -111,7 +111,9 @@ class Preset:
 
         `axes='box'` gives every plot recipe a closed frame in black with ticks
         pointing inward and minor ticks on all four sides, the convention of
-        physics and astronomy journals. The default, `'open'`, draws the bottom
+        physics and astronomy journals. `axes='frame'` closes the plot the same
+        way but keeps the ticks to the labelled bottom and left axes, leaving
+        the top and right edges plain. The default, `'open'`, draws the bottom
         and left axes only.
         """
         theme_fields = {'font_family', 'font_mono', 'accent', 'palette', 'paper',

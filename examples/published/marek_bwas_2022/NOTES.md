@@ -136,23 +136,23 @@ Lint, from `figure.report(expect={"SERIES_FLATTENED"})`:
 8. **Full-sample points.** The original does not draw the 3,604 (or 3,928)
    full-sample points, only the fitted line; the legend's black "n = 3,604" square
    is the dashed line here ("r = −0.08"). Same drawing, different key entry.
-9. **Scatter ranges and cut markers.** The axis ranges are the original's:
+9. **Scatter points** are 0.95 mm across, as in the original (about 7 px of a
+   1404 px image printed at 183 mm). **Scatter ranges and cut markers.** The axis ranges are the original's:
    cognitive y 70–150, psychopathology y 20–75 (the original stops at 70, which
    would cut the point at 72; 75 keeps it), x 3–3.55 mm and 0.15–0.57. Points
-   outside a range, or within 0.8 mm of an edge (where the marker would be cut),
+   outside a range, or within a marker radius of an edge (where it would be cut),
    are not drawn. Their fits and r values use all 25 points, because the legend
    r values are fits to all 25. Markers not drawn, out of 25 per subsample:
    * g cognitive, dark (A subsample): 2 (DMN 3.000 and 3.140, both at cognition 67).
    * g cognitive, light (B subsample): 1 (3.473, 58).
-   * h cognitive, light (B subsample): 4 (0.229, 152, above the top; 0.416, 65,
-     below the bottom; 0.365, 73 and 0.558, 73, inside the range but within 0.8 mm
-     of the bottom or right edge).
-   * g psychopathology: none. Total 7 of 150 markers. The full-sample points were
+   * h cognitive, light (B subsample): 2 (0.229, 152, above the top; 0.416, 65,
+     below the bottom).
+   * g psychopathology: none. Total 5 of 150 markers. The full-sample points were
      never drawn (see 8).
    Nothing is partially drawn: the crops at 3x show no fragments at any edge.
    Lint reports `DATA_CLIPPED` (info) for the two fit lines that leave the frame
    at one end. The markers are not in that count: the script drops every marker
-   that is outside or within 0.8 mm of an edge before plotting, so lint never sees
+   that is outside or within a radius of an edge before plotting, so lint never sees
    them. A marker only partly inside would be cut without any report
    (ISSUES-marek_bwas_2022.md item 10).
 10. **Tick labels.** Correlation ticks read "1.0", "0.5", "0", "−0.5", "−1.0":
@@ -208,7 +208,9 @@ Changes and the problem each fixes:
 
 Lint for the improved version: one `FONT_SUBSTITUTED` only.
 
-Scatter ranges were widened so that every marker is fully inside (margin 0.8 mm,
+Points are 1.1 mm across with white edges, a little larger than the original's
+0.9 mm so overlapping points stay separate. Scatter ranges were widened so that
+every marker is fully inside (margin 0.55 mm,
 the marker radius). The ranges are x 2.95–3.6 mm (g) and 0.12–0.62 (h), cognitive
 y 50–160 with ticks 70, 110, 150, and psychopathology y 18–78 with ticks 20, 70.
 The script counts markers outside the margin for each sample; the count is 0 for

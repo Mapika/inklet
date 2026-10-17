@@ -43,6 +43,9 @@ PANEL_W, PANEL_H = 26, 27
 
 
 
+# A little larger than the original 0.9 mm points: white edges separate overlaps.
+DOT = 1.1
+
 def level_shares(frame, columns):
     """Share of each level's associations per bin, in percent."""
     out = []
@@ -110,8 +113,8 @@ def example_panel(name, ylim, yticks, ylabel, xlabel, xlim, xticks, xformat, tit
     frame, meta = scatter(name)
     width, height = PANEL_W + 8, PANEL_H + 4
     p = i.plot_spec(width, height, x=xlim, y=ylim, clip=True)
-    margin_x = 0.8 * (xlim[1] - xlim[0]) / width     # 0.8 mm: marker radius
-    margin_y = 0.8 * (ylim[1] - ylim[0]) / height
+    margin_x = DOT / 2 * (xlim[1] - xlim[0]) / width     # the marker's radius
+    margin_y = DOT / 2 * (ylim[1] - ylim[0]) / height
     for key, colour, marker, label in [("dark", SAMPLE_A, "circle", "A"),
                                         ("light", SAMPLE_B, "diamond", "B")]:
         xc, yc = meta[key]
@@ -120,7 +123,7 @@ def example_panel(name, ylim, yticks, ylabel, xlabel, xlim, xticks, xformat, tit
                   & (y >= ylim[0] + margin_y) & (y <= ylim[1] - margin_y))
         print(f"{title}, sample {label}: {int((~inside).sum())} of {len(x)} markers outside")
         p.scatter(list(zip(x[inside], y[inside])), marker=marker, color=colour, stroke="#ffffff",
-                  stroke_width=0.11, size=1.8, name=f"sample {label}")
+                  stroke_width=0.11, size=DOT, name=f"sample {label}")
         slope, intercept, r = fit_line(x, y)
         x0, x1 = xlim
         p.line([(x0, slope * x0 + intercept), (x1, slope * x1 + intercept)], stroke=colour,

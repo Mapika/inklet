@@ -423,7 +423,9 @@ class PlotSpec(BuildSpec):
     def _replay(self, panel, context):
         defaults = context.preset.plot if context.preset is not None else None
         methods = {step[1] for step in self._steps}
-        boxed = defaults is not None and defaults.axes == 'box' and bool(methods & {'axes', 'axis'})
+        boxed = (defaults is not None and defaults.axes in ('box', 'frame')
+                 and bool(methods & {'axes', 'axis'}))
+        plain = boxed and defaults.axes == 'frame'
         taken = _axis_sides(self) if boxed else ()
         # A heatmap keeps its labelled ticks outward and draws its frame without
         # ticks, so no tick lands over a cell; see _box_style.
@@ -486,7 +488,7 @@ class PlotSpec(BuildSpec):
                     warnings.simplefilter('ignore', InkletDeprecationWarning)
                     getattr(panel, method)(*args, **kwargs)
             if boxed and method in ('axes', 'axis'):
-                _frame(panel, method, args, kwargs, taken, matrix)
+                _frame(panel, method, args, kwargs, taken, matrix or plain)
 
 
 _BOX_INK = '#000000'
@@ -539,13 +541,14 @@ def _axis_sides(spec):
     return sides
 
 
-def _frame(panel, method, args, kwargs, taken, matrix=False):
+def _frame(panel, method, args, kwargs, taken, plain=False):
     """Draw the top or right edge of a box frame, as an unlabelled mirror.
 
     A bottom axis gets a top axis and a left axis a right one, with the same
-    ticks, minor ticks and length, so the two read as one frame. On a heatmap
-    the mirror is the edge alone, with no ticks. An explicit `axis` on the
-    opposite side, or a twin axis there, is left alone.
+    ticks, minor ticks and length, so the two read as one frame. `plain` draws
+    the edge alone, with no ticks: what a heatmap wants, since its cells' own
+    edge is the boundary, and what `axes='frame'` asks for. An explicit `axis`
+    on the opposite side, or a twin axis there, is left alone.
     """
     shared = {key: value for key, value in kwargs.items()
               if key not in ('x', 'y', 'x_options', 'y_options', 'side', 'label')}
@@ -560,8 +563,8 @@ def _frame(panel, method, args, kwargs, taken, matrix=False):
         mirrors = [('top' if side == 'bottom' else 'right', shared)]
     for side, options in mirrors:
         if side in taken: continue
-        if matrix:
-            # The cells' own edge is the boundary: the spine alone, no ticks.
+        if plain:
+            # The spine alone, no ticks: a heatmap's cell edge, or axes='frame'.
             options = {'ticks': (), 'minor': False, 'spine': True} | options
         panel.axis(side, **(options | {'labels': False, 'label': None}))
 

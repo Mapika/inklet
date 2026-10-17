@@ -298,7 +298,7 @@ def _decorator(request, context):
             options.setdefault('style', context.preset.letter_style)
             if context.preset.letter_pad is not None:
                 options.setdefault('pad', context.preset.letter_pad)
-            if context.preset.plot.axes == 'box':
+            if context.preset.plot.axes in ('box', 'frame'):
                 # The frame is black; the lettering is set in the same black.
                 from .spec import _BOX_INK
                 options.setdefault('text_fill', _BOX_INK)

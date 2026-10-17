@@ -10,6 +10,7 @@ the bundle and is left out.
 """
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 import inklet as i
@@ -33,6 +34,20 @@ ablation = pd.read_csv(HERE / "data" / "fig3_remove_one_gas.csv")
 points = list(zip(firefly.wavelength_um, firefly.transit_depth * PCT))
 sigma = (firefly.transit_depth_1sigma * PCT).tolist()
 
+
+def binned(model, centres, widths, fine=50):
+    """The model averaged over each data bin, as the caption says the blue
+    curve is ("binned to the resolution of the data"); the remove-one-gas
+    spectra in the bundle are already binned this way."""
+    out = []
+    for centre, width in zip(centres, widths):
+        grid = np.linspace(centre - width/2, centre + width/2, fine)
+        out.append(np.interp(grid, model.wavelength_um, model.transit_depth).mean())
+    return np.array(out)
+
+
+best_binned = binned(best, firefly.wavelength_um, firefly.bin_width_um)
+
 # The "no X" series, drawn beneath the data, in the original's legend order.
 REMOVED = [  # (key name, column, colour)
     ("No H_{2}O", "no_H2O", NAVY),
@@ -47,25 +62,26 @@ KEY_ORDER = [name for name, _, _ in REMOVED[:4]] + [
     "No CH_{4}", "No cloud", ALL, "Data"]   # column-major, as published
 
 # -- panel ----------------------------------------------------------------------
-# Single column (89 mm), boxed with inward ticks as the original is. The original
+# Single column (89 mm). The original is closed by a plain black frame, with
+# inward ticks on the bottom and left axes only (axes="frame"). The original
 # top panel is 862 x 318.5 px of an 1052 px wide image, so at 89 mm its plot box
 # is 72.9 x 26.9 mm; x and y limits are read from its frame and tick marks.
-doc = i.preset("scientific.nature", format="single-column", axes="box").document()
+doc = i.preset("scientific.nature", format="single-column", axes="frame").document()
 p = i.plot_spec(72.9, 26.9, x=(2.89, 5.67), y=(2.057, 2.311), clip=True)
 
 for name, column, colour in REMOVED:
     p.line(list(zip(ablation.wavelength_um, ablation[column] * PCT)),
            stroke=colour, stroke_width=0.25, name=name)
-inside = best.wavelength_um.between(firefly.wavelength_um.min(), firefly.wavelength_um.max())
-p.line(list(zip(best.wavelength_um[inside], best.transit_depth[inside] * PCT)),
+p.line(list(zip(firefly.wavelength_um, best_binned * PCT)),
        stroke=BLUE, stroke_width=0.25, name=ALL)
-p.errorbars(points, yerr=sigma, stroke=DATA_BAR, stroke_width=0.25, cap=0)
-p.scatter(points, size=1.3, color=DATA_DOT, name="Data")
+# Points are about 0.9 mm across in the original at 89 mm (11 px of 1052).
+p.errorbars(points, yerr=sigma, stroke=DATA_BAR, stroke_width=0.2, cap=0)
+p.scatter(points, size=0.9, color=DATA_DOT, name="Data")
 
 p.axes(x="Wavelength (µm)", y="Transit depth (%)",
        x_options=dict(ticks=[3.0, 3.5, 4.0, 4.5, 5.0, 5.5], format="{:.1f}"),
        y_options=dict(ticks=[2.10, 2.15, 2.20, 2.25, 2.30], format="{:.2f}"))
-p.legend(side="top", names=KEY_ORDER, order="column", columns=2)
+p.legend(corner="nw", names=KEY_ORDER, order="column", columns=2, row_gap=0.2, pad=0.6)
 
 doc.add("fig3", p)
 figure = doc.compile()

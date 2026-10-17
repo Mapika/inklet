@@ -92,6 +92,8 @@ def signed_r(r):
 
 
 NOT_DRAWN = []   # (panel, subsample, markers not drawn, markers in subsample), for NOTES
+# Points are about 0.9 mm across in the original at 183 mm (7 px of 1404).
+DOT = 0.95
 N25 = "//n// = 25"
 N25_LIGHT = N25 + "​"   # same key text for the second subsample; inklet wants unique names
 
@@ -102,10 +104,10 @@ def scatter_plot(name, ylim, yticks, ylabel, xlabel, dark, light):
                                         3.55 if name.startswith("g") else 0.57),
                     y=ylim, clip=True)
     lo_x, hi_x = (3.0, 3.55) if name.startswith("g") else (0.15, 0.57)
-    # A marker centred within 0.8 mm of an edge would be cut, so it is not drawn.
-    # Fits and the legend r values use all 25 points.
-    margin_x = 0.8 * (hi_x - lo_x) / SCAT_W
-    margin_y = 0.8 * (ylim[1] - ylim[0]) / SCAT_H
+    # A marker centred within its radius of an edge would be cut, so it is not
+    # drawn. Fits and the legend r values use all 25 points.
+    margin_x = DOT / 2 * (hi_x - lo_x) / SCAT_W
+    margin_y = DOT / 2 * (ylim[1] - ylim[0]) / SCAT_H
     keys = []
     for key, marker, fill, stroke in [("dark", "circle", dark, dark), ("light", "diamond", light, "#405b4b")]:
         xc, yc = meta[key]
@@ -114,7 +116,7 @@ def scatter_plot(name, ylim, yticks, ylabel, xlabel, dark, light):
                   & (y >= ylim[0] + margin_y) & (y <= ylim[1] - margin_y))
         NOT_DRAWN.append((name, key, int((~inside).sum()), len(x)))
         p.scatter(list(zip(x[inside], y[inside])), marker=marker, color=fill, stroke=stroke,
-                  stroke_width=0.15, size=1.5, name=N25 if key == "dark" else N25_LIGHT)
+                  stroke_width=0.15, size=DOT, name=N25 if key == "dark" else N25_LIGHT)
         slope, intercept, r = fit_line(x, y)
         ends = [(lo_x, slope * lo_x + intercept), (hi_x, slope * hi_x + intercept)]
         p.line(ends, stroke=fill if key == "dark" else "#99ad8f", stroke_width=0.3,
