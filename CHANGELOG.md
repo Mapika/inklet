@@ -14,7 +14,9 @@ with a faithful and an improved version of each.
   axes, ticks point inward on all four sides with minor ticks between
   them, the frame, ticks and labels are black at 0.21 mm or more, and
   default data lines are as heavy as the frame. A heatmap gets the frame
-  without ticks over its cells. The default, `axes='open'`, is unchanged.
+  without ticks over its cells. `axes='frame'` closes the plot the same way
+  but ticks only the labelled bottom and left axes, leaving the top and right
+  edges plain, as JWST's figures do. The default, `axes='open'`, is unchanged.
 - `Panel.contour(x, y, z, levels=... | hdr=(0.683, 0.954))` draws contours
   of a gridded field; `hdr=` gives highest-density regions enclosing those
   fractions of the total. `inklet.plot.mass_levels` takes a plain grid.
