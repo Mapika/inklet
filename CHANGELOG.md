@@ -1,5 +1,95 @@
 # Changelog
 
+## Unreleased
+
+Found recreating ten figures from six landmark open-access Nature papers
+(JWST WASP-39b, ATLAS Higgs, KATRIN, human height GWAS, brain-wide
+association studies, WHO excess mortality), now in `examples/published/`
+with a faithful and an improved version of each.
+
+### Added
+
+- `i.preset(..., axes='box')`: the journal frame of physics and astronomy
+  figures. `Panel.axes()` closes the plot with unlabelled top and right
+  axes, ticks point inward on all four sides with minor ticks between
+  them, the frame, ticks and labels are black at 0.21 mm or more, and
+  default data lines are as heavy as the frame. A heatmap gets the frame
+  without ticks over its cells. The default, `axes='open'`, is unchanged.
+- `Panel.contour(x, y, z, levels=... | hdr=(0.683, 0.954))` draws contours
+  of a gridded field; `hdr=` gives highest-density regions enclosing those
+  fractions of the total. `inklet.plot.mass_levels` takes a plain grid.
+- `Panel.hist(counts, bins=edges, prebinned=True)` draws counts that are
+  already binned, in either orientation and with `density=True`.
+- `Document.label(x=..., y=...)` writes one axis title across a grid of
+  cells, centred on their plot areas.
+- `Document.letters({'cell': 'a', ...})` sets panel letters by cell name, so
+  a figure can skip letters (a, b, e, f) or match them to cells; unnamed
+  cells take the next free letters.
+- `Panel.key_diagram()` returns a panel's key as a diagram for an empty grid
+  cell.
+- `hline`, `vline`, `hspan` and `vspan` take `name=` and appear in the key
+  with their own paint.
+- `errorbars(..., floor='arrow' | 'none')`: on a log axis, a whisker whose
+  bound is zero or below runs to the axis floor, by default with an open
+  arrowhead, instead of raising.
+- `errorbars(stroke=[...])` and `annotate(color=...)`: one colour per point,
+  and one colour for a callout's words and leader.
+- `figure.report(expect={'SERIES_FLATTENED'})` (and `lint(expect=...)`)
+  acknowledges a diagnostic that is intended; it is listed apart and does
+  not count as a problem. An unknown code raises.
+- Lint codes: `DATA_CLIPPED` (info, points hidden by `clip=True`),
+  `MARKER_CUT` (warning, a square or path marker cut at the plot edge),
+  `PLOT_WIDTH_OVERRIDDEN` (warning, a plot drawn over 15% narrower than its
+  authored width because it shares its rows), `AXIS_TITLE_OVERHANG`
+  (warning, a y title that runs into another cell or off the page) and
+  `BAR_WIDTH_OUT_OF_SCALE` (warning, bars wider than their axis, with the
+  width's units).
+- The agent guide says to set variables in italic (`//m//_{ν}^{2} (eV^{2})`)
+  and to plot dates on a calendar axis rather than as decimal years;
+  `text()` documents `align=`, `anchor=` and `offset=` exactly.
+
+### Changed
+
+- A second `legend()` call on a panel replaces the first key's options, as
+  the guide said, instead of adding a second key.
+- A band no longer puts its series first in the key when it is drawn before
+  the series' line. Band swatches are the band's colour at its opacity.
+- `FONT_SUBSTITUTED` is information, not a warning, when the substitute is
+  metrically identical to the expected font (Liberation Sans or Arimo for
+  Arial and Helvetica, Liberation Serif or Tinos for Times, Liberation Mono
+  or Cousine for Courier New), and it is reported once per font pair.
+- `INCONSISTENT_STROKE` counts only stroke widths the author set (axes,
+  ticks, keys, colour bars and error-bar caps are the library's), and names
+  each weight's role ("errorbars 'Data'", "axis spine").
+- Thinned explicit ticks are reported once, by `TICKS_DROPPED`; the Python
+  `UserWarning` is gone.
+- `Document.add()` with `column=` but no `row=` raises when that column is
+  free in the last row, instead of starting a new row and drawing the cells
+  down a diagonal.
+- A cell name with a space is refused at `add()` with the reason.
+
+### Fixed
+
+- A y-axis title longer than its plot is tall no longer makes the plot
+  taller: stacked strips keep one scale. The title overhangs, as
+  matplotlib's does, and lint reports it only if it runs into something.
+- An authored `plot_spec` width is kept when its row has room; when it does
+  not, every authored width gives way only as far as it must, instead of
+  all falling back to equal column shares.
+- `annotate(color=)` failed at compile with a `TypeError`;
+  `errorbars(stroke=[...])` crashed the SVG writer; thinning explicit tick
+  labels crashed compile with an `AttributeError`.
+- A callout whose point lies outside the plot range stays inside the plot
+  when a clear spot exists.
+- Lint no longer counts blank or zero matrix cells as marks, so a label over
+  an empty bin is not an overlap.
+- An inset whose text was shrunk by `inset(width=...)` is reported with
+  `width=None` as the fix, not a bigger font.
+- `legend(size=...)` suggests `font_size=`; a top key wider than its cell is
+  named as the cause of the `LayoutError`.
+- Log axes with `minor=True` draw the 2–9 subdivisions when the sparser
+  mantissas are all labelled.
+
 ## 4.8.1 — 2026-10-12
 
 Fixes found porting Nature-style figures to 4.8.0.
