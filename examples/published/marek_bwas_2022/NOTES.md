@@ -1,0 +1,167 @@
+# Notes: Marek et al. (2022), Figure 1
+
+## Outputs
+
+| Script | Output | Size |
+|---|---|---|
+| `fig1.py` (faithful) | `gallery/published/marek_bwas_2022_fig1.{png,svg,pdf}` | 183 × 142.2 mm (double column) |
+| `fig1_improved.py` | `gallery/published/marek_bwas_2022_fig1_improved.{png,svg,pdf}` | 183 × 164.5 mm (double column) |
+
+Lint, from `figure.report()`:
+
+* `fig1.py`: `inklet lint: 5 warnings`. One `FONT_SUBSTITUTED` (Arial is
+  not installed here; Liberation Sans, which has Arial's metrics, is used). Four
+  `SERIES_FLATTENED` on the mean line in panels e and f: the mean is flat across
+  sample size by design (it is the finding that the mean does not move while the
+  intervals shrink), so the warning is accepted, not hidden.
+* `fig1_improved.py`: `inklet lint: 1 warning`: `FONT_SUBSTITUTED` only.
+
+## Panels left out
+
+* **c and d** (brain surfaces): their inputs (per-ROI/network |r| on an atlas) are
+  not in the atlas-free source data. Their row is removed, so the faithful figure
+  has rows a/b, e/f, g/h. The panel letters a, b, e–h are kept as in the original.
+* **h, right** (RSFC vs psychopathology scatter): sheet `H_right` contains only its
+  header row (checked in normal mode and in the sheet XML). The cell is left
+  blank in the faithful figure. In the improved figure, panel h is one plot.
+* The caption's panel letters for the scatters read "f, g" then "g", then "h":
+  the caption means g and h, and the text says "Fig. 1g, h". We follow the figure.
+
+## Matches the original
+
+* **Layout.** Two columns headed "Structure: Cortical thickness" and "Function:
+  RSFC". Row labels "Effect size" and "Sampling variability across studies". Each
+  letter covers a pair of plots, cognitive ability (left) and psychopathology
+  (right). Titles match the original's.
+* **Data.** Every plotted value is read from the Source Data workbook; nothing is
+  digitised or invented (see SOURCE.md).
+* **Axis ranges and ticks.** Histograms −0.2 to 0.2 (ticks −0.2, −0.1, 0, 0.1, 0.2)
+  with no y tick labels; sampling panels −1 to 1 on y; scatters 3–3.5 mm and
+  0.15–0.5 on x; cognitive 70–150 and psychopathology 20–70 on y.
+* **Colours.** Sampled from the original image: Greens #c7e9c0 / #74c476 /
+  #238b45 (vertex/ROI/network, edge/component/network) and Purples #dadaeb /
+  #9e9ac8 / #6a51a3. Band tint #c7e9c0 (cognition) and #cbc9e2 (psychopathology).
+  99% CI dashed #646464, 95% CI dashed #afafaf. The full-sample dashed fit is black.
+* **Keys.** Same text as the original: "Vertex / ROI / Network", "Edge /
+  Component / Network", "99% CI", "95% CI", "n = 25", and "r = +0.50 ..." on the
+  fit lines.
+* **Subsample colours.** Dark = the subsample whose legend r is positive. For g,
+  that is `DMN_25_2`/`Cog_25_2` (data r = +0.501; the other subsample r = −0.639).
+  For h, it is `DMN_25_1`/`Cog_25_1` (r = +0.584; other −0.600). The data match
+  the legend values: g psychopathology r = +0.652 and −0.484 (legend +0.65,
+  −0.48).
+* **Full-sample fit.** Data r: −0.082 (g cognitive; legend −0.08), +0.054 (g
+  psychopathology; legend +0.05), +0.050 (h cognitive; legend +0.05).
+
+## Differs, and why
+
+1. **Histogram bins.** The bins are not in the data. I used 0.01-wide bins from
+   −0.2 to 0.2. Check against the original: the 13-value network series of
+   cognitive thickness has bin counts of 2 at −0.07 and −0.05 (the tallest bins,
+   full height) and 1 at −0.09 and −0.03 (half height), which is what the original
+   shows. At 0.02 width the tallest bin holds 3 values, which gives a different
+   pattern.
+2. **Histogram heights.** The caption says "normalized to per panel maximum bin".
+   The figure cannot be that: a 13-value series would be invisible beside a
+   59,412-value series. Each series is scaled to its own tallest bin, so each
+   reaches full height as in the original.
+3. **Histogram bars.** Opaque, drawn in order vertex, ROI, network, so the darker
+   network bars sit on top. The original's overlap looks translucent; this is a
+   simplification. The y range is 0 to 2.3 (in units of the normalised height), so
+   the key sits above the bars instead of on them (the original puts its key over
+   the bars).
+4. **Confidence bands for e and f.** The method is not stated. The dashed lines
+   here are the 0.5/99.5 and 2.5/97.5 percentiles of the 1,000 resamples. The text
+   gives "r ± 0.52" for the 99% CI at n = 25. From the data, the percentile
+   half-width is ±0.48 (E cognitive thickness, mean −0.113, 0.5% −0.592, 99.5%
+   +0.375) and 2.576 × SD = ±0.52. So the text matches a Gaussian (mean ± z·SD)
+   and the figure looks closer to percentiles: the E psychopathology 99% limits
+   read from the image are +0.54 and −0.40, against percentiles +0.54 and −0.42
+   (Gaussian ±0.52 would give −0.45). The percentile version is used.
+5. **Shading.** The min–max band is drawn as in the caption (min to max across
+   the 1,000 resamples).
+6. **Sample-size axis.** A true log axis from 25 to the last bin (3,604 for
+   thickness, 3,928 for RSFC). Ticks at 25, 200 and 2,000. In the original the
+   "200" label sits a little to the right of its log position (about 1.5 mm, read
+   from the image); we use the log position.
+7. **Scatter keys.** The original key is a two-row legend above each pair. Here
+   each scatter has its own key above it with the same texts. The two subsample
+   series both display "n = 25", but inklet requires distinct names, so the light
+   series carries a trailing zero-width space in its name (not visible).
+8. **Full-sample points.** The original does not draw the 3,604 (or 3,928)
+   full-sample points, only the fitted line; the legend's black "n = 3,604" square
+   is the dashed line here ("r = −0.08"). Same drawing, different key entry.
+9. **Scatter ranges.** Cognitive y 70–150 as in the original; psychopathology
+   y 20–75 (original 20–70, where data up to 72 are cut off). Clipped at the axes.
+10. **Signs on tick labels.** The sampling panels print "+0.5" and "+1.0"; the
+    original prints "0.5" and "1.0". Kept for readability of the sign.
+11. **Style.** `scientific.nature` in inklet, sans-serif in Liberation Sans, no
+    Arial (not installed).
+
+## Improved version
+
+The improved figure keeps the same data, uncertainty and message: effects are
+tiny (|r| mostly below 0.05), and 25 people give intervals of ±0.5 (99%).
+
+Changes and the problem each fixes:
+
+* **Histograms are outlined steps of the share of associations** (percent per
+  bin, each level's own total), one sequential blue for the three ordered levels,
+  one y scale across the four panels. Fixes: the original's overlapping
+  translucent fills in three shades of one hue (hard to separate, not
+  colour-blind-safe); and per-series normalisation, which drew a 13-value network
+  series at the same height as a 59,412-value vertex series, so the sample size was
+  invisible. The n for each level is in the footnote.
+* **Reference marks on each histogram.** A grey band at ±0.01 (median |r|) and
+  dotted lines at ±0.06 (top 1% of associations). Fixes: the "effects are tiny"
+  message was only in the caption.
+* **Sampling variability as three nested neutral bands** (min–max, 99%, 95%)
+  with the mean as one dark line; the mean is not colour-coded. Fixes: the 95% and
+  99% limits were two similar dashed grey styles, hard to tell apart; and colour
+  was doing two jobs (green/purple meant phenotype and also sat on the mean and the
+  band).
+* **Where the 95% interval reaches ±0.06.** A dotted vertical line at n = 1,000:
+  the data give 95% limits of −0.167 to −0.048 (E cognitive thickness) and
+  +0.105 to +0.225 (F cognitive RSFC), both ±0.06. Fixes: "intervals become
+  narrow" had no marked sample size.
+* **Log sample-size axis with three labelled ticks** (25, 100, 1,000) and minor
+  ticks at the other log positions. Fixes: the original's uneven tick labels (25,
+  200, 2,000) and the crowding of labels at small n.
+* **Scatter samples in an Okabe–Ito blue and orange**, with a circle and a
+  diamond, and each fit labelled at its line end: "A: r = +0.50", "B: r = −0.64".
+  The full-sample fit is a dashed black line, named in the footnote. Fixes: the
+  three-row keys above each pair (crowded, with two entries for one colour); and
+  the dark/light shades that encoded both the sample and the sign of r. Text on
+  orange uses a darker orange for contrast ≥ 4.5:1.
+* **Four columns, labelled by what is compared** (thickness or RSFC, and
+  cognition or psychopathology), replacing the structure/function headers and the
+  rotated row labels. Panel letters a–k.
+* **Footnote on the figure** stating the reference marks, n per level, the full
+  sample sizes, and the panels that are not drawn (c, d, and the empty h-right).
+  Fixes: a reader could not tell from the figure which data were missing.
+* **Scatter row, three panels across** instead of a half-empty grid, because
+  the psychopathology RSFC scatter has no data.
+
+Lint for the improved version: one `FONT_SUBSTITUTED` only.
+
+## Verification numbers
+
+Checked against the data and the paper's text.
+
+| Quantity | Figure / data | Paper | Note |
+|---|---|---|---|
+| Median \|r\|, vertex cognition | 0.0167 | "median 0.01" across ~11 million associations | Same order; the 11 million are not in this workbook. Vertex psychopathology 0.0124; edge cognition 0.022; edge psychopathology 0.013. |
+| 99th percentile \|r\|, vertex cognition | 0.066 | "top 1% > 0.06" | Consistent. Vertex psychopathology 0.047 and edge psychopathology 0.052 are below 0.06; edge cognition 0.092 is above. |
+| 99% CI at n = 25 | ±0.48 (percentile) or ±0.52 (2.576 × SD), E cognitive thickness | "r ± 0.52" | The text matches the Gaussian form; see Differs 4. |
+| 95% CI at n = 1,000 | ±0.060 (E cognitive) and ±0.060 (F cognitive) | not stated | Used to place the dotted line in the improved figure. |
+| Mean across resamples | ≈ −0.11 (thickness cognition, all n); ≈ +0.165 (RSFC cognition) | not stated | Flat across n, as drawn. |
+| Full-sample r (g, h) | −0.082, +0.054, +0.050 | −0.08, +0.05, +0.05 (legends) | Match. |
+| Subsample r (g, h) | +0.501 / −0.639; +0.652 / −0.484; +0.584 / −0.600 | +0.50 / −0.64; +0.65 / −0.48; +0.58 / −0.60 | Match. |
+
+## Not verified
+
+* The paper's "largest replicated |r| = 0.16", "11 million associations" and the
+  split-half n = 1,964 figure: not in the source workbook.
+* Exact placement of the original's tick labels (estimated by eye from the PNG).
+* The CI method for the dashed lines (percentile vs Gaussian) is a judgement; see
+  Differs 4.
