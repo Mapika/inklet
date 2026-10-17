@@ -19,7 +19,7 @@ OUT = ROOT / "gallery" / "published"
 EXCESS, REPORTED = "#0072B2", "#D55E00"       # Okabe-Ito blue and vermilion
 REPORTED_TEXT = "#a64200"                     # the vermilion, darkened for text
 GUIDE = "#9aa3ad"
-XLIM = (2019.9, 2022.95)                      # room at the right for the end labels
+XLIM = (2019.9, 2022.0)                       # the data end at January 2022
 XTICKS = [2020.0, 2021.0, 2022.0]
 
 # -- data ---------------------------------------------------------------------
@@ -35,7 +35,7 @@ def year_label(value):
 
 
 def panel(ylim, yticks, ylabel):
-    p = i.plot_spec(60, 30, x=XLIM, y=ylim, clip=True)
+    p = i.plot_spec(52, 30, x=XLIM, y=ylim, clip=True)
     p.grid(x=True, y=False, x_options=dict(ticks=XTICKS))
     p.axes(x=None, y=ylabel,
            x_options=dict(ticks=XTICKS, minor=2, format=year_label),
@@ -45,7 +45,8 @@ def panel(ylim, yticks, ylabel):
 
 def end_label(p, x, y, text, color):
     """The series name and its December 2021 value, set beside the line end."""
-    p.text(x, y, text, anchor="w", color=color, size=i.pt(6.5), markup=False)
+    p.text(x, y, text, anchor="w", color=color, size=i.pt(6.5), markup=False,
+           offset=(1.2, 0))
 
 
 # -- a: cumulative deaths, in millions ----------------------------------------
@@ -56,9 +57,9 @@ pa.line(np.c_[ta, a["cumul.excess.mean"] / 1e6], stroke=EXCESS, stroke_width=0.4
         name="excess")
 pa.line(np.c_[ta, a["cumul.rep.covid"] / 1e6], stroke=REPORTED, stroke_width=0.4,
         name="reported")
-end_label(pa, 2022.05, last_a["cumul.excess.mean"] / 1e6,
+end_label(pa, 2022.0, last_a["cumul.excess.mean"] / 1e6,
           f"Excess {last_a['cumul.excess.mean'] / 1e6:.1f} M", EXCESS)
-end_label(pa, 2022.05, last_a["cumul.rep.covid"] / 1e6,
+end_label(pa, 2022.0, last_a["cumul.rep.covid"] / 1e6,
           f"Reported {last_a['cumul.rep.covid'] / 1e6:.1f} M", REPORTED_TEXT)
 pa.text(2019.98, 19.6, "Shaded: 95% uncertainty interval", anchor="nw",
         color="#5b6470", size=i.pt(6))
@@ -71,9 +72,9 @@ pb.band(tb, b["excess.low"].to_numpy(), b["excess.high"].to_numpy(), color=EXCES
 pb.line(np.c_[tb, b["excess.mean"]], stroke=EXCESS, stroke_width=0.4, name="excess")
 pb.line(np.c_[tb, b["rep.covid"]], stroke=REPORTED, stroke_width=0.4,
         name="reported")
-end_label(pb, 2022.05, last_b["excess.mean"],
+end_label(pb, 2022.0, last_b["excess.mean"],
           f"Excess {last_b['excess.mean']:.1f}", EXCESS)
-end_label(pb, 2022.05, last_b["rep.covid"],
+end_label(pb, 2022.0, last_b["rep.covid"],
           f"Reported {last_b['rep.covid']:.1f}", REPORTED_TEXT)
 
 doc = i.preset("scientific.nature", format="single-column",

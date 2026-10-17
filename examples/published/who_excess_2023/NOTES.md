@@ -129,12 +129,16 @@ look equal in size.
 
 1. **"Month Year" axis title removed.** The year ticks say what the axis is.
 2. **Bulky date labels replaced.** The original's "January 2020" labels are now "2020",
-   "2021" and "2022", at each January, with faint year gridlines through both panels.
+   "2021" and "2022", at each January. Grid lines fall only at those year boundaries,
+   in both panels.
 3. **Key below each panel replaced by direct labels.** The original's key sat under each
-   panel, far from the lines. Each series now carries its December 2021 value at its
-   end ("Excess 14.8 M", "Reported 5.4 M" in a; "Excess 7.4", "Reported 2.8" in b).
+   panel, far from the lines. Each series now carries its December 2021 value just to
+   the right of the plot area, unclipped ("Excess 14.8 M", "Reported 5.4 M" in a;
+   "Excess 7.4", "Reported 2.8" in b).
 4. **Panels on a common time axis.** `share_plot_margins=True` aligns the data edges.
-   Both panels share the x range and gridlines, so a month can be read down the page.
+   Both panels share the x range (2019.9 to January 2022, the end of the data), so a
+   month reads down the page. The x range no longer runs on to 2022.9 to make room for
+   the labels; the labels sit outside the axes instead.
 5. **Colour-blind-safe pair.** Red and purple are hard to tell apart with deuteranopia.
    The new pair is Okabe-Ito blue (#0072B2) for excess and vermilion (#D55E00) for
    reported. The vermilion text uses a darker shade (#a64200) to meet the 4.5:1 contrast
@@ -164,9 +168,13 @@ Kept: both panels, both series, all 95% intervals, the panel order, and the same
    are replaced by "2020", "2021" and "2022", with minor ticks. The "Month Year" title is
    dropped.
 6. **Shared scale kept, and justified.** See "Shared or free y scale" above.
-7. **One key in the empty cell.** Where the original left a blank cell, the improved
-   version puts four lines of encoding: blue region, blue band, grey Global, black 0%
-   line. The lines are left-aligned.
+7. **A real key in the empty cell.** Where the original left a blank cell, the improved
+   version puts a key with a swatch for each encoding, drawn as it appears in the
+   panels: a blue line "Region, monthly P-score", a blue band "95% uncertainty interval",
+   a grey line "Global (repeated in every panel)" and a black "0% line". The swatches are
+   drawn in the cell itself, so nothing is matched to a drawing elsewhere; the labels are
+   left-aligned. It covers no data (the cell holds no data). ISSUES item 8 records how
+   hard this was.
 8. **Peak labelled.** South-East Asia's peak is labelled 121%, the value that sets the top
    of the range.
 9. **Taller panels** (52 mm, from 50 mm in the faithful version) for a little more

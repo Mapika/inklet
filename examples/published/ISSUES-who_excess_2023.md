@@ -41,8 +41,9 @@ p.text(0.1, 0.3, "Excess\n14.8 M", anchor="w", size=i.pt(6.5), align="start")  #
 # expected: align documented on text(), or multi-line labels left-aligned by default
 ```
 
-Workaround used in the figures: single-line labels ("Excess 14.8 M"), so the
-option is not needed.
+Workaround used in the figures: `align="start"` for the two-line key labels in
+`fig2_improved.py`, which works and was verified in the render. The Figure 1 end labels
+are single-line, so they do not need it.
 
 ## 3. A cell name cannot contain a space
 
@@ -110,3 +111,29 @@ The time-series docs describe calendar axes for the browser preview. The figures
 numeric decimal years (`year + (month - 1) / 12`) with a `format=` callable that
 writes month names, which works. I did not test `plot.dates` on these panels, so
 there is no verdict on it here.
+
+## 8. A key in an empty grid cell: the legend route fails, and drawn swatches work
+
+Figure 2 has an empty eighth cell, which I wanted to use for a key with a swatch
+for each encoding. It took about six attempts. None of the legend routes gave a
+clean lint result on the first try.
+
+- `legend(entries=[(name, colour), ...])` on a text-free panel: `KEY_MISMATCH`
+  ("1 entry for colours drawn nowhere"), because `entries=` describes nothing that
+  is drawn.
+- Series drawn outside the axes (`clip=True`, off-range data) and then
+  `legend()`: `KEY_MISMATCH` again for the band, and `EMPTY_DIAGRAM` infos. Lint does
+  not count clipped marks as drawn, and I did not want to rely on that.
+- `legend()` with the names drawn in the cell: the key text is measured as right
+  furniture of the column, because `share_plot_margins=True` shares furniture down
+  the grid line. The layout then fails with `LayoutError` in the cell above
+  ("leaves only 2.11 mm for data ... the furniture takes 27.65 mm right"). Even with
+  `font_size=i.pt(5.5)` the entry text was too wide for the 36 mm cell.
+
+What worked: a plain panel with no axes, where each swatch is a `line` or `band`
+drawn in the cell (a 0.14-unit sample, the same stroke and tint as the panels), with
+its name set by `text(..., anchor="w", align="start")`. Lint is clean, and the render
+shows the swatches and labels with no overlap. The price is that the key is not
+generated from the drawn record, so if the panels' styles change, the key must be
+edited by hand. A legend that could take swatches from the drawn record in a
+dedicated key cell would remove that.

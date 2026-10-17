@@ -18,6 +18,7 @@ ROOT = HERE.parents[2]
 OUT = ROOT / "gallery" / "published"
 
 BLUE = "#0072B2"                 # Okabe-Ito blue: the region, in every panel
+BAND = "#9fcbe6"                 # the blue band as it looks over paper (0.35 tint)
 GREY = "#8c949c"                 # the Global reference
 INK = "#333333"
 XLIM = (2019.917, 2022.0)
@@ -75,13 +76,24 @@ def sea_peak(p):
     p.text(t[k], high[k] + 4, f"{mean[k]:.0f}%", anchor="s", size=i.pt(6))
 
 
-def note_cell():
-    """Reads the encoding in the one empty cell, left-aligned, one line each."""
+def key_cell():
+    """The key, in the one empty cell: each swatch is drawn as it appears in the
+    panels (a line, a band, the grey Global line, the 0% line), with its name
+    set beside it. Nothing here is a legend object, so nothing is matched to a
+    drawing elsewhere."""
     p = i.plot_spec(36, 52, x=(0, 1), y=(0, 1))
-    lines = ["Blue: region, monthly P-score", "Blue band: 95% uncertainty interval",
-             "Grey: Global, in every panel", "Black line: 0%"]
-    for k, line in enumerate(lines):
-        p.text(0.0, 0.95 - 0.09 * k, line, anchor="w", size=i.pt(6))
+    swatch = (0.0, 0.14)            # the sample runs from 0 to 0.14 of the cell
+    rows = [(0.84, "Region, monthly P-score"),
+            (0.62, "95% uncertainty interval"),
+            (0.38, "Global (repeated\nin every panel)"),
+            (0.14, "0% line")]
+    p.line([(swatch[0], 0.84), (swatch[1], 0.84)], stroke=BLUE, stroke_width=0.55)
+    p.band([swatch[0], swatch[1]], [0.60, 0.60], [0.64, 0.64], color=BLUE,
+           fill_opacity=0.35)
+    p.line([(swatch[0], 0.38), (swatch[1], 0.38)], stroke=GREY, stroke_width=0.3)
+    p.line([(swatch[0], 0.14), (swatch[1], 0.14)], stroke=INK, stroke_width=0.3)
+    for at, name in rows:
+        p.text(0.19, at, name, anchor="w", size=i.pt(6), markup=False, align="start")
     return p
 
 
@@ -93,7 +105,7 @@ for source, title, row, column in PANELS:
     if source == "South-East Asian Region":
         sea_peak(p)
     doc.add(f"r{row}c{column}", p, row=row, column=column)
-doc.add("note", note_cell(), row=1, column=3)
+doc.add("key", key_cell(), row=1, column=3)
 figure = doc.compile()
 
 OUT.mkdir(parents=True, exist_ok=True)
