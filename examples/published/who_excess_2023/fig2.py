@@ -30,7 +30,7 @@ PANELS = [  # (source region name, panel title, colour, grid row, grid column)
 XLIM = (2019.917, 2022.0)
 XTICKS = [2020.0, 2020.75, 2021.5]
 YLIM, YTICKS = (-44, 158), [0, 50, 100, 150]
-INK = "#222222"
+INK = "#1a1a1a"                  # the journal's black, as the axes
 
 # -- data ---------------------------------------------------------------------
 data = pd.read_csv(HERE / "data" / "fig2-pscore.csv")
@@ -57,20 +57,20 @@ def panel(source, title, color, row, column):
     p.band(t, low, high, color=color, name=title)
     p.line(np.c_[t, mean], stroke=color, stroke_width=0.35, name=title)
     p.title(title)
-    left, bottom = column == 0, row == 1
-    p.axes(x="Month Year" if bottom else None,
-           y="P-score (%)" if left else None,
+    # The axis names belong once for the grid (doc.label below), so the cells
+    # keep only their ticks.
+    p.axes(x=None, y=None,
            x_options=dict(ticks=XTICKS, format=month_label),
            y_options=dict(ticks=YTICKS))
     return p
 
 
-doc = i.preset("scientific.nature", format="double-column",
-               expected_fonts=("Arial", "Helvetica", "Liberation Sans")).document(
+doc = i.preset("scientific.nature", format="double-column").document(
     columns=4, gap=3, row_gap=4, share_plot_margins=True)
 for source, title, color, row, column in PANELS:
     doc.add(f"r{row}c{column}", panel(source, title, color, row, column),
             row=row, column=column)
+doc.label(x="Month Year", y="P-score (%)")
 
 figure = doc.compile()
 

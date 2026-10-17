@@ -51,19 +51,33 @@ def year_label(value):
     return f"{int(round(value))}"
 
 
-# -- one panel per region -----------------------------------------------------
-def panel(source, title, column):
-    p = i.plot_spec(36, 52, x=XLIM, y=YLIM, clip=True)
-    p.hline(0, stroke=INK, stroke_width=0.3)
+# The series names are the key's rows. Every regional panel draws the same
+# names, so the key can be built from any one of them.
+REGION = "Region, monthly P-score"
+BAND = "95% uncertainty interval"
+GLOBAL = "Global (repeated in every panel)"
+ZERO = "0% line"
+
+
+def draw_series(p, source):
+    """Every mark in a regional panel. The names are the key's rows."""
+    p.hline(0, stroke=INK, stroke_width=0.3, name=ZERO)
     if source != "Global":
         t, mean, low, high = series("Global")
-        p.band(t, low, high, color=GREY, fill_opacity=0.18, name="Global")
-        p.line(np.c_[t, mean], stroke=GREY, stroke_width=0.3, name="Global")
+        p.band(t, low, high, color=GREY, fill_opacity=0.18, name=GLOBAL)
+        p.line(np.c_[t, mean], stroke=GREY, stroke_width=0.3, name=GLOBAL)
     t, mean, low, high = series(source)
-    p.band(t, low, high, color=BLUE, fill_opacity=0.35, name=title)
-    p.line(np.c_[t, mean], stroke=BLUE, stroke_width=0.55, name=title)
+    p.band(t, low, high, color=BLUE, fill_opacity=0.35, name=BAND)
+    p.line(np.c_[t, mean], stroke=BLUE, stroke_width=0.55, name=REGION)
+    return p
+
+
+# -- one panel per region -----------------------------------------------------
+def panel(source, title):
+    p = draw_series(i.plot_spec(36, 52, x=XLIM, y=YLIM, clip=True), source)
     p.title(title)
-    p.axes(x=None, y="P-score (%)" if column == 0 else None,
+    # The y name is set once for the grid (doc.label below).
+    p.axes(x=None, y=None,
            x_options=dict(ticks=XTICKS, minor=2, format=year_label),
            y_options=dict(ticks=YTICKS))
     return p
@@ -76,36 +90,20 @@ def sea_peak(p):
     p.text(t[k], high[k] + 4, f"{mean[k]:.0f}%", anchor="s", size=i.pt(6))
 
 
-def key_cell():
-    """The key, in the one empty cell: each swatch is drawn as it appears in the
-    panels (a line, a band, the grey Global line, the 0% line), with its name
-    set beside it. Nothing here is a legend object, so nothing is matched to a
-    drawing elsewhere."""
-    p = i.plot_spec(36, 52, x=(0, 1), y=(0, 1))
-    swatch = (0.0, 0.14)            # the sample runs from 0 to 0.14 of the cell
-    rows = [(0.84, "Region, monthly P-score"),
-            (0.62, "95% uncertainty interval"),
-            (0.38, "Global (repeated\nin every panel)"),
-            (0.14, "0% line")]
-    p.line([(swatch[0], 0.84), (swatch[1], 0.84)], stroke=BLUE, stroke_width=0.55)
-    p.band([swatch[0], swatch[1]], [0.60, 0.60], [0.64, 0.64], color=BLUE,
-           fill_opacity=0.35)
-    p.line([(swatch[0], 0.38), (swatch[1], 0.38)], stroke=GREY, stroke_width=0.3)
-    p.line([(swatch[0], 0.14), (swatch[1], 0.14)], stroke=INK, stroke_width=0.3)
-    for at, name in rows:
-        p.text(0.19, at, name, anchor="w", size=i.pt(6), markup=False, align="start")
-    return p
-
-
-doc = i.preset("scientific.nature", format="double-column",
-               expected_fonts=("Arial", "Helvetica", "Liberation Sans")).document(
+doc = i.preset("scientific.nature", format="double-column").document(
     columns=4, gap=3, row_gap=4, share_plot_margins=True)
 for source, title, row, column in PANELS:
-    p = panel(source, title, column)
+    p = panel(source, title)
     if source == "South-East Asian Region":
         sea_peak(p)
     doc.add(f"r{row}c{column}", p, row=row, column=column)
-doc.add("key", key_cell(), row=1, column=3)
+# The empty eighth cell holds the key. key_diagram() reads the rows from a
+# drawn panel that carries every named series (a regional panel, with its
+# Global reference and 0% line), so the key matches the marks it explains.
+key_source = draw_series(i.panel(36, 52, x=XLIM, y=YLIM), "European Region")
+doc.add("key", key_source.key_diagram(names=[REGION, BAND, GLOBAL, ZERO]),
+        row=1, column=3)
+doc.label(y="P-score (%)")
 figure = doc.compile()
 
 OUT.mkdir(parents=True, exist_ok=True)

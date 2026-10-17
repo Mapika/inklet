@@ -50,7 +50,7 @@ def end_label(p, x, y, text, color):
 
 
 # -- a: cumulative deaths, in millions ----------------------------------------
-pa = panel((-1.3, 20.0), [0, 5, 10, 15], "Deaths (millions)")
+pa = panel((-1.3, 17.0), [0, 5, 10, 15], "Deaths (millions)")
 pa.band(ta, a["cumul.excess.low"].to_numpy() / 1e6,
         a["cumul.excess.high"].to_numpy() / 1e6, color=EXCESS, name="excess")
 pa.line(np.c_[ta, a["cumul.excess.mean"] / 1e6], stroke=EXCESS, stroke_width=0.4,
@@ -61,8 +61,6 @@ end_label(pa, 2022.0, last_a["cumul.excess.mean"] / 1e6,
           f"Excess {last_a['cumul.excess.mean'] / 1e6:.1f} M", EXCESS)
 end_label(pa, 2022.0, last_a["cumul.rep.covid"] / 1e6,
           f"Reported {last_a['cumul.rep.covid'] / 1e6:.1f} M", REPORTED_TEXT)
-pa.text(2019.98, 19.6, "Shaded: 95% uncertainty interval", anchor="nw",
-        color="#5b6470", size=i.pt(6))
 
 # -- b: death rates per 100,000 population ------------------------------------
 pb = panel((-6.0, 27.5), [0, 10, 20], "Death rate per 100,000")
@@ -77,8 +75,7 @@ end_label(pb, 2022.0, last_b["excess.mean"],
 end_label(pb, 2022.0, last_b["rep.covid"],
           f"Reported {last_b['rep.covid']:.1f}", REPORTED_TEXT)
 
-doc = i.preset("scientific.nature", format="single-column",
-               expected_fonts=("Arial", "Helvetica", "Liberation Sans")).document(
+doc = i.preset("scientific.nature", format="single-column").document(
     share_plot_margins=True, row_gap=5)
 doc.add("a", pa)
 doc.add("b", pb)
