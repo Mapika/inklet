@@ -202,3 +202,43 @@ spines, and the grey zero rule. The message says "uses 4 distinct stroke widths
   rule), or the check ignores weights of different roles.
 
 Workaround: none; the NOTES say each weight was chosen on purpose.
+
+## Pass 2
+
+Pass 2 ran on master at b8b4e34, and used the new public APIs throughout.
+
+**Resolved by master:**
+
+* Issue 1 (no public contour of a grid): `Panel.contour(x, y, z, hdr=(0.683, 0.954))`
+  replaces the private `_contours` helper, which is gone from `_data.py`.
+* Issue 3 (no way to draw a histogram from edges and counts):
+  `Panel.hist(counts, bins=edges, prebinned=True, orient=...)` replaces the hand-built
+  bars for both marginals.
+* Issue 5 is now reported as PLOT_WIDTH_OVERRIDDEN, not silently. The figures are
+  authored to fit their cells (`columns=[71, 17]`, `margin=0.5`), so the lint is clean.
+
+**New, found in pass 2:**
+
+### P2-1. With `hdr=`, `Panel.contour` pairs `color=` with the largest region first, whatever order `hdr` is written in
+
+**Doc mismatch.** The docstring says `color=` is "one per level, in the order given
+(for `hdr`, the largest region first)". The code sorts `hdr` in descending order
+(`_fractions` in `plot/grid_contour.py`), so the colour list pairs with the 95.4%
+ring first, even when `hdr=(0.683, 0.954)` is written the other way round. Evidence
+from `fig3.py`: `color=[BLUE, INK]` draws the outer 95.4% ring in blue and the inner
+68.3% ring in black, as intended.
+
+- expected: the docstring says "largest region first, whatever the order of `hdr`",
+  or the colours pair with the shares in the order `hdr` was given.
+
+### P2-2. `Panel.contour` keeps no ring coordinates, so a label on a contour is placed by eye
+
+`contour()` draws the rings and returns the panel. The rings are not returned, and
+`node.notes["contour"]` holds only the levels and those that were drawn. In
+`fig3_improved.py` the leaders for "68.3%" and "95.4%" end on the rings, but their
+endpoints were read off the rendered PNG, by sampling dark pixels down a column.
+
+- actual: no way to annotate a point on a contour from its data.
+- expected: a `label=` option on `contour()` that places text on each ring (for
+  example at its largest x, or on a chosen level), or the rings returned in data
+  coordinates. The labels would then follow any change to the data or the axes.

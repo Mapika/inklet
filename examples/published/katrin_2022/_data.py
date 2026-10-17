@@ -1,8 +1,9 @@
 """Shared loading code for the KATRIN 2022 figures (Figs 3 and 4).
 
 Both inputs are the Nature Source Data text files, copied unchanged into
-data/ (see SOURCE.md). Nothing here adds a data point: the highest-density
-contours and the marginal histograms are derived from the Fig 3 histogram.
+data/ (see SOURCE.md). Nothing here adds a data point: the contours are drawn
+from the Fig 3 histogram by Panel.contour(hdr=), and the marginals are sums of
+its grid.
 """
 import re
 from pathlib import Path
@@ -13,9 +14,6 @@ import pandas as pd
 HERE = Path(__file__).resolve().parent
 FIG3 = HERE / "data" / "41567_2021_1463_MOESM7_ESM.txt"
 FIG4 = HERE / "data" / "41567_2021_1463_MOESM8_ESM.txt"
-
-# Probability enclosed by the 1 sigma and 2 sigma contours of a 2D Gaussian.
-MASSES = (0.683, 0.954)
 
 
 def load_histogram():
@@ -31,31 +29,11 @@ def load_histogram():
     return xs, ys, grid
 
 
-def hdr_levels(grid, masses=MASSES):
-    """Highest-density levels: sort the bins by count, and take the count at
-    which the running total first reaches each share of all entries."""
-    flat = np.sort(grid, axis=None)[::-1]
-    running = np.cumsum(flat) / flat.sum()
-    return {m: float(flat[np.searchsorted(running, m)]) for m in masses}
-
-
-def hdr_contours(xs, ys, grid, level):
-    """Closed rings bounding the bins with count >= level, in data units.
-
-    Marching squares on the bin centres. The helper is private to inklet
-    (`inklet.plot.outlines._contours`); there is no public contour of a grid.
-    """
-    from inklet.plot.outlines import _contours
-
-    dx, dy = xs[1] - xs[0], ys[1] - ys[0]
-    ny, nx = grid.shape
-    field = [[float(grid[j, i] - level) for i in range(nx)] for j in range(ny)]
-    for i in range(nx):                      # border below the level, so rings close
-        field[0][i] = field[ny - 1][i] = -level
-    for row in field:
-        row[0] = row[nx - 1] = -level
-    return [[(xs[0] + a * dx, ys[0] + b * dy) for a, b in ring]
-            for ring in _contours(field) if len(ring) >= 3]
+def bin_edges(centres):
+    """Edges of equal-width bins whose centres are `centres`: one more edge than centre."""
+    centres = np.asarray(centres, dtype=float)
+    step = centres[1] - centres[0]
+    return np.append(centres - step / 2, centres[-1] + step / 2)
 
 
 def load_experiments():

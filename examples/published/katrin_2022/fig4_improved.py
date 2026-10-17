@@ -5,12 +5,12 @@ The same best-fit m_nu^2 values and total uncertainties as fig4.py, from
 1991 to 2021. The original's problem: the early experiments' error bars run to
 hundreds of eV^2, so the KATRIN results are a sliver at zero.
 
-Here the figure is two panels stacked on one column. The top panel shows all
-fourteen results on the full range, with every error bar drawn in full. The
-bottom panel shows the same rows at a magnified scale; the band that joins
-them marks the magnified window. Nothing is clipped or dropped: a row appears
-in the bottom panel only if its whole error bar lies inside the window, and
-the top panel shows all rows.
+Here the figure is two panels stacked on one column. The top panel (a) shows
+all fourteen results on the full range, with every error bar drawn in full.
+The bottom panel (b) shows the same rows at a magnified scale. The blue band in
+(a) is the window of (b), and the two share that blue, so the link is visual.
+Nothing is clipped or dropped: a row appears in (b) only if its whole error bar
+lies inside the window, and (a) shows all rows.
 """
 from pathlib import Path
 
@@ -23,6 +23,8 @@ ROOT = HERE.parents[2]
 OUT = ROOT / "gallery" / "published"
 
 GREY, KATRIN, INK = "#8c8c8c", "#0072b2", "#1a1a1a"
+KATRIN_TEXT = "#005a8c"                 # KATRIN's blue, darkened to 4.5:1 on the window
+UNPHYSICAL, WINDOW = "#efefef", "#dcebf7"      # m^2 < 0 shading; the magnified window
 FULL_X = (-240, 70)
 ZOOM_X = (-10, 10)                      # the magnified window, in eV^2
 
@@ -59,37 +61,38 @@ def value_label(name, best, lo, hi):
     return f"{best:.1f} (−{best - lo:.1f}, +{hi - best:.1f})".replace("-", "−")
 
 
-# -- top: all fourteen results, full range -----------------------------------
-top = i.plot_spec(60, 62, x=FULL_X, y=(0.5, n + 1.0), clip=True)
-top.rect(FULL_X[0], 0.5, 0, n + 1.0, fill="#efefef", stroke="none")   # m^2 < 0
-top.rect(ZOOM_X[0], 0.5, ZOOM_X[1], n + 1.0, fill="#dcebf7", stroke="none")
-top.text(-120, n + 0.55, "unphysical, m_{ν}^{2} < 0", anchor="c", size=i.pt(6), text_fill="#5b5b5b")
-top.vline(0, stroke=INK, stroke_width=0.35, label="m_{ν}^{2} = 0", label_side="w", label_offset=1.0)
+# -- (a) all fourteen results, full range ------------------------------------
+top = i.plot_spec(66, 62, x=FULL_X, y=(0.5, n + 1.0), clip=True)
+top.rect(FULL_X[0], 0.5, 0, n + 1.0, fill=UNPHYSICAL, stroke="none")      # m^2 < 0
+top.rect(ZOOM_X[0], 0.5, ZOOM_X[1], n + 0.5, fill=WINDOW, stroke="none")  # the window
+top.vline(0, stroke=INK, stroke_width=0.35, label="//m//_{ν}^{2} = 0", label_side="w",
+          label_offset=1.0)
 draw(top, range(n), row_y)
-top.axis("bottom", ticks=[-200, -100, 0])
-top.axis("left", ticks=[row_y[k] for k in range(n)],
-         format=lambda v: rows[n - int(round(v))][0])
-top.title("All results, full range")
+top.axes(x="Best-fit //m//_{ν}^{2} (eV^{2})",
+         x_options=dict(ticks=[-200, -100, 0]),
+         y_options=dict(ticks=[row_y[k] for k in range(n)],
+                        format=lambda v: rows[n - int(round(v))][0]))
 
-# -- bottom: the magnified window, same rows ---------------------------------
-bottom = i.plot_spec(60, 40, x=ZOOM_X, y=(0.5, len(zoom_keys) + 0.5), clip=True)
-bottom.rect(ZOOM_X[0], 0.5, 0, len(zoom_keys) + 0.5, fill="#efefef", stroke="none")
+# -- (b) the magnified window, same rows -------------------------------------
+bottom = i.plot_spec(66, 40, x=ZOOM_X, y=(0.5, len(zoom_keys) + 0.5), clip=True)
+bottom.background(fill=WINDOW)
 bottom.vline(0, stroke=INK, stroke_width=0.35)
 draw(bottom, zoom_keys, zoom_y)
 for k in zoom_keys:
     name, best, lo, hi = rows[k]
     if is_katrin(name):
         bottom.text(hi + 0.6, zoom_y[k], value_label(name, best, lo, hi), anchor="w",
-                    size=i.pt(6), text_fill=KATRIN)
-bottom.axis("bottom", ticks=[-10, -5, 0, 5, 10], label="Best-fit m_{ν}^{2} (eV^{2})")
-bottom.axis("left", ticks=[zoom_y[k] for k in zoom_keys],
-            format=lambda v: rows[zoom_keys[len(zoom_keys) - int(round(v))]][0])
-bottom.title("Magnified: the blue band above, −10 to +10 eV^{2}")
+                    size=i.pt(6), text_fill=KATRIN_TEXT)
+bottom.axes(x="Best-fit //m//_{ν}^{2} (eV^{2})",
+            x_options=dict(ticks=[-10, -5, 0, 5, 10]),
+            y_options=dict(ticks=[zoom_y[k] for k in zoom_keys],
+                           format=lambda v: rows[zoom_keys[len(zoom_keys) - int(round(v))]][0]))
 
-doc = i.preset("scientific.nature", format="single-column").document(
-    columns=1, row_gap=3, share_plot_margins=True)
+preset = i.preset("scientific.nature", format="single-column", axes="box")
+doc = preset.document(columns=1, margin=0.5, row_gap=3, share_plot_margins=True)
 doc.add("full-range", top, row=0)
 doc.add("magnified", bottom, row=1)
+doc.letters({"full-range": "a", "magnified": "b"})
 figure = doc.compile()
 
 OUT.mkdir(parents=True, exist_ok=True)
