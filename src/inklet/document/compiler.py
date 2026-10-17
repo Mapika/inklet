@@ -177,11 +177,33 @@ class Document(BuildSpec):
             self.columns = tuple(length(v,'column weight') for v in self.columns)
             if not self.columns: raise ValueError('document needs at least one column')
 
+    def _default_row(self, name, column, colspan):
+        """The row for a cell added without ``row=``: below the existing cells.
+
+        That is the documented rule. When this cell's columns are free in the
+        last row, the author may have meant that row instead, and the cell
+        would sit under its neighbour by accident, so that case is refused
+        and the message names both rows.
+        """
+        below = max((c.row+c.rowspan for c in self._cells), default=0)
+        if below == 0: return 0
+        last = below-1
+        free = not any(other.row <= last < other.row+other.rowspan
+                       and column < other.column+other.colspan and other.column < column+colspan
+                       for other in self._cells)
+        if free:
+            raise LayoutError(f'cell {name!r} has no row=, and column {column} is free in row {last}, '
+                              f'the last row. Pass row={last} to place it there, or row={below} to start '
+                              f'a new row below the others')
+        return below
+
     def add(self, name, item, *, row=None, column=0, rowspan=1, colspan=1,
             min_width=None, min_height=None, align='center', grow=True):
         """Place a named cell; align fixed artwork by a compass point.
 
-        Omitted row appends below existing cells. ``align`` accepts ``center``,
+        Omitted row appends below the existing cells. When the cell's columns
+        are free in the last row, that is ambiguous, so the call raises and
+        asks for ``row=``. ``align`` accepts ``center``,
         ``n``, ``s``, ``e``, ``w`` and the four corners. It positions artwork
         within its cell without scaling. Plots fill their available data
         regions and retain shared axis alignment, except a plot with
@@ -192,15 +214,19 @@ class Document(BuildSpec):
         shared out anyway, so a fixed page height is always filled.
         """
         if not isinstance(name,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*',name):
-            raise ValueError('cell names start with a letter and contain letters, digits, underscores or hyphens')
+            raise ValueError(f'cell names start with a letter and contain letters, digits, underscores or hyphens, '
+                             f'so {name!r} is not one. A cell name is an id for links and lint; keep it short '
+                             f'and give the plot a title() for a label with spaces')
         if any(c.name == name for c in self._cells): raise DiagramError(f'duplicate cell {name!r}')
         if align not in ('center','n','s','e','w','nw','ne','sw','se'):
             raise ValueError('cell align must be center, n, s, e, w, nw, ne, sw or se')
         if type(grow) is not bool: raise ValueError('grow must be a boolean')
-        row = max((c.row+c.rowspan for c in self._cells), default=0) if row is None else row
-        for value,label,minimum in [(row,'row',0),(column,'column',0),(rowspan,'rowspan',1),(colspan,'colspan',1)]:
+        for value,label,minimum in [(column,'column',0),(rowspan,'rowspan',1),(colspan,'colspan',1)]:
             if not isinstance(value,int) or isinstance(value,bool) or value < minimum:
                 raise ValueError(f'{label} must be an integer >= {minimum}')
+        row = self._default_row(name, column, colspan) if row is None else row
+        if not isinstance(row,int) or isinstance(row,bool) or row < 0:
+            raise ValueError('row must be an integer >= 0')
         if column+colspan > len(self.columns): raise LayoutError(f'cell {name!r} extends beyond the columns')
         for other in self._cells:
             if (row < other.row+other.rowspan and other.row < row+rowspan
@@ -274,8 +300,14 @@ class Document(BuildSpec):
             if cell.name == name: return cell.item
         raise KeyError(name)
 
-    def letters(self, *, start='a', anchor='content', **options):
+    def letters(self, names=None, *, start='a', anchor='content', **options):
         """Measure panel letters with the cells, reserving room before placement.
+
+        Cells take letters from ``start`` in page order. ``names`` sets the
+        letter of some cells by name, for a figure whose lettered panels skip
+        some cells: ``doc.letters({'hist': 'a', 'ci': 'e'})``. A cell not named
+        takes the next letter from ``start`` that no named cell has, so the
+        letters stay in order and never repeat.
 
         With ``anchor='content'`` a letter hangs off its plot's data area or
         its drawing's top edge. ``anchor='cell'`` moves it to the top-left
@@ -285,9 +317,22 @@ class Document(BuildSpec):
         """
         if anchor not in ('content', 'cell'):
             raise ValueError("letters anchor must be 'content' or 'cell'")
+        named = {}
+        if names is not None:
+            if not isinstance(names, Mapping):
+                raise TypeError('letters names must map cell names to letters')
+            for cell_name, letter in names.items():
+                if not isinstance(letter, str) or len(letter) != 1:
+                    raise ValueError(f'the letter for cell {cell_name!r} must be one character, not {letter!r}')
+                for other, taken in named.items():
+                    if taken == letter:
+                        raise ValueError(f'letter {letter!r} is given to both {other!r} and {cell_name!r}')
+                named[cell_name] = letter
         self._letters = dict(start=start, **options)
         if anchor != 'content':
             self._letters['anchor'] = anchor
+        if named:
+            self._letters['names'] = named
         return self
 
     def signature(self, trail=()):

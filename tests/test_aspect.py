@@ -281,7 +281,7 @@ def test_an_aspect_plot_beside_a_plain_one_settles_with_shared_furniture(shared)
     doc = i.document(width=160, columns=2, share_plot_margins=shared)
     doc.add('map', _map(height=40, aspect='equal').axes(y='A long response label / units'))
     doc.add('plain', i.plot_spec(height=40, x=(0, 20), y=(0, 10)).line([(0, 0), (20, 10)]).axes(),
-            column=1)
+            row=0, column=1)
     compiled = doc.compile()
     area = _areas(compiled)['map']
     assert area.width / area.height == pytest.approx(2.0, abs=1e-6)
