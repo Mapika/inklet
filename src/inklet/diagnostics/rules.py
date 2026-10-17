@@ -3838,6 +3838,8 @@ from .plot_rules import (rule_data_outside, rule_off_panel,         # noqa: E402
 from .break_rules import rule_break_distorts                       # noqa: E402
 from .three_rules import rule_depth_order                           # noqa: E402
 from .label_rules import rule_label_unplaced, rule_orphan_leader      # noqa: E402
+from .cell_rules import (rule_axis_title_overhang, rule_bar_width_scale,  # noqa: E402
+                         rule_plot_width_overridden)
 from .key_cover import rule_key_covers_data                         # noqa: E402
 
 RULES: dict[str, Rule] = {
@@ -3848,6 +3850,9 @@ RULES: dict[str, Rule] = {
     "TICKS_DROPPED": rule_ticks_dropped,
     "SERIES_FLATTENED": rule_series_flattened,
     "ROWS_COMBINED": rule_rows_combined,
+    "AXIS_TITLE_OVERHANG": rule_axis_title_overhang,
+    "PLOT_WIDTH_OVERRIDDEN": rule_plot_width_overridden,
+    "BAR_WIDTH_OUT_OF_SCALE": rule_bar_width_scale,
     "BREAK_DISTORTS": rule_break_distorts,
     "TINY_TEXT": rule_tiny_text,
     "LARGE_TEXT": rule_large_text,

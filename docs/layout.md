@@ -31,15 +31,27 @@ data units. Include their full width in the domain: these bars extend from
 reserve a slot for each category automatically.
 
 Rows and columns are zero-based. Omitting `row` appends below existing cells;
-it does not fill the next unused column. `rowspan` and `colspan` reserve multiple
-tracks. Cell names start with a letter and contain letters, digits, underscores
-or hyphens. Names are unique within each document.
+it does not fill the next unused column. When the cell's columns are free in the
+last row, that is ambiguous, so `add()` raises a `LayoutError` that names both
+rows: pass `row=` for the one you mean. `rowspan` and `colspan` reserve multiple
+tracks.
+
+A cell name is an id, used by links, lint and the figure's `cells` mapping. It
+starts with a letter and contains letters, digits, underscores or hyphens, and
+names are unique within each document. For a label with spaces, such as a region
+name, give the plot a `title()` and keep the cell name short.
 
 `columns=2` creates equal columns. `columns=[1, 2]` requests a 1:2 allocation,
 adjusted as needed to meet cell minima. `min_width` and `min_height` constrain
 the entire cell, including axes and labels. They are not data-domain limits.
 Fixed artwork reserves its measured width, including its panel letter, so a
 drawing never needs a `min_width` to fit its column.
+
+A plot's `width` given to `plot_spec()` is a floor. The data area is at least
+that wide, with its furniture beside it, and the plot fills any extra room in its
+column. When the columns cannot hold that, the plot is drawn narrower and lint
+reports `PLOT_WIDTH_OVERRIDDEN`, with the width it was given and the one it has.
+A plot whose width was left to its default is not held to it.
 
 With no explicit page height, rows grow to meet their measured content and
 minimum heights. A fixed `height` starts from those same natural rows and
@@ -62,6 +74,11 @@ with a wide label is not narrowed by it. Top and
 bottom margins and data heights are shared along each row only, so rows keep
 the plot heights set for them and an axis under the last row reserves no space
 under the others.
+A y-axis title longer than its plot may reach above and below it, centred on the
+plot, and the plot keeps its authored height. The title may not hit anything: if
+it runs into a neighbouring cell or past the page edge, lint reports
+`AXIS_TITLE_OVERHANG`, with its length, the plot's height and what it hits. Give
+the plot more height, shorten the title, or break it over lines with `\n`.
 `share_plot_margins='all'` shares the largest left and right margins across
 the whole grid instead, and gives every plot the tallest data height, so equal
 columns give equal data areas. This is
@@ -96,6 +113,22 @@ lined.add('trace', i.plot_spec(height=20).line([(0, 0), (1, 1)]).axes(x='t', y='
 lined.add('model', i.component(i.box, 'Model', width=30, height=10), row=0, column=1)
 assert lined.compile().cells['model'].y0 == lined.compile().cells['trace'].y0
 ```
+
+### Letters by cell name
+
+Letters follow the cells in page order. To skip a letter, or to match a letter to
+a cell by name, pass `names=` to `letters()`. A cell that is not named takes the
+next letter that no named cell has:
+
+```python
+page = i.document(width=100, columns=2)
+page.add('hist', i.plot_spec(30, 20, x=(0, 1), y=(0, 1)).line([(0, 0), (1, 1)]), row=0, column=0)
+page.add('ci', i.plot_spec(30, 20, x=(0, 1), y=(0, 1)).line([(0, 0), (1, 1)]), row=0, column=1)
+page.letters({'hist': 'a', 'ci': 'e'})
+```
+
+Each letter is one character, and a letter may name only one cell. A name that is
+not a cell of the document raises when the document compiles.
 
 A plot's letter hangs off its data area and a drawing's off its top edge, so
 letters in a row can sit at different heights. `letters(anchor='cell')` moves

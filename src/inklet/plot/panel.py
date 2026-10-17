@@ -658,10 +658,13 @@ class Panel:
         heights run along x, which is the layout to use the moment the category
         names are longer than about six characters.
 
-        `width` is a fraction of the slot on a band scale and a width in data
-        units on a continuous one, and `gap` is the air between grouped bars as
-        a fraction of their sub-slot. One series is drawn as a tint of the ink
-        with a hairline edge; several take the theme's palette in order.
+        `width` is a fraction of the slot on a band scale and, on a continuous
+        one, a width in data units of the axis the bars stand on: x for upright
+        bars, y for `orient="h"`. Wider than that axis, the bars run out of the
+        plot, and lint reports `BAR_WIDTH_OUT_OF_SCALE`. `gap` is the air between
+        grouped bars as a fraction of their sub-slot. One series is drawn as a
+        tint of the ink with a hairline edge; several take the theme's palette
+        in order.
 
         `color=` is one colour for every series or a sequence of one colour per
         *series*. `bar_colors=` assigns one colour per *category* instead, as a

@@ -263,6 +263,7 @@ def bars(panel, at: Sequence, heights, *, width: float = 0.8,
         except KeyError as error:
             raise DiagramError(f"bar_colors has no colour for category {error.args[0]!r}") from None
     position, value = _axes_of(panel, orient)
+    too_wide = _bars_wider_than_axis(position, places, width)
 
     cells = []
     for index, where in enumerate(places):
@@ -281,7 +282,36 @@ def bars(panel, at: Sequence, heights, *, width: float = 0.8,
                                fills[s] if per_bar is None else per_bar[index], stroke, stroke_width))
     if not cells:
         return None  # A valid all-baseline series has no painted rectangles.
-    return draw_place(cells, **style)
+    node = draw_place(cells, **style)
+    if too_wide is not None:
+        # The bars' own width is the only thing that could have stretched them
+        # past their axis; lint names it, where the page would only grow.
+        too_wide['orient'] = orient
+        node.notes[BAR_WIDTH_NOTE] = too_wide
+    return node
+
+
+#: Read by lint: bars on a continuous axis whose width is wider than the axis.
+BAR_WIDTH_NOTE = 'bar_width_scale'
+
+
+def _bars_wider_than_axis(position: Scale, places, width: float) -> dict | None:
+    """What a width given in data units costs when it is wider than the axis.
+
+    A band scale takes its width as a fraction of the step, so it cannot
+    overflow. On a continuous axis the width is in that axis's data units, and
+    one that exceeds the axis's span draws bars that run out of the plot. The
+    note says so; the data are still drawn where they belong.
+    """
+    domain = None if isinstance(position, Band) else getattr(position, 'domain', None)
+    if not domain or not places:
+        return None
+    axis = abs(position.map(domain[1]) - position.map(domain[0]))
+    widest = max(abs(hi - lo) for lo, hi in (_slot(position, where, width) for where in places))
+    if widest <= axis + 1e-6:
+        return None
+    return dict(width=width, span=abs(domain[1] - domain[0]), slot=widest, axis=axis,
+                count=len(places))
 
 
 def _extent(orient: str, along: float, across: float) -> tuple[float, float]:
