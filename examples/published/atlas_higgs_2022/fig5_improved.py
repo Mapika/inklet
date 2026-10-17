@@ -22,11 +22,11 @@ FAMILY = {"μ": FERMION, "τ": FERMION, "b": FERMION, "t": FERMION, "c": FERMION
           "W": BOSON, "Z": BOSON}
 XLIM = (0.046, 300.0)
 TOP_YLIM, BOTTOM_YLIM = (4.7e-5, 1.6), (0.73, 1.47)
-DODGE = 0.05                                # kappa_c = kappa_t points left, free right
+DODGE = 0.09                                # kappa_c = kappa_t points /1.09, free points x1.09
 ARROW_X = 0.62 * (1 + DODGE)                # c mass, with the other free points
 CAP = 0.9                                   # whisker end caps, mm
 DASH = (2.0, 1.2)                           # SM reference line
-SIZE_TIED, SIZE_FREE = 2.0, 2.4
+SIZE_TIED, SIZE_FREE = 1.4, 1.3             # diamonds no larger than the circles
 
 tied = {r["name"]: r for r in _data.load(_data.WITHOUT_KC)}
 free = {r["name"]: r for r in _data.load(_data.WITH_KC)}
@@ -47,7 +47,8 @@ def point(panel, row, field, scenario, floor=None):
         down = value - floor
     if scenario == "free":
         panel.errorbars([(x, value)], yerr=[(down, up)], cap=CAP, stroke=INK, stroke_width=0.25)
-        panel.scatter([(x, value)], marker="diamond", size=SIZE_FREE, color=INK, hollow=True,
+        # paper-filled diamond: it hides its own whisker where they cross
+        panel.scatter([(x, value)], marker="diamond", size=SIZE_FREE, color=WHITE, stroke=INK,
                       stroke_width=0.35)
     else:
         colour = FAMILY[row["name"]]
@@ -66,20 +67,26 @@ for r in tied.values():
 
 # Each particle is named beside its point. anchor = the label corner or edge that sits on
 # the point; offsets in mm, with y positive downwards.
-NAMES = {"μ": ((tied["μ"], "tied"), "se", (-1.6, -1.0)),
-         "τ": ((tied["τ"], "tied"), "ne", (-0.5, 1.4)),
-         "b": ((tied["b"], "tied"), "se", (-0.6, -1.0)),
-         "t": ((tied["t"], "tied"), "n", (0.6, 1.4)),
-         "Z": ((tied["Z"], "tied"), "s", (-0.6, -1.4)),
-         "W": ((tied["W"], "tied"), "n", (-0.4, 1.2)),
+# Each particle is named next to its filled point, on the side that touches no other mark,
+# whisker or the SM line. Fermions sit on the line's upper-left side (the line rises to the
+# right); W is below-right of its pair and Z above-left. anchor = the label corner that
+# sits on the point; offsets in mm, with y positive downwards.
+NAMES = {"μ": ((tied["μ"], "tied"), "se", (-1.0, -1.2)),
+         "τ": ((tied["τ"], "tied"), "se", (-0.6, -0.8)),
+         "b": ((tied["b"], "tied"), "se", (-0.6, -0.8)),
+         "t": ((tied["t"], "tied"), "se", (-0.6, -0.8)),
+         "Z": ((tied["Z"], "tied"), "se", (-0.5, -0.8)),
+         "W": ((tied["W"], "tied"), "ne", (-0.6, 1.2)),
          "c": ((free["c"], "free"), "e", (-1.1, -1.5))}
 for name, ((row, scenario), anchor, offset) in NAMES.items():
     top.text(at(row, scenario), row["top"][0], f"//{name}//", anchor=anchor,
              offset=offset, size="7pt")
 
 top.legend(corner="nw", entries=[
-    ("κ_{c} = κ_{t}", marker("circle", 2.0, fill=DARK, stroke="none")),
-    ("κ_{c} free", marker("diamond", 2.4, fill=WHITE, stroke=INK, stroke_width=0.35)),
+    ("Fermions", marker("circle", SIZE_TIED, fill=FERMION, stroke="none")),
+    ("W, Z bosons", marker("circle", SIZE_TIED, fill=BOSON, stroke="none")),
+    ("κ_{c} = κ_{t} (filled)", marker("circle", SIZE_TIED, fill=DARK, stroke="none")),
+    ("κ_{c} free (open)", marker("diamond", SIZE_FREE, fill=WHITE, stroke=INK, stroke_width=0.35)),
     ("SM prediction", polyline([(0, 0), (4.0, 0)], stroke=DARK, stroke_width=0.35,
                                stroke_dash=DASH)),
 ], font_size="7pt")

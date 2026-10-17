@@ -5,9 +5,9 @@
 | Script | Output (`gallery/published/`) | Size | Lint |
 |---|---|---|---|
 | `fig5.py` (faithful) | `atlas_higgs_2022_fig5.{svg,pdf,png}` (PNG at 200 dpi) | 89 × 101.9 mm (single column) | 1 warning, 5 infos (see below) |
-| `fig5_improved.py` (improved) | `atlas_higgs_2022_fig5_improved.{svg,pdf,png}` | 183 × 110.4 mm (double column) | 1 warning, 6 infos (see below) |
+| `fig5_improved.py` (improved) | `atlas_higgs_2022_fig5_improved.{svg,pdf,png}` (PNG at 200 dpi) | 183 × 110.4 mm (double column) | 1 warning, 7 infos (see below) |
 
-`fig5.py` is 139 lines, `fig5_improved.py` is 118. `_data.py` loads the two HEPData tables.
+`fig5.py` is 139 lines, `fig5_improved.py` is 125 lines. `_data.py` loads the two HEPData tables.
 
 Lint results, as printed by `figure.report()`:
 
@@ -21,12 +21,15 @@ Lint results, as printed by `figure.report()`:
   lint's 1 mm clearance is not met. `INCONSISTENT_STROKE`: one element at 0.18 mm
   (inside the particle-table inset), whose source I did not identify. It was not set
   in the script.
-* `fig5_improved.py`, infos: `CROWDING` on the labels τ, t, Z, W, b and μ. The W/Z/t
-  cluster is the most crowded region of the figure, and it stays crowded at 183 mm
-  width. The labels are beside their points, not on them, and the render is readable.
+* `fig5_improved.py`, infos: `CROWDING` on the labels c, t, Z, W, b, τ and μ, each
+  0.3 to 0.6 mm from a neighbouring mark. The lint measures to the whisker caps as
+  well as the marker bodies. I checked each label at full size (4× crops of the 200 dpi
+  PNG, the W/Z pair, τ/b, μ, t and c): none touches a marker, a whisker or the SM line.
+  The labels are on the sides listed below. The lint's 1 mm clearance cannot be met
+  for labels this close to the W/Z/t and τ/b pairs at this width.
 
-Remaining lint is the font warning, plus crowding in the W/Z/t cluster. I left both
-as they are and did not hide them with a different font or a different layout.
+The remaining lint is the font warning, plus the crowding infos above. I did not hide
+either with a different font or a different layout.
 
 ## Matches the original
 
@@ -75,36 +78,56 @@ Changes, each with the problem in the original it fixes:
 
 1. **Double column (183 mm) instead of single column.** The original's W, Z and t
    points, at 80 to 170 GeV, sit within a few millimetres of each other on a 90 mm
-   plot, and every label fights for space. At 183 mm the cluster is about twice as wide.
+   plot, and every label fights for space. The common Nature rule for this brief is
+   89 or 183 mm, so the width is 183 mm. I also rendered a 136 mm (1.5-column) test
+   at the same scale: at that width the W and Z markers overlap each other and the W
+   label touches its marker, so the cluster is not readable. 183 mm is kept for that
+   reason, not because 136 mm is unsuitable as a Nature width.
 2. **Labels for each particle at its point, and no lepton/quark legend.** The original
    needs the eye to travel from a 17-tile particle table to each point. Here the name
-   is beside the point, so the table is not needed.
-3. **Two scenarios differ by shape as well as colour.** The original shows κ_c = κ_t as
+   is beside the point, so the table is not needed. The label sides are: μ, τ, b and
+   t above-left of the filled point; Z above-left of its pair; W below-left of its
+   filled point; c to the left of its diamond. W is below-left rather than below-right
+   because the W diamond sits to the right of its circle (change 6), and the label
+   would touch it.
+3. **Colour key for the two families.** The original shows leptons and quarks as
+   separate colours with a 17-tile table, and no key for the W/Z colour. The improved
+   key has two coloured entries, "Fermions" (blue, the κ_F·m_F/vev points: μ, τ, b, t,
+   c) and "W, Z bosons" (orange, the √κ_V·m_V/vev points). The bottom panel uses the
+   same colours, and the key applies to both.
+4. **Two scenarios differ by shape as well as colour.** The original shows κ_c = κ_t as
    filled circles and κ_c free as grey crosses, and the grey is close to the colour of
-   the background. The improved figure uses filled circles for κ_c = κ_t and open
-   black diamonds for κ_c free. The two are told apart by fill and by outline, not by
-   colour.
-4. **Colour-blind-safe palette.** The original's red, orange, tan and green are hard to
+   the background. The improved figure uses filled circles for κ_c = κ_t and open,
+   paper-filled black diamonds for κ_c free. The two are told apart by fill and outline,
+   not by colour. The diamonds are 1.3 mm and the circles 1.4 mm across (the diamond is
+   no larger than the circle), so neither reads as the heavier mark.
+5. **Colour-blind-safe palette.** The original's red, orange, tan and green are hard to
    tell apart for the most common forms of colour blindness, and red and green in
    particular overlap. The improved figure uses two Okabe-Ito colours: blue for the
-   fermions (leptons, quarks and c) and orange for the vector bosons (W and Z).
-5. **SM reference line distinct from the data.** The original's SM line is solid red,
+   fermions and orange for the vector bosons.
+6. **Dodging of the two scenarios.** The κ_c = κ_t points sit at mass ÷ 1.09 (−8.3%)
+   and the κ_c-free points at mass × 1.09 (+9.0%), the same on both panels. In the
+   original the two scenarios sit at the same x, and their markers overprint: in the
+   bottom panel κ_c = κ_t and κ_c free differ by only 0.006 to 0.014 for b, τ and t.
+   With the ±9% offset each particle's two markers no longer touch. The values are not
+   moved, and the offset is stated here and in SOURCE.md.
+   The W/Z pair is still close: W (free, 87.6 GeV) and Z (κ_c = κ_t, 83.7 GeV) are only
+   0.02 decades apart, so their markers touch. That is the data (80.4 and 91.2 GeV), not
+   the offset, and no uniform offset separates it without moving the points by more.
+   The W and Z filled circles are separated from each other by a small gap.
+7. **SM reference line distinct from the data.** The original's SM line is solid red,
    the same colour as the τ point, and it runs through the data. The improved line is a
    dark grey dashed line, labelled "SM prediction" in the key and "SM" on the bottom
    panel, so it cannot be taken for data.
-6. **Dodging of the two scenarios.** The free points are offset +5% of their mass, and
-   the tied points −5%. In the original the two scenarios sit at the same x and overlap
-   in the bottom panel, where κ_c = κ_t and κ_c free differ by only 0.006 to 0.014 for
-   b, τ and t. The values are not moved, and the offset is stated here and in SOURCE.md.
-7. **The off-scale arrow is labelled.** The original's grey arrow has no text; a reader
+8. **The off-scale arrow is labelled.** The original's grey arrow has no text; a reader
    must infer that κ_c = 0.03. The improved arrow has the label "κ_c = 0.03, off this
    scale" beside it.
-8. **Larger type.** The original's tick labels and key text are small for the panels
+9. **Larger type.** The original's tick labels and key text are small for the panels
    they sit in. The improved figure sets all text at 7 pt, the profile's maximum, with
    the same font family as the faithful figure.
-9. **Top y range.** The original's top panel extends to 3 (a blank band above the
-   top point). The improved range ends at 1.6, which gives the data more height.
-10. **Fewer elements.** The particle table, the tile colours and the lepton/quark
+10. **Top y range.** The original's top panel extends to 3 (a blank band above the
+    top point). The improved range ends at 1.6, which gives the data more height.
+11. **Fewer elements.** The particle table, the tile colours and the lepton/quark
     grouping are gone. The figure carries the same data with less to read.
 
 Kept from the original, as required: every asymmetric error bar on both panels, the
