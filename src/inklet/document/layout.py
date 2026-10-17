@@ -689,9 +689,13 @@ def _place_cells(cells, nodes, boxes, margins, corner_letters=False, page=None):
         if cell.name in findings:
             wrapper.notes[OVERHANG_NOTE] = findings[cell.name]
         item = cell.item
+        shared = any(other is not cell and other.row < cell.row+cell.rowspan
+                     and cell.row < other.row+other.rowspan for other in cells)
         if (isinstance(item, PlotSpec) and item._width_given and 'aspect' not in item.options
-                and plot_area(node).width < item.width-.05):
-            # Columns, or the page, could not give the plot the width its author set.
+                and shared and plot_area(node).width < item.width-.05):
+            # Columns could not give the plot the width its author set. A plot
+            # alone in its rows is capped by the page, not by a layout choice:
+            # `plot_spec(89, ...)` on an 89 mm page means "as wide as it goes".
             left, right = plot_margins(node)[:2]
             wrapper.notes[WIDTH_NOTE] = dict(authored=item.width, actual=plot_area(node).width,
                                              cell=boxes[cell.name].width, furniture=left+right)

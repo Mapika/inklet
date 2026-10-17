@@ -2,7 +2,7 @@
 
 Output: `gallery/published/hodgkin_huxley_1952.{png,svg,pdf}`, 89 mm wide
 (single column). `figure.py` is 54 lines; `simulate.py` 114 lines.
-`figure.report()`: `inklet lint: clean, 0 diagnostics`.
+`figure.report(expect={"SERIES_FLATTENED"})`: `inklet lint: 1 acknowledged` (the 6 mV trace stays below threshold, so it is flat beside the action potentials; that is the finding).
 
 ## Verdict
 

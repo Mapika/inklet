@@ -289,3 +289,15 @@ def test_cell_name_with_a_space_is_refused_with_the_reason():
     with pytest.raises(ValueError, match='African region') as error:
         doc.add('African region', i.plot_spec(30, 20))
     assert 'title()' in str(error.value)
+
+
+def test_a_plot_alone_in_its_row_is_capped_by_the_page_without_a_report():
+    # plot_spec(89, ...) on an 89 mm page asks for "as wide as it goes"; the
+    # page, not a column split, limits it, so there is nothing to report.
+    plot = i.plot_spec(89, 50, x=(0, 1), y=(0, 1))
+    plot.line([(0, 0), (1, 1)]).axes(x="x", y="y")
+    doc = i.preset("scientific.nature", format="single-column").document()
+    doc.add("only", plot)
+    figure = doc.compile()
+    assert _areas(figure)['only'].width < 89
+    assert 'PLOT_WIDTH_OVERRIDDEN' not in _codes(figure)

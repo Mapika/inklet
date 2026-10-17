@@ -47,4 +47,5 @@ figure = doc.compile()
 OUT.mkdir(parents=True, exist_ok=True)
 figure.save(OUT / "hodgkin_huxley_1952.svg", OUT / "hodgkin_huxley_1952.pdf")
 figure.save(OUT / "hodgkin_huxley_1952.png", dpi=200)
-print(figure.report())
+# The 6 mV response stays below threshold: its flat trace is the finding.
+print(figure.report(expect={"SERIES_FLATTENED"}))
