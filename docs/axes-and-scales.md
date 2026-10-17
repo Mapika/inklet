@@ -26,6 +26,32 @@ Check that the domain includes the comparisons you intend to make. A truncated
 numeric axis can be useful for a measured detail, but disclose it and avoid
 reading bar lengths as ratios when zero is outside the view.
 
+## Dot plot with named rows
+
+A labelled dot-and-whisker plot puts names down the y axis and values across x.
+Give the full model a `band` of the names as its y scale: each name gets one row,
+and the names are the tick labels, so no formatter maps positions back to names.
+The first category sits at the bottom, so reverse the list to read top-down.
+
+```python
+import inklet as i
+
+countries = ['Chile', 'Peru', 'Brazil', 'Mexico']
+ratio = [1.2, 0.8, 2.1, 1.6]
+low = [0.9, 0.5, 1.7, 1.1]
+high = [1.5, 1.2, 2.6, 2.0]
+
+p = i.plot_spec(60, 40, x=(0, 3), y=i.band(countries[::-1]))
+rows = list(zip(ratio, countries))
+p.errorbars(rows, xerr=[(r - lo, hi - r) for r, lo, hi in zip(ratio, low, high)], cap=0)
+p.scatter(rows, name='Ratio', size=2.2)
+p.axes(x='Ratio (95% CI)')
+```
+
+For a table of estimates with intervals, `i.quick.forest(df, label=..., estimate=...,
+lower=..., upper=...)` lays out the same rows with the numbers beside them. It
+draws square markers, sized by `weight=` when you give one.
+
 ## Tick labels
 
 `count=5` requests approximately five intervals. `ticks=[...]` specifies values
