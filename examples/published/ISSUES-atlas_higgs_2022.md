@@ -134,3 +134,34 @@ profile was not changed.
 * `legend(entries=[(name, marker(...))])` takes diagram glyphs, so the key can show a
   hollow or dashed symbol that the series record cannot.
 * `scatter(..., hollow=True)` and `stroke_dash=` on a line both worked first time.
+
+## Pass 2
+
+Found while revising the figure to the journal's look (89 mm, the original's ticks
+and italics). Worktree at master b8b4e34, 2026-10-17.
+
+### P2.1. A log axis under four decades writes plain numbers, not powers of ten
+
+**Actual:** the x axis spans 0.046 to 300 GeV, 3.8 decades. A log axis with explicit
+ticks writes `0.1, 1, 10, 100`. The original, and the journal's house style for this
+figure, write `10^{-1}, 10^{0}, 10^{1}, 10^{2}`. The y axis writes powers because its
+ticks run past four decades, so the two axes of one figure read differently.
+
+```python
+import inklet as i
+p = i.plot_spec(77, 30, x=i.log((0.046, 300)), y=(0, 1))
+p.axis("bottom", ticks=[0.1, 1, 10, 100])     # labels: 0.1  1  10  100
+```
+
+**Expected:** a preset or axis option that asks for powers of ten on a log scale
+under four decades (for example `format="power"`), or a note in the log-scale docs
+that `format=power_label` from `inklet.plot` is the way to do it.
+
+**Workaround:** `from inklet.plot import power_label` and pass `format=power_label`
+to the bottom axis. Both scripts do this.
+
+### P2.2. `FONT_SUBSTITUTED` is now INFO (resolved)
+
+Item 8 above: on master the warning is INFO, and `expected_fonts=None` is no longer
+needed. The scripts do not use it. The info still appears without Arial installed,
+and NOTES.md records that.

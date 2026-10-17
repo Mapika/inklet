@@ -11,6 +11,7 @@ from pathlib import Path
 import inklet as i
 from inklet.draw.path import polyline
 from inklet.draw.shapes import marker
+from inklet.plot import power_label
 
 import _data
 
@@ -41,14 +42,13 @@ def points(rows, field):
 # -- top panel: kappa m / vev, log-log ----------------------------------------
 top = i.plot_spec(77, 57.5, x=i.log(XLIM), y=i.log(TOP_YLIM))
 top.line([(XLIM[0], XLIM[0] / _data.VEV), (XLIM[1], XLIM[1] / _data.VEV)],
-         stroke=RED, stroke_width=0.35)
+         stroke=RED, stroke_width=0.25)
 
 free_rows = list(kc_free.values())
 xy, err = points(free_rows, "top")
-# c's lower bound is 0, which a log axis cannot show: its whisker runs to the panel floor.
-err = [(d, u) if r["name"] != "c" else (r["top"][0] - TOP_YLIM[0], r["top"][2])
-       for r, (d, u) in zip(free_rows, err)]
-top.errorbars(xy, yerr=err, cap=CAP, stroke=GREY, stroke_width=0.25)
+# c's lower bound is 0, which a log axis cannot show: floor="none" runs its whisker bare
+# to the panel floor, as the original does (no arrowhead on this panel).
+top.errorbars(xy, yerr=err, cap=CAP, floor="none", stroke=GREY, stroke_width=0.25)
 top.scatter(xy, marker="plus", size=2.0, color=GREY, stroke_width=0.35)
 
 tied_rows = list(kc_tied.values())
@@ -66,12 +66,13 @@ for name, (row, anchor, offset) in LABEL.items():
     top.text(row["mass"], row["top"][0], f"//{name}//", anchor=anchor, offset=offset)
 
 top.legend(corner="nw", entries=[
-    ("κ_{c} = κ_{t}", marker("circle", 1.5, fill=BLACK, stroke="none")),
-    ("κ_{c} is a free parameter", marker("plus", 2.0, stroke=GREY)),
-    ("SM prediction", polyline([(0, 0), (3.5, 0)], stroke=RED, stroke_width=0.35)),
+    ("//κ//_{//c//} = //κ//_{//t//}", marker("circle", 1.5, fill=BLACK, stroke="none")),
+    ("//κ//_{//c//} is a free parameter", marker("plus", 2.0, stroke=GREY)),
+    ("SM prediction", polyline([(0, 0), (3.5, 0)], stroke=RED, stroke_width=0.25)),
 ])
 top.axis("bottom", ticks=[0.1, 1, 10, 100], labels=False, minor=True)
-top.axis("left", ticks=TOP_TICKS, minor=True, label="κ_{F}·m_{F}/vev  or  √κ_{V}·m_{V}/vev")
+top.axis("left", ticks=TOP_TICKS, minor=True,
+         label="//κ//_{//F//} //m//_{//F//}/vev\nor √//κ//_{//V//} //m//_{//V//}/vev")
 
 # Particle table: the original's shaded key, drawn in millimetres inside an inset.
 MM = 0.0869                                 # mm per pixel of the 1024-px original
@@ -107,7 +108,7 @@ top.inset(grid, corner="se", width=None, pad=1.0, plate=False)
 
 # -- bottom panel: kappa, linear -----------------------------------------------
 bottom = i.plot_spec(77, 26.5, x=i.log(XLIM), y=BOTTOM_YLIM)
-bottom.hline(1.0, stroke=RED, stroke_width=0.35)
+bottom.hline(1.0, stroke=RED, stroke_width=0.25)
 
 # kappa_c = 0.031 lies below this panel, so it is not plotted; an arrow points to it.
 in_range = [r for r in free_rows if r["name"] != "c"]
@@ -124,11 +125,14 @@ for r in tied_rows:
     bottom.errorbars(xy, yerr=err, cap=CAP, stroke=COLOUR[r["name"]], stroke_width=0.25)
     bottom.scatter(xy, size=1.5, color=COLOUR[r["name"]])
 
-bottom.axis("bottom", ticks=[0.1, 1, 10, 100], label="Particle mass (GeV)")
-bottom.axis("left", ticks=[0.8, 1.0, 1.2, 1.4], label="κ_{F} or κ_{V}")
+bottom.axis("bottom", ticks=[0.1, 1, 10, 100], format=power_label, label="Particle mass (GeV)",
+            tick_pad=0.4, label_pad=0.9)
+bottom.axis("left", ticks=[0.8, 1.0, 1.2, 1.4], label="//κ//_{//F//} or //κ//_{//V//}")
 
-doc = i.preset("scientific.nature", format="single-column").document(
-    columns=1, row_gap=1.5, share_plot_margins=True)
+# Open axes with inward ticks, as in the original: left and bottom spines only, no top or
+# right edge (checked on the 1024-px original). axes="box" would add those edges.
+doc = i.preset("scientific.nature", format="single-column", ink="#000000").document(
+    columns=1, margin=0.5, row_gap=0.5, share_plot_margins=True)
 doc.add("top", top, row=0)
 doc.add("bottom", bottom, row=1)
 figure = doc.compile()

@@ -2,13 +2,14 @@
 
 Same data and message as fig5.py: every particle's reduced coupling against its mass,
 and the coupling modifiers kappa below, each with its asymmetric uncertainty. Changes
-from the original are listed in NOTES.md.
+from the original, and the suggested caption, are in NOTES.md.
 """
 from pathlib import Path
 
 import inklet as i
 from inklet.draw.path import polyline
 from inklet.draw.shapes import marker
+from inklet.plot import power_label
 
 import _data
 
@@ -37,46 +38,44 @@ def at(row, scenario):
     return row["mass"] / (1 + DODGE) if scenario == "tied" else row["mass"] * (1 + DODGE)
 
 
-def point(panel, row, field, scenario, floor=None):
+def point(panel, row, field, scenario):
     """One point with its asymmetric whisker: filled and coloured for kappa_c = kappa_t,
     open and black for kappa_c free (so the two scenarios differ in shape, not only colour).
-    A lower bound of zero cannot be drawn on a log axis, so with `floor` the whisker stops there."""
+    kappa_c's lower bound is zero, which a log axis cannot show: floor="none" runs that
+    whisker bare to the panel floor, with no arrowhead."""
     value, down, up = row[field]
     x = at(row, scenario)
-    if floor is not None and down >= value:
-        down = value - floor
     if scenario == "free":
-        panel.errorbars([(x, value)], yerr=[(down, up)], cap=CAP, stroke=INK, stroke_width=0.25)
+        panel.errorbars([(x, value)], yerr=[(down, up)], cap=CAP, floor="none",
+                        stroke=INK, stroke_width=0.25)
         # paper-filled diamond: it hides its own whisker where they cross
         panel.scatter([(x, value)], marker="diamond", size=SIZE_FREE, color=WHITE, stroke=INK,
                       stroke_width=0.35)
     else:
         colour = FAMILY[row["name"]]
-        panel.errorbars([(x, value)], yerr=[(down, up)], cap=CAP, stroke=colour, stroke_width=0.25)
+        panel.errorbars([(x, value)], yerr=[(down, up)], cap=CAP, floor="none",
+                        stroke=colour, stroke_width=0.25)
         panel.scatter([(x, value)], size=SIZE_TIED, color=colour)
 
 
 # -- top panel: kappa m / vev, log-log ----------------------------------------
-top = i.plot_spec(150, 62, x=i.log(XLIM), y=i.log(TOP_YLIM))
+top = i.plot_spec(77, 57.5, x=i.log(XLIM), y=i.log(TOP_YLIM))
 top.line([(XLIM[0], XLIM[0] / _data.VEV), (XLIM[1], XLIM[1] / _data.VEV)],
          stroke=DARK, stroke_width=0.35, stroke_dash=DASH)
 for r in free.values():
-    point(top, r, "top", "free", floor=TOP_YLIM[0])
+    point(top, r, "top", "free")
 for r in tied.values():
     point(top, r, "top", "tied")
 
-# Each particle is named beside its point. anchor = the label corner or edge that sits on
-# the point; offsets in mm, with y positive downwards.
 # Each particle is named next to its filled point, on the side that touches no other mark,
-# whisker or the SM line. Fermions sit on the line's upper-left side (the line rises to the
-# right); W is below-right of its pair and Z above-left. anchor = the label corner that
-# sits on the point; offsets in mm, with y positive downwards.
+# whisker or the SM line. anchor = the label corner that sits on the point; offsets in mm,
+# with y positive downwards.
 NAMES = {"μ": ((tied["μ"], "tied"), "se", (-1.0, -1.2)),
          "τ": ((tied["τ"], "tied"), "se", (-0.6, -0.8)),
          "b": ((tied["b"], "tied"), "se", (-0.6, -0.8)),
          "t": ((tied["t"], "tied"), "se", (-0.6, -0.8)),
          "Z": ((tied["Z"], "tied"), "se", (-0.5, -0.8)),
-         "W": ((tied["W"], "tied"), "ne", (-0.6, 1.2)),
+         "W": ((tied["W"], "tied"), "n", (-0.5, 1.5)),
          "c": ((free["c"], "free"), "e", (-1.1, -1.5))}
 for name, ((row, scenario), anchor, offset) in NAMES.items():
     top.text(at(row, scenario), row["top"][0], f"//{name}//", anchor=anchor,
@@ -85,17 +84,17 @@ for name, ((row, scenario), anchor, offset) in NAMES.items():
 top.legend(corner="nw", entries=[
     ("Fermions", marker("circle", SIZE_TIED, fill=FERMION, stroke="none")),
     ("W, Z bosons", marker("circle", SIZE_TIED, fill=BOSON, stroke="none")),
-    ("κ_{c} = κ_{t} (filled)", marker("circle", SIZE_TIED, fill=DARK, stroke="none")),
-    ("κ_{c} free (open)", marker("diamond", SIZE_FREE, fill=WHITE, stroke=INK, stroke_width=0.35)),
+    ("//κ//_{//c//} = //κ//_{//t//}", marker("circle", SIZE_TIED, fill=DARK, stroke="none")),
+    ("//κ//_{//c//} free", marker("diamond", SIZE_FREE, fill=WHITE, stroke=INK, stroke_width=0.35)),
     ("SM prediction", polyline([(0, 0), (4.0, 0)], stroke=DARK, stroke_width=0.35,
                                stroke_dash=DASH)),
 ], font_size="7pt")
 top.axis("bottom", ticks=[0.1, 1, 10, 100], labels=False, minor=True)
 top.axis("left", ticks=[1e-4, 1e-3, 1e-2, 1e-1, 1.0], minor=True,
-         label="κ_{F} m_{F}/vev or √κ_{V} m_{V}/vev", label_font_size="7pt")
+         label="//κ//_{//F//} //m//_{//F//}/vev\nor √//κ//_{//V//} //m//_{//V//}/vev")
 
 # -- bottom panel: kappa, linear -----------------------------------------------
-bottom = i.plot_spec(150, 30, x=i.log(XLIM), y=BOTTOM_YLIM)
+bottom = i.plot_spec(77, 26.5, x=i.log(XLIM), y=BOTTOM_YLIM)
 bottom.hline(1.0, stroke=DARK, stroke_width=0.35, stroke_dash=DASH,
              label="SM", label_side="n")
 for name, r in free.items():
@@ -106,14 +105,17 @@ for r in tied.values():
 
 bottom.arrow((ARROW_X, BOTTOM_YLIM[1]), (ARROW_X, BOTTOM_YLIM[0] + 0.01),
              stroke=INK, stroke_width=0.35)
-bottom.text(ARROW_X, 1.27, "κ_{c} = 0.03,\noff this scale", anchor="w",
-            offset=(1.0, 0.0), size="7pt")
+bottom.text(ARROW_X, 1.27, "0.03", anchor="w", offset=(1.0, 0.0), size="7pt")
 
-bottom.axis("bottom", ticks=[0.1, 1, 10, 100], label="Particle mass (GeV)", minor=True)
-bottom.axis("left", ticks=[0.8, 1.0, 1.2, 1.4], label="κ_{F} or κ_{V}")
+bottom.axis("bottom", ticks=[0.1, 1, 10, 100], format=power_label,
+            label="Particle mass (GeV)", minor=True, tick_pad=0.4, label_pad=0.9)
+bottom.axis("left", ticks=[0.8, 1.0, 1.2, 1.4],
+            label="//κ//_{//F//} or //κ//_{//V//}")
 
-doc = i.preset("scientific.nature", format="double-column").customize(font_pt=7).document(
-    columns=1, row_gap=2, share_plot_margins=True)
+# Closed black frames, as physics journals draw them: axes="box" gives inward ticks on all
+# four sides and minor ticks, so each panel reads as one box.
+doc = i.preset("scientific.nature", format="single-column", axes="box", ink="#000000").document(
+    columns=1, margin=0.5, row_gap=0, share_plot_margins=True)
 doc.add("top", top, row=0)
 doc.add("bottom", bottom, row=1)
 figure = doc.compile()
