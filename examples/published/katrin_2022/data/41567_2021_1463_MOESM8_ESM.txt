@@ -1,0 +1,21 @@
+Source Data File
+Direct neutrino-mass measurement with sub-eVsensitivity - KATRIN Collaboration
+Fig. 4
+Experimemt overview on neutrino mass results
+
+experiment	mnu2	uncertainty neg	uncertainty pos	reference
+	(eV^2)	(eV^2)	(eV^2)
+KATRIN (comb.)	0.11	-0.33	0.33	This Work
+KATRIN (21)	0.26	-0.34	0.34	This work
+KATRIN (19)	-1.0	-1.1	0.9	10.1103/PhysRevLett.123.221802
+Troitsk (11)	-0.67	-2.53	2.53	10.1103/PhysRevD.84.112003
+Mainz (05)	-0.6	-3.041	3.041	10.1140/epjc/s2005-02139-7
+Troitsk (99)	-1.9	-4.050	4.050	10.1016/S0370-2693(99)00781-9
+Mainz (99)	-3.7	-5.701	5.701	10.1016/S0370-2693(99)00780-7
+Troitsk (95)	-22	-4.8	4.8	10.1016/0370-2693(95)00335-I
+Livermore (95)	-130	-25	25	10.1103/PhysRevLett.75.3237
+Beijing (93)	-31	-89.045	89.045	https://inis.iaea.org/search/search.aspx?orig_q=RN:25075641
+Mainz (93)	-39	-37.162	37.162	10.1016/0370-2693(93)90355-L
+Zürich (92)	-24	-77.621	77.621	10.1016/0370-2693(92)91000-Y
+Tokyo (91)	-65	-107.005	107.005	10.1016/0370-2693(91)90226-G
+Los Alamos (91)	-147	-79.404	79.404	10.1103/PhysRevLett.67.957
