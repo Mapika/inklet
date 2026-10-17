@@ -739,12 +739,27 @@ class Panel:
              range: tuple[float, float] | None = None, density: bool = False,
              baseline: float = 0.0, orient: str = "v", color=None,
              name: str | None = None, histtype: str | None = None,
-             cumulative: bool = False, **style) -> "Panel":
+             cumulative: bool = False, prebinned: bool = False,
+             **style) -> "Panel":
         """Binned counts as touching rectangles.
 
         `bins` is a count -- the edges then land on round numbers and you get
         about that many -- or the edges themselves. `density=True` divides by
         the sample size and the bin width so the bars integrate to one.
+
+        **`prebinned=True` draws counts that are already binned.** `values` is
+        then the count of each bin and `bins` the edges, one more than the
+        counts. A table of counts per bin, such as a source-data file, needs
+        no raw observations to be drawn, and it does not have them to bin
+        again:
+
+            p = inklet.panel(60, 34, x=(0, 1), y=(0, 120))
+            p.hist([12, 40, 88, 61], bins=[0, .25, .5, .75, 1], prebinned=True)
+
+        `orient="h"` draws the bars across the page, for a marginal beside a
+        2D plot. `density=True` then divides the counts by their total and by
+        each bin's width. Groups and `histtype=` need raw values, so they
+        are not accepted with `prebinned=True`.
 
         The panel's y domain has to exist before this is called, and only the
         counts can tell you what it should be. `inklet.plot.histogram(values,
@@ -767,6 +782,17 @@ class Panel:
         running totals of `histogram`'s heights.
         """
         clip = _clip_flag(style)
+        if prebinned:
+            if isinstance(bins, int) or isinstance(values, Mapping) or cumulative \
+                    or histtype not in (None, "bar"):
+                raise DiagramError(
+                    "hist(prebinned=True) takes counts, bin edges in bins=, and one "
+                    "bar series: no group mapping, cumulative= or histtype=")
+            self._note(name, "area", fill=_marks.series_colors(
+                style.get("fill") if color is None else color, 1)[0])
+            return self.draw(_marks.counted_bins(
+                self, bins, values, density=density, baseline=baseline,
+                orient=orient, colors=color, **style), clip=clip)
         if (isinstance(values, Mapping) or cumulative
                 or histtype not in (None, "bar")):
             from .histograms import hist_layer
@@ -787,7 +813,8 @@ class Panel:
 
     @paint_keywords
     def errorbars(self, points: Iterable[Sequence], *, yerr=None, xerr=None,
-                  cap: float | None = None, **style) -> "Panel":
+                  cap: float | None = None, floor: str = "arrow",
+                  **style) -> "Panel":
         """Whiskers through each point, in the data's own units.
 
         `yerr` and `xerr` each take a number (one symmetric bar everywhere), a
@@ -798,11 +825,20 @@ class Panel:
 
         `cap` is the half-width of the end caps in millimetres; `cap=0` leaves
         them off. Draw these before the markers so the marker sits on top.
+
+        **A whisker that reaches zero on a log axis runs to the axis floor.**
+        A log axis cannot place a bound of zero or below, and a fitted
+        estimate often has one: its lower limit is exactly 0. That end is
+        drawn at the bottom of the axis with an open arrowhead, so it reads as
+        "continues below the axis", and the log scale is kept.
+        `floor="none"` runs it to the floor with no arrowhead. A point at zero
+        still raises, since there is nothing to draw its whisker from. Use
+        `symlog()` only if the whole axis has to reach zero.
         """
         _color_as(style, "stroke")
         clip = _clip_flag(style)
         return self.draw(_marks.errorbars(self, points, yerr=yerr, xerr=xerr,
-                                          cap=cap, **style), clip=clip)
+                                          cap=cap, floor=floor, **style), clip=clip)
 
     @paint_keywords
     def fill(self, points: Iterable[Sequence], *, baseline: float = 0.0,
@@ -1539,7 +1575,21 @@ class Panel:
         along, which is what makes a bar and a panel look like one object.
         ``corner=`` places the complete measured key inside the data rectangle;
         supply a short ``length`` and optionally ``plate=True`` for an inset key.
+
+        **Two names, two places.** ``label=`` names the quantity *along* the
+        bar: beside a vertical bar it is turned to read upward, the way a
+        journal sets a colour bar's name, and it sits beside the numbers rather
+        than above the bar. ``title=`` is set horizontally above the bar in
+        every case. For a corner key beside a tall heatmap, use ``label=``:
+
+            p.colorbar(corner="se", length=24, label="Normalized entries (1/eV³)")
         """
+        for key in kwargs:
+            if key in _COLORBAR_HINTS:
+                raise TypeError(
+                    f"colorbar() got unknown keyword {key}= (did you mean "
+                    f"{_COLORBAR_HINTS[key]}=?); label= names the quantity along the "
+                    "bar, turned beside a vertical one, and title= sets it above the bar")
         bar = self._ramp if source is None else source
         if bar is None:
             raise DiagramError(
@@ -3383,6 +3433,46 @@ class Panel:
             self._note(name, "line", color=ink)
         return self.draw(node, clip=True if clip is None else clip)
 
+    def contour(self, x: Sequence[float], y: Sequence[float], z, *,
+                levels=None, hdr=None, color=None, ramp=None,
+                name: str | None = None, **style) -> "Panel":
+        """Lines where a field gridded on `x` and `y` reaches each level.
+
+        `z` is row-major, `z[j][i]`, with row `j` at `y[j]` and column `i` at
+        `x[i]`, the same layout as `matrix()`. The axes may be uneven or
+        decreasing, and a log axis bends the lines as it bends the axis. Give
+        the z values in `levels=`, or the highest-density regions in `hdr=`:
+
+            p = inklet.panel(50, 50, x=(0, 10), y=(0, 10))
+            p.contour(xs, ys, counts, hdr=(0.683, 0.954))
+            p.contour(xs, ys, field, levels=[0.5, 1.0, 1.5], color="#333333")
+
+        `hdr` names the shares of the total the regions enclose. Each contour
+        is the edge of the cells holding at least that share of the counts,
+        found by taking the densest cells first. `inklet.plot.mass_levels(z,
+        fractions)` returns the z values behind them, without drawing. Levels
+        outside the range of `z` draw nothing, and if none is inside it the
+        call fails. A missing value (None or NaN) is outside every level.
+
+        `color=` is one colour or one per level, in the order given (for `hdr`,
+        the largest region first); `ramp=` colours the levels along a ramp.
+        Other keywords style the lines. Contours are cut to the plot area
+        unless `clip=False`. The node carries a `contour` note with the levels
+        and those that were drawn.
+
+        This draws lines only. Cells of the grid itself are `matrix()`, and
+        points are `kde2d()`, which estimates a density from them.
+        """
+        from .grid_contour import grid_contour_layer
+
+        clip = _clip_flag(style)
+        node, _ = grid_contour_layer(self, x, y, z, levels=levels, hdr=hdr,
+                                     color=color, ramp=ramp, **style)
+        if name is not None:
+            ink = color if isinstance(color, str) else active_theme().ink
+            self._note(name, "line", color=ink)
+        return self.draw(node, clip=True if clip is None else clip)
+
     def hexbin(self, points: Iterable[Sequence], *, gridsize: int = 24,
                min_count: int = 1, ramp=None, scale: Scale | None = None,
                log: bool = False, **style) -> "Panel":
@@ -4327,6 +4417,13 @@ class Panel:
             for label, ink in zip(names, inks):
                 self._note(label, "area", fill=_mix(ink, theme.paper, 0.55), color=ink)
         return self.draw(node, clip=clip)
+
+
+#: Names people reach for to turn or place a colour bar's title, and the
+#: keyword that does it. `title=` is the one above the bar, not along it.
+_COLORBAR_HINTS = {"title_rotation": "label", "title_side": "label",
+                   "title_orientation": "label", "rotate_title": "label",
+                   "rotation": "label", "label_rotation": "label"}
 
 
 def _volcano_triple(given, what: str) -> dict:

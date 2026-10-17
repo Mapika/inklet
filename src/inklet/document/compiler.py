@@ -23,6 +23,7 @@ from .compiled import CompiledFigure, CompiledState
 from .errors import LayoutError
 from .layout import LayoutRequest, layout_document, plot_margins as _margins
 from .tracks import allocate_tracks as _tracks
+from .grid_labels import layout_with_labels
 
 
 @dataclass(frozen=True)
@@ -150,6 +151,7 @@ class Document(BuildSpec):
     _cache: dict = field(default_factory=dict, repr=False)
     _render_previous: object = field(default=None, init=False, repr=False)
     _last: object = field(default=None, repr=False)
+    _labels: dict = field(default_factory=dict, repr=False)
 
     def __post_init__(self):
         if type(self.share_plot_margins) is not bool and not (
@@ -290,12 +292,45 @@ class Document(BuildSpec):
             self._letters['anchor'] = anchor
         return self
 
+    def label(self, *, x: str | None = None, y: str | None = None, **unknown):
+        """Name the grid once: `x` under its bottom row, `y` beside its left column.
+
+        A grid of panels repeats its numbers on every cell, but the name of
+        the quantity belongs once. `x` is set centred under the plot areas of
+        the whole grid, and `y` rotated and centred beside them, so a 4 x 2
+        grid gets one "Month Year" and one "P-score (%)" rather than one per
+        panel. The cells keep their own ticks. Calling `label` again changes
+        the names it was given and keeps the rest:
+
+            doc = i.preset("scientific.nature", format="single-column").document(columns=2)
+            ...
+            doc.label(x="Month Year", y="P-score (%)")
+
+        The grid makes room for the names: the x name sits under the lowest
+        ink of the cells, and the y name left of the leftmost, both a small
+        gap away. A fixed page height is shared between the grid and the
+        name, and an automatic one grows to fit it.
+        """
+        if unknown:
+            key = next(iter(unknown))
+            hint = {"xlabel": "x", "x_label": "x", "ylabel": "y", "y_label": "y"}.get(key)
+            raise TypeError(f"doc.label() got unknown keyword {key}="
+                            + (f" (did you mean {hint}=?)" if hint else "")
+                            + "; it names the grid's axes with x= and y=")
+        for axis, text in (("x", x), ("y", y)):
+            if text is not None and not isinstance(text, str):
+                raise TypeError(f"doc.label {axis}= is a string, not {type(text).__name__}")
+        self._labels.update({k: v for k, v in (("x", x), ("y", y)) if v is not None})
+        self._last = None
+        return self
+
     def signature(self, trail=()):
         return ('subfigure', self.width, self.height, self.columns, self.margin,
                 self.gap, self.row_gap, fingerprint(self._letters, trail),
                 tuple((c.name, c.row, c.column, c.rowspan, c.colspan,
                        c.min_width, c.min_height, c.align, c.grow, fingerprint(c.item, trail)) for c in self._cells),
-                fingerprint(self._links, trail), self.share_plot_margins, self.stretch, self.pack)
+                fingerprint(self._links, trail), self.share_plot_margins, self.stretch, self.pack,
+                tuple(sorted(self._labels.items())))
 
     def render(self, context, width=None, height=None):
         self.__post_init__()
@@ -312,7 +347,14 @@ class Document(BuildSpec):
         request = LayoutRequest(tuple(self._cells), self.columns, self.margin,
                                 self.gap, self.row_gap, dict(self._letters),
                                 tuple(self._links), self.share_plot_margins, self.pack)
-        return layout_document(request, context, width, height)
+
+        def grid(w, h):
+            return layout_document(request, context, w, h)
+
+        if not self._labels:
+            return grid(width, height)
+        return layout_with_labels(grid, self._labels, context.theme, self.margin,
+                                  width, height)
 
     def compile(self):
         """Measure dependencies and return a cached CompiledFigure snapshot."""
@@ -339,7 +381,7 @@ class Document(BuildSpec):
         signatures=tuple((c.name,c.row,c.column,c.rowspan,c.colspan,c.min_width,c.min_height,c.align,c.grow,
                           fingerprint(c.item) if isinstance(c.item,(BuildSpec,Diagram,Panel,PolarPanel)) else id(context.build(c.item)))
                          for c in self._cells)
-        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins,self.pack))
+        key=repr((width,height,self.columns,self.margin,self.gap,self.row_gap,theme,signatures,self._links,self._letters,self.publication,self.preset,self.share_plot_margins,self.pack,tuple(sorted(self._labels.items()))))
         if self._last is not None and self._last[0]==key and self._last[1].scene.sources_current():
             return self._last[1]
         dependency_seconds=time.perf_counter()-started
