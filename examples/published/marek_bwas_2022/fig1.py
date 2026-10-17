@@ -33,7 +33,7 @@ LINE_GREEN, LINE_PURPLE = "#74c476", "#9e9ac8"
 DARK_GREEN, DARK_PURPLE = "#006d2c", "#54278f"
 LIGHT_GREEN, LIGHT_PURPLE = "#c7e9c0", "#dadaeb"
 BAND_GREEN, BAND_PURPLE = "#c7e9c0", "#cbc9e2"
-CI99, CI95 = "#646464", "#afafaf"
+CI99, CI95 = "#646464", "#c8c8c8"      # dark and light grey dashes, sampled from the original
 INK = "#000000"
 
 BIN_EDGES = np.round(np.arange(-0.2, 0.2 + 1e-9, 0.01), 4)   # 0.01 wide, from -0.2
@@ -46,16 +46,12 @@ SCAT_W, SCAT_H = 26, 21
 def histogram_plot(frame, columns, colors, names, title, ylabel=None, xlabel=None):
     """Per-series normalised histograms, bins of 0.01 r, drawn opaque in order."""
     p = i.plot_spec(HIST_W, HIST_H, x=(-0.2, 0.2), y=(0, 2.3), clip=True)
-    centres = (BIN_EDGES[:-1] + BIN_EDGES[1:]) / 2
     for col, color, name in zip(columns, colors, names):
         values = frame[col].dropna().to_numpy(float)
         counts, _ = np.histogram(values, bins=BIN_EDGES)
         heights = counts / counts.max()              # each series to its own tallest bin
-        steps = []
-        for k in range(len(centres)):
-            steps.append((BIN_EDGES[k], heights[k]))
-            steps.append((BIN_EDGES[k + 1], heights[k]))
-        p.fill(steps, baseline=0.0, fill=color, fill_opacity=1.0, stroke="none", name=name)
+        p.hist(heights, bins=BIN_EDGES, prebinned=True, color=color, stroke="none",
+               name=name)
     p.axes(x=xlabel, y=ylabel,
            x_options=dict(ticks=[-0.2, -0.1, 0.0, 0.1, 0.2], format="{:g}"),
            y_options=dict(ticks=[0, 0.5, 1.0], labels=False))
@@ -91,10 +87,13 @@ def sampling_plot(frame, bins, line_color, band_color, title, ylabel=None, xlabe
 
 
 def signed_r(r):
-    return f"r = {r:+.2f}".replace("-", "\u2212")
+    """Legend value as the original prints it: italic r, no plus sign, true minus."""
+    return f"//r// = {r:.2f}".replace("-", "\u2212")
 
 
 NOT_DRAWN = []   # (panel, subsample, markers not drawn, markers in subsample), for NOTES
+N25 = "//n// = 25"
+N25_LIGHT = N25 + "​"   # same key text for the second subsample; inklet wants unique names
 
 
 def scatter_plot(name, ylim, yticks, ylabel, xlabel, dark, light):
@@ -115,17 +114,18 @@ def scatter_plot(name, ylim, yticks, ylabel, xlabel, dark, light):
                   & (y >= ylim[0] + margin_y) & (y <= ylim[1] - margin_y))
         NOT_DRAWN.append((name, key, int((~inside).sum()), len(x)))
         p.scatter(list(zip(x[inside], y[inside])), marker=marker, color=fill, stroke=stroke,
-                  stroke_width=0.15, size=1.5, name="n = 25" if key == "dark" else "n = 25\u200b")
+                  stroke_width=0.15, size=1.5, name=N25 if key == "dark" else N25_LIGHT)
         slope, intercept, r = fit_line(x, y)
         ends = [(lo_x, slope * lo_x + intercept), (hi_x, slope * hi_x + intercept)]
         p.line(ends, stroke=fill if key == "dark" else "#99ad8f", stroke_width=0.3,
                name=signed_r(r))
-        keys += ["n = 25" if key == "dark" else "n = 25\u200b", signed_r(r)]
+        keys += [N25 if key == "dark" else N25_LIGHT, signed_r(r)]
     fx, fy = subsample(frame, *meta["full"])
     slope, intercept, r_full = fit_line(fx, fy)
     p.line([(lo_x, slope * lo_x + intercept), (hi_x, slope * hi_x + intercept)],
            stroke=INK, stroke_width=0.3, dash="dashed", name=signed_r(r_full))
     p.legend(side="top", columns=2, names=[keys[0], keys[2], keys[1], keys[3], signed_r(r_full)])
+    # The full-sample fit is a dashed line in the key, as in the original; its n is not drawn.
     p.axes(x=xlabel, y=ylabel,
            x_options=dict(ticks=[3, 3.5] if name.startswith("g") else [0.15, 0.5],
                           format="{:g}" if name.startswith("g") else "{:.2f}"),
@@ -173,7 +173,9 @@ def build():
 
 
 def compose(panels):
-    doc = i.preset("scientific.nature", format="double-column").document(
+    # Open left and bottom axes, as the original; pure black ink, as its axes and numbers.
+    doc = i.preset("scientific.nature", format="double-column", axes="open",
+                   ink="#000000").document(
         columns=(0.07, 1.0, 1.0), row_gap=3, gap=3)
     doc.add("hdr-str", i.text("Structure: Cortical thickness", size=i.pt(7)), row=0, column=1)
     doc.add("hdr-fun", i.text("Function: RSFC", size=i.pt(7)), row=0, column=2)
@@ -210,7 +212,8 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     figure.save(OUT / "marek_bwas_2022_fig1.svg", OUT / "marek_bwas_2022_fig1.pdf")
     figure.save(OUT / "marek_bwas_2022_fig1.png", dpi=200)
-    print(figure.report())
+    # The mean line is flat across sample size by design: that is the finding.
+    print(figure.report(expect={"SERIES_FLATTENED"}))
 
 
 if __name__ == "__main__":

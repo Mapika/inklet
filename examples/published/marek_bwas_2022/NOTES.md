@@ -5,16 +5,59 @@
 | Script | Output | Size |
 |---|---|---|
 | `fig1.py` (faithful) | `gallery/published/marek_bwas_2022_fig1.{png,svg,pdf}` | 183 × 142.2 mm (double column) |
-| `fig1_improved.py` | `gallery/published/marek_bwas_2022_fig1_improved.{png,svg,pdf}` | 183 × 164.5 mm (double column) |
+| `fig1_improved.py` | `gallery/published/marek_bwas_2022_fig1_improved.{png,svg,pdf}` | 183 × 147.2 mm (double column) |
 
-Lint, from `figure.report()`:
+Lint, from `figure.report(expect={"SERIES_FLATTENED"})`:
 
-* `fig1.py`: `inklet lint: 5 warnings`. One `FONT_SUBSTITUTED` (Arial is
-  not installed here; Liberation Sans, which has Arial's metrics, is used). Four
-  `SERIES_FLATTENED` on the mean line in panels e and f: the mean is flat across
+* `fig1.py`: `inklet lint: 3 infos, 4 acknowledgeds`. Acknowledged: four
+  `SERIES_FLATTENED` on the mean line in panels e and f. The mean is flat across
   sample size by design (it is the finding that the mean does not move while the
-  intervals shrink), so the warning is accepted, not hidden.
-* `fig1_improved.py`: `inklet lint: 1 warning`: `FONT_SUBSTITUTED` only.
+  intervals shrink), so the warning is kept on record and acknowledged, not hidden.
+  Infos: two `DATA_CLIPPED`, for the fit lines of g cognitive subsample B (r = −0.64)
+  and h cognitive subsample B (r = −0.60). Each line runs past the top of its
+  y range at one end, and is drawn to the frame on purpose (see "Differs" 9). And
+  `FONT_SUBSTITUTED` (Arial is not installed here; Liberation Sans has Arial's metrics).
+* `fig1_improved.py`: `inklet lint: 1 info`: `FONT_SUBSTITUTED` only.
+
+## Pass 2: print size, frame and style
+
+* **Print width, measured.** The original PNG is 1404 px wide. The tick digit
+  "1" (in "0.1", panel a, and in "1.0", panel e) is 14.5 px tall, which is the
+  cap height (cap_px = 14.5). A 7 pt Arial cap is 1.77 mm, so the printed width
+  is 1404 × 1.77 / 14.5 ≈ 171 mm. That snaps to 183 mm (136 mm is 35 mm away).
+  Cross-check: the original's histogram x axis is 243 px, which is 31.7 mm at
+  183 mm (`HIST_W` is 31 mm). At 89 mm it would be 15.7 mm. Both figures are 183 mm.
+* **Height.** The original is 1211 px tall, which is 157.8 mm at 183 mm wide.
+  This figure does not draw the anatomy row (c and d, about 35 mm of the
+  original), so it keeps the height of its own rows rather than stretching the
+  gaps to fill a row it does not have: 142.2 mm faithful, 147.2 mm improved. The
+  plot sizes match the original (histograms 25 mm tall against 24.8 mm measured,
+  sampling panels 26 mm, scatters 21 mm against 21 mm measured).
+* **Frame.** Open left and bottom axes, as the original. `axes="open"` (the default).
+* **Ink.** The original's axes, numbers and reference lines are pure black
+  (0, 0, 0). The `scientific.nature` ink is #1a1a1a, so the faithful figure sets
+  `ink="#000000"`. The improved figure keeps the journal ink.
+* **Italics.** Variables are italic: r in the axis labels and the legend values
+  ("//r// = 0.50"), and n in "//n// = 25". Units, numbers and labels stay upright.
+  Legend values drop the plus sign, as the original does ("r = 0.50", not
+  "r = +0.50"). The improved figure keeps "+" in its line labels, as asked.
+* **CI dashes.** Sampled from the original's dashed lines (plateau values):
+  99% CI #646464 (dark grey, unchanged); 95% CI #c8c8c8 (was #afafaf). The
+  full-sample fit is black, as in the original.
+* **Histograms.** Drawn with `Panel.hist(..., prebinned=True)` instead of a
+  hand-built step fill. Same bars and heights.
+* **Letters.** Kept as one `sub.letters(start=...)` per row. `doc.letters({...})`
+  by cell name needs the pair cells at top level, and then each row's two pairs
+  lose the shared plot margins (`share_plot_margins=True`). It is not simpler here.
+* **Acknowledged warning.** `report(expect={"SERIES_FLATTENED"})` for the flat
+  mean lines in e and f.
+* **Duplicate legend names.** Still needed. `legend(names=)` rejects a repeated
+  name, so the light subsample keeps its trailing zero-width space. See
+  `ISSUES-marek_bwas_2022.md`, "Pass 2".
+* **Improved layout.** The footnote is removed (it is now the caption below). Row
+  gap is 4 mm (was 6), panels are 27 mm tall, and the sampling key stays inside
+  the top-left of panel e. A `side="top"` key on one panel pushed that plot out of
+  line with its neighbours, and a 26 mm panel gave a `CROWDING` info, so 27 mm stays.
 
 ## Panels left out
 
@@ -43,10 +86,10 @@ Lint, from `figure.report()`:
 * **Colours.** Sampled from the original image: Greens #c7e9c0 / #74c476 /
   #238b45 (vertex/ROI/network, edge/component/network) and Purples #dadaeb /
   #9e9ac8 / #6a51a3. Band tint #c7e9c0 (cognition) and #cbc9e2 (psychopathology).
-  99% CI dashed #646464, 95% CI dashed #afafaf. The full-sample dashed fit is black.
+  99% CI dashed #646464, 95% CI dashed #c8c8c8 (sampled in pass 2). The full-sample dashed fit is black.
 * **Keys.** Same text as the original: "Vertex / ROI / Network", "Edge /
-  Component / Network", "99% CI", "95% CI", "n = 25", and "r = +0.50 ..." on the
-  fit lines.
+  Component / Network", "99% CI", "95% CI", "//n// = 25", and "//r// = 0.50 ..." on the
+  fit lines (no plus sign, as the original).
 * **Subsample colours.** Dark = the subsample whose legend r is positive. For g,
   that is `DMN_25_2`/`Cog_25_2` (data r = +0.501; the other subsample r = −0.639).
   For h, it is `DMN_25_1`/`Cog_25_1` (r = +0.584; other −0.600). The data match
@@ -107,8 +150,11 @@ Lint, from `figure.report()`:
    * g psychopathology: none. Total 7 of 150 markers. The full-sample points were
      never drawn (see 8).
    Nothing is partially drawn: the crops at 3x show no fragments at any edge.
-   Lint did not report any of this. `plot_spec(..., clip=True)` silences
-   DATA_OUTSIDE and nothing replaces it (ISSUES-marek_bwas_2022.md item 10).
+   Lint reports `DATA_CLIPPED` (info) for the two fit lines that leave the frame
+   at one end. The markers are not in that count: the script drops every marker
+   that is outside or within 0.8 mm of an edge before plotting, so lint never sees
+   them. A marker only partly inside would be cut without any report
+   (ISSUES-marek_bwas_2022.md item 10).
 10. **Tick labels.** Correlation ticks read "1.0", "0.5", "0", "−0.5", "−1.0":
     no plus sign and zero as "0", as in the original. The histogram axes use
     the same zero rule.
@@ -153,9 +199,10 @@ Changes and the problem each fixes:
 * **Four columns, labelled by what is compared** (thickness or RSFC, and
   cognition or psychopathology), replacing the structure/function headers and the
   rotated row labels. Panel letters a–k.
-* **Footnote on the figure** stating the reference marks, n per level, the full
-  sample sizes, and the panels that are not drawn (c, d, and the empty h-right).
-  Fixes: a reader could not tell from the figure which data were missing.
+* **No footnote on the figure.** Pass 2 moved the footnote into the caption below:
+  the reference marks, n per level, the full sample sizes, and the panels not
+  drawn (c, d, and the empty h-right). A reader still finds which data are missing,
+  without prose inside the plot.
 * **Scatter row, three panels across** instead of a half-empty grid, because
   the psychopathology RSFC scatter has no data.
 
@@ -189,3 +236,22 @@ Checked against the data and the paper's text.
 * Exact placement of the original's tick labels (estimated by eye from the PNG).
 * The CI method for the dashed lines (percentile vs Gaussian) is a judgement; see
   Differs 4.
+
+## Suggested caption
+
+For `fig1_improved.py`. The footnote that was on the figure is in this legend.
+
+**Fig. 1 | Brain-wide associations are small, and a study of 25 people can
+report almost any of them.** **a–d**, Share of associations in each 0.02-wide bin
+of correlation r, for the three levels of each measure: thickness vertex (59,412
+associations), ROI (333) and network (13); RSFC edge (77,421), component (100) and
+network (105). The grey band marks median |r| = 0.01 across associations; the
+dotted lines mark |r| = 0.06, the top 1% of all associations. **e–h**, Mean of r
+across 1,000 resamples at each sample size (25 to 2,800), with min–max, 99% and
+95% ranges. Sample sizes are full-sample values: n = 3,604 (thickness) and 3,928
+(RSFC). Dotted lines at ±0.06 and the vertical line at n = 1,000 mark where the
+95% range reaches ±0.06. **i–k**, Two independent subsamples of n = 25 (A, blue;
+B, orange) from the ABCD Study, each with its least-squares fit (r labelled). The
+dashed black line is the fit to the full sample. Every marker of both subsamples
+is inside its axes. Brain surfaces (c and d of the original) are not shown, and
+the psychopathology RSFC scatter is omitted because its source data are empty.
