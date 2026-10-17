@@ -29,8 +29,10 @@ levels = hdr_levels(grid)
 
 marginal_m2 = grid.sum(axis=0) * dy           # per eV^2
 marginal_e0 = grid.sum(axis=1) * dx           # per eV
-peak = divmod(int(grid.argmax()), grid.shape[1])
-best_m2, best_e0 = float(xs[peak[1]]), float(ys[peak[0]])
+# Best fit, as stated in the paper's text (Results, "Best-fit result and upper limit"):
+#   "we find m_nu^2 = 0.26 eV^2 ... based on the Monte Carlo propagation technique"
+#   "The ring-averaged fitted effective endpoint is E0 = (18,573.69 +- 0.03) eV."
+best_m2, best_e0 = 0.26, 18573.69
 
 # -- main panel: heatmap, contours, best fit ----------------------------------
 scale = i.linear((0, float(grid.max())))

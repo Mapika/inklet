@@ -63,8 +63,8 @@ def value_label(name, best, lo, hi):
 top = i.plot_spec(60, 62, x=FULL_X, y=(0.5, n + 1.0), clip=True)
 top.rect(FULL_X[0], 0.5, 0, n + 1.0, fill="#efefef", stroke="none")   # m^2 < 0
 top.rect(ZOOM_X[0], 0.5, ZOOM_X[1], n + 1.0, fill="#dcebf7", stroke="none")
-top.text(-120, n + 0.55, "unphysical, m²ν < 0", anchor="c", size=i.pt(6), text_fill="#5b5b5b")
-top.vline(0, stroke=INK, stroke_width=0.35, label="m²ν = 0", label_side="w", label_offset=1.0)
+top.text(-120, n + 0.55, "unphysical, m_{ν}^{2} < 0", anchor="c", size=i.pt(6), text_fill="#5b5b5b")
+top.vline(0, stroke=INK, stroke_width=0.35, label="m_{ν}^{2} = 0", label_side="w", label_offset=1.0)
 draw(top, range(n), row_y)
 top.axis("bottom", ticks=[-200, -100, 0])
 top.axis("left", ticks=[row_y[k] for k in range(n)],
@@ -84,7 +84,7 @@ for k in zoom_keys:
 bottom.axis("bottom", ticks=[-10, -5, 0, 5, 10], label="Best-fit m_{ν}^{2} (eV^{2})")
 bottom.axis("left", ticks=[zoom_y[k] for k in zoom_keys],
             format=lambda v: rows[zoom_keys[len(zoom_keys) - int(round(v))]][0])
-bottom.title("Magnified: the blue band above, −10 to +10 eV²")
+bottom.title("Magnified: the blue band above, −10 to +10 eV^{2}")
 
 doc = i.preset("scientific.nature", format="single-column").document(
     columns=1, row_gap=3, share_plot_margins=True)

@@ -77,9 +77,11 @@ Shared loading is in `_data.py`. Nothing is interpolated, smoothed, or resampled
   (inklet's private `inklet.plot.outlines._contours`) on the bin centres, at those
   levels. The contours show the bins at or above each level, so the enclosed share is
   exact on the grid, but the outline is the bin-centre contour, not a smoothed one.
-* **Best-fit cross.** The paper gives m_ν² = 0.26 eV² but not the E₀ best fit. The cross
-  is placed at the bin of the histogram maximum, (0.264 eV², 18573.703 eV), which is
-  the mode of the distribution and is consistent with the paper's m_ν² value.
+* **Best-fit cross.** Not in the data. Its position is the paper's text values: the
+  best fit m_ν² = 0.26 eV² ("For the best fit of the neutrino mass squared, we find ...
+  = 0.26 ... eV² based on the Monte Carlo propagation technique (Fig. 3)") and the
+  ring-averaged endpoint E₀ = 18,573.69 ± 0.03 eV ("The ring-averaged fitted effective
+  endpoint is E 0 = (18,573.69 ± 0.03) eV"), both in the Results text.
 
 **Fig. 4** (`fig4.py`, `fig4_improved.py`)
 
@@ -95,10 +97,11 @@ Shared loading is in `_data.py`. Nothing is interpolated, smoothed, or resampled
 
 ## Not available as data
 
-* The Fig. 3 contours (derived as above) and the white best-fit cross position
-  (derived from the histogram).
+* The Fig. 3 contours (derived as above). The best-fit cross uses the paper's text
+  values, which are not in the Source Data.
 * The colours of the Fig. 4 series (the original's colours are approximated by eye) and
   the original's colour map for Fig. 3 (single-hue blue ramp, approximated by eye).
+  The improved Fig. 3 uses inklet's `blues` palette, not the original's colours.
 * The Fig. 4 caption's caveat about the Los Alamos and Livermore final-state
   distributions is text, not data; it is not drawn in the figure.
 * The Fig. 3 colour bar's tick values (0, 20, 40) are chosen to match the original's

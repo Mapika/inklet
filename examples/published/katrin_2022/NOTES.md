@@ -37,19 +37,21 @@ The warnings common to all four:
 The other diagnostics are false positives, each checked against the data:
 
 * **OVERLAP / CROWDING on the Fig. 3 colour bar, its tick labels, and the labels.**
-  lint counts an empty matrix cell (a bin with 0 entries, drawn white or viridis's
-  missing colour) as a mark, so text over blank bins is reported. I checked the
-  lower-right corner, where the faithful key sits: 330 bins, of which one is
-  non-empty (0.032 against a peak of 45.7, under the key's title). In the improved
-  figure the key covers four cells, of which at most that same 0.032 bin holds any
-  entries. The labels "68.3%", "95.4%" and
-  "m²ν = 0" sit on the viridis tails or on blank bins, with a white halo.
-* **LINK_CROSSES (improved Fig. 3).** The "95.4%" label's leader runs over the
-  heatmap by one millimetre. A leader has to cross the data to reach a contour, so
-  the crossing is intended.
-* **OVERLAP on "m²ν = 0" (improved Fig. 4).** The label sits on the pale grey
-  "unphysical" region (m²ν < 0), which is a shaded rectangle, not data.
-* **CROWDING on the Fig. 4 labels.** The labels "unphysical, m²ν < 0" and "m²ν = 0"
+  lint counts an empty matrix cell (a bin with 0 entries, drawn white) as a mark, so
+  text over blank bins is reported. I checked the lower-right corner, where the
+  faithful key sits: 330 bins, of which one is non-empty (0.032 against a peak of
+  45.7, under the key's title). In the improved figure the key covers four cells, of
+  which at most that same 0.032 bin holds any entries. The labels "68.3%", "95.4%"
+  and "m_ν² = 0" sit on pale blue tails or on blank bins; the first two have a white
+  halo.
+* **LINK_CROSSES (improved Fig. 3).** The leader of the "68.3%" label runs over the
+  heatmap for about one millimetre to reach its contour. A leader has to cross the
+  data to reach a contour, so the crossing is intended.
+* **OVERLAP on "m_ν² = 0" (improved Fig. 3).** The label sits at the top of the
+  rule, over blank bins; the rule itself is not data.
+* **OVERLAP on "m_ν² = 0" (improved Fig. 4).** The label sits on the pale grey
+  "unphysical" region (m_ν² < 0), which is a shaded rectangle, not data.
+* **CROWDING on the Fig. 4 labels.** The labels "unphysical, m_ν² < 0" and "m_ν² = 0"
   sit close to the top row's marks; no overlap, so left as is.
 
 ## Matches the original
@@ -81,12 +83,17 @@ The other diagnostics are false positives, each checked against the data:
 * **Fig. 3 marginals are derived.** The original's top and right histograms are not
   in the data. They are the sums of the grid (the same bins, the same data), so
   their shapes match the data exactly; their heights have no axis, as in the original.
-* **Fig. 3 best-fit cross is placed from the histogram.** The paper gives m_ν² = 0.26
-  eV² but not the E₀ best fit. The cross is at the histogram's maximum bin (0.264 eV²,
-  18,573.703 eV), which agrees with the original's cross to within about 0.01 eV in E₀ by eye.
+* **Fig. 3 best-fit cross is at the paper's stated values.** The paper's text gives
+  both (Results, "Best-fit result and upper limit"):
+  > "For the best fit of the neutrino mass squared, we find m_ν² = 0.26 (with the
+  > uncertainty typeset as +0.34 above and −0.34 below) eV² based on the Monte Carlo
+  > propagation technique (Fig. 3)." (The source has the formula as a TeX expression.)
+  > "The ring-averaged fitted effective endpoint is E 0 = (18,573.69 ± 0.03) eV."
+  The cross is drawn at (0.26 eV², 18,573.69 eV). It is not put at the histogram's
+  mode (0.264 eV², 18,573.703 eV), which lies about 0.013 eV above the stated endpoint.
 * **Fig. 3 colour.** The original uses a single-hue blue ramp that I approximated by eye;
   the faithful version uses a five-stop white-to-navy ramp, and the improved version
-  uses viridis.
+  uses a light-to-dark blue ramp (see the improved version).
 * **Fig. 3 empty bins.** Zero-count bins are drawn white in the faithful version and
   as blank (white) in the improved one; they are passed to inklet as missing values, so
   they carry no colour of their own.
@@ -107,21 +114,32 @@ The other diagnostics are false positives, each checked against the data:
 
 ### Fig. 3
 
-* **Colour map, not a single-hue ramp.** The original's white-to-navy ramp varies
-  mostly in lightness. Viridis is perceptually uniform, changes both hue and lightness
-  in order, and is CVD-safe. Empty bins are drawn as blank, so the white field means
-  "no entries" and does not look like the lowest density.
+* **Light-to-dark colour map.** The first improved version used viridis, whose lowest
+  values are dark purple, so the sparse tails (near −1.5 eV² and 18,573.57 eV, and the
+  scattered top-right cells) read as the most prominent marks and exaggerate noise.
+  The improved figure uses ColorBrewer's `blues` (inklet's palette name): pale at low
+  density and dark at the core, monotonic in lightness, and CVD-safe. Sparse bins now
+  sit close to the white background, and the core is the darkest part. (`blues` is a
+  ColorBrewer sequential scheme, not one of the perceptually uniform maps; `cividis_r`
+  was the other option, with a pale-yellow low end and a grey middle.) Empty bins are
+  drawn white, the same colour as the lowest density.
 * **A colour bar that says what the number is.** The original's label "Normalized
   entries (1/eV³)" does not say that the values integrate to one. The bar now reads
   "Probability density (eV⁻³)", which is what the data are (Σ entry × Δm² × ΔE₀ = 1).
 * **Contours labelled directly.** The original has no labels and the reader must match
   line colour to the caption. The improved figure names "68.3%" with a leader into the
-  empty upper-left corner, and "95.4%" at the right-hand end of its outer ring. Each
-  label has a white halo so it reads over the cells.
-* **m²ν = 0 marked.** The physical boundary is a dashed line at m²ν = 0, labelled,
-  because the half-plane m²ν < 0 is unphysical. The original does not mark it.
-* **Best-fit cross kept, unlabelled.** Its E₀ position is derived, so it is not given a
-  value on the figure; the paper's m_ν² = 0.26 eV² is in the key-numbers table below.
+  empty upper-left corner, and "95.4%" at the right-hand end of its outer ring. The
+  contours are dark (near-black), because white lines disappear on the pale low end of
+  the new ramp. Both labels have a white halo so they read over the cells.
+* **m_ν² = 0 marked.** The physical boundary is a dashed vermillion line (#d55e00,
+  Okabe-Ito) at m_ν² = 0, running the full height of the heatmap, with its label at the
+  top end. The first version used white, which vanished on the white background; a
+  mid-grey was considered but is close to the mid-grey of the ramp, so vermillion was
+  chosen as the colour that stays visible on every cell. The half-plane m_ν² < 0 is
+  unphysical, and the original does not mark it.
+* **Best-fit cross kept, unlabelled.** It is at the paper's values, (0.26 eV², 18,573.69
+  eV). It is not given a value on the figure; the numbers are in the key-numbers table
+  below.
 * **Marginals in neutral grey.** So the blue of the heatmap is not repeated, and the
   eye goes to the 2D distribution.
 
@@ -142,9 +160,12 @@ The other diagnostics are false positives, each checked against the data:
   printed beside the bars: 0.11 ± 0.33 (combined), 0.26 ± 0.34 (2021), and −1.0 (−1.1,
   +0.9) for 2019, with the asymmetric offsets given where they differ. These are the
   data's numbers.
-* **m²ν = 0 boundary labelled.** The original has a grey line at zero with no label.
-  The improved figure draws a black line labelled "m²ν = 0", and shades the
-  unphysical region m²ν < 0 (the paper calls it "non-physical regime of m²ν < 0").
+* **m_ν² = 0 boundary labelled.** The original has a grey line at zero with no label.
+  The improved figure draws a black line labelled "m_ν² = 0", and shades the
+  unphysical region m_ν² < 0 (the paper calls it "non-physical regime of m_ν² < 0").
+* **Notation.** Every label in the improved figures uses inklet markup
+  `m_{ν}^{2}` (subscript ν, superscript 2) and `eV^{2}`. The plain-text form "m²ν"
+  is not used.
 * **Labelled experiments on both axes.** Each row is named on the left, as in the
   original; the bottom panel repeats the names, since it is a separate panel.
 
@@ -153,8 +174,9 @@ The other diagnostics are false positives, each checked against the data:
 | Quantity | From the data | Paper | Status |
 |---|---|---|---|
 | Fig. 3: histogram total | Σ entry × Δm² × ΔE₀ = 1.0000 | (normalisation) | matches |
-| Fig. 3: best-fit m_ν² | histogram mode 0.264 eV²; marginal median 0.134 eV² | 0.26 (weighted median) | **the mode matches; the median does not** (see below) |
-| Fig. 3: E₀ | histogram mode 18,573.703 eV; E₀ marginal median 18,573.694 eV | "E₀ = 18,574 eV" (approximate) | consistent |
+| Fig. 3: best-fit m_ν² (cross) | 0.26, the value used for the cross | 0.26 eV² (text) | matches, but the histogram's own median is 0.134 eV² (see below) |
+| Fig. 3: E₀ (cross) | 18,573.69 eV, the value used for the cross | 18,573.69 ± 0.03 eV (text) | matches |
+| Fig. 3: histogram mode | 0.264 eV², 18,573.703 eV | (not stated) | not used |
 | Fig. 3: peak density | 45.67 (1/eV³) | colour bar to ~45 | matches |
 | Fig. 4: KATRIN (2021) | 0.26, −0.34/+0.34 | (0.26 ± 0.34) eV² | matches |
 | Fig. 4: full range | lowest bar −226 (Los Alamos), highest +58 (Beijing) | axis −240…+70 | fits |
@@ -163,10 +185,10 @@ The other diagnostics are false positives, each checked against the data:
 **Discrepancy, unresolved.** The paper says the best fit is "the one-dimensional
 weighted median of the distribution" and gives 0.26 eV². The m_ν² marginal of the
 Source Data histogram has a median of 0.134 eV² and a mean of 0.174 eV²; 55% of its
-weight lies below 0.26 eV². Its mode (0.264 eV²) is the paper's value. The cause is not
+weight lies below 0.26 eV². The histogram's two-dimensional mode is at 0.264 eV², close to the paper's value, but a mode is not the weighted median the paper defines. The cause is not
 established: the paper's weighting may not be the bin counts of this export, or the
 export may be a different sample. The figures plot the data as given; the mismatch is
-not corrected, and the best-fit cross is placed at the mode for that reason.
+not corrected. The cross uses the paper's stated values, not the histogram's mode.
 
 ## Checks
 
@@ -179,3 +201,10 @@ not corrected, and the best-fit cross is placed at the mode for that reason.
 * Fig. 4 rows: the parsed table was printed and checked against the raw file (14 rows;
   best fits and offsets match, e.g. KATRIN (2021) 0.26 with −0.34/+0.34).
 * Scripts run in a few seconds and read only from `data/`.
+* Re-rendered after the review. Changes: the Fig. 3 cross moved to the paper's values
+  (0.26 eV², 18,573.69 eV); the improved Fig. 3 colour map changed from viridis to
+  `blues`, its contours from white to dark; its m_ν² = 0 rule changed from white to
+  dashed vermillion; the labels in both improved figures use `m_{ν}^{2}` and
+  `eV^{2}` markup. All four PNGs were viewed at full size after the last change.
+* Final lint: fig3 `5 warnings, 6 infos`; fig3_improved `9 warnings, 10 infos`;
+  fig4 `1 warning, 1 info`; fig4_improved `2 warnings, 1 info`.
