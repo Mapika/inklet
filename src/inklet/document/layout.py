@@ -802,13 +802,29 @@ def _layout_once(request, context, width, height):
     honoured = _column_minima(request, context, decorate, authored=True)
     widths = None
     if honoured != plain:
-        # Authored widths that cannot all fit are dropped rather than failing
-        # the page; the lint reports each plot that is drawn narrower.
-        try:
-            widths = allocate_tracks(len(request.columns), request.columns, honoured,
-                                     width-2*request.margin, request.gap, 'width')
-        except LayoutError:
-            widths = None
+        # Authored widths that cannot all fit give way only as far as they must
+        # rather than failing the page: each keeps the same share of its claim
+        # beyond the plain minimum, the largest share that fits. Dropping them
+        # outright drew a plot authored a millimetre too wide far narrower than
+        # one authored to fit. The lint reports each plot drawn narrower.
+        def attempt(share):
+            minima = [(c, s, low+share*(high-low), n)
+                      for (c, s, low, n), (_, _, high, _) in zip(plain, honoured)]
+            try:
+                return allocate_tracks(len(request.columns), request.columns, minima,
+                                       width-2*request.margin, request.gap, 'width')
+            except LayoutError:
+                return None
+        widths = attempt(1.)
+        if widths is None:
+            low, high = 0., 1.
+            for _ in range(24):
+                middle = (low+high)/2
+                found = attempt(middle)
+                if found is None:
+                    high = middle
+                else:
+                    low, widths = middle, found
     if widths is None:
         widths = allocate_tracks(len(request.columns), request.columns, plain,
                                  width-2*request.margin, request.gap, 'width')

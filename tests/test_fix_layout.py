@@ -132,10 +132,18 @@ def test_authored_plot_width_that_does_not_fit_is_reported():
 def test_a_few_millimetres_trimmed_by_tick_labels_are_not_reported():
     # A grid's nominal width loses a little to each cell's own tick labels; that
     # is layout, not a broken promise, so only a loss over 15% is reported.
-    figure = _pair(34, 30, page=89, columns=2)
+    figure = _pair(40, 30, page=89, columns=2)
     drawn = _areas(figure)['m'].width
-    assert 34*.85 <= drawn < 34, drawn
+    assert 40*.85 <= drawn < 40, drawn
     assert 'PLOT_WIDTH_OVERRIDDEN' not in _codes(figure)
+
+
+def test_a_width_a_little_too_wide_gives_way_only_as_far_as_it_must():
+    # Authored widths that do not fit used to be dropped outright, so a plot
+    # authored 40 mm was drawn at 31 mm while one authored 38 mm kept 38 mm.
+    drawn = [_areas(_pair(w, 30, page=89, columns=2))['m'].width for w in (36, 38, 40, 45)]
+    assert drawn == sorted(drawn), drawn
+    assert drawn[2] > 38, drawn
 
 
 def test_plot_width_left_to_its_default_does_not_bind():
