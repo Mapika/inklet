@@ -336,7 +336,7 @@ Choose single-column (89 mm), double-column (183 mm), or slide (254 mm).
 
 Physical page dimensions in millimetres; None height fits the content.
 
-#### `class PlotDefaults(grid: 'str' = 'none', legend_side: 'str' = 'bottom', tick_count: 'int' = 5, bar_fill: 'str' = 'neutral') -> None`
+#### `class PlotDefaults(grid: 'str' = 'none', legend_side: 'str' = 'bottom', tick_count: 'int' = 5, bar_fill: 'str' = 'neutral', axes: 'str' = 'open') -> None`
 
 Defaults for live plot recipes; explicit recipe options take precedence.
 
@@ -344,7 +344,7 @@ Defaults for live plot recipes; explicit recipe options take precedence.
 
 Journal guidance provenance, distinguishing reviewed and unverified sources.
 
-#### `class Preset(name: 'str', description: 'str', format: 'FigureFormat', publication: 'PublicationProfile', plot: 'PlotDefaults' = PlotDefaults(grid='none', legend_side='bottom', tick_count=5, bar_fill='neutral'), margin: 'float' = 4, gap: 'float' = 6, letter_style: 'str' = 'bold-lower', sources: 'tuple[GuidelineSource, ...]' = (), letter_pad: 'float | None' = None) -> None`
+#### `class Preset(name: 'str', description: 'str', format: 'FigureFormat', publication: 'PublicationProfile', plot: 'PlotDefaults' = PlotDefaults(grid='none', legend_side='bottom', tick_count=5, bar_fill='neutral', axes='open'), margin: 'float' = 4, gap: 'float' = 6, letter_style: 'str' = 'bold-lower', sources: 'tuple[GuidelineSource, ...]' = (), letter_pad: 'float | None' = None) -> None`
 
 An immutable figure style, format, plot policy and publication profile.
 
@@ -410,7 +410,7 @@ A label-sized module. Port coordinates are fractions of its box.
 
 Create a measured module with fractional ports.
 
-#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool | str' = False, stretch: 'bool' = True, pack: 'bool' = False, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None) -> None`
+#### `class Document(width: 'float' = 180, height: 'float | None' = None, columns: 'object' = 1, margin: 'float' = 4, gap: 'float' = 6, row_gap: 'float | None' = None, theme: 'object' = 'nature', publication: 'object' = None, preset: 'object' = None, share_plot_margins: 'bool | str' = False, stretch: 'bool' = True, pack: 'bool' = False, _preset_overrides: 'dict' = <factory>, _cells: 'list' = <factory>, _links: 'list' = <factory>, _letters: 'dict' = <factory>, _cache: 'dict' = <factory>, _last: 'object' = None, _labels: 'dict' = <factory>) -> None`
 
 A physical page containing named, live figure definitions.
 
@@ -419,7 +419,8 @@ A physical page containing named, live figure definitions.
 * `use_preset(selected, *, format=None, keep_overrides=True, **options)` -- Switch presets and remeasure live content, preserving explicit page options.
 * `replace(name, item)` -- Replace a cell definition while retaining its layout constraints.
 * `link(source, target, **kwargs)` -- Connect named cells, optionally `cell:anchor`, after layout.
-* `letters(*, start='a', anchor='content', **options)` -- Measure panel letters with the cells, reserving room before placement.
+* `letters(names=None, *, start='a', anchor='content', **options)` -- Measure panel letters with the cells, reserving room before placement.
+* `label(*, x: 'str | None' = None, y: 'str | None' = None, **unknown)` -- Name the grid once: `x` under its bottom row, `y` beside its left column.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 * `compile()` -- Measure dependencies and return a cached CompiledFigure snapshot.
@@ -448,7 +449,7 @@ A document cannot satisfy its declared physical layout constraints.
 
 Create a live document; optionally share plot furniture across the grid.
 
-#### `class PlotSpec(width: 'float' = 40, height: 'float' = 30, options: 'dict' = <factory>, _steps: 'list' = <factory>, _findings: 'list' = <factory>) -> None`
+#### `class PlotSpec(width: 'float' = 40, height: 'float' = 30, options: 'dict' = <factory>, _steps: 'list' = <factory>, _findings: 'list' = <factory>, _width_given: 'bool' = False) -> None`
 
 A live plot recipe. Construct with `plot_spec()`.
 
@@ -481,7 +482,7 @@ Alternative definitions of one cell. Construct with `choose()`.
 * `signature(trail=())`
 * `render(context, width=None, height=None)`
 
-#### `plot_spec(width=40, height=30, **options)`
+#### `plot_spec(width=None, height=30, **options)`
 
 Defer Panel drawing instructions until a document is compiled.
 
@@ -692,7 +693,7 @@ Where a panel keeps its data, or None for a node that is not one.
 
 ## Annotating
 
-#### `annotate(target: 'Diagram | AnchorRef', text: 'str | Diagram', *, side: 'str' = 'n', clear: 'float | str' = 2.0, leader: 'bool' = True, avoid: 'Sequence[Diagram | Rect]' = (), within: 'Diagram | None' = None, size: 'float | str | None' = None, align: 'str' = 'center', name: 'str | None' = None, head: 'str' = 'none', shoulder: 'float | str | None' = None, through: 'Sequence[Diagram]' = (), leader_style: 'dict | None' = None, search: 'bool' = True, **style) -> 'Diagram'`
+#### `annotate(target: 'Diagram | AnchorRef', text: 'str | Diagram', *, side: 'str' = 'n', clear: 'float | str' = 2.0, leader: 'bool' = True, avoid: 'Sequence[Diagram | Rect]' = (), within: 'Diagram | None' = None, size: 'float | str | None' = None, align: 'str' = 'center', name: 'str | None' = None, head: 'str' = 'none', shoulder: 'float | str | None' = None, through: 'Sequence[Diagram]' = (), leader_style: 'dict | None' = None, search: 'bool' = True, keep: 'Rect | None' = None, **style) -> 'Diagram'`
 
 Put `text` outside `target`, `clear` millimetres off it, with a leader.
 
@@ -770,7 +771,7 @@ A compact numeric/text table with measured, glyph-centered cells.
 
 A plot area of a fixed size, with scales fitted to it.
 
-#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _spans: 'list' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = (), _deferred: 'dict' = <factory>, _sizes: 'object | None' = None, _widths: 'object | None' = None, _ternary: 'object | None' = None, _survival: 'list' = <factory>, _side_stacks: 'dict' = <factory>) -> None`
+#### `class Panel(width: 'float', height: 'float', x: 'Scale', y: 'Scale', clip: 'bool' = False, _under: 'list[Diagram]' = <factory>, _content: 'list[Diagram]' = <factory>, _over: 'list[Diagram]' = <factory>, _title: 'tuple[Diagram, str, float] | None' = None, _built: 'Diagram | None' = None, _parent: "'Panel | None'" = None, _scale_domain: 'Scale | None' = None, _ramp: 'object | None' = None, _matrix: 'bool' = False, _brackets: 'list[Diagram]' = <factory>, _keys: 'list[SeriesKey]' = <factory>, _spans: 'list' = <factory>, _insets: 'list' = <factory>, _inset_state: 'tuple' = (), _deferred: 'dict' = <factory>, _sizes: 'object | None' = None, _widths: 'object | None' = None, _ternary: 'object | None' = None, _survival: 'list' = <factory>, _side_stacks: 'dict' = <factory>, _key_at: 'list' = <factory>) -> None`
 
 A drawing region plus the scales that map data into it.
 
@@ -785,18 +786,18 @@ A drawing region plus the scales that map data into it.
 * `band(x: 'Sequence', lo, hi, *, name: 'str | None' = None, color: 'str | None' = None, **style) -> "'Panel'"` -- The shaded envelope between two edges over shared x.
 * `scatter(points: 'Iterable[Sequence]', *, size=None, color=None, ramp=None, scale: 'Scale | None' = None, marker: 'str' = 'circle', name: 'str | None' = None, hollow: 'bool' = False, raster: 'bool' = False, dpi: 'float' = 300, **style) -> "'Panel'"` -- Markers at data points, with size and colour that may be data too.
 * `bars(at: 'Sequence', heights, *, width: 'float' = 0.8, baseline: 'float' = 0.0, orient: 'str' = 'v', stacked: 'bool | None' = None, grouped: 'bool | None' = None, gap: 'float' = 0.12, color=None, bar_colors=None, name: 'str | Sequence[str] | None' = None, labels=None, label_position: 'str' = 'auto', label_options: 'dict | None' = None, normalize: 'bool' = False, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'Panel'"` -- A rectangle per value, standing on a baseline.
-* `hist(values: 'Sequence[float]', bins: 'int | Sequence[float]' = 10, *, range: 'tuple[float, float] | None' = None, density: 'bool' = False, baseline: 'float' = 0.0, orient: 'str' = 'v', color=None, name: 'str | None' = None, histtype: 'str | None' = None, cumulative: 'bool' = False, colors=<deprecated: use color=>, **style) -> "'Panel'"` -- Binned counts as touching rectangles.
-* `errorbars(points: 'Iterable[Sequence]', *, yerr=None, xerr=None, cap: 'float | None' = None, **style) -> "'Panel'"` -- Whiskers through each point, in the data's own units.
+* `hist(values: 'Sequence[float]', bins: 'int | Sequence[float]' = 10, *, range: 'tuple[float, float] | None' = None, density: 'bool' = False, baseline: 'float' = 0.0, orient: 'str' = 'v', color=None, name: 'str | None' = None, histtype: 'str | None' = None, cumulative: 'bool' = False, prebinned: 'bool' = False, colors=<deprecated: use color=>, **style) -> "'Panel'"` -- Binned counts as touching rectangles.
+* `errorbars(points: 'Iterable[Sequence]', *, yerr=None, xerr=None, cap: 'float | None' = None, floor: 'str' = 'arrow', **style) -> "'Panel'"` -- Whiskers through each point, in the data's own units.
 * `fill(points: 'Iterable[Sequence]', *, baseline: 'float' = 0.0, orient: 'str' = 'v', name: 'str | None' = None, **style) -> "'Panel'"` -- The area between a series and a baseline.
 * `fill_between(x: 'Sequence', y0, y1, *, name: 'str | None' = None, **style) -> "'Panel'"` -- The band between two curves over shared x -- a confidence envelope.
 * `stackarea(x: 'Sequence', values, *, baseline=0.0, color=None, name: 'str | Sequence[str] | None' = None, colors=<deprecated: use color=>, names=<deprecated: use name=>, **style) -> "'Panel'"` -- Stack non-negative series over shared x values, in supplied order.
 * `step(points: 'Iterable[Sequence]', *, where: 'str' = 'post', name: 'str | None' = None, **style) -> "'Panel'"` -- A staircase through the points, for a quantity that changes at instants rather than continuously.
 * `boxplot(groups, *, at=None, width: 'float' = 0.6, orient: 'str' = 'v', whisker: 'float' = 1.5, outliers: 'bool' = True, color=None, colors=<deprecated: use color=>, **style) -> "'Panel'"` -- Quartile boxes with Tukey whiskers, one per group.
 * `violin(groups, *, at=None, width: 'float' = 0.8, orient: 'str' = 'v', bandwidth: 'float | None' = None, samples: 'int' = 64, cut: 'float' = 2.0, median: 'bool' = True, color=None, colors=<deprecated: use color=>, **style) -> "'Panel'"` -- Mirrored kernel densities, one per group.
-* `hline(y, *, span: 'tuple | None' = None, front: 'bool | None' = None, label: 'str | Diagram | None' = None, label_side: 'str | None' = None, label_offset: 'float | None' = None, **style) -> "'Panel'"` -- A horizontal rule at one **data** value of y.
-* `vline(x, *, span: 'tuple | None' = None, front: 'bool | None' = None, label: 'str | Diagram | None' = None, label_side: 'str | None' = None, label_offset: 'float | None' = None, **style) -> "'Panel'"` -- A vertical rule at one **data** value of x -- stimulus onset, a dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
-* `vspan(x0, x1, *, front: 'bool' = False, **style) -> "'Panel'"` -- A shaded stripe between two **data** values of x, full height.
-* `hspan(y0, y1, *, front: 'bool' = False, **style) -> "'Panel'"` -- A shaded stripe between two **data** values of y, full width.
+* `hline(y, *, span: 'tuple | None' = None, front: 'bool | None' = None, label: 'str | Diagram | None' = None, label_side: 'str | None' = None, label_offset: 'float | None' = None, name: 'str | None' = None, **style) -> "'Panel'"` -- A horizontal rule at one **data** value of y.
+* `vline(x, *, span: 'tuple | None' = None, front: 'bool | None' = None, label: 'str | Diagram | None' = None, label_side: 'str | None' = None, label_offset: 'float | None' = None, name: 'str | None' = None, **style) -> "'Panel'"` -- A vertical rule at one **data** value of x -- stimulus onset, a dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
+* `vspan(x0, x1, *, front: 'bool' = False, name: 'str | None' = None, **style) -> "'Panel'"` -- A shaded stripe between two **data** values of x, full height.
+* `hspan(y0, y1, *, front: 'bool' = False, name: 'str | None' = None, **style) -> "'Panel'"` -- A shaded stripe between two **data** values of y, full width.
 * `rect(x0, y0, x1, y1, *, front: 'bool' = False, **style) -> "'Panel'"` -- A rectangle whose four sides are **data** values -- a gated region, the extent of an inset, a box round a cluster.
 * `under(*items: 'Diagram', clip: 'bool | None' = None) -> "'Panel'"` -- Content that paints beneath everything else -- a backdrop, anything the data should sit on top of.
 * `over(*items: 'Diagram', clip: 'bool | None' = None) -> "'Panel'"` -- Content that paints above everything else, like an annotation.
@@ -809,6 +810,7 @@ A drawing region plus the scales that map data into it.
 * `twin_x(scale=None, *, side: 'str' = 'top', label: 'str | Diagram | None' = None, color: 'str | None' = None, axis: 'bool' = True, **kwargs) -> "'Panel'"` -- A second x scale over the same area -- wavelength above frequency, or a second time base. `twin_y` explains the shape of it.
 * `title(content: 'str | Diagram', *, align: 'str' = 'center', pad: 'float | str | None' = None) -> "'Panel'"` -- A heading over the panel, clear of whatever is already in it.
 * `legend(*, corner: 'str | None' = 'ne', side: 'str | None' = None, entries: 'Sequence[tuple[str, object]] | None' = None, columns: 'int | str | None' = None, max_width: 'float | str | None' = None, swatch: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool | None' = None, title: 'str | None' = None, markup: 'bool' = True, order: 'str' = 'row', col_gap: 'float | str | None' = None, row_gap: 'float | str | None' = None, names: 'Sequence[str] | None' = None, **style) -> "'Panel'"` -- A key built from the series this panel actually drew.
+* `key_diagram(*, names: 'Sequence[str] | None' = None, columns: 'int | str' = 1, max_width: 'float | str | None' = None, font_size: 'float | str | None' = None, swatch: 'float | str | None' = None, order: 'str' = 'row', title: 'str | None' = None, markup: 'bool' = True, **style) -> 'Diagram'` -- The key of this panel's named series as a diagram of its own.
 * `colorbar(*, side: 'str' = 'right', source=None, corner: 'str | None' = None, scale: 'Scale | None' = None, length: 'float | str | None' = None, pad: 'float | str | None' = None, plate: 'bool' = False, title: 'str | None' = None, **kwargs) -> "'Panel'"` -- The ramp this panel's matrix was coloured through, as a key beside it.
 * `text(x, y, content: 'str | Diagram', *, anchor: 'str' = 'center', offset: 'Sequence[float]' = (0.0, 0.0), size: 'float | str | None' = None, markup: 'bool' = True, front: 'bool' = True, decorative: 'bool' = False, **style) -> "'Panel'"` -- Words at one **data** point.
 * `arrow(a: 'Sequence', b: 'Sequence', *, head: 'str' = 'triangle', label: 'str | Diagram | None' = None, front: 'bool' = True, **style) -> "'Panel'"` -- An arrow from one **data** point to another.
@@ -850,6 +852,7 @@ A drawing region plus the scales that map data into it.
 * `brackets(comparisons: 'Sequence', *, format='stars', hide_ns: 'bool' = False, stars=None, ns: 'str' = 'ns', **kwargs) -> "'Panel'"` -- Significance brackets for many pairs of groups, stacked clear of each other.
 * `kde(values, *, bandwidth='scott', adjust: 'float' = 1.0, cut: 'float' = 3.0, samples: 'int' = 200, fill: 'bool' = False, stat: 'str' = 'density', orient: 'str' = 'v', color=None, name: 'str | None' = None, baseline: 'float' = 0.0, **style) -> "'Panel'"` -- A kernel density curve, or one per group.
 * `kde2d(points: 'Iterable[Sequence]', *, levels=5, fill: 'bool' = False, bandwidth='scott', adjust: 'float' = 1.0, gridsize: 'int' = 96, color=None, ramp=None, name: 'str | None' = None, **style) -> "'Panel'"` -- Contours of a 2D kernel density: lines, or filled levels.
+* `contour(x: 'Sequence[float]', y: 'Sequence[float]', z, *, levels=None, hdr=None, color=None, ramp=None, name: 'str | None' = None, **style) -> "'Panel'"` -- Lines where a field gridded on `x` and `y` reaches each level.
 * `hexbin(points: 'Iterable[Sequence]', *, gridsize: 'int' = 24, min_count: 'int' = 1, ramp=None, scale: 'Scale | None' = None, log: 'bool' = False, **style) -> "'Panel'"` -- Points counted in hexagons, each coloured by its count.
 * `hist2d(points: 'Iterable[Sequence]', bins=20, *, range=None, density: 'bool' = False, min_count: 'float' = 1, ramp=None, scale: 'Scale | None' = None, log: 'bool' = False, **style) -> "'Panel'"` -- A 2D histogram: points counted in rectangular bins on continuous axes, each bin coloured by its count.
 * `density_scatter(points: 'Iterable[Sequence]', *, bandwidth: 'float | None' = None, ramp=None, size=None, sort: 'bool' = True, raster: 'bool' = False, dpi: 'float' = 300, marker: 'str' = 'circle', **style) -> "'Panel'"` -- A scatter coloured by how crowded each point's neighbourhood is.
@@ -1350,7 +1353,7 @@ All findings plus a numbered overlay, without altering the source figure.
 
 Run figure checks and return an inspectable numbered diagnostic overlay.
 
-#### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3, max_font_pt: 'float | None' = None, max_height_mm: 'float | None' = None, max_letter_pt: 'float | None' = None, expected_fonts: 'Sequence[str] | None' = None) -> 'list[Diagnostic]'`
+#### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3, max_font_pt: 'float | None' = None, max_height_mm: 'float | None' = None, max_letter_pt: 'float | None' = None, expected_fonts: 'Sequence[str] | None' = None, expect: 'Iterable[str]' = ()) -> 'list[Diagnostic]'`
 
 Check a figure and return its diagnostics, deterministically ordered.
 
@@ -1728,6 +1731,14 @@ does not replace visual or scientific review.
 `max_stroke_widths`, `min_contrast`, `min_dpi`. `fig.report()` takes the same
 ones and formats the result.
 
+#### `AXIS_TITLE_OVERHANG`
+
+A plot's y-axis title longer than the plot, and what it runs into.
+
+#### `BAR_WIDTH_OUT_OF_SCALE`
+
+Bars whose width in data units is wider than the axis they stand on.
+
 #### `BREAK_DISTORTS`
 
 Report marks compared across a broken axis and the scale distortion.
@@ -1739,6 +1750,10 @@ Two links drawn along the same line, one hidden under the other.
 #### `CROWDING`
 
 Neighbours that clear each other but only just.
+
+#### `DATA_CLIPPED`
+
+Named series whose points `clip=True` hid from the axes, counted.
 
 #### `DATA_OUTSIDE`
 
@@ -1816,6 +1831,10 @@ Text that does not separate from what is behind it.
 
 Rasters placed larger than their pixels support.
 
+#### `MARKER_CUT`
+
+Markers the axes edge cuts through, which `clip=True` leaves half drawn.
+
 #### `MISSING_GLYPHS`
 
 Text no installed font can draw, which prints as a row of empty boxes.
@@ -1843,6 +1862,10 @@ Page height above an optional publication limit, in physical millimetres.
 #### `PATH_CROSSES`
 
 A stroke that is not a routed link running through a drawing.
+
+#### `PLOT_WIDTH_OVERRIDDEN`
+
+A plot drawn much narrower than the width its author set.
 
 #### `ROUTE_BLOCKED`
 

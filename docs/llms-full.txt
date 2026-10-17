@@ -59,6 +59,7 @@ Chart options, accepted by every function above:
 | `height` | millimetres; default is about 0.62 x width, 45-75 mm. With `aspect=`, the default follows the width instead |
 | `style` | preset name: `'scientific.modern'` (default: colour-led marks, grey axes), `'scientific.general'`, `'scientific.nature'`, `'scientific.science'`, `'scientific.cell'`, `'educational.textbook'`, `'marketing.report'`, `'marketing.presentation'`; or a Preset object, e.g. `i.preset('scientific.modern').customize(font_pt=12)` |
 | `font_pt` | the main type size in points; ticks and the key take 6/7 of it and titles 9/7 |
+| `axes` | a preset option, e.g. `style=i.preset('scientific.nature', axes='box')`: a closed black frame with inward major and minor ticks on all four sides, as in physics and astronomy journals. The default `'open'` draws the bottom and left axes only |
 | `palette` | `'okabe-ito'`, `'tol-bright'`, `'tol-muted'`, `'inklet'`, `'set2'`, `'dark2'`... or a list of colours |
 | `title`, `xlabel`, `ylabel` | axis titles default to the raw column names, so set them for a publication. `xlabel` is always the horizontal axis, also with `orient='h'` (where it names the values) |
 | `xlim`, `ylim` | `(low, high)`; default fits the data. Explicit limits zoom: marks are cut at the axes |
@@ -89,8 +90,8 @@ chart.save('dose.pdf')
 
 | Method | Use |
 |---|---|
-| `hline(y, label=)`, `vline(x, label=)` | rule at a data value; `span=(lo, hi)` limits it; `label_side=` |
-| `hspan(y0, y1)`, `vspan(x0, x1)` | shaded stripe between two data values |
+| `hline(y, label=)`, `vline(x, label=)` | rule at a data value; `span=(lo, hi)` limits it; `label_side=`; `name=` adds a key row |
+| `hspan(y0, y1)`, `vspan(x0, x1)` | shaded stripe between two data values; `name=` adds a key row |
 | `annotate(x, y, text, side=)` | callout on a data point, with a leader; `dot=True` marks the point |
 | `text(x, y, content)` | words at a data point; `decorative=True` skips the contrast check |
 | `bracket(a, b, '***')` | significance bracket between two categories; `text=` also works |
@@ -98,7 +99,7 @@ chart.save('dose.pdf')
 | `band(x, lo, hi)`, `fill_between(x, y0, y1)` | shaded envelope between two curves |
 | `label_points(points, labels)`, `label_lines()` | name points, or each curve at its end, instead of a key |
 | `labels(x=, y=, title=, y2=)` | axis titles and the chart title |
-| `legend(corner=, side=, title=)` | the key; updates the one already drawn |
+| `legend(corner=, side=, title=)` | the key; a second call replaces the first, so there is one key per panel |
 | `colorbar(title=, side=)` | the bar of a heatmap or numeric scatter; a chart without one raises |
 | `size(width=, height=)` | set the size after creation |
 | `spec` | the PlotSpec under the chart; every other `Panel` method |
@@ -110,6 +111,10 @@ for the signature without a chart.
 
 Text markup: `**bold**`, `//italic//`, `x^{2}`, `H_{2}O`, `{#c1121f|coloured}`.
 There is no `$...$` math: write Unicode (`α`, `µm`) or that markup instead.
+Typesetting symbols: italic for variables, upright for units, numbers, labels and
+chemical symbols. `"//m//_{ν}^{2} (eV^{2})"` and `"//E//_{0} (eV)"` set the
+variables in italic and the units upright. Multi-line labels centre their lines
+unless `align="start"` is given.
 
 Two quantities in different units go on one chart with `secondary_y=`, a
 column or a list of them (for `scatter`, colour groups):
@@ -206,13 +211,20 @@ which fits a 16:9 slide, so put the image in at its own size.
 
 1. `figure = chart.save('fig.png')` returns the compiled figure.
    `print(figure.report())` lists overlapping labels, clipped or tiny text, and
-   data running outside the axes (`DATA_OUTSIDE`, with the range to set), a key
+   data running outside the axes (`DATA_OUTSIDE`, with the range to set), points
+   that `clip=True` hid (`DATA_CLIPPED`, counted per series) and square or path
+   markers the axes edge cuts (`MARKER_CUT`), a key
    drawn over data (`KEY_COVERS_DATA`, with the corners that are clear),
    supplied ticks dropped for lack of room (`TICKS_DROPPED`), a series
    squashed flat beside a much taller one on the same axis
    (`SERIES_FLATTENED`, with the axis to give it), and replicate rows that a
-   bar sums or a line zigzags through (`ROWS_COMBINED`), each with a
-   suggested fix. `inklet lint: clean` means no problems. Mark ornamental text
+   bar sums or a line zigzags through (`ROWS_COMBINED`), bars wider than
+   their axis (`BAR_WIDTH_OUT_OF_SCALE`), a plot much narrower than the width it
+   was given (`PLOT_WIDTH_OVERRIDDEN`), and a y-axis title that runs into its
+   neighbours (`AXIS_TITLE_OVERHANG`), each with a suggested fix. A flat series
+   that is the finding itself is acknowledged, not fixed:
+   `figure.report(expect={"SERIES_FLATTENED"})` lists it under ACKNOWLEDGED.
+   `inklet lint: clean` means no problems. Mark ornamental text
    such as a pale watermark with `text(..., decorative=True)` so the contrast
    check skips it.
 2. Look at the PNG. If you can view images, open it. Labels are measured, so
@@ -240,6 +252,10 @@ and returns its path. Nothing opens a window or blocks, so scripts run headless.
 Every length is millimetres: `width=120` is 120 mm. Font sizes are points
 via `i.pt(8)`. Text is never shrunk to make things fit; if a figure is too
 crowded, inklet reports it rather than drawing overlapping labels.
+
+Dates: `plot_spec(x=('2023-01-01', '2024-06-30'))` makes a calendar axis with
+month and year ticks, and ISO strings or `datetime.date` values in the data plot
+as dates. Do not convert them to decimal years such as `2023 + (m - 1) / 12`.
 
 ## Going further
 
@@ -300,7 +316,9 @@ networks, ternary...) with its signature.
 - Do not call `plt.show()`-style display code; save files and inspect them.
 - In the full model, `plot_spec(x=..., y=...)` does **not** clip: data past
   the domain are drawn outside the axes and reported as `DATA_OUTSIDE`. Leave
-  `x`/`y` out to fit the data, or pass `clip=True`.
+  `x`/`y` out to fit the data, or pass `clip=True`. With `clip=True` the points
+  that are hidden are reported as `DATA_CLIPPED` (information) and a marker the
+  edge cuts through as `MARKER_CUT` (a warning).
 
 ## Plot methods
 
@@ -329,6 +347,7 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `chord(matrix, name=None, *, color=None, gap=2.0, start=-90.0, directed=False, sort=False, thickness=None, pad=None, labels=True, opacity=0.72, color_by='source', size=None, **style)`: A chord diagram: groups as arcs around a ring, flows between them as ribbons through the middle, fitted into the plot area.
 - `clusters(groups, *, color=None, highlight=None, highlight_color=None, width=None, labels=False, size=None, min_size=1, **style)`: Boxes on the diagonal of a matrix, one per cluster.
 - `colorbar(*, side='right', source=None, corner=None, scale=None, length=None, pad=None, plate=False, title=None, **kwargs)`: The ramp this panel's matrix was coloured through, as a key beside it.
+- `contour(x, y, z, *, levels=None, hdr=None, color=None, ramp=None, name=None, **style)`: Lines where a field gridded on `x` and `y` reaches each level.
 - `correlogram(r, name=None, *, triangle='lower', shape='circle', ramp=None, values=False, labels=True, size=None, **style)`: A correlation matrix as a triangle of glyphs sized and coloured by r.
 - `dendrogram(tree, *, labels=None, orient='v', threshold=None, color=None, **style)`: The merge tree of a hierarchical clustering, drawn as elbows.
 - `density_scatter(points, *, bandwidth=None, ramp=None, size=None, sort=True, raster=False, dpi=300, marker='circle', **style)`: A scatter coloured by how crowded each point's neighbourhood is.
@@ -337,22 +356,23 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `dumbbell(at, values, *, orient='v', size=None, color=None, name=None, marker='circle', connector=None, **style)`: Two or more dots per category joined by a line: a dumbbell plot.
 - `ecdf(values, *, weights=None, complementary=False, normalize=True, extend=True, name=None, **style)`: The empirical cumulative distribution of `values` as a step line.
 - `embedding(points, clusters, *, color=None, size=None, labels=True, center='median', label_size=None, arrows=None, shuffle=True, seed=0, raster=False, outline=None, outline_core=0.8, **style)`: A UMAP or t-SNE style scatter, coloured and named by cluster.
-- `errorbars(points, *, yerr=None, xerr=None, cap=None, **style)`: Whiskers through each point, in the data's own units.
+- `errorbars(points, *, yerr=None, xerr=None, cap=None, floor='arrow', **style)`: Whiskers through each point, in the data's own units.
 - `fill(points, *, baseline=0.0, orient='v', name=None, **style)`: The area between a series and a baseline.
 - `fill_between(x, y0, y1, *, name=None, **style)`: The band between two curves over shared x -- a confidence envelope.
 - `gantt(tasks, *, groups=None, color=None, width=0.6, labels=False, **style)`: A Gantt chart: a bar per task from its start to its end.
 - `grid(*, x=True, y=True, count=5, x_options=None, y_options=None, **style)`: Rules at the tick positions, under the data.
 - `guide(a, b, *, label=None, at=0.5, offset=1.0, label_style=None, **style)`: A straight data guide with a label following its displayed direction.
 - `hexbin(points, *, gridsize=24, min_count=1, ramp=None, scale=None, log=False, **style)`: Points counted in hexagons, each coloured by its count.
-- `hist(values, bins=10, *, range=None, density=False, baseline=0.0, orient='v', color=None, name=None, histtype=None, cumulative=False, **style)`: Binned counts as touching rectangles.
+- `hist(values, bins=10, *, range=None, density=False, baseline=0.0, orient='v', color=None, name=None, histtype=None, cumulative=False, prebinned=False, **style)`: Binned counts as touching rectangles.
 - `hist2d(points, bins=20, *, range=None, density=False, min_count=1, ramp=None, scale=None, log=False, **style)`: A 2D histogram: points counted in rectangular bins on continuous axes, each bin coloured by its count.
-- `hline(y, *, span=None, front=None, label=None, label_side=None, label_offset=None, **style)`: A horizontal rule at one **data** value of y.
-- `hspan(y0, y1, *, front=False, **style)`: A shaded stripe between two **data** values of y, full width.
+- `hline(y, *, span=None, front=None, label=None, label_side=None, label_offset=None, name=None, **style)`: A horizontal rule at one **data** value of y.
+- `hspan(y0, y1, *, front=False, name=None, **style)`: A shaded stripe between two **data** values of y, full width.
 - `icicle(data, *, orient='h', root=None, gap=None, spacing=None, links=None, color=None, highlight=None, highlight_color=None, labels='fit', levels=False, counts=False, sort=False, size=None, **style)`: An icicle (partition) chart: one band per level of a hierarchy, each node spanning its share of its parent.
 - `inset(sub, **kwargs)`: Put a smaller panel in a corner of this one. See `plot.inset`.
 - `kaplan_meier(data, *, confidence=0.95, band='log-log', shade=True, censors=True, color=None, pvalue=None, pvalue_corner='sw', **style)`: Kaplan-Meier survival curves, with censor ticks and confidence bands.
 - `kde(values, *, bandwidth='scott', adjust=1.0, cut=3.0, samples=200, fill=False, stat='density', orient='v', color=None, name=None, baseline=0.0, **style)`: A kernel density curve, or one per group.
 - `kde2d(points, *, levels=5, fill=False, bandwidth='scott', adjust=1.0, gridsize=96, color=None, ramp=None, name=None, **style)`: Contours of a 2D kernel density: lines, or filled levels.
+- `key_diagram(*, names=None, columns=1, max_width=None, font_size=None, swatch=None, order='row', title=None, markup=True, **style)`: The key of this panel's named series as a diagram of its own.
 - `label_lines(name=None, **kwargs)`: Name curves at the curves themselves instead of in a legend.
 - `label_points(points, labels, **kwargs)`: Label many data points at once, clear of the marks and each other.
 - `legend(*, corner='ne', side=None, entries=None, columns=None, max_width=None, swatch=None, pad=None, plate=None, title=None, markup=True, order='row', col_gap=None, row_gap=None, names=None, **style)`: A key built from the series this panel actually drew.
@@ -396,9 +416,9 @@ Positional `points` are (x, y) rows; `groups` map a category to its samples.
 - `twin_x(scale=None, *, side='top', label=None, color=None, axis=True, **kwargs)`: A second x scale over the same area -- wavelength above frequency, or a second time base. `twin_y` explains the shape of it.
 - `twin_y(scale=None, *, side='right', label=None, color=None, axis=True, **kwargs)`: A second y scale over the same area, and a handle that draws in it.
 - `violin(groups, *, at=None, width=0.8, orient='v', bandwidth=None, samples=64, cut=2.0, median=True, color=None, **style)`: Mirrored kernel densities, one per group.
-- `vline(x, *, span=None, front=None, label=None, label_side=None, label_offset=None, **style)`: A vertical rule at one **data** value of x -- stimulus onset, a dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
+- `vline(x, *, span=None, front=None, label=None, label_side=None, label_offset=None, name=None, **style)`: A vertical rule at one **data** value of x -- stimulus onset, a dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
 - `volcano(fold, p, *, labels=None, top=None, fold_threshold=1.0, p_threshold=0.05, color=None, name=None, size=None, thresholds=True, label_options=None, highlight=None, q=None, **style)`: A volcano plot: log2 fold change on x against -log10 p on y.
-- `vspan(x0, x1, *, front=False, **style)`: A shaded stripe between two **data** values of x, full height.
+- `vspan(x0, x1, *, front=False, name=None, **style)`: A shaded stripe between two **data** values of x, full height.
 - `waffle(values, *, rows=10, columns=10, total=None, color=None, name=None, gap=0.18, order='column', **style)`: A waffle chart: shares of a whole as cells of a grid.
 - `waterfall(at, values, *, totals=(), baseline=0.0, orient='v', width=0.6, color=None, connectors=True, labels=None, name=None, **style)`: A waterfall chart: signed changes as bars floating on a running total.
 - `width_key(source=None, *, side='right', corner=None, values=None, count=3, format=None, title=None, color=None, length=None, pad=None, plate=False)`: Reference lines with their weights: the key to an edge-width encoding.
