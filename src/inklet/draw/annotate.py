@@ -169,6 +169,7 @@ def annotate(target: Diagram | AnchorRef, text: str | Diagram, *,
              head: str = "none", shoulder: float | str | None = None,
              through: Sequence[Diagram] = (),
              leader_style: dict | None = None, search: bool = True,
+             keep: Rect | None = None,
              **style) -> Diagram:
     """Put `text` outside `target`, `clear` millimetres off it, with a leader.
 
@@ -212,6 +213,12 @@ def annotate(target: Diagram | AnchorRef, text: str | Diagram, *,
     `inklet.place_labels`, which weighs all eight sides of every label on the page
     against each other before calling this at all; letting the local search
     then move one of them would quietly undo the global decision.
+
+    `keep=` is a rectangle the label must stay inside. When the side it settled
+    on would leave it, the label slides the least distance that brings it back,
+    and the leader is drawn to where it ended up. A label bigger than `keep` is
+    centred on it. `Panel.annotate` passes the plot area, which is how a callout
+    stays on its panel even when its point lies just outside the axis range.
     """
     check_annotation_text(text)
     node = (target.diagram if isinstance(target, AnchorRef)
@@ -242,6 +249,8 @@ def annotate(target: Diagram | AnchorRef, text: str | Diagram, *,
                 if search else [])
     chosen, at = _pick_side(side, body, reach, centre, gap, blockers,
                             search=search)
+    if keep is not None:
+        at = _kept_within(at, body, keep)
 
     offset = at - body.bbox.center
     placed = Diagram(children=(body.translated(offset.x, offset.y),),
@@ -403,6 +412,29 @@ def _pick_side(side: str, body: Diagram, reach, centre: Vec2, gap: float,
         if best is None or blocked < best[0]:
             best = (blocked, candidate, at)
     return best[1], best[2]
+
+
+def _kept_within(at: Vec2, body: Diagram, keep: Rect) -> Vec2:
+    """The label's centre moved the least distance that keeps its box in `keep`.
+
+    A label already inside does not move. One wider or taller than `keep` is
+    centred across that axis, since no position keeps all of it inside.
+    """
+    spot = Rect.from_size(body.width, body.height, at)
+    dx = _slide(spot.x0, spot.x1, keep.x0, keep.x1)
+    dy = _slide(spot.y0, spot.y1, keep.y0, keep.y1)
+    return Vec2(at.x + dx, at.y + dy)
+
+
+def _slide(lo: float, hi: float, bound_lo: float, bound_hi: float) -> float:
+    """How far a span from `lo` to `hi` must move to lie within its bounds."""
+    if hi - lo > bound_hi - bound_lo:
+        return (bound_lo + bound_hi) / 2 - (lo + hi) / 2
+    if lo < bound_lo:
+        return bound_lo - lo
+    if hi > bound_hi:
+        return bound_hi - hi
+    return 0.0
 
 
 def _side_order(side: str) -> list[str]:

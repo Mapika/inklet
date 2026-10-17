@@ -173,6 +173,8 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
 
     `thin` says whether labels that would collide may be dropped. The default
     asks the scale: continuous ticks thin, a band scale's categories do not.
+    Explicit `ticks=` that thin away are not silent: `figure.report()` lists
+    them as `TICKS_DROPPED`, and no Python warning is issued.
 
     `rotate` turns the tick labels, in degrees anticlockwise, which is the
     other answer to labels that do not fit and the only one available when
@@ -237,13 +239,11 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
     keep = _keep(positions, extents, _CLEAR_OF_TYPE * base_size,
                  _thins(scale, thin))
 
+    # The dropped ticks are reported once, by the TICKS_DROPPED lint rule, which
+    # reads the note written below. A Python warning here would say the same
+    # thing a second time, once per axis, on every build.
     dropped: list[int] = []
     if ticks is not None and thin is None and labels and len(keep) < len(values):
-        import warnings
-        warnings.warn(
-            f"axis omitted {len(values)-len(keep)} of {len(values)} explicitly supplied ticks; "
-            "use thin=False to preserve them or thin=True to request thinning",
-            UserWarning, stacklevel=2)
         kept = set(keep)
         dropped = [j for j in range(len(values)) if j not in kept]
 
@@ -317,10 +317,22 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
         # the caller's ticks went missing rather than only a Python warning.
         node.note(TICKS_DROPPED_NOTE, {
             "values": tuple(values[j] for j in dropped),
-            "labels": tuple("".join(line.text for line in texts[j].prim.lines)
-                            for j in dropped),
+            "labels": tuple(_label_words(texts[j]) for j in dropped),
             "supplied": len(values), "side": side})
     return node
+
+
+def _label_words(node: Diagram) -> str:
+    """The words a tick label sets, read off the text under it.
+
+    A rotated label is a wrapper round its text, and only the text has the
+    lines, so the first node below the wrapper that has a primitive is read.
+    """
+    for part in node.walk():
+        lines = getattr(part.prim, "lines", None)
+        if lines is not None:
+            return "".join(line.text for line in lines)
+    return ""
 
 
 def _group_slanted(items: list, written: Sequence[int], rotate: float,

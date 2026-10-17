@@ -1019,7 +1019,8 @@ divide by the sample size and the bin width so two samples of different sizes
 can be compared.
 
 `errorbars` takes one number, one number per point, or a `(low, high)` pair per
-point for an asymmetric interval; `xerr=` does the same across.
+point for an asymmetric interval; `xerr=` does the same across. `stroke=` (or
+`color=`) is one colour for every whisker, or one colour per point.
 
 ---
 
@@ -1575,8 +1576,10 @@ back.
 a leader to it. `side=` requests a starting side; when blocked, the search tries
 other directions. `inklet.annotation_side` reports the chosen side.
 
-Labels stay inside the plot area by default. Pass `inside=False` to allow
-outside placement. `avoid=[...]` supplies rectangles the label must avoid,
+Labels stay inside the plot area by default, even when the datum lies just
+outside the axis range: the label slides in rather than hang over the edge.
+Pass `inside=False` to allow outside placement. `color=` sets the words and the
+leader together. `avoid=[...]` supplies rectangles the label must avoid,
 for example a legend's bounds.
 
 `front=False` on any of the three puts the writing under the data instead of

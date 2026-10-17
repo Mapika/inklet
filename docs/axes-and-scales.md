@@ -36,9 +36,10 @@ adds a note past the last tick, and `offset=False` adds nothing.
 
 Continuous scales thin labels when needed. Category labels remain visible by
 default. Pass `thin=False` to keep every requested tick, or `thin=True` to allow
-thinning. `rotate=45` rotates tick labels anticlockwise; it does not rotate the
-axis name. `labels=False` keeps rules and ticks on an interior shared axis.
-If labels still collide, widen the panel, reduce the requested tick count, or
+thinning. Explicit `ticks=` that thinning drops are listed by `figure.report()`
+as `TICKS_DROPPED`; no Python warning is issued. `rotate=45` rotates tick
+labels anticlockwise; it does not rotate the axis name. `labels=False` keeps
+rules and ticks on an interior shared axis. If labels still collide, widen the panel, reduce the requested tick count, or
 use a shorter formatter. Inklet does not automatically shrink the text.
 
 ## Measured typography
