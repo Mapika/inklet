@@ -33,6 +33,7 @@ class PlotDefaults:
     legend_side: str = 'bottom'
     tick_count: int = 5
     bar_fill: str = 'neutral'
+    axes: str = 'open'
 
     def __post_init__(self):
         if self.grid not in ('none', 'x', 'y', 'both'):
@@ -43,6 +44,8 @@ class PlotDefaults:
             raise ValueError('tick_count must be an integer >= 2')
         if self.bar_fill not in ('neutral', 'accent'):
             raise ValueError('bar_fill must be neutral or accent')
+        if self.axes not in ('open', 'box'):
+            raise ValueError('axes must be open or box')
 
 
 @dataclass(frozen=True)
@@ -105,6 +108,11 @@ class Preset:
         grid_color, radius and line_height. palette may be a sequence of
         colours, a categorical palette name such as 'inklet', or a Palette. An accent override also changes
         the first automatic series colour unless palette is supplied.
+
+        `axes='box'` gives every plot recipe a closed frame in black with ticks
+        pointing inward and minor ticks on all four sides, the convention of
+        physics and astronomy journals. The default, `'open'`, draws the bottom
+        and left axes only.
         """
         theme_fields = {'font_family', 'font_mono', 'accent', 'palette', 'paper',
                         'ink', 'muted', 'radius', 'line_height', 'grid_color'}
@@ -113,7 +121,7 @@ class Preset:
                           'max_font_pt', 'max_height_mm', 'letter_font_pt',
                           'max_letter_pt', 'expected_fonts'}
         other_fields = {'width', 'height', 'margin', 'gap', 'letter_style', 'letter_pad',
-                        'grid', 'legend_side', 'tick_count', 'bar_fill'}
+                        'grid', 'legend_side', 'tick_count', 'bar_fill', 'axes'}
         unknown = set(options) - theme_fields - profile_fields - other_fields
         if unknown: raise TypeError(f'unknown preset options: {", ".join(sorted(unknown))}')
         changes = {key: value for key, value in options.items() if key in theme_fields}
@@ -139,7 +147,7 @@ class Preset:
                           base_theme=replace(self.theme, **changes),
                           **{k: v for k, v in options.items() if k in profile_fields})
         return replace(self, format=physical, publication=profile,
-                       plot=replace(self.plot, **{k: options[k] for k in ('grid', 'legend_side', 'tick_count', 'bar_fill') if k in options}),
+                       plot=replace(self.plot, **{k: options[k] for k in ('grid', 'legend_side', 'tick_count', 'bar_fill', 'axes') if k in options}),
                        **{k: options[k] for k in ('margin', 'gap', 'letter_style', 'letter_pad') if k in options})
 
     def document(self, **options):

@@ -212,6 +212,10 @@ def _decorator(request, context):
             options.setdefault('style', context.preset.letter_style)
             if context.preset.letter_pad is not None:
                 options.setdefault('pad', context.preset.letter_pad)
+            if context.preset.plot.axes == 'box':
+                # The frame is black; the lettering is set in the same black.
+                from .spec import _BOX_INK
+                options.setdefault('text_fill', _BOX_INK)
         publication = getattr(context, 'publication', None)
         if publication is not None and publication.letter_font_pt is not None:
             options.setdefault('size', pt(publication.letter_font_pt))

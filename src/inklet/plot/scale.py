@@ -565,6 +565,10 @@ class Log(Scale):
         chosen: tuple[float, ...] = ()
         for mantissas in ((2, 5), (2, 3, 5), (2, 3, 4, 5, 6, 7, 8, 9)):
             out = self._mantissa_ticks(mantissas, majors)
+            # A set whose every mantissa is already a labelled major is empty,
+            # not too crowded: the denser sets still have ticks to offer.
+            if not out:
+                continue
             if not _fits(out, majors, self.map, clear):
                 break
             chosen = out
