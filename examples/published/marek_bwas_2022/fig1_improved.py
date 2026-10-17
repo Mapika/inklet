@@ -128,7 +128,7 @@ def example_panel(name, ylim, yticks, ylabel, xlabel, xlim, xticks, xformat, tit
         xe = x1
         ye = slope * xe + intercept
         sign = f"{r:+.2f}".replace("-", "−")
-        p.text(xe, ye, f"{label}: r = {sign}", anchor="sw" if slope >= 0 else "nw",
+        p.text(xe, ye, f"{label}: //r// = {sign}", anchor="sw" if slope >= 0 else "nw",
                size=i.pt(6), color=LABEL_INK[label])
     fx, fy = subsample(frame, *meta["full"])
     slope, intercept, r_full = fit_line(fx, fy)
@@ -184,15 +184,8 @@ def build_rows():
     return row1, row2, row3
 
 
-NOTE = ("Shaded: median |r| = 0.01 across associations. Dotted: |r| = 0.06, the top 1% of all associations; "
-        "in e-h, the 95% interval reaches \u00b10.06 at n = 1,000. Associations per level: thickness vertex 59,412, "
-        "ROI 333, network 13; RSFC edge 77,421, component 100, network 105. Samples A and B are two "
-        "independent n = 25 subsamples; the dashed line is the full sample (n = 3,604 thickness, n = 3,928 RSFC). "
-        "Brain maps (c, d) and the psychopathology RSFC scatter (h, right) are not drawn: not in the source data.")
-
-
 def compose(row1, row2, row3):
-    doc = i.preset("scientific.nature", format="double-column").document(row_gap=6, gap=3)
+    doc = i.preset("scientific.nature", format="double-column").document(row_gap=4, gap=3)
 
     def grid(cells, letters, columns):
         sub = i.subfigure(columns=columns, gap=3, row_gap=2, share_plot_margins=True)
@@ -204,7 +197,6 @@ def compose(row1, row2, row3):
     doc.add("row1", grid(row1, "a", 4), row=0, column=0)
     doc.add("row2", grid(row2, "e", 4), row=1, column=0)
     doc.add("row3", grid(row3, "i", 3), row=2, column=0)
-    doc.add("note", i.text(NOTE, size=i.pt(6), align="left", width=170), row=3, column=0)
     return doc
 
 

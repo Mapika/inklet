@@ -123,3 +123,44 @@ Also: DATA_OUTSIDE is only reported when `axes()` is drawn. A line and a scatter
 
 Workaround: the scripts drop markers they can see are outside (fully outside, or within 0.8 mm of an edge) and count them in the script output, recorded in `marek_bwas_2022/NOTES.md`. The improved figure widens its ranges so that none are dropped, and the script checks this.
 
+
+## Pass 2
+
+Re-checked on master (inklet 4.8.1 plus the pass 2 features). Status of the items above:
+
+* **1 (letters by cell index): resolved.** `doc.letters({name: letter})` exists. The
+  figure still uses one `sub.letters(start=...)` per row, because the rows share plot
+  margins (see NOTES.md, Pass 2).
+* **2 (add without row= misplaces cells): resolved.** It now raises `LayoutError`
+  ("has no row=, ... Pass row=0"). Not silent any more.
+* **3 (clip=True hides data, lint silent): resolved for points wholly outside.** Lint
+  reports `DATA_CLIPPED` (info) with the count. Still silent on markers partly cut at an
+  edge; see item 10.
+* **4 (legend names= rejects duplicates): still open.** Minimal repro, run on master:
+
+  ```python
+  import inklet as i
+  p = i.plot_spec(40, 30, x=(0, 1), y=(0, 1))
+  p.scatter([(0.2, 0.3), (0.4, 0.5)], name="n = 25")
+  p.scatter([(0.6, 0.2), (0.8, 0.7)], name="n = 25", marker="diamond")
+  p.line([(0, 0.1), (1, 0.9)], name="r = 0.50")
+  p.legend(corner="ne", names=["n = 25", "r = 0.50", "n = 25"])
+  # DiagramError: legend(names=) repeats a name: ['n = 25', 'r = 0.50', 'n = 25']
+  ```
+
+  Two series with one display name are a real case (two subsamples in one key). The
+  workaround is unchanged: a trailing zero-width space on the second name.
+* **5 (legend side=top in a narrow cell): not reproduced.** Four 26 mm cells with
+  `legend(side="top", columns=2)` lint clean on master.
+* **6 (vline/vspan reject name=): resolved.** `hline`, `vline`, `hspan`, `vspan` take `name=`.
+* **7 (SERIES_FLATTENED cannot be acknowledged): resolved.** `report(expect={"SERIES_FLATTENED"})`
+  lists the findings as ACKNOWLEDGED.
+* **8 (FONT_SUBSTITUTED repeats per primitive): partly.** It is INFO now, with a count,
+  but it still lists the first cell paths for each of the 139 text primitives.
+* **10 (lint silent on markers cut at the axes): partly.** Markers wholly outside are
+  now `DATA_CLIPPED` (info), but only for line ends: the faithful figure's two
+  `DATA_CLIPPED` infos are fit lines that leave the frame. Markers only partly inside,
+  within the marker radius of an edge, are still silent. The script drops such
+  markers before plotting (h cognitive subsample B: 4 of 25), so lint cannot see them.
+* **Cosmetic:** the `DATA_CLIPPED` message prints the series name with its markup
+  literally, for example "series '//r// = -0.64'".
