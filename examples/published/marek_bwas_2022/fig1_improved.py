@@ -42,9 +42,6 @@ BIN_EDGES = np.round(np.arange(-0.2, 0.2 + 1e-9, 0.02), 4)   # 0.02 wide: steps 
 PANEL_W, PANEL_H = 26, 27
 
 
-def _minus(text):
-    return text.replace("-", "−")
-
 
 def level_shares(frame, columns):
     """Share of each level's associations per bin, in percent."""
@@ -54,6 +51,13 @@ def level_shares(frame, columns):
         counts, _ = np.histogram(values, bins=BIN_EDGES)
         out.append(100 * counts / values.size)
     return out
+
+
+def signed_tick(value):
+    """Zero reads "0"; other values signed, with a true minus sign."""
+    if abs(value) < 1e-9:
+        return "0"
+    return f"{value:+.1f}".replace("-", "\u2212")
 
 
 def effect_panel(frame, columns, names, n_labels, title, top, xlabel=None, ylabel=None):
@@ -71,7 +75,7 @@ def effect_panel(frame, columns, names, n_labels, title, top, xlabel=None, ylabe
     p.vline(0.06, stroke=TOP1, stroke_width=0.3, dash="dotted")
     p.vline(-0.06, stroke=TOP1, stroke_width=0.3, dash="dotted")
     p.axes(x=xlabel, y=ylabel,
-           x_options=dict(ticks=[-0.2, -0.1, 0.0, 0.1, 0.2], format="{:+.1f}"),
+           x_options=dict(ticks=[-0.2, -0.1, 0.0, 0.1, 0.2], format=signed_tick),
            y_options=dict(ticks=[t for t in (0, 10, 20, 30, 40) if t <= top], format="{:g}%"))
     p.legend(side="top", columns=1, names=names)
     p.title(title)
@@ -95,7 +99,7 @@ def sampling_panel(frame, bins, title, ylabel=None, xlabel=None, key=False):
     p.vline(1000, stroke=INK, stroke_width=0.3, dash="dotted", span=(-0.8, 0.2))
     p.axes(x=xlabel, y=ylabel,
            x_options=dict(ticks=[25, 100, 1000], format="{:,.0f}", minor=True),
-           y_options=dict(ticks=[-0.5, 0, 0.5], format="{:+.1f}"))
+           y_options=dict(ticks=[-0.5, 0, 0.5], format=signed_tick))
     p.title(title)
     if key:
         p.legend(corner="ne", columns=2, names=["min\u2013max", "99%", "95%", "mean"])
@@ -104,12 +108,18 @@ def sampling_panel(frame, bins, title, ylabel=None, xlabel=None, key=False):
 
 def example_panel(name, ylim, yticks, ylabel, xlabel, xlim, xticks, xformat, title):
     frame, meta = scatter(name)
-    p = i.plot_spec(PANEL_W + 8, PANEL_H + 4, x=xlim, y=ylim, clip=True)
+    width, height = PANEL_W + 8, PANEL_H + 4
+    p = i.plot_spec(width, height, x=xlim, y=ylim, clip=True)
+    margin_x = 0.8 * (xlim[1] - xlim[0]) / width     # 0.8 mm: marker radius
+    margin_y = 0.8 * (ylim[1] - ylim[0]) / height
     for key, colour, marker, label in [("dark", SAMPLE_A, "circle", "A"),
                                         ("light", SAMPLE_B, "diamond", "B")]:
         xc, yc = meta[key]
         x, y = subsample(frame, xc, yc)
-        p.scatter(list(zip(x, y)), marker=marker, color=colour, stroke="#ffffff",
+        inside = ((x >= xlim[0] + margin_x) & (x <= xlim[1] - margin_x)
+                  & (y >= ylim[0] + margin_y) & (y <= ylim[1] - margin_y))
+        print(f"{title}, sample {label}: {int((~inside).sum())} of {len(x)} markers outside")
+        p.scatter(list(zip(x[inside], y[inside])), marker=marker, color=colour, stroke="#ffffff",
                   stroke_width=0.11, size=1.8, name=f"sample {label}")
         slope, intercept, r = fit_line(x, y)
         x0, x1 = xlim
@@ -161,14 +171,14 @@ def build_rows():
         sampling_panel(f_psy, BINS_RSFC, "RSFC and psychopathology", xlabel="Sample size"),
     ]
     row3 = [
-        example_panel("g_cognition", (60, 150), [70, 150], "Cognitive ability",
-                      "DMN thickness (mm)", (3.0, 3.55), [3.0, 3.5], "{:g}",
+        example_panel("g_cognition", (50, 160), [70, 110, 150], "Cognitive ability",
+                      "DMN thickness (mm)", (2.95, 3.6), [3.0, 3.5], "{:g}",
                       "Thickness and cognition"),
         example_panel("g_psychopathology", (18, 78), [20, 70], "Psychopathology",
-                      "DMN thickness (mm)", (3.0, 3.55), [3.0, 3.5], "{:g}",
+                      "DMN thickness (mm)", (2.95, 3.6), [3.0, 3.5], "{:g}",
                       "Thickness and psychopathology"),
-        example_panel("h_cognition", (60, 150), [70, 150], "Cognitive ability",
-                      "DMN RSFC", (0.15, 0.57), [0.15, 0.5], "{:.2f}",
+        example_panel("h_cognition", (50, 160), [70, 110, 150], "Cognitive ability",
+                      "DMN RSFC", (0.12, 0.62), [0.15, 0.30, 0.50], "{:.2f}",
                       "RSFC and cognition"),
     ]
     return row1, row2, row3

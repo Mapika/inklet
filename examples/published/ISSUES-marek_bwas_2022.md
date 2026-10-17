@@ -100,3 +100,26 @@ Workaround: the warning is explained in `marek_bwas_2022/NOTES.md` and left in p
 **OPEN (noise).** With the `scientific.nature` profile and Arial not installed, lint reports one warning per text primitive (137 to 139 in these figures), listing the first few cell paths. The real problems are then hard to see. Expected: one warning with a count, and a per-document way to accept a metric-compatible substitute (the message suggests `expected_fonts=None` for "Liberation Sans"; I did not verify that option).
 
 Workaround: none in the scripts. Liberation Sans is used and the warning is recorded in both NOTES.md files.
+
+## 10. Lint is silent on markers cut at the axes when `clip=True` (false negative)
+
+**OPEN.** Found while checking scatter edges in the marek figures. Lint did not report the faithful scatter markers that sit outside or at the edge of their range, because those scatters use `clip=True`. Repro (both points are in the scatter, the axis is drawn):
+
+```python
+import inklet as i
+for clip in (True, False):
+    p = i.plot_spec(30, 25, x=(0, 1), y=(0, 1), clip=clip)
+    p.scatter([(0.3, 1.3), (0.6, 1.0), (0.8, 0.5)], size=1.5, name="points")  # 1.3 is outside; 1.0 is on the top edge
+    p.axes()
+    d = i.document(width=60); d.add("a", p)
+    print(clip, d.compile().report().splitlines()[0])
+# actual:   True  inklet lint: clean, 0 diagnostics
+#           False inklet lint: 1 warning  (DATA_OUTSIDE: mark reaches 7.50 mm past the top)
+# expected: with clip=True, a diagnostic that says how many marks were cut and by how much
+#           (e.g. DATA_CLIPPED: 2 marks, one outside, one on the edge), as DATA_OUTSIDE does without clip
+```
+
+Also: DATA_OUTSIDE is only reported when `axes()` is drawn. A line and a scatter with no `axes()` gave clean lint with `clip=False`, so the check depends on the axes. Expected: report data outside the axes whether or not axes are drawn, or say in the docs that it needs them.
+
+Workaround: the scripts drop markers they can see are outside (fully outside, or within 0.8 mm of an edge) and count them in the script output, recorded in `marek_bwas_2022/NOTES.md`. The improved figure widens its ranges so that none are dropped, and the script checks this.
+

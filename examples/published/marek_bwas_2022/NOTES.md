@@ -22,8 +22,10 @@ Lint, from `figure.report()`:
   not in the atlas-free source data. Their row is removed, so the faithful figure
   has rows a/b, e/f, g/h. The panel letters a, b, e–h are kept as in the original.
 * **h, right** (RSFC vs psychopathology scatter): sheet `H_right` contains only its
-  header row (checked in normal mode and in the sheet XML). The cell is left
-  blank in the faithful figure. In the improved figure, panel h is one plot.
+  header row (checked in normal mode and in the sheet XML). In the faithful figure,
+  h-left keeps the size of the g scatters and sits in its original left slot of the
+  RSFC column, and the right slot is empty. In the improved figure, panel h is one
+  plot in a row of three.
 * The caption's panel letters for the scatters read "f, g" then "g", then "h":
   the caption means g and h, and the text says "Fig. 1g, h". We follow the figure.
 
@@ -91,10 +93,25 @@ Lint, from `figure.report()`:
 8. **Full-sample points.** The original does not draw the 3,604 (or 3,928)
    full-sample points, only the fitted line; the legend's black "n = 3,604" square
    is the dashed line here ("r = −0.08"). Same drawing, different key entry.
-9. **Scatter ranges.** Cognitive y 70–150 as in the original; psychopathology
-   y 20–75 (original 20–70, where data up to 72 are cut off). Clipped at the axes.
-10. **Signs on tick labels.** The sampling panels print "+0.5" and "+1.0"; the
-    original prints "0.5" and "1.0". Kept for readability of the sign.
+9. **Scatter ranges and cut markers.** The axis ranges are the original's:
+   cognitive y 70–150, psychopathology y 20–75 (the original stops at 70, which
+   would cut the point at 72; 75 keeps it), x 3–3.55 mm and 0.15–0.57. Points
+   outside a range, or within 0.8 mm of an edge (where the marker would be cut),
+   are not drawn. Their fits and r values use all 25 points, because the legend
+   r values are fits to all 25. Markers not drawn, out of 25 per subsample:
+   * g cognitive, dark (A subsample): 2 (DMN 3.000 and 3.140, both at cognition 67).
+   * g cognitive, light (B subsample): 1 (3.473, 58).
+   * h cognitive, light (B subsample): 4 (0.229, 152, above the top; 0.416, 65,
+     below the bottom; 0.365, 73 and 0.558, 73, inside the range but within 0.8 mm
+     of the bottom or right edge).
+   * g psychopathology: none. Total 7 of 150 markers. The full-sample points were
+     never drawn (see 8).
+   Nothing is partially drawn: the crops at 3x show no fragments at any edge.
+   Lint did not report any of this. `plot_spec(..., clip=True)` silences
+   DATA_OUTSIDE and nothing replaces it (ISSUES-marek_bwas_2022.md item 10).
+10. **Tick labels.** Correlation ticks read "1.0", "0.5", "0", "−0.5", "−1.0":
+    no plus sign and zero as "0", as in the original. The histogram axes use
+    the same zero rule.
 11. **Style.** `scientific.nature` in inklet, sans-serif in Liberation Sans, no
     Arial (not installed).
 
@@ -143,6 +160,13 @@ Changes and the problem each fixes:
   the psychopathology RSFC scatter has no data.
 
 Lint for the improved version: one `FONT_SUBSTITUTED` only.
+
+Scatter ranges were widened so that every marker is fully inside (margin 0.8 mm,
+the marker radius). The ranges are x 2.95–3.6 mm (g) and 0.12–0.62 (h), cognitive
+y 50–160 with ticks 70, 110, 150, and psychopathology y 18–78 with ticks 20, 70.
+The script counts markers outside the margin for each sample; the count is 0 for
+all six. Zero reads "0" on the histogram x-axes and the level y-ticks, and the
+±0.5 ticks are signed.
 
 ## Verification numbers
 
