@@ -62,6 +62,23 @@ doc.save('errorbars.svg', 'errorbars.pdf')
 *Rendered from the code above. Five illustrative dose–response estimates have
 asymmetric response distances and supplied dose uncertainty.*
 
+**Whiskers that reach zero on a log axis.** A log axis cannot place a bound of
+zero or below, and a fitted estimate often has one. Such a whisker runs to the
+bottom of the axis and ends in an open arrowhead, which shows that it continues
+past the axis, and the log scale is kept. `floor="none"` leaves the arrowhead
+off. The point itself must still be above zero. `symlog()` changes the whole
+axis instead, so use it only when the axis has to reach zero.
+
+```python
+import inklet as i
+p = i.plot_spec(x=(0.05, 300), y=i.log((1e-4, 1)), height=44)
+p.errorbars([(0.6, 8e-4), (30, 3e-3)], yerr=[(8e-4, 6e-3), (1e-3, 1e-3)], cap=.7)
+p.axes(x='Dose / µM', y='Coupling')
+doc = i.document(width=110)
+doc.add('floor', p)
+doc.save('floor.svg', 'floor.pdf')
+```
+
 ## Line with errors
 
 A line can show supplied uncertainty as a band or error bars.
