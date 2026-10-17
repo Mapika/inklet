@@ -19,13 +19,15 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 OUT = ROOT / "gallery" / "published"
 
-# P-value classes, least significant first: a sequential ramp, darker = more
-# significant. Drawn in this order, so the most significant class sits on top.
+# P-value classes, least significant first: a sequential single-hue ramp, darker =
+# more significant, from inklet ramp(["#4292c6", "#08306b"]).sample(5). The lightest
+# step is 3.4:1 against white (WCAG graphical object threshold is 3:1). Drawn in this
+# order, so the most significant class sits on top.
 CLASSES = [
-    ("(5e-10,5e-08]", "5 × 10^{-8} > P > 5 × 10^{-10}", "#9ecae1"),
-    ("(5e-20,5e-10]", "5 × 10^{-10} > P > 5 × 10^{-20}", "#6baed6"),
-    ("(5e-50,5e-20]", "5 × 10^{-20} > P > 5 × 10^{-50}", "#3182bd"),
-    ("(5e-100,5e-50]", "5 × 10^{-50} > P > 5 × 10^{-100}", "#08519c"),
+    ("(5e-10,5e-08]", "5 × 10^{-8} > P > 5 × 10^{-10}", "#4292c6"),
+    ("(5e-20,5e-10]", "5 × 10^{-10} > P > 5 × 10^{-20}", "#3678ae"),
+    ("(5e-50,5e-20]", "5 × 10^{-20} > P > 5 × 10^{-50}", "#295f97"),
+    ("(5e-100,5e-50]", "5 × 10^{-50} > P > 5 × 10^{-100}", "#1a4781"),
     ("[0,5e-100]", "P < 5 × 10^{-100}", "#08306b"),
 ]
 # Power curves: orange (solid) and vermilion (dashed), clear of the blue ramp.
@@ -39,6 +41,11 @@ Z_ALPHA, Z_POWER = 5.4513, 1.2816
 def beta_for_power(maf, n):
     """|beta| (s.d. per minor allele) detectable with 90% power at P < 5e-8."""
     return (Z_ALPHA + Z_POWER) / np.sqrt(2 * maf * (1 - maf) * n)
+
+
+def y_label(v):
+    """Zero is written "0", as in the original; minus is U+2212."""
+    return "0" if abs(v) < 1e-9 else f"{v:.1f}".replace("-", "−")
 
 
 # -- data ---------------------------------------------------------------------
@@ -72,7 +79,8 @@ for n, label, color, dash in CURVE_N:
 p.axes(x="Minor allele frequency in cross-ancestry meta-analysis (%)",
        y="Joint effect size of minor allele (s.d.)",
        x_options=dict(ticks=[0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50], format="{:g}"),
-       y_options=dict(ticks=[-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3]))
+       y_options=dict(ticks=[-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3],
+                      format=y_label))
 p.legend(side="right", names=names[::-1] + curve_names)
 
 doc.add("fig1", p)

@@ -126,3 +126,28 @@ change the scripts to use it.
   that accepts it without a warning.
 * Workaround: none applied. All four figures report this single warning and
   nothing else.
+
+## 6. Default tick format writes zero as "0.0" when the other ticks have a decimal
+
+With explicit y ticks that include 0 and have one decimal (-0.3 ... 0.3), the
+default formatter labels the zero tick "0.0", while the original labels it "0".
+This is consistent with the other ticks (one decimal everywhere), so it may be
+intended. It is still awkward: getting "0" needs a callable `format=` on that
+axis, which the guide does not mention.
+
+```python
+import inklet as i
+
+p = i.plot_spec(70, 50, x=(0, 1), y=(-0.3, 0.3))
+p.scatter([(0.5, 0.1)], size=1)
+p.axes(y_options=dict(ticks=[-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3]))
+doc = i.preset("scientific.nature", format="single-column").document()
+doc.add("a", p)
+doc.compile().save("ticks.png", dpi=200)   # zero label reads "0.0"
+```
+
+* Actual: the zero tick reads "0.0" (seen in `fig1.py` before the fix).
+* Expected: either a way to say "zero is written as 0" in the axis options, or
+  the guide says that a `format=` callable is the way to do it.
+* Workaround: `format=y_label` in `fig1.py` and `fig1_improved.py`, where
+  `y_label` writes 0 as "0" and uses U+2212 for minus.

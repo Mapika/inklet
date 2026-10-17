@@ -38,6 +38,11 @@ def beta_for_power(maf, n):
     return (Z_ALPHA + Z_POWER) / np.sqrt(2 * maf * (1 - maf) * n)
 
 
+def y_label(v):
+    """Zero is written "0", as in the original; minus is U+2212."""
+    return "0" if abs(v) < 1e-9 else f"{v:.1f}".replace("-", "−")
+
+
 # -- data ---------------------------------------------------------------------
 snps = pd.read_csv(HERE / "data" / "fig1_source.csv")
 snps.columns = ["maf", "beta", "cls"]
@@ -65,7 +70,8 @@ for n, label, color in SAMPLE_SIZES:
 p.axes(x="MAF (%) in cross-ancestry meta-analysis",
        y="Joint effect sizes (s.d.) of minor alleles\nin cross-ancestry meta-analysis",
        x_options=dict(ticks=[1, 5, 10, 20, 30, 40, 50]),
-       y_options=dict(ticks=[-0.3, -0.2, -0.1, 0.1, 0.2, 0.3]))
+       y_options=dict(ticks=[-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3],
+                      format=y_label))
 p.legend(corner="ne", names=[f"{lab} ({(snps.cls == k).sum():,} SNPs)"
                              for k, lab, _ in CLASSES])
 

@@ -32,7 +32,9 @@ Figure 1 (`fig1.py`):
 
 - Single panel, linear MAF axis from 0 to 50%, ticks at 1, 5, 10, 20, 30, 40, 50
   (the original's ticks, on its linear scale). The original's y range −0.3 to
-  0.3 with ticks at 0.1 steps; the zero tick is unlabelled, as in the original.
+  0.3 with ticks at 0.1 steps, including the zero tick, labelled "0" as in the
+  original. The default formatter would write "0.0" (ISSUES-yengo_height_2022.md #6),
+  so `y_label()` writes zero as "0" and uses a true minus sign.
 - All 12,111 SNPs; the five classes with the original's names, counts (672,
   1,110, 3,513, 5,192, 1,624) and key order, with the key in the upper right.
 - Colours sampled from the original: P < 5 × 10⁻¹⁰⁰ #EE82EE, 5 × 10⁻⁵⁰–10⁻¹⁰⁰
@@ -116,10 +118,17 @@ Each change, with the problem it fixes in the original:
    sitting inside the plot over the data at the top right, and the second key at
    the bottom right. The five classes and the two curves are in one ordered key.
 4. **Single-hue sequential palette for the five ordered P-value classes**, from
-   light (least significant, #9ecae1) to dark (most significant, #08306b). Fixes
-   the yellow, olive, gold and green categories of the original, which are not
-   colour-blind-safe and carry no order. The ramp is single-hue, so it is safe
-   for the common forms of colour blindness.
+   mid blue (least significant, #4292c6) to navy (most significant, #08306b),
+   sampled from inklet `ramp(["#4292c6", "#08306b"]).sample(5)`: #4292c6,
+   #3678ae, #295f97, #1a4781, #08306b. Fixes the yellow, olive, gold and green
+   categories of the original, which are not colour-blind-safe and carry no
+   order. The ramp is single-hue, so it is safe for the common forms of colour
+   blindness. The lightest step is 3.4:1 against white (the WCAG 3:1 threshold
+   for graphical objects). A first version started at #9ecae1, about 1.9:1 with
+   the markers at 60% opacity, which nearly disappeared on the white background;
+   that is why the ramp now starts darker. cividis and viridis (both shipped by
+   inklet) were considered and rejected: their light ends are yellow, which has
+   the same problem on white.
 5. **Power curves in Okabe-Ito orange (#E69F00, solid, n = 0.5 M) and vermilion
    (#D55E00, dashed, n = 5 M).** The original's grey and coral curves are close
    to the khaki and gold classes and to each other; the hue and dash both
@@ -190,10 +199,10 @@ Numbers checked against the paper and the Source Data:
 
 ## Look-fix rounds
 
-- Figure 1 faithful: 3 rounds (curve weight, key position, y ticks and
-  zero label, curve key moved to a second key).
-- Figure 1 improved: 3 rounds (marker size and opacity, curve weight, key
-  outside the plot).
+- Figure 1 faithful: 4 rounds (curve weight, key position, y ticks, the zero
+  label "0" restored and formatted, curve key as a second legend call).
+- Figure 1 improved: 4 rounds (marker size and opacity, curve weight, key
+  outside the plot, lightest class of the ramp darkened for contrast).
 - Figure 2 faithful: 4 rounds (key position, y range, label spacing, median
   label text and rotated tick labels).
 - Figure 2 improved: 3 rounds (key moved above the plot, clipping off for markers
