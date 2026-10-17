@@ -224,8 +224,8 @@ which fits a 16:9 slide, so put the image in at its own size.
    squashed flat beside a much taller one on the same axis
    (`SERIES_FLATTENED`, with the axis to give it), and replicate rows that a
    bar sums or a line zigzags through (`ROWS_COMBINED`), bars wider than
-   their axis (`BAR_WIDTH_OUT_OF_SCALE`), a plot narrower than the width it was
-   given (`PLOT_WIDTH_OVERRIDDEN`), and a y-axis title that runs into its
+   their axis (`BAR_WIDTH_OUT_OF_SCALE`), a plot much narrower than the width it
+   was given (`PLOT_WIDTH_OVERRIDDEN`), and a y-axis title that runs into its
    neighbours (`AXIS_TITLE_OVERHANG`), each with a suggested fix. `inklet lint: clean` means no problems. Mark ornamental text
    such as a pale watermark with `text(..., decorative=True)` so the contrast
    check skips it.

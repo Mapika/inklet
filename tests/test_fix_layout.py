@@ -129,6 +129,15 @@ def test_authored_plot_width_that_does_not_fit_is_reported():
     assert _areas(figure)['m'].width < 60
 
 
+def test_a_few_millimetres_trimmed_by_tick_labels_are_not_reported():
+    # A grid's nominal width loses a little to each cell's own tick labels; that
+    # is layout, not a broken promise, so only a loss over 15% is reported.
+    figure = _pair(34, 30, page=89, columns=2)
+    drawn = _areas(figure)['m'].width
+    assert 34*.85 <= drawn < 34, drawn
+    assert 'PLOT_WIDTH_OVERRIDDEN' not in _codes(figure)
+
+
 def test_plot_width_left_to_its_default_does_not_bind():
     main = i.plot_spec(height=50, x=(0, 1), y=(0, 1))
     main.axes()

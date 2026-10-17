@@ -82,13 +82,22 @@ def rule_axis_title_overhang(ctx: LintContext) -> list[Diagnostic]:
     return out
 
 
+#: How much narrower than authored a plot in a shared row may be drawn before
+#: it is reported. Plots in a grid are routinely given one nominal width that
+#: each cell's own tick labels then trim by a few millimetres; that is the
+#: layout working, not a broken promise. Losing more than this is.
+WIDTH_TOLERANCE = .15
+
+
 def rule_plot_width_overridden(ctx: LintContext) -> list[Diagnostic]:
-    """A plot drawn narrower than the width its author set."""
+    """A plot drawn much narrower than the width its author set."""
     out: list[Diagnostic] = []
     for node_id, findings in sorted(_noted(ctx, WIDTH_NOTE).items()):
         for found in findings:
             authored = float(found.get("authored", 0.0))
             actual = float(found.get("actual", 0.0))
+            if actual >= authored*(1 - WIDTH_TOLERANCE):
+                continue
             cell = float(found.get("cell", 0.0))
             furniture = float(found.get("furniture", 0.0))
             out.append(Diagnostic(

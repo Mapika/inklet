@@ -660,9 +660,10 @@ def plot_spec(width=None, height=30, **options):
     caps it, the cell's width and furniture limit it, and `align=` on
     `doc.add` places the slack.
 
-    A document may widen a plot to fill its cell, but never draws it narrower
-    than the `width` given here, with its furniture beside it. When the row
-    cannot hold that, the page says so in lint (`PLOT_WIDTH_OVERRIDDEN`).
+    A document may widen a plot to fill its cell, and keeps the `width` given
+    here when the row has room for it and its furniture. When the row cannot
+    hold that, the plot is drawn narrower, and lint says so
+    (`PLOT_WIDTH_OVERRIDDEN`) once it loses more than 15% of its width.
     Without `width`, the plot is 40 mm wide and the default does not bind.
     """
     return PlotSpec(40 if width is None else width, height, options,
