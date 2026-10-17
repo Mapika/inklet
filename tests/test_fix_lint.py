@@ -107,9 +107,10 @@ def test_a_line_clipped_at_the_edge_does_not_warn():
     assert not codes(diags, "DATA_OUTSIDE")
 
 
-def test_markers_straddling_the_clip_edge_warn():
+def test_square_markers_cut_by_the_clip_edge_warn():
     p = i.plot_spec(30, 25, x=(0, 1), y=(0, 1), clip=True)
-    p.scatter([(0.3, 1.3), (0.6, 1.0), (0.8, 0.5)], size=1.5, name="points")
+    p.scatter([(0.3, 1.3), (0.6, 1.0), (0.8, 0.5)], size=1.5, marker="square",
+              name="points")
     p.axes()
     diags = _compiled(p).lint()
 
@@ -118,6 +119,18 @@ def test_markers_straddling_the_clip_edge_warn():
     assert len(hidden) == 1 and "'points'" in hidden[0].message, hidden
     assert len(cut) == 1 and cut[0].severity == "warning", cut
     assert "'points'" in cut[0].message
+
+
+def test_round_markers_on_the_edge_are_drawn_whole_and_do_not_warn():
+    # clip keeps a round marker whole across the edge, by design (the way a
+    # point on the boundary is drawn), so it is not a cut marker. The tutorial's
+    # points at the end of an xlim are this case.
+    p = i.plot_spec(30, 25, x=(0, 1), y=(0, 1), clip=True)
+    p.scatter([(0.6, 1.0), (0.8, 0.5)], size=1.5, name="points")
+    p.axes()
+    diags = _compiled(p).lint()
+
+    assert not codes(diags, "MARKER_CUT")
 
 
 def test_markers_inside_the_range_are_quiet_with_clip_true():

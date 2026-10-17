@@ -207,8 +207,8 @@ which fits a 16:9 slide, so put the image in at its own size.
 1. `figure = chart.save('fig.png')` returns the compiled figure.
    `print(figure.report())` lists overlapping labels, clipped or tiny text, and
    data running outside the axes (`DATA_OUTSIDE`, with the range to set), points
-   that `clip=True` hid (`DATA_CLIPPED`, counted per series) and markers the
-   axes edge cuts through (`MARKER_CUT`), a key
+   that `clip=True` hid (`DATA_CLIPPED`, counted per series) and square or path
+   markers the axes edge cuts (`MARKER_CUT`), a key
    drawn over data (`KEY_COVERS_DATA`, with the corners that are clear),
    supplied ticks dropped for lack of room (`TICKS_DROPPED`), a series
    squashed flat beside a much taller one on the same axis

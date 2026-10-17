@@ -645,12 +645,12 @@ def clip_census(node: Diagram, region: Rect | Sequence[Point], *,
 
     `points` counts what lies wholly outside the region: the vertices of a line
     (its anchor points, not the flattened samples of a curve), and the markers
-    that do not touch it at all. `markers` counts the markers that touch the
-    region and run past its edge by more than `CUT_SLACK_MM`. A square or path
-    marker is cut there; a round one is kept whole and runs across the edge,
-    and both are the reader's "partly drawn". With `markers=False` a line is
-    judged by its vertices and no marker is counted; with `markers=True` every
-    leaf is a marker.
+    that do not touch it at all. `markers` counts the markers the clip actually
+    cuts: a square or path marker that runs past the edge by more than
+    `CUT_SLACK_MM`. A round marker on the edge is kept whole, which is the
+    documented way a point on the boundary is drawn, so it is not counted. With
+    `markers=False` a line is judged by its vertices and no marker is counted;
+    with `markers=True` every leaf is a marker.
 
     Walks the tree the way `clip` does, in the same frame, so the two cannot
     disagree about what is inside.
@@ -678,7 +678,7 @@ def _census(node: Diagram, world: Affine, edges, box: Rect, markers: bool,
             if reach is not None:
                 if not _touching(box, reach):
                     counts[0] += 1
-                elif _overhang(reach, box) > CUT_SLACK_MM:
+                elif isinstance(prim, _EXACT) and _overhang(reach, box) > CUT_SLACK_MM:
                     counts[1] += 1
         elif isinstance(prim, PathPrim):
             for sub in prim.subpaths:
@@ -700,7 +700,7 @@ def _census_batch(node: Diagram, world: Affine, edges, box: Rect,
         reach = local.transform(world)
         if not _touching(box, reach):
             counts[0] += 1
-        elif _overhang(reach, box) > CUT_SLACK_MM:
+        elif isinstance(batch.shape, _EXACT) and _overhang(reach, box) > CUT_SLACK_MM:
             counts[1] += 1
 
 

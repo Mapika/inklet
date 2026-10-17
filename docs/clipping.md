@@ -46,9 +46,10 @@ stroke appearance must remain intact.
 
 Lint reads back what a `plot_spec(..., clip=True)` hid. Each named series with
 points outside the axes is reported once as `DATA_CLIPPED`, with the count. A
-marker that the axes edge runs through is `MARKER_CUT`, a warning: a square or
-path marker is cut at the edge, and a round one is drawn whole across it. A
-line cut at the edge is never reported, since its cut ends are the window.
+square or path marker that the axes edge cuts through is `MARKER_CUT`, a
+warning. A round marker on the edge is drawn whole, as clip always draws a
+point on the boundary, so it is not reported; nor is a line cut at the edge,
+since its cut ends are the window.
 
 ## Painted windows
 

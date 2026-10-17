@@ -978,10 +978,11 @@ def inset_scale(ctx: LintContext, node_id: str) -> float | None:
 # still known (`draw.clip.clip_census`), and these rules read the count back.
 #
 # **DATA_CLIPPED is info.** The clip is intended; the author should know how
-# many points of which series it hid. **MARKER_CUT is a warning**: a marker
-# drawn half across the axes edge is a picture nobody means. A line cut at the
-# edge is not reported -- its cut ends are the window, which is what clip=True
-# is for.
+# many points of which series it hid. **MARKER_CUT is a warning**, for a square
+# or path marker the edge really cuts: a half-drawn square is a picture nobody
+# means. A round marker on the edge is kept whole by design, so it is not
+# reported, and neither is a line cut at the edge -- its cut ends are the
+# window, which is what clip=True is for.
 
 def _clip_notes(ctx: LintContext) -> dict[str, Mapping]:
     """The clip census of each cut node, keyed by node id.
@@ -1061,8 +1062,8 @@ def rule_marker_cut(ctx: LintContext) -> list[Diagnostic]:
             targets=tuple(sorted(ids)),
             where=_union_box(ctx, ids),
             hint=("keep the points inside the range (widen the axis), or accept the "
-                  "cut if the edge is meant to show a window; square and path "
-                  "markers are cut at the edge, round ones are drawn whole across it"),
+                  "cut if the edge is meant to show a window; round markers on the "
+                  "edge are drawn whole, so only square and path markers are cut"),
         ))
     return out
 
