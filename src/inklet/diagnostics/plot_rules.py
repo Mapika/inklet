@@ -35,14 +35,18 @@ about the linter.
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 from ..core import Rect, Vec2
+from ..draw.clip import CLIP_NOTE, MARKERS_NOTE
 from ..draw.coords import AREA_NOTE
+from ..draw.shapes import (AUTHOR_STROKE_NOTE, ERRORBARS_NOTE,
+                           GENERATED_STROKE_NOTE, SERIES_OF_NOTE)
 from ..plot.axis import (AXIS_KIND, AXIS_LABEL_KIND, SPINE_KIND, TICK_KIND,
                          TICK_LABEL_KIND)
 from ..plot.key import COLORBAR_KIND, LEGEND_KIND
-from ..plot.line_labels import LINE_LABELS_KIND
+from ..plot.inset import INSET_SCALE_NOTE
+from ..plot.line_labels import LINE_LABELS_KIND, SERIES_NOTE
 from ..plot.series_span import SERIES_SPAN_NOTE
 from .rules import (
     Diagnostic, Item, LintContext, _mm, _outside, _sides_phrase,
@@ -885,6 +889,185 @@ def _axis_owner(ctx: LintContext, node_id: str) -> str:
     return _panel_name(ctx, panels[0])
 
 
+# -- what a stroke is, for INCONSISTENT_STROKE ------------------------------
+#
+# A stroke the library draws around the author's data -- the spine and ticks of
+# an axis, a legend swatch, a colour bar, the cap on an error bar -- was not
+# chosen one stroke at a time, so counting its weight against the figure's
+# budget blames the author for the theme. The rule asks two things of each
+# stroke: whose it is, and what it belongs to, so the message can say
+# "errorbars 'Data'" and not an id.
+
+#: Furniture whose strokes the plot layer draws for the author.
+_FURNITURE_STROKE_KINDS = (AXIS_KIND, LEGEND_KIND, COLORBAR_KIND)
+
+
+def _has_note(node, key: str) -> bool:
+    notes = getattr(node, "notes", None)
+    return isinstance(notes, Mapping) and bool(notes.get(key))
+
+
+def library_stroke(ctx: LintContext, node_id: str) -> bool:
+    """Whether a stroke is the library's rather than the author's.
+
+    True for anything under an axis, a legend or a colour bar, and for an
+    error-bar cap. A node the author gave an explicit `stroke_width=` keeps its
+    strokes in the count, since then the weight was chosen after all.
+    """
+    nodes = [ctx.nodes[step] for step in ctx.chain(node_id) if step in ctx.nodes]
+    if any(_has_note(node, AUTHOR_STROKE_NOTE) for node in nodes):
+        return False
+    return any(node.kind in _FURNITURE_STROKE_KINDS or _has_note(node, GENERATED_STROKE_NOTE)
+               for node in nodes)
+
+
+def stroke_role(ctx: LintContext, node_id: str) -> str:
+    """What a stroke is and whose, as the author would look for it: 'axis spine',
+    'legend swatch', "errorbars 'Data'", "line 'Fit'"."""
+    nodes = [ctx.nodes[step] for step in reversed(ctx.chain(node_id))
+             if step in ctx.nodes]
+    kinds = {node.kind for node in nodes}
+    if SPINE_KIND in kinds:
+        return "axis spine"
+    if TICK_KIND in kinds:
+        return "axis ticks"
+    if AXIS_KIND in kinds:
+        return "axis"
+    if LEGEND_KIND in kinds:
+        return "legend swatch"
+    if COLORBAR_KIND in kinds:
+        return "colour bar"
+    series = None
+    for node in nodes:
+        for key in (SERIES_NOTE, MARKERS_NOTE, SERIES_OF_NOTE):
+            value = getattr(node, "notes", {}).get(key)
+            if value is not None and series is None:
+                series = str(value)
+    if any(_has_note(node, ERRORBARS_NOTE) for node in nodes):
+        what = "errorbars"
+    elif any(MARKERS_NOTE in getattr(node, "notes", {}) for node in nodes):
+        what = "markers"
+    elif series is not None:
+        what = "line"
+    else:
+        return ctx.label(node_id)
+    return what if series is None else f"{what} {series!r}"
+
+
+def inset_scale(ctx: LintContext, node_id: str) -> float | None:
+    """The factor an inset's `width=` drew this item at, when one shrank it.
+
+    The nearest inset above the item answers. None when nothing between the
+    item and the page was scaled by an inset, so the rule can say so.
+    """
+    for step in reversed(ctx.chain(node_id)):
+        node = ctx.nodes.get(step)
+        notes = getattr(node, "notes", None)
+        value = notes.get(INSET_SCALE_NOTE) if isinstance(notes, Mapping) else None
+        if isinstance(value, Mapping) and isinstance(value.get("scale"), (int, float)):
+            return float(value["scale"])
+    return None
+
+
+# -- DATA_CLIPPED and MARKER_CUT ------------------------------------------------
+#
+# `clip=True` is a choice the author makes on purpose: a window onto a long
+# trace, bars whose tallest end is cut. Nothing above says what it hid, so a
+# series that ran off the top simply vanished from the figure with the report
+# clean. `Panel._to_area` counts what each cut took away while the points are
+# still known (`draw.clip.clip_census`), and these rules read the count back.
+#
+# **DATA_CLIPPED is info.** The clip is intended; the author should know how
+# many points of which series it hid. **MARKER_CUT is a warning**, for a square
+# or path marker the edge really cuts: a half-drawn square is a picture nobody
+# means. A round marker on the edge is kept whole by design, so it is not
+# reported, and neither is a line cut at the edge -- its cut ends are the
+# window, which is what clip=True is for.
+
+def _clip_notes(ctx: LintContext) -> dict[str, Mapping]:
+    """The clip census of each cut node, keyed by node id.
+
+    A wrapper holding one cut node inherits its notes (`carry_notes`), so the
+    same record turns up on the holders above it. Only the deepest carrier is
+    kept, as `rule_series_flattened` does for its own notes.
+    """
+    noted: dict[str, Mapping] = {}
+    for node_id, node in ctx.nodes.items():
+        notes = getattr(node, "notes", None)
+        value = notes.get(CLIP_NOTE) if isinstance(notes, Mapping) else None
+        if isinstance(value, Mapping):
+            noted[node_id] = value
+    holders = {step for node_id, value in noted.items()
+               for step in ctx.ancestors(node_id) if noted.get(step) == value}
+    return {node_id: value for node_id, value in noted.items()
+            if node_id not in holders}
+
+
+def _clip_totals(ctx: LintContext, field: str) -> dict[str | None, tuple[int, list[str]]]:
+    """Sum one count of the clip census over the series it belongs to."""
+    totals: dict[str | None, tuple[int, list[str]]] = {}
+    for node_id, value in sorted(_clip_notes(ctx).items()):
+        count = value.get(field)
+        if not isinstance(count, int) or count <= 0:
+            continue
+        name = value.get("series")
+        total, ids = totals.get(name, (0, []))
+        totals[name] = (total + count, ids + [node_id])
+    return totals
+
+
+def _union_box(ctx: LintContext, ids: Sequence[str]) -> Rect | None:
+    boxes = [placed.bbox for node_id in ids
+             if (placed := ctx.placements.get(node_id)) is not None]
+    if not boxes:
+        return None
+    box = boxes[0]
+    for other in boxes[1:]:
+        box = box.union(other)
+    return box
+
+
+def rule_data_clipped(ctx: LintContext) -> list[Diagnostic]:
+    """Named series whose points `clip=True` hid from the axes, counted."""
+    out: list[Diagnostic] = []
+    for name, (count, ids) in sorted(_clip_totals(ctx, "points").items(),
+                                     key=lambda kv: (kv[0] is None, kv[0] or "")):
+        if name is None:
+            continue       # the message names the series; an unnamed curve has no name to give
+        out.append(Diagnostic(
+            code="DATA_CLIPPED",
+            severity="info",
+            message=(f"series {name!r} has {count} point{'s' if count != 1 else ''} "
+                     f"outside the axes, hidden by clip=True"),
+            targets=tuple(sorted(ids)),
+            where=_union_box(ctx, ids),
+            hint=("widen the axis range to show them, or keep clip=True if the "
+                  "window onto the data is what the figure shows"),
+        ))
+    return out
+
+
+def rule_marker_cut(ctx: LintContext) -> list[Diagnostic]:
+    """Markers the axes edge cuts through, which `clip=True` leaves half drawn."""
+    out: list[Diagnostic] = []
+    for name, (count, ids) in sorted(_clip_totals(ctx, "markers").items(),
+                                     key=lambda kv: (kv[0] is None, kv[0] or "")):
+        label = f"of {name!r}" if name is not None else "of an unnamed series"
+        out.append(Diagnostic(
+            code="MARKER_CUT",
+            severity="warning",
+            message=(f"{count} marker{'s' if count != 1 else ''} {label} run past "
+                     f"the axes edge and {'are' if count != 1 else 'is'} partly "
+                     f"drawn: the edge cuts through {'them' if count != 1 else 'it'}"),
+            targets=tuple(sorted(ids)),
+            where=_union_box(ctx, ids),
+            hint=("keep the points inside the range (widen the axis), or accept the "
+                  "cut if the edge is meant to show a window; round markers on the "
+                  "edge are drawn whole, so only square and path markers are cut"),
+        ))
+    return out
+
+
 # -- SERIES_FLATTENED ----------------------------------------------------------
 #
 # Two series on one y axis, one ranging 0..5000 and the other 0.2..0.9. The
@@ -954,7 +1137,9 @@ def rule_series_flattened(ctx: LintContext) -> list[Diagnostic]:
                 targets=(node_id,),
                 where=box,
                 hint=("give it its own axis (secondary_y=True in i.line/scatter; "
-                      "Panel.twin_y), a log scale, or a panel of its own"),
+                      "Panel.twin_y), a log scale, or a panel of its own; "
+                      "-> if intended (the flat line is the finding), pass "
+                      "expect={'SERIES_FLATTENED'} to report() or lint()"),
             ))
     return out
 

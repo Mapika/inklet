@@ -36,6 +36,7 @@ from ..core import Diagram, Vec2, mm
 from ..draw.coords import active_theme
 from ..draw.path import polyline
 from ..draw.place import place
+from ..draw.shapes import AUTHOR_STROKE_NOTE
 from ..typeset import shape
 from .breaks import (BREAK_NOTE, axis_break_glyph, axis_breaks_note, gap_bands,
                      outside_breaks, spine_runs)
@@ -318,6 +319,9 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
                                  size=name_size,text_style=text_style,
                                  stroked=stroked))
     node = place(items, kind=kind, **style)
+    if "stroke_width" in style:
+        # The author chose the axis weight, so its strokes count in the budget.
+        node.note(AUTHOR_STROKE_NOTE, True)
     breaks = axis_breaks_note(scale, horizontal=horizontal)
     if breaks is not None:
         # In this node's own frame, which is the scale's. `Diagram.note` is

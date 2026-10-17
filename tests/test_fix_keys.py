@@ -200,7 +200,7 @@ def _narrow_cell_document(**legend):
         p.line([(0, 0.9), (1, 0.1)], name="gamma curve")
         p.axes(x="x", y="y")
         p.legend(side="top", **legend)
-        doc.add(f"c{column}", p, column=column)
+        doc.add(f"c{column}", p, row=0, column=column)
     return doc
 
 

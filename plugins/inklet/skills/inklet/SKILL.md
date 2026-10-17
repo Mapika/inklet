@@ -218,7 +218,9 @@ which fits a 16:9 slide, so put the image in at its own size.
 
 1. `figure = chart.save('fig.png')` returns the compiled figure.
    `print(figure.report())` lists overlapping labels, clipped or tiny text, and
-   data running outside the axes (`DATA_OUTSIDE`, with the range to set), a key
+   data running outside the axes (`DATA_OUTSIDE`, with the range to set), points
+   that `clip=True` hid (`DATA_CLIPPED`, counted per series) and square or path
+   markers the axes edge cuts (`MARKER_CUT`), a key
    drawn over data (`KEY_COVERS_DATA`, with the corners that are clear),
    supplied ticks dropped for lack of room (`TICKS_DROPPED`), a series
    squashed flat beside a much taller one on the same axis
@@ -226,7 +228,10 @@ which fits a 16:9 slide, so put the image in at its own size.
    bar sums or a line zigzags through (`ROWS_COMBINED`), bars wider than
    their axis (`BAR_WIDTH_OUT_OF_SCALE`), a plot much narrower than the width it
    was given (`PLOT_WIDTH_OVERRIDDEN`), and a y-axis title that runs into its
-   neighbours (`AXIS_TITLE_OVERHANG`), each with a suggested fix. `inklet lint: clean` means no problems. Mark ornamental text
+   neighbours (`AXIS_TITLE_OVERHANG`), each with a suggested fix. A flat series
+   that is the finding itself is acknowledged, not fixed:
+   `figure.report(expect={"SERIES_FLATTENED"})` lists it under ACKNOWLEDGED.
+   `inklet lint: clean` means no problems. Mark ornamental text
    such as a pale watermark with `text(..., decorative=True)` so the contrast
    check skips it.
 2. Look at the PNG. If you can view images, open it. Labels are measured, so
@@ -318,4 +323,6 @@ networks, ternary...) with its signature.
 - Do not call `plt.show()`-style display code; save files and inspect them.
 - In the full model, `plot_spec(x=..., y=...)` does **not** clip: data past
   the domain are drawn outside the axes and reported as `DATA_OUTSIDE`. Leave
-  `x`/`y` out to fit the data, or pass `clip=True`.
+  `x`/`y` out to fit the data, or pass `clip=True`. With `clip=True` the points
+  that are hidden are reported as `DATA_CLIPPED` (information) and a marker the
+  edge cuts through as `MARKER_CUT` (a warning).

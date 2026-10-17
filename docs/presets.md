@@ -248,8 +248,11 @@ and, in column formats, checks them against 8 pt (`max_letter_pt=8`).
 Its font list is `Arial, Helvetica, Liberation Sans, DejaVu Sans, sans-serif`,
 and in column formats `expected_fonts=('Arial', 'Helvetica')` reports text set
 in any other family (monospaced faces excepted) as a `FONT_SUBSTITUTED`
-warning. Without Arial installed, put its file first in `font_family=` (see
-[Export](export.md)) or pass `expected_fonts=None` to accept the substitute.
+finding, once per (expected, actual) pair. A metric-compatible clone such as
+Liberation Sans for Arial is information, because the layout is the same; any
+other substitute is a warning. Without Arial installed, put its file first in
+`font_family=` (see [Export](export.md)) or pass `expected_fonts=None` to accept
+the substitute.
 For Nature single- and double-column formats, compilation checks the 170 mm
 maximum page height (`PAGE_TOO_TALL`) and the 7 pt maximum effective text size
 (`LARGE_TEXT`); panel letters are checked against 8 pt instead. These checks include enclosing transforms and automatic page

@@ -31,6 +31,17 @@ ARC_KIND = "path"
 MARK_KIND = "mark"
 MARK_LINE_KIND = "mark-line"
 
+#: Notes on drawn strokes, read by the linter's stroke-weight budget. A stroke
+#: the library generates for the author -- an error-bar cap -- carries
+#: GENERATED_STROKE_NOTE; a node the author gave an explicit `stroke_width=`
+#: carries AUTHOR_STROKE_NOTE, which puts its strokes back in the budget.
+GENERATED_STROKE_NOTE = "generated_stroke"
+AUTHOR_STROKE_NOTE = "author_stroke"
+#: An error-bar group, and the series it belongs to, so the linter can say
+#: "errorbars 'Data'" rather than an id.
+ERRORBARS_NOTE = "errorbars"
+SERIES_OF_NOTE = "series_of"
+
 MARKER_KINDS = ("circle", "square", "triangle", "diamond", "cross", "plus", "star")
 _STROKE_MARKERS = ("cross", "plus")
 

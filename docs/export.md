@@ -79,9 +79,11 @@ style = i.preset('scientific.nature',
 `compiled.metadata['fonts']` lists the font files the page used. A preset
 whose `expected_fonts` is set (`('Arial', 'Helvetica')` for
 `scientific.nature`) reports text set in any other family as
-`FONT_SUBSTITUTED`, so a figure built where Arial is not installed says so
-instead of silently using a metric-compatible substitute such as Liberation
-Sans. Pass `expected_fonts=None` to accept the substitute.
+`FONT_SUBSTITUTED`, so a figure built where Arial is not installed says so.
+A metric-compatible substitute such as Liberation Sans for Arial (or Arimo for
+Helvetica, Liberation Serif or Tinos for Times, Liberation Mono or Cousine for
+Courier New) is reported as information: the layout is identical, only the
+embedded face differs. Pass `expected_fonts=None` to accept any substitute.
 
 ```python
 figure = doc.compile()

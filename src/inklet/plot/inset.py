@@ -29,6 +29,10 @@ from ..draw.path import polyline
 __all__ = ["INDICATOR_KIND", "INSET_KIND", "inset", "panel_bracket"]
 
 INSET_KIND = "inset"
+#: The note an inset carries when `width=` drew it at a different size:
+#: `{"scale": factor}`. Text inside it is shrunk by that factor, and the linter
+#: reads the note to name the inset as the cause of TINY_TEXT.
+INSET_SCALE_NOTE = "inset_scale"
 INDICATOR_KIND = "frame"     # a muted hairline, which is what the theme calls it
 
 _EPS = 1e-9
@@ -141,7 +145,8 @@ def _scaled_to(node: Diagram, target: float) -> Diagram:
     here = node.width
     if here <= _EPS or abs(here - target) <= _EPS:
         return node
-    return node.scaled(target / here)
+    factor = target / here
+    return node.scaled(factor).note(INSET_SCALE_NOTE, {"scale": factor})
 
 
 def _plated(node: Diagram, theme, pad: float) -> Diagram:

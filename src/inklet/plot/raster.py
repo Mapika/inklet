@@ -50,6 +50,17 @@ __all__ = ["LEVELS", "MATRIX_KIND", "raster_matrix", "uniform_pitch"]
 #: colours on a ramped matrix is inventing intermediate values.
 MATRIX_KIND = "raster-matrix"
 
+#: Set on a vector matrix cell (or batch) that holds no value to show: a
+#: missing one, drawn in the `missing=` colour, or an exact zero. Such a cell is
+#: an empty bin, not a mark, so the linter's overlap and clearance rules skip it
+#: and a label set over blank cells is not reported as crowding them.
+BLANK_CELL_NOTE = "blank_cell"
+
+
+def is_blank_cell(value) -> bool:
+    """Whether a matrix cell is empty: missing, or exactly zero."""
+    return is_missing(value) or value == 0
+
 #: Quantisation steps through the ramp. Twice `plot.key.BANDS`, so the image is
 #: finer than the bar that explains it, and inside PNG's palette limit.
 LEVELS = 256

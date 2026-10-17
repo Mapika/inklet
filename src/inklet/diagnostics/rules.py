@@ -37,7 +37,7 @@ from ..draw.path import is_encoded_kind
 from ..draw.annotate import LETTER_KIND
 # A raster whose pixels are the samples says so with this kind, and the back
 # ends read the same constant to turn smoothing off. LOW_DPI has to know.
-from ..plot.raster import MATRIX_KIND
+from ..plot.raster import BLANK_CELL_NOTE, MATRIX_KIND
 # The one place a rule needs to know what a link is rather than what it drew:
 # a router that could not do what it was asked leaves a flag behind, and only
 # `inklet.links` says how that flag is written down.
@@ -64,7 +64,9 @@ __all__ = [
     "build_context", "run_rules",
 ]
 
-SEVERITIES = ("error", "warning", "info")
+#: "acknowledged" is a finding the author expected (see `lint(expect=)`): it is
+#: listed so it is not forgotten, and does not count as a problem.
+SEVERITIES = ("error", "warning", "info", "acknowledged")
 _SEVERITY_RANK = {name: i for i, name in enumerate(SEVERITIES)}
 
 # Sub-tolerance geometry. Below this a difference is float noise or a hairline
@@ -1010,7 +1012,20 @@ def _pairable(ctx: LintContext, item: Item) -> bool:
         return False
     if ctx.paints_parts(item.id):
         return False
+    if _blank_cell(ctx, item.id):
+        return False
     return _area(item.bbox) > 0.0
+
+
+def _blank_cell(ctx: LintContext, node_id: str) -> bool:
+    """A matrix cell with no value to show: an empty bin, not a mark.
+
+    Labels set over blank bins are the commonest label in a heatmap, and
+    counting the bins as marks made every one of them an OVERLAP.
+    """
+    node = ctx.nodes.get(node_id)
+    notes = getattr(node, "notes", None)
+    return bool(notes.get(BLANK_CELL_NOTE)) if isinstance(notes, Mapping) else False
 
 
 # -- rules ----------------------------------------------------------------
@@ -1109,6 +1124,17 @@ def rule_tiny_text(ctx: LintContext) -> list[Diagnostic]:
         scale_note = ("" if abs(item.scale - 1.0) < 1e-9
                       else f" ({_pts(nominal)} at {item.scale:.3g}x scale)")
         needed = ctx.min_font_pt / item.scale if item.scale else ctx.min_font_pt
+        inset = inset_scale(ctx, item.id)
+        if inset is not None and inset < 1.0:
+            # An inset shrunk to fit its panel. A bigger font inside it is the
+            # arithmetic that makes the number pass, and the wrong fix: the inset
+            # should be built at the size it prints at.
+            hint = (f"the inset is drawn at {inset:.2g}x its printed size, because "
+                    f"its width= shrank it to fit the panel; build the inset at the "
+                    f"size it prints and pass width=None, which keeps its text")
+        else:
+            hint = (f"set font_size to at least {_pts(needed)} "
+                    f"(pt({needed:.1f})), or stop scaling the group down")
         out.append(Diagnostic(
             code="TINY_TEXT",
             severity="error",
@@ -1116,8 +1142,7 @@ def rule_tiny_text(ctx: LintContext) -> list[Diagnostic]:
                      f"below the {_pts(ctx.min_font_pt)} minimum"),
             targets=(item.id,),
             where=item.bbox,
-            hint=(f"set font_size to at least {_pts(needed)} "
-                  f"(pt({needed:.1f})), or stop scaling the group down"),
+            hint=hint,
         ))
     return out
 
@@ -1884,16 +1909,22 @@ def rule_inconsistent_stroke(ctx: LintContext) -> list[Diagnostic]:
     the figure working correctly. The excluded count is still named in the
     message, so the exemption is never silent.
 
+    Strokes the library draws for the figure's furniture -- axis spines and
+    ticks, legend swatches, colour bars, error-bar caps -- are not the author's
+    choices and are not counted either, unless the author gave that node its own
+    `stroke_width=` (`plot_rules.library_stroke`).
+
     The count alone is not a finding anyone can act on. A themed figure already
     spends most of its budget on the theme's own weights, so being told it has
     four of them, listed in order of size, leaves the author to work out which
     one was the mistake. The odd weight out is the rare one: a design system
     gets used over and over and an accident gets used once. So the message
-    carries how many items wear each width, and the hint names the rarest
-    rather than reciting the range.
+    carries how many items wear each width and what they are (`errorbars
+    'Data'`, `axis spine`), and the hint names the rarest rather than reciting
+    the range.
     """
-    widths: dict[float, str] = {}
-    counts: dict[float, int] = {}
+    ids: dict[float, list[str]] = {}
+    roles: dict[float, dict[str, int]] = {}
     scale: set[float] = set()
     for item in ctx.items:
         width = _effective_stroke(item)
@@ -1903,13 +1934,16 @@ def rule_inconsistent_stroke(ctx: LintContext) -> list[Diagnostic]:
         if item.encodes_width:
             scale.add(key)
             continue
-        counts[key] = counts.get(key, 0) + 1
-        if key not in widths or item.id < widths[key]:
-            widths[key] = item.id
-    if len(widths) <= ctx.max_stroke_widths:
+        if library_stroke(ctx, item.id):
+            continue
+        ids.setdefault(key, []).append(item.id)
+        role = stroke_role(ctx, item.id)
+        roles.setdefault(key, {})[role] = roles.get(key, {}).get(role, 0) + 1
+    if len(ids) <= ctx.max_stroke_widths:
         return []
-    ordered = sorted(widths)
-    listing = ", ".join(f"{w:.2f}mm on {counts[w]} ({ctx.label(widths[w])})"
+    ordered = sorted(ids)
+    counts = {w: len(ids[w]) for w in ordered}
+    listing = ", ".join(f"{w:.2f}mm on {counts[w]} ({_roles_phrase(roles[w])})"
                         for w in ordered)
     extra = scale - set(ordered)
     note = (f"; {len(extra)} further width(s) carry data and were not counted"
@@ -1919,10 +1953,19 @@ def rule_inconsistent_stroke(ctx: LintContext) -> list[Diagnostic]:
         severity="info",
         message=(f"figure uses {len(ordered)} distinct stroke widths "
                  f"(max {ctx.max_stroke_widths}): {listing}{note}"),
-        targets=tuple(widths[w] for w in ordered),
+        targets=tuple(min(ids[w]) for w in ordered),
         where=None,
         hint=_stroke_hint(ordered, counts, ctx.max_stroke_widths),
     )]
+
+
+def _roles_phrase(roles: Mapping[str, int]) -> str:
+    """The things that wear one width, most used first: "line 'Fit', axis ticks"."""
+    ranked = sorted(roles.items(), key=lambda kv: (-kv[1], kv[0]))
+    names = [name for name, _ in ranked[:3]]
+    if len(ranked) > 3:
+        names.append(f"+{len(ranked) - 3} more")
+    return ", ".join(names)
 
 
 def _stroke_hint(ordered: Sequence[float], counts: Mapping[float, int],
@@ -3650,19 +3693,39 @@ def rule_link_unclipped(ctx: LintContext) -> list[Diagnostic]:
     return out
 
 
+#: Substitutes that are metric-compatible clones of a named font: the same
+#: advance widths and line metrics, so a layout measured in the clone is the
+#: layout the named font gives. Keyed by the casefolded clone; the value is the
+#: names it stands in for. Reported as INFO, not WARNING, when it is the font a
+#: destination asked for.
+METRIC_CLONES: dict[str, tuple[str, ...]] = {
+    "liberation sans": ("arial", "helvetica"),
+    "arimo": ("arial", "helvetica"),
+    "liberation serif": ("times new roman", "times"),
+    "tinos": ("times new roman", "times"),
+    "liberation mono": ("courier new",),
+    "cousine": ("courier new",),
+}
+
+
 def rule_font_substituted(ctx: LintContext) -> list[Diagnostic]:
     """Report text shaped with a font different from the requested font.
 
     `fc-match` never fails, so a request for Helvetica quietly becomes whatever
     is installed, and the figure ships in the wrong typeface with metrics to
     match. `TextPrim.requested_family` records the ask; this compares it to
-    what was actually used.
+    what was actually used. With `expected_fonts` the destination's list is
+    the ask for every text primitive that does not name a family of its own.
 
-    Findings are grouped by (requested, resolved) pair rather than emitted per
-    label: one missing font usually affects every string in the figure, and
-    fifty identical lines would drown the rest of the report.
+    One finding per (expected, actual) pair: a substitute is one fault however
+    many strings it reaches, and fifty identical lines would drown the rest of
+    the report. A substitute that is a metric-compatible clone of the expected
+    family (`METRIC_CLONES`) is INFO: the layout is the same, only the embedded
+    face differs from the one the journal named. Any other substitute is a
+    WARNING.
     """
-    groups: dict[tuple[str, str], list[str]] = {}
+    pairs: dict[tuple[tuple[str, ...], str], list[str]] = {}
+    asked: set[str] = set()
     for item in ctx.items:
         if not item.is_text or not item.draws:
             continue
@@ -3670,54 +3733,68 @@ def rule_font_substituted(ctx: LintContext) -> list[Diagnostic]:
         actual = item.prim.font_family  # type: ignore[union-attr]
         if not requested or _same_family(requested, actual):
             continue
-        groups.setdefault((requested, actual), []).append(item.id)
-
-    out: list[Diagnostic] = []
-    reported = {i for ids in groups.values() for i in ids}
+        pairs.setdefault(((requested,), actual), []).append(item.id)
+        asked.add(item.id)
     if ctx.expected_fonts:
-        wanted = {_family_key(f) for f in ctx.expected_fonts}
-        others: dict[str, list[str]] = {}
+        expected = tuple(ctx.expected_fonts)
+        wanted = {_family_key(f) for f in expected}
         for item in ctx.items:
-            if not item.is_text or not item.draws or item.id in reported:
+            if not item.is_text or not item.draws or item.id in asked:
                 continue
             actual = item.prim.font_family  # type: ignore[union-attr]
             if _family_key(actual) in wanted or _fixed_pitch(item.prim.font_path):  # type: ignore[union-attr]
                 continue
-            others.setdefault(actual, []).append(item.id)
-        names = " or ".join(repr(f) for f in ctx.expected_fonts)
-        chain = ", ".join(ctx.expected_fonts)
-        for actual, ids in others.items():
-            ids.sort()
-            shown = ", ".join(ctx.label(i) for i in ids[:3])
-            if len(ids) > 3:
-                shown += f", +{len(ids) - 3} more"
-            out.append(Diagnostic(
-                code="FONT_SUBSTITUTED",
-                severity="warning",
-                message=(f"{len(ids)} text prim(s) are set in {actual!r}, not in {names} "
-                         f"as this publication profile expects: {shown}"),
-                targets=tuple(ids),
-                where=None,
-                hint=(f"install {ctx.expected_fonts[0]!r}, or put its font file first in the "
-                      f"family: preset(..., font_family='/path/to/{ctx.expected_fonts[0]}.ttf, "
-                      f"{chain}, sans-serif'); expected_fonts=None accepts {actual!r}"),
-            ))
-    for (requested, actual), ids in groups.items():
+            pairs.setdefault((expected, actual), []).append(item.id)
+
+    out: list[Diagnostic] = []
+    for (names, actual), ids in sorted(pairs.items()):
         ids.sort()
         shown = ", ".join(ctx.label(i) for i in ids[:3])
         if len(ids) > 3:
             shown += f", +{len(ids) - 3} more"
+        quoted = " or ".join(repr(f) for f in names)
+        if ctx.expected_fonts and names == tuple(ctx.expected_fonts):
+            subject = (f"{len(ids)} text prim(s) are set in {actual!r}, not in {quoted} "
+                       f"as this publication profile expects")
+            hint = (f"install {names[0]!r}, or put its font file first in the family: "
+                    f"preset(..., font_family='/path/to/{names[0]}.ttf, "
+                    f"{', '.join(names)}, sans-serif'); expected_fonts=None accepts {actual!r}")
+        else:
+            subject = (f"{len(ids)} text prim(s) asked for {quoted} but were shaped "
+                       f"with {actual!r}")
+            hint = (f"install {names[0]!r}, or set the family to {actual!r} so the "
+                    f"figure says what it means")
+        clone = _clone_of(actual, names)
+        if clone is None:
+            out.append(Diagnostic(
+                code="FONT_SUBSTITUTED",
+                severity="warning",
+                message=f"{subject}: {shown}",
+                targets=tuple(ids),
+                where=None,
+                hint=hint,
+            ))
+            continue
         out.append(Diagnostic(
             code="FONT_SUBSTITUTED",
-            severity="warning",
-            message=(f"{len(ids)} text prim(s) asked for {requested!r} but were "
-                     f"shaped with {actual!r}: {shown}"),
+            severity="info",
+            message=(f"{subject}. The embedded font is not the journal's named font, "
+                     f"but {actual!r} has the same metrics as {clone!r}, so the layout "
+                     f"will not shift when it is set in {clone!r}: {shown}"),
             targets=tuple(ids),
             where=None,
-            hint=(f"install {requested!r}, or set the family to {actual!r} so the "
-                  f"figure says what it means"),
+            hint=f"{hint}; a metric-compatible clone is accepted, so this is for information",
         ))
     return out
+
+
+def _clone_of(actual: str, names: Sequence[str]) -> str | None:
+    """The name in `names` that `actual` is a metric-compatible clone of."""
+    stands_in = METRIC_CLONES.get(_family_key(actual), ())
+    for name in names:
+        if _family_key(name) in stands_in:
+            return name
+    return None
 
 
 def _same_family(a: str, b: str) -> bool:
@@ -3833,8 +3910,10 @@ from .link_rules import (rule_coincident_shaft,                     # noqa: E402
                          rule_label_covers_shaft, rule_link_crosses_link)
 from .path_rules import (rule_path_crosses,                         # noqa: E402
                          stroke_near_misses)
-from .plot_rules import (rule_data_outside, rule_off_panel,         # noqa: E402
-                          rule_series_flattened, rule_rows_combined, rule_ticks_dropped)
+from .plot_rules import (rule_data_clipped, rule_data_outside,      # noqa: E402
+                          rule_marker_cut, rule_off_panel,
+                          rule_series_flattened, rule_rows_combined, rule_ticks_dropped,
+                          inset_scale, library_stroke, stroke_role)
 from .break_rules import rule_break_distorts                       # noqa: E402
 from .three_rules import rule_depth_order                           # noqa: E402
 from .label_rules import rule_label_unplaced, rule_orphan_leader      # noqa: E402
@@ -3847,6 +3926,8 @@ RULES: dict[str, Rule] = {
     "OFF_CANVAS": rule_off_canvas,
     "OFF_PANEL": rule_off_panel,
     "DATA_OUTSIDE": rule_data_outside,
+    "DATA_CLIPPED": rule_data_clipped,
+    "MARKER_CUT": rule_marker_cut,
     "TICKS_DROPPED": rule_ticks_dropped,
     "SERIES_FLATTENED": rule_series_flattened,
     "ROWS_COMBINED": rule_rows_combined,
