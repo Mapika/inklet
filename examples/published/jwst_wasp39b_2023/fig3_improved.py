@@ -65,21 +65,23 @@ doc = i.preset("scientific.nature", format="double-column").document(
 
 top = i.plot_spec(148, 46, x=XLIM, y=(2.06, 2.31), clip=True)
 top.line(list(zip(fit_curve.wavelength_um, fit_curve.transit_depth * PCT)),
-         stroke=FIT, stroke_width=0.3, name="Best fit")
+         stroke=FIT, stroke_width=0.3, name="Best fit (ScCHIMERA)")
 top.errorbars(list(zip(wl, depth)), yerr=sigma.tolist(), stroke=DATA,
               stroke_width=0.2, cap=0)
 top.scatter(list(zip(wl, depth)), size=1.3, color=DATA, hollow=True,
-            stroke_width=0.2, name="Data")
+            stroke_width=0.2, name="Observed (FIREFLy), ±1σ")
 top.axes(x=None, y="Transit depth (%)",
          x_options=dict(ticks=XTICKS, labels=False),
          y_options=dict(ticks=[2.10, 2.15, 2.20, 2.25, 2.30], format="{:.2f}"))
 top.text(2.93, 2.305, "Best fit: 10× solar metallicity, C/O = 0.35, χ²/N = 1.3",
          anchor="nw", color=FIT)
-top.text(5.55, 2.31, "Observed, ±1σ", anchor="ne", color=DATA)
-top.text(5.55, 2.28, "Best fit, all sources", anchor="ne", color=FIT)
+top.legend(corner="ne", names=["Observed (FIREFLy), ±1σ", "Best fit (ScCHIMERA)"])
 top.text(4.62, 2.245, "CO_{2} band, 4.3 µm", anchor="w", color=CO2_TXT)
 top.text(3.02, 2.205, "H_{2}O: depth rises blueward of 3.6 µm", anchor="sw", color=H2O)
-top.annotate(4.10, 2.088, "unmodelled feature, ~4 µm", side="s", text_fill=DATA)
+# Label above the data; the leader drops vertically to the bump at 4.03 um,
+# stopping just above its error bar (top 2.154%), so it crosses no point or bar.
+top.text(4.12, 2.185, "unmodelled feature, ~4 µm", anchor="se", color=DATA)
+top.arrow((4.03, 2.181), (4.03, 2.160), head="triangle", stroke=DATA, stroke_width=0.2)
 doc.add("observed", top, row=0)
 
 # -- strips: one source each, shared wavelength axis -----------------------------
@@ -93,7 +95,7 @@ for row, (label, column, colour, text) in enumerate(SOURCES, start=1):
     strip.line(list(zip(wl, delta)), stroke=colour, stroke_width=0.3, name=label)
     if row == 1:
         strip.title("Depth added by each source: best fit minus the fit without it")
-    strip.axes(x=None, y="ppm" if row == 1 else None,
+    strip.axes(x=None, y="Added depth (ppm)" if row == 1 else None,
                x_options=dict(ticks=XTICKS, labels=row == last,
                               label="Wavelength (µm)" if row == last else None),
                y_options=dict(ticks=[0, 1000], format="{:,.0f}"))

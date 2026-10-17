@@ -87,6 +87,12 @@ warning is recorded in `NOTES.md` as the only remaining diagnostic.
 
 ## Checked and fine (no issue)
 
+* Review round: `legend(corner="ne", names=[...])` with a hollow scatter series
+  gives a ring swatch and covers no data here. `text(..., anchor="se")` plus
+  `arrow()` placed the 4 µm callout clear of the points and error bars. A
+  `y` axis label on an 8.5 mm strip ("Added depth (ppm)") is not clipped.
+  `annotate(..., side="n")` drew a diagonal leader that missed its own error
+  bar in a minimal test; I did not find a case where it crosses one.
 * `legend(names=[...], order="column", columns=2)` gives the published key
   order and column layout.
 * `errorbars(..., cap=0)` with a scatter over it, and `scatter(hollow=True)`,

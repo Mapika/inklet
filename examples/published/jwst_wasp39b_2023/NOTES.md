@@ -34,7 +34,8 @@ only. Fig. 3's top panel is reproduced; its bottom panel is not (see below).
   no cloud) and the all-opacity best fit, all from the ScCHIMERA files.
 * Key: the same eight entries in the same order and two-column layout
   (column-major: No H₂O, No CO, No CO₂, No H₂S | No CH₄, No cloud, All opacity,
-  Data), in the upper-left corner over empty space.
+  Data), in the upper-left corner over empty space. (The improved version
+  uses a two-entry key at the top right instead; see below.)
 * Colours: sampled from the legend swatches of the published PNG (No H₂O
   #000080, No CO #ff0000, No CO₂ #000000, No H₂S #ffa500, No CH₄ #add8e6,
   No cloud #808080, All opacity #0000ff). Data markers dark grey.
@@ -81,11 +82,14 @@ Each change, and the problem in the original it fixes:
    between 4.1 and 4.7 µm. Now the observed spectrum and best fit get a panel of
    their own (a), and the no-X curves are removed from it. The contribution of
    each source is drawn in its own strip (b), so no line overlays another.
-2. **Legend far from the data.** The original key sits in the corner and has to be
-   matched to eight lines by colour. The redesign drops the key. Each curve or
-   strip is named where it is: "Observed, ±1σ" and "Best fit, all sources" at the
-   top right, next to their own lines; each strip has its name and peak value at
-   its right-hand end, in the strip's colour.
+2. **Legend far from the data.** The original key has eight entries to match to
+   lines by colour. The redesign keeps only the two entries that need a key, the
+   observed points and the best fit, in a real `legend(corner="ne")` in the top
+   right, where the plot is empty and the key covers no data. The names are
+   "Observed (FIREFLy), ±1σ" and "Best fit (ScCHIMERA)". The strips need no key:
+   each is named at its right-hand end, with its peak value, in the strip's colour.
+   (An earlier draft set the same two names as loose text in the corner, with no
+   swatches; it was replaced by this key.)
 3. **Colours not colour-blind safe.** The original uses navy against blue and red
    against orange. Each source now has a hue from the Okabe–Ito set: CO₂
    vermillion (#d55e00), H₂O blue (#0072b2), CO bluish green (#009e73), H₂S
@@ -97,8 +101,11 @@ Each change, and the problem in the original it fixes:
 4. **Absorption features not labelled on the plot.** The CO₂ band at 4.3 µm is
    labelled beside its peak ("CO₂ band, 4.3 µm"). The H₂O band is labelled at
    3.0 µm, above the data ("H₂O: depth rises blueward of 3.6 µm"). The ~4 µm
-   feature that the paper says the models cannot reproduce is labelled beneath
-   the dip ("unmodelled feature, ~4 µm").
+   feature that the paper says the models cannot reproduce is labelled above the
+   data, at 4.12 µm, 2.185 %, with a short downward arrow that stops just above
+   the error bar of the small bump at 4.03 µm (its top is 2.154 %). Neither the
+   text nor the arrow crosses a point or an error bar. The earlier label sat
+   beneath the dip, where the bars and points crossed it.
 5. **Ablation impact hard to read.** The original makes you compare the vertical
    gaps between eight lines. In the strips the gas contributions share one
    wavelength axis and one ppm scale (−60 to 1,300 ppm), so their sizes compare
@@ -114,7 +121,9 @@ Each change, and the problem in the original it fixes:
    ticks but drop the labels.
 9. **Sign convention.** A title over the strips states what they show ("Depth
    added by each source: best fit minus the fit without it"), so a reader need
-   not infer the sign.
+   not infer the sign. The axis of the first strip reads "Added depth (ppm)",
+   which is also the unit of the other strips' tick labels. It is set beside the
+   first strip and is not clipped.
 
 Still missing from the improved version, as in the faithful one: the molecular
 cross-section panel and the scale-height axis (no data).
@@ -147,4 +156,8 @@ Look-fix rounds: faithful, two (the best-fit line ran past 3.0 µm and was cropp
 the scale and keys then checked clean). Improved, four: the bottom-axis row was
 off by one; the strip labels used 1,000 × too large units (fixed by computing
 in absolute depth); two labels were too light and an error bar crossed the CO₂
-label; the 500 ppm tick was dropped in the short strips.
+label; the 500 ppm tick was dropped in the short strips. Review round (improved):
+the two corner texts with no swatches became a real key; the 4 µm annotation moved
+above the data with an arrow; the bare "ppm" label became "Added depth (ppm)".
+Each was checked at full size, and the crops at 3.9–4.3 µm and the top-right
+corner are clean.
