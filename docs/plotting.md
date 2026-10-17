@@ -111,9 +111,9 @@ for p in panels:
     p.line([(0, .7), (10, .3)], stroke='#b2182b', name='Control')
     p.axes(x='Time', y='Response')
 grid = i.facets(panels + [panels[0].key_diagram(title='Groups')], cols=2)
-doc = i.document(width=120)
-doc.add('grid', grid)
-assert 'Treatment' in doc.compile().to_svg()
+key_doc = i.document(width=120)
+key_doc.add('grid', grid)
+assert 'Treatment' in key_doc.compile().to_svg()
 ```
 
 `key_diagram(names=...)` chooses and orders rows as `legend(names=...)` does, and

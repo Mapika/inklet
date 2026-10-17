@@ -96,8 +96,8 @@ chart.save('dose.pdf')
 
 | Method | Use |
 |---|---|
-| `hline(y, label=)`, `vline(x, label=)` | rule at a data value; `span=(lo, hi)` limits it; `label_side=` |
-| `hspan(y0, y1)`, `vspan(x0, x1)` | shaded stripe between two data values |
+| `hline(y, label=)`, `vline(x, label=)` | rule at a data value; `span=(lo, hi)` limits it; `label_side=`; `name=` adds a key row |
+| `hspan(y0, y1)`, `vspan(x0, x1)` | shaded stripe between two data values; `name=` adds a key row |
 | `annotate(x, y, text, side=)` | callout on a data point, with a leader; `dot=True` marks the point |
 | `text(x, y, content)` | words at a data point; `decorative=True` skips the contrast check |
 | `bracket(a, b, '***')` | significance bracket between two categories; `text=` also works |
@@ -105,7 +105,7 @@ chart.save('dose.pdf')
 | `band(x, lo, hi)`, `fill_between(x, y0, y1)` | shaded envelope between two curves |
 | `label_points(points, labels)`, `label_lines()` | name points, or each curve at its end, instead of a key |
 | `labels(x=, y=, title=, y2=)` | axis titles and the chart title |
-| `legend(corner=, side=, title=)` | the key; updates the one already drawn |
+| `legend(corner=, side=, title=)` | the key; a second call replaces the first, so there is one key per panel |
 | `colorbar(title=, side=)` | the bar of a heatmap or numeric scatter; a chart without one raises |
 | `size(width=, height=)` | set the size after creation |
 | `spec` | the PlotSpec under the chart; every other `Panel` method |
