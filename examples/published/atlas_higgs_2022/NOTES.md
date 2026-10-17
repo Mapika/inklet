@@ -4,142 +4,137 @@
 
 | Script | Output (`gallery/published/`) | Size | Lint |
 |---|---|---|---|
-| `fig5.py` (faithful) | `atlas_higgs_2022_fig5.{svg,pdf,png}` (PNG at 200 dpi) | 89 × 101.9 mm (single column) | 1 warning, 5 infos (see below) |
-| `fig5_improved.py` (improved) | `atlas_higgs_2022_fig5_improved.{svg,pdf,png}` (PNG at 200 dpi) | 183 × 110.4 mm (double column) | 1 warning, 7 infos (see below) |
+| `fig5.py` (faithful) | `atlas_higgs_2022_fig5.{svg,pdf,png}` (PNG at 200 dpi) | 89.0 × 93.6 mm (single column) | 5 infos: `FONT_SUBSTITUTED`, 4 `CROWDING` |
+| `fig5_improved.py` (improved) | `atlas_higgs_2022_fig5_improved.{svg,pdf,png}` (PNG at 200 dpi) | 89.0 × 90.9 mm (single column) | 8 infos: `FONT_SUBSTITUTED`, 7 `CROWDING` |
 
-`fig5.py` is 139 lines, `fig5_improved.py` is 125 lines. `_data.py` loads the two HEPData tables.
+No warnings. `fig5.py` is 143 lines, `fig5_improved.py` is 127 lines. `_data.py`
+loads the two HEPData tables.
 
-Lint results, as printed by `figure.report()`:
+Lint, as printed by `figure.report()`:
 
-* Both scripts: `FONT_SUBSTITUTED` (warning). The `scientific.nature` profile expects
-  Arial or Helvetica; neither is installed here, so the figures are set in Liberation
-  Sans. It is metric-compatible with Arial, so the measured layout is correct. The
-  profile was not changed. The warning goes away on a machine with Arial.
-* `fig5.py`, infos: `CROWDING` on the labels b, μ, Z and W (0.2 to 0.8 mm from a
-  neighbouring mark). These labels sit against the dense W/Z/t cluster and the lowest
-  μ point, as in the original, and each is on the clear side of its point. The
-  lint's 1 mm clearance is not met. `INCONSISTENT_STROKE`: one element at 0.18 mm
-  (inside the particle-table inset), whose source I did not identify. It was not set
-  in the script.
-* `fig5_improved.py`, infos: `CROWDING` on the labels c, t, Z, W, b, τ and μ, each
-  0.3 to 0.6 mm from a neighbouring mark. The lint measures to the whisker caps as
-  well as the marker bodies. I checked each label at full size (4× crops of the 200 dpi
-  PNG, the W/Z pair, τ/b, μ, t and c): none touches a marker, a whisker or the SM line.
-  The labels are on the sides listed below. The lint's 1 mm clearance cannot be met
-  for labels this close to the W/Z/t and τ/b pairs at this width.
+* Both scripts: `FONT_SUBSTITUTED`, now INFO. Arial and Helvetica are not installed
+  here, so the figures are set in Liberation Sans, which is metric-compatible with
+  Arial. The layout is measured in that face. No `expected_fonts=` workaround is used.
+* `fig5.py`, `CROWDING`: the labels b (0.57 mm from a mark), μ (0.21 mm), Z (0.60 mm)
+  and W (0.53 mm). They sit against the W/Z/t cluster and the lowest μ point, as in the
+  original, each on the clear side of its own point. The 1 mm clearance is not met.
+* `fig5_improved.py`, `CROWDING`: the labels c (0.31 mm), t, Z, b, τ and μ (0.60 to
+  0.64 mm) and W (0.76 mm). Each was checked at 4× zoom on the 200 dpi PNG: none touches
+  a marker, a whisker or the SM line. At 89 mm the W/Z/t and τ/b pairs are a few
+  tenths of a millimetre apart, and 1 mm clearance cannot be met for those labels at
+  this width.
 
-The remaining lint is the font warning, plus the crowding infos above. I did not hide
-either with a different font or a different layout.
+## Print width (measured)
+
+* Original: 1024 × 1052 px. The tick digits of the lower panel (for example "1.4" and
+  "0.8") are 21 px high, so cap_px = 21.
+* Width = W_px × 1.77 / cap_px = 1024 × 1.77 / 21 = 86.3 mm. The nearest Nature width
+  is 89 mm, so both figures are `format="single-column"`.
+* Height at 89 mm: 89 × 1052 / 1024 = 91.4 mm. The faithful figure is 93.6 mm, 2.2 mm
+  taller. The extra is the tick-label and axis-title band below the lower panel, set at
+  7 pt with inklet's padding. The improved figure is 90.9 mm.
+
+## Frame (measured)
+
+The brief said the original is boxed. The pixels do not show that. I scanned the
+1024-px original for full-length lines: each panel has a left spine and a bottom spine
+only. There is no top edge and no right edge on either panel (the top-left and
+top-right corners are open). Ticks point inward on the left and bottom. Log minor ticks
+are on the left and bottom of the top panel and on the bottom of the lower one.
+
+So the faithful figure uses the default open axes with inward ticks, not
+`axes="box"`. `axes="box"` is used for the improved figure only, as the frame style
+that suits physics. The faithful figure's axis ink is pure black (`ink="#000000"`),
+not the profile's #1a1a1a.
 
 ## Matches the original
 
-* Layout: two stacked panels sharing the particle-mass axis. Top: log-log, κ_F m_F/vev
-  (fermions) and √κ_V m_V/vev (bosons), 0.046 to 300 GeV, decades 10⁻⁴ to 10⁰. Bottom:
-  κ_F or κ_V on a linear axis from 0.8 to 1.4, with ticks at 0.8, 1.0, 1.2 and 1.4.
-  Both use the same mass axis, and the x-axis label is "Particle mass (GeV)".
-* Data: every value, mass and asymmetric error is read from the two HEPData tables.
-  Nothing is recomputed. Checks: the implied vev from κ·m/vev is 246.00 GeV for the
+* Layout: two stacked panels on one mass axis. Top: log-log, κ_F m_F/vev (fermions) and
+  √κ_V m_V/vev (bosons), 0.046 to 300 GeV, decades 10⁻⁴ to 10⁰. Bottom: κ_F or κ_V on
+  a linear axis, 0.8 to 1.4. The panels are 75 mm wide, measured against the original's
+  887 px plot width (77 mm at 89 mm print width).
+* Bottom x ticks are powers of ten, 10⁻¹ to 10², as in the original. The default log
+  label writes 0.1, 1, 10, 100 under four decades, so `format=power_label` is passed.
+* Data: every value, mass and asymmetric error comes from the two HEPData tables.
+  Nothing is recomputed. Check: the implied vev from κ·m/vev is 246.00 GeV for the
   fermions in both tables (for example τ: 0.92166 × 1.777 / 0.0066577 = 246.00).
-* Series: the circles (κ_c = κ_t) for six particles, and the grey crosses (κ_c free)
-  for the same six plus c. The colours are sampled from the original image:
-  μ #dd5212, τ #dd2d0a, b and t #cf7331, W and Z #006600, c #999999.
-* The SM line, red #f81c1c, is y = m/vev over the full width of the top panel and y = 1
-  over the bottom. It is drawn at vev = 246 GeV.
-* The c point: the grey cross at 7.85 × 10⁻⁵ with its whisker to 7.6 × 10⁻³ in the top
-  panel, and the grey arrow in the bottom panel, pointing down from the top edge to
-  κ_c = 0.031, below the panel.
+* Series: circles (κ_c = κ_t) for six particles, and grey crosses (κ_c free) for the
+  same six plus c. Colours are sampled from the original: μ #dd5212, τ #dd2d0a, b and t
+  #cf7331, W and Z #006600, c #999999.
+* SM line: red #f81c1c, 0.25 mm, y = m/vev over the top panel and y = 1 over the lower
+  one. Drawn at vev = 246 GeV. (It was 0.35 mm before this pass; the original's line is
+  thinner.)
+* The c point: grey cross at 7.85 × 10⁻⁵ with its whisker up to 7.6 × 10⁻³. Its
+  lower bound is zero, so `floor="none"` runs the whisker bare to the bottom of the
+  top panel, as in the original, with no arrowhead. The grey arrow in the lower panel
+  points down from the top edge to κ_c = 0.031.
 * Key: top-left, with the original's three entries (κ_c = κ_t, κ_c free, SM
-  prediction).
-* Particle table: the original's shaded key (leptons, quarks, force carriers, Higgs
-  boson) is redrawn as an inset in the top panel, in the same position and at the
-  original's relative size (36 × 23 mm). Tile colours are the sampled ones.
-* Axis tick labels, minor ticks and whisker caps: as in the original.
+  prediction), now set in italic κ.
+* Particle table: the original's shaded key is an inset in the top panel at the
+  original's relative size, drawn in millimetres from the original's pixels (0.0869
+  mm/px). Tile colours are the sampled ones.
+* Axis labels: the top is two lines, `κ_F m_F/vev` over `or √κ_V m_V/vev`, with variables
+  in italic. The lower is `κ_F or κ_V`. Particle names are italic.
 
 ## Differs, and why
 
-* **Y-axis label.** The original uses a stacked fraction (m_F over vev). inklet has no
-  fraction markup, so the label is one line of text, κ_{F}·m_{F}/vev or
-  √κ_{V}·m_{V}/vev.
-* **Whisker to 0.** On a log axis, κ_c's lower bound of 0 cannot be drawn. The
-  whisker runs to the bottom edge of the top panel, as in the original, where it ends
-  at the axis.
-* **Figure height.** 101.9 mm, against about 91 mm from the original's 1024 × 1052 px
-  aspect ratio. The extra height is the axis-title band below the lower panel.
-* **Labels.** Each particle is named beside its own point with a small offset, not in
-  the original's exact positions. The original's offsets are not recoverable from the
-  picture, and this keeps each name on the clear side of its point.
-* **Inset.** The particle table is drawn with inklet rectangles and text, so tile
-  positions are placed in millimetres from the original's pixels (0.0869 mm/px). The
-  text colour on the dark tiles is white or black, chosen for contrast.
+* **Y-axis label.** The original is a stacked fraction. inklet's markup has no
+  fraction, so each formula is one line of italic text, split over two lines.
+* **Height.** 93.6 mm against 91.4 mm (see Print width).
+* **Label positions.** Each name is beside its own point with a small offset. The
+  original's exact offsets cannot be recovered from the picture.
+* **Key.** The original's κ_c = κ_t key entry has its error bar. Here the marker alone.
 
-## Improved version
+## Pass 2 changes
 
-Changes, each with the problem in the original it fixes:
+Faithful (`fig5.py`):
 
-1. **Double column (183 mm) instead of single column.** The original's W, Z and t
-   points, at 80 to 170 GeV, sit within a few millimetres of each other on a 90 mm
-   plot, and every label fights for space. The common Nature rule for this brief is
-   89 or 183 mm, so the width is 183 mm. I also rendered a 136 mm (1.5-column) test
-   at the same scale: at that width the W and Z markers overlap each other and the W
-   label touches its marker, so the cluster is not readable. 183 mm is kept for that
-   reason, not because 136 mm is unsuitable as a Nature width.
-2. **Labels for each particle at its point, and no lepton/quark legend.** The original
-   needs the eye to travel from a 17-tile particle table to each point. Here the name
-   is beside the point, so the table is not needed. The label sides are: μ, τ, b and
-   t above-left of the filled point; Z above-left of its pair; W below-left of its
-   filled point; c to the left of its diamond. W is below-left rather than below-right
-   because the W diamond sits to the right of its circle (change 6), and the label
-   would touch it.
-3. **Colour key for the two families.** The original shows leptons and quarks as
-   separate colours with a 17-tile table, and no key for the W/Z colour. The improved
-   key has two coloured entries, "Fermions" (blue, the κ_F·m_F/vev points: μ, τ, b, t,
-   c) and "W, Z bosons" (orange, the √κ_V·m_V/vev points). The bottom panel uses the
-   same colours, and the key applies to both.
-4. **Two scenarios differ by shape as well as colour.** The original shows κ_c = κ_t as
-   filled circles and κ_c free as grey crosses, and the grey is close to the colour of
-   the background. The improved figure uses filled circles for κ_c = κ_t and open,
-   paper-filled black diamonds for κ_c free. The two are told apart by fill and outline,
-   not by colour. The diamonds are 1.3 mm and the circles 1.4 mm across (the diamond is
-   no larger than the circle), so neither reads as the heavier mark.
-5. **Colour-blind-safe palette.** The original's red, orange, tan and green are hard to
-   tell apart for the most common forms of colour blindness, and red and green in
-   particular overlap. The improved figure uses two Okabe-Ito colours: blue for the
-   fermions and orange for the vector bosons.
-6. **Dodging of the two scenarios.** The κ_c = κ_t points sit at mass ÷ 1.09 (−8.3%)
-   and the κ_c-free points at mass × 1.09 (+9.0%), the same on both panels. In the
-   original the two scenarios sit at the same x, and their markers overprint: in the
-   bottom panel κ_c = κ_t and κ_c free differ by only 0.006 to 0.014 for b, τ and t.
-   With the ±9% offset each particle's two markers no longer touch. The values are not
-   moved, and the offset is stated here and in SOURCE.md.
-   The W/Z pair is still close: W (free, 87.6 GeV) and Z (κ_c = κ_t, 83.7 GeV) are only
-   0.02 decades apart, so their markers touch. That is the data (80.4 and 91.2 GeV), not
-   the offset, and no uniform offset separates it without moving the points by more.
-   The W and Z filled circles are separated from each other by a small gap.
-7. **SM reference line distinct from the data.** The original's SM line is solid red,
-   the same colour as the τ point, and it runs through the data. The improved line is a
-   dark grey dashed line, labelled "SM prediction" in the key and "SM" on the bottom
-   panel, so it cannot be taken for data.
-8. **The off-scale arrow is labelled.** The original's grey arrow has no text; a reader
-   must infer that κ_c = 0.03. The improved arrow has the label "κ_c = 0.03, off this
-   scale" beside it.
-9. **Larger type.** The original's tick labels and key text are small for the panels
-   they sit in. The improved figure sets all text at 7 pt, the profile's maximum, with
-   the same font family as the faithful figure.
-10. **Top y range.** The original's top panel extends to 3 (a blank band above the
-    top point). The improved range ends at 1.6, which gives the data more height.
-11. **Fewer elements.** The particle table, the tile colours and the lepton/quark
-    grouping are gone. The figure carries the same data with less to read.
+1. Width kept at 89 mm (`single-column`), which the measurement confirms. Height
+   101.9 → 93.6 mm, from `margin=0.5`, `row_gap=0.5` and the label padding on the lower x
+   axis. The page margin was 4 mm, which had shrunk the plot to 68 mm; the plot is now
+   75 mm.
+2. Frame: open with inward ticks, as measured (see Frame). The previous version was
+   also open, but the profile's #1a1a1a ink is now #000000.
+3. Italic variables in the y labels, the key and the lower y label.
+4. Lower x ticks as powers of ten (see Matches).
+5. The c whisker uses `floor="none"` in place of a hand-computed whisker length.
+6. SM line 0.35 → 0.25 mm.
 
-Kept from the original, as required: every asymmetric error bar on both panels, the
-c whisker, and the off-scale arrow for κ_c.
+Improved (`fig5_improved.py`):
 
-## Verdict
+1. Width 183 → 89 mm. The earlier 183 mm justification was the W/Z/t crowding. At 89 mm
+   the W and Z points still overlap, exactly as in the original at the same width. That
+   is the data, not a layout fault, so the width is set by the print size.
+2. Frame: `axes="box"`, the journal frame for physics. The two panels meet on one edge
+   (`row_gap=0`), so the κ_c whisker runs through the boundary as in the original.
+3. Prose removed. The callout "κ_c = 0.03, off this scale" is now "0.03" beside the
+   arrow. The key entries are "Fermions", "W, Z bosons", "κ_c = κ_t", "κ_c free" and
+   "SM prediction", with no "(filled)" or "(open)". The explanation of the offsets,
+   the families and the arrow moved to the caption below.
+4. The key is compact (7 pt, five rows) in the top-left, above the data: clear of the SM
+   line, the τ and b points, and the c whisker top at 7.6 × 10⁻³.
+5. Labels: italic particle names. W sits below the W/Z pair, clear of the SM line and
+   the W diamond. The first attempt sat on the SM line, and was moved.
+6. Lower x axis: powers of ten, and a 0.9 mm label gap so the axis title does not
+   touch the tick labels.
+7. The κ_c whisker uses `floor="none"`, as in the faithful version.
+8. Kept: Okabe-Ito colours (fermions blue, bosons orange), filled circles for
+   κ_c = κ_t and open diamonds for κ_c free, the ±9% mass offset, dashed SM line, 7 pt
+   text, every asymmetric error bar, the c whisker and the arrow.
 
-The faithful version matches the original's panels, scales, series, key and particle
-table, and uses the same data. Its main differences are the single-line y label and
-the taller page; see "Differs". The improved version keeps every uncertainty and the
-same message. Every point's κ is consistent with 1 within its own uncertainty, in both
-scenarios, which is the figure's point. Values are as published in the HEPData tables.
+## Suggested caption
+
+**a**, Reduced couplings κ_F m_F/vev of the fermions (blue) and √κ_V m_V/vev of the W
+and Z bosons (orange) against particle mass, on log axes. Filled circles, κ_c = κ_t;
+open diamonds, κ_c free. Error bars are the asymmetric uncertainties as published (HEPData
+record ins2104706, tables 5 and 6). The dashed line is the Standard Model prediction,
+m/vev with vev = 246 GeV. For legibility the κ_c = κ_t points are drawn 8% to the left
+of their mass and the κ_c-free points 9% to the right; the values are not moved. The
+κ_c-free point for c lies at 7.9 × 10⁻⁵ with an upper bound of 7.6 × 10⁻³; its lower
+bound is zero, so its whisker runs to the bottom of the panel. **b**, The coupling
+modifiers κ_F (fermions) and κ_V (bosons) against particle mass, with the same colours
+and symbols. The dashed line marks κ = 1. The arrow marks κ_c, whose best fit is 0.03 and
+which lies below this scale.
 
 ## Checks against the paper
 
@@ -148,5 +143,4 @@ scenarios, which is the figure's point. Values are as published in the HEPData t
 * κ_μ (κ_c = κ_t): 1.070 (+0.249, −0.307), the largest relative uncertainty.
 * κ_W, κ_Z: 1.021 and 0.990 (κ_c = κ_t).
 * κ_c (free): best fit 0.031, interval 0 to 3.06. The arrow marks this.
-* p-values: 56% (κ_c = κ_t) and 65% (κ_c free) are in the caption text only; they are
-  not plotted.
+* p-values: 56% (κ_c = κ_t) and 65% (κ_c free) are in the paper's caption, not plotted.
