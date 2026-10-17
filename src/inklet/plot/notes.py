@@ -245,8 +245,11 @@ def callout(panel, x, y, text: str | Diagram, *, side: str = "n",
     # A bent leader off a data point reads as a stray "L" when the label sits
     # off the point's diagonal; a plot's callout is one straight segment.
     kwargs.setdefault("shoulder", 0.0)
+    # `avoid` only steers the side; `keep` is what holds the label on the panel
+    # when no side is clear, as when the point itself lies past the axis range.
     return draw_annotate(target, text, side=side, clear=gap, leader=leader,
-                         avoid=blockers, **kwargs)
+                         avoid=blockers, keep=panel.area if inside else None,
+                         **kwargs)
 
 
 def _marker_radius(panel, at: Vec2, least: float) -> float:

@@ -448,13 +448,25 @@ def errorbars(panel, points: Sequence[Sequence], *, yerr=None, xerr=None,
         raise DiagramError("errorbars() needs yerr=, xerr= or both")
     if floor not in _FLOORS:
         raise DiagramError(f'errorbars floor= is "arrow" or "none", not {floor!r}')
+    # A stroke sequence is one colour per point, as scatter's color= is. It is
+    # applied to each whisker's own lines here, not left for the renderer to
+    # read as a single paint.
+    stroke = style.pop("stroke", None)
+    per_point = stroke is not None and not isinstance(stroke, str)
+    strokes = _per_point(stroke, len(data), "stroke") if per_point else None
+    if stroke is not None and not per_point:
+        style["stroke"] = stroke
     items: list[Diagram] = []
     for axis, spread in (("y", yerr), ("x", xerr)):
         if spread is None:
             continue
         reach = _cap_reach(panel, data, axis) if cap is None else float(cap)
-        for (x, y), (low, high) in zip(data, error_pairs(spread, len(data), axis)):
-            items.extend(_whisker(panel, x, y, low, high, axis, reach, floor))
+        for index, ((x, y), (low, high)) in enumerate(
+                zip(data, error_pairs(spread, len(data), axis))):
+            whisker = _whisker(panel, x, y, low, high, axis, reach, floor)
+            if strokes is not None and strokes[index] is not None:
+                whisker = [part.styled(stroke=strokes[index]) for part in whisker]
+            items.extend(whisker)
     if not items:
         raise DiagramError("errorbars() had nothing to draw")
     node = draw_place(items, **style)

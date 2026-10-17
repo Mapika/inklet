@@ -861,6 +861,9 @@ class Panel:
         `floor="none"` runs it to the floor with no arrowhead. A point at zero
         still raises, since there is nothing to draw its whisker from. Use
         `symlog()` only if the whole axis has to reach zero.
+
+        `color=` or `stroke=` is one colour for every whisker, or a sequence
+        with one colour per point, as `scatter(color=)` takes one.
         """
         _color_as(style, "stroke")
         clip = _clip_flag(style)
@@ -1891,8 +1894,21 @@ class Panel:
         does: centred on its own lines by default, `align="start"` for a flush
         left edge.
 
+        `color=` paints the words and the leader together, as `text(color=)`
+        paints words; `text_fill=` and `leader_style=` still win over it.
+
             p.annotate(peak_t, peak_v, "peak", side="ne")
+            p.annotate(peak_t, peak_v, "peak", side="ne", color="#a94400")
         """
+        # `color=` is the one paint a callout has on its words, so it follows
+        # `text(color=)`; the leader takes it too, since a coloured word with a
+        # black line to it reads as two annotations.
+        color = kwargs.pop("color", None)
+        if color is not None:
+            kwargs.setdefault("text_fill", color)
+            leader_style = dict(kwargs.get("leader_style") or {})
+            leader_style.setdefault("stroke", color)
+            kwargs["leader_style"] = leader_style
         return self._layer(
             _notes.callout(self, x, y, text, side=side, clear=clear,
                            leader=leader, inside=inside, dot=dot, **kwargs),

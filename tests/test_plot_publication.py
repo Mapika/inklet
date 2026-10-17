@@ -1,6 +1,7 @@
 """Regression coverage for authoring complete multi-panel scientific figures."""
 import io
 import math
+import warnings
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -98,10 +99,14 @@ def test_external_zoom_clears_furniture_preserves_type_and_targets_plot_corners(
     for end in ends:assert any((end-c).length<1e-8 for c in target.corners)
 
 
-def test_explicit_tick_thinning_warns_and_can_be_overridden():
+def test_explicit_tick_thinning_is_reported_by_lint_and_can_be_overridden():
     p=inklet.panel(20,20,x=(0,14),y=(0,1))
-    with pytest.warns(UserWarning,match='thin=False'):
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
         p.axis('bottom',ticks=list(range(15)))
+    assert not [w for w in caught if 'explicitly supplied' in str(w.message)]
+    dropped=[d for d in inklet.lint(p.build(),page=p.build().bbox) if d.code=='TICKS_DROPPED']
+    assert len(dropped)==1 and 'thin=False' in dropped[0].hint
     q=inklet.panel(20,20,x=(0,14),y=(0,1))
     q.axis('bottom',ticks=list(range(15)),thin=False)
     assert len(leaves(q.build(),'tick-label'))==15
