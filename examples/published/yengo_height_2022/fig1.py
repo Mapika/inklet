@@ -75,7 +75,7 @@ p.axes(x="MAF (%) in cross-ancestry meta-analysis",
 # A panel carries one key, so the class key is the panel's legend (upper right,
 # as in the original). The original's second key, the power curves, sits in the
 # empty lower right: a short line swatch in each curve's colour, then its label.
-p.legend(corner="ne", row_gap=0.4, names=[f"{lab} ({(snps.cls == k).sum():,} SNPs)"
+p.legend(corner="ne", row_gap=0, pad=0.4, names=[f"{lab} ({(snps.cls == k).sum():,} SNPs)"
                              for k, lab, _ in CLASSES])
 for row, (_, label, color) in enumerate(SAMPLE_SIZES):
     y = -0.22 - 0.05 * row

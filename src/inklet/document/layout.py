@@ -202,18 +202,19 @@ def _title_too_wide(cell, node, box, left, previous=None):
     return None
 
 
-def _key_cause(node, limit):
+def _key_cause(node, limit, slack=.5):
     """A sentence naming an outside top or bottom key wider than `limit`, or None.
 
     A key on the top or bottom is centred on the data, so one wider than the
     cell pushes the side margins into the data whatever the axis labels do. The
-    fix is in the key's own arguments, so the sentence names them.
+    fix is in the key's own arguments, so the sentence names them. `slack`
+    forgives a key that is wider by less than that.
     """
     for part in node.walk():
         side = part.notes.get("legend_side")
         if side not in ("top", "bottom") or part.bbox is None:
             continue
-        if part.bbox.width > limit + .5:
+        if part.bbox.width > limit + slack:
             return (f'The {side} key is {part.bbox.width:.1f} mm wide, wider than the '
                     f'{limit:.1f} mm cell, so it pushes the side margins into the data; '
                     "wrap it into more rows with a smaller columns= (or columns='auto' "
@@ -855,6 +856,15 @@ def _layout_once(request, context, width, height):
             break
         margins = _extrapolate(margins, measured, steps)
     else:
+        # A centred top or bottom key wider than its cell, by any amount,
+        # overhangs both sides of the data, so every pass widens the margins by
+        # that much and the loop runs away instead of settling. Name the key
+        # rather than the loop.
+        for cell in request.cells:
+            cause = (_key_cause(nodes[cell.name], boxes[cell.name].width, slack=0.)
+                     if nodes else None)
+            if cause is not None:
+                raise LayoutError(f'cell {cell.name!r}: {cause}.')
         raise LayoutError('plot furniture did not settle after 24 measurement passes')
     page_height = (height if height is not None else
                    2*request.margin+sum(heights)+request.row_gap*(rows-1))

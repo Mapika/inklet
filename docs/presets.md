@@ -242,7 +242,8 @@ a switch, pass a customized `Preset` value.
 The Nature preset's widths and typography were reviewed against the
 [Nature research figure guide](https://research-figure-guide.nature.com/figures/building-and-exporting-figure-panels/)
 on **2026-09-05**: 89/183 mm columns, standard sans-serif text at 5–7 pt, and
-editable embedded text. Inklet chooses 7 pt body/title text and 6 pt labels.
+editable embedded text. Inklet sets all text, tick labels included, at 7 pt,
+the size Nature's own typeset figures use.
 The guide's [specifications page](https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications/),
 reviewed on **2026-10-11**, asks for Arial or Helvetica, text embedded as
 TrueType (Type 2 or 42) rather than outlined, and panel letters in 8 pt bold, upright

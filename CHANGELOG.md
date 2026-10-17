@@ -52,6 +52,10 @@ with a faithful and an improved version of each.
 
 ### Changed
 
+- `scientific.nature` sets tick labels and keys at 7 pt, the top of Nature's
+  5–7 pt range and the size of Nature's own typeset figures; at 6 pt they read
+  a size smaller than the published ones. Pass `font_size=i.pt(6)` to a crowded
+  key.
 - A second `legend()` call on a panel replaces the first key's options, as
   the guide said, instead of adding a second key.
 - A band no longer puts its series first in the key when it is drawn before
@@ -89,6 +93,9 @@ with a faithful and an improved version of each.
   `width=None` as the fix, not a bigger font.
 - `legend(size=...)` suggests `font_size=`; a top key wider than its cell is
   named as the cause of the `LayoutError`.
+- A top or bottom key even slightly wider than its cell raised "plot
+  furniture did not settle after 24 measurement passes"; the error now names
+  the key, its width and the cell's, and the fix.
 - Log axes with `minor=True` draw the 2–9 subdivisions when the sparser
   mantissas are all labelled.
 

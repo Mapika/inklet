@@ -78,7 +78,7 @@ def effect_panel(frame, columns, names, n_labels, title, top, xlabel=None, ylabe
     p.vline(0.06, stroke=TOP1, stroke_width=0.3, dash="dotted")
     p.vline(-0.06, stroke=TOP1, stroke_width=0.3, dash="dotted")
     p.axes(x=xlabel, y=ylabel,
-           x_options=dict(ticks=[-0.2, -0.1, 0.0, 0.1, 0.2], format=signed_tick),
+           x_options=dict(ticks=[-0.2, 0.0, 0.2], format=signed_tick),
            y_options=dict(ticks=[t for t in (0, 10, 20, 30, 40) if t <= top], format="{:g}%"))
     p.legend(side="top", columns=1, names=names)
     p.title(title)
@@ -105,7 +105,7 @@ def sampling_panel(frame, bins, title, ylabel=None, xlabel=None, key=False):
            y_options=dict(ticks=[-0.5, 0, 0.5], format=signed_tick))
     p.title(title)
     if key:
-        p.legend(corner="ne", columns=2, names=["min\u2013max", "99%", "95%", "mean"])
+        p.legend(corner="ne", columns=2, font_size=i.pt(6), names=["min\u2013max", "99%", "95%", "mean"])
     return p
 
 

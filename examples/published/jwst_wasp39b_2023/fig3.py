@@ -85,7 +85,10 @@ XTICKS = [3.0, 3.5, 4.0, 4.5, 5.0, 5.5]
 p.axes(x=None, y="Transit depth (%)",
        x_options=dict(ticks=XTICKS, labels=False),
        y_options=dict(ticks=[2.10, 2.15, 2.20, 2.25, 2.30], format="{:.2f}"))
-p.legend(corner="nw", names=KEY_ORDER, order="column", columns=2, row_gap=0.2, pad=0.6)
+# At 7 pt the key reaches the CO2 peak; at 6 pt (within Nature's 5-7 pt) it
+# ends near 4.1 um, as the original's does.
+p.legend(corner="nw", names=KEY_ORDER, order="column", columns=2, row_gap=0.2, pad=0.6,
+         font_size=i.pt(6))
 
 doc.add("spectrum", p, row=0)
 
@@ -97,7 +100,7 @@ doc.add("spectrum", p, row=0)
 # key clear of the CO2 peak.
 GASES = [("H_{2}O", "H2O", NAVY), ("CO", "CO", RED), ("CO_{2}", "CO2", BLACK),
          ("CH_{4}", "CH4", LIGHT_BLUE), ("H_{2}S", "H2S", ORANGE)]
-q = i.plot_spec(72.9, 15, x=(2.89, 5.67), y=(-29, -13), clip=True)
+q = i.plot_spec(72.9, 16, x=(2.89, 5.67), y=(-29, -11), clip=True)
 for name, column, colour in GASES:
     curve = cross[["wavelength_um", f"log10_sigma_{column}"]].dropna()
     q.line(curve.to_numpy().tolist(), stroke=colour, stroke_width=0.25, name=name)

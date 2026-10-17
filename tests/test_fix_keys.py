@@ -215,3 +215,19 @@ def test_a_key_that_fits_its_cell_is_not_blamed():
     with pytest.raises(i.LayoutError) as error:
         _narrow_cell_document(columns=1).compile()
     assert "key" not in str(error.value)
+
+
+def test_a_top_key_a_hair_wider_than_its_cell_is_named_not_left_to_run_away():
+    # A centred top key wider than its cell overhangs both sides of the data;
+    # each measurement pass widens the margins by the overhang, so the layout
+    # never settles. The error must name the key, not the loop.
+    p = i.plot_spec(50, 30, x=(0, 1), y=(0, 1))
+    for k in range(4):
+        p.line([(0, k / 4), (1, k / 4)], name=f"series {k} " + "w" * 14)
+    p.axes(x="x", y="y").legend(side="top", columns=2)
+    doc = i.preset("scientific.nature", format="single-column").document()
+    doc.add("only", p)
+    with pytest.raises(i.LayoutError, match=r"The top key is [\d.]+ mm wide") as error:
+        doc.compile()
+    assert "did not settle" not in str(error.value)
+    assert "columns=" in str(error.value)

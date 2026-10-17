@@ -257,3 +257,10 @@ B, orange) from the ABCD Study, each with its least-squares fit (r labelled). Th
 dashed black line is the fit to the full sample. Every marker of both subsamples
 is inside its axes. Brain surfaces (c and d of the original) are not shown, and
 the psychopathology RSFC scatter is omitted because its source data are empty.
+
+## Nature tick labels at 7 pt
+
+The preset's tick labels went from 6 to 7 pt. In the improved figure the
+histogram x axes show −0.2, 0 and +0.2 (the ±0.1 labels no longer fit in a
+27 mm panel), and the sampling key in panel e is set at 6 pt so it clears the
+y tick labels.

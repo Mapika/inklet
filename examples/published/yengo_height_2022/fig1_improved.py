@@ -82,7 +82,7 @@ p.axes(x="Minor allele frequency in cross-ancestry meta-analysis (%)",
                       stroke="#000000", stroke_width=0.21),
        y_options=dict(ticks=[-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3],
                       format=y_label, stroke="#000000", stroke_width=0.21))
-p.legend(side="top", columns=2, names=names[::-1] + curve_names)
+p.legend(side="top", columns=2, col_gap=1.0, font_size=i.pt(6), names=names[::-1] + curve_names)
 
 doc.add("fig1", p)
 figure = doc.compile()

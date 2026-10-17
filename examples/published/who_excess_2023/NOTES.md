@@ -11,8 +11,8 @@ with the prefix `who_excess_2023_`. Sizes are from the SVG headers.
 | `fig1_improved.py` | `who_excess_2023_fig1_improved.*` | 89 × 86.2 (single column) | 1 info (font) |
 | `fig2.py` | `who_excess_2023_fig2.*` | 183 × 140.7 (double column) | 1 info (font) |
 | `fig2_improved.py` | `who_excess_2023_fig2_improved.*` | 183 × 135.1 (double column) | 1 info (font) |
-| `fig5.py` | `who_excess_2023_fig5.*` | 136 × 99.3 | 1 info (font) |
-| `fig5_improved.py` | `who_excess_2023_fig5_improved.*` | 136 × 99.3 | 1 info (font) |
+| `fig5.py` | `who_excess_2023_fig5.*` | 136 × 107.6 | 1 info (font) |
+| `fig5_improved.py` | `who_excess_2023_fig5_improved.*` | 136 × 107.6 | 1 info (font) |
 
 The one info line in every report is `FONT_SUBSTITUTED`: text is set in Liberation
 Sans, which has the same metrics as Arial, because Arial is not installed here. The
@@ -81,8 +81,9 @@ Shared across the figures:
 
 ### Figure 5 (faithful, `fig5.py`)
 
-* Width 183 to 136 mm. The plot is 98 × 84 mm, down from 108 × 122 mm. Its height goes
-  from 137.3 to 99.3 mm, so the figure matches the original's aspect ratio (1039/1421).
+* Width 183 to 136 mm. The plot is 98 × 92 mm, down from 108 × 122 mm. Its height goes
+  from 137.3 to 107.6 mm, near the original's aspect ratio (1039/1421); the plot is
+  92 mm rather than 84 mm tall so that 22 country names fit at Nature's 7 pt.
 * The 108 mm plot was drawn about 98 mm wide at 136 mm, with no lint diagnostic (the
   right furniture takes the space). The width is now set explicitly. See ISSUES item
   9.
@@ -119,7 +120,7 @@ Shared across the figures:
 
 ### Figure 5 (improved, `fig5_improved.py`)
 
-* Width 136 mm and plot 98 × 84 mm, from a 100 × 100 mm plot at 183 mm. The same print
+* Width 136 mm and plot 98 × 92 mm, from a 100 × 100 mm plot at 183 mm. The same print
   size as the faithful version, so the pair matches. The value labels beside each
   interval and the 0 to 100% scale are unchanged.
 
@@ -286,7 +287,7 @@ Kept: all seven panels, every interval, the shared scale and the same data.
 4. **One colour.** The grey dots and black whiskers become blue, as in Figure 2, and
    light vertical gridlines help the eye across the 20% steps.
 5. **The same 22 rows** as the faithful version, for the reason given under "Differs".
-6. **Print size.** 136 mm wide with a 98 × 84 mm plot, the same as the faithful version.
+6. **Print size.** 136 mm wide with a 98 × 92 mm plot, the same as the faithful version.
 
 ## Suggested caption
 

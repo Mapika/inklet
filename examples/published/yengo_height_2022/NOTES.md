@@ -335,3 +335,10 @@ Columns of SNPs whose signal is contributed by African, East Asian or Hispanic
 ancestry groups carry a marker at their top. The mean (solid red) and median
 (dashed red) genome-wide densities are 2 and 1, with LOCO standard errors of 0.14
 and 0. Data from Source Data.
+
+## Nature tick labels at 7 pt
+
+The preset's tick labels went from 6 to 7 pt. The faithful key's rows were
+packed closer (`row_gap=0`, `pad=0.4`) so it clears the point at 44%, 0.08. The
+improved key is set at 6 pt with a 1 mm column gap: at 7 pt it is 83 mm wide,
+wider than the 81 mm cell.

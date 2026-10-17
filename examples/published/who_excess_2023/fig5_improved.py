@@ -38,7 +38,7 @@ ypos = np.arange(n)[::-1].astype(float)                         # rank 1 at the 
 names = {round(y, 6): name for y, name in zip(ypos, c.Country)}
 
 # -- the plot -----------------------------------------------------------------
-p = i.plot_spec(98, 84, x=(0, 110), y=(-0.6, n - 0.4), clip=True)
+p = i.plot_spec(98, 92, x=(0, 110), y=(-0.6, n - 0.4), clip=True)
 p.grid(x=True, y=False, x_options=dict(ticks=[0, 20, 40, 60, 80, 100]))
 bars = [(m - lo, hi - m) for m, lo, hi in zip(c.pscore_mean, c.pscore_low, c.pscore_high)]
 p.errorbars(np.c_[c.pscore_mean, ypos], xerr=bars, cap=1.2, stroke=BLUE,

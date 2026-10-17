@@ -257,9 +257,11 @@ def preset(name='scientific.general', *, format=None, **overrides) -> Preset:
         palette = ('#635baf', '#137c76', '#b94d2d', '#486ba8', '#91643e')
         if name.endswith('infographic'): title, grid = 18., 'none'
     elif name == 'scientific.nature':
-        font, small, title, min_font = 7., 6., 7., 5.
+        font, small, title, min_font = 7., 7., 7., 5.
         # Panel letters are 8 pt bold upright lowercase; all other text 5-7 pt
         # (research-figure-guide.nature.com, 'Preparing figures', reviewed 2026-10-11).
+        # Tick labels take the 7 pt top of that range, as Nature's typeset
+        # figures do: at 6 pt they read a size smaller than the published ones.
         letter_font = 8.
         radius = 0.
         if chosen.name in ('single-column', 'double-column'):

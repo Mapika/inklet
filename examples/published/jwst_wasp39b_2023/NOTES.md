@@ -59,6 +59,8 @@ panel is computed (see below).
   (column-major: No H₂O, No CO, No CO₂, No H₂S | No CH₄, No cloud, All opacity,
   Data), inside the top-left corner as in the original. Its rows are packed
   close (`row_gap=0.2`, `pad=0.6`) so it clears the first points at 3.0 µm.
+  The key is set at 6 pt: at the preset's 7 pt it reaches the CO₂ peak, while
+  the original's ends near 4.1 µm.
 * Colours: sampled from the legend swatches of the published PNG (No H₂O
   #000080, No CO #ff0000, No CO₂ #000000, No H₂S #ffa500, No CH₄ #add8e6,
   No cloud #808080, All opacity #0000ff).
