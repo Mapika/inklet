@@ -7,9 +7,9 @@ Sizes are the page sizes (PNG pixels at 200 dpi).
 
 | Script | Output | Page |
 |---|---|---|
-| `fig1.py` | `yengo_height_2022_fig1.{svg,pdf,png}` | 89.0 × 76.2 mm (single column) |
-| `fig1_improved.py` | `yengo_height_2022_fig1_improved.{svg,pdf,png}` | 183.0 × 94.2 mm (double column) |
-| `fig2.py` | `yengo_height_2022_fig2.{svg,pdf,png}` | 183.0 × 71.6 mm (double column) |
+| `fig1.py` | `yengo_height_2022_fig1.{svg,pdf,png}` | 89.0 × 66.3 mm (single column) |
+| `fig1_improved.py` | `yengo_height_2022_fig1_improved.{svg,pdf,png}` | 89.0 × 79.1 mm (single column) |
+| `fig2.py` | `yengo_height_2022_fig2.{svg,pdf,png}` | 183.0 × 61.6 mm (double column) |
 | `fig2_improved.py` | `yengo_height_2022_fig2_improved.{svg,pdf,png}` | 183.0 × 77.6 mm (double column) |
 
 `data/fig1_source.csv` (437 KB) and `data/fig2_source.csv` (238 KB); both under
@@ -17,14 +17,16 @@ Sizes are the page sizes (PNG pixels at 200 dpi).
 
 ## Lint
 
-- `fig1.py`: `inklet lint: 1 warning`, which is FONT_SUBSTITUTED only.
-- `fig1_improved.py`: `inklet lint: 1 warning`, FONT_SUBSTITUTED only.
-- `fig2.py`: `inklet lint: 1 warning`, FONT_SUBSTITUTED only.
-- `fig2_improved.py`: `inklet lint: 1 warning`, FONT_SUBSTITUTED only.
+- `fig1.py`: `inklet lint: 1 info`, which is FONT_SUBSTITUTED only.
+- `fig1_improved.py`: `inklet lint: 1 info`, FONT_SUBSTITUTED only.
+- `fig2.py`: `inklet lint: 1 info`, FONT_SUBSTITUTED only.
+- `fig2_improved.py`: `inklet lint: 1 info`, FONT_SUBSTITUTED only.
 
-FONT_SUBSTITUTED: the Nature preset expects Arial, which is not installed in
-this sandbox. The text is set in Liberation Sans, which is metric-compatible
-with Arial, so layout is the same as with Arial. Nothing else is reported.
+FONT_SUBSTITUTED is now INFO, not a warning: the Nature preset expects Arial,
+which is not installed in this sandbox. The text is set in Liberation Sans,
+which is metric-compatible with Arial, so layout is the same as with Arial.
+Nothing else is reported. (Pass 1 reported it as a warning, and the
+`expected_fonts=None` workaround is gone.)
 
 ## Matches the original
 
@@ -37,12 +39,15 @@ Figure 1 (`fig1.py`):
   so `y_label()` writes zero as "0" and uses a true minus sign.
 - All 12,111 SNPs; the five classes with the original's names, counts (672,
   1,110, 3,513, 5,192, 1,624) and key order, with the key in the upper right.
+  The names are set in italic `//P//`, as in the original.
 - Colours sampled from the original: P < 5 × 10⁻¹⁰⁰ #EE82EE, 5 × 10⁻⁵⁰–10⁻¹⁰⁰
   #2E8B57, 5 × 10⁻²⁰–10⁻⁵⁰ #1E90FF, 5 × 10⁻¹⁰–10⁻²⁰ #DAA520,
   5 × 10⁻⁸–10⁻¹⁰ #CDC673; power curves #BEBEBE (n = 0.5 M) and #FF7256 (n = 5 M).
 - Both signs of the power curves, the grey zero line, and the two power-curve
-  entries in a second key at the lower right, with the original's labels
-  ("90% power (n = 0.5 million)", "90% power (n = 5 million)").
+  entries at the lower right, with the original's labels ("90% power (//n// =
+  0.5 million)", "90% power (//n// = 5 million)"), each with a line swatch in
+  its curve's colour. They are drawn as swatches and text, not as a second key,
+  because a panel carries one key (see Pass 2).
 - Curves drawn over the points, as in the original.
 
 Figure 2 (`fig2.py`):
@@ -68,16 +73,17 @@ Figure 2 (`fig2.py`):
 Figure 1 (`fig1.py`):
 
 - **Font.** Liberation Sans, not Arial (see Lint).
-- **Proportions.** 89 × 76 mm. The original is about 1.36 : 1 (width to height),
-  ours 1.17 : 1, because the two-line y label and the key take more height at
-  this size. The data area is 72 × 60 mm.
+- **Proportions.** 89 × 66.3 mm, against 89 × 65.4 mm for the original's own
+  aspect (Pass 2 measurement). The data area is 72 × 50 mm, which is the
+  original's plot proportion at this width.
 - **Axis start.** The original's x axis line starts at 1% and its y axis sits
   just left of 0%; ours starts at 0%. The leftmost points (MAF 0.16%) are inside
   the plot in both.
 - **Marker size.** 1.1 mm diameter, estimated from the original at 300 dpi
   (dots about 14 px across at 1060 px width). Not measured exactly.
-- **Power key.** Its two entries are a second `legend()` call, which draws a
-  second key (see ISSUES-yengo_height_2022.md #2).
+- **Power key.** A panel carries one key, and a second `legend()` call replaces
+  the first (ISSUES-yengo_height_2022.md #7). The power-curve entries are
+  therefore swatches and text, not a second key (see Pass 2).
 
 Figure 2 (`fig2.py`):
 
@@ -88,12 +94,15 @@ Figure 2 (`fig2.py`):
   square. The original places them at other heights in some columns.
 - **Chromosome gaps.** None, as in the original.
 - **Square size.** 0.8 mm, estimated from the original.
-- **Plot height.** 56 mm of data area, so the y ticks at 2 are legible at 6 pt;
-  the original is more compressed vertically (its total height is 71.6 mm here,
-  against about 50 mm for the original's aspect at 183 mm width).
-- **Key placement.** Mean and median lines in the upper left, the ancestry key
-  in the upper right above the tallest column (ACAN, density 24). Both are inside
-  the data area but in empty space, so they cover no data.
+- **Plot height.** 46 mm of data area, 61.6 mm in total. The original's aspect
+  at 183 mm gives about 50 mm in total. Its tick labels are about 5.4 pt at this
+  width (Pass 2 measurement), so 7 pt ticks every 2 units need more height than
+  the original gives them. The height is kept above the original's for the ticks.
+- **Key placement.** Mean and median lines in the upper left, and the ancestry
+  key under them, also upper left. The original puts the ancestry key upper right,
+  but the ACAN column (density 24) rises under its text there, so it is moved.
+  Both keys are in empty space and cover no data. The y range starts at −0.6, not
+  0, so the triangles on density-0 SNPs are not cut by the axis (MARKER_CUT).
 - **Squares in the SVG are rasterised** (`raster=True`), to keep the SVG at
   183 KB rather than 10.8 MB. The PNG and PDF look the same (see
   ISSUES-yengo_height_2022.md #4).
@@ -114,9 +123,10 @@ Each change, with the problem it fixes in the original:
    frequency: in the original, 1.1 mm opaque dots stack into a solid band, and
    the draw order hides classes under one another. Drawing the most significant
    class last puts the rare, strongest signals on top.
-3. **One key outside the data area, on the right.** Fixes the original's key
-   sitting inside the plot over the data at the top right, and the second key at
-   the bottom right. The five classes and the two curves are in one ordered key.
+3. **One key above the plot, in two columns, with the SNP counts only.** Fixes
+   the original's two keys inside the data area. The key covers no data, and the
+   plot keeps its 89 mm width. The counts are in parentheses, and "SNPs" is said
+   once in the caption.
 4. **Single-hue sequential palette for the five ordered P-value classes**, from
    mid blue (least significant, #4292c6) to navy (most significant, #08306b),
    sampled from inklet `ramp(["#4292c6", "#08306b"]).sample(5)`: #4292c6,
@@ -135,8 +145,9 @@ Each change, with the problem it fixes in the original:
    distinguish these curves from the blue ramp and from each other.
 6. **Y label shortened to "Joint effect size of minor allele (s.d.)"**, the same
    quantity, with ticks at 0.1 steps and the zero line.
-7. **Double-column width (183 mm).** The wider plot gives the log axis room, and
-   leaves space for the key outside the data area.
+7. **Single-column width (89 mm), as the faithful version.** Pass 1 had 183 mm
+   with a key on the right. The key now sits above the plot, which costs height,
+   not width (79.1 mm in total). See Pass 2.
 
 Keep-every-uncertainty: Figure 1 has no error bars in the original; the power
 curves are the only uncertainty-like element and both are kept in full. Nothing
@@ -199,6 +210,8 @@ Numbers checked against the paper and the Source Data:
 
 ## Look-fix rounds
 
+Pass 1:
+
 - Figure 1 faithful: 4 rounds (curve weight, key position, y ticks, the zero
   label "0" restored and formatted, curve key as a second legend call).
 - Figure 1 improved: 4 rounds (marker size and opacity, curve weight, key
@@ -208,9 +221,117 @@ Numbers checked against the paper and the Source Data:
 - Figure 2 improved: 3 rounds (key moved above the plot, clipping off for markers
   at density 0, raster squares).
 
+Pass 2 (see the section below): figure 1 faithful 4 rounds (the second key was
+lost, the power key became swatches, the key row gap was tightened so it covers
+no data, the axes went black); figure 2 faithful 3 rounds (the triangles on
+density 0 were cut, the ancestry key crossed the ACAN column, the axes went
+black); figure 1 improved 2 rounds (the key moved above the plot and was
+shortened to two columns); figure 2 improved none (it was checked and left as
+it was).
+
 ## Not verified
 
 - Arial rendering (see Lint).
 - The original's exact marker and line widths, which are estimated from the
   image, not from the source files.
 - The original's ancestry marker heights (not in the data).
+
+## Pass 2
+
+### Print width, measured from the original
+
+Measured in the original PNGs. The cap height is that of a flat-topped tick digit,
+and a 7 pt Arial cap is 1.77 mm, so the width is W_px × 1.77 / cap_px mm.
+
+- Figure 1: 1060 px wide. The tick digits "1" and "5" are 21 px tall (rows
+  719 to 739), so 1060 × 1.77 / 21 = 89.3 mm. Snapped to **89 mm**, the
+  single-column width. The original's height at that width is 779 / 1060 × 89 =
+  65.4 mm.
+- Figure 2: 2144 px wide. The y tick digits are 16 px tall, so 2144 × 1.77 / 16 =
+  237 mm. Snapped to the nearest Nature width, **183 mm**. The original's height at
+  183 mm is 585 / 2144 × 183 = 49.9 mm. At 183 mm its tick digits are 16 px of
+  11.7 px/mm, about 1.37 mm, or 5.4 pt, not 7 pt, so the original's text is small
+  against its plot. The faithful figure keeps 7 pt, as the rule says; this is the
+  main remaining difference (see below).
+
+### Lint
+
+Every script: `inklet lint: 1 info`, FONT_SUBSTITUTED only, the Liberation Sans
+note (see Lint above). No warnings, so no justifications are needed.
+
+### What changed, and why
+
+Figure 1 faithful (`fig1.py`):
+
+- Width already 89 mm. Height 76.2 mm to 66.3 mm, the original's aspect.
+- Italics: `//P//` in the five class names and `//n//` in both power-curve labels.
+- Open axes kept, now black at 0.21 mm (the box frame's weight, which does not
+  read as grey), with outward ticks as the original has them. The grey zero line
+  and grey n = 0.5 M curve stay grey, because they are grey in the original.
+- One key (the five classes, upper right) plus the two power curves as swatches
+  and labels at the lower right. A second `legend()` call replaced the first, so
+  the first pass's second key was silently lost (ISSUES-yengo_height_2022.md #7).
+  The class key uses `row_gap=0.4` so that it stays above the two data markers
+  at MAF 43% and 44%, which it otherwise covered.
+
+Figure 2 faithful (`fig2.py`):
+
+- Width 183 mm, as before. Height 56 to 46 mm of data area (61.6 mm in total).
+- y range from −0.6 instead of 0. The triangles on density-0 SNPs were cut in
+  half by the axis (`MARKER_CUT`); the lower bound lets them draw whole.
+- The ancestry key moved from the upper right to under the mean and median key at
+  the upper left. The ACAN column reaches density 24 under the upper-right text.
+- Open axes now black, as in the original.
+- No italics: the figure has no variables.
+
+Figure 1 improved (`fig1_improved.py`):
+
+- Width 183 mm to 89 mm, the same as the faithful version.
+- The key moved from the right side (which needed the width) to above the plot, in
+  two columns, with each class count in parentheses and the word "SNPs" moved to
+  the caption.
+- Italic `//P//` and `//n//` in the key.
+- Open axes black, to match the faithful version.
+- Palette, log MAF axis, marker size and opacity and the Okabe-Ito curves are
+  unchanged.
+
+Figure 2 improved (`fig2_improved.py`):
+
+- Checked: 183 mm, `inklet lint: 1 info`, and the picture has no overlap or
+  clipping. It contains no variables and no explanatory prose, so nothing else
+  changed. Its axes are still the grey theme default; the spec asked for it to
+  be kept as it was.
+
+### Prose removed from the improved versions
+
+None was found inside the improved figures. Their titles, footnotes and callouts
+had already been removed in pass 1, and the only words moved out are the SNP
+counts "SNPs", which now go in the caption.
+
+### Remaining differences from the original's look
+
+- Text size: at 183 mm the original's tick labels are about 5.4 pt. Ours are 7 pt
+  to keep the rule, so figure 2 looks more spaced and its plot is shorter
+  relative to the labels. Its height is 61.6 mm, against 49.9 mm for the original.
+- Figure 2 has no gene labels and no ancestry marker heights (not in the source).
+- Figure 1 improved is taller than the original (79.1 mm against 65.4 mm) because
+  the key is above the plot.
+
+## Suggested caption
+
+**Figure 1 | Effect size against minor allele frequency for the genome-wide
+significant height SNPs.** **a**, Joint effect size (s.d. of height per minor
+allele) against minor allele frequency (MAF) for the 12,111 quasi-independent
+genome-wide significant SNPs of the cross-ancestry meta-analysis, coloured by
+P-value class; the number of SNPs in each class is given in parentheses. The
+curves show the effect sizes detectable at P < 5 × 10^−8 with 90% power for sample
+sizes of 0.5 million (orange) and 5 million (vermilion). Data from Source Data.
+
+**Figure 2 | Genomic density of genome-wide significant height SNPs.** **a**,
+Density of genome-wide significant, quasi-independent SNPs along the genome, by
+chromosome (1 to 22, alternately shaded). Each SNP is a column of squares from 0
+to its signal density, the number of other independent SNPs within 100 kb.
+Columns of SNPs whose signal is contributed by African, East Asian or Hispanic
+ancestry groups carry a marker at their top. The mean (solid red) and median
+(dashed red) genome-wide densities are 2 and 1, with LOCO standard errors of 0.14
+and 0. Data from Source Data.

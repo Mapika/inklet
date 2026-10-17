@@ -151,3 +151,71 @@ doc.compile().save("ticks.png", dpi=200)   # zero label reads "0.0"
   the guide says that a `format=` callable is the way to do it.
 * Workaround: `format=y_label` in `fig1.py` and `fig1_improved.py`, where
   `y_label` writes 0 as "0" and uses U+2212 for minus.
+
+## Pass 2
+
+Found on master at b8b4e34, while redoing figures 1 and 2 at print size.
+
+### 7. A second `legend()` call on one panel silently replaces the first key
+
+Issue 2 no longer reproduces: on master, the second `legend()` call replaces the
+first, as the `Panel.legend` docstring says ("A later `legend()` call replaces
+the options of the one before it"). The first key is dropped, and no lint
+message names it. Repro (`two_keys.py`):
+
+```python
+import inklet as i
+
+p = i.plot_spec(70, 50, x=(0, 10), y=(-1, 1), clip=True)
+p.scatter([(1, 0.5), (2, -0.5)], color="#1E90FF", size=1.5, name="Group A")
+p.scatter([(3, 0.2), (4, -0.2)], color="#DAA520", size=1.5, name="Group B")
+p.line([(0, 0.8), (10, 0.8)], stroke="#B2182B", name="Curve X")
+p.line([(0, -0.8), (10, -0.8)], stroke="#FF7256", name="Curve Y")
+p.axes(x="x", y="y")
+p.legend(corner="ne", names=["Group A", "Group B"])
+p.legend(corner="se", names=["Curve X", "Curve Y"])
+doc = i.preset("scientific.nature", format="single-column").document()
+doc.add("a", p)
+doc.compile().save("two_keys.png", dpi=200)
+```
+
+* Actual: only the "Curve X / Curve Y" key is drawn. "Group A" and "Group B" are
+  gone. The lint warning is KEY_COVERS_DATA for the second key only.
+* Expected: either both keys, or a lint warning that the first key was replaced.
+  Figure 1 has two keys in the original (five P-value classes and two power
+  curves), so a second key on one panel is needed.
+* Workaround in `fig1.py`: the class key is the panel's legend, and the two
+  power curves are line swatches with text labels in the lower right.
+
+### 8. `plot_spec` cannot place a diagram built from its own panel
+
+`plot_spec` records calls and replays them on a panel, so `point()` is not
+available while the spec is being built. The obvious way to place a second key
+in the plot therefore fails:
+
+```python
+import inklet as i
+
+p = i.plot_spec(72, 50, x=(0, 50), y=(-0.3, 0.3))
+p.place([(p.point(40.0, -0.25), p.key_diagram(names=["x"]))])
+# AttributeError: point   (document/spec.py, __getattr__)
+```
+
+* Expected: a spec-level form of `point()` or `place()`, or a note in the
+  `plot_spec` docs that such placement needs a `Panel`.
+* Workaround: `p.line(...)` and `p.text(...)` in data coordinates.
+
+### 9. `corner="auto"` finds no placement where a fixed corner with a tighter row gap is clear
+
+The five-entry class key on the 72 × 50 mm plot of figure 1, with the
+power-curve swatches in the lower right:
+
+* `p.legend(corner="ne", names=...)`: KEY_COVERS_DATA, two markers under the key
+  at MAF 42.8% and 44% (y 0.07 and 0.08).
+* `p.legend(corner="auto", names=...)`: `DiagramError: no clear legend/content
+  placement found`.
+* `p.legend(corner="ne", row_gap=0.4, names=...)`: no warning. The key is clear.
+
+Expected: `corner="auto"` tries the tighter spacing before it gives up, or its
+error names the spacing it could have used. Workaround: `corner="ne"` with
+`row_gap=0.4`, as in `fig1.py`.

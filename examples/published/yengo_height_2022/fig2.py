@@ -57,7 +57,7 @@ flagged = sig[flag]
 
 # -- figure -------------------------------------------------------------------
 doc = i.preset("scientific.nature", format="double-column").document()
-p = i.plot_spec(170, 56, x=(0, TOTAL), y=(0, 32), clip=True)
+p = i.plot_spec(170, 46, x=(0, TOTAL), y=(-0.6, 32), clip=True)
 
 p.scatter(squares(odd), marker="square", size=0.8, color=GOLD, stroke="none", raster=True)
 p.scatter(squares(even), marker="square", size=0.8, color=BLACK, stroke="none", raster=True)
@@ -78,19 +78,20 @@ p.line([(0, MEDIAN), (TOTAL, MEDIAN)], stroke=RED, stroke_width=0.35,
 centres = list(OFFSET + np.array(LENGTH_MB) / 2)
 names_at = {round(c, 6): str(n + 1) for n, c in enumerate(centres)}
 p.axes(x="Chromosome", y="Density of GWS\nSNPs within 100 kb",
-       x_options=dict(ticks=centres, format=lambda v: names_at[round(v, 6)],
+       x_options=dict(ticks=centres, format=lambda v: names_at[round(v, 6)], stroke="#000000", stroke_width=0.21,
                       rotate=90, thin=False),
-       y_options=dict(ticks=list(range(0, 31, 2)), thin=False))
+       y_options=dict(ticks=list(range(0, 31, 2)), thin=False, stroke="#000000", stroke_width=0.21))
 p.legend(corner="nw", names=[MEAN_LABEL, MEDIAN_LABEL])
 
-# Ancestry key, above the tallest columns (ACAN, density 24), top right of the plot.
-KEY_X = 2000
-p.text(KEY_X, 31.0, "Associations contributed by", anchor="w", size=i.pt(7))
+# Ancestry key, under the mean and median key at the top left. The original puts it
+# top right, but the ACAN column (density 24) rises under its text there.
+KEY_X = 60
+p.text(KEY_X, 24.0, "Associations contributed by", anchor="w", size=i.pt(7))
 for row, (color, shape, label) in enumerate([(AFR, "square", "African ancestries"),
                                              (EAS, "circle", "East Asian ancestries"),
                                              (HIS, "triangle",
                                               "Hispanic ethnicities or ancestries")]):
-    y = 29.0 - 2.0 * row
+    y = 21.5 - 2.0 * row
     p.scatter([(KEY_X + 2, y)], marker=shape, size=1.0, color=color, stroke="none")
     p.text(KEY_X + 32, y, label, anchor="w", size=i.pt(7))
 
