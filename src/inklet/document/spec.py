@@ -15,6 +15,7 @@ from numbers import Real
 from .._compat import InkletDeprecationWarning, warn_renamed
 from ..core import Diagram, DiagramError, mm
 from ..plot import Panel, PolarPanel
+from ..plot.axis import _PAD_OF_TYPE, _TICK_OF_TYPE
 from ..plot.scale import Linear, Scale
 
 
@@ -418,6 +419,11 @@ class PlotSpec(BuildSpec):
     def _replay(self, panel, context):
         defaults = context.preset.plot if context.preset is not None else None
         methods = {step[1] for step in self._steps}
+        boxed = defaults is not None and defaults.axes == 'box' and bool(methods & {'axes', 'axis'})
+        taken = _axis_sides(self) if boxed else ()
+        # A heatmap keeps its labelled ticks outward and draws its frame without
+        # ticks, so no tick lands over a cell; see _box_style.
+        matrix = 'matrix' in methods
         if defaults is not None and defaults.grid != 'none' and 'grid' not in methods and methods & {'axes', 'axis'}:
             for dimension, sides in (('x', ('bottom', 'top')), ('y', ('left', 'right'))):
                 if defaults.grid not in (dimension, 'both'): continue
@@ -444,6 +450,7 @@ class PlotSpec(BuildSpec):
             if defaults is not None:
                 if method in ('axes', 'axis'):
                     kwargs.setdefault('count', defaults.tick_count)
+                    if boxed: _box_style(kwargs, context.theme, matrix)
                 elif method == 'legend' and not {'side', 'corner'} & kwargs.keys():
                     if defaults.legend_side == 'inside':
                         _inside_legend(panel, kwargs)
@@ -471,6 +478,81 @@ class PlotSpec(BuildSpec):
                     # A deprecated keyword warned when the call was recorded.
                     warnings.simplefilter('ignore', InkletDeprecationWarning)
                     getattr(panel, method)(*args, **kwargs)
+            if boxed and method in ('axes', 'axis'):
+                _frame(panel, method, args, kwargs, taken, matrix)
+
+
+_BOX_INK = '#000000'
+#: Frame and tick weight for `axes='box'`: 0.6 pt, the weight the frame of a
+#: printed physics figure carries at 89 mm. Thinner than this reads as grey.
+_BOX_LINE = 0.21
+
+
+def _box_style(kwargs, theme, matrix=False):
+    """Fill in the closed-frame style of `axes='box'` where the call is silent.
+
+    Ticks point inward at a length scaled to the type, as the axis default is,
+    with minor ticks on. The frame is black, and so are its numbers. Explicit
+    keywords win, and so do `x_options` and `y_options`, which override these
+    keywords inside `Panel.axes`.
+
+    An inward tick leaves the numbers only the gap beyond the spine, so they
+    would sit closer to the data than they do on an open axis. The gap is
+    widened by the tick's length, which keeps the numbers where an open axis
+    puts them and out of the crowding test's reach of the marks.
+
+    A heatmap (`matrix`) keeps its ticks outward and unminored: an inward tick
+    on a cell reads as a comb over the colour.
+    """
+    if matrix:
+        ink = {'stroke': _BOX_INK, 'stroke_width': _BOX_LINE, 'text_fill': _BOX_INK}
+    else:
+        tick = -_TICK_OF_TYPE * theme.font_size
+        pad = _PAD_OF_TYPE * theme.font_size - tick
+        # Minor ticks take the axis's own length, a little over half the major
+        # one, and follow an explicit tick_size, which a fixed length would not.
+        ink = {'tick_size': tick, 'tick_pad': pad, 'minor': True,
+               'stroke': _BOX_INK, 'stroke_width': _BOX_LINE, 'text_fill': _BOX_INK}
+    for key, value in ink.items():
+        kwargs.setdefault(key, value)
+
+
+def _axis_sides(spec):
+    """The sides this recipe already gives an axis, by its own `axis` or twin steps."""
+    sides = set()
+    for _, method, args, kwargs in spec._steps:
+        if method == 'axis':
+            sides.add(args[0] if args else kwargs.get('side', 'bottom'))
+        elif method in ('twin_x', 'twin_y') and kwargs.get('axis', True):
+            sides.add(kwargs.get('side', 'right' if method == 'twin_y' else 'top'))
+    return sides
+
+
+def _frame(panel, method, args, kwargs, taken, matrix=False):
+    """Draw the top or right edge of a box frame, as an unlabelled mirror.
+
+    A bottom axis gets a top axis and a left axis a right one, with the same
+    ticks, minor ticks and length, so the two read as one frame. On a heatmap
+    the mirror is the edge alone, with no ticks. An explicit `axis` on the
+    opposite side, or a twin axis there, is left alone.
+    """
+    shared = {key: value for key, value in kwargs.items()
+              if key not in ('x', 'y', 'x_options', 'y_options', 'side', 'label')}
+    if method == 'axes':
+        # Panel.axes gives x_options to the bottom axis and y_options to the left.
+        mirrors = [('top', {**shared, **dict(kwargs.get('x_options') or {})}),
+                   ('right', {**shared, **dict(kwargs.get('y_options') or {})})]
+    else:
+        side = args[0] if args else kwargs.get('side', 'bottom')
+        if 'at' in kwargs or side not in ('bottom', 'left'):
+            return
+        mirrors = [('top' if side == 'bottom' else 'right', shared)]
+    for side, options in mirrors:
+        if side in taken: continue
+        if matrix:
+            # The cells' own edge is the boundary: the spine alone, no ticks.
+            options = {'ticks': (), 'minor': False, 'spine': True} | options
+        panel.axis(side, **(options | {'labels': False, 'label': None}))
 
 
 def _check_recorded(method, kwargs):

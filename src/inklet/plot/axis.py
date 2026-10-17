@@ -116,6 +116,16 @@ def text_node(content: str, size: float, kind: str, *, align: str = "center",
     return node.styled(**style) if style else node
 
 
+def _glyphs(node: Diagram) -> Diagram:
+    """A label with no outline of its own.
+
+    The axis group's stroke is meant for the spine and the ticks. A label
+    inherits it unless it says otherwise, and a 0.21 mm outline around every
+    numeral reads as bold type, so labels opt out here.
+    """
+    return node.styled(stroke="none")
+
+
 #: Whether the typesetter takes OpenType feature tags. Asked of the signature
 #: once rather than by catching `TypeError` around the call: a `TypeError`
 #: raised *inside* `shape` would look identical, and swallowing it would turn
@@ -230,9 +240,12 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
                 else mm(label_pad))
     away = _HORIZONTAL[side] if horizontal else _VERTICAL[side]
 
+    # An axis drawn with a stroke of its own keeps its labels unstroked; see _glyphs.
+    stroked = "stroke" in style
     values, texts, extents = _tick_set(scale, count, ticks, format, si, size,
                                        horizontal=horizontal, rotate=rotate,
-                                       tnum=tnum, markup=markup,text_style=text_style)
+                                       tnum=tnum, markup=markup,text_style=text_style,
+                                       stroked=stroked)
     positions = [scale.map(v) for v in values]
     keep = _keep(positions, extents, _CLEAR_OF_TYPE * base_size,
                  _thins(scale, thin))
@@ -294,14 +307,16 @@ def axis(scale: Scale, *, side: str = "bottom", label: str | Diagram | None = No
             written.append(len(items))
             items.append(_offset_label(tail, scale, positions, extents, keep,
                                        horizontal, away, edge, size, theme,
-                                       text_style=text_style,base_size=base_size))
+                                       text_style=text_style,base_size=base_size,
+                                       stroked=stroked))
     _group_slanted(items, written, rotate, positions, extents, keep,
                    _CLEAR_OF_TYPE * base_size)
 
     if label is not None:
         items.append(_axis_label(label, scale, texts, keep if labels else (),
                                  horizontal, away, edge, name_gap, theme,
-                                 size=name_size,text_style=text_style))
+                                 size=name_size,text_style=text_style,
+                                 stroked=stroked))
     node = place(items, kind=kind, **style)
     breaks = axis_breaks_note(scale, horizontal=horizontal)
     if breaks is not None:
@@ -368,7 +383,7 @@ def _offset_text(scale: Scale, values: Sequence, offset) -> str | None:
 def _offset_label(text: str, scale: Scale, positions: Sequence[float],
                   extents: Sequence[float], keep: Sequence[int],
                   horizontal: bool, away: float, edge: float, size: float,
-                  theme, *, text_style=None, base_size=None):
+                  theme, *, text_style=None, base_size=None, stroked=False):
     """The shared part of the labels, set once past the last tick.
 
     On the tick labels' own line -- it is one of them, in the sense that it
@@ -381,6 +396,7 @@ def _offset_label(text: str, scale: Scale, positions: Sequence[float],
     # the same size, on the same line, and every rule that reads a tick label
     # -- contrast, minimum type size -- should read this one too.
     node = text_node(text, size, TICK_LABEL_KIND, markup=False, **(text_style or {}))
+    node = _glyphs(node) if stroked else node
     box = node.bbox
     clear = _CLEAR_OF_TYPE * (theme.font_size if base_size is None else base_size)
     ends = scale.range
@@ -446,8 +462,8 @@ def tick_texts(scale: Scale, values: Sequence, format=None,
 
 def _tick_set(scale: Scale, count: int, ticks, format, si: bool, size: float,
               *, horizontal: bool = True, rotate: float = 0.0,
-              tnum: bool = False, markup: bool | None = None, text_style=None
-              ) -> tuple[tuple, list[Diagram], list[float]]:
+              tnum: bool = False, markup: bool | None = None, text_style=None,
+              stroked: bool = False) -> tuple[tuple, list[Diagram], list[float]]:
     """The tick values, their labels, and how much axis each label occupies.
 
     The extents are measured here rather than off the finished nodes because a
@@ -469,6 +485,7 @@ def _tick_set(scale: Scale, count: int, ticks, format, si: bool, size: float,
     nodes = [text_node(t, size, TICK_LABEL_KIND, features=features,
                        markup=reads_markup, **(text_style or {}))
              for t in texts]
+    if stroked: nodes = [_glyphs(node) for node in nodes]
     extents = [_extent(n.bbox, horizontal, rotate) for n in nodes]
     if rotate:
         nodes = [n.rotated(-rotate) for n in nodes]
@@ -524,7 +541,7 @@ def _hangs(box, horizontal: bool, away: float, rotate: float) -> Vec2:
 
 def _axis_label(label, scale: Scale, labels: Sequence[Diagram], keep: Sequence[int],
                 horizontal: bool, away: float, edge: float, gap: float, theme,
-                *, size=None, text_style=None):
+                *, size=None, text_style=None, stroked=False):
     """The name of the quantity, clear of the widest tick label.
 
     A vertical axis label is rotated to read bottom-to-top -- the direction
@@ -534,6 +551,7 @@ def _axis_label(label, scale: Scale, labels: Sequence[Diagram], keep: Sequence[i
     node = (label if isinstance(label, Diagram)
             else text_node(label, theme.font_size if size is None else size,
                            AXIS_LABEL_KIND,**(text_style or {})))
+    if stroked and not isinstance(label, Diagram): node = _glyphs(node)
     if not horizontal:
         node = node.rotated(-90.0)
     widest = max((labels[i].bbox.height if horizontal else labels[i].bbox.width)
