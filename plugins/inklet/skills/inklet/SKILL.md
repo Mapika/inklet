@@ -117,6 +117,10 @@ for the signature without a chart.
 
 Text markup: `**bold**`, `//italic//`, `x^{2}`, `H_{2}O`, `{#c1121f|coloured}`.
 There is no `$...$` math: write Unicode (`α`, `µm`) or that markup instead.
+Typesetting symbols: italic for variables, upright for units, numbers, labels and
+chemical symbols. `"//m//_{ν}^{2} (eV^{2})"` and `"//E//_{0} (eV)"` set the
+variables in italic and the units upright. Multi-line labels centre their lines
+unless `align="start"` is given.
 
 Two quantities in different units go on one chart with `secondary_y=`, a
 column or a list of them (for `scatter`, colour groups):
@@ -247,6 +251,10 @@ and returns its path. Nothing opens a window or blocks, so scripts run headless.
 Every length is millimetres: `width=120` is 120 mm. Font sizes are points
 via `i.pt(8)`. Text is never shrunk to make things fit; if a figure is too
 crowded, inklet reports it rather than drawing overlapping labels.
+
+Dates: `plot_spec(x=('2023-01-01', '2024-06-30'))` makes a calendar axis with
+month and year ticks, and ISO strings or `datetime.date` values in the data plot
+as dates. Do not convert them to decimal years such as `2023 + (m - 1) / 12`.
 
 ## Going further
 
