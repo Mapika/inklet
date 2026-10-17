@@ -125,6 +125,12 @@ def text(content: str, *, size: float | str | None = None, font: str | None = No
     `"bold italic"`); `features` are OpenType tags, e.g. `{"tnum": True}` for
     the tabular figures an axis wants.
 
+    `align` sets how the lines of a block sit against each other:
+    `"center"` (the default), `"start"` (or `"left"`), `"end"` (or `"right"`),
+    or `"justify"`, which needs `width=` and stretches the spaces of every line
+    but a paragraph's last. Lines are centred on one another by default, so a
+    name over a value wants `align="start"` for a flush left edge.
+
     `bounds="font"` (default) retains the font's ascent/descent and advances,
     useful for common baselines. `bounds="ink"` measures the visible glyphs
     and centers those on the origin, for isolated letters/numbers inside nodes.

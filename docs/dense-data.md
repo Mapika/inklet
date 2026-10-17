@@ -24,6 +24,41 @@ single image layer is preferable. Matrix `raster='auto'` switches around 2,000
 cells; see [Matrices](matrices.md) for `vector='batched'`, `vector='seamless'`,
 missing values and interpolation choices.
 
+## Rasterise a dense mark layer
+
+Each vector marker is written as its own shape, about 150 bytes of SVG. A layer
+of tens of thousands of markers therefore makes a file of several megabytes that
+an editor opens slowly, while the same layer as one image is tens of kilobytes.
+In one measured figure, 72,000 small filled squares in a 170 mm panel gave a
+10.9 MB SVG as vectors and 30 KB with `raster=True`.
+
+Rasterise a layer when it has thousands of markers, especially small filled
+squares or glyphs that overlap, and when no one needs to select or edit the
+markers one at a time in the vector file:
+
+```python
+import inklet as i
+
+points = [(k / 100, (k * 37 % 1000) / 1000) for k in range(36000)]
+p = i.plot_spec(x=(0, 360), y=(0, 1), height=40)
+p.scatter(points, marker='square', size=0.8, color='#000000', raster=True, dpi=300)
+p.axes(x='Position', y='Density')
+doc = i.document(width=170)
+doc.add('density', p)
+doc.save('density.svg')
+```
+
+Keep a layer vector when it has few markers, when each marker must stay
+editable, or when its outlines are dashed, since an image cannot draw a dash.
+Only the marker layer becomes an image; axes, labels, the key and other layers
+stay vector.
+
+- The full model's `Panel.scatter` keeps every layer vector unless `raster=True`.
+  Quick charts switch to an image past 20,000 points per panel, as
+  [quick charts](quick-charts.md#large-data) describes.
+- Lint does not warn about file size and does not suggest `raster=True`, so
+  check the output yourself, for example with `len(figure.to_svg())`.
+
 ## Reduce vector line geometry
 
 ```python

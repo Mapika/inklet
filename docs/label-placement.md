@@ -45,6 +45,26 @@ cost more for every extra millimetre, so a long leader is used only when no
 closer position is free. `volcano(labels=...)` and the embedding scatters use
 the same search.
 
+## Words at a data point
+
+`p.text(x, y, content)` writes words at one data point, and it does not search
+for a free place: the label is put exactly where you say. `anchor` names the
+point of the label that lands on the datum, one of `c`, `n`, `ne`, `e`, `se`,
+`s`, `sw`, `w` or `nw`. `anchor='w'` puts the middle of the west edge on the
+datum, so the words run east from it; `anchor='nw'` puts the top-left corner
+there, so they hang below and to the right. `offset=(dx, dy)` then nudges the
+label in millimetres. `dx` moves it right and `dy` moves it down, because y
+grows downward on the page, so `offset=(0, -1)` lifts it 1 mm.
+
+```python
+p.text(2020, 41.5, 'onset', anchor='w', offset=(1, 0))
+p.text(2024, 12.0, 'peak', anchor='nw', offset=(0, 1))
+```
+
+A two-line label centres its lines on one another. Pass `align='start'` for a
+flush left edge; the [label markup guide](how-to.md#write-subscripts-superscripts-and-greek-in-labels)
+covers the rest of the text options.
+
 ## Curve names instead of a legend
 
 ```python

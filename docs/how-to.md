@@ -182,6 +182,18 @@ The same markup works in titles and axis labels. Other markup: `**bold**`,
 `//italic//` and `{#c1121f|coloured}`. A backslash makes a markup character
 literal, as in `\_` or `\{`.
 
+**Typesetting symbols.** Set variables in italic, and units, numbers, labels
+and chemical symbols upright, as a journal's style guide asks. For example,
+`"//m//_{ν}^{2} (eV^{2})"` sets *m*ν² (eV²) and `"//E//_{0} (eV)"` sets *E*₀
+(eV). The italic is a real italic face, so it is measured and wrapped like the
+rest of the label.
+
+**Alignment.** The lines of a multi-line label are centred on one another by
+default, so a name over a value looks ragged. Pass `align="start"` for a flush
+left edge; `"end"` and `"justify"` (which needs `width=`) are also accepted.
+`annotate()` and `text()` take it, and a title built with `inklet.text(...,
+align="start")` keeps its lines flush left.
+
 ## Mark significant differences between groups
 
 Call `chart.brackets([(a, b, p), ...])` on a chart with categories. Each triple
