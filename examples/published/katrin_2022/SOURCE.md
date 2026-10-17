@@ -69,14 +69,14 @@ Shared loading is in `_data.py`. Nothing is interpolated, smoothed, or resampled
   the bin widths. The original's marginals are not in the data, so these are derived.
 * **Contours are derived, not in the data.** The Fig. 3 caption says "the 1σ (black
   line) and 2σ (blue line) contours are indicated"; the Source Data file has only the
-  histogram. Following the requested method, `hdr_levels()` sorts the 1764 bins by
-  count, takes the running sum as a fraction of all entries, and sets the level at which
-  it first reaches 68.3% and 95.4%. Level 68.3% = 13.38 (1/eV³), which encloses 68.8%
-  of the entries in 60 bins; level 95.4% = 1.855 (1/eV³), which encloses 95.45% in 163
-  bins, including one isolated 1-bin island. `hdr_contours()` runs marching squares
-  (inklet's private `inklet.plot.outlines._contours`) on the bin centres, at those
-  levels. The contours show the bins at or above each level, so the enclosed share is
-  exact on the grid, but the outline is the bin-centre contour, not a smoothed one.
+  histogram. Following the requested method, `Panel.contour(hdr=(0.683, 0.954))` (inklet's
+  public contour of a grid) sorts the 1764 bins by count, takes the running sum as a
+  fraction of all entries, and sets the level at which it first reaches 68.3% and 95.4%.
+  Level 68.3% = 13.38 (1/eV³), which encloses 68.8% of the entries in 60 bins; level
+  95.4% = 1.855 (1/eV³), which encloses 95.45% in 163 bins, including one isolated 1-bin
+  island. The contour runs marching squares on the bin centres, at those levels. The
+  contours show the bins at or above each level, so the enclosed share is exact on the
+  grid, but the outline is the bin-centre contour, not a smoothed one.
 * **Best-fit cross.** Not in the data. Its position is the paper's text values: the
   best fit m_ν² = 0.26 eV² ("For the best fit of the neutrino mass squared, we find ...
   = 0.26 ... eV² based on the Monte Carlo propagation technique (Fig. 3)") and the
