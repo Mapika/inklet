@@ -4,21 +4,42 @@
 
 | File | Size | Content |
 |---|---|---|
-| `gallery/published/jwst_wasp39b_2023_fig3.{svg,pdf,png}` | 183 × 70.3 mm (double column) | `fig3.py`, faithful |
-| `gallery/published/jwst_wasp39b_2023_fig3_improved.{svg,pdf,png}` | 183 × 142.5 mm (double column) | `fig3_improved.py`, redesign |
+| `gallery/published/jwst_wasp39b_2023_fig3.{svg,pdf,png}` | 89 × 54.6 mm (single column) | `fig3.py`, faithful |
+| `gallery/published/jwst_wasp39b_2023_fig3_improved.{svg,pdf,png}` | 89 × 122.4 mm (single column) | `fig3_improved.py`, redesign |
 
-PNG at dpi=200. `fig3.py` is 73 lines, `fig3_improved.py` 111 lines.
+PNG at dpi=200. `fig3.py` is 76 lines, `fig3_improved.py` 116 lines.
+
+## Print width (pass 2)
+
+Measured on `original-fig3.png` (1052 × 549 px):
+
+* Cap height of the tick digit "5" in "3.5" on the x axis: 21 px (rows 489–509).
+  The "W" of "Wavelength" is also 21 px, so the axis title and the tick labels
+  are the same size.
+* Width: 1052 px × 1.77 mm / 21 px = 88.7 mm. Snapped to **89 mm**
+  (single column).
+* Cross-check: the original's frame is 862 px wide, so the top plot box is
+  72.9 × 26.9 mm (862 × 318.5 px at 11.82 px/mm). Plot limits come from the
+  frame and the inward tick marks: x 2.89–5.67 µm (3.0 at px 161.5, 5.5 at px
+  934.5, 309.2 px per µm), y 2.057–2.311 % (2.30 at px 14.5, 2.10 at px 265.5).
+
+The original's aspect ratio (549/1052) would give 46.4 mm for the whole figure.
+This pass draws only the top panel, so the height follows the top panel's
+proportions (the plot box is the original's top panel size), not the whole
+figure's. The bottom panel is not in the bundle.
 
 ## Lint
 
-* `fig3.py`: `inklet lint: 1 warning`: `FONT_SUBSTITUTED` (21 text primitives in
-  Liberation Sans, not Arial). Environment, not the figure: Arial is not installed
-  on this machine, and the Nature profile expects it. Logged as ISSUES item 3. The
-  preset is kept as published.
-* `fig3_improved.py`: `inklet lint: 1 warning`: the same `FONT_SUBSTITUTED`
-  (39 primitives). No other diagnostics.
+* `fig3.py`: `inklet lint: 1 info`: `FONT_SUBSTITUTED` (21 text primitives in
+  Liberation Sans, metric-compatible with Arial). Environment, not the figure:
+  Arial is not installed here. Now INFO, not a warning. No `expected_fonts` workaround.
+* `fig3_improved.py`: `inklet lint: 1 info`: the same `FONT_SUBSTITUTED`
+  (38 primitives). No other diagnostics. The strips have no
+  `AXIS_TITLE_OVERHANG`: the "Δ depth (ppm)" title is taller than its strip and
+  overhangs it, which lint accepts.
 
-Both scripts print no UserWarnings on the final run.
+Both scripts print no UserWarnings. The faithful script's last run also printed
+none.
 
 ## Which figure
 
@@ -29,30 +50,38 @@ only. Fig. 3's top panel is reproduced; its bottom panel is not (see below).
 ## Matches the original
 
 * Data: the 95 FIREFLy points at 3.014–5.548 µm, with 1σ vertical error bars,
-  absolute (Rp/Rs)² converted to per cent as the published axis is.
+  absolute (Rp/Rs)² converted to per cent as the published axis is. Points and
+  error bars stay dark grey, as in the original.
 * Series: the six remove-one-gas curves (no H₂O, no CO, no CO₂, no H₂S, no CH₄,
   no cloud) and the all-opacity best fit, all from the ScCHIMERA files.
 * Key: the same eight entries in the same order and two-column layout
   (column-major: No H₂O, No CO, No CO₂, No H₂S | No CH₄, No cloud, All opacity,
-  Data), in the upper-left corner over empty space. (The improved version
-  uses a two-entry key at the top right instead; see below.)
+  Data). It sits above the frame (see "Differs").
 * Colours: sampled from the legend swatches of the published PNG (No H₂O
   #000080, No CO #ff0000, No CO₂ #000000, No H₂S #ffa500, No CH₄ #add8e6,
-  No cloud #808080, All opacity #0000ff). Data markers dark grey.
-* Axes: x 3.0–5.5 µm (ticks every 0.5), y transit depth 2.10–2.30 % (ticks every
-  0.05), no grid, drawn with inklet's `scientific.nature` axes. The x and y ranges
-  are estimated from the published axis extents.
+  No cloud #808080, All opacity #0000ff).
+* Axes: a closed black frame with inward major and minor ticks
+  (`axes="box"`, `scientific.nature`), no grid. Ticks as the original:
+  x every 0.5 µm from 3.0 to 5.5, y every 0.05 % from 2.10 to 2.30.
 * Caption checks, from the data: best-fit header in `ScCHIMERA_MODEL.txt` gives
   [M/H] = +1 (10× solar), C/O = 0.35, log K_cld = −2.15 cm² g⁻¹ (≈ 7 × 10⁻³,
   matching the caption), χ²/N = 1.29 (caption 1.3). My own χ²/N from the data
   and the interpolated best fit is 1.29 (N = 95).
+* Variables: the figure's labels contain no variables, so no italics are needed.
+  Units and chemical formulas are upright. The improved version italicises the
+  σ in "±1σ".
 
 ## Differs, and why
 
 * **No bottom panel (molecular cross-sections).** The bundle has no cross-section
   data, and digitising the published curves is not allowed. The figure is the top
-  panel only, so it is shorter than the original (70 mm against about 95 mm for
-  the whole figure at the same width).
+  panel only, so its height is that of the top panel.
+* **Key above the frame, not inside it.** At the original's proportions the
+  plot is 26.9 mm tall. Inside the top-left corner, the eight-entry key covers
+  the data points at 3.0–3.05 µm (2.168–2.17 %). `corner="best"` avoided that
+  but moved the key beside the plot and drew the plot 42.5 mm wide. The key now
+  sits above the frame with `side="top"`, so the plot keeps its size and
+  nothing is covered.
 * **No right-hand "Scale heights" axis.** The bundle gives no zero point (the
   1-bar reference radius). The Fig. 2 caption gives 800 km per scale height, but
   that alone does not fix the offset, so the axis cannot be placed from the data.
@@ -61,73 +90,54 @@ only. Fig. 3's top panel is reproduced; its bottom panel is not (see below).
   only the unbinned 217-point curve (2.80–6.64 µm), so it is drawn over the data
   range only. The "No X" curves are binned to the data grid.
 * **Fonts.** Liberation Sans in place of Arial (see Lint).
-* **Axis ranges are estimates.** The original has no frame, so the left and right
-  limits (2.9 and 5.6 µm) and the bottom and top (2.06 and 2.31 %) come from the
-  tick positions in the published PNG.
 
 ## Improved version
 
-Panel a shows the observed spectrum and the best fit. Panel b has six strips, one
-per source, showing how much depth each source adds: best fit minus the fit with
-that source removed, in ppm. The fit is interpolated onto the 95 data wavelengths,
-which is the only approximation (the best fit is on a finer grid). Peaks, from
-the model files: CO₂ 1,240 ppm at 4.36 µm; H₂O 753 ppm at 3.01 µm; clouds 425
-ppm at 3.89 µm; CO 191 ppm at 4.77 µm; H₂S 149 ppm at 3.79 µm; CH₄ 72 ppm at
-3.01 µm.
+Panel a shows the observed spectrum and the best fit. Panel b has six strips,
+one per source, showing how much depth each source adds: best fit minus the fit
+with that source removed, in ppm. The fit is interpolated onto the 95 data
+wavelengths, which is the only approximation (the best fit is on a finer grid).
+Peaks, from the model files: CO₂ 1,240 ppm at 4.36 µm; H₂O 753 ppm at 3.01 µm;
+clouds 425 ppm at 3.89 µm; CO 191 ppm at 4.77 µm; H₂S 149 ppm at 3.79 µm; CH₄
+72 ppm at 3.01 µm.
 
-Each change, and the problem in the original it fixes:
+### Size
 
-1. **Seven overlapping, near-identical curves on one axis.** The original draws
-   the six no-X curves and the best fit on one axis, so they overprint each other
-   between 4.1 and 4.7 µm. Now the observed spectrum and best fit get a panel of
-   their own (a), and the no-X curves are removed from it. The contribution of
-   each source is drawn in its own strip (b), so no line overlays another.
-2. **Legend far from the data.** The original key has eight entries to match to
-   lines by colour. The redesign keeps only the two entries that need a key, the
-   observed points and the best fit, in a real `legend(corner="ne")` in the top
-   right, where the plot is empty and the key covers no data. The names are
-   "Observed (FIREFLy), ±1σ" and "Best fit (ScCHIMERA)". The strips need no key:
-   each is named at its right-hand end, with its peak value, in the strip's colour.
-   (An earlier draft set the same two names as loose text in the corner, with no
-   swatches; it was replaced by this key.)
-3. **Colours not colour-blind safe.** The original uses navy against blue and red
-   against orange. Each source now has a hue from the Okabe–Ito set: CO₂
-   vermillion (#d55e00), H₂O blue (#0072b2), CO bluish green (#009e73), H₂S
-   orange (#e69f00), CH₄ sky blue (#56b4e9); clouds are neutral grey (#7a7a7a).
-   Text uses a darker shade of each hue so every label passes the 4.5:1 contrast
-   check (lint `LOW_CONTRAST` fixed). H₂O and CH₄ are both blue hues; they differ
-   in lightness and each has its own labelled strip, so they can be told apart
-   without a key.
-4. **Absorption features not labelled on the plot.** The CO₂ band at 4.3 µm is
-   labelled beside its peak ("CO₂ band, 4.3 µm"). The H₂O band is labelled at
-   3.0 µm, above the data ("H₂O: depth rises blueward of 3.6 µm"). The ~4 µm
-   feature that the paper says the models cannot reproduce is labelled above the
-   data, at 4.12 µm, 2.185 %, with a short downward arrow that stops just above
-   the error bar of the small bump at 4.03 µm (its top is 2.154 %). Neither the
-   text nor the arrow crosses a point or an error bar. The earlier label sat
-   beneath the dip, where the bars and points crossed it.
-5. **Ablation impact hard to read.** The original makes you compare the vertical
-   gaps between eight lines. In the strips the gas contributions share one
-   wavelength axis and one ppm scale (−60 to 1,300 ppm), so their sizes compare
-   directly. Each strip is filled from zero, so the area shows the size. The
-   scale is the same in every strip, so CH₄, at 72 ppm, looks flat, which is
-   right: its effect is small.
-6. **Overplotting of data and model.** The data are hollow rings with 1σ error
-   bars, so the black best-fit line runs through them and is still visible.
-7. **Summary numbers.** The best-fit parameters (10× solar, C/O = 0.35,
-   χ²/N = 1.3) go in the top-left corner, where the plot is empty.
-8. **Repeated axis labels.** The x-axis tick labels and "Wavelength (µm)" appear
-   only under the bottom strip. The top panel and the other strips keep their
-   ticks but drop the labels.
-9. **Sign convention.** A title over the strips states what they show ("Depth
-   added by each source (ppm): best fit minus the fit without it"), so a reader
-   need not infer the sign, and gives the unit of every strip's tick labels. The
-   strips carry no y-axis title: an "Added depth (ppm)" title is taller than an
-   8.5 mm strip, and inklet then silently enlarged that strip's plot area to
-   about 13 mm, which broke the common ppm scale across strips.
+89 mm, the same as the faithful version. Each plot is 72.9 mm wide, the width of
+the original's top panel. At the preset's type size, the longest strip label
+("CO₂: 1,240 ppm") fits inside its strip with no overlap, and the tick labels and
+axis titles are the same size as in the faithful version. 120 mm and 136 mm were not needed: a wider
+page would only add empty space at the right of the plots. The height, 122 mm,
+comes from seven rows: the top panel (26.9 mm), six strips (9 mm each) and the
+x-axis labels under the bottom strip.
 
-Still missing from the improved version, as in the faithful one: the molecular
-cross-section panel and the scale-height axis (no data).
+### Changes in pass 2
+
+Removed from inside the figure (moved to the caption):
+
+* the "Best fit: 10× solar metallicity, C/O = 0.35, χ²/N = 1.3" line;
+* the strip-stack title "Depth added by each source (ppm): …";
+* the sentence labels "H₂O: depth rises blueward of 3.6 µm" and "unmodelled
+  feature, ~4 µm", with the arrow that pointed at the 4.03 µm bump;
+* the long strip labels ("CO₂ peak 1,240 ppm at 4.36 µm"): each strip now
+  carries only "CO₂: 1,240 ppm" in its own colour;
+* "CO₂ band, 4.3 µm" in the top panel.
+
+Added:
+
+* short labels "CO₂" (at the 4.3 µm band, left of the rise) and "H₂O" (at the
+  blue end) in the top panel;
+* one y title for the strips, "Δ depth (ppm)", on the middle strip (row 3,
+  Clouds), which overhangs the strip height and passes lint;
+* panel letters: **a** for the top panel and **b** for the strip group. The
+  strips are one nested subfigure so they count as one lettered cell (see
+  ISSUES 4);
+* the key is two entries ("Observed, ±1σ", "Best fit") at the top right, where
+  the plot is empty above 2.24 %.
+
+Kept: the Okabe–Ito colours (with darker text shades for contrast), the hollow
+data markers with every 1σ bar, the black best fit, one shared ppm scale for
+all strips, and the zero line in each strip.
 
 ## Checks against the paper text
 
@@ -144,21 +154,50 @@ cross-section panel and the scale-height axis (no data).
 * Text: "clouds, CO and H₂S ... more subtle modulations". Effects of 425, 191 and
   149 ppm, against 1,240 ppm for CO₂. ✓
 
+## Suggested caption
+
+**a**, Transmission spectrum of WASP-39b. Open circles with 1σ error bars are the
+FIREFLy data. The black line is the best fit from the ScCHIMERA model with all
+opacity sources, for 10× solar metallicity, a carbon-to-oxygen ratio of 0.35 and
+cloud opacity of 7 × 10⁻³ cm² g⁻¹ (χ²/*N* = 1.3, *N* = 95 points). The labels
+mark the CO₂ band at 4.3 µm and the rise in depth towards 3.0 µm, which the water
+absorption causes. The dip near 4.0 µm lies below the model; the paper notes that
+the models do not reproduce this feature.
+
+**b**, Depth added by each opacity source, in parts per million of transit depth.
+Each curve is the best fit minus the fit with that gas or the clouds removed, so
+a larger value means that source contributes more at that wavelength. The strips
+share one wavelength axis and one ppm scale. The best fit is interpolated onto the
+95 data wavelengths, where the remove-one-gas models are binned. The peak for each
+source is given: CO₂ 1,240 ppm at 4.36 µm, H₂O 753 ppm at 3.01 µm, clouds 425 ppm
+at 3.89 µm, CO 191 ppm at 4.77 µm, H₂S 149 ppm at 3.79 µm and CH₄ 72 ppm at
+3.01 µm.
+
+Data: Ahrer *et al.*, *Nature* **614**, 649–652 (2023), Fig. 3 (top panel); CC BY 4.0.
+
+## Look-fix rounds
+
+Faithful, three rounds. (1) The best-fit line ran past 3.0 µm and was cropped;
+fixed with the measured limits. (2) The 8-entry key covered the 3.0 µm points
+inside the top-left corner; `corner="best"` moved the key beside the plot and
+narrowed the plot to 42.5 mm (`PLOT_WIDTH_OVERRIDDEN`). The key now sits above
+the frame with `side="top"`. (3) The full image checked clean: frame, inward
+ticks, key and data.
+
+Improved, four rounds. (1) Letters were given to all seven cells, so the strips
+read `b` to `g`; the strips became one nested subfigure with the letter `b`.
+(2) The strip labels sat on the top frame; they were lowered, and at 120 ppm
+below the top they crowded the H₂O curve (lint CROWDING), so they are 70 ppm
+below the top. (3) The 4 µm sentence label and its arrow were removed, and the
+CO₂ label moved beside the 4.3 µm band. (4) Full-size crops of the strips and
+the top panel are clean: no overlapping text, and no label over a line or point.
+
 ## Verdict
 
-The faithful version reproduces the top panel with the same data, series,
-key and scales. It omits the bottom cross-section panel and the scale-height axis,
-which the bundle cannot supply. The improved version uses the same data and
-message: a clean observed-versus-model panel and six colour-blind-safe strips that
-make each source's contribution comparable. It keeps every error bar and needs no
-key.
-
-Look-fix rounds: faithful, two (the best-fit line ran past 3.0 µm and was cropped;
-the scale and keys then checked clean). Improved, four: the bottom-axis row was
-off by one; the strip labels used 1,000 × too large units (fixed by computing
-in absolute depth); two labels were too light and an error bar crossed the CO₂
-label; the 500 ppm tick was dropped in the short strips. Review round (improved):
-the two corner texts with no swatches became a real key; the 4 µm annotation moved
-above the data with an arrow; the bare "ppm" label became "Added depth (ppm)".
-Each was checked at full size, and the crops at 3.9–4.3 µm and the top-right
-corner are clean.
+The faithful version reproduces the top panel at the original's print width
+(89 mm), with a closed black frame, inward ticks, the same data, series, colours
+and scales. It omits the bottom cross-section panel and the scale-height axis,
+which the bundle cannot supply, and its key sits above the frame. The improved
+version uses the same data and message: a clean observed-versus-model panel and
+six colour-blind-safe strips that make each source's contribution comparable.
+It keeps every error bar, and every explanation is in the caption.

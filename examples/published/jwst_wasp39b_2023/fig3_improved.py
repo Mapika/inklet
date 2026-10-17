@@ -30,7 +30,12 @@ CO2_TXT, CO_TXT, H2S_TXT, CH4_TXT, CLOUD_TXT = "#a94400", "#00704f", "#8a5a00", 
 DATA, FIT, RULE = "#3a3a3a", "#000000", "#9a9a9a"
 
 PCT = 100.0
-XLIM, XTICKS = (2.9, 5.6), [3.0, 3.5, 4.0, 4.5, 5.0, 5.5]
+# Same panel size as the faithful version (single column, 89 mm): the top plot
+# box is 72.9 x 26.9 mm, the width of the original's top panel.
+PLOT_W, TOP_H, STRIP_H = 72.9, 26.9, 9.0
+XLIM, XTICKS = (2.89, 5.67), [3.0, 3.5, 4.0, 4.5, 5.0, 5.5]
+YLIM = (2.057, 2.311)
+RANGE_PPM = (-60.0, 1300.0)   # one scale for every strip, so sizes compare
 
 # -- data -----------------------------------------------------------------------
 firefly = pd.read_csv(HERE / "data" / "fig3_firefly_data.csv")
@@ -43,8 +48,8 @@ sigma = firefly.transit_depth_1sigma.to_numpy() * PCT
 fit_on_data = np.interp(wl, best.wavelength_um, best.transit_depth)   # absolute
 fit_curve = best[best.wavelength_um.between(wl.min(), wl.max())]
 
-# Strips, largest contribution first: (label, column, colour).
-SOURCES = [  # (label, column, line colour, text colour)
+# Strips, largest contribution first: (label, column, colour, text colour).
+SOURCES = [
     ("CO_{2}", "no_CO2", CO2, CO2_TXT),
     ("H_{2}O", "no_H2O", H2O, H2O),
     ("Clouds", "no_cloud", CLOUD, CLOUD_TXT),
@@ -52,7 +57,6 @@ SOURCES = [  # (label, column, line colour, text colour)
     ("H_{2}S", "no_H2S", H2S, H2S_TXT),
     ("CH_{4}", "no_CH4", CH4, CH4_TXT),
 ]
-RANGE_PPM = (-60.0, 1300.0)   # one scale for every strip, so sizes compare
 
 def effect_ppm(column):
     """Depth added by a source: best fit minus the fit with that source removed."""
@@ -60,49 +64,48 @@ def effect_ppm(column):
     return (fit_on_data - removed) * 1e6
 
 # -- top panel: the observation and the best fit --------------------------------
-doc = i.preset("scientific.nature", format="double-column").document(
+doc = i.preset("scientific.nature", format="single-column", axes="box").document(
     columns=1, row_gap=3, share_plot_margins=True)
 
-top = i.plot_spec(148, 46, x=XLIM, y=(2.06, 2.31), clip=True)
+top = i.plot_spec(PLOT_W, TOP_H, x=XLIM, y=YLIM, clip=True)
 top.line(list(zip(fit_curve.wavelength_um, fit_curve.transit_depth * PCT)),
-         stroke=FIT, stroke_width=0.3, name="Best fit (ScCHIMERA)")
+         stroke=FIT, stroke_width=0.3, name="Best fit")
 top.errorbars(list(zip(wl, depth)), yerr=sigma.tolist(), stroke=DATA,
               stroke_width=0.2, cap=0)
 top.scatter(list(zip(wl, depth)), size=1.3, color=DATA, hollow=True,
-            stroke_width=0.2, name="Observed (FIREFLy), ±1σ")
+            stroke_width=0.2, name="Observed, ±1//σ//")
 top.axes(x=None, y="Transit depth (%)",
          x_options=dict(ticks=XTICKS, labels=False),
          y_options=dict(ticks=[2.10, 2.15, 2.20, 2.25, 2.30], format="{:.2f}"))
-top.text(2.93, 2.305, "Best fit: 10× solar metallicity, C/O = 0.35, χ²/N = 1.3",
-         anchor="nw", color=FIT)
-top.legend(corner="ne", names=["Observed (FIREFLy), ±1σ", "Best fit (ScCHIMERA)"])
-top.text(4.62, 2.245, "CO_{2} band, 4.3 µm", anchor="w", color=CO2_TXT)
-top.text(3.02, 2.205, "H_{2}O: depth rises blueward of 3.6 µm", anchor="sw", color=H2O)
-# Label above the data; the leader drops vertically to the bump at 4.03 um,
-# stopping just above its error bar (top 2.154%), so it crosses no point or bar.
-top.text(4.12, 2.185, "unmodelled feature, ~4 µm", anchor="se", color=DATA)
-top.arrow((4.03, 2.181), (4.03, 2.160), head="triangle", stroke=DATA, stroke_width=0.2)
+top.legend(corner="ne", names=["Observed, ±1//σ//", "Best fit"])
+top.text(4.12, 2.200, "CO_{2}", anchor="e", color=CO2_TXT)
+top.text(3.05, 2.195, "H_{2}O", anchor="sw", color=H2O)
 doc.add("observed", top, row=0)
 
 # -- strips: one source each, shared wavelength axis -----------------------------
+# A nested subfigure is one lettered cell, so its six strips carry no letters.
+strips = i.subfigure(width=89, columns=1, row_gap=3, share_plot_margins=True)
 last = len(SOURCES)            # row number of the bottom strip
+MIDDLE = 3                     # the strip that carries the one y title
 for row, (label, column, colour, text) in enumerate(SOURCES, start=1):
     delta = effect_ppm(column)
     peak = int(np.argmax(delta))
-    strip = i.plot_spec(148, 8.5, x=XLIM, y=RANGE_PPM, clip=True)
+    strip = i.plot_spec(PLOT_W, STRIP_H, x=XLIM, y=RANGE_PPM, clip=True)
     strip.hline(0, stroke=RULE, stroke_width=0.2)
     strip.band(wl.tolist(), [0.0] * len(wl), delta.tolist(), color=colour, name=label)
     strip.line(list(zip(wl, delta)), stroke=colour, stroke_width=0.3, name=label)
-    if row == 1:
-        strip.title("Depth added by each source (ppm): best fit minus the fit without it")
     strip.axes(x=None, y=None,
                x_options=dict(ticks=XTICKS, labels=row == last,
                               label="Wavelength (µm)" if row == last else None),
-               y_options=dict(ticks=[0, 1000], format="{:,.0f}"))
-    strip.text(5.55, RANGE_PPM[1] - 30,
-               f"{label}: peak {delta[peak]:,.0f} ppm at {wl[peak]:.2f} µm",
+               y_options=dict(ticks=[0, 1000], format="{:,.0f}",
+                              label="Δ depth (ppm)" if row == MIDDLE else None))
+    strip.text(5.55, RANGE_PPM[1] - 70,
+               f"{label}: {delta[peak]:,.0f} ppm",
                anchor="ne", color=text)
-    doc.add(f"strip-{column}", strip, row=row)
+    strips.add(f"strip-{column}", strip, row=row - 1)
+
+doc.add("strips", strips, row=1)
+doc.letters({"observed": "a", "strips": "b"})
 
 figure = doc.compile()
 

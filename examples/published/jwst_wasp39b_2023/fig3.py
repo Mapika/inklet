@@ -47,8 +47,11 @@ KEY_ORDER = [name for name, _, _ in REMOVED[:4]] + [
     "No CH_{4}", "No cloud", ALL, "Data"]   # column-major, as published
 
 # -- panel ----------------------------------------------------------------------
-doc = i.preset("scientific.nature", format="double-column").document()
-p = i.plot_spec(148, 55, x=(2.9, 5.6), y=(2.06, 2.31), clip=True)
+# Single column (89 mm), boxed with inward ticks as the original is. The original
+# top panel is 862 x 318.5 px of an 1052 px wide image, so at 89 mm its plot box
+# is 72.9 x 26.9 mm; x and y limits are read from its frame and tick marks.
+doc = i.preset("scientific.nature", format="single-column", axes="box").document()
+p = i.plot_spec(72.9, 26.9, x=(2.89, 5.67), y=(2.057, 2.311), clip=True)
 
 for name, column, colour in REMOVED:
     p.line(list(zip(ablation.wavelength_um, ablation[column] * PCT)),
@@ -62,7 +65,7 @@ p.scatter(points, size=1.3, color=DATA_DOT, name="Data")
 p.axes(x="Wavelength (µm)", y="Transit depth (%)",
        x_options=dict(ticks=[3.0, 3.5, 4.0, 4.5, 5.0, 5.5], format="{:.1f}"),
        y_options=dict(ticks=[2.10, 2.15, 2.20, 2.25, 2.30], format="{:.2f}"))
-p.legend(corner="nw", names=KEY_ORDER, order="column", columns=2)
+p.legend(side="top", names=KEY_ORDER, order="column", columns=2)
 
 doc.add("fig3", p)
 figure = doc.compile()

@@ -100,3 +100,55 @@ warning is recorded in `NOTES.md` as the only remaining diagnostic.
 * `axes(x=None, ...)` with `x_options=dict(labels=False)` hides the tick labels
   and keeps the ticks, which is what a top panel above a shared axis needs.
 * `CROWDING` lint caught two labels 0.96 mm apart, and moving them cleared it.
+
+## Pass 2
+
+Found 2026-10-17 while moving both figures to 89 mm with `axes="box"`. Repros
+use `PYTHONPATH=<worktree>/src <venv>/bin/python`.
+
+### 4. `doc.letters()` letters every cell, and there is no way to leave one unlettered
+
+`letters({'name': 'a'})` names some cells, and every other cell takes the next
+free letter. A flat grid of seven cells therefore gets seven letters. Here the
+top panel is `a` and the six strips, meant to be one panel `b`, were lettered
+`b` to `g`. Lint then reported CROWDING between the letter `e` and the axis
+title. The only fix found was to nest the strips in a `subfigure()` that is one
+named cell (`doc.letters({'observed': 'a', 'strips': 'b'})`). The docs say "to
+skip a letter", which reads as skipping a cell, but it only skips a letter value.
+
+```python
+import inklet as i
+
+doc = i.document(width=89, columns=1)
+for k in range(3):
+    p = i.plot_spec(60, 10, x=(0, 1), y=(0, 1)).line([(0, 0), (1, 1)], name='a')
+    doc.add(f'c{k}', p, row=k)
+doc.letters({'c0': 'a'})
+f = doc.compile()     # c1 and c2 are lettered 'b' and 'c'; no diagnostic says so
+# expected: a way to mark a cell as unlettered, or a note that the other
+#           cells take letters, when names= leaves some cells unnamed
+```
+
+### 5. Lint suggests `corner='best'`, which can shrink a short plot to 58% of its width
+
+For a 72.9 mm plot of only 26.9 mm height, `KEY_COVERS_DATA` on the top-left
+corner suggests `corner='best'`. With that legend the key goes beside the plot
+on the right, and the plot is drawn 42.5 mm wide, reported as
+`PLOT_WIDTH_OVERRIDDEN`. The lint text does not say that `'best'` may move the key
+outside, so the two suggestions contradict each other. The figure uses
+`side='top'` instead.
+
+```python
+import inklet as i
+
+doc = i.preset('scientific.nature', format='single-column', axes='box').document()
+p = i.plot_spec(72.9, 26.9, x=(2.89, 5.67), y=(2.057, 2.311), clip=True)
+names = ['No H_{2}O', 'No CO', 'No CO_{2}', 'No H_{2}S', 'No CH_{4}', 'No cloud', 'All opacity', 'Data']
+for n in names[:7]:
+    p.line([(3, 2.1), (5.5, 2.2)], name=n)
+p.scatter([(3, 2.1), (4, 2.15)], size=1.3, color='#333', name='Data')
+p.axes(x='Wavelength (µm)', y='Transit depth (%)')
+p.legend(corner='best', names=names, order='column', columns=2)
+doc.add('fig3', p)
+print(doc.compile().report())   # PLOT_WIDTH_OVERRIDDEN: drawn 42.5 mm, authored 72.9 mm
+```
