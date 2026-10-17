@@ -19,18 +19,18 @@ OUT = ROOT / "gallery" / "published"
 
 # Five P-value classes, most significant first (the key order of the original).
 CLASSES = [
-    ("[0,5e-100]", "P < 5 × 10^{-100}", "#EE82EE"),
-    ("(5e-100,5e-50]", "5 × 10^{-50} > P > 5 × 10^{-100}", "#2E8B57"),
-    ("(5e-50,5e-20]", "5 × 10^{-20} > P > 5 × 10^{-50}", "#1E90FF"),
-    ("(5e-20,5e-10]", "5 × 10^{-10} > P > 5 × 10^{-20}", "#DAA520"),
-    ("(5e-10,5e-08]", "5 × 10^{-8} > P > 5 × 10^{-10}", "#CDC673"),
+    ("[0,5e-100]", "//P// < 5 × 10^{−100}", "#EE82EE"),
+    ("(5e-100,5e-50]", "5 × 10^{−50} > //P// > 5 × 10^{−100}", "#2E8B57"),
+    ("(5e-50,5e-20]", "5 × 10^{−20} > //P// > 5 × 10^{−50}", "#1E90FF"),
+    ("(5e-20,5e-10]", "5 × 10^{−10} > //P// > 5 × 10^{−20}", "#DAA520"),
+    ("(5e-10,5e-08]", "5 × 10^{−8} > //P// > 5 × 10^{−10}", "#CDC673"),
 ]
 GREY, CORAL = "#BEBEBE", "#FF7256"
 
 # Power curves: (Z_ALPHA + Z_POWER) = sqrt(lambda) for two-sided alpha = 5e-8, power 90%.
 Z_ALPHA, Z_POWER = 5.4513, 1.2816
-SAMPLE_SIZES = [(5e5, "90% power (n = 0.5 million)", GREY),
-                (5e6, "90% power (n = 5 million)", CORAL)]
+SAMPLE_SIZES = [(5e5, "90% power (//n// = 0.5 million)", GREY),
+                (5e6, "90% power (//n// = 5 million)", CORAL)]
 
 
 def beta_for_power(maf, n):
@@ -49,8 +49,8 @@ snps.columns = ["maf", "beta", "cls"]
 snps["maf_pct"] = 100 * snps["maf"]
 
 # -- figure -------------------------------------------------------------------
-doc = i.preset("scientific.nature", format="single-column").document()
-p = i.plot_spec(72, 60, x=(0, 50), y=(-0.3, 0.3), clip=True)
+doc = i.preset("scientific.nature", format="single-column", axes="open").document()
+p = i.plot_spec(72, 50, x=(0, 50), y=(-0.3, 0.3), clip=True)
 p.hline(0, stroke=GREY, stroke_width=0.11)
 
 for key, label, color in CLASSES:
@@ -69,13 +69,18 @@ for n, label, color in SAMPLE_SIZES:
 
 p.axes(x="MAF (%) in cross-ancestry meta-analysis",
        y="Joint effect sizes (s.d.) of minor alleles\nin cross-ancestry meta-analysis",
-       x_options=dict(ticks=[1, 5, 10, 20, 30, 40, 50]),
-       y_options=dict(ticks=[-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3],
+       x_options=dict(ticks=[1, 5, 10, 20, 30, 40, 50], stroke="#000000", stroke_width=0.21),
+       y_options=dict(ticks=[-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3], stroke="#000000", stroke_width=0.21,
                       format=y_label))
-p.legend(corner="ne", names=[f"{lab} ({(snps.cls == k).sum():,} SNPs)"
+# A panel carries one key, so the class key is the panel's legend (upper right,
+# as in the original). The original's second key, the power curves, sits in the
+# empty lower right: a short line swatch in each curve's colour, then its label.
+p.legend(corner="ne", row_gap=0.4, names=[f"{lab} ({(snps.cls == k).sum():,} SNPs)"
                              for k, lab, _ in CLASSES])
-
-p.legend(corner="se", names=[label for _, label, _ in SAMPLE_SIZES])
+for row, (_, label, color) in enumerate(SAMPLE_SIZES):
+    y = -0.22 - 0.05 * row
+    p.line([(14, y), (19, y)], stroke=color, stroke_width=0.25)
+    p.text(20, y, label, anchor="w", size=i.pt(7))
 
 doc.add("fig1", p)
 figure = doc.compile()
