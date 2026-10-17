@@ -11,7 +11,8 @@ from ..core import Diagram, DiagramError, Rect, RectPrim, Vec2
 from ..draw.coords import as_drawn
 from ..draw.place import place as draw_place
 from ..draw.shapes import MARK_KIND
-from .raster import _missing_colour, is_missing, raster_matrix, uniform_pitch
+from .raster import (BLANK_CELL_NOTE, _missing_colour, is_blank_cell, is_missing,
+                     raster_matrix, uniform_pitch)
 from .metadata import declare_domain as _declare_domain
 from .scale import Scale
 from .._compat import renamed_function
@@ -98,9 +99,10 @@ def _cell_grid(rows: Sequence[Sequence[float]], ramp, unit,
                 shade = hole
             else:
                 shade = ramp(value if unit is None else unit.map(value))
-            cells.append((Vec2(cx, cy),
-                          Diagram(prim=RectPrim(wide, tall), kind=MARK_KIND)
-                          .styled(fill=shade, stroke="none")))
+            cell = Diagram(prim=RectPrim(wide, tall), kind=MARK_KIND).styled(fill=shade, stroke="none")
+            if is_blank_cell(value):
+                cell.note(BLANK_CELL_NOTE, True)
+            cells.append((Vec2(cx, cy), cell))
     return draw_place(cells, **style)
 
 
@@ -116,22 +118,29 @@ def _batched_cell_grid(rows,ramp,unit,xs,ys,style,missing=None,*,seamless=False)
     for row,(cy,tall) in zip(rows,ys):
         for value,(cx,wide) in zip(row,xs):
             fill=hole if is_missing(value) else ramp(value if unit is None else unit.map(value))
+            # Blank cells get their own batches, so the linter can tell them apart
+            # from marks of the same colour without looking inside a batch.
+            key=(fill,is_blank_cell(value))
             box=Rect(cx-wide/2,cy-tall/2,cx+wide/2,cy+tall/2)
-            buckets.setdefault(fill,[]).append(Subpath(box.corners,closed=True))
+            buckets.setdefault(key,[]).append(Subpath(box.corners,closed=True))
             if seamless:
                 # Opaque underpaint fills only the subpixel cracks of the exact
                 # foreground. Never change sample boundaries or the outer box.
                 parse_color(fill)
                 bleed=Rect(max(xmin,box.x0-wide/2),max(ymin,box.y0-tall/2),
                            min(xmax,box.x1+wide/2),min(ymax,box.y1+tall/2))
-                back.setdefault(fill,[]).append(Subpath(bleed.corners,closed=True))
+                back.setdefault(key,[]).append(Subpath(bleed.corners,closed=True))
     nodes=[]
     for layer in ([back,buckets] if seamless else [buckets]):
-        for color,paths in layer.items():
+        for (color,blank),paths in layer.items():
             for k in range(0,len(paths),512):
-                nodes.append(Diagram(prim=PathPrim(tuple(paths[k:k+512]),filled=True),
-                    kind='matrix-underpaint' if layer is back else MARK_KIND).styled(fill=color,stroke='none'))
-    result=Diagram(children=tuple(nodes),kind='vector-matrix',notes={'matrix_batch':{'cells':sum(map(len,rows)),'colors':len(buckets),'batches':len(nodes),'individual_cells':False,'seamless':seamless}})
+                node=Diagram(prim=PathPrim(tuple(paths[k:k+512]),filled=True),
+                    kind='matrix-underpaint' if layer is back else MARK_KIND).styled(fill=color,stroke='none')
+                if blank:
+                    node.note(BLANK_CELL_NOTE,True)
+                nodes.append(node)
+    colors=len({color for color,_ in buckets})
+    result=Diagram(children=tuple(nodes),kind='vector-matrix',notes={'matrix_batch':{'cells':sum(map(len,rows)),'colors':colors,'batches':len(nodes),'individual_cells':False,'seamless':seamless}})
     return as_drawn(result.styled(**style) if style else result)
 
 

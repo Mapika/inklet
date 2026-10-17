@@ -625,3 +625,94 @@ def _cross_at(a: Vec2, b: Vec2, da: float, db: float) -> Vec2:
     if abs(span) <= EPS:
         return b
     return a + (b - a) * (da / span)
+
+
+# -- what a clip took away -------------------------------------------------
+
+#: The note `Panel` writes on a cut node: `{"series": name, "points": n,
+#: "markers": m}`, what the clip hid and what it cut through.
+CLIP_NOTE = "clip_census"
+
+#: The note `Panel.scatter` writes on a marker layer, whose value is the series
+#: name (or None). Every leaf under it is a marker, so `clip_census` counts
+#: markers rather than the vertices of lines.
+MARKERS_NOTE = "series_markers"
+
+
+def clip_census(node: Diagram, region: Rect | Sequence[Point], *,
+                markers: bool = False) -> tuple[int, int]:
+    """What clipping `node` to `region` hides, as `(points, markers)`.
+
+    `points` counts what lies wholly outside the region: the vertices of a line
+    (its anchor points, not the flattened samples of a curve), and the markers
+    that do not touch it at all. `markers` counts the markers that touch the
+    region and run past its edge by more than `CUT_SLACK_MM`. A square or path
+    marker is cut there; a round one is kept whole and runs across the edge,
+    and both are the reader's "partly drawn". With `markers=False` a line is
+    judged by its vertices and no marker is counted; with `markers=True` every
+    leaf is a marker.
+
+    Walks the tree the way `clip` does, in the same frame, so the two cannot
+    disagree about what is inside.
+    """
+    edges, box = _region(region)
+    counts = [0, 0]
+    _census(node, IDENTITY, edges, box, markers, counts)
+    return counts[0], counts[1]
+
+
+#: How far a marker may run past the edge before it counts as cut. Less than
+#: this is a rim on the axis line, which no reader would call partly drawn.
+CUT_SLACK_MM = 0.5
+
+
+def _census(node: Diagram, world: Affine, edges, box: Rect, markers: bool,
+            counts: list[int]) -> None:
+    here = world @ node.transform
+    prim = node.prim
+    if isinstance(prim, MarkerBatchPrim):
+        _census_batch(node, here, edges, box, counts)
+    elif prim is not None:
+        if markers:
+            reach = _bbox_in(node, here)
+            if reach is not None:
+                if not _touching(box, reach):
+                    counts[0] += 1
+                elif _overhang(reach, box) > CUT_SLACK_MM:
+                    counts[1] += 1
+        elif isinstance(prim, PathPrim):
+            for sub in prim.subpaths:
+                for anchor in _anchors(sub):
+                    if any(_inside(here.apply(anchor), e) < -EPS for e in edges):
+                        counts[0] += 1
+    for child in node.children:
+        _census(child, here, edges, box, markers, counts)
+
+
+def _census_batch(node: Diagram, world: Affine, edges, box: Rect,
+                  counts: list[int]) -> None:
+    batch = node.prim
+    unit = batch.shape.envelope().bbox()
+    if unit is None:
+        return
+    for x, y, size, _paint, _source in batch.records():
+        local = Rect(x+unit.x0*size, y+unit.y0*size, x+unit.x1*size, y+unit.y1*size)
+        reach = local.transform(world)
+        if not _touching(box, reach):
+            counts[0] += 1
+        elif _overhang(reach, box) > CUT_SLACK_MM:
+            counts[1] += 1
+
+
+def _overhang(reach: Rect, box: Rect) -> float:
+    """How far `reach` runs past the nearest edge of `box`, in millimetres."""
+    return max(box.x0 - reach.x0, reach.x1 - box.x1,
+               box.y0 - reach.y0, reach.y1 - box.y1)
+
+
+def _anchors(sub: Subpath):
+    """A subpath's own vertices: the curve endpoints when it has curves, so a
+    smooth line counts its data points, not the samples drawn between them."""
+    if sub.curves:
+        return [c[0] for c in sub.curves] + [sub.curves[-1][3]]
+    return sub.points

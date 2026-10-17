@@ -36,7 +36,8 @@ from ..core import Diagram, DiagramError, RectPrim, Vec2, mm
 from ..draw.coords import active_theme
 from ..draw.path import polygon, polyline
 from ..draw.place import place as draw_place
-from ..draw.shapes import MARK_KIND, MARK_LINE_KIND, marker as make_marker
+from ..draw.shapes import (AUTHOR_STROKE_NOTE, ERRORBARS_NOTE, GENERATED_STROKE_NOTE,
+                           MARK_KIND, MARK_LINE_KIND, marker as make_marker)
 from ..themes.color import contrast_ratio, mix, to_oklch
 from .scale import Band, Scale
 from .statistics import (
@@ -392,7 +393,11 @@ def errorbars(panel, points: Sequence[Sequence], *, yerr=None, xerr=None,
             items.extend(_whisker(panel, x, y, low, high, axis, reach))
     if not items:
         raise DiagramError("errorbars() had nothing to draw")
-    return draw_place(items, **style)
+    node = draw_place(items, **style)
+    node.note(ERRORBARS_NOTE, True)
+    if "stroke_width" in style:
+        node.note(AUTHOR_STROKE_NOTE, True)
+    return node
 
 
 def error_pairs(spread, count: int, name: str) -> list[tuple[float, float]]:
@@ -449,8 +454,10 @@ def _whisker(panel, x, y, low: float, high: float, axis: str,
         across = Vec2(0.0, cap)
     out = [polyline(ends, kind=MARK_LINE_KIND)]
     if cap > 0:
+        # A cap is drawn for the reader's eye, not chosen by the author, so the
+        # linter does not count its weight against the figure's stroke budget.
         out.extend(polyline((end - across, end + across), kind=MARK_LINE_KIND)
-                   for end in ends)
+                   .note(GENERATED_STROKE_NOTE, True) for end in ends)
     return out
 
 

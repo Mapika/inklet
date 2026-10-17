@@ -84,7 +84,12 @@ def test_nature_warns_when_text_is_not_in_arial_or_helvetica():
     doc = i.preset('scientific.nature').document()
     doc.add('label', i.text('Measured label'))
     found = [d for d in doc.compile().lint() if d.code == 'FONT_SUBSTITUTED']
-    assert len(found) == 1 and found[0].severity == 'warning'
+    assert len(found) == 1
+    # Liberation Sans is a metric clone of Arial: information, not a warning.
+    # Any other substitute (a face with other metrics) still warns.
+    substitute = find_font('Arial').family
+    expected = 'info' if substitute.casefold() == 'liberation sans' else 'warning'
+    assert found[0].severity == expected
     assert "not in 'Arial' or 'Helvetica'" in found[0].message
     assert 'font_family=' in found[0].hint and '.ttf' in found[0].hint
     assert found == [d for d in doc.compile().diagnostics if d.code == 'FONT_SUBSTITUTED']

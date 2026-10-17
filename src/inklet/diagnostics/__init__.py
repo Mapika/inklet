@@ -26,6 +26,7 @@ getting.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Iterable, Mapping, Sequence
 
 from ..core import Diagram, Placement, Rect, resolve
@@ -85,6 +86,7 @@ def lint(
     max_height_mm: float | None = None,
     max_letter_pt: float | None = None,
     expected_fonts: Sequence[str] | None = None,
+    expect: Iterable[str] = (),
 ) -> list[Diagnostic]:
     """Check a figure and return its diagnostics, deterministically ordered.
 
@@ -107,8 +109,20 @@ def lint(
     and all other text at 7 pt or less. `expected_fonts` names the families
     the destination asks for; FONT_SUBSTITUTED then also reports text set in
     any other family, monospaced faces excepted.
+
+    `expect` names codes the author has reviewed and kept on purpose, such as
+    `{"SERIES_FLATTENED"}` for a flat line that is the finding. Those findings
+    are still listed, but as ACKNOWLEDGED rather than as warnings, so a fix loop
+    sees them and a clean report stays clean for everything else. Only codes
+    that exist are accepted: a misspelt code raises rather than acknowledging
+    nothing.
     """
     _must_be_a_diagram(root)
+    expected = frozenset(expect) if not isinstance(expect, str) else frozenset((expect,))
+    unknown = sorted(expected - set(RULES))
+    if unknown:
+        known = ", ".join(sorted(RULES))
+        raise ValueError(f"unknown lint code(s) in expect: {', '.join(unknown)}; known rules: {known}")
     if placements is None:
         placements = resolve(root)
     ctx = build_context(
@@ -121,7 +135,12 @@ def lint(
         max_letter_pt=max_letter_pt,
         expected_fonts=None if expected_fonts is None else tuple(expected_fonts),
     )
-    return run_rules(ctx, _select(rules))
+    found = run_rules(ctx, _select(rules))
+    if not expected:
+        return found
+    found = [replace(d, severity="acknowledged") if d.code in expected else d
+             for d in found]
+    return sorted(found, key=lambda d: d.sort_key)
 
 
 def _must_be_a_diagram(root: object) -> None:

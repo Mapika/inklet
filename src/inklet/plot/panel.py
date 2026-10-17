@@ -26,7 +26,9 @@ from typing import Iterable, Mapping, Sequence
 
 from ..core import Diagram, DiagramError, PathPrim, Rect, RectPrim, Vec2, mm, resolve
 from ..core.diagram import union_bounds as _union_box
+from ..draw.clip import CLIP_NOTE, MARKERS_NOTE, clip_census
 from ..draw.clip import clip as draw_clip
+from ..draw.shapes import SERIES_OF_NOTE
 from ..draw.coords import (active_theme, as_drawn, declare_area,
                            drawn_group, plot_area)
 from ..draw.path import curve as draw_curve, polyline
@@ -40,7 +42,7 @@ from .furniture import (AREA_KIND, GRID_KIND, PANEL_KIND, TITLE_KIND, beside,
                         plated as _plated)
 from .key import (SWATCH_OF_TYPE, colorbar as make_colorbar,
                   legend as make_legend)
-from .line_labels import tag_series
+from .line_labels import SERIES_NOTE, tag_series
 from .matrix import (_RASTER_ABOVE_CELLS, matrix_centers, matrix_layer,
                      prepare_matrix, default_coloring)
 from .point_labels import checked, label_points as label_points_sink
@@ -247,8 +249,19 @@ class Panel:
         out = []
         for node in nodes:
             box = node.envelope.bbox()
-            out.append(node if box is None or _inside(box, area)
-                       else draw_clip(node, area))
+            if box is None or _inside(box, area):
+                out.append(node)
+                continue
+            cut = draw_clip(node, area)
+            # What the cut hid, counted now: once clipped, the lint can only see
+            # the picture, and the points that were outside are gone from it.
+            points, markers = clip_census(node, area,
+                                          markers=MARKERS_NOTE in node.notes)
+            if points or markers:
+                name = node.notes.get(SERIES_NOTE, node.notes.get(MARKERS_NOTE))
+                cut.note(CLIP_NOTE, {"series": None if name is None else str(name),
+                                     "points": points, "markers": markers})
+            out.append(cut)
         return out
 
     def place(self, items, *, clip: bool | None = None) -> "Panel":
@@ -482,8 +495,11 @@ class Panel:
                 f'line(err_style=) is "band" or "bars", not {err_style!r}')
         if err_style == "bars":
             ink = style.get("stroke")
-            self.errorbars(data, yerr=err, clip=clip,
-                           **({} if ink is None else {"stroke": ink}))
+            bars = _marks.errorbars(self, data, yerr=err,
+                                    **({} if ink is None else {"stroke": ink}))
+            if name is not None:
+                bars.note(SERIES_OF_NOTE, str(name))
+            self.draw(bars, clip=clip)
             return
         pairs = _marks.error_pairs(err, len(data), "err")
         self.band([p[0] for p in data],
@@ -604,6 +620,9 @@ class Panel:
                                   clip=self.area if (self.clip if clip is None else clip) else None)
             clip = False  # Already clipped in pixels; preserve the image extent.
         _declare_domain(node, scale)
+        # Every leaf under this node is a marker, which is what the clip census
+        # counts (a marker cut at the edge is a finding; a line cut there is not).
+        node.note(MARKERS_NOTE, None if name is None else str(name))
         return self.draw(node, clip=clip)
 
     def _ramped(self, values, ramp, scale: Scale | None) -> tuple[list, Scale]:
