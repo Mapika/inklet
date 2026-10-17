@@ -80,7 +80,10 @@ def test_a_band_takes_the_colour_its_line_was_given() -> None:
     p.band([0, 1, 2], [0, 0.5, 0], [1, 1.5, 1], name="wt")
     (entry,) = p.keys
     assert entry.color == "#008800"
-    assert entry.fill is not None and entry.fill != "#008800"
+    # The swatch is the band's ink at the band's opacity, not a solid block: over
+    # paper it is the same tint the band paints.
+    assert entry.fill == "#008800"
+    assert entry.fill_opacity is not None and entry.fill_opacity < 1
 
 
 def test_a_dash_is_part_of_the_record() -> None:

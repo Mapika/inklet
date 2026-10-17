@@ -55,6 +55,11 @@ _FOREIGN = {
     "label": "name", "zorder": "front", "dashes": "dash",
 }
 
+#: Words a caller writes for a text size. Where a call takes `font_size=`, a
+#: size-like word means that, not a near-miss such as `side` (which edit distance
+#: alone would pick for `size`).
+_SIZE_WORDS = frozenset({"size", "fontsize", "text_size", "textsize"})
+
 
 def dash_pattern(value) -> tuple[float, ...] | None:
     """`dash=` as `stroke_dash`: a name in `DASHES`, "solid"/None, or lengths in mm."""
@@ -90,6 +95,8 @@ def keyword_hint(name: str, candidates=()) -> str | None:
     `candidates` are further valid names for the caller's own keywords.
     """
     better = _FOREIGN.get(name)
+    if better is None and name in _SIZE_WORDS and "font_size" in candidates:
+        better = "font_size"
     if better is None:
         close = difflib.get_close_matches(
             name, sorted(_STYLE_FIELDS | _PASSED_THROUGH | set(candidates)), n=1, cutoff=0.75)
@@ -133,7 +140,7 @@ def _named(func: Callable, kinds: tuple) -> frozenset[str]:
     return frozenset(names)
 
 
-def forwarded_keywords(*sinks: Callable) -> Callable[[Callable], Callable]:
+def forwarded_keywords(*sinks: Callable, at_call: bool = False) -> Callable[[Callable], Callable]:
     """Check a method's keywords at the call when it passes `**kwargs` on to `sinks`.
 
     A method that ends in `**style` hands its unnamed keywords down a chain
@@ -145,7 +152,9 @@ def forwarded_keywords(*sinks: Callable) -> Callable[[Callable], Callable]:
     accepts still works.
 
     The check is exposed as `__style_check__`, as `paint_keywords` does, so a
-    recipe runs it when the call is recorded.
+    recipe runs it when the call is recorded. It runs on a direct call only
+    when `at_call=True`: a method that takes many keywords this way opts in
+    explicitly, so no other method's behaviour changes.
     """
     keyword_only = (inspect.Parameter.KEYWORD_ONLY,)
     named = (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
@@ -158,8 +167,17 @@ def forwarded_keywords(*sinks: Callable) -> Callable[[Callable], Callable]:
         def check(kwargs) -> None:
             check_style(title, kwargs, takes)
 
-        func.__style_check__ = check
-        return func
+        if not at_call:
+            func.__style_check__ = check
+            return func
+
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            check(kwargs)
+            return func(self, *args, **kwargs)
+
+        wrapper.__style_check__ = check
+        return wrapper
     return decorate
 
 

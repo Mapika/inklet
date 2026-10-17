@@ -47,8 +47,10 @@ def test_a_default_band_is_the_series_colour_see_through() -> None:
     seen = [c * 0.22 + q * 0.78 for c, q in zip(ink, paper)]
     tint = parse_color(mix("#0055aa", active_theme().paper, 0.78))
     assert seen == pytest.approx(tint, abs=1)      # 0..255 channels
-    # The key keeps the opaque tint, not a solid block of the colour.
-    assert p.keys[0].fill == mix("#0055aa", active_theme().paper, 0.78)
+    # The key's swatch is the same ink at the same opacity, so it is the tint
+    # over paper and not a solid block of the colour.
+    assert p.keys[0].fill == "#0055aa"
+    assert p.keys[0].fill_opacity == pytest.approx(0.22)
 
 
 def test_overlapping_bands_both_show() -> None:

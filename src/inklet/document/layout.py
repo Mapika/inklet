@@ -161,6 +161,25 @@ def _title_too_wide(cell, node, box, left, previous=None):
     return None
 
 
+def _key_cause(node, limit):
+    """A sentence naming an outside top or bottom key wider than `limit`, or None.
+
+    A key on the top or bottom is centred on the data, so one wider than the
+    cell pushes the side margins into the data whatever the axis labels do. The
+    fix is in the key's own arguments, so the sentence names them.
+    """
+    for part in node.walk():
+        side = part.notes.get("legend_side")
+        if side not in ("top", "bottom") or part.bbox is None:
+            continue
+        if part.bbox.width > limit + .5:
+            return (f'The {side} key is {part.bbox.width:.1f} mm wide, wider than the '
+                    f'{limit:.1f} mm cell, so it pushes the side margins into the data; '
+                    "wrap it into more rows with a smaller columns= (or columns='auto' "
+                    "with max_width=), or place it inside the plot with corner=")
+    return None
+
+
 def _no_room_for_data(cell, box, margins, width, height, node):
     """The LayoutError for a plot whose furniture leaves (almost) no data area.
 
@@ -170,7 +189,8 @@ def _no_room_for_data(cell, box, margins, width, height, node):
     where it starts to the cell's right edge. That is how a title narrower
     than its cell still fails: a stacked panel's wider tick labels set a
     shared left margin, the title starts at this plot's own labels to the
-    right of the cell edge, and its far end no longer fits.
+    right of the cell edge, and its far end no longer fits. A top or bottom
+    key wider than the cell is named the same way.
     """
     left, right, top, bottom = margins
     message = (f'cell {cell.name!r} leaves only {width:.2f} × {height:.2f} mm for data after labels: '
@@ -180,6 +200,9 @@ def _no_room_for_data(cell, box, margins, width, height, node):
     area = plot_area(node) if node is not None else None
     ink = _ink_without_titles(node) if area is not None else None
     causes = []
+    key = _key_cause(node, box.width) if node is not None else None
+    if key is not None:
+        causes.append(key)
     if area is not None and ink is not None:
         for part, extent in _titles(node):
             text = _title_text(part)
@@ -513,8 +536,10 @@ def _place_cells(cells, nodes, boxes, margins, corner_letters=False):
         node, box = nodes[cell.name].copy(), boxes[cell.name]
         actual = node.bbox
         if actual.width > box.width+.02 or actual.height > box.height+.02:
+            key = _key_cause(node, box.width)
+            tail = f'{key}.' if key is not None else 'Increase its cell size.'
             raise LayoutError(f'cell {cell.name!r} contains {actual.width:.2f} × {actual.height:.2f} mm '
-                              f'but has {box.width:.2f} × {box.height:.2f} mm. Increase its cell size.')
+                              f'but has {box.width:.2f} × {box.height:.2f} mm. {tail}')
         fx, fy = _fractions(cell.align)
         if isinstance(cell.item, PlotSpec):
             # A plot's data region fills its cell less furniture, so the only slack

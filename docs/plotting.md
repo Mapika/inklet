@@ -89,6 +89,38 @@ cannot fit is reported rather than clipped or reduced in type size.
 `font_size=` is measured before layout. The [general plotting example](general-plots.md)
 shows these changes together with lighter default axis rules.
 
+A panel carries one key. A second `legend()` call replaces the first, so the last
+call's `corner`, `side` and `names` are the ones drawn; use two panels for two
+keys. Rows follow drawing order, except that a band is not a draw: a band drawn
+before its own line takes the line's place, so `band()` then `line()` under one
+name does not move that series to the top. `legend(names=[...])` chooses and
+orders rows by name, and band-only and reference-line names work there too.
+`hline`, `vline`, `hspan` and `vspan` take `name=` and get a row whose swatch is
+drawn in the rule's or the stripe's own paint.
+
+A key can also fill an empty grid cell. `key_diagram()` returns a panel's key as
+a diagram with no plot around it, so it sits in a `facets` grid or a mosaic cell.
+Its swatches come from the series the panel drew:
+
+```python
+import inklet as i
+
+panels = [i.panel(24, 20, x=(0, 10), y=(0, 1)) for _ in range(3)]
+for p in panels:
+    p.line([(0, .2), (10, .8)], stroke='#198c83', name='Treatment')
+    p.line([(0, .7), (10, .3)], stroke='#b2182b', name='Control')
+    p.axes(x='Time', y='Response')
+grid = i.facets(panels + [panels[0].key_diagram(title='Groups')], cols=2)
+key_doc = i.document(width=120)
+key_doc.add('grid', grid)
+assert 'Treatment' in key_doc.compile().to_svg()
+```
+
+`key_diagram(names=...)` chooses and orders rows as `legend(names=...)` does, and
+`columns=`, `font_size=` and `title=` mean what they mean there. A top or bottom
+key wider than its cell fails with a `LayoutError` that names the key and
+suggests `columns=` (more rows) or `corner=` (inside the plot).
+
 ## Insets and secondary axes
 
 ```python
