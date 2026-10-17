@@ -188,6 +188,9 @@ class PlotSpec(BuildSpec):
     # noticed, as (note key, mapping) pairs. Nothing draws them: `render`
     # puts them on the panel as notes, where lint reads them.
     _findings: list = field(default_factory=list, repr=False)
+    # Whether the author gave the width. A document keeps a plot at least that
+    # wide, with its furniture; a width left to its default is only a default.
+    _width_given: bool = field(default=False, repr=False)
 
     def __post_init__(self):
         self.width = length(self.width, 'plot width')
@@ -355,7 +358,8 @@ class PlotSpec(BuildSpec):
 
     def signature(self, trail=()):
         return ('plot', self.width, self.height, fingerprint(self.options, trail),
-                fingerprint(self._steps, trail), fingerprint(self._findings, trail))
+                fingerprint(self._steps, trail), fingerprint(self._findings, trail),
+                self._width_given)
 
     def render(self, context, width=None, height=None):
         from ..plot import panel
@@ -546,7 +550,7 @@ def _inside_legend(panel, options):
 def _copy_plot_value(value, memo):
     if isinstance(value, PlotSpec):
         if id(value) not in memo:
-            result = PlotSpec(value.width, value.height)
+            result = PlotSpec(value.width, value.height, _width_given=value._width_given)
             memo[id(value)] = result
             result.options = _copy_plot_value(value.options, memo)
             result._steps = _copy_plot_value(value._steps, memo)
@@ -558,7 +562,7 @@ def _copy_plot_value(value, memo):
     return freeze(value)
 
 
-def plot_spec(width=40, height=30, **options):
+def plot_spec(width=None, height=30, **options):
     """Defer Panel drawing instructions until a document is compiled.
 
     `aspect='equal'` makes one data unit the same length on x and y, and a
@@ -566,8 +570,14 @@ def plot_spec(width=40, height=30, **options):
     keeps the largest data region of that shape that fits its cell: `height`
     caps it, the cell's width and furniture limit it, and `align=` on
     `doc.add` places the slack.
+
+    A document may widen a plot to fill its cell, but never draws it narrower
+    than the `width` given here, with its furniture beside it. When the row
+    cannot hold that, the page says so in lint (`PLOT_WIDTH_OVERRIDDEN`).
+    Without `width`, the plot is 40 mm wide and the default does not bind.
     """
-    return PlotSpec(width, height, options)
+    return PlotSpec(40 if width is None else width, height, options,
+                    _width_given=width is not None)
 
 
 @dataclass(eq=False)

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Mapping, NamedTuple
 from ..core import Affine, Diagram, DiagramError, Rect, pt, resolve
 from ..core.prims import TextPrim
 from ..draw.coords import plot_area
+from ..plot.axis import AXIS_LABEL_KIND
 from ..plot.furniture import TITLE_KIND
 from ..figure import Figure
 from ..links import route_all
@@ -41,8 +42,48 @@ class LayoutResult(NamedTuple):
     report: dict
 
 
+def _beside_labels(node, area):
+    """The axis labels standing beside a plot's data area, as (part, box) pairs.
+
+    A y-axis title is turned along its axis and centred on the area, so a
+    short plot can have a title longer than itself. Only a label beside the
+    area, and centred on its height, may reach above and below it; one above
+    or below is furniture that the rows have to hold.
+    """
+    return [(part, box) for part, box in _parts(node)
+            if part.kind == AXIS_LABEL_KIND and box is not None
+            and (box.x1 <= area.x0+.01 or box.x0 >= area.x1-.01)
+            and area.y0 <= (box.y0+box.y1)/2 <= area.y1]
+
+
+def _fit_box(node):
+    """The box a plot's rows and cell must hold: its bbox, less any side label
+    that overhangs the data area vertically.
+
+    That overhang is not furniture. The label is centred on the area and may
+    run past the cell's ends, where `_place_cells` checks it collides with
+    nothing; counting it would grow the rows, and the data area with them. A
+    plot without such an overhang keeps its bbox.
+    """
+    box, area = node.bbox, plot_area(node)
+    if area is None:
+        return box
+    labels = _beside_labels(node, area)
+    if not any(here.y0 < area.y0-.01 or here.y1 > area.y1+.01 for _, here in labels):
+        return box
+    skip = set()
+    for part, _ in labels:
+        skip.update(id(child) for child in part.walk())
+    top, bottom = area.y0, area.y1
+    for part, here in _parts(node):
+        if id(part) in skip or part.prim is None or here is None:
+            continue
+        top, bottom = min(top, here.y0), max(bottom, here.y1)
+    return Rect(box.x0, top, box.x1, bottom)
+
+
 def plot_margins(node):
-    area, box = plot_area(node), node.bbox
+    area, box = plot_area(node), _fit_box(node)
     if area is None:
         return (0., 0., 0., 0.)
     return (max(0., area.x0-box.x0), max(0., box.x1-area.x1),
@@ -199,8 +240,28 @@ def _no_room_for_data(cell, box, margins, width, height, node):
     return LayoutError(message + '. Increase its size.')
 
 
+def _cell_letters(request):
+    """The panel letter of each cell, as {cell name: letter}.
+
+    Cells named in ``letters(names=)`` get their letter. The others take the
+    letters from ``start`` in page order, skipping any letter a named cell
+    already has; without names that is one letter per cell, as before.
+    """
+    named = dict(request.letters.get('names') or {})
+    names = {cell.name for cell in request.cells}
+    unknown = sorted(name for name in named if name not in names)
+    if unknown:
+        raise LayoutError(f'letters are set for cell {unknown[0]!r}, which is not a cell of this document')
+    unnamed = [cell.name for cell in request.cells if cell.name not in named]
+    taken = set(named.values())
+    first = ord(request.letters.get('start', 'a'))
+    free = [chr(code) for code in range(first, first+len(unnamed)+len(taken)+1)
+            if chr(code) not in taken]
+    return named | dict(zip(unnamed, free))
+
+
 def _decorator(request, context):
-    indices = {cell.name: index for index, cell in enumerate(request.cells)}
+    letter_of = _cell_letters(request) if request.letters else {}
 
     def decorate(node, cell):
         if not request.letters:
@@ -208,6 +269,8 @@ def _decorator(request, context):
         from ..draw.annotate import letters
         options = dict(request.letters)
         options.pop('anchor', None)
+        options.pop('names', None)
+        options.pop('start', None)
         if context.preset is not None:
             options.setdefault('style', context.preset.letter_style)
             if context.preset.letter_pad is not None:
@@ -215,14 +278,20 @@ def _decorator(request, context):
         publication = getattr(context, 'publication', None)
         if publication is not None and publication.letter_font_pt is not None:
             options.setdefault('size', pt(publication.letter_font_pt))
-        start = chr(ord(options.pop('start')) + indices[cell.name])
         with themed(context.theme):
-            tagged = letters([node], start=start, **options)[0]
+            tagged = letters([node], start=letter_of[cell.name], **options)[0]
         for name, point in node.anchors.items():
             tagged.anchor(name, node.transform.apply(point))
         return tagged
 
     return decorate
+
+
+#: Notes on a placed cell, which lint turns into diagnostics. A plot's side
+#: label that overhangs its cell and collides with something; a plot drawn
+#: narrower than the width its author gave it.
+OVERHANG_NOTE = 'axis_title_overhang'
+WIDTH_NOTE = 'plot_width_overridden'
 
 
 def _fixed(item):
@@ -261,7 +330,7 @@ def _natural_sizes(request, context, x_prefix, height, decorate):
             # only the first build reveals: its height is measured from a second.
             left, right = plot_margins(node)[:2]
             node = decorate(context.build(cell.item, width-left-right, cell.item.height), cell)
-        heights[cell.name] = node.height
+        heights[cell.name] = _fit_box(node).height if isinstance(cell.item, PlotSpec) else node.height
         if isinstance(cell.item, PlotSpec):
             plots[cell.name] = (plot_area(node).height, *plot_margins(node)[2:])
     if request.share_plot_margins:
@@ -503,11 +572,65 @@ def _fractions(align):
     return fx, fy
 
 
-def _place_cells(cells, nodes, boxes, margins, corner_letters=False):
-    placed, handles = [], {}
+def _moved(rect, dx, dy):
+    return Rect(rect.x0+dx, rect.y0+dy, rect.x1+dx, rect.y1+dy)
+
+
+def _overlaps(a, b, slack=.05):
+    """Whether two rectangles share more than a sliver in both directions."""
+    return (min(a.x1, b.x1)-max(a.x0, b.x0) > slack and min(a.y1, b.y1)-max(a.y0, b.y0) > slack)
+
+
+def _label_overhangs(cells, handles, boxes, moves, page):
+    """Side labels that run past their cell and collide with something, as
+    {cell name: [finding]}.
+
+    A finding says how far the label overhangs, and what it reaches: another
+    cell's ink, its own cell's furniture, or the edge of the page. A label
+    that overhangs but collides with nothing is honoured and not reported.
+    """
+    labels = []
+    for cell in cells:
+        node, (dx, dy) = handles[cell.name], moves[cell.name]
+        area = plot_area(node) if isinstance(cell.item, PlotSpec) else None
+        for part, here in ([] if area is None else _beside_labels(node, area)):
+            rect = _moved(here, dx, dy)
+            box = boxes[cell.name]
+            if rect.y0 < box.y0-.01 or rect.y1 > box.y1+.01:
+                labels.append((cell, part, here, dx, dy))
+    if not labels:
+        return {}
+    ink = []
+    for cell in cells:
+        dx, dy = moves[cell.name]
+        for part, here in _parts(handles[cell.name]):
+            if here is not None and part.prim is not None:
+                ink.append((cell.name, id(part), _moved(here, dx, dy)))
+    found = {}
+    for cell, part, here, dx, dy in labels:
+        box, rect = boxes[cell.name], _moved(here, dx, dy)
+        own = {id(child) for child in part.walk()}
+        hits = {owner for owner, key, other in ink
+                if key not in own and _overlaps(rect, other)}
+        if page is not None and (rect.x0 < page.x0-.01 or rect.y0 < page.y0-.01
+                                 or rect.x1 > page.x1+.01 or rect.y1 > page.y1+.01):
+            hits.add('the page edge')
+        if not hits:
+            continue
+        text = _title_text(part) or 'label'
+        found.setdefault(cell.name, []).append(dict(
+            label=text, length=here.height, plot=plot_area(handles[cell.name]).height,
+            above=max(0., box.y0-rect.y0), below=max(0., rect.y1-box.y1),
+            hits=sorted(hits, key=str)))
+    return found
+
+
+def _place_cells(cells, nodes, boxes, margins, corner_letters=False, page=None):
+    placed, handles, moves = [], {}, {}
     for cell in cells:
         node, box = nodes[cell.name].copy(), boxes[cell.name]
-        actual = node.bbox
+        # A plot's side label may overhang its cell vertically; `_fit_box` leaves it out.
+        actual = _fit_box(node) if isinstance(cell.item, PlotSpec) else node.bbox
         if actual.width > box.width+.02 or actual.height > box.height+.02:
             raise LayoutError(f'cell {cell.name!r} contains {actual.width:.2f} × {actual.height:.2f} mm '
                               f'but has {box.width:.2f} × {box.height:.2f} mm. Increase its cell size.')
@@ -527,9 +650,23 @@ def _place_cells(cells, nodes, boxes, margins, corner_letters=False):
         if corner_letters:
             node = _to_cell_corner(node, box, dx, dy)
         handles[cell.name] = node
+        moves[cell.name] = (dx, dy)
+    findings = {} if page is None else _label_overhangs(cells, handles, boxes, moves, page)
+    for cell in cells:
+        node, (dx, dy) = handles[cell.name], moves[cell.name]
         # Always wrap: a zero-offset translated() would lose the cell boundary.
-        placed.append(Diagram(children=(node,), transform=Affine.translation(dx, dy),
-                              kind='document-cell', name=cell.name).carry_notes(node))
+        wrapper = Diagram(children=(node,), transform=Affine.translation(dx, dy),
+                          kind='document-cell', name=cell.name).carry_notes(node)
+        if cell.name in findings:
+            wrapper.notes[OVERHANG_NOTE] = findings[cell.name]
+        item = cell.item
+        if (isinstance(item, PlotSpec) and item._width_given and 'aspect' not in item.options
+                and plot_area(node).width < item.width-.05):
+            # Columns, or the page, could not give the plot the width its author set.
+            left, right = plot_margins(node)[:2]
+            wrapper.notes[WIDTH_NOTE] = dict(authored=item.width, actual=plot_area(node).width,
+                                             cell=boxes[cell.name].width, furniture=left+right)
+        placed.append(wrapper)
     return Diagram(children=tuple(placed), kind='document-content'), handles
 
 
@@ -608,13 +745,44 @@ def layout_document(request: LayoutRequest, context: BuildContext,
     return best
 
 
+def _column_minima(request, context, decorate, authored):
+    """Each cell's minimum width, as (column, colspan, minimum, name).
+
+    With `authored`, a plot whose author gave a width keeps at least that much
+    data width, plus the furniture beside it at that width, so the columns
+    honour it when the row has room. Plots with `aspect=` take their width
+    from their height and are left alone.
+    """
+    out = []
+    for cell in request.cells:
+        minimum = _min_width(cell, context, decorate)
+        item = cell.item
+        if (authored and isinstance(item, PlotSpec) and item._width_given
+                and 'aspect' not in item.options):
+            node = decorate(context.build(item, item.width, item.height), cell)
+            left, right = plot_margins(node)[:2]
+            minimum = max(minimum, item.width+left+right)
+        out.append((cell.column, cell.colspan, minimum, cell.name))
+    return out
+
+
 def _layout_once(request, context, width, height):
     decorate = _decorator(request, context)
     rows = max(c.row+c.rowspan for c in request.cells)
-    widths = allocate_tracks(
-        len(request.columns), request.columns,
-        [(c.column, c.colspan, _min_width(c, context, decorate), c.name) for c in request.cells],
-        width-2*request.margin, request.gap, 'width')
+    plain = _column_minima(request, context, decorate, authored=False)
+    honoured = _column_minima(request, context, decorate, authored=True)
+    widths = None
+    if honoured != plain:
+        # Authored widths that cannot all fit are dropped rather than failing
+        # the page; the lint reports each plot that is drawn narrower.
+        try:
+            widths = allocate_tracks(len(request.columns), request.columns, honoured,
+                                     width-2*request.margin, request.gap, 'width')
+        except LayoutError:
+            widths = None
+    if widths is None:
+        widths = allocate_tracks(len(request.columns), request.columns, plain,
+                                 width-2*request.margin, request.gap, 'width')
     x_prefix = tuple(accumulate(widths, initial=0.))
     natural_heights, natural_plots = _natural_sizes(request, context, x_prefix, height, decorate)
     heights = _row_tracks(request, rows, natural_heights)
@@ -639,12 +807,13 @@ def _layout_once(request, context, width, height):
         margins = _extrapolate(margins, measured, steps)
     else:
         raise LayoutError('plot furniture did not settle after 24 measurement passes')
-    content, handles = _place_cells(request.cells, nodes, boxes, margins,
-                                    request.letters.get('anchor') == 'cell')
-    with themed(context.theme):
-        content = _route_links(content, handles, request.links, context.theme)
     page_height = (height if height is not None else
                    2*request.margin+sum(heights)+request.row_gap*(rows-1))
+    content, handles = _place_cells(request.cells, nodes, boxes, margins,
+                                    request.letters.get('anchor') == 'cell',
+                                    page=Rect(0., 0., width, page_height))
+    with themed(context.theme):
+        content = _route_links(content, handles, request.links, context.theme)
     report = _layout_report(request, heights, widths, natural_heights, boxes, handles)
     natural = _row_tracks(request, rows, natural_heights)
     report['natural_height'] = 2*request.margin+sum(natural)+request.row_gap*(rows-1)
