@@ -111,6 +111,31 @@ For a complete example with thirteen panels, see
 
 ![A thirteen-panel figure page: diagram, bars, dumbbells, labelled scatter, heatmaps, cumulative distributions, radar, donut and violins](../gallery/dense-figure.png)
 
+## Journal axis style
+
+Physics and astronomy journals draw each plot in a closed frame, with ticks
+pointing inward on all four sides and minor ticks between the labelled ones.
+`axes='box'` gives any preset that look:
+
+```python
+physics = i.preset('scientific.nature', format='single-column', axes='box')
+doc = physics.document()
+plot = i.plot_spec(x=(0, 3), y=(0, 2))
+plot.line([(0, 1), (1, 2.5), (2, 3), (3, 4.2)], name='Response')
+plot.axes(x='Time / s', y='Signal / a.u.')
+doc.add('response', plot)
+```
+
+The bottom and left axes keep their labels. The top and right edges mirror
+their ticks without labels, so the plot reads as one black box. Minor ticks
+are on all four sides, and an explicit call still wins: `plot.axes(minor=False)`
+or `x_options=dict(tick_size=1)` override the preset for that axis. A heatmap
+gets the frame with no ticks over its cells.
+
+Use it for physics, astronomy and chemistry figures, and for any journal whose
+house style boxes its plots. Keep the default `'open'` for the usual
+bottom-and-left style of biology and most scientific journals.
+
 ## Keep style and format separate
 
 | Format | Width × height, mm |
@@ -163,7 +188,9 @@ its options. It accepts:
 - Type sizes in points: `font_pt`, `small_font_pt`, `title_font_pt`.
 - Page geometry in millimetres: `width`, `height`, `margin`, `gap`, `stroke_mm`.
 - Plot furniture: `grid` (`none`, `x`, `y`, `both`), `legend_side`
-  (`bottom`, `top`, `left`, `right`, `inside`), `tick_count`.
+  (`bottom`, `top`, `left`, `right`, `inside`), `tick_count`, and `axes`
+  (`open` by default, or `box` for a closed frame; see
+  [Journal axis style](#journal-axis-style)).
 - Single-series bars: `bar_fill` (`neutral` or `accent`). Educational and
   marketing presets use the accent; scientific and worksheet presets use neutral.
 - Lettering: `letter_style` (`bold-lower`, `lower`, `upper`, `bold-upper`, `paren`)
@@ -194,6 +221,9 @@ a switch, pass a customized `Preset` value.
   supplies their style; explicit `style=` and `size=` win.
 - Call `.axes()` and `.legend()` to request them. Presets do not invent axes,
   titles, legends, data, annotations or statistical claims.
+- `axes='box'` adds the top and right edges to requested axes, and draws
+  inward ticks on all four sides. Explicit `axis` or `axes` keywords, including
+  `x_options` and `y_options`, override it for that axis.
 - Educational and marketing grids are added behind requested axes. Explicit
   `.grid(...)` takes precedence; `.grid(x=False, y=False)` disables the default.
   Explicit tick lists and axes through data values do not get automatic grids.
