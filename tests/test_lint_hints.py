@@ -157,10 +157,13 @@ def test_one_colour_bar_is_not_a_duplicate():
 
 
 def _two_legends(second_entries):
+    from inklet.plot.key import legend as key_diagram
     panel = i.panel(60, 40, x=(0, 10), y=(0, 10))
     panel.scatter([(1, 1), (5, 5)], name="a")
     panel.legend(corner="ne", entries=[("a", "#ff0000"), ("b", "#00ff00")])
-    panel.legend(corner="nw", entries=second_entries)
+    # A second legend() call replaces the first, so the second key is placed
+    # by hand, as any key diagram that ends up in a panel would be.
+    panel.over(key_diagram(second_entries).translated(4.0, 4.0))
     figure = i.figure(width="96mm")
     figure.add(panel.build())
     return figure

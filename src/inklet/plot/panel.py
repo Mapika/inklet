@@ -174,6 +174,9 @@ class Panel:
     _survival: list = field(default_factory=list, repr=False, compare=False)
     #: Indices into `_over` of the keys stacked on each side.
     _side_stacks: dict = field(default_factory=dict, repr=False, compare=False)
+    #: The index into `_over` of this panel's `legend()` key, as a one-item
+    #: list, so that a later call replaces it. Shared with twins.
+    _key_at: list = field(default_factory=list, repr=False, compare=False)
 
     # -- coordinates ------------------------------------------------------
 
@@ -456,18 +459,20 @@ class Panel:
         theme = active_theme()
         color = self._series_color(name, color)
         ink = color if color is not None else theme.ink
+        key_opacity = None
         if "fill" in style:
             key_fill = style["fill"]
         else:
             # The series colour, see-through by the tint's share: over paper
             # it is exactly `mix(ink, paper, _BAND_TINT)`, and where two
             # groups' bands overlap both show instead of the later hiding the
-            # earlier. The key records the opaque tint it looks like: a
-            # swatch carries no opacity, and would otherwise be a solid block.
+            # earlier. The key's swatch is the same ink at the same opacity,
+            # so it reads as the tint on paper and matches the marks it stands
+            # for, the colour a reader or a lint compares it against.
             style["fill"] = ink
             style.setdefault("fill_opacity", round(1.0 - _BAND_TINT, 6))
-            key_fill = mix(ink, theme.paper, _BAND_TINT)
-        self._note(name, "area", fill=key_fill, color=color)
+            key_fill, key_opacity = ink, style["fill_opacity"]
+        self._note(name, "area", fill=key_fill, color=color, fill_opacity=key_opacity)
         # Under the data, so a band drawn after another series' line does not
         # veil it.
         return self._layer(_marks.fill_between(self, x, lo, hi, **style),
@@ -954,7 +959,7 @@ class Panel:
     def hline(self, y, *, span: tuple | None = None, front: bool | None = None,
               label: str | Diagram | None = None,
               label_side: str | None = None, label_offset: float | None = None,
-              **style) -> "Panel":
+              name: str | None = None, **style) -> "Panel":
         """A horizontal rule at one **data** value of y.
 
         The reference a plot is read against: a zero line, a threshold, a
@@ -978,12 +983,17 @@ class Panel:
         extra-small gap.
 
             p.hline(0.05, label="p = 0.05", stroke_dash=(1.0, 0.8))
+
+        `name=` puts the line in `legend()` as a row with a line swatch in the
+        line's own paint, for a reference that is sometimes worth a key entry.
+        A named rule keeps the muted rule colour unless it is given one.
         """
         _color_as(style, "stroke")
         clip = _clip_flag(style)
         _notes.check_rule_side(label_side, "y")
         if front is None:
             front = label is not None
+        self._note_rule(name, style)
         self._layer(_marks.rule(self, y=y, span=span, **style), front, clip)
         return self._rule_label(label, y=y, span=span, side=label_side,
                                 offset=label_offset)
@@ -993,7 +1003,7 @@ class Panel:
     def vline(self, x, *, span: tuple | None = None, front: bool | None = None,
               label: str | Diagram | None = None,
               label_side: str | None = None, label_offset: float | None = None,
-              **style) -> "Panel":
+              name: str | None = None, **style) -> "Panel":
         """A vertical rule at one **data** value of x -- stimulus onset, a
         dose, a cut point. `span=(y0, y1)` clips it in data coordinates.
 
@@ -1012,15 +1022,29 @@ class Panel:
         the word when there is none (see `autodomain`).
 
             p.vline(mean, label='mean 63.9')
+
+        `name=` works as it does for `hline`: a key row with a line swatch.
         """
         _color_as(style, "stroke")
         clip = _clip_flag(style)
         _notes.check_rule_side(label_side, "x")
         if front is None:
             front = label is not None
+        self._note_rule(name, style)
         self._layer(_marks.rule(self, x=x, span=span, **style), front, clip)
         return self._rule_label(label, x=x, span=span, side=label_side,
                                 offset=label_offset)
+
+    def _note_rule(self, name: str | None, style: dict) -> None:
+        """Key a reference line by the paint it is drawn in.
+
+        `style` has had `color=` folded into `stroke`, so an unset stroke is
+        the rule's own default, which is what the swatch must show.
+        """
+        theme = active_theme()
+        self._note(name, "line", color=style.get("stroke", theme.muted),
+                   dash=style.get("stroke_dash"),
+                   width=style.get("stroke_width", theme.hairline))
 
     def _rule_label(self, label, *, offset: float | None = None,
                     **kwargs) -> "Panel":
@@ -1051,25 +1075,39 @@ class Panel:
         return self._touched()
 
     @paint_keywords
-    def vspan(self, x0, x1, *, front: bool = False, **style) -> "Panel":
+    def vspan(self, x0, x1, *, front: bool = False, name: str | None = None,
+              **style) -> "Panel":
         """A shaded stripe between two **data** values of x, full height.
 
         Named for the axis it is measured on, the way `hline` is: `vspan` is a
         vertical band covering a range of x. The default is the house tint --
         a shade of the ink pale enough to read type over, and greyscale-safe.
+        `name=` adds a key row with a tinted swatch, as `hspan` does too.
         """
         _color_as(style, "fill")
         clip = _clip_flag(style)
+        self._note_span(name, style)
         return self._layer(_marks.span_node(self, x=(x0, x1), **style), front,
                            clip)
 
     @paint_keywords
-    def hspan(self, y0, y1, *, front: bool = False, **style) -> "Panel":
-        """A shaded stripe between two **data** values of y, full width."""
+    def hspan(self, y0, y1, *, front: bool = False, name: str | None = None,
+              **style) -> "Panel":
+        """A shaded stripe between two **data** values of y, full width.
+
+        `name=` adds a key row with a tinted swatch, as `vspan` does.
+        """
         _color_as(style, "fill")
         clip = _clip_flag(style)
+        self._note_span(name, style)
         return self._layer(_marks.span_node(self, y=(y0, y1), **style), front,
                            clip)
+
+    def _note_span(self, name: str | None, style: dict) -> None:
+        """Key a stripe by the fill it is drawn in, its default tint if unset."""
+        theme = active_theme()
+        fill = style.get("fill", mix(theme.ink, theme.paper, _marks._SINGLE_TINT))
+        self._note(name, "area", fill=fill)
 
     @paint_keywords
     def rect(self, x0, y0, x1, y1, *, front: bool = False, **style) -> "Panel":
@@ -1297,6 +1335,7 @@ class Panel:
         twin._over = self._over
         twin._insets = self._insets
         twin._keys = self._keys
+        twin._key_at = self._key_at
         twin._spans = self._spans
         twin._brackets = self._brackets
         twin._deferred = self._deferred
@@ -1360,7 +1399,7 @@ class Panel:
 
     @choices(corner=(None, "auto", "best", "nw", "ne", "sw", "se"),
              side=(None, "top", "bottom", "left", "right"))
-    @forwarded_keywords(make_legend)
+    @forwarded_keywords(make_legend, at_call=True)
     def legend(self, *, corner: str | None = "ne", side: str | None = None,
                entries: Sequence[tuple[str, object]] | None = None,
                columns: int | str | None = None, max_width: float | str | None = None,
@@ -1395,17 +1434,29 @@ class Panel:
         `(name, diagram)` pairs, which is the escape hatch for a key that
         describes something this panel did not draw.
 
-        Rows follow drawing order. `names=` lists series names to choose and
-        order the rows instead -- the key reads in that order and leaves out
-        any series not listed, while the swatches are still built from the
-        record:
+        A panel carries one key. A later `legend()` call replaces the options
+        of the one before it, so the last call's `corner`, `side`, `names` and
+        so on are the ones drawn. To show two keys, use two panels.
+
+        Rows follow drawing order, with one exception: a band is not counted as
+        a draw. A series drawn as `band()` and then `line()` under the same
+        name takes its place from the line, so a band drawn ahead of the line
+        does not move the series to the top of the key. `names=` lists series
+        names to choose and order the rows instead -- the key reads in that
+        order and leaves out any series not listed, while the swatches are
+        still built from the record. Band-only and reference-line names work
+        in `names=` like any other:
 
             p.line(h1_shifted, name="H1 (shifted)")   # drawn first, beneath
+            p.band(l1_lo, l1_hi, name="L1")           # its band is not a draw
             p.line(l1, name="L1")
             p.legend(names=["L1", "H1 (shifted)"])
 
         A name this panel never drew raises. (`order=` is a different thing:
         whether entries fill a multi-column key by "row" or by "column".)
+
+        `key_diagram()` gives the same rows as a free-standing diagram, for a
+        key that sits in an empty grid cell rather than inside a plot.
 
         Top/bottom legends fit their columns to the plot width by default,
         centred on the data. When that takes more rows than the whole panel
@@ -1447,35 +1498,90 @@ class Panel:
         # boxes, which already carry the type's leading; a further 's' step
         # parted it from the axis name it explains.
         beside_gap = theme.gap("xs") if pad is None else gap
-        if side in ('top', 'bottom') and columns == 'auto' and max_width is None:
-            self._over.append(self._across(build, side, beside_gap))
-            return self._touched()
-        if columns == 'auto' and max_width is None:
-            max_width = self.width if side is not None else self.width - 2*gap
-        node = build(max_width)
-        if side is not None:
-            self._over.append(self._beside(node, side, beside_gap))
-            return self._touched()
         if plate is None:
             plate = True
-        if plate:
-            node = _plated(node, theme, theme.gap("xs"))
-        if corner == 'best':
-            from .key_place import best_spot
-            placed = best_spot(self, node, gap)
-            if placed is None:          # nowhere clear inside: beside it
-                placed = self._beside(build(max_width), 'right', beside_gap)
-            self._over.append(placed)
-            return self._touched()
-        if corner == 'auto':
-            from ..layout.clear_space import place_in_clear_space
-            node = place_in_clear_space(node, within=self.area,
-                                        avoid=(*self._content, *self._placed_over()),
-                                        pad=gap)
+
+        def place():
+            if side in ('top', 'bottom') and columns == 'auto' and max_width is None:
+                return self._across(build, side, beside_gap)
+            width = max_width
+            if columns == 'auto' and width is None:
+                width = self.width if side is not None else self.width - 2*gap
+            node = build(width)
+            if side is not None:
+                return self._beside(node, side, beside_gap)
+            if plate:
+                node = _plated(node, theme, theme.gap("xs"))
+            if corner == 'best':
+                from .key_place import best_spot
+                placed = best_spot(self, node, gap)
+                if placed is None:          # nowhere clear inside: beside it
+                    placed = self._beside(build(width), 'right', beside_gap)
+                return placed
+            if corner == 'auto':
+                from ..layout.clear_space import place_in_clear_space
+                return place_in_clear_space(node, within=self.area,
+                                            avoid=(*self._content, *self._placed_over()),
+                                            pad=gap)
+            return _into_corner(node, self.area, corner or "ne", gap)
+
+        # A later call replaces this panel's key. The old one is emptied while
+        # the new one is measured, so it is not counted as furniture, and it is
+        # put back if the new key cannot be placed.
+        slot = self._key_at[0] if self._key_at else None
+        held = self._over[slot] if slot is not None else None
+        if slot is not None:
+            self._over[slot] = Diagram()
+        try:
+            node = place()
+        except BaseException:
+            if slot is not None:
+                self._over[slot] = held
+            raise
+        if side is not None:
+            # Read by the document's LayoutError, which names an outside key as
+            # the cause when it is too wide for the cell it sits in.
+            node.note("legend_side", side)
+        if slot is None:
+            self._over.append(node)
+            self._key_at[:] = [len(self._over) - 1]
         else:
-            node = _into_corner(node, self.area, corner or "ne", gap)
-        self._over.append(node)
+            self._over[slot] = node
         return self._touched()
+
+    @forwarded_keywords(make_legend, at_call=True)
+    def key_diagram(self, *, names: Sequence[str] | None = None,
+                    columns: int | str = 1, max_width: float | str | None = None,
+                    font_size: float | str | None = None,
+                    swatch: float | str | None = None, order: str = "row",
+                    title: str | None = None, markup: bool = True, **style) -> Diagram:
+        """The key of this panel's named series as a diagram of its own.
+
+        The rows `legend()` would draw, with the same swatches, names and
+        `names=` choice, but unplaced: it is not put in the plot or beside it,
+        so it can fill a grid cell that has no plot in it. Build it from a
+        panel that drew every series the key explains:
+
+            reference = panels[0]          # drew all the named series
+            grid = i.facets([*panels[1:], reference.key_diagram(title="Encoding")],
+                            cols=4)
+
+        Its swatches are the record the panel drew from, so they agree with that
+        panel's marks, and `lint` compares them against the nearest panel as it
+        would a key inside one. `columns`, `max_width`, `order`, `title` and
+        `markup` mean what they do in `legend()`, and so do `font_size` and
+        `swatch`.
+        """
+        if swatch is None and font_size is not None:
+            swatch = SWATCH_OF_TYPE * mm(font_size)
+        rows = self._legend_rows(swatch, names)
+        if not rows:
+            raise DiagramError(
+                "key_diagram() found no named series: pass name= to line(), "
+                "scatter(), marks(), hist() or band(), or names= to bars()")
+        return make_legend(rows, columns=columns, max_width=max_width, swatch=swatch,
+                           title=title, markup=markup, order=order, font_size=font_size,
+                           **style)
 
     def _across(self, build, side: str, gap: float) -> Diagram:
         """A top or bottom key, as wide as the whole panel when it needs to be.

@@ -48,6 +48,10 @@ class SeriesKey:
     forms: frozenset[str] = frozenset()
     color: str | None = None
     fill: str | None = None
+    #: The opacity the fill was drawn at, for a band: its swatch is the same ink
+    #: at the same opacity, which looks like the tint on paper and matches the
+    #: marks it stands for. None is opaque.
+    fill_opacity: float | None = None
     marker: str = "circle"
     dash: tuple[float, ...] | None = None
     width: float | None = None
@@ -76,6 +80,8 @@ class SeriesKey:
             forms=self.forms | other.forms,
             color=self.color if self.color is not None else other.color,
             fill=self.fill if self.fill is not None else other.fill,
+            fill_opacity=(self.fill_opacity if self.fill is not None
+                          else other.fill_opacity),
             marker=self.marker if "marker" in self.forms else other.marker,
             marker_size=(self.marker_size if "marker" in self.forms
                          else other.marker_size),
@@ -132,9 +138,10 @@ def swatch_for(entry: SeriesKey, size: float) -> Diagram:
     parts: list[Diagram] = []
 
     if "area" in entry.forms:
+        paint = {} if entry.fill_opacity is None else {"fill_opacity": entry.fill_opacity}
         parts.append(Diagram(prim=RectPrim(wide, size), kind=MARK_KIND)
                      .styled(fill=entry.fill or entry.color or theme.ink,
-                             stroke="none"))
+                             stroke="none", **paint))
     if "line" in entry.forms:
         style: dict = {"stroke": entry.color or theme.ink}
         if entry.width is not None:
@@ -198,16 +205,29 @@ def _centred(node: Diagram) -> Diagram:
 
 
 def merge_keys(entries) -> list[SeriesKey]:
-    """One entry per name, in the order the names were first drawn.
+    """One entry per name, in the order the names were drawn.
 
     Order is the paint order and not the alphabet: a reader matches the key to
     the picture top to bottom, and the top curve should be the top row.
+
+    A band is painted beneath everything, so it is not a draw for this purpose.
+    A name is placed where its first line, marker or other non-area record is
+    drawn, and only a name that has nothing but areas (a band with no line, a
+    histogram bar) keeps the place of its first record. So a band drawn before
+    the line of its own series does not move that series to the top.
     """
+    entries = list(entries)
     out: dict[str, SeriesKey] = {}
-    for entry in entries:
+    first: dict[str, int] = {}
+    drawn: dict[str, int] = {}
+    for index, entry in enumerate(entries):
+        first.setdefault(entry.name, index)
+        if entry.forms - {"area"}:
+            drawn.setdefault(entry.name, index)
         here = out.get(entry.name)
         out[entry.name] = entry if here is None else here.merged(entry)
-    return list(out.values())
+    names = sorted(out, key=lambda name: drawn.get(name, first[name]))
+    return [out[name] for name in names]
 
 
 def select_keys(keys: Iterable[SeriesKey], names=None) -> list[SeriesKey]:
