@@ -39,10 +39,13 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.8.1 is stable**. It adds free per-facet scales (`facet_scales='free_y'`),
-reference lines on faceted layouts (`grid.hline(...)`), lint checks for figures
-that draw the wrong data, errors at the call for misspelled keywords, and a
-Claude Code plugin. 4.6 added charts in one call (`i.line(df, x=, y=,
+**4.9.0 is stable**. It adds the journal frames of physics and astronomy
+figures (`preset(..., axes='box')` or `axes='frame'`), contours of gridded
+fields with highest-density levels, pre-binned histograms, one axis title
+across a grid and panel letters by cell name, and ten figures from six
+landmark Nature papers recreated from their data. 4.8 added free per-facet
+scales (`facet_scales='free_y'`), reference lines on faceted layouts, lint
+checks for figures that draw the wrong data, and a Claude Code plugin. 4.6 added charts in one call (`i.line(df, x=, y=,
 color=)` and about twenty more), a matplotlib bridge (`i.from_matplotlib`),
 inline notebook display, and tooling for coding agents. 4.5 let a page choose among layout
 alternatives and pack panels without a grid. The 4.4 series added about

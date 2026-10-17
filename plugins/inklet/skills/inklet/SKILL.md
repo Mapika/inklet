@@ -3,7 +3,7 @@ name: inklet
 description: "Use when the user wants a chart, plot, graph or publication figure made in Python, especially for a journal paper, report or slide. Builds figures with the inklet library: one-call charts, lettered multi-panel layouts, measured labels and SVG/PDF/PNG export."
 ---
 
-<!-- written for inklet 4.8.1 -->
+<!-- written for inklet 4.9.0 -->
 
 # Inklet: plotting guide for coding agents
 

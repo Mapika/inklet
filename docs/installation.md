@@ -3,7 +3,7 @@
 Inklet requires Python 3.11 or later and an installed TrueType/OpenType font.
 The core Python dependencies are HarfBuzz bindings and fontTools.
 
-This page covers stable **Inklet 4.8.1**. See the
+This page covers stable **Inklet 4.9.0**. See the
 [compatibility matrix](compatibility.md) for tested platforms and Blender versions.
 
 ## From PyPI
@@ -26,12 +26,12 @@ Activate the environment or prefix commands with `.venv/bin/` on Linux/macOS.
 ## Pinning a release
 
 ```sh
-python -m pip install "inklet==4.8.1"
+python -m pip install "inklet==4.9.0"
 # Optional rendering and DataFrame adapters:
-python -m pip install "inklet[render,pandas,polars]==4.8.1"
+python -m pip install "inklet[render,pandas,polars]==4.9.0"
 ```
 
-An unpinned install selects stable 4.8.1. From 4.3, `inklet.volume`,
+An unpinned install selects stable 4.9.0. From 4.3, `inklet.volume`,
 `inklet.selection`, `inklet.project` and `inklet.editor` are stable; APIs still
 under `inklet.experimental` remain opt-in and their schemas may change; retain
 an exact package pin and source recipe for archived projects. See [what is included in 4.0](development-preview.md)
@@ -61,7 +61,7 @@ report schemas may change in future releases.
 ## From a checkout
 
 ```sh
-git clone --branch v4.8.1 https://github.com/Mapika/inklet.git
+git clone --branch v4.9.0 https://github.com/Mapika/inklet.git
 cd inklet
 python -m venv .venv
 source .venv/bin/activate

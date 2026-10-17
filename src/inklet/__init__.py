@@ -519,4 +519,4 @@ __all__ = [
     "mm", "pt", "COLUMN_SINGLE", "COLUMN_DOUBLE",
 ]
 
-__version__ = "4.8.1"
+__version__ = "4.9.0"

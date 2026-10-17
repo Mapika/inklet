@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.9.0 — 2026-10-17
 
 Found recreating ten figures from six landmark open-access Nature papers
 (JWST WASP-39b, ATLAS Higgs, KATRIN, human height GWAS, brain-wide
