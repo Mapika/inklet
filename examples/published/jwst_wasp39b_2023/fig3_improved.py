@@ -94,8 +94,8 @@ for row, (label, column, colour, text) in enumerate(SOURCES, start=1):
     strip.band(wl.tolist(), [0.0] * len(wl), delta.tolist(), color=colour, name=label)
     strip.line(list(zip(wl, delta)), stroke=colour, stroke_width=0.3, name=label)
     if row == 1:
-        strip.title("Depth added by each source: best fit minus the fit without it")
-    strip.axes(x=None, y="Added depth (ppm)" if row == 1 else None,
+        strip.title("Depth added by each source (ppm): best fit minus the fit without it")
+    strip.axes(x=None, y=None,
                x_options=dict(ticks=XTICKS, labels=row == last,
                               label="Wavelength (µm)" if row == last else None),
                y_options=dict(ticks=[0, 1000], format="{:,.0f}"))

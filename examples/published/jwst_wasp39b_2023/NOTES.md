@@ -120,10 +120,11 @@ Each change, and the problem in the original it fixes:
    only under the bottom strip. The top panel and the other strips keep their
    ticks but drop the labels.
 9. **Sign convention.** A title over the strips states what they show ("Depth
-   added by each source: best fit minus the fit without it"), so a reader need
-   not infer the sign. The axis of the first strip reads "Added depth (ppm)",
-   which is also the unit of the other strips' tick labels. It is set beside the
-   first strip and is not clipped.
+   added by each source (ppm): best fit minus the fit without it"), so a reader
+   need not infer the sign, and gives the unit of every strip's tick labels. The
+   strips carry no y-axis title: an "Added depth (ppm)" title is taller than an
+   8.5 mm strip, and inklet then silently enlarged that strip's plot area to
+   about 13 mm, which broke the common ppm scale across strips.
 
 Still missing from the improved version, as in the faithful one: the molecular
 cross-section panel and the scale-height axis (no data).
