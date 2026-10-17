@@ -451,6 +451,9 @@ class PlotSpec(BuildSpec):
                 if method in ('axes', 'axis'):
                     kwargs.setdefault('count', defaults.tick_count)
                     if boxed: _box_style(kwargs, context.theme, matrix)
+                elif boxed and method in _BOX_DATA_METHODS:
+                    # The data must not look weaker than its frame.
+                    kwargs.setdefault('stroke_width', _BOX_DATA)
                 elif method == 'legend' and not {'side', 'corner'} & kwargs.keys():
                     if defaults.legend_side == 'inside':
                         _inside_legend(panel, kwargs)
@@ -486,6 +489,10 @@ _BOX_INK = '#000000'
 #: Frame and tick weight for `axes='box'`: 0.6 pt, the weight the frame of a
 #: printed physics figure carries at 89 mm. Thinner than this reads as grey.
 _BOX_LINE = 0.21
+#: Default data stroke under `axes='box'`, which must not be lighter than the
+#: frame: a 0.18 mm line beside a 0.21 mm frame reads as the weaker of the two.
+_BOX_DATA = 0.28
+_BOX_DATA_METHODS = frozenset({'line', 'step', 'errorbars'})
 
 
 def _box_style(kwargs, theme, matrix=False):

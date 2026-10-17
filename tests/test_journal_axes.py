@@ -267,3 +267,79 @@ def test_lint_is_clean_when_the_data_touches_the_frame():
     compiled = _compiled('box', spec=spec)
     codes = {d.code for d in compiled.lint() if d.code != 'FONT_SUBSTITUTED'}
     assert codes == set(), compiled.report()
+
+
+# -- log axes and data weight ------------------------------------------------------
+
+
+def _minor_and_major(node):
+    """Tick lengths on one axis, split into majors and minors by their length."""
+    from inklet.draw.coords import as_drawn
+    boxes = [p.bbox for p in resolve(as_drawn(node)).values()
+             if p.diagram.kind == TICK_KIND]
+    lengths = [_mm_tick_length(b) for b in boxes]
+    major = max(lengths)
+    return ([n for n in lengths if n >= 0.8 * major], [n for n in lengths if n < 0.8 * major])
+
+
+def test_log_axis_has_two_to_nine_in_each_decade_under_box_style():
+    from inklet.document.spec import _box_style
+    from inklet.plot import axis, log
+    from inklet.themes import theme as get_theme
+    kwargs = {'ticks': (1.0, 10.0, 100.0)}
+    _box_style(kwargs, get_theme('nature'))
+    majors, minors = _minor_and_major(axis(log((1, 100), (0, 50)), **kwargs))
+    assert len(majors) == 3
+    assert len(minors) == 16, 'the eight mantissas 2 to 9 in each of the two decades'
+
+
+def test_log_minor_ticks_survive_when_the_sparse_mantissas_are_all_majors():
+    # On 2.8 to 130 the 2-and-5 set is entirely labelled majors (5, 20, 50), and
+    # used to end the search, so a y axis like this drew no minor ticks at all.
+    from inklet.plot import axis, log
+    majors, minors = _minor_and_major(axis(log((2.8, 130.0), (0, 40)),
+                                           ticks=(5.0, 10.0, 20.0, 50.0, 100.0), minor=True))
+    assert len(majors) == 5
+    assert len(minors) >= 8
+
+
+def test_box_log_axes_have_minor_ticks_on_all_four_sides():
+    compiled = _compiled('box', spec=_log_spec())
+    _runs, vertical_ticks, horizontal_ticks = _sides(compiled)
+    for group in (vertical_ticks, horizontal_ticks):
+        lengths = [_mm_tick_length(b) for b in group]
+        major = max(lengths)
+        assert any(n < 0.8 * major for n in lengths), 'minor ticks on this pair of sides'
+
+
+def test_box_data_line_is_at_least_as_heavy_as_the_frame():
+    compiled = _compiled('box')
+    effective = _effective(compiled.root)
+    frame_width = min(style.stroke_width for node, style in effective if node.kind == SPINE_KIND)
+    data = [style for node, style in effective
+            if node.kind not in (SPINE_KIND, TICK_KIND, TICK_LABEL_KIND)
+            and style.stroke not in (None, 'none', BLACK, '#1a1a1a')
+            and style.stroke_width is not None and style.stroke_width > 0.1]
+    assert data
+    assert all(style.stroke_width >= 0.25 - EPS for style in data)
+    assert all(style.stroke_width >= frame_width - EPS for style in data)
+
+
+def test_explicit_stroke_width_still_wins_under_box():
+    spec = i.plot_spec(x=(0, 3), y=(0, 2))
+    spec.line([(0, 0), (3, 2)], name='Thin', stroke_width=0.1)
+    spec.axes(x='Time / s', y='Signal / a.u.')
+    compiled = _compiled('box', spec=spec)
+    widths = [style.stroke_width for node, style in _effective(compiled.root)
+              if node.kind not in (SPINE_KIND, TICK_KIND, TICK_LABEL_KIND)
+              and style.stroke not in (None, 'none', BLACK, '#1a1a1a')
+              and style.stroke_width is not None and style.stroke_width > 0.05]
+    assert widths and all(abs(w - 0.1) < EPS for w in widths)
+
+
+def _log_spec():
+    pts = [(10 ** (k / 10), 3 * (10 ** (k / 10)) ** 0.8) for k in range(21)]
+    spec = i.plot_spec(x='log', y='log')
+    spec.scatter(pts, name='Data')
+    spec.axes(x='Frequency / Hz', y='Power / W')
+    return spec
