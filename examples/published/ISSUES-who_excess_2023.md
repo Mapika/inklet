@@ -137,3 +137,81 @@ shows the swatches and labels with no overlap. The price is that the key is not
 generated from the drawn record, so if the panels' styles change, the key must be
 edited by hand. A legend that could take swatches from the drawn record in a
 dedicated key cell would remove that.
+
+## Pass 2
+
+Items 4 and 8 are answered by the new APIs: `doc.label(x=, y=)` now sets the grid's
+axis names, and `Panel.key_diagram()` gives the key for the empty cell (see item 11
+for the trap in using it).
+
+## 9. A plot wider than its page's room is drawn narrower, with no diagnostic
+
+Figure 5 at 136 mm wide, with the 25 country labels on the left, was authored as
+`plot_spec(108, 122)`. The 200 dpi PNG shows the x axis about 98.8 mm long (from the
+spine to the 100% end), and `figure.report()` says "clean, 0 diagnostics". The layout
+does not honour the authored 108 mm, and nothing says so.
+
+Repro: `examples/published/who_excess_2023/fig5.py` with `plot_spec(108, 84)` in
+place of `plot_spec(98, 84)`, and `document(width=136)`. Measure the longest dark
+run on the axis row of the PNG, and compare it with 108 mm.
+
+I set the width to 98 mm explicitly, so the figure does not depend on the behaviour.
+
+## 10. `doc.letters()` on a 4-column grid shrinks every plot, and reports it
+
+With `doc.letters()` added to Figure 2's improved script (4 columns, 183 mm,
+`share_plot_margins=True`, 36 mm plots), all seven lettered cells report
+`PLOT_WIDTH_OVERRIDDEN`: "its plot is authored 36.0 mm wide but is drawn 28.9 mm wide,
+because the cell is 40.3 mm and the plot's furniture takes 11.4 mm of it". Without the
+letters the same grid is clean. `letters(anchor="cell")` gives the same result.
+
+Repro: `fig2_improved.py` with `doc.letters()` before `doc.compile()`. I did not add
+letters to the improved figure. The caption names the panels instead.
+
+## 11. `key_diagram()` on a `plot_spec` silently returns a `PlotSpec`
+
+`plot_spec` objects are live and take any method name without complaint, so
+`key_diagram()` on one returns another `PlotSpec` and draws a full plot in the empty
+cell. The first attempt at Figure 2's key did exactly this: the "key" cell showed a
+second "European region" plot, and nothing was reported.
+
+Repro:
+
+```python
+import inklet as i
+p = i.plot_spec(36, 52, x=(0, 1), y=(0, 1))
+p.line([(0, 0), (1, 1)], name="A")
+print(type(p.key_diagram()).__name__)   # PlotSpec, not a key diagram
+```
+
+The documented form, `i.panel(...)` (a drawn `Panel`), works. The key is then built
+from a drawn panel that carries every named series. A `plot_spec` should raise for
+`key_diagram`, since a key cannot come from it.
+
+## 12. The message for a drawn panel that does not fit its cell suggests the wrong fix
+
+Adding a drawn `i.panel(36, 52, ...)` to a `share_plot_margins=True` grid fails with
+"cell 'r0c0' contains 43.86 × 61.55 mm but has 40.42 × 61.55 mm. Increase its cell
+size." A grid's cells are sized by the page, so the user cannot increase them. The
+docs say a drawn `Panel` keeps its geometry, and that is why it fails, but the advice
+should say to draw the plot as a `plot_spec`, or to take the furniture off the panel.
+
+Repro: in `fig2_improved.py`, draw the seven regional panels with `i.panel(36, 52, ...)`
+instead of `i.plot_spec(...)`, in the 4-column grid with `share_plot_margins=True`.
+
+## 13. A bottom legend with two long names: `columns=2` fails, and the default stacks
+
+Figure 1, panel b (`plot_spec(62, 31)`, two entries of about 40 characters). The
+default `legend(side="bottom")` stacks the two entries on two rows, and the original
+has one row. The options I tried:
+
+- `columns=2` on panel b: `ValueError: legend needs 40.97 mm but max_width is 28.31 mm`.
+- `columns=2` on panel a: `LayoutError` ("cell 'a' leaves only 1.31 mm for data
+  after labels"). The one-row key overhangs both sides of the plot: the cell is 81 mm
+  wide and the furniture takes 41.7 mm on the left and 38.0 mm on the right.
+- `columns="auto", max_width=82`: the same `LayoutError`.
+
+The `max_width` the error reports (28.31 mm) is not the cell or plot width, so the
+limit it checks is hard to predict. I kept the default two-row key. Nothing here is
+wrong with the data. The gap is that a bottom key cannot be one row when it is wider
+than the plot, and the options do not say what width they fit.

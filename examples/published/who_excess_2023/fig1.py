@@ -33,7 +33,7 @@ def month_label(value):
 
 
 def panel(ylim, yticks, ylabel):
-    p = i.plot_spec(62, 34, x=XLIM, y=ylim, clip=True)
+    p = i.plot_spec(62, 31, x=XLIM, y=ylim, clip=True)
     p.axes(x="Month Year", y=ylabel,
            x_options=dict(ticks=XTICKS, format=month_label),
            y_options=dict(ticks=yticks))
@@ -61,8 +61,7 @@ pb.line(np.c_[tb, b["rep.covid"]], stroke=RED, stroke_width=0.35,
         name="Reported COVID-19 death rate per 100,000")
 pb.legend(side="bottom", names=["Reported COVID-19 death rate per 100,000", "Excess death rate per 100,000"])
 
-doc = i.preset("scientific.nature", format="single-column",
-               expected_fonts=("Arial", "Helvetica", "Liberation Sans")).document()
+doc = i.preset("scientific.nature", format="single-column").document()
 doc.add("a", pa)
 doc.add("b", pb)
 doc.letters()

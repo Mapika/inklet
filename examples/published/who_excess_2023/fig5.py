@@ -40,7 +40,7 @@ ypos = np.arange(n)[::-1].astype(float)                         # rank 1 at the 
 names = {round(y, 6): name for y, name in zip(ypos, c.Country)}
 
 # -- the plot -----------------------------------------------------------------
-p = i.plot_spec(108, 122, x=XLIM, y=(-0.6, n - 0.4), clip=True)
+p = i.plot_spec(98, 84, x=XLIM, y=(-0.6, n - 0.4), clip=True)
 bars = [(m - lo, hi - m) for m, lo, hi in zip(c.pscore_mean, c.pscore_low, c.pscore_high)]
 p.errorbars(np.c_[c.pscore_mean, ypos], xerr=bars, cap=1.2, stroke=INK,
             stroke_width=0.3)
@@ -50,8 +50,8 @@ p.axes(x="P-Score",
        x_options=dict(ticks=XTICKS, format="{:.0f}%"),
        y_options=dict(ticks=list(ypos), format=lambda v: names[round(v, 6)]))
 
-doc = i.preset("scientific.nature", format="double-column",
-               expected_fonts=("Arial", "Helvetica", "Liberation Sans")).document()
+doc = i.preset("scientific.nature", format="double-column").document(
+    width=136)
 doc.add("countries", p)
 figure = doc.compile()
 
