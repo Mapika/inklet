@@ -191,6 +191,48 @@ Resolve a drawing for all native backends, reusing an optional revision.
 
 A PDF asked for live text drew some of it as outlines.
 
+#### `class Suite(name: 'str', base: 'object' = 'scientific.nature', font: 'str' = 'Helvetica, Arial, Liberation Sans, sans-serif', allowed_fonts: 'tuple[str, ...] | None' = None, ink: 'str | None' = None, paper: 'str' = '#ffffff', type: 'TypeScale' = <factory>, lines: 'LineWeights' = <factory>, markers: 'MarkerStyle' = <factory>, letters: 'LetterStyle' = <factory>, text: 'TextRules' = <factory>, palettes: 'Mapping[str, object]' = <factory>, ramps: 'Mapping[str, object]' = <factory>, widths: 'Mapping[str, float]' = <factory>, export: 'Export' = <factory>, lint: 'Mapping[str, object]' = <factory>) -> None`
+
+A figure set's house style: fonts, type, line weights, markers, colours, letters, text rules, widths, export and lint. Build one with `suite()`.
+
+* `customize(**changes) -> "'Suite'"` -- A copy with fields replaced; a dict for a nested field merges into it (`customize(lines={"data": 0.5})` keeps `fit` and `axis`).
+* `font_families(*, allowed: 'bool' = False) -> 'tuple[str, ...]'` -- The families in `font` (or `allowed_fonts`), generic names dropped.
+* `fonts() -> 'dict[str, dict]'` -- How each face the suite sets resolves on this machine: file, family, and whether a PDF can embed it as live text.
+* `size(role: 'str') -> 'float'` -- A type size in mm: 'tick', 'label', 'key', 'note' or 'letter'.
+* `stroke(tier: 'str' = 'data') -> 'float'` -- A line weight in mm by tier name ('data', 'fit', 'axis' or an extra).
+* `width(name: 'str | float' = 'double') -> 'float'` -- A named page width in mm ('single', 'double', ...), or a number as is.
+* `palette(name: 'str')` -- A categorical palette as given: {key: colour} or a tuple.
+* `color(key: 'str', palette: 'str | None' = None) -> 'str'` -- The colour of `key`: from `palette`, or the first palette that has it; a colour string is returned unchanged.
+* `ramp(name: 'str') -> 'Callable[[float], str]'` -- A sequential map as a function of t in [0, 1]. Ordinal dict ramps are sampled along their keys in order.
+* `stops(name: 'str') -> 'dict'` -- An ordinal ramp's fixed {key: colour} stops.
+* `text_color(color: 'str') -> 'str'` -- `color` deepened along its own lightness until text in it reaches `text.label_contrast` on the paper; hue is kept. A grey becomes ink.
+* `mark_color(color: 'str') -> 'str'`
+* `line(color: 'str', tier: 'str' = 'data', **style) -> 'dict'` -- `Panel.line` keywords: the colour (a palette key or a colour) and the tier's weight.
+* `mark(color: 'str', *, hollow: 'bool' = False, size: 'float | None' = None, **style) -> 'dict'` -- `Panel.scatter` keywords for the house marker: filled without an outline, or open as a ring in the series colour.
+* `marker(shape: 'str', color: 'str', *, hollow: 'bool' = False, size: 'float | None' = None) -> 'Diagram'` -- One placed or key marker in the house style (see `mark`).
+* `panel(width: 'float', height: 'float', **kwargs)` -- `inklet.panel` built under this suite's theme.
+* `axes(p, x=None, y=None, **kwargs)` -- `Panel.axes` at the suite's tick and label sizes and axis weight.
+* `label(text: 'str', *, role: 'str' = 'note', color: 'str | None' = None, **kwargs) -> 'Diagram'` -- A text node at a role's size, never bold, in ink or the deepened colour of `color`.
+* `end_labels(p, labels: 'Mapping[str, tuple[float, float]]', *, colors: 'Mapping[str, str] | None' = None, gap: 'float' = 0.4, dx: 'float' = 1.0, anchor: 'str' = 'w', role: 'str' = 'note')` -- Direct series labels at line ends, spread so none overlap.
+* `mosaic(layout, panels, *, height: 'float', width: 'str | float' = 'double', **kwargs) -> 'Diagram'` -- `inklet.panel_mosaic` with the suite's letters (size, gap, case).
+* `letter(text: 'str') -> 'Diagram'` -- A panel letter on its own, for hand-built layouts: the suite's size, bold, baseline-aligned like the mosaic's (`header_text`).
+* `figure(width: 'str | float' = 'double', **kwargs)` -- `inklet.figure` on the suite's theme and paper, at a named width.
+* `document(width: 'str | float' = 'double', **kwargs)` -- The suite preset's live `Document`, lettered in the suite's style.
+* `lint_rules()` -- The suite's house rules as `HouseRules` for `lint(house=...)`.
+* `lint_options() -> 'dict'`
+* `check(figure, **kwargs)` -- Lint diagnostics for a figure under the suite's limits and house rules. Takes a Figure, compiled Document, Document or Diagram.
+* `page(item, width=None)` -- `item` as something that saves and lints: a Figure or compiled Document passes through, a Document is compiled, and a Diagram or Panel is put on a suite figure as wide as it (or `width`).
+* `save(item, name: 'str', *, out: 'str | Path' = '.', width=None, report: 'bool' = False) -> "'SaveResult'"` -- Write `out/name.{formats}` and lint them. Returns a `SaveResult`.
+* `build(figures: 'Mapping[str, object] | Iterable[tuple[str, object]]', *, out: 'str | Path', only: 'Sequence[str] | None' = None, inputs: 'Mapping[str, Sequence] | None' = None, depends: 'Sequence[str | Path]' = (), force: 'bool' = False, isolate: 'bool' = True, report: 'bool' = True) -> "'BuildReport'"` -- Build a set of figures, skip the unchanged ones, lint them all.
+
+#### `suite(name: 'str', **options) -> 'Suite'`
+
+A house style for a figure set; see `Suite` for every field. Nested fields take dicts: `suite("lab", lines={"data": 0.6, "fit": 0.75})`.
+
+#### `current_suite() -> 'Suite | None'`
+
+The suite of the innermost `with suite:` block, or None.
+
 #### `blend(node, mode='multiply')`
 
 Blend an isolated group with the artwork behind it, natively in SVG/PDF.
@@ -1284,7 +1326,7 @@ Figure(width: 'float' = 89.0, height: 'float | None' = None, theme: 'Theme' = <f
 * `to_pdf(*, text: 'str' = 'outline', **kwargs) -> 'bytes'` -- The figure as PDF bytes, on the same page as `to_svg` puts it.
 * `to_png(*, dpi=150, **kwargs) -> 'bytes'` -- Render PNG at physical DPI with optional resvg, without a browser.
 * `export(directory: 'str | Path', *, name: 'str' = 'figure', dpi: 'float' = 150, text: 'str' = 'embed', compare_pdf: 'bool' = True, png_backend: 'str' = 'resvg', compare_to=None) -> 'dict[str, Path]'` -- Write SVG, PDF, PNG, diagnostics and a local HTML review page.
-* `save(*paths: 'str | Path', **kwargs) -> 'None'` -- Write the figure to SVG, PDF or PNG, following each filename suffix.
+* `save(*paths: 'str | Path', **kwargs) -> 'dict[str, bool]'` -- Write the figure to SVG, PDF or PNG, following each filename suffix.
 
 
 ## Theming
@@ -1353,7 +1395,7 @@ All findings plus a numbered overlay, without altering the source figure.
 
 Run figure checks and return an inspectable numbered diagnostic overlay.
 
-#### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3, max_font_pt: 'float | None' = None, max_height_mm: 'float | None' = None, max_letter_pt: 'float | None' = None, expected_fonts: 'Sequence[str] | None' = None, expect: 'Iterable[str]' = ()) -> 'list[Diagnostic]'`
+#### `lint(root: 'Diagram', *, page: 'Rect | None' = None, rules: 'Iterable[str] | Mapping[str, Rule] | None' = None, min_font_pt: 'float' = 5.0, min_stroke_mm: 'float' = 0.088, min_dpi: 'float' = 300.0, placements: 'Mapping[str, Placement] | None' = None, page_fill: 'str' = '#ffffff', min_clearance_mm: 'float' = 1.0, min_overlap_fraction: 'float' = 0.08, max_stroke_widths: 'int' = 3, max_font_pt: 'float | None' = None, max_height_mm: 'float | None' = None, max_letter_pt: 'float | None' = None, expected_fonts: 'Sequence[str] | None' = None, expect: 'Iterable[str]' = (), house: 'HouseRules | None' = None) -> 'list[Diagnostic]'`
 
 Check a figure and return its diagnostics, deterministically ordered.
 
@@ -1373,11 +1415,11 @@ One actionable finding. `where` is figure-space, in millimetres.
 
 Compact report. Returns a single string with no trailing newline.
 
-#### `to_svg(root: 'Diagram | RenderScene', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compact: 'bool | str' = 'auto', text: 'str' = 'names') -> 'str'`
+#### `to_svg(root: 'Diagram | RenderScene', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compact: 'bool | str' = 'auto', text: 'str' = 'names', ids: 'str' = 'nodes') -> 'str'`
 
 Render a diagram tree to a self-contained SVG document.
 
-#### `save_svg(root: 'Diagram | RenderScene', path: 'str', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compact: 'bool | str' = 'auto', text: 'str' = 'names') -> 'None'`
+#### `save_svg(root: 'Diagram | RenderScene', path: 'str', *, width: 'float | str | None' = None, height: 'float | str | None' = None, margin: 'float' = 0.0, background: 'str | None' = None, precision: 'int' = 3, title: 'str | None' = None, compact: 'bool | str' = 'auto', text: 'str' = 'names', ids: 'str' = 'nodes') -> 'None'`
 
 Write `root` to `path` as SVG. `to_svg` is the same thing as a string.
 
@@ -1739,6 +1781,10 @@ A plot's y-axis title longer than the plot, and what it runs into.
 
 Bars whose width in data units is wider than the axis they stand on.
 
+#### `BOLD_TEXT`
+
+Bold anywhere but a panel letter.
+
 #### `BREAK_DISTORTS`
 
 Report marks compared across a broken axis and the scale distortion.
@@ -1786,6 +1832,10 @@ Report more distinct line weights than the configured limit.
 #### `KEY_COVERS_DATA`
 
 A key inside the plot area painted over the panel's own data.
+
+#### `KEY_IN_PANEL`
+
+A key drawn as part of a plot panel rather than outside every panel.
 
 #### `KEY_MISMATCH`
 
@@ -1835,9 +1885,17 @@ Rasters placed larger than their pixels support.
 
 Markers the axes edge cuts through, which `clip=True` leaves half drawn.
 
+#### `MARKER_OUTLINE`
+
+A filled marker with an outline in another colour.
+
 #### `MISSING_GLYPHS`
 
 Text no installed font can draw, which prints as a row of empty boxes.
+
+#### `MUTED_TEXT`
+
+Text in a grey lighter than ink, or in a colour the house calls muted.
 
 #### `OFF_CANVAS`
 
@@ -1878,6 +1936,10 @@ Bars that summed repeated rows, and lines that zigzag through them.
 #### `SERIES_FLATTENED`
 
 A named series squashed flat by a much taller one on the same axis.
+
+#### `STROKE_TIER`
+
+An author's stroke in a plot panel at a width the house does not use.
 
 #### `TEXT_FILL_IGNORED`
 

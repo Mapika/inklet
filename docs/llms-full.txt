@@ -191,6 +191,22 @@ one takes the figure's (the first chart's). A series name keeps its palette
 slot across the panels, so `'control'` is the same colour in every panel that
 draws it, provided the panels share a palette.
 
+## Many figures in one house style
+
+When a set of figures shares rules beyond the journal's (one font, two line
+weights, unoutlined markers, named colours, direct labels instead of keys),
+define them once with `house = inklet.suite("lab", base="scientific.nature",
+font=..., lines=dict(data=0.6, fit=0.75, axis=0.5), palettes={...},
+ramps={...})` and draw through it: `with house:` sets the theme;
+`p.line(pts, **house.line("treated"))`, `p.scatter(pts, **house.mark("treated"))`,
+`house.axes(p, x=..., y=...)`, `house.end_labels(p, {name: last_point})` and
+`house.mosaic(layout, panels, height=...)`. `house.save(fig, "dose_response",
+out="figures")` writes SVG, PDF and PNG with embedded live text and returns the
+lint result, which includes the house rules `STROKE_TIER`, `MARKER_OUTLINE`,
+`MUTED_TEXT`, `BOLD_TEXT` and `KEY_IN_PANEL`. Fix those like any other finding.
+`house.build({"dose_response": make_dose_response, ...}, out="figures")` builds a set and skips
+figures whose inputs are unchanged. See docs/house-styles.md.
+
 ## A figure for a slide
 
 `width='slide'` makes a 254 mm page, and its labels are 14 pt by default, so the

@@ -1,5 +1,61 @@
 # Changelog
 
+## Unreleased
+
+Found porting a project that kept its house style, and several workarounds,
+in style modules outside inklet.
+
+### Added
+
+- `inklet.suite(...)` / `Suite`: one immutable house style for a figure set.
+  It holds the fonts, a type scale in pt by role, line-weight tiers, the marker
+  style, named palettes and ramps, the panel-letter style, text rules, named
+  widths, export settings and a lint profile. `with house:` makes it the
+  active theme. `line()`, `mark()`, `marker()`, `axes()`, `label()`,
+  `end_labels()`, `mosaic()`, `letter()`, `figure()` and `document()` draw in
+  it. `text_color()` deepens a series colour to the label contrast and keeps
+  its hue. `save()` writes the export formats and lints them. `build()` builds
+  a set, skips figures whose fingerprint is unchanged, isolates `sys.modules`
+  and `sys.path` per figure, and reports the house rules each figure breaks.
+  `current_suite()` returns the active suite. Guide: docs/house-styles.md;
+  example: examples/house_style.py.
+- `lint(house=HouseRules(...))` adds five codes, silent without `house=`:
+  - `STROKE_TIER`: a stroke in a plot panel that is not one of the house weights.
+  - `MARKER_OUTLINE`: a filled marker with an outline.
+  - `MUTED_TEXT`: grey text, by OKLab chroma and lightness or by listed colours.
+  - `BOLD_TEXT`: bold that is not a panel letter.
+  - `KEY_IN_PANEL`: a key inside a plot panel.
+- `save(..., write="changed")` leaves a set of files untouched, timestamps
+  included, when no file's bytes would change. `save()` returns
+  `{path: written}`.
+- `to_svg(ids="document")` (and `save(ids=...)`) numbers element ids per file,
+  so a figure's SVG no longer depends on what else was built in the process.
+- `inklet.typeset.fonts.public_family()` and `inklet.layout.mosaic.header_text()`.
+
+### Changed
+
+- `to_pdf(text="embed")` embeds CFF-flavoured OpenType faces (`.otf` with
+  PostScript outlines, such as Nimbus Sans or Source Sans) as live TrueType
+  text: CIDFontType2 with a `/FontFile2` subset whose outlines are converted
+  to quadratics within 1 font unit. Before, their text was outlined with a
+  `FontEmbeddingWarning`. Only CFF2 and bitmap-only faces are still outlined.
+- `save()` renders every file, then writes each through a temporary file and
+  an atomic rename. All files from one call share one modification time, so
+  "newest of pdf/svg/png" no longer picks the PNG, which is drawn last.
+- `panel_mosaic` sets panel letters and titles on one baseline with one
+  header height. Measured by their own ink, a `b` sat 0.5 mm below an `a` at
+  8 pt (a `j` 1.1 mm), and its panel started 0.5 mm lower. Panels lettered
+  with x-height letters (a, c, e, ...) now move down to match. Mosaic letters
+  are panel letters (`LETTER_KIND`) to lint.
+- `TINY_TEXT` and `LARGE_TEXT` accept sizes within 0.01 pt of the limit.
+  Before, `8 * 0.3528` mm (8.0005 pt) was reported as above an 8 pt maximum.
+
+### Fixed
+
+- SVG output never contains a font-file path. A theme that names a face by
+  path (`"/fonts/X.ttf, X, sans-serif"`) wrote that path into every
+  `font-family`. The family name in the file is written instead.
+
 ## 4.9.0 — 2026-10-17
 
 Found recreating ten figures from six landmark open-access Nature papers
