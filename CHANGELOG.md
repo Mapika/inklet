@@ -24,29 +24,47 @@ in style modules outside inklet.
   - `MARKER_OUTLINE`: a filled marker with an outline.
   - `MUTED_TEXT`: grey text, by OKLab chroma and lightness or by listed colours.
   - `BOLD_TEXT`: bold that is not a panel letter.
-  - `KEY_IN_PANEL`: a key inside a plot panel.
+  - `KEY_IN_PANEL`: a key that is part of a plot panel, over the data or beside it.
 - `save(..., write="changed")` leaves a set of files untouched, timestamps
   included, when no file's bytes would change. `save()` returns
-  `{path: written}`.
+  `{path: written}`, keyed by each path as `str(Path(path))`; it returned
+  None before, so a bare `fig.save(...)` as the last line of a notebook cell
+  now displays that mapping.
 - `to_svg(ids="document")` (and `save(ids=...)`) numbers element ids per file,
   so a figure's SVG no longer depends on what else was built in the process.
 - `inklet.typeset.fonts.public_family()` and `inklet.layout.mosaic.header_text()`.
+- `panel_mosaic(..., header_bounds="ink")` keeps the header placement of
+  4.9 (see Visible changes).
+
+### Visible changes
+
+- `panel_mosaic` sets panel letters and titles on one baseline with one
+  header height. Existing figures change: measured by their own ink, a `b`
+  sat 0.5 mm below an `a` at 8 pt (a `j` 1.1 mm), and its panel started
+  0.5 mm lower. Panels lettered with x-height letters (a, c, e, ...) now
+  move down by about 0.5 mm to match, a panel lettered `j` moves up, and
+  ascender letters (b, d, f, ...) stay where they were. A multi-line title
+  reserves all of its lines. `header_bounds="ink"` keeps the 4.9 placement.
+  Mosaic letters are now panel letters (`LETTER_KIND`) in either mode, so
+  lint checks them against letter limits (`max_letter_pt`) rather than as
+  body text.
 
 ### Changed
 
 - `to_pdf(text="embed")` embeds CFF-flavoured OpenType faces (`.otf` with
   PostScript outlines, such as Nimbus Sans or Source Sans) as live TrueType
   text: CIDFontType2 with a `/FontFile2` subset whose outlines are converted
-  to quadratics within 1 font unit. Before, their text was outlined with a
+  to quadratics within 1/1000 em. Before, their text was outlined with a
   `FontEmbeddingWarning`. Only CFF2 and bitmap-only faces are still outlined.
 - `save()` renders every file, then writes each through a temporary file and
   an atomic rename. All files from one call share one modification time, so
-  "newest of pdf/svg/png" no longer picks the PNG, which is drawn last.
-- `panel_mosaic` sets panel letters and titles on one baseline with one
-  header height. Measured by their own ink, a `b` sat 0.5 mm below an `a` at
-  8 pt (a `j` 1.1 mm), and its panel started 0.5 mm lower. Panels lettered
-  with x-height letters (a, c, e, ...) now move down to match. Mosaic letters
-  are panel letters (`LETTER_KIND`) to lint.
+  "newest of pdf/svg/png" no longer picks the PNG, which is drawn last. A
+  format that fails to render leaves every file as it was. An existing file
+  keeps its permission bits; a symbolic link is followed and the file it
+  points to is replaced. Writing needs permission to create a file in the
+  target directory.
+- `to_pdf(text="embed")` outlines a CFF face whose outlines do not convert,
+  with a `FontEmbeddingWarning`, instead of failing the export.
 - `TINY_TEXT` and `LARGE_TEXT` accept sizes within 0.01 pt of the limit.
   Before, `8 * 0.3528` mm (8.0005 pt) was reported as above an 8 pt maximum.
 

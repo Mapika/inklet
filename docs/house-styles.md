@@ -50,7 +50,7 @@ print(house.stroke("fit"), house.size("letter"), house.width("double"))
 | `type` | Sizes in pt for `tick`, `label` (axis titles), `key`, `note` (in-plot text and direct labels) and `letter`. |
 | `lines` | Weights in pt for `data`, `fit` and `axis`, plus any `extra={"guide": 0.4}`. Lint allows only these weights in plot panels. |
 | `markers` | Marker diameter in mm, whether filled markers have an outline, and the ring width of open markers. `min_contrast` deepens pale marker colours to that contrast on the paper. |
-| `letters` | Panel-letter case, bold and the gap to the panel. |
+| `letters` | Panel-letter case and the gap to the panel. Panel letters are bold. |
 | `text` | `bold="letters"` (bold only for panel letters), `muted=False` (no grey text), `muted_colors`, `label_contrast` (WCAG ratio for direct labels), `halo` and `keys="outside"` (no keys inside plot panels). |
 | `palettes` | Categorical colours by name: `{key: colour}` or a sequence. |
 | `ramps` | Sequential colours by name: an inklet ramp name, a list of stops interpolated in OKLab, or ordinal `{key: colour}` stops. |
@@ -59,6 +59,9 @@ print(house.stroke("fit"), house.size("letter"), house.width("double"))
 | `lint` | Extra `lint()` keywords, such as `min_font_pt` or `max_height_mm`. |
 
 `house.customize(lines={"data": 0.5})` returns a copy with that field merged.
+A dict merges into the nested style fields (`type`, `lines`, `markers`,
+`letters`, `text`, `export`); `palettes`, `ramps`, `widths` and `lint` are
+replaced whole. A suite is immutable: its mappings are read-only copies.
 `house.fonts()` reports the file each style resolves to on this machine and
 whether a PDF can embed it.
 
@@ -97,7 +100,10 @@ ramp, and `house.stops("size")` returns ordinal stops.
 
 `house.mosaic` is `inklet.panel_mosaic` with the suite's letters and a named
 width. Letters in a row share one baseline, and the panels below them start at
-the same height whether the letter is `a` or `b`.
+the same height whether the letter is `a` or `b`. Its gap and margin default
+to 3 and 2 mm; any `panel_mosaic` keyword overrides them.
+`header_bounds="ink"` keeps the placement of inklet 4.9 and earlier, where
+each letter was measured by its own ink.
 
 ```python
 def panel(w, h):
@@ -111,7 +117,7 @@ with house:
 ```
 
 `house.document()` starts the suite preset's live `Document` for figures laid
-out on a column grid. `house.figure()` is a plain page at a named width on the
+out on a column grid; its panel letters follow the base preset's letter style. `house.figure()` is a plain page at a named width on the
 suite theme.
 
 ## Save and check
@@ -132,7 +138,9 @@ lint diagnostics. The export defaults are:
   written and the timestamps are kept. When any file changes, the whole set is
   rewritten with one modification time.
 * `ids="document"`: SVG element ids are numbered per file, so a figure's bytes
-  do not depend on what was built before it in the same process.
+  do not depend on what was built before it in the same process. These ids are
+  not the node ids the layout editor and viewer map elements back to; set
+  `export={"ids": "nodes"}` for SVGs those tools will open.
 
 Lint runs with the base preset's limits, the suite's fonts and its house
 rules (`Suite.lint_rules()`). The house rules add five warning codes:
@@ -143,7 +151,7 @@ rules (`Suite.lint_rules()`). The house rules add five warning codes:
 | `MARKER_OUTLINE` | A filled marker has an outline in another colour (`markers.outline=False`). |
 | `MUTED_TEXT` | Text is grey (low OKLab chroma, lighter than slate ink) or in `text.muted_colors` (`text.muted=False`). |
 | `BOLD_TEXT` | Bold text is not a panel letter (`text.bold="letters"`). |
-| `KEY_IN_PANEL` | A legend, size key or colour bar is inside a plot panel (`text.keys="outside"`). |
+| `KEY_IN_PANEL` | A legend, size key or colour bar is part of a plot panel, over the data or beside it, rather than one shared key outside the panels (`text.keys="outside"`). |
 
 The same rules can be used without a suite:
 `inklet.lint(node, house=inklet.diagnostics.HouseRules(bold="letters"))`.
@@ -163,8 +171,10 @@ print(report.ok)
 
 `build` takes `{name: callable}` or `{name: "module:function"}` (the default
 function is `make_figure`). For each figure it computes a fingerprint from
-the suite, the source file of the figure's function, `depends=` (files every
-figure reads, such as a style module) and `inputs={name: [data files]}`. A
+the suite, the figure's function (its qualified name, any `functools.partial`
+arguments and its source file), `depends=` (files every figure reads, such as
+a style module), `inputs={name: [data files]}` and the inklet version. A
+declared file that is missing fails that figure. A
 figure whose fingerprint matches the last build in `out/.inklet-build.json`
 and whose files exist is reported as `unchanged` and not built. Data files
 that are not listed in `inputs` are not seen, so pass `force=True` after
@@ -186,4 +196,7 @@ counts and the house rules it breaks.
   built with `place()` are not checked, because their weights are usually set
   for the drawing.
 * `Suite.build` decides whether a figure changed from the files it is told
-  about. It does not trace data reads.
+  about. It does not trace data reads, other modules the figure imports, font
+  files or installed libraries; pass `force=True` after changing those.
+* A `with house:` block sets the process-wide theme, so suites are not for
+  use from several threads at once.

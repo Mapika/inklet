@@ -173,8 +173,11 @@ def test_build_skips_unchanged_figures_and_isolates_imports(tmp_path):
     try:
         house = _house()
         out = tmp_path / "out"
+        path_before = list(sys.path)
         first = house.build({"one": "fig_one", "two": "fig_two"}, out=out, report=False)
         assert [r.status for r in first.rows] == ["written", "written"], first.table()
+        assert sys.path == path_before          # each module's sys.path.insert is undone
+        assert "helper" not in sys.modules      # and its project helper forgotten
         assert first.ok
         second = house.build({"one": "fig_one", "two": "fig_two"}, out=out, report=False)
         assert [r.status for r in second.rows] == ["unchanged", "unchanged"]
@@ -240,3 +243,117 @@ def test_build_forgets_project_modules_but_keeps_libraries(tmp_path):
     finally:
         sys.path.remove(str(tmp_path))
         sys.modules.pop("local_helper", None)
+
+
+def test_a_suite_is_immutable_hashable_and_picklable():
+    import pickle
+    source = {"control": "#0072b2"}
+    house = i.suite("frozen", palettes={"group": source}, ramps={"size": ["#deebf7", "#08306b"]},
+                    lines={"extra": {"guide": 0.4}})
+    house.ramp("size")                   # fills the cache with a closure
+    source["control"] = "#000000"        # the caller's dict is not the suite's
+    assert house.color("control") == "#0072b2"
+    for mapping in (house.palettes, house.palettes["group"], house.widths, house.lines.extra):
+        with pytest.raises(TypeError):
+            mapping["x"] = 1
+    assert hash(house) == hash(i.suite("frozen", palettes={"group": {"control": "#0072b2"}},
+                                       ramps={"size": ["#deebf7", "#08306b"]},
+                                       lines={"extra": {"guide": 0.4}}))
+    again = pickle.loads(pickle.dumps(house))
+    assert again == house and again.ramp("size")(0.0) == house.ramp("size")(0.0)
+
+
+def test_fields_after_the_name_are_keyword_only():
+    with pytest.raises(TypeError):
+        i.Suite("lab", "scientific.nature")
+
+
+@pytest.mark.parametrize("options", [
+    dict(export={"write": "sometimes"}), dict(export={"ids": "x"}), dict(export={"text": "x"}),
+    dict(export={"dpi": -5}), dict(text={"bold": "x"}), dict(text={"keys": "x"}),
+    dict(widths={"a": -3}), dict(letters={"gap": -1}), dict(lint={"bogus": 1}),
+    dict(base="no-such-preset"), dict(ramps={"r": "no-such-ramp"}), dict(ramps={"r": ["#000000"]}),
+])
+def test_bad_fields_fail_when_the_suite_is_made(options):
+    with pytest.raises((ValueError, KeyError)):
+        i.suite("bad", **options)
+
+
+def test_customize_refuses_unknown_fields_and_replaces_mappings():
+    house = _house()
+    with pytest.raises(TypeError, match="unknown suite fields"):
+        house.customize(bogus=1)
+    changed = house.customize(widths={"page": 120})
+    assert dict(changed.widths) == {"page": 120.0}
+
+
+def test_upper_case_letters_keep_titles_keyed_as_given():
+    house = _house(letters={"case": "upper"})
+    with house:
+        def make(w, h):
+            p = house.panel(w, h, x=(0, 1), y=(0, 1))
+            house.axes(p, x="x", y="y")
+            return p
+        m = house.mosaic(["a b"], {"a": make, "b": make}, height=40, width=120,
+                         titles={"a": "First"})
+    texts = {n.prim.lines[0].text for n in m.walk()
+             if n.prim is not None and getattr(n.prim, "lines", None)}
+    assert {"A", "B", "First"} <= texts
+
+
+def test_build_fingerprint_follows_depends_inputs_and_bound_arguments(tmp_path):
+    import functools
+    house = _house()
+    data = tmp_path / "data.csv"
+    data.write_text("1\n")
+
+    def make(slope=1.0):
+        p = house.panel(40, 30, x=(0, 1), y=(0, 2))
+        p.line([(0, 0), (1, slope)], **house.line("control"))
+        return p
+    out = tmp_path / "out"
+    figures = {"f": functools.partial(make, 1.0)}
+    run = lambda figs=figures, **kw: [r.status for r in house.build(
+        figs, out=out, inputs={"f": [data]}, report=False, **kw).rows]
+    assert run() == ["written"]
+    assert run() == ["unchanged"]
+    data.write_text("2\n")
+    assert run() == ["same bytes"]
+    assert run({"f": functools.partial(make, 2.0)}) == ["written"]
+    assert run(force=True) == ["written"]
+    data.unlink()
+    assert run() == ["failed"]
+
+
+def test_build_survives_a_manifest_that_is_not_an_object(tmp_path):
+    house = _house()
+    (tmp_path / ".inklet-build.json").write_text("[]")
+
+    def make():
+        p = house.panel(40, 30, x=(0, 1), y=(0, 1))
+        house.axes(p, x="x", y="y")
+        return p
+    report = house.build({"f": make, "n": 42}, out=tmp_path, report=False)
+    assert [r.status for r in report.rows] == ["written", "failed"]
+    assert "not a callable" in report.table()
+
+
+def test_build_without_isolation_keeps_imports(tmp_path):
+    (tmp_path / "kept_helper.py").write_text("X = 1\n")
+    (tmp_path / "fig_kept.py").write_text(textwrap.dedent("""
+        import kept_helper
+        import inklet as i
+        def make_figure():
+            p = i.current_suite().panel(40, 30, x=(0, 1), y=(0, 1))
+            p.axes(x="x", y="y")
+            return p
+    """))
+    sys.path.insert(0, str(tmp_path))
+    try:
+        report = _house().build({"k": "fig_kept"}, out=tmp_path / "out", isolate=False, report=False)
+        assert report.ok
+        assert "kept_helper" in sys.modules
+    finally:
+        sys.path.remove(str(tmp_path))
+        for mod in ("kept_helper", "fig_kept"):
+            sys.modules.pop(mod, None)

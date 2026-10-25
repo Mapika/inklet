@@ -106,3 +106,32 @@ def test_house_rules_validate_their_fields():
         HouseRules(stroke_tiers=(0,))
     with pytest.raises(TypeError):
         lint(_clean_panel(), house={"bold": "letters"})
+
+
+def test_a_panel_key_beside_the_plot_is_reported_as_beside_it():
+    """`keys='outside'` means outside every panel: a panel's own key counts
+    whether it is drawn over the data or beside the plot."""
+    def key_messages(**legend):
+        p = i.panel(50, 35, x=(0, 1), y=(0, 1))
+        p.axes(x="x", y="y")
+        p.line([(0, 0), (1, 1)], stroke_width=0.6 * PT, name="a")
+        p.line([(0, 1), (1, 0)], stroke_width=0.6 * PT, name="b")
+        p.legend(**legend)
+        return [d.message for d in lint(p.build(), house=HOUSE) if d.code == "KEY_IN_PANEL"]
+    beside = key_messages(corner=None, side="right")
+    assert len(beside) == 1 and "beside the plot" in beside[0]
+    over = key_messages()
+    assert len(over) == 1 and "over the data" in over[0]
+
+
+def test_permissive_fields_check_nothing():
+    """The defaults of each field allow what the strict value reports."""
+    p = i.panel(50, 35, x=(0, 1), y=(0, 1))
+    p.axes(x="x", y="y")
+    p.line([(0, 0), (1, 1)], name="a")
+    p.line([(0, 1), (1, 0)], name="b")
+    p.legend()
+    p.scatter([(0.5, 0.5)], color="#0072b2", stroke="#263238", stroke_width=0.15)
+    p.text(0.5, 0.5, "**loud**", markup=True)
+    p.text(0.2, 0.2, "faint", text_fill="#90a4ae", markup=False)
+    assert _codes(p.build(), house=HouseRules()) == []

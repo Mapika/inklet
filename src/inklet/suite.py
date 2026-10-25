@@ -32,6 +32,7 @@ returns a changed copy. A suite never changes global state outside a
 from __future__ import annotations
 
 import dataclasses
+import functools
 import hashlib
 import json
 import sys
@@ -46,6 +47,69 @@ __all__ = ["Suite", "suite", "current_suite", "TypeScale", "LineWeights",
            "BuildReport", "BuildRow"]
 
 _ACTIVE: list["Suite"] = []
+_ROLES = ("tick", "label", "key", "note", "letter")
+
+
+def _check_lint_keys(options) -> None:
+    """Refuse a `lint` field keyword that `inklet.lint` does not take."""
+    import inspect
+    from .diagnostics import lint
+    params = inspect.signature(lint).parameters
+    if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return
+    unknown = sorted(set(options) - set(params))
+    if unknown:
+        raise ValueError(f"lint has no option(s) {', '.join(unknown)}")
+
+
+class _FrozenMap(Mapping):
+    """A read-only mapping: the dict and list fields of a suite, frozen.
+
+    Nested dicts become `_FrozenMap`s and lists become tuples, so neither the
+    suite nor a caller holding the dict it was built from can change it
+    afterwards. Hashable, picklable, and its repr is the dict's.
+    """
+    __slots__ = ("_data",)
+
+    def __init__(self, data=()):
+        object.__setattr__(self, "_data", {k: _freeze(v) for k, v in dict(data).items()})
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+    def __repr__(self):
+        return repr(self._data)
+
+    def __hash__(self):
+        return hash(tuple(self._data.items()))
+
+    def __eq__(self, other):
+        return isinstance(other, Mapping) and dict(self.items()) == dict(other.items())
+
+    def __setattr__(self, name, value):
+        raise AttributeError("a suite's mappings are read-only; use Suite.customize")
+
+    def __reduce__(self):
+        return (_FrozenMap, (self._data,))
+
+
+def _freeze(value):
+    if isinstance(value, Mapping):
+        return value if isinstance(value, _FrozenMap) else _FrozenMap(value)
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze(v) for v in value)
+    return value
+
+
+def _choice(value, choices, what: str):
+    if value not in choices:
+        raise ValueError(f"{what} must be one of {', '.join(map(repr, choices))}, not {value!r}")
 
 
 def _pt(value: float, what: str) -> float:
@@ -83,7 +147,8 @@ class LineWeights:
     def __post_init__(self):
         for name in ("data", "fit", "axis"):
             object.__setattr__(self, name, _pt(getattr(self, name), f"lines.{name}"))
-        object.__setattr__(self, "extra", {k: _pt(v, f"lines.{k}") for k, v in sorted(dict(self.extra).items())})
+        object.__setattr__(self, "extra", _FrozenMap(
+            {k: _pt(v, f"lines.{k}") for k, v in sorted(dict(self.extra).items())}))
 
     def tiers(self) -> dict[str, float]:
         return {"data": self.data, "fit": self.fit, "axis": self.axis, **self.extra}
@@ -101,18 +166,25 @@ class MarkerStyle:
     ring: float = 0.3
     min_contrast: float = 1.0
 
+    def __post_init__(self):
+        if not self.size > 0 or not self.ring > 0:
+            raise ValueError("markers.size and markers.ring must be positive mm")
+        if not self.min_contrast >= 1.0:
+            raise ValueError("markers.min_contrast is a contrast ratio, 1.0 or more")
+
 
 @dataclass(frozen=True)
 class LetterStyle:
-    """Panel letters: `case` 'lower' or 'upper', bold (the only bold text a
-    suite allows) and `gap` mm between the letter and its panel."""
+    """Panel letters, which are bold (the only bold text `text.bold='letters'`
+    allows): `case` 'lower' or 'upper' and `gap` mm between the letter and
+    its panel."""
     case: str = "lower"
-    bold: bool = True
     gap: float = 1.0
 
     def __post_init__(self):
-        if self.case not in ("lower", "upper"):
-            raise ValueError("letters.case must be 'lower' or 'upper'")
+        _choice(self.case, ("lower", "upper"), "letters.case")
+        if not self.gap >= 0:
+            raise ValueError("letters.gap must be 0 mm or more")
 
 
 @dataclass(frozen=True)
@@ -129,6 +201,15 @@ class TextRules:
     halo: float | None = None
     keys: str = "outside"
 
+    def __post_init__(self):
+        _choice(self.bold, ("letters", "any"), "text.bold")
+        _choice(self.keys, ("outside", "any"), "text.keys")
+        if not self.label_contrast >= 1.0:
+            raise ValueError("text.label_contrast is a contrast ratio, 1.0 or more")
+        if self.halo is not None and not self.halo >= 0:
+            raise ValueError("text.halo must be 0 mm or more, or None")
+        object.__setattr__(self, "muted_colors", tuple(self.muted_colors))
+
 
 @dataclass(frozen=True)
 class Export:
@@ -142,10 +223,17 @@ class Export:
     ids: str = "document"
 
     def __post_init__(self):
+        from .render.outline import TEXT_MODES
+        from .render.page import WRITE_MODES
         formats = tuple(f.lower().lstrip(".") for f in self.formats)
         if not formats or set(formats) - {"svg", "pdf", "png"}:
             raise ValueError("export.formats are svg, pdf and png")
         object.__setattr__(self, "formats", formats)
+        _choice(self.text, TEXT_MODES, "export.text")
+        _choice(self.write, WRITE_MODES, "export.write")
+        _choice(self.ids, ("nodes", "document"), "export.ids")
+        if isinstance(self.dpi, bool) or not isinstance(self.dpi, (int, float)) or not self.dpi > 0:
+            raise ValueError(f"export.dpi must be a positive number, not {self.dpi!r}")
 
 
 def _merge(kind, value):
@@ -172,8 +260,14 @@ class Suite:
     an inklet ramp name, a list of stops (interpolated in OKLab) or an
     ordinal {key: colour} dict. `widths` names page widths in mm.
     `lint` holds extra `lint()` keywords (`min_font_pt`, `max_height_mm`).
+    Every field after `name` is keyword-only.
+
+    A suite is immutable and hashable: its mappings are read-only copies of
+    what it was given. Its `with` block sets the process-wide theme, so it is
+    not for use from several threads at once.
     """
     name: str
+    _: dataclasses.KW_ONLY
     base: object = "scientific.nature"
     font: str = "Helvetica, Arial, Liberation Sans, sans-serif"
     allowed_fonts: tuple[str, ...] | None = None
@@ -196,10 +290,17 @@ class Suite:
         for attr, kind in (("type", TypeScale), ("lines", LineWeights), ("markers", MarkerStyle),
                            ("letters", LetterStyle), ("text", TextRules), ("export", Export)):
             object.__setattr__(self, attr, _merge(kind, getattr(self, attr)))
-        object.__setattr__(self, "palettes", dict(self.palettes))
-        object.__setattr__(self, "ramps", dict(self.ramps))
-        object.__setattr__(self, "widths", {k: float(v) for k, v in dict(self.widths).items()})
-        object.__setattr__(self, "lint", dict(self.lint))
+        if not isinstance(self.font, str) or not self.font.strip():
+            raise TypeError(f"font must be a CSS-style family list, not {self.font!r}")
+        object.__setattr__(self, "palettes", _FrozenMap(self.palettes))
+        object.__setattr__(self, "ramps", _FrozenMap(self.ramps))
+        widths = {k: float(v) for k, v in dict(self.widths).items()}
+        bad = [k for k, v in widths.items() if not v > 0]
+        if bad:
+            raise ValueError(f"widths must be positive mm: {', '.join(bad)}")
+        object.__setattr__(self, "widths", _FrozenMap(widths))
+        object.__setattr__(self, "lint", _FrozenMap(self.lint))
+        _check_lint_keys(self.lint)
         if self.allowed_fonts is not None:
             object.__setattr__(self, "allowed_fonts", tuple(self.allowed_fonts))
         from .themes.color import parse_color
@@ -211,12 +312,33 @@ class Suite:
             for color in values:
                 parse_color(color)
         object.__setattr__(self, "_cache", {})
+        self.preset                     # an unknown base preset fails here
+        for name in self.ramps:
+            self.ramp(name)             # and so does a bad ramp
+
+    def __hash__(self):
+        return hash(_suite_key(self))
+
+    def __getstate__(self):
+        # The cache holds derived values (and ramp closures); rebuilt on load.
+        return {f.name: getattr(self, f.name) for f in dataclasses.fields(self)}
+
+    def __setstate__(self, state):
+        for key, value in state.items():
+            object.__setattr__(self, key, value)
+        object.__setattr__(self, "_cache", {})
 
     # -- derived styles ---------------------------------------------------
 
     def customize(self, **changes) -> "Suite":
-        """A copy with fields replaced; a dict for a nested field merges into it
-        (`customize(lines={"data": 0.5})` keeps `fit` and `axis`)."""
+        """A copy with fields replaced. A dict for one of the nested style
+        fields (`type`, `lines`, `markers`, `letters`, `text`, `export`)
+        merges into it: `customize(lines={"data": 0.5})` keeps `fit` and
+        `axis`. `palettes`, `ramps`, `widths` and `lint` are replaced whole."""
+        known = {f.name for f in dataclasses.fields(self)}
+        unknown = sorted(set(changes) - known)
+        if unknown:
+            raise TypeError(f"unknown suite fields: {', '.join(unknown)}")
         out = {}
         for key, value in changes.items():
             current = getattr(self, key)
@@ -233,12 +355,13 @@ class Suite:
             from .document.presets import Preset, preset as get_preset
             base = self.base if isinstance(self.base, Preset) else get_preset(str(self.base))
             options = dict(font_family=self.font, font_pt=self.type.label,
-                           small_font_pt=self.type.tick, paper=self.paper,
-                           expected_fonts=self.font_families(allowed=True))
+                           small_font_pt=self.type.tick, paper=self.paper)
+            if self.font_families(allowed=True):
+                # Only generic names ("sans-serif"): nothing to expect.
+                options["expected_fonts"] = self.font_families(allowed=True)
             if self.ink is not None:
                 options["ink"] = self.ink
-            if base.publication.letter_font_pt is not None or self.type.letter:
-                options["letter_font_pt"] = self.type.letter
+            options["letter_font_pt"] = self.type.letter
             got = self._cache["preset"] = base.customize(**options)
         return got
 
@@ -302,10 +425,9 @@ class Suite:
 
     def size(self, role: str) -> float:
         """A type size in mm: 'tick', 'label', 'key', 'note' or 'letter'."""
-        try:
-            return pt(getattr(self.type, role))
-        except AttributeError:
-            raise ValueError(f"unknown type role {role!r}; roles are tick, label, key, note, letter") from None
+        if role not in _ROLES:
+            raise ValueError(f"unknown type role {role!r}; roles are {', '.join(_ROLES)}")
+        return pt(getattr(self.type, role))
 
     def stroke(self, tier: str = "data") -> float:
         """A line weight in mm by tier name ('data', 'fit', 'axis' or an extra)."""
@@ -391,6 +513,8 @@ class Suite:
         return readable(self._resolve(color), self.paper, self.text.label_contrast)
 
     def mark_color(self, color: str) -> str:
+        """A marker colour: `color` (a palette key or a colour) deepened to
+        `markers.min_contrast` on the paper, or unchanged at 1.0."""
         from .themes.color import readable
         color = self._resolve(color)
         if self.markers.min_contrast <= 1.0:
@@ -463,8 +587,9 @@ class Suite:
         """Direct series labels at line ends, spread so none overlap.
 
         `labels` maps each label to the data point it names (usually the last
-        point of its line); the colour is the label's palette colour, or
-        `colors[label]`, deepened to `text.label_contrast`. Labels keep their
+        point of its line); the colour is `colors[label]` (which must resolve),
+        or else the label's palette colour, deepened to `text.label_contrast`.
+        A label that is neither in `colors` nor a palette key is set in ink. Labels keep their
         order and are moved apart vertically by the least total amount that
         leaves `gap` mm between them (`layout.label_search.stack`), then set
         `dx` mm right of their point (`anchor='e'` puts them to the left).
@@ -483,11 +608,13 @@ class Suite:
                       bottom=area.y1 - height / 2)
         with self._using():
             for name, y0, y1 in zip(names, ys, moved):
-                color = colors.get(name, name)
-                try:
-                    fill = self.text_color(color)
-                except KeyError:
-                    fill = self.theme.ink
+                if name in colors:
+                    fill = self.text_color(colors[name])
+                else:
+                    try:
+                        fill = self.text_color(name)
+                    except KeyError:
+                        fill = self.theme.ink
                 kw = {}
                 if self.text.halo is not None:
                     kw["halo"] = self.text.halo
@@ -497,7 +624,12 @@ class Suite:
         return p
 
     def mosaic(self, layout, panels, *, height: float, width: str | float = "double", **kwargs) -> Diagram:
-        """`inklet.panel_mosaic` with the suite's letters (size, gap, case)."""
+        """`inklet.panel_mosaic` with the suite's letters (size, gap, case).
+
+        Its defaults are `gap=3.0` and `margin=2.0` mm (panel_mosaic's are 4
+        and 4); any `panel_mosaic` keyword overrides them. With
+        `letters.case='upper'` the panels are named, and lettered, in upper
+        case; `titles` may still be keyed by the names as given."""
         from . import panel_mosaic
         options = dict(label_size=self.size("letter"), label_gap=self.letters.gap,
                        gap=3.0, margin=2.0)
@@ -507,6 +639,8 @@ class Suite:
             upper = {k: k.upper() for k in panels}
             layout = [" ".join(upper.get(k, k) for k in row) for row in rows]
             panels = {upper[k]: v for k, v in panels.items()}
+            if options.get("titles"):
+                options["titles"] = {upper.get(k, k): v for k, v in dict(options["titles"]).items()}
         with self._using():
             return panel_mosaic(layout, panels, width=self.width(width), height=height, **options)
 
@@ -517,8 +651,7 @@ class Suite:
         from .draw.annotate import LETTER_KIND
         text = text.upper() if self.letters.case == "upper" else text
         with self._using():
-            return header_text(text, self.size("letter"), weight="bold" if self.letters.bold else None,
-                               kind=LETTER_KIND)
+            return header_text(text, self.size("letter"), weight="bold", kind=LETTER_KIND)
 
     def figure(self, width: str | float = "double", **kwargs):
         """`inklet.figure` on the suite's theme and paper, at a named width."""
@@ -528,9 +661,10 @@ class Suite:
         return figure(width=self.width(width), **options)
 
     def document(self, width: str | float = "double", **kwargs):
-        """The suite preset's live `Document`, lettered in the suite's style."""
-        doc = self.preset.document(width=self.width(width), **kwargs)
-        return doc
+        """The suite preset's live `Document` at a named width: the suite's
+        font, type sizes and paper. Its panel letters follow the base preset's
+        letter style, not `letters`."""
+        return self.preset.document(width=self.width(width), **kwargs)
 
     # -- checks -----------------------------------------------------------
 
@@ -543,6 +677,8 @@ class Suite:
                           bold=self.text.bold, keys=self.text.keys)
 
     def lint_options(self) -> dict:
+        """The `lint()` keywords `check` uses: the base preset's limits, the
+        suite's fonts, paper and house rules, then `lint`."""
         profile = self.preset.publication
         options = dict(min_font_pt=profile.min_font_pt, expected_fonts=self.font_families(allowed=True),
                        house=self.lint_rules(), page_fill=self.paper)
@@ -606,16 +742,22 @@ class Suite:
         `figures` maps an output name to a zero-argument callable returning a
         Figure, Document or Diagram, or to `"module:function"` (default
         function `make_figure`). A figure is skipped when its fingerprint --
-        the suite, the source file of its function, `depends` (files every
-        figure reads, such as the style module) and `inputs[name]` (its data
-        files) -- matches the last build recorded in `out/.inklet-build.json`
-        and its outputs exist. A changed figure that renders the same bytes
-        leaves its files untouched (`Export.write`).
+        the suite, the function (its qualified name, any `functools.partial`
+        arguments and its source file), `depends` (files every figure reads,
+        such as the style module), `inputs[name]` (its data files) and the
+        inklet version -- matches the last build recorded in
+        `out/.inklet-build.json` and its outputs exist. A declared file that
+        is missing fails that figure. Other modules the function imports,
+        font files and installed libraries are not in the fingerprint; pass
+        `force=True` after changing them. A skipped figure reports the lint
+        counts recorded when it was built. A changed figure that renders the
+        same bytes leaves its files untouched (`Export.write`).
 
         `isolate=True` restores `sys.path` after each figure and forgets the
         project modules it imported (library modules stay cached), so two
         figure modules importing different helper modules of the same name
-        (from different directories) do not see each other's. One figure's failure is reported and the rest still build.
+        (from different directories) do not see each other's. One figure's
+        failure is reported and the rest still build.
         """
         import importlib
         import traceback
@@ -632,6 +774,8 @@ class Suite:
             manifest = json.loads(manifest_path.read_text())
         except (OSError, ValueError):
             manifest = {}
+        if not isinstance(manifest, dict):
+            manifest = {}
         rows = []
         for name, target in items:
             saved_modules, saved_path = (dict(sys.modules), list(sys.path)) if isolate else (None, None)
@@ -640,11 +784,17 @@ class Suite:
                 if isinstance(target, str):
                     module, _, attr = target.partition(":")
                     func = getattr(importlib.import_module(module), attr or "make_figure")
+                if not callable(func):
+                    raise TypeError(f"figure {name!r} is a {type(func).__name__}, not a callable "
+                                    "or 'module:function'")
                 files = [*depends, *(inputs or {}).get(name, ())]
+                missing = [str(f) for f in files if not Path(f).is_file()]
+                if missing:
+                    raise FileNotFoundError(f"declared input(s) missing: {', '.join(missing)}")
                 source = _source_file(func)
                 if source is not None:
                     files.append(source)
-                key = _fingerprint(self, files)
+                key = _fingerprint(self, files, _identity(func))
                 outputs = [out / f"{name}.{fmt}" for fmt in self.export.formats]
                 previous = manifest.get(name, {})
                 if not force and previous.get("key") == key and all(p.exists() for p in outputs):
@@ -685,10 +835,18 @@ def _house_codes():
     return HOUSE_CODES
 
 
+@functools.lru_cache(maxsize=1)
 def _library_roots() -> tuple[str, ...]:
+    import site
     import sysconfig
     paths = sysconfig.get_paths()
     roots = {paths.get(k) for k in ("stdlib", "platstdlib", "purelib", "platlib")}
+    try:
+        roots.update(site.getsitepackages())
+    except AttributeError:                                # some embedded interpreters
+        pass
+    roots.add(site.getusersitepackages())
+    roots.update(p for p in sys.path if Path(p).name in ("site-packages", "dist-packages"))
     roots.add(str(Path(__file__).resolve().parent))         # inklet itself
     return tuple(sorted(str(Path(r).resolve()) for r in roots if r))
 
@@ -706,23 +864,40 @@ def _project_module(module) -> bool:
     if not path:
         return False
     try:
-        resolved = str(Path(path).resolve())
+        resolved = Path(path).resolve()
     except OSError:
         return False
-    return not any(resolved.startswith(root + "/") or resolved == root for root in _library_roots())
+    return not any(resolved.is_relative_to(root) for root in _library_roots())
+
+
+def _unwrap(func):
+    while isinstance(func, functools.partial):
+        func = func.func
+    return func
 
 
 def _source_file(func) -> str | None:
     import inspect
     try:
-        return inspect.getsourcefile(func)
+        return inspect.getsourcefile(_unwrap(func))
     except TypeError:
         return None
 
 
-def _fingerprint(house: Suite, files: Iterable) -> str:
+def _identity(func) -> str:
+    """Which function builds a figure, and with what bound arguments."""
+    bound = []
+    while isinstance(func, functools.partial):
+        bound.append(repr((func.args, sorted(func.keywords.items()))))
+        func = func.func
+    name = f"{getattr(func, '__module__', '')}.{getattr(func, '__qualname__', repr(func))}"
+    return "|".join([name, *bound])
+
+
+def _fingerprint(house: Suite, files: Iterable, identity: str = "") -> str:
     digest = hashlib.sha256()
     digest.update(repr(_suite_key(house)).encode())
+    digest.update(identity.encode())
     for path in sorted({str(Path(f)) for f in files}):
         digest.update(path.encode())
         try:

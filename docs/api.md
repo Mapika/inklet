@@ -191,11 +191,11 @@ Resolve a drawing for all native backends, reusing an optional revision.
 
 A PDF asked for live text drew some of it as outlines.
 
-#### `class Suite(name: 'str', base: 'object' = 'scientific.nature', font: 'str' = 'Helvetica, Arial, Liberation Sans, sans-serif', allowed_fonts: 'tuple[str, ...] | None' = None, ink: 'str | None' = None, paper: 'str' = '#ffffff', type: 'TypeScale' = <factory>, lines: 'LineWeights' = <factory>, markers: 'MarkerStyle' = <factory>, letters: 'LetterStyle' = <factory>, text: 'TextRules' = <factory>, palettes: 'Mapping[str, object]' = <factory>, ramps: 'Mapping[str, object]' = <factory>, widths: 'Mapping[str, float]' = <factory>, export: 'Export' = <factory>, lint: 'Mapping[str, object]' = <factory>) -> None`
+#### `class Suite(name: 'str', *, base: 'object' = 'scientific.nature', font: 'str' = 'Helvetica, Arial, Liberation Sans, sans-serif', allowed_fonts: 'tuple[str, ...] | None' = None, ink: 'str | None' = None, paper: 'str' = '#ffffff', type: 'TypeScale' = <factory>, lines: 'LineWeights' = <factory>, markers: 'MarkerStyle' = <factory>, letters: 'LetterStyle' = <factory>, text: 'TextRules' = <factory>, palettes: 'Mapping[str, object]' = <factory>, ramps: 'Mapping[str, object]' = <factory>, widths: 'Mapping[str, float]' = <factory>, export: 'Export' = <factory>, lint: 'Mapping[str, object]' = <factory>) -> None`
 
 A figure set's house style: fonts, type, line weights, markers, colours, letters, text rules, widths, export and lint. Build one with `suite()`.
 
-* `customize(**changes) -> "'Suite'"` -- A copy with fields replaced; a dict for a nested field merges into it (`customize(lines={"data": 0.5})` keeps `fit` and `axis`).
+* `customize(**changes) -> "'Suite'"` -- A copy with fields replaced. A dict for one of the nested style fields (`type`, `lines`, `markers`, `letters`, `text`, `export`) merges into it: `customize(lines={"data": 0.5})` keeps `fit` and `axis`. `palettes`, `ramps`, `widths` and `lint` are replaced whole.
 * `font_families(*, allowed: 'bool' = False) -> 'tuple[str, ...]'` -- The families in `font` (or `allowed_fonts`), generic names dropped.
 * `fonts() -> 'dict[str, dict]'` -- How each face the suite sets resolves on this machine: file, family, and whether a PDF can embed it as live text.
 * `size(role: 'str') -> 'float'` -- A type size in mm: 'tick', 'label', 'key', 'note' or 'letter'.
@@ -206,7 +206,7 @@ A figure set's house style: fonts, type, line weights, markers, colours, letters
 * `ramp(name: 'str') -> 'Callable[[float], str]'` -- A sequential map as a function of t in [0, 1]. Ordinal dict ramps are sampled along their keys in order.
 * `stops(name: 'str') -> 'dict'` -- An ordinal ramp's fixed {key: colour} stops.
 * `text_color(color: 'str') -> 'str'` -- `color` deepened along its own lightness until text in it reaches `text.label_contrast` on the paper; hue is kept. A grey becomes ink.
-* `mark_color(color: 'str') -> 'str'`
+* `mark_color(color: 'str') -> 'str'` -- A marker colour: `color` (a palette key or a colour) deepened to `markers.min_contrast` on the paper, or unchanged at 1.0.
 * `line(color: 'str', tier: 'str' = 'data', **style) -> 'dict'` -- `Panel.line` keywords: the colour (a palette key or a colour) and the tier's weight.
 * `mark(color: 'str', *, hollow: 'bool' = False, size: 'float | None' = None, **style) -> 'dict'` -- `Panel.scatter` keywords for the house marker: filled without an outline, or open as a ring in the series colour.
 * `marker(shape: 'str', color: 'str', *, hollow: 'bool' = False, size: 'float | None' = None) -> 'Diagram'` -- One placed or key marker in the house style (see `mark`).
@@ -217,9 +217,9 @@ A figure set's house style: fonts, type, line weights, markers, colours, letters
 * `mosaic(layout, panels, *, height: 'float', width: 'str | float' = 'double', **kwargs) -> 'Diagram'` -- `inklet.panel_mosaic` with the suite's letters (size, gap, case).
 * `letter(text: 'str') -> 'Diagram'` -- A panel letter on its own, for hand-built layouts: the suite's size, bold, baseline-aligned like the mosaic's (`header_text`).
 * `figure(width: 'str | float' = 'double', **kwargs)` -- `inklet.figure` on the suite's theme and paper, at a named width.
-* `document(width: 'str | float' = 'double', **kwargs)` -- The suite preset's live `Document`, lettered in the suite's style.
+* `document(width: 'str | float' = 'double', **kwargs)` -- The suite preset's live `Document` at a named width: the suite's font, type sizes and paper. Its panel letters follow the base preset's letter style, not `letters`.
 * `lint_rules()` -- The suite's house rules as `HouseRules` for `lint(house=...)`.
-* `lint_options() -> 'dict'`
+* `lint_options() -> 'dict'` -- The `lint()` keywords `check` uses: the base preset's limits, the suite's fonts, paper and house rules, then `lint`.
 * `check(figure, **kwargs)` -- Lint diagnostics for a figure under the suite's limits and house rules. Takes a Figure, compiled Document, Document or Diagram.
 * `page(item, width=None)` -- `item` as something that saves and lints: a Figure or compiled Document passes through, a Document is compiled, and a Diagram or Panel is put on a suite figure as wide as it (or `width`).
 * `save(item, name: 'str', *, out: 'str | Path' = '.', width=None, report: 'bool' = False) -> "'SaveResult'"` -- Write `out/name.{formats}` and lint them. Returns a `SaveResult`.
@@ -1188,7 +1188,7 @@ Add an anchor at a 3D point, after the fact. Returns the node.
 
 A part's projected outline: `((points, closed), ...)` in its own frame.
 
-#### `panel_mosaic(layout, panels, *, width, height, gap=4, margin=4, row_weights=None, column_weights=None, titles=None, letters=True, label_size=4, label_gap=2)`
+#### `panel_mosaic(layout, panels, *, width, height, gap=4, margin=4, row_weights=None, column_weights=None, titles=None, letters=True, label_size=4, label_gap=2, header_bounds='band')`
 
 Build a page from a rectangular matrix of panel names ('.' is empty).
 

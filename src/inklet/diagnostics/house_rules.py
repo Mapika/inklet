@@ -67,8 +67,8 @@ class HouseRules:
     (mm). `marker_outlines=False` forbids outlined filled markers.
     `muted_text=False` forbids grey text (OKLab chroma below `muted_chroma`)
     lighter than `muted_lightness` (OKLab L) and any text in `muted_colors`. `bold="letters"` allows
-    bold only for panel letters. `keys="outside"` forbids keys inside plot
-    panels. `inklet.Suite.lint_rules()` builds one from a house style.
+    bold only for panel letters. `keys="outside"` forbids keys that are part of a plot
+    panel (over the data or beside it). `inklet.Suite.lint_rules()` builds one from a house style.
     """
     stroke_tiers: tuple[float, ...] | None = None
     stroke_tolerance: float = 0.005
@@ -185,8 +185,6 @@ def rule_marker_outline(ctx: LintContext) -> list[Diagnostic]:
         fill, stroke = _hex(item.style.fill), _hex(item.style.stroke)
         if fill is None or fill in (paper, "#ffffff") or stroke is None or stroke == fill:
             continue          # open marker: a ring in its own colour
-        if isinstance(item.prim, MarkerBatchPrim) and item.prim.palette != (None,):
-            pass              # per-point fills under one outline: still outlined
         found.append(item.id)
     if not found:
         return []
