@@ -370,7 +370,7 @@ class Figure:
         from .notebook import mimebundle
         return mimebundle(self)
 
-    def save(self, *paths: str | Path, **kwargs) -> None:
+    def save(self, *paths: str | Path, **kwargs) -> dict[str, bool]:
         """Write the figure to SVG, PDF or PNG, following each filename suffix.
 
         The format follows the suffix, so `fig.save("f.svg", "f.pdf")` writes
@@ -387,8 +387,13 @@ class Figure:
         outlines -- the safe reading of "I did not think about the PDF" -- and
         anything that is neither raises here rather than at whichever file
         happens to come first in the list.
+
+        Files are written atomically and share one modification time.
+        `write="changed"` skips the write when no file's bytes would change,
+        which keeps the timestamps of an unchanged figure. Returns
+        `{path: written}`.
         """
-        save_outputs(self, *paths, **kwargs)
+        return save_outputs(self, *paths, **kwargs)
 
 
 def figure(width: float | str = COLUMN_SINGLE, **kwargs) -> Figure:
