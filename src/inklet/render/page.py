@@ -41,8 +41,8 @@ def check_export_options(suffixes, options, where: str = "save()") -> None:
     Runs before anything is rendered, so a misspelt keyword costs no file and
     no layout. `save()` writes several formats at once, so `dpi=` is accepted
     there whatever they are: the vector formats ignore a raster resolution.
-    `ids=` (SVG element ids) is accepted when an SVG is among the files, and
-    `write=` always; neither changes a PDF.
+    `ids=` (SVG element ids) is accepted when an SVG or PNG is among the files
+    (a PNG is drawn from SVG), and `write=` always; neither changes a PDF.
     """
     formats = [s for s in suffixes if s in _EXPORT_OPTIONS]
     if not formats or not options:
@@ -56,7 +56,9 @@ def check_export_options(suffixes, options, where: str = "save()") -> None:
             raise TypeError(
                 f"{where} got an unexpected keyword {key!r}; it accepts "
                 f"{', '.join(f'{k}=' for k in sorted(accepted))}")
-        if saving and key in ("dpi", "write") or (saving and key == "ids" and ".svg" in formats):
+        if saving and key in ("dpi", "write"):
+            continue
+        if saving and key == "ids" and any(f in formats for f in (".svg", ".png")):
             continue
         for suffix in formats:
             if key not in _EXPORT_OPTIONS[suffix]:
@@ -76,8 +78,10 @@ def save_outputs(figure, *paths: str | Path, write: str = "always",
 
     Every file is rendered first and then written, each through a temporary
     file in the same directory and an atomic rename, so a reader never sees a
-    half-written PDF and a failure in one format leaves the others as they
-    were. All files written by one call get the same modification time, so a
+    half-written PDF and a format that fails to render leaves every file as it
+    was. (A file that fails to *write* stops the call; the files before it
+    have been replaced.) A file that exists keeps its permission bits, and a
+    symbolic link is followed: the file it points to is replaced. All files written by one call get the same modification time, so a
     build that picks "the newest of pdf, svg and png" sees one export rather
     than whichever format happened to finish in a later second (the PNG,
     usually, since it is drawn last).
@@ -89,7 +93,6 @@ def save_outputs(figure, *paths: str | Path, write: str = "always",
     set keeps one timestamp. Returns `{path: written}`.
     """
     import os
-    import tempfile
     if write not in WRITE_MODES:
         raise ValueError(f"unknown write mode {write!r}; expected one of {', '.join(WRITE_MODES)}")
     mode = kwargs.get("text")
@@ -124,30 +127,41 @@ def save_outputs(figure, *paths: str | Path, write: str = "always",
         return {str(t): False for t, _ in rendered}
     stamp = None
     for target, data in rendered:
+        if target.is_symlink():
+            target = target.resolve()
         target.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp = tempfile.mkstemp(prefix=f".{target.name}.", dir=target.parent)
+        try:
+            mode = target.stat().st_mode & 0o7777
+        except OSError:
+            mode = None
+        fd, tmp = _temporary(target)
         try:
             with os.fdopen(fd, "wb") as handle:
                 handle.write(data)
+            if mode is not None:
+                os.chmod(tmp, mode)
             os.replace(tmp, target)
         except BaseException:
             Path(tmp).unlink(missing_ok=True)
             raise
-        try:
-            os.chmod(target, 0o666 & ~_umask())
-        except OSError:
-            pass
         if stamp is None:
             stamp = target.stat().st_mtime_ns
         os.utime(target, ns=(stamp, stamp))
     return {str(t): True for t, _ in rendered}
 
 
-def _umask() -> int:
+def _temporary(target: Path) -> tuple[int, str]:
+    """A new file beside `target`, created with mode 0o666 so the process
+    umask applies, as it would to a file opened for writing."""
     import os
-    mask = os.umask(0)
-    os.umask(mask)
-    return mask
+    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_BINARY", 0)
+    for attempt in range(1000):
+        tmp = str(target.parent / f".{target.name}.{os.getpid()}.{attempt}.tmp")
+        try:
+            return os.open(tmp, flags, 0o666), tmp
+        except FileExistsError:
+            continue
+    raise FileExistsError(f"cannot create a temporary file beside {target}")
 
 
 def _same_bytes(target: Path, data: bytes) -> bool:

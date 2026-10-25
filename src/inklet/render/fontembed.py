@@ -323,9 +323,10 @@ def _subset_sfnt(path: str, index: int, gids: frozenset[int]) -> SfntSubset:
                       **descriptor)
 
 
-#: Largest distance, in font units, between a cubic CFF segment and the
-#: quadratic splines that replace it. One unit of a 1000-unit em is 2.5
-#: micrometres at 7 pt, a tenth of the thinnest hairline a journal prints.
+#: Largest distance, in thousandths of an em, between a cubic CFF segment
+#: and the quadratic splines that replace it (scaled to the face's own
+#: `unitsPerEm`). A thousandth of an em is 2.5 micrometres at 7 pt, a tenth
+#: of the thinnest hairline a journal prints.
 CFF_TOLERANCE = 1.0
 
 
@@ -340,13 +341,14 @@ def _cff_to_glyf(font) -> None:
     the glyph order, the `hmtx` advances, `cmap` and the vertical metrics, so
     everything the shaper measured against the CFF face is still true of the
     file the reader opens; only the curve degree changes, within
-    `CFF_TOLERANCE` font units. This is what a `.ttf` built from the `.otf`
+    `CFF_TOLERANCE` thousandths of an em. This is what a `.ttf` built from the `.otf`
     with `fontTools.cu2qu` contains, done per subset so no file has to be made.
     """
     from fontTools.pens.cu2quPen import Cu2QuPen
     from fontTools.pens.ttGlyphPen import TTGlyphPen
     from fontTools.ttLib import newTable
 
+    tolerance = CFF_TOLERANCE * font["head"].unitsPerEm / 1000.0
     glyphset = font.getGlyphSet()
     order = font.getGlyphOrder()
     glyf = newTable("glyf")
@@ -355,7 +357,7 @@ def _cff_to_glyf(font) -> None:
     for name in order:
         pen = TTGlyphPen(glyphset)
         # TrueType winds outer contours clockwise, CFF counter-clockwise.
-        glyphset[name].draw(Cu2QuPen(pen, CFF_TOLERANCE, reverse_direction=True))
+        glyphset[name].draw(Cu2QuPen(pen, tolerance, reverse_direction=True))
         glyf.glyphs[name] = pen.glyph()
     font["glyf"] = glyf
     font["loca"] = newTable("loca")
@@ -370,8 +372,8 @@ def _cff_to_glyf(font) -> None:
         setattr(maxp, key, 0)
     maxp.maxZones = 1
     font["head"].glyphDataFormat = 0
-    post = font["post"]
-    post.formatType = 3.0
+    if "post" in font:
+        font["post"].formatType = 3.0
     font.sfntVersion = "\x00\x01\x00\x00"
 
 
@@ -453,8 +455,11 @@ def embeddable(path: str, index: int) -> bool:
     `readable` is asked before an `@font-face`: the alternative is discovering
     it while writing the page, when the content stream already names a font
     that will not be there. A CFF-flavoured face passes: `subset_sfnt`
-    converts its outlines to TrueType (`_cff_to_glyf`). A CFF2 (variable) or
-    bitmap-only face fails here and is outlined instead.
+    converts its outlines to TrueType (`_cff_to_glyf`). The whole face is
+    converted once here, so a face whose outlines do not convert fails now,
+    while the caller can still outline it, rather than when the subset is
+    written. A CFF2 (variable) or bitmap-only face fails here and is outlined
+    instead.
     """
     from fontTools.ttLib import TTFont
 
@@ -463,7 +468,26 @@ def embeddable(path: str, index: int) -> bool:
     except Exception:                                     # noqa: BLE001
         return False
     try:
-        return (("glyf" in font or "CFF " in font)
-                and "hmtx" in font and "head" in font and "maxp" in font)
+        if not (("glyf" in font or "CFF " in font)
+                and "hmtx" in font and "head" in font and "maxp" in font):
+            return False
+        cff = "glyf" not in font
     finally:
         font.close()
+    return _converts(path, index) if cff else True
+
+
+def _converts(path: str, index: int) -> bool:
+    """Whether a CFF face's outlines convert to a loadable TrueType font."""
+    import io
+    try:
+        font = _open(path, index)
+        try:
+            _cff_to_glyf(font)
+            buffer = io.BytesIO()
+            font.save(buffer)
+        finally:
+            font.close()
+    except Exception:                                     # noqa: BLE001
+        return False
+    return True

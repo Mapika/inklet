@@ -352,6 +352,29 @@ def test_cff_conversion_stays_within_tolerance():
         assert all(abs(a - b) <= 1.5 for a, b in zip(before.bounds, after.bounds))
 
 
+def test_a_cff_face_that_does_not_convert_is_outlined_with_a_warning(monkeypatch):
+    """A conversion failure is found before the page names the font, so the
+    text is outlined (the same picture) instead of the export failing."""
+    family = _cff_family()
+    if family is None:
+        pytest.skip("no CFF face installed")
+    from inklet.render import fontembed
+    from inklet.render.fontembed import FontEmbeddingWarning
+
+    def broken(font):
+        raise ValueError("cannot convert")
+    monkeypatch.setattr(fontembed, "_cff_to_glyf", broken)
+    fontembed.embeddable.cache_clear()
+    try:
+        node = Diagram(prim=shape("Fallback", font=family, size=5.0))
+        with pytest.warns(FontEmbeddingWarning, match="convert"):
+            pdf = to_pdf(node, compress=False, text="embed")
+        assert b"/FontFile2" not in pdf
+        assert "BT" not in content(pdf)
+    finally:
+        fontembed.embeddable.cache_clear()
+
+
 # -- the halo, in the mode where it is not a stroked text object -------------
 
 
