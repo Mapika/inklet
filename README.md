@@ -39,11 +39,16 @@ cover the finished page.
 
 ## Inklet 4.0
 
-**4.9.0 is stable**. It adds the journal frames of physics and astronomy
-figures (`preset(..., axes='box')` or `axes='frame'`), contours of gridded
-fields with highest-density levels, pre-binned histograms, one axis title
-across a grid and panel letters by cell name, and ten figures from six
-landmark Nature papers recreated from their data. 4.8 added free per-facet
+**4.10.0 is stable**. It adds house styles (`inklet.suite(...)`): one
+immutable value holding a figure set's fonts, type scale, line weights,
+markers, palettes, letters, widths and export settings, with house lint
+rules and incremental builds. CFF OpenType faces now embed in PDFs as live
+TrueType text, `save()` writes atomically and can skip unchanged files, and
+mosaic panel letters share one baseline. 4.9 added the journal frames of
+physics and astronomy figures (`preset(..., axes='box')` or `axes='frame'`),
+contours of gridded fields with highest-density levels, pre-binned
+histograms, one axis title across a grid and panel letters by cell name.
+4.8 added free per-facet
 scales (`facet_scales='free_y'`), reference lines on faceted layouts, lint
 checks for figures that draw the wrong data, and a Claude Code plugin. 4.6 added charts in one call (`i.line(df, x=, y=,
 color=)` and about twenty more), a matplotlib bridge (`i.from_matplotlib`),

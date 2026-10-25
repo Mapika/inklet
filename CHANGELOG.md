@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.10.0 — 2026-10-25
 
 Found porting a project that kept its house style, and several workarounds,
 in style modules outside inklet.
