@@ -69,3 +69,36 @@ def test_titles_sit_on_the_letters_baseline():
                 lines[text] = placed[node.id].world.apply(Vec2(0, node.prim.first_baseline)).y
     assert max(lines.values()) - min(lines.values()) < 0.05
 
+
+
+def test_ink_header_bounds_restore_the_former_placement():
+    """`header_bounds='ink'` measures each header by its own ink, as before."""
+    lines = _baselines(_mosaic(list("ab"), header_bounds="ink"))
+    # An x-height `a` sits higher than an ascender `b` once each ink top is
+    # put on the slot top.
+    assert lines["b"] - lines["a"] > 0.3
+    records = _mosaic(list("ab"), header_bounds="ink").notes["panel_mosaic"]
+    assert records["a"]["content"][1] < records["b"]["content"][1]
+
+
+def test_unknown_header_bounds_are_rejected():
+    with pytest.raises(ValueError, match="header_bounds"):
+        _mosaic(list("ab"), header_bounds="glyphs")
+
+
+def test_a_multi_line_title_keeps_clear_of_its_panel():
+    m = i.panel_mosaic(["a b"], {"a": _factory, "b": _factory}, width=120, height=60,
+                       label_size=i.pt(8), titles={"a": "Two\nlines here"})
+    placed = resolve(m)
+    records = m.notes["panel_mosaic"]
+    for node in m.walk():
+        prim = node.prim
+        if prim is not None and getattr(prim, "lines", None) and len(prim.lines) == 2:
+            from inklet.core import Envelope
+            from inklet.typeset.outline import text_to_paths
+            ink = Envelope.union_all(p.envelope() for p, _ in text_to_paths(prim)).bbox()
+            bottom = placed[node.id].world.apply(Vec2(0, ink.y1)).y
+            assert bottom < records["a"]["content"][1]
+            break
+    else:
+        raise AssertionError("no two-line title found")

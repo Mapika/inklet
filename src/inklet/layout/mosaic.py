@@ -56,7 +56,8 @@ def header_text(content, size, *, weight=None, kind='text'):
     ink of `_HEADER_REFERENCE` set in the same face, so every header in a row
     shares one baseline and one reserve; the horizontal extent is still the
     text's own ink, so its left edge lines up with the slot as before. A
-    descender hangs into the gap below the band, as it does in running text.
+    descender hangs into the gap below the band, as it does in running text;
+    the lines after the first of a multi-line header are claimed in full.
     """
     import inklet as i
     from dataclasses import replace
@@ -71,6 +72,9 @@ def header_text(content, size, *, weight=None, kind='text'):
     own, band = own.bbox(), band.bbox()
     top = node.prim.first_baseline + band.y0 - ref.prim.first_baseline
     bottom = node.prim.first_baseline + band.y1 - ref.prim.first_baseline
+    if len(node.prim.lines) > 1:
+        # Later lines are part of the header, not a descender: claim them.
+        bottom = max(bottom, own.y1)
     node = replace(node, envelope_override=Envelope.from_rect(Rect(own.x0, top, own.x1, bottom)), _cache={})
     node.notes['text_bounds'] = 'header'
     return node
@@ -78,7 +82,7 @@ def header_text(content, size, *, weight=None, kind='text'):
 
 def panel_mosaic(layout, panels, *, width, height, gap=4, margin=4,
                  row_weights=None, column_weights=None, titles=None,
-                 letters=True, label_size=4, label_gap=2):
+                 letters=True, label_size=4, label_gap=2, header_bounds='band'):
     """Build a page from a rectangular matrix of panel names ('.' is empty).
 
     Repeated names span a rectangular block. Content is a Diagram, a built
@@ -88,8 +92,11 @@ def panel_mosaic(layout, panels, *, width, height, gap=4, margin=4,
     cannot fit raises an informative error. Factories may run up to 12 times.
 
     Titles and panel letters occupy a reserved header band, the same height
-    for every panel; letters and titles share one baseline (`header_text`). Returns a Diagram
-    with a top-left page origin and named panel/content boxes in
+    for every panel; letters and titles share one baseline (`header_text`).
+    ``header_bounds='ink'`` restores the placement before 4.10: each header
+    measured by its own ink, top-aligned, so an x-height letter (``a``) sat
+    higher than an ascender letter (``b``) and its panel started higher too.
+    Returns a Diagram with a top-left page origin and named panel/content boxes in
     ``notes['panel_mosaic']``. This is a static composition; use Composition
     slots when live data binding or interactive layout edits are needed.
     """
@@ -118,12 +125,16 @@ def panel_mosaic(layout, panels, *, width, height, gap=4, margin=4,
         r0,r1=min(r for r,c in cells),max(r for r,c in cells);c0,c1=min(c for r,c in cells),max(c for r,c in cells)
         if len(cells)!=(r1-r0+1)*(c1-c0+1):raise ValueError(f'panel {name} must occupy a rectangular span')
         spans[name]=(r0,r1,c0,c1)
+    if header_bounds not in ('band','ink'):raise ValueError("header_bounds must be 'band' or 'ink'")
+    def heading(text,size,**kw):
+        if header_bounds=='band':return header_text(text,size,**kw)
+        return i.text(text,size=size,markup=False,bounds='ink',**kw)
     headers={}
     for name in names:
         header=[]
-        if letters:header.append(header_text(name,label_size,weight='bold',kind=LETTER_KIND))
-        if name in titles:header.append(header_text(titles[name],label_size*.85))
-        head=i.hstack(header,gap=label_gap,align='bottom') if header else None
+        if letters:header.append(heading(name,label_size,weight='bold',kind=LETTER_KIND))
+        if name in titles:header.append(heading(titles[name],label_size*.85))
+        head=(i.hstack(header,gap=label_gap,align='bottom') if header_bounds=='band' else i.hstack(header,gap=label_gap)) if header else None
         reserve=(head.height+label_gap) if head is not None else 0
         headers[name]=(head,reserve)
     def tracks(n,weights,total,axis):
