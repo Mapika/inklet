@@ -91,3 +91,21 @@ def test_letters_false_keeps_the_title():
         svg = i.Layout('row', [chart, _line()], letters=False).compile().to_svg(text='names')
     assert not [w for w in caught if 'panel letter' in str(w.message)]
     assert '>a<' in svg
+
+
+def _tolerance_panel(w, h):
+    import inklet as i
+    p = i.panel(w, h, x=(0, 1), y=(0, 1))
+    p.axes(x="x", y="y")
+    return p
+
+
+def test_a_letter_at_the_limit_written_with_a_rounded_point_is_not_too_large():
+    """8 * 0.3528 mm is 8.0005 pt: at the 8 pt panel-letter limit, not above it."""
+    import inklet as i
+    m = i.panel_mosaic(["a b"], {"a": _tolerance_panel, "b": _tolerance_panel}, width=120, height=40,
+                       label_size=8 * 0.3528)
+    found = [d for d in i.lint(m, max_font_pt=7, max_letter_pt=8) if d.code == "LARGE_TEXT"]
+    assert found == []
+    big = i.panel_mosaic(["a"], {"a": _tolerance_panel}, width=60, height=40, label_size=i.pt(8.2))
+    assert [d.code for d in i.lint(big, max_font_pt=7, max_letter_pt=8) if d.code == "LARGE_TEXT"] == ["LARGE_TEXT"]

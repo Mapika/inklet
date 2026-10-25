@@ -301,6 +301,39 @@ def weight_number(weight: str | int) -> int:
         ) from None
 
 
+@lru_cache(maxsize=128)
+def public_family(family: str) -> str:
+    """`family` as a CSS font-family list a file can carry: font-file paths
+    replaced by the family name inside the file.
+
+    A theme may name a face by its path (`"/fonts/Nimbus-Regular.ttf, Nimbus
+    Sans, sans-serif"`) so that measurement uses exactly that file. The path is
+    a fact about the machine that drew the figure, not about the figure: a
+    viewer cannot use it, and it leaks the author's directory layout into every
+    exported SVG. Each path entry becomes the family recorded in the file's
+    `name` table (or is dropped when the file cannot be read), duplicates are
+    removed and the order is kept, so `"/x/Nimbus.ttf, Nimbus Sans, Arial"`
+    becomes `"Nimbus Sans, Arial"`. A list without paths is returned unchanged.
+    """
+    names = [name.strip() for name in family.split(",")]
+    if not any(_looks_like_path(name.strip("'\"")) for name in names):
+        return family
+    out: list[str] = []
+    for name in names:
+        bare = name.strip("'\"")
+        if not bare:
+            continue
+        if _looks_like_path(bare):
+            try:
+                bare = load_face(str(Path(bare).expanduser())).family
+            except Exception:                             # noqa: BLE001
+                continue
+            name = bare
+        if name.strip("'\"").lower() not in {n.strip("'\"").lower() for n in out}:
+            out.append(name)
+    return ", ".join(out)
+
+
 def _looks_like_path(family: str) -> bool:
     return family.lower().endswith(FONT_SUFFIXES) or os.sep in family
 

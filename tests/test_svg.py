@@ -759,3 +759,38 @@ def test_empty_diagram_still_renders():
     root = parse(to_svg(Diagram(), margin=3.0))
     assert root.get("width") == "6mm"
     assert [tag(el) for el in root] == ["g"]
+
+
+# -- font-file paths never reach the output ---------------------------------
+
+
+def _a_font_file():
+    from inklet.typeset.fonts import find_font
+    return find_font("sans")
+
+
+def test_a_font_path_in_the_family_chain_is_written_as_its_family_name(tmp_path):
+    """A theme may name a face by file path so that measurement uses exactly
+    that file; the SVG must name the family, not the author's directory."""
+    import dataclasses
+    import inklet
+
+    face = _a_font_file()
+    chain = f"{face.path}, Helvetica, sans-serif"
+    theme = dataclasses.replace(inklet.theme("nature"), font_family=chain)
+    fig = inklet.figure(width=40, height=20, theme=theme)
+    fig.add(inklet.text("Path-free label"))
+    for mode in ("names", "embed", "outline"):
+        svg = fig.to_svg(text=mode)
+        assert face.path not in svg
+        assert str(face.path).rsplit("/", 1)[0] not in svg
+    assert f'font-family="{face.family}, Helvetica, sans-serif"' in fig.to_svg()
+
+
+def test_public_family_keeps_order_and_drops_duplicates():
+    from inklet.typeset.fonts import public_family
+
+    face = _a_font_file()
+    assert public_family("Arial, sans-serif") == "Arial, sans-serif"
+    assert public_family(f"{face.path}, {face.family}, Arial") == f"{face.family}, Arial"
+    assert public_family("/no/such/font.ttf, Arial") == "Arial"

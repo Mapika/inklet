@@ -346,6 +346,8 @@ class LintContext:
     expected_fonts: tuple[str, ...] | None = None
     #: {node id: the ids it was built to touch}, from `Diagram.attached_to`.
     attachments: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    #: A figure set's own rules (`diagnostics.house_rules.HouseRules`), or None.
+    house: object | None = None
     _by_id: dict[str, Item] = field(default_factory=dict, repr=False, compare=False)
     _memo: dict = field(default_factory=dict, repr=False, compare=False)
 
@@ -730,6 +732,7 @@ def build_context(
     max_height_mm: float | None = None,
     max_letter_pt: float | None = None,
     expected_fonts: tuple[str, ...] | None = None,
+    house: object | None = None,
 ) -> LintContext:
     for name, value in (('max_font_pt', max_font_pt), ('max_height_mm', max_height_mm),
                         ('max_letter_pt', max_letter_pt)):
@@ -798,7 +801,7 @@ def build_context(
         max_stroke_widths=max_stroke_widths,
         max_font_pt=max_font_pt, max_height_mm=max_height_mm,
         max_letter_pt=max_letter_pt, expected_fonts=expected_fonts,
-        attachments=attachments,
+        attachments=attachments, house=house,
     )
 
 
@@ -1111,6 +1114,13 @@ def rule_off_canvas(ctx: LintContext) -> list[Diagnostic]:
     return out
 
 
+#: Type sizes within this many points of a limit meet it. A size written with
+#: 1 pt = 0.3528 mm (the four-figure value most style files use) instead of
+#: 0.352778 is 8.0005 pt at 8 pt; reporting that as "8.0pt, above the 8.0pt
+#: maximum" is a finding nobody can act on.
+_PT_SLACK = 0.01
+
+
 def rule_tiny_text(ctx: LintContext) -> list[Diagnostic]:
     """Type below the legibility floor once every enclosing scale is applied."""
     out: list[Diagnostic] = []
@@ -1118,7 +1128,7 @@ def rule_tiny_text(ctx: LintContext) -> list[Diagnostic]:
         if not item.is_text or not item.draws:
             continue
         effective = _effective_font_pt(item)
-        if effective >= ctx.min_font_pt - 1e-9:
+        if effective >= ctx.min_font_pt - _PT_SLACK:
             continue
         nominal = to_pt(item.prim.font_size)  # type: ignore[union-attr]
         scale_note = ("" if abs(item.scale - 1.0) < 1e-9
@@ -1170,7 +1180,7 @@ def rule_large_text(ctx: LintContext) -> list[Diagnostic]:
         xx, yy, xy = a*a+b*b, c*c+d*d, a*c+b*d
         scale = math.sqrt(max(0., (xx+yy+math.hypot(xx-yy, 2*xy))/2))
         effective = to_pt(item.prim.font_size*scale)
-        if effective <= cap + 1e-9: continue
+        if effective <= cap + _PT_SLACK: continue
         kind = 'panel-letter maximum' if letter and ctx.max_letter_pt is not None else 'maximum'
         out.append(Diagnostic(
             code='LARGE_TEXT', severity='error',
@@ -3920,6 +3930,8 @@ from .label_rules import rule_label_unplaced, rule_orphan_leader      # noqa: E4
 from .cell_rules import (rule_axis_title_overhang, rule_bar_width_scale,  # noqa: E402
                          rule_plot_width_overridden)
 from .key_cover import rule_key_covers_data                         # noqa: E402
+from .house_rules import (rule_bold_text, rule_key_in_panel,        # noqa: E402
+                          rule_marker_outline, rule_muted_text, rule_stroke_tier)
 
 RULES: dict[str, Rule] = {
     "TEXT_OVERFLOW": rule_text_overflow,
@@ -3964,6 +3976,12 @@ RULES: dict[str, Rule] = {
     "EMPTY_DIAGRAM": rule_empty_diagram,
     "FONT_SUBSTITUTED": rule_font_substituted,
     "MISSING_GLYPHS": rule_missing_glyphs,
+    # House rules: silent unless lint() is given `house=` (see house_rules).
+    "STROKE_TIER": rule_stroke_tier,
+    "MARKER_OUTLINE": rule_marker_outline,
+    "MUTED_TEXT": rule_muted_text,
+    "BOLD_TEXT": rule_bold_text,
+    "KEY_IN_PANEL": rule_key_in_panel,
 }
 
 #: Emitted when a rule itself blows up. A broken rule must degrade the report,

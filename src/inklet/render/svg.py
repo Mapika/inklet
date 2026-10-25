@@ -53,6 +53,7 @@ from .scene import RenderScene, SceneNode, compile_scene, canvas as _canvas
 
 
 import base64
+from pathlib import Path
 import mimetypes
 from typing import Sequence
 
@@ -64,7 +65,7 @@ from ..core.prims import (
 )
 from ..core.style import EMPTY_STYLE, Style
 from ..core.units import mm as to_mm
-from ..typeset.fonts import load_face
+from ..typeset.fonts import load_face, public_family
 from .glyphs import PlacedGlyph, glyph_outline, placed_glyphs
 from .outline import resolve_text_mode
 from .pathdata import PACK_ABOVE, Command, Fixed, spell_open, spell_packed
@@ -153,6 +154,25 @@ class _Writer:
         # while a file edited between exports is read again.
         self.image_payloads = {}
         self.image_keys = {}
+        # `ids="document"`: node id -> this file's id, assigned in emit order.
+        self.renamed: dict[str, str] | None = None
+
+    def node_id(self, node_id: str) -> str:
+        """The id a node's element carries in this file.
+
+        Node ids come from one counter per process, so by default the same
+        figure built after another one carries larger numbers. With
+        `ids="document"` they are renumbered from 1 in drawing order, keeping
+        each id's alphabetic prefix, so the file is a function of the figure
+        alone.
+        """
+        if self.renamed is None:
+            return node_id
+        got = self.renamed.get(node_id)
+        if got is None:
+            prefix = node_id.rstrip("0123456789") or "n"
+            got = self.renamed[node_id] = f"{prefix}{len(self.renamed) + 1}"
+        return got
     # numbers and attributes
 
     def nums(self, values: Sequence[float], sep: str = " ") -> str:
@@ -305,7 +325,9 @@ class _FaceUse:
             try:
                 subset = fontembed.subset_face(path, index, codepoints)
             except Exception as exc:                      # noqa: BLE001
-                w.line(_comment(f"font not embedded, cannot subset {path}: {exc}"))
+                # The file name only: a directory is the author's machine.
+                w.line(_comment(f"font not embedded, cannot subset "
+                                f"{Path(path).name}: {type(exc).__name__}"))
                 continue
             rules.append(fontembed.face_rule(name, subset))
         if rules:
@@ -347,7 +369,7 @@ def _style_attrs(style: Style, writer: _Writer) -> Attrs:
         # are paths they are bytes that address nobody.
         return attrs
     if style.font_family is not None:
-        attrs.append(("font-family", style.font_family))
+        attrs.append(("font-family", public_family(style.font_family)))
     if style.font_size is not None:
         attrs.append(("font-size", writer.n(style.font_size)))
     if style.font_weight is not None:
@@ -482,8 +504,8 @@ def _family(family: str, path: str | None, index: int, w: _Writer) -> str:
     """What a `<text>` should call its face: the real family, or this
     document's name for the subset of it that travels inside the file."""
     if w.text_mode != "embed" or path is None:
-        return family
-    return w.faces.name(path, index, family)
+        return public_family(family)
+    return w.faces.name(path, index, public_family(family))
 
 
 def _face_attrs(run_path: str | None, run_index: int,
@@ -570,7 +592,7 @@ def _text(prim: TextPrim, style: Style, w: _Writer) -> None:
     # does not already say them; `inklet.typeset` resolved a face out of the
     # theme's chain, so usually it does not.
     family = _family(prim.font_family, prim.font_path, 0, w)
-    if style.font_family != family:
+    if style.font_family is None or public_family(style.font_family) != family:
         attrs.append(("font-family", family))
     if style.font_size is None or w.n(style.font_size) != w.n(prim.font_size):
         attrs.append(("font-size", w.n(prim.font_size)))
@@ -931,7 +953,7 @@ def _emit_node(node: SceneNode, w: _Writer) -> None:
     style_attrs = _style_attrs(node.local_style, w)
     transform = node.transform
 
-    attrs: Attrs = [("id", node.id)]
+    attrs: Attrs = [("id", w.node_id(node.id))]
     if node.name:
         attrs.append(("data-name", node.name))
     if not transform.is_identity:
@@ -1006,7 +1028,7 @@ def to_svg(root: Diagram | RenderScene, *, width: float | str | None = None,
            height: float | str | None = None, margin: float = 0.0,
            background: str | None = None, precision: int = 3,
            title: str | None = None, compact: bool | str = "auto",
-           text: str = "names") -> str:
+           text: str = "names", ids: str = "nodes") -> str:
     """Render a diagram tree to a self-contained SVG document.
 
     `width`/`height` accept mm numbers or unit strings (`"89mm"`, `"7pt"`);
@@ -1044,14 +1066,24 @@ def to_svg(root: Diagram | RenderScene, *, width: float | str | None = None,
     and a renderer carrying its pen in single precision lands a fraction of a
     device pixel from where the open one puts it. `render.pathdata` has the
     measurement.
+
+    `ids` chooses the element ids. `"nodes"` (the default) writes each node's
+    own id, which the layout editor and viewer use to map an element back to
+    its node; those ids come from a per-process counter, so a figure built
+    after other figures in one process carries different numbers. `"document"`
+    renumbers them per file in drawing order, so the bytes depend on the
+    figure alone -- what a build that rewrites only changed files wants.
     """
+    if ids not in ("nodes", "document"):
+        raise ValueError(f"unknown ids mode {ids!r}; expected nodes or document")
     return _render_svg(root, width=width, height=height, margin=margin,
                        background=background, precision=precision, title=title,
-                       compact=compact, text=text)
+                       compact=compact, text=text, ids=ids)
 
 
 def _render_svg(root, *, width=None, height=None, margin=0., background=None,
-                precision=3, title=None, compact='auto', text='names', marker_handler=None):
+                precision=3, title=None, compact='auto', text='names', marker_handler=None,
+                ids='nodes'):
     """Native SVG execution with an optional browser marker-layer writer."""
     root = compile_scene(root)
     root.validate_fonts()
@@ -1059,6 +1091,8 @@ def _render_svg(root, *, width=None, height=None, margin=0., background=None,
     paper = background or DEFAULT_PAPER
     w = _Writer(precision, compact, text=mode, paper=paper)
     w.marker_handler = marker_handler
+    if ids == "document":
+        w.renamed = {}
     content, page_w, page_h = _canvas(root, width, height, margin)
 
     # `<defs>` and `<style>` have to come before what refers to them, and what
@@ -1070,6 +1104,7 @@ def _render_svg(root, *, width=None, height=None, margin=0., background=None,
         body = _Writer(precision, compact, text=mode, paper=paper)
         body.marker_handler = marker_handler
         body.glyphs, body.faces = w.glyphs, w.faces
+        body.renamed = w.renamed
         body.depth = 1
         w.glyphs.reserve(root)
         _emit_node(root.root, body)
@@ -1109,7 +1144,7 @@ def save_svg(root: Diagram | RenderScene, path: str, *, width: float | str | Non
              height: float | str | None = None, margin: float = 0.0,
              background: str | None = None, precision: int = 3,
              title: str | None = None, compact: bool | str = "auto",
-             text: str = "names") -> None:
+             text: str = "names", ids: str = "nodes") -> None:
     """Write `root` to `path` as SVG. `to_svg` is the same thing as a string.
 
     `text` defaults to `"names"`: live `<text>` with the theme's font-family
@@ -1122,7 +1157,7 @@ def save_svg(root: Diagram | RenderScene, path: str, *, width: float | str | Non
     """
     document = to_svg(root, width=width, height=height, margin=margin,
                       background=background, precision=precision, title=title,
-                      compact=compact, text=text)
+                      compact=compact, text=text, ids=ids)
     # newline="" keeps the bytes identical on Windows, where determinism would
     # otherwise stop at the line endings.
     with open(path, "w", encoding="utf-8", newline="") as handle:

@@ -74,7 +74,8 @@ class FontShelf:
 
     Shared across pages the way rasters are: three sheets in one family embed
     one subset. `use` returns None for a face that cannot be a `/FontFile2` --
-    a CFF/OpenType one -- and the caller outlines that block instead, which is
+    a CFF2 or bitmap one, or a CFF face whose outlines do not convert -- and
+    the caller outlines that block instead, which is
     the same picture and the only part of the page that is not selectable.
     """
 
@@ -91,9 +92,11 @@ class FontShelf:
                 if key not in self.outlined:
                     self.outlined.add(key)
                     warnings.warn(
-                        f"{Path(path).name} is not a TrueType face, so the PDF outlines its "
-                        "text instead of embedding it as editable text; set this text in a "
-                        "TrueType (.ttf) font to keep it live", FontEmbeddingWarning,
+                        f"{Path(path).name} has no TrueType outlines and no CFF outlines that "
+                        "convert to them (CFF2 and bitmap-only faces are not supported), so the "
+                        "PDF outlines its text instead of embedding it as editable text; set "
+                        "this text in a TrueType (.ttf) or OpenType (.otf) font to keep it live",
+                        FontEmbeddingWarning,
                         stacklevel=2)
                 return None
             got = self.faces[key] = FontUse(f"F{len(self.faces)}", path, index)

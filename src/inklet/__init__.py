@@ -450,6 +450,7 @@ from .render.composite import blend, mask
 from .render.scene import RenderScene, compile_scene
 from .render.resources import rendering_capabilities
 from .render.fontembed import FontEmbeddingWarning
+from .suite import Suite, current_suite, suite
 from .mpl import from_matplotlib, MatplotlibWarning
 from .quick import (Chart, Layout, LayoutWarning, chart, line, scatter, bar, hist, boxplot, violin, strip,
                     kde, ecdf, area, heatmap, regression, survival, volcano, pie, lollipop, dumbbell,
@@ -461,6 +462,7 @@ __all__ = [
     "kde", "ecdf", "area", "heatmap", "regression", "survival", "volcano", "pie", "lollipop", "dumbbell",
     "waterfall", "slope", "from_matplotlib", "MatplotlibWarning",
     "rendering_capabilities", "RenderScene", "compile_scene", "FontEmbeddingWarning",
+    "Suite", "suite", "current_suite",
     "blend", "mask",
     "LinearGradient", "RadialGradient", "Hatch", "paint",
     "SceneRender", "ScenePass", "ProjectedPoint", "BlendSceneSpec", "render_blend", "blend_scene", "blend_scene_spec",

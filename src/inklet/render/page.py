@@ -41,6 +41,8 @@ def check_export_options(suffixes, options, where: str = "save()") -> None:
     Runs before anything is rendered, so a misspelt keyword costs no file and
     no layout. `save()` writes several formats at once, so `dpi=` is accepted
     there whatever they are: the vector formats ignore a raster resolution.
+    `ids=` (SVG element ids) is accepted when an SVG or PNG is among the files
+    (a PNG is drawn from SVG), and `write=` always; neither changes a PDF.
     """
     formats = [s for s in suffixes if s in _EXPORT_OPTIONS]
     if not formats or not options:
@@ -48,13 +50,15 @@ def check_export_options(suffixes, options, where: str = "save()") -> None:
     saving = where == "save()"
     accepted = frozenset().union(*(_EXPORT_OPTIONS[s] for s in formats))
     if saving:
-        accepted |= {"dpi"}
+        accepted |= {"dpi", "write", "ids"}
     for key in options:
         if key not in accepted:
             raise TypeError(
                 f"{where} got an unexpected keyword {key!r}; it accepts "
                 f"{', '.join(f'{k}=' for k in sorted(accepted))}")
-        if saving and key == "dpi":
+        if saving and key in ("dpi", "write"):
+            continue
+        if saving and key == "ids" and any(f in formats for f in (".svg", ".png")):
             continue
         for suffix in formats:
             if key not in _EXPORT_OPTIONS[suffix]:
@@ -64,8 +68,33 @@ def check_export_options(suffixes, options, where: str = "save()") -> None:
                     f"{suffix} takes {takes}")
 
 
-def save_outputs(figure, *paths: str | Path, **kwargs) -> None:
-    """Dispatch formats through the caller, retaining its export overrides."""
+#: What `save(write=...)` accepts.
+WRITE_MODES = ("always", "changed")
+
+
+def save_outputs(figure, *paths: str | Path, write: str = "always",
+                 **kwargs) -> dict[str, bool]:
+    """Dispatch formats through the caller, retaining its export overrides.
+
+    Every file is rendered first and then written, each through a temporary
+    file in the same directory and an atomic rename, so a reader never sees a
+    half-written PDF and a format that fails to render leaves every file as it
+    was. (A file that fails to *write* stops the call; the files before it
+    have been replaced.) A file that exists keeps its permission bits, and a
+    symbolic link is followed: the file it points to is replaced. All files written by one call get the same modification time, so a
+    build that picks "the newest of pdf, svg and png" sees one export rather
+    than whichever format happened to finish in a later second (the PNG,
+    usually, since it is drawn last).
+
+    `write="changed"` leaves a file whose bytes would not change untouched,
+    timestamp included -- inklet's output is byte-deterministic, so a rebuild
+    of an unchanged figure changes nothing on disk and nothing downstream
+    rebuilds. If any of the files does change, all of them are written, so the
+    set keeps one timestamp. Returns `{path: written}`.
+    """
+    import os
+    if write not in WRITE_MODES:
+        raise ValueError(f"unknown write mode {write!r}; expected one of {', '.join(WRITE_MODES)}")
     mode = kwargs.get("text")
     if mode is not None and mode not in TEXT_MODES:
         raise ValueError(
@@ -75,6 +104,7 @@ def save_outputs(figure, *paths: str | Path, **kwargs) -> None:
     check_export_options([Path(p).suffix.lower() for p in paths], kwargs)
     # A raster resolution means nothing to the vector formats saved alongside.
     vector = {k: v for k, v in kwargs.items() if k != "dpi"}
+    rendered: list[tuple[Path, bytes]] = []
     for path in paths:
         target = Path(path)
         suffix = target.suffix.lower()
@@ -82,16 +112,63 @@ def save_outputs(figure, *paths: str | Path, **kwargs) -> None:
             raise NotImplementedError(
                 f"{target.suffix} output is not supported; write .svg, .pdf or .png"
             )
-        target.parent.mkdir(parents=True, exist_ok=True)
         if suffix == '.png':
-            target.write_bytes(figure.to_png(**kwargs))
+            data = figure.to_png(**kwargs)
         elif suffix == ".pdf":
-            options = {k: v for k, v in vector.items() if k != "text"}
+            # `ids` names SVG elements; a PDF has none to name.
+            options = {k: v for k, v in vector.items() if k not in ("text", "ids")}
             if mode in PDF_TEXT_MODES:
                 options["text"] = mode
-            target.write_bytes(figure.to_pdf(**options))
+            data = figure.to_pdf(**options)
         else:
-            target.write_text(figure.to_svg(**vector), encoding="utf-8")
+            data = figure.to_svg(**vector).encode("utf-8")
+        rendered.append((target, data))
+    if write == "changed" and all(_same_bytes(t, d) for t, d in rendered):
+        return {str(t): False for t, _ in rendered}
+    stamp = None
+    for target, data in rendered:
+        if target.is_symlink():
+            target = target.resolve()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            mode = target.stat().st_mode & 0o7777
+        except OSError:
+            mode = None
+        fd, tmp = _temporary(target)
+        try:
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(data)
+            if mode is not None:
+                os.chmod(tmp, mode)
+            os.replace(tmp, target)
+        except BaseException:
+            Path(tmp).unlink(missing_ok=True)
+            raise
+        if stamp is None:
+            stamp = target.stat().st_mtime_ns
+        os.utime(target, ns=(stamp, stamp))
+    return {str(t): True for t, _ in rendered}
+
+
+def _temporary(target: Path) -> tuple[int, str]:
+    """A new file beside `target`, created with mode 0o666 so the process
+    umask applies, as it would to a file opened for writing."""
+    import os
+    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_BINARY", 0)
+    for attempt in range(1000):
+        tmp = str(target.parent / f".{target.name}.{os.getpid()}.{attempt}.tmp")
+        try:
+            return os.open(tmp, flags, 0o666), tmp
+        except FileExistsError:
+            continue
+    raise FileExistsError(f"cannot create a temporary file beside {target}")
+
+
+def _same_bytes(target: Path, data: bytes) -> bool:
+    try:
+        return target.stat().st_size == len(data) and target.read_bytes() == data
+    except OSError:
+        return False
 
 
 @dataclass(frozen=True)
@@ -129,6 +206,6 @@ class RenderedPage:
         check_export_options([".png"], kwargs, "to_png()")
         return to_png(self.root, dpi=dpi, **(dict(background=self.paper) | kwargs))
 
-    def save(self, *paths: str | Path, **kwargs) -> None:
-        """Write the page to SVG, PDF or PNG files by suffix."""
-        save_outputs(self, *paths, **kwargs)
+    def save(self, *paths: str | Path, **kwargs) -> dict[str, bool]:
+        """Write the page to SVG, PDF or PNG files by suffix; see `Figure.save`."""
+        return save_outputs(self, *paths, **kwargs)
