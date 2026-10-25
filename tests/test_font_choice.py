@@ -128,16 +128,36 @@ def test_nature_pdf_embeds_text_as_truetype_cid_fonts():
     assert b'/Type3' not in pdf and b'/FontFile3' not in pdf
 
 
-def test_a_cff_face_warns_when_pdf_must_outline_it():
-    cff = next((p for p in sorted(Path('/usr/share/fonts').rglob('*.otf'))
-                if 'Sans' in p.name and 'Regular' in p.name), None)
+def _cff_sans():
+    return next((p for p in sorted(Path('/usr/share/fonts').rglob('*.otf'))
+                 if 'Sans' in p.name and 'Regular' in p.name), None)
+
+
+def test_a_cff_face_is_embedded_as_live_truetype_text():
+    """A CFF OpenType face is converted per subset, not outlined: the PDF
+    carries a CIDFontType2 /FontFile2 and no FontEmbeddingWarning fires."""
+    cff = _cff_sans()
     if cff is None:
         pytest.skip('no CFF OpenType font installed')
     doc = i.document(width=60)
     doc.add('label', i.text('Measured label', font=str(cff)))
     figure = doc.compile()
-    with pytest.warns(i.FontEmbeddingWarning, match='outlines its text'):
-        figure.to_pdf(text='embed')
     with warnings.catch_warnings():
         warnings.simplefilter('error', i.FontEmbeddingWarning)
+        pdf = figure.to_pdf(text='embed')
         figure.to_pdf(text='outline')
+    assert b'/FontFile2' in pdf and b'/CIDFontType2' in pdf
+    assert b'/FontFile3' not in pdf
+
+
+def test_a_face_without_outlines_still_warns_and_is_outlined(monkeypatch):
+    """The fallback for a face that cannot be converted (CFF2, bitmap-only)."""
+    cff = _cff_sans()
+    if cff is None:
+        pytest.skip('no CFF OpenType font installed')
+    from inklet.render import pdftext
+    monkeypatch.setattr(pdftext, 'embeddable', lambda path, index: False)
+    doc = i.document(width=60)
+    doc.add('label', i.text('Measured label', font=str(cff)))
+    with pytest.warns(i.FontEmbeddingWarning, match='outlines its text'):
+        doc.compile().to_pdf(text='embed')

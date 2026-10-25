@@ -82,9 +82,10 @@ class FontEmbeddingWarning(UserWarning):
     `to_pdf(text="embed")` writes each TrueType face as a CIDFontType2 with
     a `/FontFile2` subset -- what matplotlib's `pdf.fonttype = 42` produces,
     and what journals mean by "TrueType (Type 42)" embedding. A CFF-flavoured
-    OpenType face (`.otf` with PostScript outlines) cannot be written that
-    way, so its text is outlined: the same picture, but not editable text.
-    Choose a TrueType (`.ttf`) face to keep it live.
+    OpenType face (`.otf` with PostScript outlines) is converted to TrueType
+    outlines per subset and embedded the same way. A face with neither kind
+    of outline (CFF2 variable, bitmap-only) cannot be, so its text is
+    outlined: the same picture, but not editable text.
     """
 
 
@@ -256,8 +257,10 @@ def subset_sfnt(path: str, index: int, gids: frozenset[int]) -> SfntSubset:
     not choose is a glyph nothing can reach.
 
     Deterministic in the same way `subset_face` is: fixed options, sorted ids,
-    zeroed `head` timestamps. Raises `UnembeddableFont` for a CFF face, whose
-    outlines are not a `/FontFile2` at all.
+    zeroed `head` timestamps. A CFF-flavoured face is cut the same way and
+    its outlines are then converted to TrueType (`_cff_to_glyf`), so it is
+    written as a `/FontFile2` too. Raises `UnembeddableFont` for a face with
+    neither outline table (CFF2, bitmap-only).
     """
     return _subset_sfnt(path, index, gids)
 
@@ -268,11 +271,12 @@ def _subset_sfnt(path: str, index: int, gids: frozenset[int]) -> SfntSubset:
     from fontTools.ttLib import TTFont
 
     font = _open(path, index)
-    if "glyf" not in font:
+    cff = "glyf" not in font and "CFF " in font
+    if "glyf" not in font and not cff:
         font.close()
         raise UnembeddableFont(
-            f"{path!r} has no 'glyf' table (a CFF/OpenType face); PDF would "
-            f"need a CIDFontType0 and inklet outlines it instead")
+            f"{path!r} has neither a 'glyf' nor a 'CFF ' table (a CFF2 or "
+            f"bitmap face); inklet outlines its text instead")
 
     scale = 1000.0 / font["head"].unitsPerEm
     # The advances come from the *uncut* face, because `retain_gids` pads
@@ -304,6 +308,9 @@ def _subset_sfnt(path: str, index: int, gids: frozenset[int]) -> SfntSubset:
     subsetter = subset.Subsetter(options=options)
     subsetter.populate(gids=sorted(gids))
     subsetter.subset(font)
+    if cff:
+        # After the cut, so only the glyphs the page places are converted.
+        _cff_to_glyf(font)
 
     head = font["head"]
     head.created = head.modified = 0
@@ -314,6 +321,58 @@ def _subset_sfnt(path: str, index: int, gids: frozenset[int]) -> SfntSubset:
     data = buffer.getvalue()
     return SfntSubset(data=data, tag=_subset_tag(data), widths=widths,
                       **descriptor)
+
+
+#: Largest distance, in font units, between a cubic CFF segment and the
+#: quadratic splines that replace it. One unit of a 1000-unit em is 2.5
+#: micrometres at 7 pt, a tenth of the thinnest hairline a journal prints.
+CFF_TOLERANCE = 1.0
+
+
+def _cff_to_glyf(font) -> None:
+    """Rewrite a CFF-flavoured face's outlines as TrueType quadratics, in place.
+
+    PDF has two ways to carry an OpenType face: `/FontFile2` for TrueType
+    outlines and `/FontFile3 /OpenType` (or a CIDFontType0) for CFF ones.
+    Viewers, preflight tools and journal checkers agree only on the first --
+    "TrueType (Type 42)" is what submission systems ask for -- so a CFF face
+    is converted rather than written in its own format. The conversion keeps
+    the glyph order, the `hmtx` advances, `cmap` and the vertical metrics, so
+    everything the shaper measured against the CFF face is still true of the
+    file the reader opens; only the curve degree changes, within
+    `CFF_TOLERANCE` font units. This is what a `.ttf` built from the `.otf`
+    with `fontTools.cu2qu` contains, done per subset so no file has to be made.
+    """
+    from fontTools.pens.cu2quPen import Cu2QuPen
+    from fontTools.pens.ttGlyphPen import TTGlyphPen
+    from fontTools.ttLib import newTable
+
+    glyphset = font.getGlyphSet()
+    order = font.getGlyphOrder()
+    glyf = newTable("glyf")
+    glyf.glyphOrder = order
+    glyf.glyphs = {}
+    for name in order:
+        pen = TTGlyphPen(glyphset)
+        # TrueType winds outer contours clockwise, CFF counter-clockwise.
+        glyphset[name].draw(Cu2QuPen(pen, CFF_TOLERANCE, reverse_direction=True))
+        glyf.glyphs[name] = pen.glyph()
+    font["glyf"] = glyf
+    font["loca"] = newTable("loca")
+    del font["CFF "]
+    if "VORG" in font:
+        del font["VORG"]
+    maxp = font["maxp"]
+    maxp.tableVersion = 0x00010000
+    for key in ("maxTwilightPoints", "maxStorage", "maxFunctionDefs",
+                "maxInstructionDefs", "maxStackElements",
+                "maxSizeOfInstructions", "maxComponentElements"):
+        setattr(maxp, key, 0)
+    maxp.maxZones = 1
+    font["head"].glyphDataFormat = 0
+    post = font["post"]
+    post.formatType = 3.0
+    font.sfntVersion = "\x00\x01\x00\x00"
 
 
 def _descriptor(font, scale: float) -> dict:
@@ -393,7 +452,9 @@ def embeddable(path: str, index: int) -> bool:
     Asked before a backend commits to live text, for the same reason
     `readable` is asked before an `@font-face`: the alternative is discovering
     it while writing the page, when the content stream already names a font
-    that will not be there. A CFF face fails here and is outlined instead.
+    that will not be there. A CFF-flavoured face passes: `subset_sfnt`
+    converts its outlines to TrueType (`_cff_to_glyf`). A CFF2 (variable) or
+    bitmap-only face fails here and is outlined instead.
     """
     from fontTools.ttLib import TTFont
 
@@ -402,6 +463,7 @@ def embeddable(path: str, index: int) -> bool:
     except Exception:                                     # noqa: BLE001
         return False
     try:
-        return "glyf" in font and "hmtx" in font and "head" in font
+        return (("glyf" in font or "CFF " in font)
+                and "hmtx" in font and "head" in font and "maxp" in font)
     finally:
         font.close()

@@ -295,22 +295,61 @@ def _cff_family() -> str | None:
             face = find_font(name)
         except Exception:                                 # noqa: BLE001
             continue
-        if not embeddable(face.path, face.index):
-            return name
+        from fontTools.ttLib import TTFont
+        font = TTFont(face.path, lazy=True, fontNumber=face.index)
+        try:
+            if "CFF " in font and "glyf" not in font:
+                return name
+        finally:
+            font.close()
     return None
 
 
-def test_a_face_that_cannot_be_a_fontfile2_is_outlined_instead():
-    """A CFF face would need a CIDFontType0 and its own font program format.
-    Outlining that one block is the same picture and only that block stops
-    being selectable, which beats refusing to write the file."""
+def test_a_cff_face_is_converted_and_embedded_as_truetype():
+    """A CFF face is cut by glyph id and its outlines converted to TrueType
+    quadratics, so it is a /FontFile2 like any .ttf: live, extractable text,
+    glyph ids and advances unchanged, and the same bytes on every run."""
     family = _cff_family()
     if family is None:
-        pytest.skip("no CFF face installed to fall back from")
-    node = Diagram(prim=shape("Fallback", font=family, size=5.0))
-    stream = content(to_pdf(node, compress=False, text="embed"))
-    assert "BT" not in stream
-    assert " c\n" in stream or " l\n" in stream       # it drew the outlines
+        pytest.skip("no CFF face installed")
+    from fontTools.ttLib import TTFont
+    node = Diagram(prim=shape("Fallback 0123", font=family, size=5.0))
+    pdf = to_pdf(node, compress=False, text="embed")
+    assert "BT" in content(pdf)
+    assert pdf == to_pdf(node, compress=False, text="embed")
+    program = TTFont(BytesIO(font_program(pdf)))
+    assert "glyf" in program and "CFF " not in program
+    face = find_font(family)
+    glyphs = placed_glyphs(node.prim)
+    order = program.getGlyphOrder()
+    original = sfnt_widths(face.path, face.index)
+    scale = 1000.0 / program["head"].unitsPerEm
+    for glyph in glyphs:
+        name = order[glyph.gid]
+        assert program["glyf"][name].numberOfContours != 0 or glyph.chars == " "
+        assert round(program["hmtx"][name][0] * scale) == original[glyph.gid]
+    assert "".join(unicode_map(pdf)[g.gid] for g in glyphs) == "Fallback 0123"
+
+
+def test_cff_conversion_stays_within_tolerance():
+    """Each converted outline keeps its bounding box to the font unit."""
+    family = _cff_family()
+    if family is None:
+        pytest.skip("no CFF face installed")
+    from fontTools.pens.boundsPen import BoundsPen
+    from fontTools.ttLib import TTFont
+    from inklet.render.fontembed import subset_sfnt
+    face = find_font(family)
+    source = TTFont(face.path, fontNumber=face.index)
+    cmap = source.getBestCmap()
+    gids = frozenset(source.getGlyphID(cmap[ord(c)]) for c in "aegQ&@")
+    cut = TTFont(BytesIO(subset_sfnt(face.path, face.index, gids).data))
+    src_set, cut_set = source.getGlyphSet(), cut.getGlyphSet()
+    for gid in gids:
+        before, after = BoundsPen(src_set), BoundsPen(cut_set)
+        src_set[source.getGlyphName(gid)].draw(before)
+        cut_set[cut.getGlyphOrder()[gid]].draw(after)
+        assert all(abs(a - b) <= 1.5 for a, b in zip(before.bounds, after.bounds))
 
 
 # -- the halo, in the mode where it is not a stroked text object -------------
