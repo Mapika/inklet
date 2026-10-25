@@ -4,6 +4,7 @@ import math
 from dataclasses import dataclass
 from collections.abc import Mapping
 from ..core import Diagram, DiagramError, Envelope, Rect, mm
+from ..draw.annotate import LETTER_KIND
 
 
 @dataclass(frozen=True)
@@ -38,6 +39,43 @@ def _constrained_tracks(initial, requirements):
     raise DiagramError('panel minimum sizes cannot fit the page; enlarge it or reduce the requested minimums')
 
 
+#: Letters whose ink reaches the ascender line and sits on the baseline. The
+#: band a header text claims is this string's ink, measured in the header's
+#: own face and size, so every letter in a row claims the same band.
+_HEADER_REFERENCE = 'bdfhklo'
+
+
+def header_text(content, size, *, weight=None, kind='text'):
+    """A panel-header text whose box is the ascender-to-baseline band.
+
+    Headers used to be measured by their own ink (`bounds='ink'`) and placed
+    with the ink top on the slot top. Ink depends on the letters: an `a` is
+    x-height tall and a `b` reaches the ascender, so in one row `b`'s baseline
+    sat 0.5 mm below `a`'s at 8 pt (a `j`, with its descender, 1.1 mm) and its
+    panel started 0.5 mm lower too. Here the vertical extent comes from the
+    ink of `_HEADER_REFERENCE` set in the same face, so every header in a row
+    shares one baseline and one reserve; the horizontal extent is still the
+    text's own ink, so its left edge lines up with the slot as before. A
+    descender hangs into the gap below the band, as it does in running text.
+    """
+    import inklet as i
+    from dataclasses import replace
+    from ..typeset.outline import text_to_paths
+    node = i.text(content, size=size, weight=weight, markup=False, kind=kind)
+    ref = i.text(_HEADER_REFERENCE, size=size, weight=weight, markup=False)
+    def ink(prim):
+        return Envelope.union_all(path.envelope() for path, _ in text_to_paths(prim))
+    own, band = ink(node.prim), ink(ref.prim)
+    if own.is_empty or band.is_empty:
+        return node
+    own, band = own.bbox(), band.bbox()
+    top = node.prim.first_baseline + band.y0 - ref.prim.first_baseline
+    bottom = node.prim.first_baseline + band.y1 - ref.prim.first_baseline
+    node = replace(node, envelope_override=Envelope.from_rect(Rect(own.x0, top, own.x1, bottom)), _cache={})
+    node.notes['text_bounds'] = 'header'
+    return node
+
+
 def panel_mosaic(layout, panels, *, width, height, gap=4, margin=4,
                  row_weights=None, column_weights=None, titles=None,
                  letters=True, label_size=4, label_gap=2):
@@ -49,7 +87,8 @@ def panel_mosaic(layout, panels, *, width, height, gap=4, margin=4,
     allocated outer box. Fonts/strokes are never scaled. Static content that
     cannot fit raises an informative error. Factories may run up to 12 times.
 
-    Titles and panel letters occupy a reserved header band. Returns a Diagram
+    Titles and panel letters occupy a reserved header band, the same height
+    for every panel; letters and titles share one baseline (`header_text`). Returns a Diagram
     with a top-left page origin and named panel/content boxes in
     ``notes['panel_mosaic']``. This is a static composition; use Composition
     slots when live data binding or interactive layout edits are needed.
@@ -82,9 +121,9 @@ def panel_mosaic(layout, panels, *, width, height, gap=4, margin=4,
     headers={}
     for name in names:
         header=[]
-        if letters:header.append(i.text(name,size=label_size,weight='bold',markup=False,bounds='ink'))
-        if name in titles:header.append(i.text(titles[name],size=label_size*.85,markup=False,bounds='ink'))
-        head=i.hstack(header,gap=label_gap) if header else None
+        if letters:header.append(header_text(name,label_size,weight='bold',kind=LETTER_KIND))
+        if name in titles:header.append(header_text(titles[name],label_size*.85))
+        head=i.hstack(header,gap=label_gap,align='bottom') if header else None
         reserve=(head.height+label_gap) if head is not None else 0
         headers[name]=(head,reserve)
     def tracks(n,weights,total,axis):
