@@ -41,9 +41,10 @@ from .rules import (
     DEFAULT_MIN_OVERLAP_FRACTION, DEFAULT_PAGE_FILL, RULE_FAILED, RULES,
     SEVERITIES, Diagnostic, Item, LintContext, Rule, build_context, run_rules,
 )
+from .house_rules import HOUSE_CODES, HouseRules  # after .rules, which imports it
 
 __all__ = [
-    "FigureReview", "review_figure",
+    "FigureReview", "review_figure", "HouseRules", "HOUSE_CODES",
     "abutting", "is_abutting_kind",
     "decorative", "is_decorative_kind",
     "crossing", "declared_crossings",
@@ -87,6 +88,7 @@ def lint(
     max_letter_pt: float | None = None,
     expected_fonts: Sequence[str] | None = None,
     expect: Iterable[str] = (),
+    house: HouseRules | None = None,
 ) -> list[Diagnostic]:
     """Check a figure and return its diagnostics, deterministically ordered.
 
@@ -116,8 +118,15 @@ def lint(
     sees them and a clean report stays clean for everything else. Only codes
     that exist are accepted: a misspelt code raises rather than acknowledging
     nothing.
+
+    `house` adds a figure set's own rules (`HouseRules`: line-weight tiers,
+    unoutlined markers, no grey text, bold only for panel letters, no keys in
+    panels), reported as STROKE_TIER, MARKER_OUTLINE, MUTED_TEXT, BOLD_TEXT
+    and KEY_IN_PANEL. Without it those codes report nothing.
     """
     _must_be_a_diagram(root)
+    if house is not None and not isinstance(house, HouseRules):
+        raise TypeError(f"house must be a HouseRules, not {type(house).__name__}")
     expected = frozenset(expect) if not isinstance(expect, str) else frozenset((expect,))
     unknown = sorted(expected - set(RULES))
     if unknown:
@@ -134,6 +143,7 @@ def lint(
         max_font_pt=max_font_pt, max_height_mm=max_height_mm,
         max_letter_pt=max_letter_pt,
         expected_fonts=None if expected_fonts is None else tuple(expected_fonts),
+        house=house,
     )
     found = run_rules(ctx, _select(rules))
     if not expected:
